@@ -18,6 +18,7 @@ type Body = {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Body;
+
     const root = String(body?.root ?? "").trim();
     const lang = String(body?.lang ?? "").trim() || "unknown";
     const candidates = Array.isArray(body?.candidates) ? body.candidates : [];
@@ -26,10 +27,10 @@ export async function POST(req: Request) {
     if (candidates.length === 0)
       return NextResponse.json({ error: "Missing candidates" }, { status: 400 });
 
-    // dedupe + cap
+    // ✅ Убираем мусор/дубликаты + hard cap
     const uniq = new Map<string, Candidate>();
     for (const c of candidates) {
-      const native = String(c?.native ?? "").trim();
+      const native = String(c?.native ?? "");
       if (!native) continue;
       if (!uniq.has(native)) uniq.set(native, c);
       if (uniq.size >= 30) break;
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+    // ✅ JSON Schema для строгого ответа
     const schema = {
       name: "emoji_pick",
       schema: {
@@ -53,40 +55,36 @@ export async function POST(req: Request) {
       },
     } as const;
 
-    const payload = {
-      root,
-      lang,
-      instruction:
-        "Pick the best semantic match for this root word for a dream-journal UI. Prefer concrete, non-abstract, non-flag emojis. Choose exactly one.",
-      candidates: safeCandidates.map((c) => ({
-        native: c.native,
-        id: c.id ?? "",
-        name: c.name ?? "",
-        keywords: Array.isArray(c.keywords) ? c.keywords.slice(0, 12) : [],
-      })),
-    };
+    // ✅ ВАЖНО: input делаем СТРОКОЙ (так TS/SDK не ругается)
+    const prompt =
+      `You pick the single best emoji from the provided candidate list.\n` +
+      `You MUST choose ONLY from the candidates.\n` +
+      `Return valid JSON matching the schema.\n\n` +
+      JSON.stringify(
+        {
+          root,
+          lang,
+          instruction:
+            "Pick the best semantic match for this root word for a dream-journal UI. Prefer concrete, non-abstract, non-flag emojis. Choose exactly one.",
+          candidates: safeCandidates.map((c) => ({
+            native: c.native,
+            id: c.id ?? "",
+            name: c.name ?? "",
+            keywords: Array.isArray(c.keywords) ? c.keywords.slice(0, 12) : [],
+          })),
+        },
+        null,
+        2
+      );
 
     const resp = await client.responses.create({
       model: "gpt-4.1-mini",
-
-      // ✅ вместо system-сообщения
-      instructions:
-        "You pick the single best emoji from the provided candidate list. " +
-        "You MUST choose ONLY from the candidates. Return valid JSON matching the schema.",
-
-      // ✅ правильный формат input для Responses API
-      input: [
-        {
-          role: "user",
-          content: [{ type: "input_text", text: JSON.stringify(payload, null, 2) }],
-        },
-      ],
-
+      input: prompt,
       response_format: { type: "json_schema", json_schema: schema },
       temperature: 0.2,
     });
 
-    // ✅ самый простой способ достать текст
+    // ✅ В новом SDK есть удобное поле
     const outText = (resp as any).output_text ?? "";
 
     let parsed: any = null;
@@ -117,6 +115,9 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     console.error("emoji-pick error:", e);
-    return NextResponse.json({ error: e?.message ?? "emoji-pick failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message ?? "emoji-pick failed" },
+      { status: 500 }
+    );
   }
 }
