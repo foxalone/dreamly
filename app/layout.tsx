@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oneiro",
+  title: "Dreamly",
   description: "AI Dream Journal & Anonymous Dream Map",
 };
 

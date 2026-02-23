@@ -9,7 +9,7 @@ export default function HomePage() {
       <div className="text-center max-w-2xl">
 
         <h1 className="text-4xl sm:text-6xl font-semibold tracking-wide mb-8">
-          Oneiro
+          Dreamly
         </h1>
 
         <h2 className="text-xl sm:text-2xl font-medium">
