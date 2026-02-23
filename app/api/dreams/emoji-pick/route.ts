@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+export const runtime = "nodejs";
+
 type Candidate = {
   id?: string;
   name?: string;
@@ -15,47 +17,52 @@ type Body = {
   candidates: Candidate[];
 };
 
+function toStr(x: any) {
+  return String(x ?? "").trim();
+}
+
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as Body;
+    const body = (await req.json().catch(() => ({}))) as Partial<Body>;
 
-    const root = String(body?.root ?? "").trim();
-    const lang = String(body?.lang ?? "").trim() || "unknown";
-    const candidates = Array.isArray(body?.candidates) ? body.candidates : [];
+    const root = toStr(body?.root);
+    const lang = toStr(body?.lang) || "unknown";
+    const candidates = Array.isArray(body?.candidates) ? body!.candidates : [];
 
     if (!root) return NextResponse.json({ error: "Missing root" }, { status: 400 });
-    if (candidates.length === 0)
+    if (!candidates.length)
       return NextResponse.json({ error: "Missing candidates" }, { status: 400 });
 
     // ✅ Убираем мусор/дубликаты + hard cap
     const uniq = new Map<string, Candidate>();
     for (const c of candidates) {
-      const native = String(c?.native ?? "");
+      const native = toStr((c as any)?.native);
       if (!native) continue;
-      if (!uniq.has(native)) uniq.set(native, c);
+      if (!uniq.has(native)) uniq.set(native, c as Candidate);
       if (uniq.size >= 30) break;
     }
     const safeCandidates = Array.from(uniq.values()).slice(0, 20);
 
+    if (!safeCandidates.length) {
+      return NextResponse.json({ error: "No valid candidates" }, { status: 400 });
+    }
+
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // ✅ JSON Schema для строгого ответа
+    // ✅ JSON schema (строгий)
     const schema = {
-      name: "emoji_pick",
-      schema: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          native: { type: "string" },
-          id: { type: "string" },
-          name: { type: "string" },
-          reason: { type: "string" },
-        },
-        required: ["native"],
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        native: { type: "string" },
+        id: { type: "string" },
+        name: { type: "string" },
+        reason: { type: "string" },
       },
+      required: ["native"],
     } as const;
 
-    // ✅ ВАЖНО: input делаем СТРОКОЙ (так TS/SDK не ругается)
+    // ✅ input делаем строкой (чтобы не гадать с типами)
     const prompt =
       `You pick the single best emoji from the provided candidate list.\n` +
       `You MUST choose ONLY from the candidates.\n` +
@@ -77,15 +84,22 @@ export async function POST(req: Request) {
         2
       );
 
+    // ✅ FIX: structured output через text.format (а не response_format)
     const resp = await client.responses.create({
       model: "gpt-4.1-mini",
       input: prompt,
-      response_format: { type: "json_schema", json_schema: schema },
+      text: {
+        format: {
+          type: "json_schema",
+          name: "emoji_pick",
+          strict: true,
+          schema,
+        },
+      },
       temperature: 0.2,
     });
 
-    // ✅ В новом SDK есть удобное поле
-    const outText = (resp as any).output_text ?? "";
+    const outText = toStr((resp as any).output_text);
 
     let parsed: any = null;
     try {
@@ -94,9 +108,10 @@ export async function POST(req: Request) {
       parsed = null;
     }
 
-    const pickedNative = String(parsed?.native ?? "").trim();
+    const pickedNative = toStr(parsed?.native);
     const found = safeCandidates.find((c) => c.native === pickedNative);
 
+    // fallback: первый кандидат
     if (!found) {
       const first = safeCandidates[0];
       return NextResponse.json({
@@ -111,13 +126,10 @@ export async function POST(req: Request) {
       native: found.native,
       id: found.id ?? "",
       name: found.name ?? "",
-      reason: String(parsed?.reason ?? ""),
+      reason: toStr(parsed?.reason),
     });
   } catch (e: any) {
     console.error("emoji-pick error:", e);
-    return NextResponse.json(
-      { error: e?.message ?? "emoji-pick failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: e?.message ?? "emoji-pick failed" }, { status: 500 });
   }
 }
