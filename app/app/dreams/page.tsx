@@ -756,7 +756,7 @@ useEffect(() => {
       // ✅ AI-pick per root из кандидатов emoji-mart
       const rootsLimited = rootsArr.slice(0, 6);
       const picked = await Promise.all(
-        rootsLimited.map((r) => pickEmojiForOneRoot_AI(r, (dream as any)?.langGuess))
+        rootsLimited.map((r: string) => pickEmojiForOneRoot_AI(r, (dream as any)?.langGuess))
       );
       const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
 

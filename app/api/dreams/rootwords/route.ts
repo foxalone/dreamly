@@ -6,20 +6,23 @@ export const runtime = "nodejs";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+function toStr(x: any) {
+  return String(x ?? "").trim();
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const text = String(body?.text ?? "").trim();
+    const text = toStr(body?.text);
+
     if (!text) return NextResponse.json({ error: "Missing text" }, { status: 400 });
 
     const resp = await client.responses.create({
-      // если вдруг "gpt-4.1-mini" не поддерживает structured outputs в твоём аккаунте —
-      // попробуй "gpt-4o-mini" или "gpt-4o-2024-08-06"
       model: "gpt-4.1-mini",
-  input: [
-  {
-    role: "system",
-    content: `
+      input: [
+        {
+          role: "system",
+          content: `
 You are a symbolic dream analyzer.
 
 Your task is NOT lemmatization.
@@ -56,15 +59,12 @@ LANGUAGE:
 - Do NOT translate.
 
 Return only valid JSON.
-`,
-  },
-  {
-    role: "user",
-    content: text,
-  },
-],
+`.trim(),
+        },
+        { role: "user", content: text },
+      ],
 
-      // ✅ ВАЖНО: structured output задаётся через text.format
+      // ✅ structured output через text.format
       text: {
         format: {
           type: "json_schema",
@@ -75,33 +75,31 @@ Return only valid JSON.
             additionalProperties: false,
             properties: {
               lang: { type: "string" },
-              roots: { type: "array", items: { type: "string" } },
-              top: {
-                type: "array",
-                items: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    w: { type: "string" },
-                    c: { type: "integer" },
-                  },
-                  required: ["w", "c"],
-                },
-              },
+              core: { type: "array", items: { type: "string" } },
+              support: { type: "array", items: { type: "string" } },
+              themes: { type: "array", items: { type: "string" } },
             },
-            required: ["lang", "roots", "top"],
+            required: ["lang", "core", "support", "themes"],
           },
         },
       },
+      temperature: 0.2,
     });
 
-    // SDK: output_text = агрегированный текст из output_text-частей (тут будет JSON-строка)
-    const jsonText = String((resp as any).output_text ?? "").trim();
+    const jsonText = toStr((resp as any).output_text);
     const data = JSON.parse(jsonText);
 
-    return NextResponse.json(data);
+    // ✅ на всякий случай страховка формата
+    return NextResponse.json({
+      lang: toStr(data?.lang) || "unknown",
+      core: Array.isArray(data?.core) ? data.core.map((x: any) => toStr(x)).filter(Boolean) : [],
+      support: Array.isArray(data?.support)
+        ? data.support.map((x: any) => toStr(x)).filter(Boolean)
+        : [],
+      themes: Array.isArray(data?.themes) ? data.themes.map((x: any) => toStr(x)).filter(Boolean) : [],
+    });
   } catch (e: any) {
-    console.error(e);
+    console.error("rootwords error:", e);
     return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
   }
 }
