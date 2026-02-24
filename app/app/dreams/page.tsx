@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { onIdTokenChanged } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
+import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { auth, firestore } from "@/lib/firebase";
 import {
@@ -852,6 +853,13 @@ const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
   updatedAt: serverTimestamp(),
 });
 
+// ✅ add this
+try {
+  await ingestDreamForMap({ uid, dreamId });
+} catch (e) {
+  console.warn("map ingest failed", e);
+}
+
     setDreams((prev) =>
       prev.map((x) =>
         x.id === dreamId
@@ -965,19 +973,32 @@ rootsEn: rootsEnMajor,
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            const u = auth.currentUser;
-            if (!u) {
-              requireGoogleAuth();
-              return;
-            }
-            setOpen(true);
-          }}
-          className="px-6 py-3 rounded-full bg-white text-black font-semibold"
-        >
-          + New
-        </button>
+       <button
+  onClick={() => {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      return;
+    }
+    setOpen(true);
+  }}
+  className="
+    inline-flex items-center gap-2
+    px-6 py-3
+    rounded-full
+    bg-[var(--card)]
+    text-[var(--text)]
+    border border-[var(--border)]
+    font-semibold
+    shadow-sm
+    hover:opacity-90
+    active:scale-[0.98]
+    transition
+  "
+>
+  <span className="text-lg leading-none">+</span>
+  <span>New</span>
+</button>
       </div>
 
       {/* Signed-out hint */}

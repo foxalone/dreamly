@@ -99,6 +99,28 @@ function IconSignIn({ active }: { active: boolean }) {
   );
 }
 
+
+function IconMap({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path
+        d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        opacity={active ? 1 : 0.75}
+      />
+      <path
+        d="M9 4v14M15 6v14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        opacity={active ? 1 : 0.75}
+      />
+    </svg>
+  );
+}
+
 function AvatarIcon({
   user,
   active,
@@ -170,6 +192,12 @@ export default function BottomNav({ hidden }: BottomNavProps) {
         icon: (a) => <IconShared active={a} />,
         activeClass: "text-red-500",
       },
+       {
+      href: "/app/map",
+      label: "Map",
+      icon: (a) => <IconMap active={a} />,
+      activeClass: "text-purple-500",
+    },
     ],
     []
   );
@@ -195,7 +223,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="mx-auto max-w-3xl px-4 pb-4">
         <div className="bottom-nav-shell rounded-3xl backdrop-blur-md">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-4">
             {baseItems.map((it) => {
               const active = isActive(it.href);
 
