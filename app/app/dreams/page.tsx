@@ -45,7 +45,7 @@ type Dream = {
   emojis?: DreamEmoji[];
   deleted?: boolean;
   deletedAtMs?: number;
-
+  rootsEn?: string[];        // корни на английском (для emoji поиска)
   roots?: string[];
   rootsTop?: { w: string; c: number }[];
   rootsLang?: string;
@@ -347,21 +347,8 @@ export default function DreamsPage() {
 
   const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
 
-  useEffect(() => {
-  if (typeof window === "undefined") return;
 
-  const saved = localStorage.getItem("recLang");
-  if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
-    setRecLang(saved);
-    return;
-  }
-
-  const nav = (navigator.language || "").toLowerCase();
-  if (nav.startsWith("he")) setRecLang("he-IL");
-  else if (nav.startsWith("ru")) setRecLang("ru-RU");
-  else setRecLang("en-US"); // ✅ default
-}, []);
-
+// init recLang
 useEffect(() => {
   if (typeof window === "undefined") return;
 
@@ -377,10 +364,21 @@ useEffect(() => {
   else setRecLang("en-US");
 }, []);
 
+// persist recLang
 useEffect(() => {
   if (typeof window === "undefined") return;
   localStorage.setItem("recLang", recLang);
 }, [recLang]);
+
+// 🔥 apply new language during active recording
+useEffect(() => {
+  if (recStatus !== "listening") return;
+
+  // мягко перезапустим — onend сам поднимет обратно
+  try {
+    recRef.current?.stop?.();
+  } catch {}
+}, [recLang, recStatus]);
 
   // ✅ SpeechRecognition support
   useEffect(() => {
@@ -646,6 +644,7 @@ useEffect(() => {
 
       roots: [] as string[],
       rootsTop: [] as any[],
+      rootsEn: [] as string[],      // ✅ ADD
       rootsLang: null as any,
       rootsUpdatedAt: null as any,
     };
@@ -779,79 +778,88 @@ useEffect(() => {
     }
   }
 
-  async function extractRoots(dreamId: string) {
-    const u = auth.currentUser;
-    if (!u) {
-      requireGoogleAuth();
-      setError("Please sign in with Google to extract roots.");
-      return;
-    }
-    if (!uid) return;
-    if (rootsBusyId || deletingId || sharingId) return;
-
-    const dream = dreams.find((d) => d.id === dreamId);
-    const t = (dream?.text ?? "").trim();
-    if (!t) return;
-
-    if (Array.isArray(dream?.roots) && dream!.roots!.length > 0) return;
-
-    setError(null);
-    setRootsBusyId(dreamId);
-
-    try {
-      const res = await fetch("/api/dreams/rootwords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "API failed");
-
-      const rootsArr = Array.isArray(data.roots) ? data.roots : [];
-      const rootsText = rootsArr.join(" ");
-      const normalizedRoots = textForIconPicker(rootsText, (dream as any)?.langGuess);
-
-      const iconsEn: DreamIconKey[] =
-        pickDreamIconsEn(normalizedRoots, 4) as DreamIconKey[];
-
-      const rootsLimited = rootsArr.slice(0, 6);
-      const picked = await Promise.all(
-        rootsLimited.map((r: string) => pickEmojiForOneRoot_AI(r, (dream as any)?.langGuess))
-      );
-      const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
-
-      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
-        roots: rootsArr,
-        rootsTop: Array.isArray(data.top) ? data.top : [],
-        rootsLang: data.lang ?? null,
-        iconsEn,
-        emojis,
-        rootsUpdatedAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      setDreams((prev) =>
-        prev.map((x) =>
-          x.id === dreamId
-            ? {
-                ...x,
-                roots: rootsArr,
-                rootsTop: Array.isArray(data.top) ? data.top : [],
-                rootsLang: data.lang ?? null,
-                iconsEn,
-                emojis,
-              }
-            : x
-        )
-      );
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to extract roots.");
-    } finally {
-      setRootsBusyId(null);
-    }
+ async function extractRoots(dreamId: string) {
+  const u = auth.currentUser;
+  if (!u) {
+    requireGoogleAuth();
+    setError("Please sign in with Google to extract roots.");
+    return;
   }
+  if (!uid) return;
+  if (rootsBusyId || deletingId || sharingId) return;
 
+  const dream = dreams.find((d) => d.id === dreamId);
+  const t = (dream?.text ?? "").trim();
+  if (!t) return;
+
+const hasAnyRoots =
+  (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
+  (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
+
+if (hasAnyRoots) return;
+  setError(null);
+  setRootsBusyId(dreamId);
+
+  try {
+    const res = await fetch("/api/dreams/rootwords", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: t }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error ?? "API failed");
+
+    const rootsArr = Array.isArray(data?.roots) ? data.roots : [];
+    const rootsEnArr = Array.isArray(data?.rootsEn) ? data.rootsEn : rootsArr;
+
+    if (!rootsArr.length || !rootsEnArr.length) {
+  throw new Error("No roots found. Try writing a bit more details.");
+}
+
+    // ✅ iconsEn теперь можно брать из rootsEn (всегда английский)
+    const normalizedEn = (rootsEnArr ?? []).join(" ").toLowerCase();
+    const iconsEn: DreamIconKey[] = pickDreamIconsEn(normalizedEn, 4) as DreamIconKey[];
+
+    // ✅ emojis тоже выбираем по EN корням
+    const rootsLimitedEn = (rootsEnArr ?? []).slice(0, 6);
+    const picked = await Promise.all(
+      rootsLimitedEn.map((r: string) => pickEmojiForOneRoot_AI(r, "en"))
+    );
+    const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
+
+    await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+      roots: rootsArr,                 // исходные
+      rootsEn: rootsEnArr,             // перевод
+      rootsLang: data?.lang ?? null,   // исходный язык
+      rootsTop: [],                    // у тебя UI это поле не использует — можно пустым
+      iconsEn,
+      emojis,
+      rootsUpdatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    setDreams((prev) =>
+      prev.map((x) =>
+        x.id === dreamId
+          ? {
+              ...x,
+              roots: rootsArr,
+              rootsEn: rootsEnArr,
+              rootsLang: data?.lang ?? null,
+              rootsTop: [],
+              iconsEn,
+              emojis,
+            }
+          : x
+      )
+    );
+  } catch (e: any) {
+    setError(e?.message ?? "Failed to extract roots.");
+  } finally {
+    setRootsBusyId(null);
+  }
+}
   const canSave = useMemo(() => !!text.trim() && !saving, [text, saving]);
 
   const aliveDreams = useMemo(
@@ -865,6 +873,8 @@ useEffect(() => {
   );
 
   const visibleDreams = tab === "SHARED" ? sharedDreams : aliveDreams;
+
+  
 
   useEffect(() => {
     if (!uid) return;
@@ -903,6 +913,8 @@ useEffect(() => {
     return () => {
       cancelled = true;
     };
+
+    
   }, [uid, tab, aliveDreams]);
 
   return (
@@ -994,8 +1006,11 @@ You are not signed in. Sign in with Google to create and save your dreams.
             const isDeleting = deletingId === d.id;
             const isRootsBusy = rootsBusyId === d.id;
 
-            const hasRoots = Array.isArray(d.roots) && d.roots.length > 0;
+const hasRoots =
+  (Array.isArray(d.roots) && d.roots.length > 0) ||
+  (Array.isArray(d.rootsEn) && d.rootsEn.length > 0);
 
+  
             return (
               <div
                 key={d.id}
@@ -1088,18 +1103,27 @@ You are not signed in. Sign in with Google to create and save your dreams.
                 </div>
 
                 {/* Roots chips */}
-                {Array.isArray(d.roots) && d.roots.length > 0 && (
-                  <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
-                    {d.roots.slice(0, 18).map((w) => (
-                      <span
-                        key={w}
-                        className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
-                      >
-                        {w}
-                      </span>
-                    ))}
-                  </div>
-                )}
+{(() => {
+  const chips =
+    (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
+    (Array.isArray(d.rootsEn) && d.rootsEn.length > 0 && d.rootsEn) ||
+    null;
+
+  if (!chips) return null;
+
+  return (
+    <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
+      {chips.slice(0, 18).map((w, i) => (
+        <span
+key={`${d.id}:root:${i}`}
+          className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
+        >
+          {w}
+        </span>
+      ))}
+    </div>
+  );
+})()}
 
                 {/* Meta row */}
                 <div className="mt-3 text-xs text-[var(--muted)] flex items-end justify-between gap-3 flex-wrap">
