@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Dreamly",
   description: "AI Dream Journal & Anonymous Dream Map",
+  manifest: "/manifest.json",
+  themeColor: "#0a0a0a",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         {children}
-         <InstallPwaBanner />
+        <InstallPwaBanner />
       </body>
     </html>
   );
