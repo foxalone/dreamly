@@ -349,6 +349,8 @@ export default function DreamsPage() {
 
   const isStartingFreshRef = useRef(true);
 
+  const lastFinalChunkRef = useRef<string>("");
+
 
 // init recLang
 useEffect(() => {
@@ -436,13 +438,14 @@ useEffect(() => {
   const rec = new Ctor();
   recRef.current = rec;
 
-  rec.continuous = true;
+  rec.continuous = false;
   rec.interimResults = true;
   rec.maxAlternatives = 1;
   rec.lang = recLang;
 
   // ✅ сбрасываем только при "fresh" старте (кнопка Start / Resume)
   if (isStartingFreshRef.current) {
+    lastFinalChunkRef.current = "";
     baseTextRef.current = text.trim();
     finalRef.current = "";
     setRecInterim("");
@@ -494,8 +497,13 @@ useEffect(() => {
     const finalsAdd = finalsChunk.trim();
     const interimNow = interim.trim();
 
-    if (finalsAdd) finalRef.current = `${finalRef.current} ${finalsAdd}`.trim();
-
+if (finalsAdd) {
+  // защита от дубля
+  if (finalsAdd !== lastFinalChunkRef.current) {
+    finalRef.current = `${finalRef.current} ${finalsAdd}`.trim();
+    lastFinalChunkRef.current = finalsAdd;
+  }
+}
     setRecInterim(interimNow);
     setText(buildText(baseTextRef.current, finalRef.current, interimNow));
   };
