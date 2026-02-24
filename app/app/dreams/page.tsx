@@ -810,42 +810,44 @@ if (hasAnyRoots) return;
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error ?? "API failed");
 
-    const rootsArr = Array.isArray(data?.roots) ? data.roots : [];
-    const rootsEnArr = Array.isArray(data?.rootsEn) ? data.rootsEn : rootsArr;
+const rootsArr = Array.isArray(data?.roots) ? data.roots : [];
+const rootsEnArr = Array.isArray(data?.rootsEn) ? data.rootsEn : rootsArr;
 
-    if (!rootsArr.length || !rootsEnArr.length) {
+const MAJOR = 6;
+const rootsMajor = rootsArr.slice(0, MAJOR);
+const rootsEnMajor = rootsEnArr.slice(0, MAJOR);
+
+if (!rootsMajor.length || !rootsEnMajor.length) {
   throw new Error("No roots found. Try writing a bit more details.");
 }
 
-    // ✅ iconsEn теперь можно брать из rootsEn (всегда английский)
-    const normalizedEn = (rootsEnArr ?? []).join(" ").toLowerCase();
-    const iconsEn: DreamIconKey[] = pickDreamIconsEn(normalizedEn, 4) as DreamIconKey[];
 
-    // ✅ emojis тоже выбираем по EN корням
-    const rootsLimitedEn = (rootsEnArr ?? []).slice(0, 6);
-    const picked = await Promise.all(
-      rootsLimitedEn.map((r: string) => pickEmojiForOneRoot_AI(r, "en"))
-    );
-    const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
+  const normalizedEn = rootsEnMajor.join(" ").toLowerCase();
+const iconsEn: DreamIconKey[] = pickDreamIconsEn(normalizedEn, 4) as DreamIconKey[];
 
-    await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
-      roots: rootsArr,                 // исходные
-      rootsEn: rootsEnArr,             // перевод
-      rootsLang: data?.lang ?? null,   // исходный язык
-      rootsTop: [],                    // у тебя UI это поле не использует — можно пустым
-      iconsEn,
-      emojis,
-      rootsUpdatedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+const picked = await Promise.all(
+  rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(r, "en"))
+);
+const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
+
+  await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+  roots: rootsMajor,
+  rootsEn: rootsEnMajor,
+  rootsLang: data?.lang ?? null,
+  rootsTop: [],
+  iconsEn,
+  emojis,
+  rootsUpdatedAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+});
 
     setDreams((prev) =>
       prev.map((x) =>
         x.id === dreamId
           ? {
               ...x,
-              roots: rootsArr,
-              rootsEn: rootsEnArr,
+              roots: rootsMajor,
+rootsEn: rootsEnMajor,
               rootsLang: data?.lang ?? null,
               rootsTop: [],
               iconsEn,
@@ -1113,7 +1115,7 @@ const hasRoots =
 
   return (
     <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
-      {chips.slice(0, 18).map((w, i) => (
+      {chips.slice(0, 6).map((w, i) => (
         <span
 key={`${d.id}:root:${i}`}
           className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
