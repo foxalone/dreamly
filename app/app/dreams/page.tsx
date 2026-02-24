@@ -3,6 +3,8 @@
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
+import { onIdTokenChanged } from "firebase/auth";
+import { FcGoogle } from "react-icons/fc";
 
 import { auth, firestore } from "@/lib/firebase";
 import {
@@ -18,8 +20,11 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
-
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  type User,
+} from "firebase/auth";
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
 
@@ -55,10 +60,6 @@ type DreamEmoji = {
   name?: string;
   id?: string;
 };
-
-
-
-
 
 type Tab = "ALL" | "SHARED";
 
@@ -131,25 +132,22 @@ function tokenizeEn(s: string) {
     .slice(0, 20);
 }
 
-  type RecStatus = "idle" | "listening" | "paused" | "error";
-
+type RecStatus = "idle" | "listening" | "paused" | "error";
 
 type EmojiCandidate = {
   native: string;
   id?: string;
   name?: string;
   keywords?: string[];
-  score: number; // локальный скоринг, чтобы упорядочить список кандидатов
+  score: number;
 };
 
 function norm(s: any) {
   return String(s ?? "").toLowerCase().trim();
 }
-
 function toNative(r: any) {
   return r?.skins?.[0]?.native || r?.native || "";
 }
-
 function isGarbageEmoji(r: any) {
   const id = norm(r?.id);
   const name = norm(r?.name);
@@ -177,9 +175,7 @@ function normalizeRootForEmoji(root: string, lang?: string) {
   const s = (root ?? "").trim();
   if (!s) return "";
   const lower = s.toLowerCase();
-
   if (ROOT_HINTS[lower]) return ROOT_HINTS[lower];
-
   return textForIconPicker(s, lang);
 }
 
@@ -189,20 +185,16 @@ function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
   const name = norm(r?.name);
   const kws: string[] = Array.isArray(r?.keywords) ? r.keywords.map(norm) : [];
 
-  // строгие совпадения
   if (id === t || name === t) return 140;
   if (kws.includes(t)) return 120;
 
-  // token внутри фразы (evergreen tree)
   let s = 0;
   if (id.split(" ").includes(t)) s = Math.max(s, 90);
   if (name.split(" ").includes(t)) s = Math.max(s, 85);
 
-  // мягкое
   if (name.includes(t)) s = Math.max(s, 60);
   if (id.includes(t)) s = Math.max(s, 55);
 
-  // буст за пересечение нескольких токенов
   let hits = 0;
   for (const tok of allTokens) {
     const tt = norm(tok);
@@ -211,7 +203,6 @@ function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
   }
   if (hits >= 2) s += 40 + hits * 8;
 
-  // штраф за слишком общее
   if (t === "thing" || t === "stuff" || t === "object") s -= 30;
 
   return s;
@@ -225,8 +216,6 @@ function uniqByNativeKeepBest(cands: EmojiCandidate[]) {
   }
   return Array.from(best.values()).sort((a, b) => b.score - a.score);
 }
-
-
 
 /**
  * Вариант A:
@@ -245,7 +234,6 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 
   if (tokens.length === 0) return null;
 
-  // 1) Локально собираем кандидатов
   const localHits: EmojiCandidate[] = [];
 
   for (const t of tokens) {
@@ -275,7 +263,6 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 
   if (candidates.length === 0) return null;
 
-  // 2) AI выбирает из кандидатов
   try {
     const resp = await fetch("/api/dreams/emoji-pick", {
       method: "POST",
@@ -298,17 +285,14 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
       if (picked) return { native: picked.native, id: picked.id, name: picked.name };
     }
   } catch {
-    // ignore → fallback below
+    // ignore → fallback
   }
 
-  // 3) fallback: лучший локальный
   const best = candidates[0];
   return best ? { native: best.native, id: best.id, name: best.name } : null;
 }
 
 export default function DreamsPage() {
-
-
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -332,184 +316,185 @@ export default function DreamsPage() {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [recSupported, setRecSupported] = useState(false);
-const [recStatus, setRecStatus] = useState<RecStatus>("idle");
-const [recInterim, setRecInterim] = useState("");
-const [recErr, setRecErr] = useState<string | null>(null);
+  const [recStatus, setRecStatus] = useState<RecStatus>("idle");
+  const [recInterim, setRecInterim] = useState("");
+  const [recErr, setRecErr] = useState<string | null>(null);
 
-const recRef = useRef<any>(null);            // SpeechRecognition instance
-const baseTextRef = useRef<string>("");      // text at the moment we started
-const finalRef = useRef<string>("");         // accumulated final transcript
-const shouldRestartRef = useRef<boolean>(false); // for keeping session alive
+  const recRef = useRef<any>(null);
+  const baseTextRef = useRef<string>("");
+  const finalRef = useRef<string>("");
+  const shouldRestartRef = useRef<boolean>(false);
 
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // ✅ SpeechRecognition support
   useEffect(() => {
-  if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setRecSupported(!!SR);
+  }, []);
 
-  const SR =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-  setRecSupported(!!SR);
-}, []);
-
+  // ✅ ONLY Google auth: no anonymous sign-in
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) {
-        try {
-          await signInAnonymously(auth);
-        } catch (e) {
-          console.error("Anonymous sign-in failed:", e);
-        }
-      } else {
+    const unsub = onIdTokenChanged(auth, (u) => {
+      if (u) {
+        setUser(u);
         setUid(u.uid);
+        setShowAuthModal(false);
+      } else {
+        setUser(null);
+        setUid(null);
+        // если пользователь не залогинен — можно показать модалку,
+        // но мы будем открывать её по действию (New/Save/Roots/Share/Delete)
+        setShowAuthModal(false);
       }
     });
+
     return () => unsub();
   }, []);
 
   function getSpeechRecognitionCtor() {
-  if (typeof window === "undefined") return null;
-  return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
-}
-
-function buildText(base: string, finals: string, interim: string) {
-  const a = (base ?? "").trim();
-  const b = (finals ?? "").trim();
-  const c = (interim ?? "").trim();
-
-  // аккуратно склеиваем с пробелами
-  const parts = [a, b, c].filter(Boolean);
-  return parts.join(a && (b || c) ? "\n" : " ");
-}
-
-function startRecording() {
-  setRecErr(null);
-
-  const Ctor = getSpeechRecognitionCtor();
-  if (!Ctor) {
-  setRecErr("Speech recognition is not supported on this device/browser.");
-  setRecStatus("error");
-  return;
-}
-
-  // если уже есть инстанс — убьём и создадим заново
-  try {
-    recRef.current?.stop?.();
-  } catch {}
-
-  const rec = new Ctor();
-  recRef.current = rec;
-
-  // настройки
-  rec.continuous = true;      // держим сессию
-  rec.interimResults = true;  // показываем interim
-  rec.maxAlternatives = 1;
-
-  // язык: можно завязать на guessLang(text) или rootsLang, но для MVP:
-  // если внутри текста есть иврит — he-IL, если кириллица — ru-RU, иначе en-US
-  const g = guessLang(text);
-  rec.lang = g === "he" ? "he-IL" : g === "ru" ? "ru-RU" : "en-US";
-
-  // подготовка
-  baseTextRef.current = text.trim();
-  finalRef.current = "";
-  setRecInterim("");
-  shouldRestartRef.current = true;
-
-  rec.onstart = () => {
-    setRecording(true);
-    setRecStatus("listening");
-  };
-
-  rec.onerror = (e: any) => {
-    setRecErr(e?.error ? String(e.error) : "Speech recognition error");
-    setRecStatus("error");
-    setRecording(false);
-    shouldRestartRef.current = false;
-  };
-
-  rec.onend = () => {
-  if (recRef.current !== rec) return;
-  if (shouldRestartRef.current) {
-    setTimeout(() => {
-      try { rec.start(); } catch {}
-    }, 150);
-    return;
+    if (typeof window === "undefined") return null;
+    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
   }
-  setRecording(false);
-  setRecStatus("idle");
-};
 
-  rec.onresult = (event: any) => {
-    let interim = "";
-    let finalsAdd = "";
+  function buildText(base: string, finals: string, interim: string) {
+    const a = (base ?? "").trim();
+    const b = (finals ?? "").trim();
+    const c = (interim ?? "").trim();
+    const parts = [a, b, c].filter(Boolean);
+    return parts.join(a && (b || c) ? "\n" : " ");
+  }
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const res = event.results[i];
-      const transcript = String(res?.[0]?.transcript ?? "");
-      if (!transcript) continue;
+  function startRecording() {
+    setRecErr(null);
 
-      if (res.isFinal) finalsAdd += transcript + " ";
-      else interim += transcript;
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) {
+      setRecErr("Speech recognition is not supported on this device/browser.");
+      setRecStatus("error");
+      return;
     }
 
-    if (finalsAdd.trim()) {
-      finalRef.current = (finalRef.current + " " + finalsAdd).trim();
-      setRecInterim("");
-    } else {
-      setRecInterim(interim.trim());
+    try {
+      recRef.current?.stop?.();
+    } catch {}
+
+    const rec = new Ctor();
+    recRef.current = rec;
+
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+
+    const g = guessLang(text);
+    rec.lang = g === "he" ? "he-IL" : g === "ru" ? "ru-RU" : "en-US";
+
+    baseTextRef.current = text.trim();
+    finalRef.current = "";
+    setRecInterim("");
+    shouldRestartRef.current = true;
+
+    rec.onstart = () => {
+      setRecording(true);
+      setRecStatus("listening");
+    };
+
+    rec.onerror = (e: any) => {
+      setRecErr(e?.error ? String(e.error) : "Speech recognition error");
+      setRecStatus("error");
+      setRecording(false);
+      shouldRestartRef.current = false;
+    };
+
+    rec.onend = () => {
+      if (recRef.current !== rec) return;
+      if (shouldRestartRef.current) {
+        setTimeout(() => {
+          try { rec.start(); } catch {}
+        }, 150);
+        return;
+      }
+      setRecording(false);
+      setRecStatus("idle");
+    };
+
+    rec.onresult = (event: any) => {
+      let interim = "";
+      let finalsAdd = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const transcript = String(res?.[0]?.transcript ?? "");
+        if (!transcript) continue;
+
+        if (res.isFinal) finalsAdd += transcript + " ";
+        else interim += transcript;
+      }
+
+      if (finalsAdd.trim()) {
+        finalRef.current = (finalRef.current + " " + finalsAdd).trim();
+        setRecInterim("");
+      } else {
+        setRecInterim(interim.trim());
+      }
+
+      const next = buildText(
+        baseTextRef.current,
+        finalRef.current,
+        finalsAdd.trim() ? "" : interim
+      );
+      setText(next);
+    };
+
+    try {
+      rec.start();
+    } catch (e: any) {
+      setRecErr(e?.message ?? "Failed to start recording");
+      setRecStatus("error");
+      setRecording(false);
+      shouldRestartRef.current = false;
     }
-
-    const next = buildText(baseTextRef.current, finalRef.current, finalsAdd.trim() ? "" : interim);
-    setText(next);
-  };
-
-  try {
-    rec.start();
-  } catch (e: any) {
-    setRecErr(e?.message ?? "Failed to start recording");
-    setRecStatus("error");
-    setRecording(false);
-    shouldRestartRef.current = false;
   }
-}
 
-function stopRecording() {
-  shouldRestartRef.current = false;
-  setRecInterim("");
-  setRecStatus("idle");
-  setRecording(false);
+  function stopRecording() {
+    shouldRestartRef.current = false;
+    setRecInterim("");
+    setRecStatus("idle");
+    setRecording(false);
 
-  try {
-    recRef.current?.stop?.();
-  } catch {}
-  recRef.current = null;
-}
+    try {
+      recRef.current?.stop?.();
+    } catch {}
+    recRef.current = null;
+  }
 
-function pauseRecording() {
-  // Web Speech API не имеет настоящего pause/resume,
-  // делаем "pause" через stop без автоперезапуска
-  shouldRestartRef.current = false;
-  setRecStatus("paused");
-  setRecording(false);
+  function pauseRecording() {
+    shouldRestartRef.current = false;
+    setRecStatus("paused");
+    setRecording(false);
 
-  
-  try {
-    recRef.current?.stop?.();
-  } catch {}
-  recRef.current = null;
-}
+    try {
+      recRef.current?.stop?.();
+    } catch {}
+    recRef.current = null;
+  }
 
-function resumeRecording() {
-  // продолжим с той же "базой" + уже накопленными finals
-  // чтобы диктовка дописывала дальше
-  baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
-  finalRef.current = "";
-  setRecInterim("");
-  shouldRestartRef.current = true;
-  startRecording();
-}
+  function resumeRecording() {
+    baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
+    finalRef.current = "";
+    setRecInterim("");
+    shouldRestartRef.current = true;
+    startRecording();
+  }
 
+  // ✅ Load dreams only when signed in
   useEffect(() => {
-    if (!uid) return;
+    if (!uid) {
+      setDreams([]);
+      return;
+    }
 
     const q = query(
       collection(firestore, "users", uid, "dreams"),
@@ -542,17 +527,22 @@ function resumeRecording() {
     return () => root.classList.remove("modal-open");
   }, [open]);
 
-useEffect(() => {
-  if (open) {
-    setTimeout(() => inputRef.current?.focus(), 50);
-  } else {
-    stopRecording(); // ✅ вот это
-    setText("");
-    setError(null);
-    setSaving(false);
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      stopRecording();
+      setText("");
+      setError(null);
+      setSaving(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  function requireGoogleAuth() {
+    setOpen(false);           // закрываем bottom-sheet если открыт
+    setShowAuthModal(true);
   }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [open]);
 
   function close() {
     if (saving) return;
@@ -565,15 +555,16 @@ useEffect(() => {
 
     setError(null);
 
-    const user = auth.currentUser;
-    if (!user) {
-      setError("You must be signed in to save dreams.");
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to save dreams.");
       return;
     }
 
     const now = new Date();
     const payload = {
-      uid: user.uid,
+      uid: u.uid,
 
       text: v,
       title: makeTitle(v),
@@ -608,7 +599,7 @@ useEffect(() => {
 
     setSaving(true);
     try {
-      await addDoc(collection(firestore, "users", user.uid, "dreams"), payload);
+      await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
       setOpen(false);
     } catch (e: any) {
       setError(e?.message ?? "Failed to save dream.");
@@ -617,6 +608,12 @@ useEffect(() => {
   }
 
   async function shareDream(dreamId: string) {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to share dreams.");
+      return;
+    }
     if (!uid) return;
     if (sharingId || deletingId) return;
 
@@ -687,6 +684,12 @@ useEffect(() => {
   }
 
   async function deleteDream(dreamId: string) {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to delete dreams.");
+      return;
+    }
     if (!uid) return;
     if (deletingId || sharingId) return;
 
@@ -724,6 +727,12 @@ useEffect(() => {
   }
 
   async function extractRoots(dreamId: string) {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to extract roots.");
+      return;
+    }
     if (!uid) return;
     if (rootsBusyId || deletingId || sharingId) return;
 
@@ -753,7 +762,6 @@ useEffect(() => {
       const iconsEn: DreamIconKey[] =
         pickDreamIconsEn(normalizedRoots, 4) as DreamIconKey[];
 
-      // ✅ AI-pick per root из кандидатов emoji-mart
       const rootsLimited = rootsArr.slice(0, 6);
       const picked = await Promise.all(
         rootsLimited.map((r: string) => pickEmojiForOneRoot_AI(r, (dream as any)?.langGuess))
@@ -879,10 +887,37 @@ useEffect(() => {
           </div>
         </div>
 
-        <button onClick={() => setOpen(true)} className="dream-primary-btn">
+        <button
+          onClick={() => {
+            const u = auth.currentUser;
+            if (!u) {
+              requireGoogleAuth();
+              return;
+            }
+            setOpen(true);
+          }}
+          className="px-6 py-3 rounded-full bg-white text-black font-semibold"
+        >
           + New
         </button>
       </div>
+
+      {/* Signed-out hint */}
+      {!uid && (
+       <div className="mt-5 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] text-sm text-[var(--muted)] flex items-center justify-between gap-3 flex-wrap">
+  <div className="min-w-0">
+You are not signed in. Sign in with Google to create and save your dreams.
+  </div>
+
+  <button
+    onClick={() => requireGoogleAuth()}
+    className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
+  >
+    <FcGoogle className="text-lg" />
+    <span>Sign in with Google</span>
+  </button>
+</div>
+      )}
 
       {/* Error */}
       {error && (
@@ -892,7 +927,7 @@ useEffect(() => {
       )}
 
       {/* List */}
-      {visibleDreams.length === 0 ? (
+      {!uid ? null : visibleDreams.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
           {tab === "SHARED"
             ? "No shared dreams yet. Share one from the All tab."
@@ -1117,75 +1152,77 @@ useEffect(() => {
               </div>
 
               {recInterim ? (
-  <div className="mt-2 text-xs text-[var(--muted)]">
-    <span className="opacity-70">Listening…</span>{" "}
-    <span className="italic">{recInterim}</span>
-  </div>
-) : null}
+                <div className="mt-2 text-xs text-[var(--muted)]">
+                  <span className="opacity-70">Listening…</span>{" "}
+                  <span className="italic">{recInterim}</span>
+                </div>
+              ) : null}
 
-{recErr ? (
-  <div className="mt-2 text-xs text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-3 py-2">
-    {recErr}
-  </div>
-) : null}
+              {recErr ? (
+                <div className="mt-2 text-xs text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-3 py-2">
+                  {recErr}
+                </div>
+              ) : null}
 
               <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
-              {!recSupported ? (
-  <button
-    onClick={() => setRecErr("Tip: on iPhone use the 🎤 button on the keyboard for диктовка.")}
-    className={["dream-btn","dream-btn--neutral"].join(" ")}
-    type="button"
-  >
-    🎙 Record (not supported)
-  </button>
-) : recStatus === "listening" ? (
-  <div className="flex gap-2 flex-wrap">
-    <button
-      onClick={pauseRecording}
-      className={["dream-btn","dream-btn--neutral"].join(" ")}
-      type="button"
-    >
-      ⏸ Pause
-    </button>
-    <button
-      onClick={stopRecording}
-      className={["dream-btn","dream-btn--danger"].join(" ")}
-      type="button"
-    >
-      ⏹ Stop
-    </button>
-  </div>
-) : recStatus === "paused" ? (
-  <div className="flex gap-2 flex-wrap">
-    <button
-      onClick={resumeRecording}
-      className={["dream-btn","dream-btn--recording"].join(" ")}
-      type="button"
-    >
-      ▶ Resume
-    </button>
-    <button
-      onClick={stopRecording}
-      className={["dream-btn","dream-btn--danger"].join(" ")}
-      type="button"
-    >
-      ⏹ Stop
-    </button>
-  </div>
-) : (
-  <button
-    onClick={startRecording}
-    disabled={saving}
-    className={[
-      "dream-btn",
-      "dream-btn--recording",
-      saving ? "opacity-60 cursor-not-allowed" : "",
-    ].join(" ")}
-    type="button"
-  >
-    🎙 Start
-  </button>
-)}
+                {!recSupported ? (
+                  <button
+                    onClick={() =>
+                      setRecErr("Tip: on iPhone use the 🎤 button on the keyboard for диктовка.")
+                    }
+                    className={["dream-btn", "dream-btn--neutral"].join(" ")}
+                    type="button"
+                  >
+                    🎙 Record (not supported)
+                  </button>
+                ) : recStatus === "listening" ? (
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={pauseRecording}
+                      className={["dream-btn", "dream-btn--neutral"].join(" ")}
+                      type="button"
+                    >
+                      ⏸ Pause
+                    </button>
+                    <button
+                      onClick={stopRecording}
+                      className={["dream-btn", "dream-btn--danger"].join(" ")}
+                      type="button"
+                    >
+                      ⏹ Stop
+                    </button>
+                  </div>
+                ) : recStatus === "paused" ? (
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={resumeRecording}
+                      className={["dream-btn", "dream-btn--recording"].join(" ")}
+                      type="button"
+                    >
+                      ▶ Resume
+                    </button>
+                    <button
+                      onClick={stopRecording}
+                      className={["dream-btn", "dream-btn--danger"].join(" ")}
+                      type="button"
+                    >
+                      ⏹ Stop
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={startRecording}
+                    disabled={saving}
+                    className={[
+                      "dream-btn",
+                      "dream-btn--recording",
+                      saving ? "opacity-60 cursor-not-allowed" : "",
+                    ].join(" ")}
+                    type="button"
+                  >
+                    🎙 Start
+                  </button>
+                )}
 
                 <div className="flex gap-2 flex-wrap justify-end">
                   <button
@@ -1220,6 +1257,54 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      {/* Google-only auth modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-[var(--card)] p-6 shadow-2xl border border-[var(--border)]">
+            <h2 className="text-xl font-bold mb-2 text-[var(--text)]">
+              Sign in required
+            </h2>
+
+            <p className="text-sm text-[var(--muted)] mb-6">
+              Пожалуйста, войдите через Google, чтобы создавать и сохранять сны.
+            </p>
+
+
+<button
+  onClick={async () => {
+    try {
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+
+      const updatedUser = auth.currentUser;
+      setUser(updatedUser);
+      setUid(updatedUser?.uid ?? null);
+
+      setShowAuthModal(false);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to sign in.");
+    }
+  }}
+  className="w-full py-3 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-3"
+>
+  <FcGoogle className="text-xl" />
+  <span>Continue with Google</span>
+</button>
+
+            <button
+              onClick={() => {
+                setShowAuthModal(false);
+                setError(null);
+              }}
+              className="w-full mt-3 py-2 text-sm text-[var(--muted)]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <BottomNav hidden={open} />
     </main>
