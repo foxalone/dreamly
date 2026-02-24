@@ -347,6 +347,8 @@ export default function DreamsPage() {
 
   const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
 
+  const isStartingFreshRef = useRef(true);
+
 
 // init recLang
 useEffect(() => {
@@ -419,95 +421,94 @@ useEffect(() => {
     return parts.join(a && (b || c) ? "\n" : " ");
   }
 
-  function startRecording() {
-    setRecErr(null);
+ function startRecording() {
+  setRecErr(null);
 
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) {
-      setRecErr("Speech recognition is not supported on this device/browser.");
-      setRecStatus("error");
-      return;
-    }
+  const Ctor = getSpeechRecognitionCtor();
+  if (!Ctor) {
+    setRecErr("Speech recognition is not supported on this device/browser.");
+    setRecStatus("error");
+    return;
+  }
 
-    try {
-      recRef.current?.stop?.();
-    } catch {}
+  try { recRef.current?.stop?.(); } catch {}
 
-    const rec = new Ctor();
-    recRef.current = rec;
+  const rec = new Ctor();
+  recRef.current = rec;
 
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.maxAlternatives = 1;
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  rec.lang = recLang;
 
-    rec.lang = recLang;
-
+  // ✅ сбрасываем только при "fresh" старте (кнопка Start / Resume)
+  if (isStartingFreshRef.current) {
     baseTextRef.current = text.trim();
     finalRef.current = "";
     setRecInterim("");
-    shouldRestartRef.current = true;
-
-    rec.onstart = () => {
-      setRecording(true);
-      setRecStatus("listening");
-    };
-
-    rec.onerror = (e: any) => {
-      setRecErr(e?.error ? String(e.error) : "Speech recognition error");
-      setRecStatus("error");
-      setRecording(false);
-      shouldRestartRef.current = false;
-    };
-
-    rec.onend = () => {
-      if (recRef.current !== rec) return;
-      if (shouldRestartRef.current) {
-        setTimeout(() => {
-          try { rec.start(); } catch {}
-        }, 150);
-        return;
-      }
-      setRecording(false);
-      setRecStatus("idle");
-    };
-
-    rec.onresult = (event: any) => {
-      let interim = "";
-      let finalsAdd = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const res = event.results[i];
-        const transcript = String(res?.[0]?.transcript ?? "");
-        if (!transcript) continue;
-
-        if (res.isFinal) finalsAdd += transcript + " ";
-        else interim += transcript;
-      }
-
-      if (finalsAdd.trim()) {
-        finalRef.current = (finalRef.current + " " + finalsAdd).trim();
-        setRecInterim("");
-      } else {
-        setRecInterim(interim.trim());
-      }
-
-      const next = buildText(
-        baseTextRef.current,
-        finalRef.current,
-        finalsAdd.trim() ? "" : interim
-      );
-      setText(next);
-    };
-
-    try {
-      rec.start();
-    } catch (e: any) {
-      setRecErr(e?.message ?? "Failed to start recording");
-      setRecStatus("error");
-      setRecording(false);
-      shouldRestartRef.current = false;
-    }
   }
+
+  shouldRestartRef.current = true;
+
+  rec.onstart = () => {
+    setRecording(true);
+    setRecStatus("listening");
+  };
+
+  rec.onerror = (e: any) => {
+    setRecErr(e?.error ? String(e.error) : "Speech recognition error");
+    setRecStatus("error");
+    setRecording(false);
+    shouldRestartRef.current = false;
+  };
+
+  rec.onend = () => {
+    if (recRef.current !== rec) return;
+
+    if (shouldRestartRef.current) {
+      setTimeout(() => {
+        // ✅ важно: это уже не fresh-start
+        isStartingFreshRef.current = false;
+        try { rec.start(); } catch {}
+      }, 150);
+      return;
+    }
+
+    setRecording(false);
+    setRecStatus("idle");
+  };
+
+  rec.onresult = (event: any) => {
+    let interim = "";
+    let finalsChunk = "";
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const res = event.results[i];
+      const transcript = String(res?.[0]?.transcript ?? "").trim();
+      if (!transcript) continue;
+
+      if (res.isFinal) finalsChunk += transcript + " ";
+      else interim += transcript + " ";
+    }
+
+    const finalsAdd = finalsChunk.trim();
+    const interimNow = interim.trim();
+
+    if (finalsAdd) finalRef.current = `${finalRef.current} ${finalsAdd}`.trim();
+
+    setRecInterim(interimNow);
+    setText(buildText(baseTextRef.current, finalRef.current, interimNow));
+  };
+
+  try {
+    rec.start();
+  } catch (e: any) {
+    setRecErr(e?.message ?? "Failed to start recording");
+    setRecStatus("error");
+    setRecording(false);
+    shouldRestartRef.current = false;
+  }
+}
 
   function stopRecording() {
     shouldRestartRef.current = false;
@@ -532,13 +533,15 @@ useEffect(() => {
     recRef.current = null;
   }
 
-  function resumeRecording() {
-    baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
-    finalRef.current = "";
-    setRecInterim("");
-    shouldRestartRef.current = true;
-    startRecording();
-  }
+ function resumeRecording() {
+  baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
+  finalRef.current = "";
+  setRecInterim("");
+  shouldRestartRef.current = true;
+
+  isStartingFreshRef.current = true; // ✅ это fresh для новой "сессии"
+  startRecording();
+}
 
   // ✅ Load dreams only when signed in
   useEffect(() => {
@@ -1296,8 +1299,11 @@ onChange={(e) => {
                   </div>
                 ) : (
                   <button
-                    onClick={startRecording}
-                    disabled={saving}
+ onClick={() => {
+    isStartingFreshRef.current = true;
+    startRecording();
+  }}
+                      disabled={saving}
                     className={[
                       "dream-btn",
                       "dream-btn--recording",
