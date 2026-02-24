@@ -87,6 +87,23 @@ function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   if (hasLat && !hasHe && !hasCy) return "en";
   return "unknown";
 }
+
+function detectRecLangFromText(t: string): "ru-RU" | "en-US" | "he-IL" | null {
+  const s = t ?? "";
+  const hasHe = /[\u0590-\u05FF]/.test(s);
+  const hasCy = /[\u0400-\u04FF]/.test(s);
+  const hasLat = /[A-Za-z]/.test(s);
+
+  // если явно один алфавит — переключаем
+  if (hasHe && !hasCy && !hasLat) return "he-IL";
+  if (hasCy && !hasHe) return "ru-RU";
+  if (hasLat && !hasHe && !hasCy) return "en-US";
+
+  // смешано / пусто — не трогаем
+  return null;
+}
+
+
 function makeTitle(text: string) {
   const t = (text ?? "").trim().replace(/\s+/g, " ");
   if (!t) return "";
@@ -328,6 +345,43 @@ export default function DreamsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
+
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const saved = localStorage.getItem("recLang");
+  if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
+    setRecLang(saved);
+    return;
+  }
+
+  const nav = (navigator.language || "").toLowerCase();
+  if (nav.startsWith("he")) setRecLang("he-IL");
+  else if (nav.startsWith("ru")) setRecLang("ru-RU");
+  else setRecLang("en-US"); // ✅ default
+}, []);
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const saved = localStorage.getItem("recLang");
+  if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
+    setRecLang(saved);
+    return;
+  }
+
+  const nav = (navigator.language || "").toLowerCase();
+  if (nav.startsWith("he")) setRecLang("he-IL");
+  else if (nav.startsWith("ru")) setRecLang("ru-RU");
+  else setRecLang("en-US");
+}, []);
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("recLang", recLang);
+}, [recLang]);
+
   // ✅ SpeechRecognition support
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -388,8 +442,7 @@ export default function DreamsPage() {
     rec.interimResults = true;
     rec.maxAlternatives = 1;
 
-    const g = guessLang(text);
-    rec.lang = g === "he" ? "he-IL" : g === "ru" ? "ru-RU" : "en-US";
+    rec.lang = recLang;
 
     baseTextRef.current = text.trim();
     finalRef.current = "";
@@ -1136,7 +1189,13 @@ You are not signed in. Sign in with Google to create and save your dreams.
                 <textarea
                   ref={inputRef}
                   value={text}
-                  onChange={(e) => setText(e.target.value)}
+onChange={(e) => {
+  const v = e.target.value;
+  setText(v);
+
+  const next = detectRecLangFromText(v);
+  if (next) setRecLang(next);
+}}
                   placeholder="Type your dream…"
                   rows={5}
                   disabled={saving}
