@@ -6,6 +6,7 @@ import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.e
 import { onIdTokenChanged } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
+import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
 
 import { auth, firestore } from "@/lib/firebase";
 import {
@@ -21,15 +22,18 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  type User,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User } from "firebase/auth";
+
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
 
 type DreamIconKey = keyof typeof DREAM_ICONS_EN;
+
+type DreamEmoji = {
+  native: string;
+  name?: string;
+  id?: string;
+};
 
 type Dream = {
   id: string;
@@ -46,20 +50,18 @@ type Dream = {
   emojis?: DreamEmoji[];
   deleted?: boolean;
   deletedAtMs?: number;
-  rootsEn?: string[];        // корни на английском (для emoji поиска)
+
+  rootsEn?: string[];
   roots?: string[];
   rootsTop?: { w: string; c: number }[];
   rootsLang?: string;
   rootsUpdatedAt?: any;
 
-  // (optional) legacy
-  iconsEn?: DreamIconKey[];
-};
+  analysisText?: string;
+  analysisAtMs?: number;
+  analysisModel?: string;
 
-type DreamEmoji = {
-  native: string;
-  name?: string;
-  id?: string;
+  iconsEn?: DreamIconKey[];
 };
 
 type Tab = "ALL" | "SHARED";
@@ -78,6 +80,19 @@ function countWords(text: string) {
   if (!t) return 0;
   return t.split(/\s+/).filter(Boolean).length;
 }
+function norm(s: any) {
+  return String(s ?? "").toLowerCase().trim();
+}
+function toNative(r: any) {
+  return r?.skins?.[0]?.native || r?.native || "";
+}
+
+function makeTitle(text: string) {
+  const t = (text ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return "";
+  return t.length <= 60 ? t : t.slice(0, 60) + "…";
+}
+
 function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   const t = text ?? "";
   const hasHe = /[\u0590-\u05FF]/.test(t);
@@ -95,20 +110,10 @@ function detectRecLangFromText(t: string): "ru-RU" | "en-US" | "he-IL" | null {
   const hasCy = /[\u0400-\u04FF]/.test(s);
   const hasLat = /[A-Za-z]/.test(s);
 
-  // если явно один алфавит — переключаем
   if (hasHe && !hasCy && !hasLat) return "he-IL";
   if (hasCy && !hasHe) return "ru-RU";
   if (hasLat && !hasHe && !hasCy) return "en-US";
-
-  // смешано / пусто — не трогаем
   return null;
-}
-
-
-function makeTitle(text: string) {
-  const t = (text ?? "").trim().replace(/\s+/g, " ");
-  if (!t) return "";
-  return t.length <= 60 ? t : t.slice(0, 60) + "…";
 }
 
 function textForIconPicker(text: string, lang?: string) {
@@ -131,13 +136,145 @@ function textForIconPicker(text: string, lang?: string) {
   return t;
 }
 
+// ------------------------
+// ✅ Emoji overrides (RTDB)
+// ------------------------
+type EmojiOverride = { name?: string; keywords?: string[] };
+type OverridesMap = Record<string, EmojiOverride>;
+let EMOJI_OVERRIDES: OverridesMap = {};
+
+function effectiveName(id?: string, libName?: string) {
+  const key = String(id ?? "").trim();
+  if (!key) return libName || "";
+  return EMOJI_OVERRIDES?.[key]?.name || libName || "";
+}
+function effectiveKeywords(id?: string, libKeywords?: string[]) {
+  const base = Array.isArray(libKeywords) ? libKeywords : [];
+  const key = String(id ?? "").trim();
+  if (!key) return base;
+  const ov = EMOJI_OVERRIDES?.[key];
+  if (ov?.keywords?.length) return ov.keywords;
+  return base;
+}
+
+// ------------------------
+// emoji scoring (NO ID SEARCH)
+// ------------------------
+function hasWord(hay: string, word: string) {
+  const h = String(hay ?? "").toLowerCase();
+  const w = String(word ?? "").toLowerCase();
+  if (!w) return false;
+  return new RegExp(`(^|[\\s_-])${w}($|[\\s_-])`, "i").test(h);
+}
+
+function looksLikeBadPhraseEmoji(_id: string, name: string) {
+  const s = String(name ?? "").toLowerCase();
+  if (/\bon ground\b/.test(s)) return true;
+  if (s.includes("umbrella on ground")) return true;
+  return false;
+}
+
+function isGarbageEmoji(r: any) {
+  const id = norm(r?.id);
+  const name = norm(r?.name);
+
+  if (id.startsWith("flag-") || name.includes("flag")) return true;
+  if (id.includes("skin-tone")) return true;
+  if (id.startsWith("keycap_") || name.includes("keycap")) return true;
+  if (name.includes("regional indicator")) return true;
+
+  if (looksLikeBadPhraseEmoji(id, name)) return true;
+
+  return false;
+}
+
+// ✅ uses ONLY name+keywords (not id)
+function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
+  const t = norm(token);
+  if (!t) return 0;
+
+  const nameEff = effectiveName(r?.id, r?.name);
+  const kwsEff = effectiveKeywords(r?.id, Array.isArray(r?.keywords) ? r.keywords : []);
+  const name = norm(nameEff);
+  const kws: string[] = Array.isArray(kwsEff) ? kwsEff.map(norm) : [];
+
+  if (looksLikeBadPhraseEmoji(r?.id ?? "", name)) return -100;
+
+  const hay = `${name} ${kws.join(" ")}`.trim();
+
+  let s = 0;
+
+  if (name === t) s = Math.max(s, 170);
+  if (kws.includes(t)) s = Math.max(s, 150);
+
+  if (hasWord(hay, t)) s = Math.max(s, 120);
+  if (hay.includes(t)) s = Math.max(s, 55);
+
+  let hits = 0;
+  for (const tok of allTokens) {
+    const tt = norm(tok);
+    if (!tt) continue;
+    if (hasWord(hay, tt)) hits++;
+  }
+  if (hits >= 2) s += 25 + hits * 6;
+
+  if (t === "thing" || t === "stuff" || t === "object") s -= 40;
+
+  return s;
+}
+
+function desiredCountsFromText(text: string) {
+  const wc = countWords(text);
+  const cc = (text ?? "").trim().length;
+
+  if (wc <= 12 || cc <= 80) return { roots: 2, emojis: 1, icons: 1 };
+  if (wc <= 25 || cc <= 160) return { roots: 3, emojis: 2, icons: 2 };
+  if (wc <= 55 || cc <= 320) return { roots: 5, emojis: 4, icons: 3 };
+  return { roots: 6, emojis: 5, icons: 4 };
+}
+
 const STOP = new Set([
-  "i","me","my","we","you","he","she","it","they",
-  "a","an","the","and","or","but",
-  "was","were","am","is","are","be","been",
-  "to","of","in","on","at","for","with","from","into","over","under",
-  "that","this","there","here","then",
-  "dream","dreamed","dreaming",
+  "i",
+  "me",
+  "my",
+  "we",
+  "you",
+  "he",
+  "she",
+  "it",
+  "they",
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "was",
+  "were",
+  "am",
+  "is",
+  "are",
+  "be",
+  "been",
+  "to",
+  "of",
+  "in",
+  "on",
+  "at",
+  "for",
+  "with",
+  "from",
+  "into",
+  "over",
+  "under",
+  "that",
+  "this",
+  "there",
+  "here",
+  "then",
+  "dream",
+  "dreamed",
+  "dreaming",
 ]);
 
 function tokenizeEn(s: string) {
@@ -150,8 +287,6 @@ function tokenizeEn(s: string) {
     .slice(0, 20);
 }
 
-type RecStatus = "idle" | "listening" | "paused" | "error";
-
 type EmojiCandidate = {
   native: string;
   id?: string;
@@ -160,70 +295,10 @@ type EmojiCandidate = {
   score: number;
 };
 
-function norm(s: any) {
-  return String(s ?? "").toLowerCase().trim();
-}
-function toNative(r: any) {
-  return r?.skins?.[0]?.native || r?.native || "";
-}
-function isGarbageEmoji(r: any) {
-  const id = norm(r?.id);
-  const name = norm(r?.name);
-
-  if (id.startsWith("flag-") || name.includes("flag")) return true;
-  if (id.includes("skin-tone")) return true;
-  if (id.startsWith("keycap_") || name.includes("keycap")) return true;
-  if (name.includes("regional indicator")) return true;
-
-  return false;
-}
-
-const ROOT_HINTS: Record<string, string> = {
-  forest: "tree",
-  wood: "tree",
-};
-
 let EMOJI_READY: Promise<void> | null = null;
 function ensureEmojiIndex() {
   if (!EMOJI_READY) EMOJI_READY = init({ data });
   return EMOJI_READY;
-}
-
-function normalizeRootForEmoji(root: string, lang?: string) {
-  const s = (root ?? "").trim();
-  if (!s) return "";
-  const lower = s.toLowerCase();
-  if (ROOT_HINTS[lower]) return ROOT_HINTS[lower];
-  return textForIconPicker(s, lang);
-}
-
-function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
-  const t = norm(token);
-  const id = norm(r?.id).replace(/[-_]/g, " ");
-  const name = norm(r?.name);
-  const kws: string[] = Array.isArray(r?.keywords) ? r.keywords.map(norm) : [];
-
-  if (id === t || name === t) return 140;
-  if (kws.includes(t)) return 120;
-
-  let s = 0;
-  if (id.split(" ").includes(t)) s = Math.max(s, 90);
-  if (name.split(" ").includes(t)) s = Math.max(s, 85);
-
-  if (name.includes(t)) s = Math.max(s, 60);
-  if (id.includes(t)) s = Math.max(s, 55);
-
-  let hits = 0;
-  for (const tok of allTokens) {
-    const tt = norm(tok);
-    if (!tt) continue;
-    if (id.includes(tt) || name.includes(tt) || kws.some((k) => k.includes(tt))) hits++;
-  }
-  if (hits >= 2) s += 40 + hits * 8;
-
-  if (t === "thing" || t === "stuff" || t === "object") s -= 30;
-
-  return s;
 }
 
 function uniqByNativeKeepBest(cands: EmojiCandidate[]) {
@@ -236,26 +311,26 @@ function uniqByNativeKeepBest(cands: EmojiCandidate[]) {
 }
 
 /**
- * Вариант A:
- * 1) локально собираем список кандидатов (топ-20)
- * 2) зовём API /api/dreams/emoji-pick (AI выбирает 1 из списка)
- * 3) если AI/сеть упала — берём top-1 локально
+ * Variant A:
+ * 1) local top candidates (overrides applied)
+ * 2) call /api/dreams/emoji-pick (AI chooses ONE by native)
+ * 3) if API fails -> fallback to top-1 local candidate (still safe)
  */
 async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<DreamEmoji | null> {
   await ensureEmojiIndex();
 
-  const q = normalizeRootForEmoji(root, lang);
+  const q = (root ?? "").trim();
   if (!q) return null;
 
-  const tokens =
-    lang === "en" ? tokenizeEn(q) : q.split(/\s+/).filter(Boolean).slice(0, 6);
-
+  const tokens = lang === "en" ? tokenizeEn(q) : q.split(/\s+/).filter(Boolean).slice(0, 6);
   if (tokens.length === 0) return null;
 
   const localHits: EmojiCandidate[] = [];
 
   for (const t of tokens) {
+    // @ts-ignore
     const res: any[] = await (SearchIndex as any).search(t);
+
     for (const r of (res ?? []).slice(0, 80)) {
       if (!r) continue;
       if (isGarbageEmoji(r)) continue;
@@ -266,11 +341,15 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
       const sc = scoreCandidateForToken(t, r, tokens);
       if (sc <= 0) continue;
 
+      const id = r?.id;
+      const nameEff = effectiveName(id, r?.name);
+      const kwsEff = effectiveKeywords(id, Array.isArray(r?.keywords) ? r.keywords : []);
+
       localHits.push({
         native,
-        id: r?.id,
-        name: r?.name,
-        keywords: Array.isArray(r?.keywords) ? r.keywords.slice(0, 24) : [],
+        id,
+        name: nameEff,
+        keywords: Array.isArray(kwsEff) ? kwsEff.slice(0, 24) : [],
         score: sc,
       });
     }
@@ -278,7 +357,6 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 
   const uniq = uniqByNativeKeepBest(localHits);
   const candidates = uniq.slice(0, 20);
-
   if (candidates.length === 0) return null;
 
   try {
@@ -297,18 +375,21 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
       }),
     });
 
-    const data = await resp.json();
-    if (resp.ok && data?.native) {
-      const picked = candidates.find((c) => c.native === data.native);
+    const out = await resp.json();
+    if (resp.ok) {
+      const picked = candidates.find((c) => c.native === out?.native);
       if (picked) return { native: picked.native, id: picked.id, name: picked.name };
     }
   } catch {
-    // ignore → fallback
+    // ignore -> fallback
   }
 
-  const best = candidates[0];
-  return best ? { native: best.native, id: best.id, name: best.name } : null;
+  // ✅ fallback: top-1 local
+  const top = candidates[0];
+  return top ? { native: top.native, id: top.id, name: top.name } : null;
 }
+
+type RecStatus = "idle" | "listening" | "paused" | "error";
 
 export default function DreamsPage() {
   const [open, setOpen] = useState(false);
@@ -347,52 +428,96 @@ export default function DreamsPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
-
   const isStartingFreshRef = useRef(true);
-
   const lastFinalChunkRef = useRef<string>("");
 
+  const [analysisBusyId, setAnalysisBusyId] = useState<string | null>(null);
+  const [analysisOpenId, setAnalysisOpenId] = useState<string | null>(null);
 
-// init recLang
-useEffect(() => {
-  if (typeof window === "undefined") return;
+  const hintsRef = useRef<Record<string, string>>({});
 
-  const saved = localStorage.getItem("recLang");
-  if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
-    setRecLang(saved);
-    return;
+  // ✅ RTDB emojiHints
+  useEffect(() => {
+    const db = getDatabase();
+    const p = rtdbRef(db, "/app_config/dreamly/emojiHints/en");
+
+    const cb = (snap: any) => {
+      const v = snap.val();
+      if (v && typeof v === "object") {
+        const next: Record<string, string> = {};
+        for (const [k, val] of Object.entries(v)) {
+          const kk = String(k || "").toLowerCase().trim();
+          const vv = String(val || "").toLowerCase().trim();
+          if (kk && vv) next[kk] = vv;
+        }
+        if (Object.keys(next).length > 0) hintsRef.current = next;
+      }
+    };
+
+    onValue(p, cb, (err: any) => console.warn("RTDB emojiHints load failed:", err));
+    return () => off(p, "value", cb);
+  }, []);
+
+  // ✅ RTDB emojiOverrides
+  useEffect(() => {
+    const db = getDatabase();
+    const p = rtdbRef(db, "/app_config/dreamly/emojiOverrides/en");
+
+    const cb = (snap: any) => {
+      const v = snap.val();
+      const obj: OverridesMap = v && typeof v === "object" && !Array.isArray(v) ? v : {};
+      EMOJI_OVERRIDES = obj;
+    };
+
+    onValue(p, cb, (err: any) => console.warn("RTDB emojiOverrides load failed:", err));
+    return () => off(p, "value", cb);
+  }, []);
+
+  function openAnalysis(dreamId: string) {
+    setAnalysisOpenId(dreamId);
+  }
+  function closeAnalysis() {
+    setAnalysisOpenId(null);
   }
 
-  const nav = (navigator.language || "").toLowerCase();
-  if (nav.startsWith("he")) setRecLang("he-IL");
-  else if (nav.startsWith("ru")) setRecLang("ru-RU");
-  else setRecLang("en-US");
-}, []);
+  // init recLang
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-// persist recLang
-useEffect(() => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("recLang", recLang);
-}, [recLang]);
+    const saved = localStorage.getItem("recLang");
+    if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
+      setRecLang(saved);
+      return;
+    }
 
-// 🔥 apply new language during active recording
-useEffect(() => {
-  if (recStatus !== "listening") return;
+    const nav = (navigator.language || "").toLowerCase();
+    if (nav.startsWith("he")) setRecLang("he-IL");
+    else if (nav.startsWith("ru")) setRecLang("ru-RU");
+    else setRecLang("en-US");
+  }, []);
 
-  // мягко перезапустим — onend сам поднимет обратно
-  try {
-    recRef.current?.stop?.();
-  } catch {}
-}, [recLang, recStatus]);
+  // persist recLang
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("recLang", recLang);
+  }, [recLang]);
 
-  // ✅ SpeechRecognition support
+  // apply new language during active recording
+  useEffect(() => {
+    if (recStatus !== "listening") return;
+    try {
+      recRef.current?.stop?.();
+    } catch {}
+  }, [recLang, recStatus]);
+
+  // SpeechRecognition support
   useEffect(() => {
     if (typeof window === "undefined") return;
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setRecSupported(!!SR);
   }, []);
 
-  // ✅ ONLY Google auth: no anonymous sign-in
+  // Google auth only
   useEffect(() => {
     const unsub = onIdTokenChanged(auth, (u) => {
       if (u) {
@@ -402,12 +527,9 @@ useEffect(() => {
       } else {
         setUser(null);
         setUid(null);
-        // если пользователь не залогинен — можно показать модалку,
-        // но мы будем открывать её по действию (New/Save/Roots/Share/Delete)
         setShowAuthModal(false);
       }
     });
-
     return () => unsub();
   }, []);
 
@@ -424,100 +546,102 @@ useEffect(() => {
     return parts.join(a && (b || c) ? "\n" : " ");
   }
 
- function startRecording() {
-  setRecErr(null);
+  function startRecording() {
+    setRecErr(null);
 
-  const Ctor = getSpeechRecognitionCtor();
-  if (!Ctor) {
-    setRecErr("Speech recognition is not supported on this device/browser.");
-    setRecStatus("error");
-    return;
-  }
-
-  try { recRef.current?.stop?.(); } catch {}
-
-  const rec = new Ctor();
-  recRef.current = rec;
-
-  rec.continuous = false;
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
-  rec.lang = recLang;
-
-  // ✅ сбрасываем только при "fresh" старте (кнопка Start / Resume)
-  if (isStartingFreshRef.current) {
-    lastFinalChunkRef.current = "";
-    baseTextRef.current = text.trim();
-    finalRef.current = "";
-    setRecInterim("");
-  }
-
-  shouldRestartRef.current = true;
-
-  rec.onstart = () => {
-    setRecording(true);
-    setRecStatus("listening");
-  };
-
-  rec.onerror = (e: any) => {
-    setRecErr(e?.error ? String(e.error) : "Speech recognition error");
-    setRecStatus("error");
-    setRecording(false);
-    shouldRestartRef.current = false;
-  };
-
-  rec.onend = () => {
-    if (recRef.current !== rec) return;
-
-    if (shouldRestartRef.current) {
-      setTimeout(() => {
-        // ✅ важно: это уже не fresh-start
-        isStartingFreshRef.current = false;
-        try { rec.start(); } catch {}
-      }, 150);
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) {
+      setRecErr("Speech recognition is not supported on this device/browser.");
+      setRecStatus("error");
       return;
     }
 
-    setRecording(false);
-    setRecStatus("idle");
-  };
+    try {
+      recRef.current?.stop?.();
+    } catch {}
 
-  rec.onresult = (event: any) => {
-    let interim = "";
-    let finalsChunk = "";
+    const rec = new Ctor();
+    recRef.current = rec;
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const res = event.results[i];
-      const transcript = String(res?.[0]?.transcript ?? "").trim();
-      if (!transcript) continue;
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.lang = recLang;
 
-      if (res.isFinal) finalsChunk += transcript + " ";
-      else interim += transcript + " ";
+    if (isStartingFreshRef.current) {
+      lastFinalChunkRef.current = "";
+      baseTextRef.current = text.trim();
+      finalRef.current = "";
+      setRecInterim("");
     }
 
-    const finalsAdd = finalsChunk.trim();
-    const interimNow = interim.trim();
+    shouldRestartRef.current = true;
 
-if (finalsAdd) {
-  // защита от дубля
-  if (finalsAdd !== lastFinalChunkRef.current) {
-    finalRef.current = `${finalRef.current} ${finalsAdd}`.trim();
-    lastFinalChunkRef.current = finalsAdd;
-  }
-}
-    setRecInterim(interimNow);
-    setText(buildText(baseTextRef.current, finalRef.current, interimNow));
-  };
+    rec.onstart = () => {
+      setRecording(true);
+      setRecStatus("listening");
+    };
 
-  try {
-    rec.start();
-  } catch (e: any) {
-    setRecErr(e?.message ?? "Failed to start recording");
-    setRecStatus("error");
-    setRecording(false);
-    shouldRestartRef.current = false;
+    rec.onerror = (e: any) => {
+      setRecErr(e?.error ? String(e.error) : "Speech recognition error");
+      setRecStatus("error");
+      setRecording(false);
+      shouldRestartRef.current = false;
+    };
+
+    rec.onend = () => {
+      if (recRef.current !== rec) return;
+
+      if (shouldRestartRef.current) {
+        setTimeout(() => {
+          isStartingFreshRef.current = false;
+          try {
+            rec.start();
+          } catch {}
+        }, 150);
+        return;
+      }
+
+      setRecording(false);
+      setRecStatus("idle");
+    };
+
+    rec.onresult = (event: any) => {
+      let interim = "";
+      let finalsChunk = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const transcript = String(res?.[0]?.transcript ?? "").trim();
+        if (!transcript) continue;
+
+        if (res.isFinal) finalsChunk += transcript + " ";
+        else interim += transcript + " ";
+      }
+
+      const finalsAdd = finalsChunk.trim();
+      const interimNow = interim.trim();
+
+      if (finalsAdd) {
+        if (finalsAdd !== lastFinalChunkRef.current) {
+          finalRef.current = `${finalRef.current} ${finalsAdd}`.trim();
+          lastFinalChunkRef.current = finalsAdd;
+        }
+      }
+
+      setRecInterim(interimNow);
+      setText(buildText(baseTextRef.current, finalRef.current, interimNow));
+    };
+
+    try {
+      rec.start();
+    } catch (e: any) {
+      setRecErr(e?.message ?? "Failed to start recording");
+      setRecStatus("error");
+      setRecording(false);
+      shouldRestartRef.current = false;
+    }
   }
-}
 
   function stopRecording() {
     shouldRestartRef.current = false;
@@ -542,31 +666,31 @@ if (finalsAdd) {
     recRef.current = null;
   }
 
- function resumeRecording() {
-  baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
-  finalRef.current = "";
-  setRecInterim("");
-  shouldRestartRef.current = true;
+  function resumeRecording() {
+    baseTextRef.current = buildText(baseTextRef.current, finalRef.current, "");
+    finalRef.current = "";
+    setRecInterim("");
+    shouldRestartRef.current = true;
 
-  isStartingFreshRef.current = true; // ✅ это fresh для новой "сессии"
-  startRecording();
-}
+    isStartingFreshRef.current = true;
+    startRecording();
+  }
 
-  // ✅ Load dreams only when signed in
+  // Load dreams when signed in
   useEffect(() => {
     if (!uid) {
       setDreams([]);
       return;
     }
 
-    const q = query(
+    const q1 = query(
       collection(firestore, "users", uid, "dreams"),
       orderBy("createdAtMs", "desc"),
       limit(200)
     );
 
     const unsub = onSnapshot(
-      q,
+      q1,
       (snap) => {
         const items: Dream[] = snap.docs.map((d) => ({
           id: d.id,
@@ -603,7 +727,7 @@ if (finalsAdd) {
   }, [open]);
 
   function requireGoogleAuth() {
-    setOpen(false);           // закрываем bottom-sheet если открыт
+    setOpen(false);
     setShowAuthModal(true);
   }
 
@@ -650,13 +774,15 @@ if (finalsAdd) {
       deleted: false,
 
       emojis: [] as DreamEmoji[],
+      iconsEn: [] as DreamIconKey[],
+
       shared: false,
       sharedAtMs: null as any,
       sharedAt: null as any,
 
       roots: [] as string[],
       rootsTop: [] as any[],
-      rootsEn: [] as string[],      // ✅ ADD
+      rootsEn: [] as string[],
       rootsLang: null as any,
       rootsUpdatedAt: null as any,
     };
@@ -691,11 +817,7 @@ if (finalsAdd) {
       return;
     }
 
-    setDreams((prev) =>
-      prev.map((d) =>
-        d.id === dreamId ? { ...d, shared: true, sharedAtMs: Date.now() } : d
-      )
-    );
+    setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, shared: true, sharedAtMs: Date.now() } : d)));
 
     try {
       const nowMs = Date.now();
@@ -738,12 +860,73 @@ if (finalsAdd) {
 
       setTab("SHARED");
     } catch (e: any) {
-      setDreams((prev) =>
-        prev.map((d) => (d.id === dreamId ? { ...d, shared: false } : d))
-      );
+      setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, shared: false } : d)));
       setError(e?.message ?? "Failed to share dream.");
     } finally {
       setSharingId(null);
+    }
+  }
+
+  async function analyzeDream(dreamId: string) {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to analyze dreams.");
+      return;
+    }
+    if (!uid) return;
+    if (analysisBusyId || deletingId || sharingId || rootsBusyId) return;
+
+    const dream = dreams.find((d) => d.id === dreamId);
+    const t = (dream?.text ?? "").trim();
+    if (!t) return;
+
+    if ((dream?.analysisText ?? "").trim()) {
+      openAnalysis(dreamId);
+      return;
+    }
+
+    setError(null);
+    setAnalysisBusyId(dreamId);
+
+    try {
+      const res = await fetch("/api/dreams/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: t,
+          lang: (dream as any)?.langGuess ?? guessLang(t),
+        }),
+      });
+
+      const data2 = await res.json();
+      if (!res.ok) throw new Error(data2?.error ?? "Analyze API failed");
+
+      const analysisText = String(data2?.analysis ?? "").trim();
+      if (!analysisText) throw new Error("Empty analysis from AI");
+
+      const nowMs = Date.now();
+
+      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+        analysisText,
+        analysisAtMs: nowMs,
+        analysisModel: data2?.model ?? null,
+        updatedAt: serverTimestamp(),
+      });
+
+      setDreams((prev) =>
+        prev.map((x) =>
+          x.id === dreamId
+            ? { ...x, analysisText, analysisAtMs: nowMs, analysisModel: data2?.model ?? undefined }
+            : x
+        )
+      );
+
+      openAnalysis(dreamId);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to analyze dream.");
+    } finally {
+      setAnalysisBusyId(null);
     }
   }
 
@@ -760,9 +943,7 @@ if (finalsAdd) {
     setError(null);
     setDeletingId(dreamId);
 
-    setDreams((prev) =>
-      prev.map((d) => (d.id === dreamId ? { ...d, deleted: true } : d))
-    );
+    setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, deleted: true } : d)));
 
     try {
       const nowMs = Date.now();
@@ -781,121 +962,135 @@ if (finalsAdd) {
         updatedAt: serverTimestamp(),
       }).catch(() => {});
     } catch (e: any) {
-      setDreams((prev) =>
-        prev.map((d) => (d.id === dreamId ? { ...d, deleted: false } : d))
-      );
+      setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, deleted: false } : d)));
       setError(e?.message ?? "Failed to delete dream.");
     } finally {
       setDeletingId(null);
     }
   }
 
- async function extractRoots(dreamId: string) {
-  const u = auth.currentUser;
-  if (!u) {
-    requireGoogleAuth();
-    setError("Please sign in with Google to extract roots.");
-    return;
+  function normalizeRootForEmojiLive(root: string, lang?: string) {
+    const s = (root ?? "").trim();
+    if (!s) return "";
+    const lower = s.toLowerCase().trim();
+
+    const hints = hintsRef.current || {};
+    const mapped = hints[lower];
+    if (mapped) return mapped;
+
+    return textForIconPicker(s, lang);
   }
-  if (!uid) return;
-  if (rootsBusyId || deletingId || sharingId) return;
 
-  const dream = dreams.find((d) => d.id === dreamId);
-  const t = (dream?.text ?? "").trim();
-  if (!t) return;
-
-const hasAnyRoots =
-  (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
-  (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
-
-if (hasAnyRoots) return;
-  setError(null);
-  setRootsBusyId(dreamId);
-
-  try {
-    const res = await fetch("/api/dreams/rootwords", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: t }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error ?? "API failed");
-
-const rootsArr = Array.isArray(data?.roots) ? data.roots : [];
-const rootsEnArr = Array.isArray(data?.rootsEn) ? data.rootsEn : rootsArr;
-
-const MAJOR = 6;
-const rootsMajor = rootsArr.slice(0, MAJOR);
-const rootsEnMajor = rootsEnArr.slice(0, MAJOR);
-
-if (!rootsMajor.length || !rootsEnMajor.length) {
-  throw new Error("No roots found. Try writing a bit more details.");
-}
-
-
-  const normalizedEn = rootsEnMajor.join(" ").toLowerCase();
-const iconsEn: DreamIconKey[] = pickDreamIconsEn(normalizedEn, 4) as DreamIconKey[];
-
-const picked = await Promise.all(
-  rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(r, "en"))
-);
-const emojis = picked.filter(Boolean).slice(0, 5) as DreamEmoji[];
-
-  await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
-  roots: rootsMajor,
-  rootsEn: rootsEnMajor,
-  rootsLang: data?.lang ?? null,
-  rootsTop: [],
-  iconsEn,
-  emojis,
-  rootsUpdatedAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-});
-
-// ✅ add this
-try {
-  await ingestDreamForMap({ uid, dreamId });
-} catch (e) {
-  console.warn("map ingest failed", e);
-}
-
-    setDreams((prev) =>
-      prev.map((x) =>
-        x.id === dreamId
-          ? {
-              ...x,
-              roots: rootsMajor,
-rootsEn: rootsEnMajor,
-              rootsLang: data?.lang ?? null,
-              rootsTop: [],
-              iconsEn,
-              emojis,
-            }
-          : x
-      )
-    );
-  } catch (e: any) {
-    setError(e?.message ?? "Failed to extract roots.");
-  } finally {
-    setRootsBusyId(null);
+  // ✅ filter iconsEn so UI always shows icons (no empty glyph keys saved)
+  function filterIconsEn(keys: DreamIconKey[], max: number) {
+    const out: DreamIconKey[] = [];
+    for (const k of keys) {
+      const icon = (DREAM_ICONS_EN as any)?.[k];
+      const glyph = icon?.emoji ?? icon?.native; // ✅ emoji-only
+      if (!glyph) continue;
+      out.push(k);
+      if (out.length >= max) break;
+    }
+    return out;
   }
-}
+
+  async function extractRoots(dreamId: string) {
+    const u = auth.currentUser;
+    if (!u) {
+      requireGoogleAuth();
+      setError("Please sign in with Google to extract roots.");
+      return;
+    }
+    if (!uid) return;
+    if (rootsBusyId || deletingId || sharingId) return;
+
+    const dream = dreams.find((d) => d.id === dreamId);
+    const t = (dream?.text ?? "").trim();
+    if (!t) return;
+
+    const hasRoots =
+      (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
+      (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
+
+    const hasVisuals =
+      (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
+      (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
+
+    // ✅ lock only if roots + visuals exist
+    if (hasRoots && hasVisuals) return;
+
+    setError(null);
+    setRootsBusyId(dreamId);
+
+    try {
+      const res = await fetch("/api/dreams/rootwords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: t }),
+      });
+
+      const data2 = await res.json();
+      if (!res.ok) throw new Error(data2?.error ?? "API failed");
+
+      const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
+      const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
+
+      const counts = desiredCountsFromText(t);
+
+      const rootsMajor = rootsArr.slice(0, counts.roots);
+      const rootsEnMajor = rootsEnArr.slice(0, counts.roots);
+
+      if (!rootsMajor.length || !rootsEnMajor.length) {
+        throw new Error("No roots found. Try writing a bit more details.");
+      }
+
+      const normalizedEn = rootsEnMajor.join(" ").toLowerCase();
+
+      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+      const iconsEn = filterIconsEn(iconsEnRaw, counts.icons); // ✅ IMPORTANT
+
+      const picked = await Promise.all(
+        rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
+      );
+
+      const emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
+
+      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+        roots: rootsMajor,
+        rootsEn: rootsEnMajor,
+        rootsLang: data2?.lang ?? null,
+        rootsTop: [],
+        iconsEn,
+        emojis,
+        rootsUpdatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      try {
+        await ingestDreamForMap({ uid, dreamId });
+      } catch (e) {
+        console.warn("map ingest failed", e);
+      }
+
+      setDreams((prev) =>
+        prev.map((x) =>
+          x.id === dreamId
+            ? { ...x, roots: rootsMajor, rootsEn: rootsEnMajor, rootsLang: data2?.lang ?? null, rootsTop: [], iconsEn, emojis }
+            : x
+        )
+      );
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to extract roots.");
+    } finally {
+      setRootsBusyId(null);
+    }
+  }
+
   const canSave = useMemo(() => !!text.trim() && !saving, [text, saving]);
 
-  const aliveDreams = useMemo(
-    () => dreams.filter((d) => (d as any).deleted !== true),
-    [dreams]
-  );
-
-  const sharedDreams = useMemo(
-    () => aliveDreams.filter((d) => d.shared === true),
-    [aliveDreams]
-  );
-
+  const aliveDreams = useMemo(() => dreams.filter((d) => (d as any).deleted !== true), [dreams]);
+  const sharedDreams = useMemo(() => aliveDreams.filter((d) => d.shared === true), [aliveDreams]);
   const visibleDreams = tab === "SHARED" ? sharedDreams : aliveDreams;
-
-  
 
   useEffect(() => {
     if (!uid) return;
@@ -910,8 +1105,8 @@ rootsEn: rootsEnMajor,
         shared.map(async (d) => {
           const sharedId = `${uid}_${d.id}`;
           const snap = await getDoc(doc(firestore, "shared_dreams", sharedId));
-          const data = snap.exists() ? (snap.data() as any) : {};
-          const r = data.reactions ?? {};
+          const data2 = snap.exists() ? (snap.data() as any) : {};
+          const r = data2.reactions ?? {};
           return [
             d.id,
             {
@@ -934,8 +1129,6 @@ rootsEn: rootsEnMajor,
     return () => {
       cancelled = true;
     };
-
-    
   }, [uid, tab, aliveDreams]);
 
   return (
@@ -973,49 +1166,47 @@ rootsEn: rootsEnMajor,
           </div>
         </div>
 
-       <button
-  onClick={() => {
-    const u = auth.currentUser;
-    if (!u) {
-      requireGoogleAuth();
-      return;
-    }
-    setOpen(true);
-  }}
-  className="
-    inline-flex items-center gap-2
-    px-6 py-3
-    rounded-full
-    bg-[var(--card)]
-    text-[var(--text)]
-    border border-[var(--border)]
-    font-semibold
-    shadow-sm
-    hover:opacity-90
-    active:scale-[0.98]
-    transition
-  "
->
-  <span className="text-lg leading-none">+</span>
-  <span>New</span>
-</button>
+        <button
+          onClick={() => {
+            const u = auth.currentUser;
+            if (!u) {
+              requireGoogleAuth();
+              return;
+            }
+            setOpen(true);
+          }}
+          className="
+            inline-flex items-center gap-2
+            px-6 py-3
+            rounded-full
+            bg-[var(--card)]
+            text-[var(--text)]
+            border border-[var(--border)]
+            font-semibold
+            shadow-sm
+            hover:opacity-90
+            active:scale-[0.98]
+            transition
+          "
+        >
+          <span className="text-lg leading-none">+</span>
+          <span>New</span>
+        </button>
       </div>
 
       {/* Signed-out hint */}
       {!uid && (
-       <div className="mt-5 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] text-sm text-[var(--muted)] flex items-center justify-between gap-3 flex-wrap">
-  <div className="min-w-0">
-You are not signed in. Sign in with Google to create and save your dreams.
-  </div>
+        <div className="mt-5 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] text-sm text-[var(--muted)] flex items-center justify-between gap-3 flex-wrap">
+          <div className="min-w-0">You are not signed in. Sign in with Google to create and save your dreams.</div>
 
-  <button
-    onClick={() => requireGoogleAuth()}
-    className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
-  >
-    <FcGoogle className="text-lg" />
-    <span>Sign in with Google</span>
-  </button>
-</div>
+          <button
+            onClick={() => requireGoogleAuth()}
+            className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
+          >
+            <FcGoogle className="text-lg" />
+            <span>Sign in with Google</span>
+          </button>
+        </div>
       )}
 
       {/* Error */}
@@ -1028,9 +1219,7 @@ You are not signed in. Sign in with Google to create and save your dreams.
       {/* List */}
       {!uid ? null : visibleDreams.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
-          {tab === "SHARED"
-            ? "No shared dreams yet. Share one from the All tab."
-            : "No dreams yet. Add your first one."}
+          {tab === "SHARED" ? "No shared dreams yet. Share one from the All tab." : "No dreams yet. Add your first one."}
         </div>
       ) : (
         <div className="mt-8 space-y-3">
@@ -1040,44 +1229,61 @@ You are not signed in. Sign in with Google to create and save your dreams.
             const isDeleting = deletingId === d.id;
             const isRootsBusy = rootsBusyId === d.id;
 
-const hasRoots =
-  (Array.isArray(d.roots) && d.roots.length > 0) ||
-  (Array.isArray(d.rootsEn) && d.rootsEn.length > 0);
+            const hasRoots =
+              (Array.isArray(d.roots) && d.roots.length > 0) ||
+              (Array.isArray(d.rootsEn) && d.rootsEn.length > 0);
 
-  
+            const hasVisuals =
+              (Array.isArray(d.emojis) && d.emojis.length > 0) ||
+              (Array.isArray(d.iconsEn) && d.iconsEn.length > 0);
+
+            const rootsLocked = hasRoots && hasVisuals;
+
+            const dreamNum = visibleDreams.length - index;
+
             return (
-              <div
-                key={d.id}
-                className="p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)]"
-              >
+              <div key={d.id} className="p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
                 {/* Title + Actions */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    {(() => {
-                      const dreamNum = visibleDreams.length - index;
+                    <div className="flex items-center gap-3">
+                      <div className="text-base font-semibold">Dream #{dreamNum}</div>
 
-                      return (
-                        <div className="flex items-center gap-3">
-                          <div className="text-base font-semibold">
-                            Dream #{dreamNum}
-                          </div>
-
-                          {Array.isArray(d.emojis) && d.emojis.length > 0 && (
-                            <span className="inline-flex items-baseline gap-2 text-[18px] leading-none">
-                              {d.emojis.slice(0, 5).map((em, i) => (
-                                <span
-                                  key={`${d.id}:${em.native}:${i}`}
-                                  title={em.name || em.id || "emoji"}
-                                  className="cursor-help"
-                                >
-                                  {em.native}
-                                </span>
-                              ))}
+                      {/* emojis from AI */}
+                      {Array.isArray(d.emojis) && d.emojis.length > 0 && (
+                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none">
+                          {d.emojis.slice(0, 5).map((em, i) => (
+                            <span key={`${d.id}:${em.native}:${i}`} title={em.name || em.id || "emoji"} className="cursor-help">
+                              {em.native}
                             </span>
-                          )}
-                        </div>
-                      );
-                    })()}
+                          ))}
+                        </span>
+                      )}
+
+                      {/* iconsEn from dictionary (emoji-only) */}
+                      {Array.isArray(d.iconsEn) && d.iconsEn.length > 0 && (
+                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none opacity-90">
+                          {d.iconsEn
+                            .map((k) => {
+                              const icon = (DREAM_ICONS_EN as any)?.[k];
+                              const glyph = icon?.emoji ?? icon?.native;
+                              if (!glyph) return null;
+                              return { k, glyph, label: icon?.label || icon?.name || String(k) };
+                            })
+                            .filter(Boolean)
+                            .slice(0, 4)
+                            .map((x: any, i: number) => (
+                              <span
+                                key={`${d.id}:icon:${String(x.k)}:${i}`}
+                                title={x.label}
+                                className="cursor-help"
+                              >
+                                {x.glyph}
+                              </span>
+                            ))}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -1096,18 +1302,37 @@ const hasRoots =
                       {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
                     </button>
 
-                    {/* Roots */}
+                    {/* Analyze */}
                     <button
-                      onClick={() => extractRoots(d.id)}
-                      disabled={hasRoots || isRootsBusy || isDeleting}
+                      onClick={() => analyzeDream(d.id)}
+                      disabled={isDeleting || isSharing || isRootsBusy || analysisBusyId === d.id}
                       className={[
                         "dream-btn",
                         "dream-btn--neutral",
-                        hasRoots ? "opacity-60 cursor-not-allowed" : "",
+                        analysisBusyId === d.id ? "opacity-70 cursor-wait" : "",
+                        isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
+                      ].join(" ")}
+                      title={(d.analysisText ?? "").trim() ? "View analysis" : "Analyze with AI"}
+                    >
+                      {analysisBusyId === d.id
+                        ? "Analyzing…"
+                        : (d.analysisText ?? "").trim()
+                        ? "Analysis"
+                        : "Analyze"}
+                    </button>
+
+                    {/* Roots */}
+                    <button
+                      onClick={() => extractRoots(d.id)}
+                      disabled={rootsLocked || isRootsBusy || isDeleting}
+                      className={[
+                        "dream-btn",
+                        "dream-btn--neutral",
+                        rootsLocked ? "opacity-60 cursor-not-allowed" : "",
                         isRootsBusy ? "opacity-70 cursor-wait" : "",
                         isDeleting ? "opacity-60 cursor-not-allowed" : "",
                       ].join(" ")}
-                      title={hasRoots ? "Roots already extracted" : "Extract roots"}
+                      title={rootsLocked ? "Already extracted" : "Extract roots"}
                     >
                       {isRootsBusy ? "Roots…" : "Roots"}
                     </button>
@@ -1132,32 +1357,30 @@ const hasRoots =
                 </div>
 
                 {/* Text */}
-                <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">
-                  {d.text}
-                </div>
+                <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
 
                 {/* Roots chips */}
-{(() => {
-  const chips =
-    (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
-    (Array.isArray(d.rootsEn) && d.rootsEn.length > 0 && d.rootsEn) ||
-    null;
+                {(() => {
+                  const chips =
+                    (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
+                    (Array.isArray(d.rootsEn) && d.rootsEn.length > 0 && d.rootsEn) ||
+                    null;
 
-  if (!chips) return null;
+                  if (!chips) return null;
 
-  return (
-    <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
-      {chips.slice(0, 6).map((w, i) => (
-        <span
-key={`${d.id}:root:${i}`}
-          className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
-        >
-          {w}
-        </span>
-      ))}
-    </div>
-  );
-})()}
+                  return (
+                    <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
+                      {chips.slice(0, 6).map((w, i) => (
+                        <span
+                          key={`${d.id}:root:${i}`}
+                          className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
+                        >
+                          {w}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* Meta row */}
                 <div className="mt-3 text-xs text-[var(--muted)] flex items-end justify-between gap-3 flex-wrap">
@@ -1195,19 +1418,10 @@ key={`${d.id}:root:${i}`}
       )}
 
       {/* Bottom sheet modal */}
-      <div
-        className={[
-          "fixed inset-0 z-50 transition",
-          open ? "pointer-events-auto" : "pointer-events-none",
-        ].join(" ")}
-      >
+      <div className={["fixed inset-0 z-50 transition", open ? "pointer-events-auto" : "pointer-events-none"].join(" ")}>
         <div
           onClick={close}
-          className={[
-            "absolute inset-0 transition-opacity",
-            open ? "opacity-100" : "opacity-0",
-            "bg-black/40",
-          ].join(" ")}
+          className={["absolute inset-0 transition-opacity", open ? "opacity-100" : "opacity-0", "bg-black/40"].join(" ")}
         />
 
         <div
@@ -1233,11 +1447,7 @@ key={`${d.id}:root:${i}`}
                 <button
                   onClick={close}
                   disabled={saving}
-                  className={[
-                    "dream-btn",
-                    "dream-btn--neutral",
-                    saving ? "opacity-60 cursor-not-allowed" : "",
-                  ].join(" ")}
+                  className={["dream-btn", "dream-btn--neutral", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                 >
                   Close
                 </button>
@@ -1247,13 +1457,13 @@ key={`${d.id}:root:${i}`}
                 <textarea
                   ref={inputRef}
                   value={text}
-onChange={(e) => {
-  const v = e.target.value;
-  setText(v);
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setText(v);
 
-  const next = detectRecLangFromText(v);
-  if (next) setRecLang(next);
-}}
+                    const next = detectRecLangFromText(v);
+                    if (next) setRecLang(next);
+                  }}
                   placeholder="Type your dream…"
                   rows={5}
                   disabled={saving}
@@ -1263,15 +1473,12 @@ onChange={(e) => {
                              focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
                              disabled:opacity-60"
                 />
-                <div className="mt-2 text-xs text-[var(--muted)]">
-                  Keep it short for Phase One. You can add tags later.
-                </div>
+                <div className="mt-2 text-xs text-[var(--muted)]">Keep it short for Phase One. You can add tags later.</div>
               </div>
 
               {recInterim ? (
                 <div className="mt-2 text-xs text-[var(--muted)]">
-                  <span className="opacity-70">Listening…</span>{" "}
-                  <span className="italic">{recInterim}</span>
+                  <span className="opacity-70">Listening…</span> <span className="italic">{recInterim}</span>
                 </div>
               ) : null}
 
@@ -1284,9 +1491,7 @@ onChange={(e) => {
               <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
                 {!recSupported ? (
                   <button
-                    onClick={() =>
-                      setRecErr("Tip: on iPhone use the 🎤 button on the keyboard for диктовка.")
-                    }
+                    onClick={() => setRecErr("Tip: on iPhone use the 🎤 button on the keyboard for диктовка.")}
                     className={["dream-btn", "dream-btn--neutral"].join(" ")}
                     type="button"
                   >
@@ -1294,50 +1499,30 @@ onChange={(e) => {
                   </button>
                 ) : recStatus === "listening" ? (
                   <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={pauseRecording}
-                      className={["dream-btn", "dream-btn--neutral"].join(" ")}
-                      type="button"
-                    >
+                    <button onClick={pauseRecording} className={["dream-btn", "dream-btn--neutral"].join(" ")} type="button">
                       ⏸ Pause
                     </button>
-                    <button
-                      onClick={stopRecording}
-                      className={["dream-btn", "dream-btn--danger"].join(" ")}
-                      type="button"
-                    >
+                    <button onClick={stopRecording} className={["dream-btn", "dream-btn--danger"].join(" ")} type="button">
                       ⏹ Stop
                     </button>
                   </div>
                 ) : recStatus === "paused" ? (
                   <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={resumeRecording}
-                      className={["dream-btn", "dream-btn--recording"].join(" ")}
-                      type="button"
-                    >
+                    <button onClick={resumeRecording} className={["dream-btn", "dream-btn--recording"].join(" ")} type="button">
                       ▶ Resume
                     </button>
-                    <button
-                      onClick={stopRecording}
-                      className={["dream-btn", "dream-btn--danger"].join(" ")}
-                      type="button"
-                    >
+                    <button onClick={stopRecording} className={["dream-btn", "dream-btn--danger"].join(" ")} type="button">
                       ⏹ Stop
                     </button>
                   </div>
                 ) : (
                   <button
- onClick={() => {
-    isStartingFreshRef.current = true;
-    startRecording();
-  }}
-                      disabled={saving}
-                    className={[
-                      "dream-btn",
-                      "dream-btn--recording",
-                      saving ? "opacity-60 cursor-not-allowed" : "",
-                    ].join(" ")}
+                    onClick={() => {
+                      isStartingFreshRef.current = true;
+                      startRecording();
+                    }}
+                    disabled={saving}
+                    className={["dream-btn", "dream-btn--recording", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                     type="button"
                   >
                     🎙 Start
@@ -1348,11 +1533,7 @@ onChange={(e) => {
                   <button
                     onClick={close}
                     disabled={saving}
-                    className={[
-                      "dream-btn",
-                      "dream-btn--neutral",
-                      saving ? "opacity-60 cursor-not-allowed" : "",
-                    ].join(" ")}
+                    className={["dream-btn", "dream-btn--neutral", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                   >
                     Cancel
                   </button>
@@ -1360,19 +1541,14 @@ onChange={(e) => {
                   <button
                     onClick={save}
                     disabled={!canSave}
-                    className={[
-                      "dream-primary-btn",
-                      !canSave ? "opacity-60 cursor-not-allowed" : "",
-                    ].join(" ")}
+                    className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                   >
                     {saving ? "Saving…" : "Save"}
                   </button>
                 </div>
               </div>
 
-              <div className="mt-3 text-xs text-[var(--muted)]">
-                Next: мы подключим Speech-to-Text и будем сохранять всё как текст.
-              </div>
+              <div className="mt-3 text-xs text-[var(--muted)]">Next: мы подключим Speech-to-Text и будем сохранять всё как текст.</div>
             </div>
           </div>
         </div>
@@ -1382,36 +1558,31 @@ onChange={(e) => {
       {showAuthModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-sm rounded-2xl bg-[var(--card)] p-6 shadow-2xl border border-[var(--border)]">
-            <h2 className="text-xl font-bold mb-2 text-[var(--text)]">
-              Sign in required
-            </h2>
+            <h2 className="text-xl font-bold mb-2 text-[var(--text)]">Sign in required</h2>
 
-            <p className="text-sm text-[var(--muted)] mb-6">
-              Пожалуйста, войдите через Google, чтобы создавать и сохранять сны.
-            </p>
+            <p className="text-sm text-[var(--muted)] mb-6">Пожалуйста, войдите через Google, чтобы создавать и сохранять сны.</p>
 
+            <button
+              onClick={async () => {
+                try {
+                  setError(null);
+                  const provider = new GoogleAuthProvider();
+                  await signInWithPopup(auth, provider);
 
-<button
-  onClick={async () => {
-    try {
-      setError(null);
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+                  const updatedUser = auth.currentUser;
+                  setUser(updatedUser);
+                  setUid(updatedUser?.uid ?? null);
 
-      const updatedUser = auth.currentUser;
-      setUser(updatedUser);
-      setUid(updatedUser?.uid ?? null);
-
-      setShowAuthModal(false);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to sign in.");
-    }
-  }}
-  className="w-full py-3 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-3"
->
-  <FcGoogle className="text-xl" />
-  <span>Continue with Google</span>
-</button>
+                  setShowAuthModal(false);
+                } catch (e: any) {
+                  setError(e?.message ?? "Failed to sign in.");
+                }
+              }}
+              className="w-full py-3 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-3"
+            >
+              <FcGoogle className="text-xl" />
+              <span>Continue with Google</span>
+            </button>
 
             <button
               onClick={() => {
@@ -1425,6 +1596,46 @@ onChange={(e) => {
           </div>
         </div>
       )}
+
+      {/* Analysis popup */}
+      {analysisOpenId &&
+        (() => {
+          const d = dreams.find((x) => x.id === analysisOpenId);
+          const txt = (d?.analysisText ?? "").trim();
+
+          return (
+            <div
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+              onClick={closeAnalysis}
+            >
+              <div
+                className="w-full max-w-lg rounded-2xl bg-[var(--card)] p-5 shadow-2xl border border-[var(--border)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-lg font-semibold text-[var(--text)]">Dream Analysis</div>
+                    {d?.analysisAtMs ? (
+                      <div className="mt-1 text-xs text-[var(--muted)]">Saved: {new Date(d.analysisAtMs).toLocaleString()}</div>
+                    ) : null}
+                  </div>
+
+                  <button onClick={closeAnalysis} className={["dream-btn", "dream-btn--neutral"].join(" ")}>
+                    Close
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  {!txt ? (
+                    <div className="text-sm text-[var(--muted)]">No analysis found.</div>
+                  ) : (
+                    <div className="text-[var(--text)] whitespace-pre-wrap break-words text-sm leading-relaxed">{txt}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
       <BottomNav hidden={open} />
     </main>

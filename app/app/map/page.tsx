@@ -77,7 +77,8 @@ function metersToLngLatOffset(meters: number, latDeg: number, ox: number, oy: nu
 function maxRankByZoom(z: number) {
   if (z < 4) return 0;   // top1
   if (z < 6) return 2;   // top3
-  return 4;              // top5
+  if (z < 8) return 4;   // top5
+  return Number.POSITIVE_INFINITY; // <-- на большом зуме все
 }
 
 // базовый размер от zoom
@@ -132,8 +133,7 @@ export default function MapPage() {
       if (!cityId) return;
 
       const emojiMap = extractEmojisFromDoc(raw);
-      const items = toTopItems(emojiMap, 5);
-      if (items.length === 0) return;
+      const items = toTopItems(emojiMap, 999999999); // или Object.keys(emojiMap).length      if (items.length === 0) return;
 
       rows.push({
         cityId,
