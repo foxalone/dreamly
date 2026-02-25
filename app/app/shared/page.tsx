@@ -12,7 +12,14 @@ import {
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
-import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  type User,
+} from "firebase/auth";
+import { FcGoogle } from "react-icons/fc";
 
 import { auth, firestore } from "@/lib/firebase";
 import BottomNav from "../BottomNav";
@@ -27,22 +34,15 @@ type DreamEmoji = {
 
 type SharedDream = {
   id: string;
-
-  // title есть в базе, но не показываем
-  title?: string;
-
+  title?: string; // есть, но не показываем
   text?: string;
   dateKey?: string;
   timeKey?: string;
   sharedAtMs?: number;
-
-  // ✅ вот это твои эмодзи (объекты)
   emojis?: DreamEmoji[] | any;
-
   wordCount?: number;
   charCount?: number;
   langGuess?: string;
-
   reactions?: {
     heart?: number;
     like?: number;
@@ -65,22 +65,20 @@ function safeNum(n: any) {
 function normalizeEmojis(v: any): DreamEmoji[] {
   if (!v) return [];
 
-  // нормальный формат: [{native:"🍃"}, ...]
   if (Array.isArray(v)) {
     const out: DreamEmoji[] = [];
     for (const item of v) {
       if (!item) continue;
 
       if (typeof item === "string") {
-        // если вдруг сохранили просто "🍃"
         out.push({ native: item });
         continue;
       }
 
       if (typeof item === "object") {
-        // ожидаемый формат
-        const native =
-          String(item.native ?? item.emoji ?? item.icon ?? item.value ?? "").trim();
+        const native = String(
+          item.native ?? item.emoji ?? item.icon ?? item.value ?? ""
+        ).trim();
         if (!native) continue;
 
         out.push({
@@ -93,7 +91,6 @@ function normalizeEmojis(v: any): DreamEmoji[] {
     return out.slice(0, 8);
   }
 
-  // если вдруг строка "🍃 🔔 🪁"
   if (typeof v === "string") {
     return v
       .trim()
@@ -106,31 +103,47 @@ function normalizeEmojis(v: any): DreamEmoji[] {
   return [];
 }
 
+function initialsFromUser(u: User) {
+  const name = (u.displayName ?? "").trim();
+  const email = (u.email ?? "").trim();
+  const src = name || email || "U";
+  const parts = src.split(/[\s._-]+/).filter(Boolean);
+  const a = (parts[0]?.[0] ?? "U").toUpperCase();
+  const b = (parts[1]?.[0] ?? parts[0]?.[1] ?? "").toUpperCase();
+  return (a + b).slice(0, 2);
+}
+
 export default function SharedPage() {
   const [uid, setUid] = useState<string | null>(null);
+  const [userLabel, setUserLabel] = useState<string>(""); // optional
   const [items, setItems] = useState<SharedDream[]>([]);
   const [my, setMy] = useState<Record<string, MyReactions>>({});
-  const [busyKey, setBusyKey] = useState<string | null>(null); // `${dreamId}:${reaction}`
+  const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ авто-анонимный логин
+  // ✅ auth state only (no anonymous login)
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!u) {
-        try {
-          await signInAnonymously(auth);
-        } catch (e) {
-          console.error("Anonymous sign-in failed:", e);
-          setError("Auth failed.");
-        }
-      } else {
-        setUid(u.uid);
-      }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUid(u ? u.uid : null);
+      setUserLabel(u ? initialsFromUser(u) : "");
     });
     return () => unsub();
   }, []);
 
-  // ✅ realtime лента shared_dreams
+  async function signInGoogle() {
+    setError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will update uid
+    } catch (e: any) {
+      console.error("Google sign-in failed:", e);
+      setError(e?.message ?? "Google sign-in failed.");
+    }
+  }
+
+  // ✅ realtime shared_dreams feed
   useEffect(() => {
     const q = query(
       collection(firestore, "shared_dreams"),
@@ -156,9 +169,12 @@ export default function SharedPage() {
     return () => unsub();
   }, []);
 
-  // ✅ мои реакции
+  // ✅ my reactions (only when signed in)
   useEffect(() => {
-    if (!uid) return;
+    if (!uid) {
+      setMy({});
+      return;
+    }
     if (items.length === 0) return;
 
     let cancelled = false;
@@ -206,7 +222,7 @@ export default function SharedPage() {
     setError(null);
     setBusyKey(lock);
 
-    // оптимистично
+    // optimistic
     setMy((prev) => {
       const cur = prev[dreamId] ?? { heart: false, like: false, star: false };
       return { ...prev, [dreamId]: { ...cur, [key]: !cur[key] } };
@@ -217,14 +233,19 @@ export default function SharedPage() {
       const reactRef = doc(firestore, "shared_dreams", dreamId, "reactions", uid);
 
       await runTransaction(firestore, async (tx) => {
-        const [dreamSnap, reactSnap] = await Promise.all([tx.get(dreamRef), tx.get(reactRef)]);
+        const [dreamSnap, reactSnap] = await Promise.all([
+          tx.get(dreamRef),
+          tx.get(reactRef),
+        ]);
         if (!dreamSnap.exists()) return;
 
         const dreamData = dreamSnap.data() as any;
         const reactions = dreamData.reactions ?? {};
         const oldCount = safeNum(reactions[key]);
 
-        const prevOn = reactSnap.exists() ? !!(reactSnap.data() as any)[key] : false;
+        const prevOn = reactSnap.exists()
+          ? !!(reactSnap.data() as any)[key]
+          : false;
         const nextOn = !prevOn;
         const nextCount = Math.max(0, oldCount + (nextOn ? 1 : -1));
 
@@ -233,14 +254,10 @@ export default function SharedPage() {
           updatedAt: serverTimestamp(),
         });
 
-        tx.set(
-          reactRef,
-          { [key]: nextOn, updatedAt: serverTimestamp() },
-          { merge: true }
-        );
+        tx.set(reactRef, { [key]: nextOn, updatedAt: serverTimestamp() }, { merge: true });
       });
     } catch (e: any) {
-      // откат
+      // rollback
       setMy((prev) => {
         const cur = prev[dreamId] ?? { heart: false, like: false, star: false };
         return { ...prev, [dreamId]: { ...cur, [key]: !cur[key] } };
@@ -251,102 +268,144 @@ export default function SharedPage() {
     }
   }
 
+  const locked = !uid;
+
   return (
-    <main className="min-h-screen px-6 py-10 max-w-3xl mx-auto">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-3xl font-semibold">Shared</h1>
-      </div>
+    <main className="relative min-h-screen px-6 py-10 max-w-3xl mx-auto">
+      {/* 🔒 Blur overlay + Google sign in card */}
+      {locked && (
+        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
+          <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-white/10 shadow-xl p-6">
+            <div className="text-[var(--text)] text-lg font-semibold">
+              You are not signed in.
+            </div>
+            <div className="mt-2 text-[var(--muted)]">
+              Sign in with Google to view shared dreams and react.
+            </div>
 
-      {error && (
-        <div className="mt-5 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
-          {error}
-        </div>
-      )}
+            <button
+              onClick={signInGoogle}
+  className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
+            >
+              <FcGoogle className="text-xl" />
+              <span>Sign in with Google</span>
+            </button>
 
-      {list.length === 0 ? (
-        <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
-          No shared dreams yet.
-        </div>
-      ) : (
-        <div className="mt-8 space-y-3">
-          {list.map((d) => {
-            const myR = my[d.id] ?? { heart: false, like: false, star: false };
-            const r = d.reactions ?? {};
-            const emojis = normalizeEmojis(d.emojis);
-
-            return (
-              <div key={d.id} className="p-5 rounded-2xl bg-[var(--card)] border border-white/10">
-                {/* ✅ title removed. emojis row like Dreams page */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    {emojis.length > 0 ? (
-                      <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
-                        {emojis.slice(0, 5).map((em, i) => (
-                          <span
-                            key={`${d.id}:${em.native}:${i}`}
-                            title={em.name || em.id || "emoji"}
-                            className="cursor-help"
-                          >
-                            {em.native}
-                          </span>
-                        ))}
-                      </span>
-                    ) : (
-                      <div className="text-xs text-[var(--muted)]"> </div>
-                    )}
-                  </div>
-
-                  <div className="text-xs text-[var(--muted)] whitespace-nowrap">
-                    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-                  </div>
-                </div>
-
-                <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
-                  {d.text}
-                </div>
-
-                <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex gap-2">
-                    {REACTIONS.map((x) => {
-                      const active = !!myR[x.key];
-                      const isBusy = busyKey === `${d.id}:${x.key}`;
-                      const count = safeNum((r as any)[x.key]);
-
-                      const cls = [
-                        "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
-                        active ? `react-btn--${x.key}` : "",
-                        isBusy ? "opacity-70 cursor-wait" : "",
-                        !uid ? "opacity-60 cursor-not-allowed" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ");
-
-                      return (
-                        <button
-                          key={x.key}
-                          onClick={() => toggleReaction(d.id, x.key)}
-                          disabled={!uid || isBusy}
-                          className={cls}
-                          title={x.label}
-                        >
-                          <span>{x.emoji}</span>
-                          <span className="tabular-nums">{count}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="text-xs text-[var(--muted)] flex gap-3">
-                    <span>{d.wordCount ?? 0} words</span>
-                    <span>{d.charCount ?? 0} chars</span>
-                    {d.langGuess ? <span>{d.langGuess}</span> : null}
-                  </div>
-                </div>
+            {error && (
+              <div className="mt-4 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
+                {error}
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
       )}
+
+      {/* lock content interactions under overlay */}
+      <div className={locked ? "pointer-events-none select-none" : ""}>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-[var(--text)]">Shared</h1>
+
+          {/* optional: small user chip if signed in */}
+          {uid && (
+            <div className="text-xs text-[var(--muted)] rounded-full border border-white/10 px-3 py-1">
+              {userLabel || "Signed in"}
+            </div>
+          )}
+        </div>
+
+        {error && !locked && (
+          <div className="mt-5 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
+            {error}
+          </div>
+        )}
+
+        {list.length === 0 ? (
+          <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
+            No shared dreams yet.
+          </div>
+        ) : (
+          <div className="mt-8 space-y-3">
+            {list.map((d) => {
+              const myR = my[d.id] ?? { heart: false, like: false, star: false };
+              const r = d.reactions ?? {};
+              const emojis = normalizeEmojis(d.emojis);
+
+              return (
+                <div
+                  key={d.id}
+                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      {emojis.length > 0 ? (
+                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
+                          {emojis.slice(0, 5).map((em, i) => (
+                            <span
+                              key={`${d.id}:${em.native}:${i}`}
+                              title={em.name || em.id || "emoji"}
+                              className="cursor-help"
+                            >
+                              {em.native}
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        <div className="text-xs text-[var(--muted)]"> </div>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-[var(--muted)] whitespace-nowrap">
+                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
+                    {d.text}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex gap-2">
+                      {REACTIONS.map((x) => {
+                        const active = !!myR[x.key];
+                        const isBusy = busyKey === `${d.id}:${x.key}`;
+                        const count = safeNum((r as any)[x.key]);
+
+                        const cls = [
+                          "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                          active ? `react-btn--${x.key}` : "",
+                          isBusy ? "opacity-70 cursor-wait" : "",
+                          !uid ? "opacity-60 cursor-not-allowed" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
+
+                        return (
+                          <button
+                            key={x.key}
+                            onClick={() => toggleReaction(d.id, x.key)}
+                            disabled={!uid || isBusy}
+                            className={cls}
+                            title={x.label}
+                          >
+                            <span>{x.emoji}</span>
+                            <span className="tabular-nums">{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="text-xs text-[var(--muted)] flex gap-3">
+                      <span>{d.wordCount ?? 0} words</span>
+                      <span>{d.charCount ?? 0} chars</span>
+                      {d.langGuess ? <span>{d.langGuess}</span> : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <BottomNav />
     </main>
