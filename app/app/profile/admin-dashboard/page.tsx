@@ -72,7 +72,8 @@ function pickUserIdFromPath(refPath: string) {
   return "unknown";
 }
 
-type EmojiOverride = { name?: string; keywords?: string[] };
+// ✅ Added iconKey
+type EmojiOverride = { name?: string; keywords?: string[]; iconKey?: string };
 type OverridesMap = Record<string, EmojiOverride>;
 
 function norm(s: any) {
@@ -115,7 +116,7 @@ export default function AdminDashboardPage() {
   const [hintsErr, setHintsErr] = useState<string | null>(null);
   const [hintsSaving, setHintsSaving] = useState(false);
 
-  // EMOJIS (new overrides editor)
+  // EMOJIS (overrides editor)
   const overridesPath = "/app_config/dreamly/emojiOverrides/en";
   const [overrides, setOverrides] = useState<OverridesMap>({});
   const overridesRef = useRef<OverridesMap>({});
@@ -134,7 +135,7 @@ export default function AdminDashboardPage() {
 
   const pillBase = "h-11 px-5 rounded-full font-semibold transition border";
   const pillSurface =
-    "bg-[var(--card)] text-[var(--text)] border-[var(--border)] hover:opacity-90";
+    "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:opacity-90";
   const pillDisabled = "disabled:opacity-50 disabled:cursor-not-allowed";
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
@@ -339,21 +340,6 @@ export default function AdminDashboardPage() {
   }
 
   // ---- EMOJIS TAB logic ----
-  const emojiResults = useMemo(() => {
-    const q = norm(emojiQuery);
-    if (!emojiReady) return [];
-
-    // if empty query -> show nothing (keeps page fast)
-    if (!q) return [];
-
-    // emoji-mart search returns items with id/name/keywords/skins/native
-    // @ts-ignore
-    const all = (SearchIndex as any).search(q) as any[] | Promise<any[]>;
-
-    // SearchIndex.search may be sync in your build; handle both
-    return all;
-  }, [emojiQuery, emojiReady]);
-
   const [emojiRows, setEmojiRows] = useState<any[]>([]);
 
   useEffect(() => {
@@ -372,10 +358,7 @@ export default function AdminDashboardPage() {
         const res = await (SearchIndex as any).search(q);
         if (cancelled) return;
 
-        const rows = (res ?? [])
-          .filter(Boolean)
-          .slice(0, emojiLimit);
-
+        const rows = (res ?? []).filter(Boolean).slice(0, emojiLimit);
         setEmojiRows(rows);
       } catch (e) {
         console.warn("emoji search failed", e);
@@ -410,44 +393,55 @@ export default function AdminDashboardPage() {
     }));
   }
 
- async function saveOverride(id: string) {
-  if (!isAdmin) return;
+  async function saveOverride(id: string) {
+    if (!isAdmin) return;
 
-  setEmojiSaveErr(null);
-  setEmojiSavingId(id);
+    setEmojiSaveErr(null);
+    setEmojiSavingId(id);
 
-  try {
-    const cur = overridesRef.current?.[id] ?? overrides[id] ?? {};
+    try {
+      const cur = overridesRef.current?.[id] ?? overrides[id] ?? {};
 
-    const name = String(cur.name ?? "").trim();
+      const name = String(cur.name ?? "").trim();
+      const iconKey = String(cur.iconKey ?? "").trim().toLowerCase();
 
-    // keywords у нас всегда храним МАССИВОМ строк
-    const kws = uniq(
-      Array.isArray(cur.keywords) ? cur.keywords : []
-    ).slice(0, 50);
+      // keywords always stored as array of lowercased strings
+      const kws = uniq(Array.isArray(cur.keywords) ? cur.keywords : []).slice(0, 50);
 
-    // если пусто — удаляем override
-    const value: any =
-      (!name && kws.length === 0) ? null : { name: name || null, keywords: kws };
+      // if everything empty -> delete override node
+      const empty = !name && !iconKey && kws.length === 0;
 
-    const db = getDatabase();
-    await rtdbSet(rtdbRef(db, `${overridesPath}/${id}`), value);
+      const value: any = empty
+        ? null
+        : {
+            name: name || null,
+            keywords: kws,
+            iconKey: iconKey || null,
+          };
 
-    // ✅ сразу синхронизируем локальный state, чтобы не было дерганий
-    setOverrides((prev) => {
-      const next = { ...prev };
-      if (value === null) delete next[id];
-      else next[id] = { name: value.name ?? "", keywords: value.keywords ?? [] };
-      overridesRef.current = next;
-      return next;
-    });
+      const db = getDatabase();
+      await rtdbSet(rtdbRef(db, `${overridesPath}/${id}`), value);
 
-  } catch (e: any) {
-    setEmojiSaveErr(e?.message ?? "Failed to save override");
-  } finally {
-    setEmojiSavingId(null);
+      // ✅ sync local state immediately
+      setOverrides((prev) => {
+        const next = { ...prev };
+        if (value === null) delete next[id];
+        else {
+          next[id] = {
+            name: value.name ?? "",
+            keywords: Array.isArray(value.keywords) ? value.keywords : [],
+            iconKey: value.iconKey ?? "",
+          };
+        }
+        overridesRef.current = next;
+        return next;
+      });
+    } catch (e: any) {
+      setEmojiSaveErr(e?.message ?? "Failed to save override");
+    } finally {
+      setEmojiSavingId(null);
+    }
   }
-}
 
   function copy(text: string) {
     try {
@@ -480,11 +474,17 @@ export default function AdminDashboardPage() {
           <h1 className={`text-3xl font-semibold ${titleText}`}>Admin dashboard</h1>
           <div className={`mt-2 text-sm ${mutedText}`}>
             {tab === "DREAMS" ? (
-              <>All dreams (collectionGroup: <span className="font-mono">dreams</span>)</>
+              <>
+                All dreams (collectionGroup: <span className="font-mono">dreams</span>)
+              </>
             ) : tab === "EMOJIS" ? (
-              <>Emoji overrides (RTDB: <span className="font-mono">{overridesPath}</span>)</>
+              <>
+                Emoji overrides (RTDB: <span className="font-mono">{overridesPath}</span>)
+              </>
             ) : (
-              <>Realtime config (RTDB: <span className="font-mono">{hintsPath}</span>)</>
+              <>
+                Realtime config (RTDB: <span className="font-mono">{hintsPath}</span>)
+              </>
             )}
           </div>
         </div>
@@ -543,15 +543,24 @@ export default function AdminDashboardPage() {
       {tab === "DREAMS" && (
         <>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button onClick={() => setOnlyShared((v) => !v)} className={`${pillBase} ${pillSurface}`}>
+            <button
+              onClick={() => setOnlyShared((v) => !v)}
+              className={`${pillBase} ${pillSurface}`}
+            >
               {onlyShared ? "Only Shared: ON" : "Only Shared: OFF"}
             </button>
 
-            <button onClick={() => setShowDeleted((v) => !v)} className={`${pillBase} ${pillSurface}`}>
+            <button
+              onClick={() => setShowDeleted((v) => !v)}
+              className={`${pillBase} ${pillSurface}`}
+            >
               {showDeleted ? "Show Deleted: ON" : "Show Deleted: OFF"}
             </button>
 
-            <button onClick={() => setPageSize((s) => (s === 50 ? 100 : 50))} className={`${pillBase} ${pillSurface}`}>
+            <button
+              onClick={() => setPageSize((s) => (s === 50 ? 100 : 50))}
+              className={`${pillBase} ${pillSurface}`}
+            >
               Page size: {pageSize}
             </button>
           </div>
@@ -573,13 +582,21 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className={`mt-1 text-xs ${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
-                      <span>user: <span className="font-mono">{d.userId}</span></span>
-                      <span>id: <span className="font-mono">{d.id}</span></span>
+                      <span>
+                        user: <span className="font-mono">{d.userId}</span>
+                      </span>
+                      <span>
+                        id: <span className="font-mono">{d.id}</span>
+                      </span>
                       {d.createdAtMs ? <span>{safeDate(d.createdAtMs)}</span> : null}
                       {d.dateKey ? <span>{d.dateKey}</span> : null}
                       {d.timeKey ? <span>{d.timeKey}</span> : null}
-                      <span>shared: <b>{d.shared ? "yes" : "no"}</b></span>
-                      <span>deleted: <b>{d.deleted ? "yes" : "no"}</b></span>
+                      <span>
+                        shared: <b>{d.shared ? "yes" : "no"}</b>
+                      </span>
+                      <span>
+                        deleted: <b>{d.deleted ? "yes" : "no"}</b>
+                      </span>
                     </div>
 
                     {d.emojis?.length ? (
@@ -596,7 +613,9 @@ export default function AdminDashboardPage() {
                       </div>
                     ) : null}
 
-                    {d.text ? <div className={`mt-3 text-sm ${mutedText}`}>{clampText(d.text, 240)}</div> : null}
+                    {d.text ? (
+                      <div className={`mt-3 text-sm ${mutedText}`}>{clampText(d.text, 240)}</div>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">
@@ -647,15 +666,15 @@ export default function AdminDashboardPage() {
           <div className={`${card} p-4`}>
             <div className={`font-semibold ${titleText}`}>Emoji library</div>
             <div className={`mt-1 text-sm ${mutedText}`}>
-              Search by id, name, keyword, or the emoji itself. Override name/keywords to control what
-              the AI picks next time.
+              Search by id, name, keyword, or the emoji itself. Override name/keywords (and iconKey)
+              to control what the AI picks next time.
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 items-center">
               <input
                 value={emojiQuery}
                 onChange={(e) => setEmojiQuery(e.target.value)}
-                placeholder='Try: "umbrella" or "cockroach"'
+                placeholder='Try: "umbrella" or "glass" or "mag"'
                 className="flex-1 min-w-[240px] rounded-2xl px-4 py-3 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none"
               />
 
@@ -687,8 +706,9 @@ export default function AdminDashboardPage() {
                 const native = toNative(r);
 
                 const ov = overrides[id] ?? {};
-                const ovName = ov.name ?? "";
+                const ovName = String(ov.name ?? "");
                 const ovKeywords = Array.isArray(ov.keywords) ? ov.keywords.join(", ") : "";
+                const ovIconKey = String(ov.iconKey ?? "");
 
                 const effName = effectiveName(id, libName);
                 const effKeywords = effectiveKeywords(id, libKeywords);
@@ -710,13 +730,38 @@ export default function AdminDashboardPage() {
                               <span className="font-mono">{id}</span>
                               {libName ? <span>lib: {libName}</span> : null}
                               {effKeywords?.length ? (
-                                <span>keywords: {effKeywords.slice(0, 10).join(", ")}{effKeywords.length > 10 ? "…" : ""}</span>
+                                <span>
+                                  keywords: {effKeywords.slice(0, 10).join(", ")}
+                                  {effKeywords.length > 10 ? "…" : ""}
+                                </span>
+                              ) : null}
+                              {ovIconKey ? (
+                                <span>
+                                  iconKey: <span className="font-mono">{ovIconKey}</span>
+                                </span>
                               ) : null}
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {/* ✅ 3 fields now */}
+                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                          <div>
+                            <div className={`text-xs ${mutedText} mb-1`}>
+                              Override icon key (Dream icons)
+                            </div>
+                            <input
+                              value={ovIconKey}
+                              onChange={(e) =>
+                                setOverrideField(id, {
+                                  iconKey: e.target.value.trim().toLowerCase(),
+                                })
+                              }
+                              placeholder='e.g. "bell"'
+                              className="w-full rounded-xl px-3 py-2 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none"
+                            />
+                          </div>
+
                           <div>
                             <div className={`text-xs ${mutedText} mb-1`}>Override name (optional)</div>
                             <input
@@ -734,13 +779,13 @@ export default function AdminDashboardPage() {
                             <input
                               value={ovKeywords}
                               onChange={(e) =>
-  setOverrideField(id, {
-    keywords: e.target.value
-      .split(",")
-      .map((x) => x.trim().toLowerCase())
-      .filter(Boolean),
-  })
-}
+                                setOverrideField(id, {
+                                  keywords: e.target.value
+                                    .split(",")
+                                    .map((x) => x.trim().toLowerCase())
+                                    .filter(Boolean),
+                                })
+                              }
                               placeholder="e.g. beach, sun, shade, vacation"
                               className="w-full rounded-xl px-3 py-2 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none"
                             />
@@ -749,15 +794,13 @@ export default function AdminDashboardPage() {
 
                         <div className={`mt-2 text-xs ${mutedText}`}>
                           Tip: to “remove” a wrong emoji from being chosen, delete any relevant keywords
-                          (or replace with correct ones). The AI will stop selecting it for those roots.
+                          (or replace with correct ones). You can also set iconKey if you want to map this
+                          emoji concept to your Dream icons dictionary.
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-2 shrink-0">
-                        <button
-                          onClick={() => copy(id)}
-                          className={`${pillBase} ${pillSurface}`}
-                        >
+                        <button onClick={() => copy(id)} className={`${pillBase} ${pillSurface}`}>
                           Copy id
                         </button>
 

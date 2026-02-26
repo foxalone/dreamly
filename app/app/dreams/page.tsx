@@ -1,3 +1,4 @@
+
 "use client";
 
 import BottomNav from "../BottomNav";
@@ -134,6 +135,52 @@ function textForIconPicker(text: string, lang?: string) {
   }
 
   return t;
+}
+
+// ------------------------
+// ✅ icon normalization (plural handling)
+// ------------------------
+const IRREGULAR_SINGULAR: Record<string, string> = {
+  mice: "mouse",
+  geese: "goose",
+  teeth: "tooth",
+  feet: "foot",
+  children: "child",
+  people: "person",
+  men: "man",
+  women: "woman",
+};
+
+function singularizeEnWord(w: string) {
+  const s = (w ?? "").toLowerCase();
+  if (!s) return s;
+
+  if (IRREGULAR_SINGULAR[s]) return IRREGULAR_SINGULAR[s];
+  if (s.length <= 3) return s;
+
+  if (s.endsWith("ches") || s.endsWith("shes") || s.endsWith("xes") || s.endsWith("ses") || s.endsWith("zes"))
+    return s.slice(0, -2);
+
+  if (s.endsWith("ies") && s.length > 4)
+    return s.slice(0, -3) + "y";
+
+  if (s.endsWith("ves") && s.length > 4)
+    return s.slice(0, -3) + "f";
+
+  if (s.endsWith("s") && !s.endsWith("ss"))
+    return s.slice(0, -1);
+
+  return s;
+}
+
+function normalizeForIconsEn(input: string) {
+  return (input ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(singularizeEnWord)
+    .join(" ");
 }
 
 // ------------------------
@@ -1044,9 +1091,11 @@ export default function DreamsPage() {
         throw new Error("No roots found. Try writing a bit more details.");
       }
 
-      const normalizedEn = rootsEnMajor.join(" ").toLowerCase();
+    const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
 
-      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+
+
       const iconsEn = filterIconsEn(iconsEnRaw, counts.icons); // ✅ IMPORTANT
 
       const picked = await Promise.all(
