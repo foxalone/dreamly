@@ -210,6 +210,104 @@ const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
           </div>
         </div>
       </div>
+
+            {/* FITACTIVE WIDGET */}
+<div className="mt-4">
+  <Link
+    href="https://www.fitactive.now/dashboard"
+    className={`${card} p-4 flex items-start gap-4 hover:opacity-95 transition no-underline`}
+    target="_blank"
+    rel="noreferrer"
+  >
+    {/* LEFT ICON */}
+    <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)] overflow-hidden shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/FIT ICON 512.png"
+        alt="FitActive"
+        className="w-14 h-14 object-contain"
+      />
+    </div>
+
+    {/* RIGHT TEXT */}
+    <div className="min-w-0">
+      <div className={`font-semibold ${titleText}`}>
+        Take control of your fitness journey
+      </div>
+
+      <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
+        Track workouts, monitor progress, analyze stats, set goals,
+        manage records and grow stronger every day.
+      </div>
+    </div>
+  </Link>
+</div>
+
+{/* LOTTODATA WIDGET */}
+<div className="mt-4">
+  <Link
+    href="https://lottodata.org"
+    className={`${card} p-4 flex items-start gap-4 hover:opacity-95 transition no-underline`}
+    target="_blank"
+    rel="noreferrer"
+  >
+    {/* LEFT ICON */}
+    <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)] overflow-hidden shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/LOTTODATA ICON 512.png" 
+        alt="LottoData"
+        className="w-14 h-14 object-contain"
+      />
+    </div>
+
+    {/* RIGHT TEXT */}
+    <div className="min-w-0">
+      <div className={`font-semibold ${titleText}`}>
+        Explore lottery results and statistics
+      </div>
+
+      <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
+        Check latest draws, view historical results, analyze number
+        frequencies and discover trends across popular lotteries.
+      </div>
+    </div>
+  </Link>
+</div>
+
+
+{/* CURRENCYHUB WIDGET */}
+<div className="mt-4">
+  <Link
+    href="https://play.google.com/store/apps/details?id=com.app.mycoins&hl=en"
+    className={`${card} p-4 flex items-start gap-4 hover:opacity-95 transition no-underline`}
+    target="_blank"
+    rel="noreferrer"
+  >
+    {/* LEFT ICON */}
+    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)] overflow-hidden shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/currency hub icon.png"
+        alt="CurrencyHub"
+        className="w-14 h-14 object-contain"
+      />
+    </div>
+
+    {/* RIGHT TEXT */}
+    <div className="min-w-0">
+      <div className={`font-semibold ${titleText}`}>
+        CurrencyHub — organize your coin collection
+      </div>
+
+      <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
+        Track your coins, manage quantities, add details like year,
+        value and average price, and keep your entire collection
+        organized right from your smartphone.
+      </div>
+    </div>
+  </Link>
+</div>
     </main>
   );
 }
