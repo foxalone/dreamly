@@ -138,6 +138,36 @@ const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
 ) : null}
       </div>
 
+            {/* TOP LINKS (Terms / Privacy / Refund) */}
+     <div className={`mt-6 w-full flex flex-wrap justify-center items-center gap-3 text-sm ${mutedText}`}>
+
+        <Link
+          href="https://docs.google.com/document/d/e/2PACX-1vSy6Krm2eiq85_FpOrw7IgDo3TBpkr3Trj2xWkomPm4P-VRiPtCvl80Zt2UEjGYyKKRP58eaFvUBr9U/pub"
+          className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
+        >
+          Terms
+        </Link>
+
+        <span className="opacity-40">•</span>
+
+        <Link
+          href="https://docs.google.com/document/d/e/2PACX-1vTdSe8OazC2WXKnx_VRj2H6Z-NVYOsbB4KU_7uev3Qq1QMx-C1N9BJqkhSykVD9V50h-6zRulhKYxqh/pub"
+          className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
+        >
+          Privacy
+        </Link>
+
+        {/* если нужно — третья ссылка как на примере */}
+        <span className="opacity-40">•</span>
+
+        <Link
+          href="https://docs.google.com/document/d/e/2PACX-1vT8-k5pcd0iH9cAZHgeIbbqVpOAJeIoJ6ZIAZfbxuaKgJcRQXw3S5vk2Fz_lrnppLvg9iOe4JuGMqQ1/pub"
+          className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
+        >
+          Refund
+        </Link>
+      </div>
+
       {/* PROFILE CARD */}
       <div className="mt-8">
         <div className={`${card} p-5`}>
