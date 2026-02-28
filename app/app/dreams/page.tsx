@@ -834,14 +834,19 @@ export default function DreamsPage() {
       rootsUpdatedAt: null as any,
     };
 
-    setSaving(true);
-    try {
-      await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
-      setOpen(false);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to save dream.");
-      setSaving(false);
-    }
+   setSaving(true);
+try {
+  const docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
+  setOpen(false);
+  setSaving(false); // ✅ ВАЖНО
+
+  setTimeout(() => {
+    extractRoots(docRef.id).catch(() => {});
+  }, 50);
+} catch (e: any) {
+  setError(e?.message ?? "Failed to save dream.");
+  setSaving(false);
+}
   }
 
   async function shareDream(dreamId: string) {
@@ -1041,35 +1046,44 @@ export default function DreamsPage() {
     return out;
   }
 
-  async function extractRoots(dreamId: string) {
-    const u = auth.currentUser;
-    if (!u) {
-      requireGoogleAuth();
-      setError("Please sign in with Google to extract roots.");
-      return;
-    }
-    if (!uid) return;
-    if (rootsBusyId || deletingId || sharingId) return;
+async function extractRoots(dreamId: string) {
+  const u = auth.currentUser;
+  if (!u) {
+    requireGoogleAuth();
+    setError("Please sign in with Google to extract roots.");
+    return;
+  }
+  if (!uid) return;
+  if (rootsBusyId || deletingId || sharingId) return;
 
-    const dream = dreams.find((d) => d.id === dreamId);
-    const t = (dream?.text ?? "").trim();
-    if (!t) return;
+  // 1) пробуем из локального state
+  let dream = dreams.find((d) => d.id === dreamId) as any;
 
-    const hasRoots =
-      (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
-      (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
+  // 2) если нет — читаем прямо из Firestore (важно для только что созданного сна)
+  if (!dream) {
+    const snap = await getDoc(doc(firestore, "users", uid, "dreams", dreamId));
+    if (!snap.exists()) return;
+    dream = { id: dreamId, ...(snap.data() as any) };
+  }
 
-    const hasVisuals =
-      (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
-      (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
+  const t = String(dream?.text ?? "").trim();
+  if (!t) return;
 
-    // ✅ lock only if roots + visuals exist
-    if (hasRoots && hasVisuals) return;
+  const hasRoots =
+    (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
+    (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
 
-    setError(null);
-    setRootsBusyId(dreamId);
+  const hasVisuals =
+    (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
+    (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
 
-    try {
+  if (hasRoots && hasVisuals) return;
+
+  setError(null);
+  setRootsBusyId(dreamId);
+
+  try {
+    // ... дальше твой код без изменений
       const res = await fetch("/api/dreams/rootwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1286,7 +1300,6 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
               (Array.isArray(d.emojis) && d.emojis.length > 0) ||
               (Array.isArray(d.iconsEn) && d.iconsEn.length > 0);
 
-            const rootsLocked = hasRoots && hasVisuals;
 
             const dreamNum = visibleDreams.length - index;
 
@@ -1297,6 +1310,10 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
                       <div className="text-base font-semibold">Dream #{dreamNum}</div>
+
+        {isRootsBusy && !(hasRoots && hasVisuals) && (
+  <span className="text-xs text-[var(--muted)]">Generating…</span>
+)}
 
                       {/* emojis from AI */}
                       {Array.isArray(d.emojis) && d.emojis.length > 0 && (
@@ -1351,40 +1368,31 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                       {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
                     </button>
 
-                    {/* Analyze */}
-                    <button
-                      onClick={() => analyzeDream(d.id)}
-                      disabled={isDeleting || isSharing || isRootsBusy || analysisBusyId === d.id}
-                      className={[
-                        "dream-btn",
-                        "dream-btn--neutral",
-                        analysisBusyId === d.id ? "opacity-70 cursor-wait" : "",
-                        isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
-                      ].join(" ")}
-                      title={(d.analysisText ?? "").trim() ? "View analysis" : "Analyze with AI"}
-                    >
-                      {analysisBusyId === d.id
-                        ? "Analyzing…"
-                        : (d.analysisText ?? "").trim()
-                        ? "Analysis"
-                        : "Analyze"}
-                    </button>
+                {/* Analyze */}
+{(() => {
+  const hasAnalysis = !!(d.analysisText ?? "").trim();
+  const isAnalyzing = analysisBusyId === d.id;
 
-                    {/* Roots */}
-                    <button
-                      onClick={() => extractRoots(d.id)}
-                      disabled={rootsLocked || isRootsBusy || isDeleting}
-                      className={[
-                        "dream-btn",
-                        "dream-btn--neutral",
-                        rootsLocked ? "opacity-60 cursor-not-allowed" : "",
-                        isRootsBusy ? "opacity-70 cursor-wait" : "",
-                        isDeleting ? "opacity-60 cursor-not-allowed" : "",
-                      ].join(" ")}
-                      title={rootsLocked ? "Already extracted" : "Extract roots"}
-                    >
-                      {isRootsBusy ? "Roots…" : "Roots"}
-                    </button>
+  const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
+
+  return (
+    <button
+      onClick={() => analyzeDream(d.id)}
+      disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
+      className={[
+        "dream-btn",
+        hasAnalysis ? "dream-btn--blue" : "dream-btn--neutral",
+        pulse ? "dream-btn--pulse" : "",
+        isAnalyzing ? "opacity-80 cursor-wait" : "",
+        isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
+      ].join(" ")}
+      title={hasAnalysis ? "View analysis" : "Analyze with AI"}
+    >
+      {isAnalyzing ? "Analyzing…" : hasAnalysis ? "Analysis" : "Analyze"}
+    </button>
+  );
+})()}
+            
 
                     {/* Delete */}
                     <button

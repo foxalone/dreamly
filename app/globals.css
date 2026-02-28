@@ -188,3 +188,25 @@ html.modal-open .bottom-nav {
   border-color: rgba(239, 68, 68, 0.4);
 }
 
+
+/* ---- Analyze pulse ---- */
+@keyframes dreamlyPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59,130,246,.55); }
+  60% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(59,130,246,0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+
+.dream-btn--pulse {
+  animation: dreamlyPulse 1.35s ease-in-out infinite;
+  border-color: rgba(59,130,246,.55);
+}
+
+.dream-btn--blue {
+  background: rgb(59, 130, 246); /* blue-500 */
+  color: white;
+  border-color: rgba(59,130,246,.65);
+}
+
+.dream-btn--blue:hover { filter: brightness(0.95); }
+.dream-btn--blue:active { transform: scale(0.98); }
+
