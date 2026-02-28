@@ -1,12 +1,12 @@
-
 "use client";
 
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
+
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
-import { onIdTokenChanged } from "firebase/auth";
-import { FcGoogle } from "react-icons/fc";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
+import { ensureSignedIn } from "@/lib/auth/ensureUser";
+
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
 
 import { auth, firestore } from "@/lib/firebase";
@@ -23,11 +23,15 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import { GoogleAuthProvider, signInWithPopup, type User } from "firebase/auth";
+
+import { onAuthStateChanged } from "firebase/auth";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
 
+// ------------------------
+// types
+// ------------------------
 type DreamIconKey = keyof typeof DREAM_ICONS_EN;
 
 type DreamEmoji = {
@@ -66,7 +70,11 @@ type Dream = {
 };
 
 type Tab = "ALL" | "SHARED";
+type RecStatus = "idle" | "listening" | "paused" | "error";
 
+// ------------------------
+// utils (твои же)
+// ------------------------
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -87,13 +95,11 @@ function norm(s: any) {
 function toNative(r: any) {
   return r?.skins?.[0]?.native || r?.native || "";
 }
-
 function makeTitle(text: string) {
   const t = (text ?? "").trim().replace(/\s+/g, " ");
   if (!t) return "";
   return t.length <= 60 ? t : t.slice(0, 60) + "…";
 }
-
 function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   const t = text ?? "";
   const hasHe = /[\u0590-\u05FF]/.test(t);
@@ -104,7 +110,6 @@ function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   if (hasLat && !hasHe && !hasCy) return "en";
   return "unknown";
 }
-
 function detectRecLangFromText(t: string): "ru-RU" | "en-US" | "he-IL" | null {
   const s = t ?? "";
   const hasHe = /[\u0590-\u05FF]/.test(s);
@@ -138,7 +143,7 @@ function textForIconPicker(text: string, lang?: string) {
 }
 
 // ------------------------
-// ✅ icon normalization (plural handling)
+// icon normalization (plural handling)
 // ------------------------
 const IRREGULAR_SINGULAR: Record<string, string> = {
   mice: "mouse",
@@ -158,17 +163,18 @@ function singularizeEnWord(w: string) {
   if (IRREGULAR_SINGULAR[s]) return IRREGULAR_SINGULAR[s];
   if (s.length <= 3) return s;
 
-  if (s.endsWith("ches") || s.endsWith("shes") || s.endsWith("xes") || s.endsWith("ses") || s.endsWith("zes"))
+  if (
+    s.endsWith("ches") ||
+    s.endsWith("shes") ||
+    s.endsWith("xes") ||
+    s.endsWith("ses") ||
+    s.endsWith("zes")
+  )
     return s.slice(0, -2);
 
-  if (s.endsWith("ies") && s.length > 4)
-    return s.slice(0, -3) + "y";
-
-  if (s.endsWith("ves") && s.length > 4)
-    return s.slice(0, -3) + "f";
-
-  if (s.endsWith("s") && !s.endsWith("ss"))
-    return s.slice(0, -1);
+  if (s.endsWith("ies") && s.length > 4) return s.slice(0, -3) + "y";
+  if (s.endsWith("ves") && s.length > 4) return s.slice(0, -3) + "f";
+  if (s.endsWith("s") && !s.endsWith("ss")) return s.slice(0, -1);
 
   return s;
 }
@@ -184,7 +190,7 @@ function normalizeForIconsEn(input: string) {
 }
 
 // ------------------------
-// ✅ Emoji overrides (RTDB)
+// Emoji overrides (RTDB)
 // ------------------------
 type EmojiOverride = { name?: string; keywords?: string[] };
 type OverridesMap = Record<string, EmojiOverride>;
@@ -235,7 +241,6 @@ function isGarbageEmoji(r: any) {
   return false;
 }
 
-// ✅ uses ONLY name+keywords (not id)
 function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
   const t = norm(token);
   if (!t) return 0;
@@ -250,7 +255,6 @@ function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
   const hay = `${name} ${kws.join(" ")}`.trim();
 
   let s = 0;
-
   if (name === t) s = Math.max(s, 170);
   if (kws.includes(t)) s = Math.max(s, 150);
 
@@ -357,12 +361,6 @@ function uniqByNativeKeepBest(cands: EmojiCandidate[]) {
   return Array.from(best.values()).sort((a, b) => b.score - a.score);
 }
 
-/**
- * Variant A:
- * 1) local top candidates (overrides applied)
- * 2) call /api/dreams/emoji-pick (AI chooses ONE by native)
- * 3) if API fails -> fallback to top-1 local candidate (still safe)
- */
 async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<DreamEmoji | null> {
   await ensureEmojiIndex();
 
@@ -427,17 +425,15 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
       const picked = candidates.find((c) => c.native === out?.native);
       if (picked) return { native: picked.native, id: picked.id, name: picked.name };
     }
-  } catch {
-    // ignore -> fallback
-  }
+  } catch {}
 
-  // ✅ fallback: top-1 local
   const top = candidates[0];
   return top ? { native: top.native, id: top.id, name: top.name } : null;
 }
 
-type RecStatus = "idle" | "listening" | "paused" | "error";
-
+// ------------------------
+// Page
+// ------------------------
 export default function DreamsPage() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -471,9 +467,6 @@ export default function DreamsPage() {
   const finalRef = useRef<string>("");
   const shouldRestartRef = useRef<boolean>(false);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
   const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
   const isStartingFreshRef = useRef(true);
   const lastFinalChunkRef = useRef<string>("");
@@ -482,6 +475,14 @@ export default function DreamsPage() {
   const [analysisOpenId, setAnalysisOpenId] = useState<string | null>(null);
 
   const hintsRef = useRef<Record<string, string>>({});
+
+  // ✅ auth state -> uid
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUid(u?.uid ?? null);
+    });
+    return () => unsub();
+  }, []);
 
   // ✅ RTDB emojiHints
   useEffect(() => {
@@ -562,22 +563,6 @@ export default function DreamsPage() {
     if (typeof window === "undefined") return;
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setRecSupported(!!SR);
-  }, []);
-
-  // Google auth only
-  useEffect(() => {
-    const unsub = onIdTokenChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
-        setUid(u.uid);
-        setShowAuthModal(false);
-      } else {
-        setUser(null);
-        setUid(null);
-        setShowAuthModal(false);
-      }
-    });
-    return () => unsub();
   }, []);
 
   function getSpeechRecognitionCtor() {
@@ -773,9 +758,16 @@ export default function DreamsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  function requireGoogleAuth() {
+  async function requireGoogleAuth(): Promise<boolean> {
     setOpen(false);
-    setShowAuthModal(true);
+    try {
+      await ensureSignedIn();
+      setUid(auth.currentUser?.uid ?? null);
+      return true;
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to sign in.");
+      return false;
+    }
   }
 
   function close() {
@@ -789,9 +781,13 @@ export default function DreamsPage() {
 
     setError(null);
 
-    const u = auth.currentUser;
+    let u = auth.currentUser;
     if (!u) {
-      requireGoogleAuth();
+      const ok = await requireGoogleAuth();
+      if (!ok) return;
+      u = auth.currentUser;
+    }
+    if (!u) {
       setError("Please sign in with Google to save dreams.");
       return;
     }
@@ -834,29 +830,35 @@ export default function DreamsPage() {
       rootsUpdatedAt: null as any,
     };
 
-   setSaving(true);
-try {
-  const docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
-  setOpen(false);
-  setSaving(false); // ✅ ВАЖНО
+    setSaving(true);
+    try {
+      const docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
+      setOpen(false);
+      setSaving(false);
 
-  setTimeout(() => {
-    extractRoots(docRef.id).catch(() => {});
-  }, 50);
-} catch (e: any) {
-  setError(e?.message ?? "Failed to save dream.");
-  setSaving(false);
-}
+      setTimeout(() => {
+        extractRoots(docRef.id).catch(() => {});
+      }, 50);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to save dream.");
+      setSaving(false);
+    }
   }
 
   async function shareDream(dreamId: string) {
-    const u = auth.currentUser;
+    let u = auth.currentUser;
     if (!u) {
-      requireGoogleAuth();
+      const ok = await requireGoogleAuth();
+      if (!ok) return;
+      u = auth.currentUser;
+    }
+    if (!u) {
       setError("Please sign in with Google to share dreams.");
       return;
     }
-    if (!uid) return;
+
+    const uid2 = u.uid;
+    if (!uid2) return;
     if (sharingId || deletingId) return;
 
     setError(null);
@@ -874,17 +876,17 @@ try {
     try {
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         shared: true,
         sharedAtMs: nowMs,
         sharedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      const sharedId = `${uid}_${dreamId}`;
+      const sharedId = `${uid2}_${dreamId}`;
 
       await setDoc(doc(firestore, "shared_dreams", sharedId), {
-        ownerUid: uid,
+        ownerUid: uid2,
         ownerDreamId: dreamId,
 
         title: dream.title ?? "",
@@ -920,13 +922,19 @@ try {
   }
 
   async function analyzeDream(dreamId: string) {
-    const u = auth.currentUser;
+    let u = auth.currentUser;
     if (!u) {
-      requireGoogleAuth();
+      const ok = await requireGoogleAuth();
+      if (!ok) return;
+      u = auth.currentUser;
+    }
+    if (!u) {
       setError("Please sign in with Google to analyze dreams.");
       return;
     }
-    if (!uid) return;
+
+    const uid2 = u.uid;
+    if (!uid2) return;
     if (analysisBusyId || deletingId || sharingId || rootsBusyId) return;
 
     const dream = dreams.find((d) => d.id === dreamId);
@@ -959,7 +967,7 @@ try {
 
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         analysisText,
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
@@ -983,13 +991,19 @@ try {
   }
 
   async function deleteDream(dreamId: string) {
-    const u = auth.currentUser;
+    let u = auth.currentUser;
     if (!u) {
-      requireGoogleAuth();
+      const ok = await requireGoogleAuth();
+      if (!ok) return;
+      u = auth.currentUser;
+    }
+    if (!u) {
       setError("Please sign in with Google to delete dreams.");
       return;
     }
-    if (!uid) return;
+
+    const uid2 = u.uid;
+    if (!uid2) return;
     if (deletingId || sharingId) return;
 
     setError(null);
@@ -1000,14 +1014,14 @@ try {
     try {
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         deleted: true,
         deletedAtMs: nowMs,
         deletedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      const sharedId = `${uid}_${dreamId}`;
+      const sharedId = `${uid2}_${dreamId}`;
       await updateDoc(doc(firestore, "shared_dreams", sharedId), {
         deleted: true,
         deletedAtMs: nowMs,
@@ -1033,12 +1047,11 @@ try {
     return textForIconPicker(s, lang);
   }
 
-  // ✅ filter iconsEn so UI always shows icons (no empty glyph keys saved)
   function filterIconsEn(keys: DreamIconKey[], max: number) {
     const out: DreamIconKey[] = [];
     for (const k of keys) {
       const icon = (DREAM_ICONS_EN as any)?.[k];
-      const glyph = icon?.emoji ?? icon?.native; // ✅ emoji-only
+      const glyph = icon?.emoji ?? icon?.native;
       if (!glyph) continue;
       out.push(k);
       if (out.length >= max) break;
@@ -1046,44 +1059,46 @@ try {
     return out;
   }
 
-async function extractRoots(dreamId: string) {
-  const u = auth.currentUser;
-  if (!u) {
-    requireGoogleAuth();
-    setError("Please sign in with Google to extract roots.");
-    return;
-  }
-  if (!uid) return;
-  if (rootsBusyId || deletingId || sharingId) return;
+  async function extractRoots(dreamId: string) {
+    let u = auth.currentUser;
+    if (!u) {
+      const ok = await requireGoogleAuth();
+      if (!ok) return;
+      u = auth.currentUser;
+    }
+    if (!u) {
+      setError("Please sign in with Google to extract roots.");
+      return;
+    }
 
-  // 1) пробуем из локального state
-  let dream = dreams.find((d) => d.id === dreamId) as any;
+    const uid2 = u.uid;
+    if (!uid2) return;
+    if (rootsBusyId || deletingId || sharingId) return;
 
-  // 2) если нет — читаем прямо из Firestore (важно для только что созданного сна)
-  if (!dream) {
-    const snap = await getDoc(doc(firestore, "users", uid, "dreams", dreamId));
-    if (!snap.exists()) return;
-    dream = { id: dreamId, ...(snap.data() as any) };
-  }
+    let dream = dreams.find((d) => d.id === dreamId) as any;
+    if (!dream) {
+      const snap = await getDoc(doc(firestore, "users", uid2, "dreams", dreamId));
+      if (!snap.exists()) return;
+      dream = { id: dreamId, ...(snap.data() as any) };
+    }
 
-  const t = String(dream?.text ?? "").trim();
-  if (!t) return;
+    const t = String(dream?.text ?? "").trim();
+    if (!t) return;
 
-  const hasRoots =
-    (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
-    (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
+    const hasRoots =
+      (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
+      (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
 
-  const hasVisuals =
-    (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
-    (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
+    const hasVisuals =
+      (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
+      (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
 
-  if (hasRoots && hasVisuals) return;
+    if (hasRoots && hasVisuals) return;
 
-  setError(null);
-  setRootsBusyId(dreamId);
+    setError(null);
+    setRootsBusyId(dreamId);
 
-  try {
-    // ... дальше твой код без изменений
+    try {
       const res = await fetch("/api/dreams/rootwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1105,12 +1120,9 @@ async function extractRoots(dreamId: string) {
         throw new Error("No roots found. Try writing a bit more details.");
       }
 
-    const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
-
-const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
-
-
-      const iconsEn = filterIconsEn(iconsEnRaw, counts.icons); // ✅ IMPORTANT
+      const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
+      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+      const iconsEn = filterIconsEn(iconsEnRaw, counts.icons);
 
       const picked = await Promise.all(
         rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
@@ -1118,7 +1130,7 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
 
       const emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
 
-      await updateDoc(doc(firestore, "users", uid, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         roots: rootsMajor,
         rootsEn: rootsEnMajor,
         rootsLang: data2?.lang ?? null,
@@ -1130,7 +1142,7 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
       });
 
       try {
-        await ingestDreamForMap({ uid, dreamId });
+        await ingestDreamForMap({ uid: uid2, dreamId });
       } catch (e) {
         console.warn("map ingest failed", e);
       }
@@ -1138,7 +1150,15 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
       setDreams((prev) =>
         prev.map((x) =>
           x.id === dreamId
-            ? { ...x, roots: rootsMajor, rootsEn: rootsEnMajor, rootsLang: data2?.lang ?? null, rootsTop: [], iconsEn, emojis }
+            ? {
+                ...x,
+                roots: rootsMajor,
+                rootsEn: rootsEnMajor,
+                rootsLang: data2?.lang ?? null,
+                rootsTop: [],
+                iconsEn,
+                emojis,
+              }
             : x
         )
       );
@@ -1230,11 +1250,11 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
         </div>
 
         <button
-          onClick={() => {
+          onClick={async () => {
             const u = auth.currentUser;
             if (!u) {
-              requireGoogleAuth();
-              return;
+              const ok = await requireGoogleAuth();
+              if (!ok) return;
             }
             setOpen(true);
           }}
@@ -1263,10 +1283,12 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
           <div className="min-w-0">You are not signed in. Sign in with Google to create and save your dreams.</div>
 
           <button
-            onClick={() => requireGoogleAuth()}
+            onClick={async () => {
+              await requireGoogleAuth();
+            }}
             className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
           >
-            <FcGoogle className="text-lg" />
+            <span className="text-lg">G</span>
             <span>Sign in with Google</span>
           </button>
         </div>
@@ -1300,33 +1322,33 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
               (Array.isArray(d.emojis) && d.emojis.length > 0) ||
               (Array.isArray(d.iconsEn) && d.iconsEn.length > 0);
 
-
             const dreamNum = visibleDreams.length - index;
 
             return (
               <div key={d.id} className="p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-                {/* Title + Actions */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
                       <div className="text-base font-semibold">Dream #{dreamNum}</div>
 
-        {isRootsBusy && !(hasRoots && hasVisuals) && (
-  <span className="text-xs text-[var(--muted)]">Generating…</span>
-)}
+                      {isRootsBusy && !(hasRoots && hasVisuals) && (
+                        <span className="text-xs text-[var(--muted)]">Generating…</span>
+                      )}
 
-                      {/* emojis from AI */}
                       {Array.isArray(d.emojis) && d.emojis.length > 0 && (
                         <span className="inline-flex items-baseline gap-2 text-[18px] leading-none">
                           {d.emojis.slice(0, 5).map((em, i) => (
-                            <span key={`${d.id}:${em.native}:${i}`} title={em.name || em.id || "emoji"} className="cursor-help">
+                            <span
+                              key={`${d.id}:${em.native}:${i}`}
+                              title={em.name || em.id || "emoji"}
+                              className="cursor-help"
+                            >
                               {em.native}
                             </span>
                           ))}
                         </span>
                       )}
 
-                      {/* iconsEn from dictionary (emoji-only) */}
                       {Array.isArray(d.iconsEn) && d.iconsEn.length > 0 && (
                         <span className="inline-flex items-baseline gap-2 text-[18px] leading-none opacity-90">
                           {d.iconsEn
@@ -1339,11 +1361,7 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                             .filter(Boolean)
                             .slice(0, 4)
                             .map((x: any, i: number) => (
-                              <span
-                                key={`${d.id}:icon:${String(x.k)}:${i}`}
-                                title={x.label}
-                                className="cursor-help"
-                              >
+                              <span key={`${d.id}:icon:${String(x.k)}:${i}`} title={x.label} className="cursor-help">
                                 {x.glyph}
                               </span>
                             ))}
@@ -1353,7 +1371,6 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap justify-end">
-                    {/* Share */}
                     <button
                       onClick={() => shareDream(d.id)}
                       disabled={isShared || isSharing || isDeleting}
@@ -1368,33 +1385,29 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                       {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
                     </button>
 
-                {/* Analyze */}
-{(() => {
-  const hasAnalysis = !!(d.analysisText ?? "").trim();
-  const isAnalyzing = analysisBusyId === d.id;
+                    {(() => {
+                      const hasAnalysis = !!(d.analysisText ?? "").trim();
+                      const isAnalyzing = analysisBusyId === d.id;
+                      const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
 
-  const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
+                      return (
+                        <button
+                          onClick={() => analyzeDream(d.id)}
+                          disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
+                          className={[
+                            "dream-btn",
+                            hasAnalysis ? "dream-btn--blue" : "dream-btn--neutral",
+                            pulse ? "dream-btn--pulse" : "",
+                            isAnalyzing ? "opacity-80 cursor-wait" : "",
+                            isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
+                          ].join(" ")}
+                          title={hasAnalysis ? "View analysis" : "Analyze with AI"}
+                        >
+                          {isAnalyzing ? "Analyzing…" : hasAnalysis ? "Analysis" : "Analyze"}
+                        </button>
+                      );
+                    })()}
 
-  return (
-    <button
-      onClick={() => analyzeDream(d.id)}
-      disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
-      className={[
-        "dream-btn",
-        hasAnalysis ? "dream-btn--blue" : "dream-btn--neutral",
-        pulse ? "dream-btn--pulse" : "",
-        isAnalyzing ? "opacity-80 cursor-wait" : "",
-        isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
-      ].join(" ")}
-      title={hasAnalysis ? "View analysis" : "Analyze with AI"}
-    >
-      {isAnalyzing ? "Analyzing…" : hasAnalysis ? "Analysis" : "Analyze"}
-    </button>
-  );
-})()}
-            
-
-                    {/* Delete */}
                     <button
                       onClick={() => {
                         if (confirm("Delete this dream?")) deleteDream(d.id);
@@ -1413,10 +1426,8 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                   </div>
                 </div>
 
-                {/* Text */}
                 <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
 
-                {/* Roots chips */}
                 {(() => {
                   const chips =
                     (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
@@ -1439,7 +1450,6 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                   );
                 })()}
 
-                {/* Meta row */}
                 <div className="mt-3 text-xs text-[var(--muted)] flex items-end justify-between gap-3 flex-wrap">
                   <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
                     <span>{d.wordCount ?? 0} words</span>
@@ -1453,7 +1463,6 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                   </div>
                 </div>
 
-                {/* Reactions */}
                 {tab === "SHARED" &&
                   (() => {
                     const r = publicReactions[d.id] ?? { heart: 0, like: 0, star: 0 };
@@ -1605,54 +1614,13 @@ const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[
                 </div>
               </div>
 
-              <div className="mt-3 text-xs text-[var(--muted)]">Next: мы подключим Speech-to-Text и будем сохранять всё как текст.</div>
+              <div className="mt-3 text-xs text-[var(--muted)]">
+                Next: мы подключим Speech-to-Text и будем сохранять всё как текст.
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Google-only auth modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[var(--card)] p-6 shadow-2xl border border-[var(--border)]">
-            <h2 className="text-xl font-bold mb-2 text-[var(--text)]">Sign in required</h2>
-
-            <p className="text-sm text-[var(--muted)] mb-6">Пожалуйста, войдите через Google, чтобы создавать и сохранять сны.</p>
-
-            <button
-              onClick={async () => {
-                try {
-                  setError(null);
-                  const provider = new GoogleAuthProvider();
-                  await signInWithPopup(auth, provider);
-
-                  const updatedUser = auth.currentUser;
-                  setUser(updatedUser);
-                  setUid(updatedUser?.uid ?? null);
-
-                  setShowAuthModal(false);
-                } catch (e: any) {
-                  setError(e?.message ?? "Failed to sign in.");
-                }
-              }}
-              className="w-full py-3 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-3"
-            >
-              <FcGoogle className="text-xl" />
-              <span>Continue with Google</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setShowAuthModal(false);
-                setError(null);
-              }}
-              className="w-full mt-3 py-2 text-sm text-[var(--muted)]"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Analysis popup */}
       {analysisOpenId &&
