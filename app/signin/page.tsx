@@ -20,10 +20,10 @@ export default function SignInPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // если уже залогинен — сразу уходим
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u) return;
-
       setBusy(true);
       setErr(null);
       ensureUser(u)
@@ -31,7 +31,6 @@ export default function SignInPage() {
         .catch((e: any) => setErr(e?.message ?? "Failed to prepare account"))
         .finally(() => setBusy(false));
     });
-
     return () => unsub();
   }, [next, router]);
 
@@ -45,10 +44,10 @@ export default function SignInPage() {
 
       const cred = await signInWithPopup(auth, provider);
       await ensureUser(cred.user);
+
       router.replace(next);
     } catch (e: any) {
       setErr(e?.message ?? "Failed to sign in");
-    } finally {
       setBusy(false);
     }
   }
