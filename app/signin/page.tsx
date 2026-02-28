@@ -1,9 +1,11 @@
 // app/signin/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signInWithGoogleAndUpsert } from "@/lib/auth/ensureUser";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { ensureUser } from "@/lib/auth/ensureUser";
+import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
 
 export default function SignInPage() {
@@ -12,11 +14,44 @@ export default function SignInPage() {
 
   const next = useMemo(() => {
     const n = sp.get("next");
-    return n && n.startsWith("/") ? n : "/dreams";
+    return n && n.startsWith("/") ? n : "/app/dreams";
   }, [sp]);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (!u) return;
+
+      setBusy(true);
+      setErr(null);
+      ensureUser(u)
+        .then(() => router.replace(next))
+        .catch((e: any) => setErr(e?.message ?? "Failed to prepare account"))
+        .finally(() => setBusy(false));
+    });
+
+    return () => unsub();
+  }, [next, router]);
+
+  async function handleGoogleSignIn() {
+    setErr(null);
+    setBusy(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      const cred = await signInWithPopup(auth, provider);
+      await ensureUser(cred.user);
+      router.replace(next);
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed to sign in");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -34,18 +69,7 @@ export default function SignInPage() {
 
         <button
           disabled={busy}
-          onClick={async () => {
-            setErr(null);
-            setBusy(true);
-            try {
-              await signInWithGoogleAndUpsert();
-              router.replace(next);
-            } catch (e: any) {
-              setErr(e?.message ?? "Failed to sign in");
-            } finally {
-              setBusy(false);
-            }
-          }}
+          onClick={handleGoogleSignIn}
           className="mt-6 w-full py-3 rounded-xl bg-white text-black font-semibold flex items-center justify-center gap-3 disabled:opacity-60"
         >
           <FcGoogle className="text-xl" />
