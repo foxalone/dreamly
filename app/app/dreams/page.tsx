@@ -2,10 +2,10 @@
 
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
-import { ensureSignedIn } from "@/lib/auth/ensureUser";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
 
@@ -24,7 +24,6 @@ import {
   getDoc,
 } from "firebase/firestore";
 
-import { onAuthStateChanged } from "firebase/auth";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -476,12 +475,8 @@ export default function DreamsPage() {
 
   const hintsRef = useRef<Record<string, string>>({});
 
-  // ✅ auth state -> uid
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUid(u?.uid ?? null);
-    });
-    return () => unsub();
+    setUid(auth.currentUser?.uid ?? null);
   }, []);
 
   // ✅ RTDB emojiHints
@@ -758,16 +753,11 @@ export default function DreamsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  async function requireGoogleAuth(): Promise<boolean> {
+  const router = useRouter();
+
+  function goToSignIn() {
     setOpen(false);
-    try {
-      await ensureSignedIn();
-      setUid(auth.currentUser?.uid ?? null);
-      return true;
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to sign in.");
-      return false;
-    }
+    router.push(`/signin?next=${encodeURIComponent("/app/dreams")}`);
   }
 
   function close() {
@@ -783,9 +773,8 @@ export default function DreamsPage() {
 
     let u = auth.currentUser;
     if (!u) {
-      const ok = await requireGoogleAuth();
-      if (!ok) return;
-      u = auth.currentUser;
+      goToSignIn();
+      return;
     }
     if (!u) {
       setError("Please sign in with Google to save dreams.");
@@ -848,9 +837,8 @@ export default function DreamsPage() {
   async function shareDream(dreamId: string) {
     let u = auth.currentUser;
     if (!u) {
-      const ok = await requireGoogleAuth();
-      if (!ok) return;
-      u = auth.currentUser;
+      goToSignIn();
+      return;
     }
     if (!u) {
       setError("Please sign in with Google to share dreams.");
@@ -924,9 +912,8 @@ export default function DreamsPage() {
   async function analyzeDream(dreamId: string) {
     let u = auth.currentUser;
     if (!u) {
-      const ok = await requireGoogleAuth();
-      if (!ok) return;
-      u = auth.currentUser;
+      goToSignIn();
+      return;
     }
     if (!u) {
       setError("Please sign in with Google to analyze dreams.");
@@ -993,9 +980,8 @@ export default function DreamsPage() {
   async function deleteDream(dreamId: string) {
     let u = auth.currentUser;
     if (!u) {
-      const ok = await requireGoogleAuth();
-      if (!ok) return;
-      u = auth.currentUser;
+      goToSignIn();
+      return;
     }
     if (!u) {
       setError("Please sign in with Google to delete dreams.");
@@ -1062,9 +1048,8 @@ export default function DreamsPage() {
   async function extractRoots(dreamId: string) {
     let u = auth.currentUser;
     if (!u) {
-      const ok = await requireGoogleAuth();
-      if (!ok) return;
-      u = auth.currentUser;
+      goToSignIn();
+      return;
     }
     if (!u) {
       setError("Please sign in with Google to extract roots.");
@@ -1250,11 +1235,11 @@ export default function DreamsPage() {
         </div>
 
         <button
-          onClick={async () => {
+          onClick={() => {
             const u = auth.currentUser;
             if (!u) {
-              const ok = await requireGoogleAuth();
-              if (!ok) return;
+              goToSignIn();
+              return;
             }
             setOpen(true);
           }}
@@ -1283,9 +1268,7 @@ export default function DreamsPage() {
           <div className="min-w-0">You are not signed in. Sign in with Google to create and save your dreams.</div>
 
           <button
-            onClick={async () => {
-              await requireGoogleAuth();
-            }}
+            onClick={goToSignIn}
             className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
           >
             <span className="text-lg">G</span>
