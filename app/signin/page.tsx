@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
-import { ensureUser } from "@/lib/auth/ensureUser";
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
 
@@ -26,9 +26,8 @@ export default function SignInPage() {
       if (!u) return;
       setBusy(true);
       setErr(null);
-      ensureUser(u)
+      ensureUserProfileOnSignIn(u)
         .then(() => router.replace(next))
-        .catch((e: any) => setErr(e?.message ?? "Failed to prepare account"))
         .finally(() => setBusy(false));
     });
     return () => unsub();
@@ -43,7 +42,7 @@ export default function SignInPage() {
       provider.setCustomParameters({ prompt: "select_account" });
 
       const cred = await signInWithPopup(auth, provider);
-      await ensureUser(cred.user);
+      await ensureUserProfileOnSignIn(cred.user);
 
       router.replace(next);
     } catch (e: any) {

@@ -20,6 +20,7 @@ import {
   set as rtdbSet,
 } from "firebase/database";
 
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 
 import data from "@emoji-mart/data";
@@ -138,7 +139,13 @@ export default function AdminDashboardPage() {
     "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:opacity-90";
   const pillDisabled = "disabled:opacity-50 disabled:cursor-not-allowed";
 
-  useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
+  useEffect(() =>
+    onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (!u) return;
+      ensureUserProfileOnSignIn(u);
+    }),
+  []);
   useEffect(() => setLoading(false), []);
 
   // ✅ Live dreams query
