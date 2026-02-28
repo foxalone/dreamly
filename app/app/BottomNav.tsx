@@ -11,6 +11,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 
 type Item = {
@@ -173,7 +174,13 @@ export default function BottomNav({ hidden }: BottomNavProps) {
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(() =>
+    onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (!u) return;
+      ensureUserProfileOnSignIn(u);
+    }),
+  []);
 
   const isActive = (href: string) =>
     pathname === href || pathname?.startsWith(href + "/");
@@ -208,7 +215,8 @@ export default function BottomNav({ hidden }: BottomNavProps) {
       const provider = new GoogleAuthProvider();
       // опционально: выбирать аккаунт каждый раз
       // provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
+      const cred = await signInWithPopup(auth, provider);
+      await ensureUserProfileOnSignIn(cred.user);
     } finally {
       setBusy(false);
     }

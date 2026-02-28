@@ -21,6 +21,7 @@ import {
 } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import BottomNav from "../BottomNav";
 
@@ -126,6 +127,8 @@ export default function SharedPage() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u ? u.uid : null);
       setUserLabel(u ? initialsFromUser(u) : "");
+      if (!u) return;
+      ensureUserProfileOnSignIn(u);
     });
     return () => unsub();
   }, []);
@@ -135,7 +138,8 @@ export default function SharedPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
+      const cred = await signInWithPopup(auth, provider);
+      await ensureUserProfileOnSignIn(cred.user);
       // onAuthStateChanged will update uid
     } catch (e: any) {
       console.error("Google sign-in failed:", e);

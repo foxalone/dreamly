@@ -10,6 +10,7 @@ import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import {
   addDoc,
@@ -479,6 +480,8 @@ export default function DreamsPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setUid(user?.uid ?? null);
+      if (!user) return;
+      ensureUserProfileOnSignIn(user);
     });
 
     return () => unsub();
@@ -763,7 +766,8 @@ export default function DreamsPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
+      const cred = await signInWithPopup(auth, provider);
+      await ensureUserProfileOnSignIn(cred.user);
       // uid will update via onAuthStateChanged
     } catch (e: any) {
       console.error("Google sign-in failed:", e);

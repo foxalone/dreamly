@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
 
@@ -27,7 +28,13 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(() =>
+    onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (!u) return;
+      ensureUserProfileOnSignIn(u);
+    }),
+  []);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
