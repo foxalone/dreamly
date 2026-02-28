@@ -303,14 +303,8 @@ export default function SharedPage() {
       {/* lock content interactions under overlay */}
       <div className={locked ? "pointer-events-none select-none" : ""}>
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-semibold text-[var(--text)]">Shared</h1>
+          <h1 className="text-3xl font-semibold text-[var(--text)]">Feed</h1>
 
-          {/* optional: small user chip if signed in */}
-          {uid && (
-            <div className="text-xs text-[var(--muted)] rounded-full border border-white/10 px-3 py-1">
-              {userLabel || "Signed in"}
-            </div>
-          )}
         </div>
 
         {error && !locked && (
@@ -335,29 +329,36 @@ export default function SharedPage() {
                   key={d.id}
                   className="p-5 rounded-2xl bg-[var(--card)] border border-white/10"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      {emojis.length > 0 ? (
-                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
-                          {emojis.slice(0, 5).map((em, i) => (
-                            <span
-                              key={`${d.id}:${em.native}:${i}`}
-                              title={em.name || em.id || "emoji"}
-                              className="cursor-help"
-                            >
-                              {em.native}
-                            </span>
-                          ))}
-                        </span>
-                      ) : (
-                        <div className="text-xs text-[var(--muted)]"> </div>
-                      )}
-                    </div>
+                 <div className="flex items-center justify-between gap-3">
+  <div className="min-w-0 flex items-center gap-3">
+    {/* initials */}
+    {uid && (
+      <div className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[10px] text-[var(--muted)]">
+        {userLabel}
+      </div>
+    )}
 
-                    <div className="text-xs text-[var(--muted)] whitespace-nowrap">
-                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-                    </div>
-                  </div>
+    {/* icons */}
+    {emojis.length > 0 ? (
+      <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
+        {emojis.slice(0, 5).map((em, i) => (
+          <span
+            key={`${d.id}:${em.native}:${i}`}
+            title={em.name || em.id || "emoji"}
+            className="cursor-help"
+          >
+            {em.native}
+          </span>
+        ))}
+      </span>
+    ) : null}
+  </div>
+
+  {/* date */}
+  <div className="text-xs text-[var(--muted)] whitespace-nowrap">
+    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+  </div>
+</div>
 
                   <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
                     {d.text}

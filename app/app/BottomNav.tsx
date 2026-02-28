@@ -188,7 +188,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
       },
       {
         href: "/app/shared",
-        label: "Shared",
+        label: "Feed",
         icon: (a) => <IconShared active={a} />,
         activeClass: "text-red-500",
       },
