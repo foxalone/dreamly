@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
@@ -17,11 +17,14 @@ export const metadata: Metadata = {
   title: "Dreamly",
   description: "AI Dream Journal & Anonymous Dream Map",
   manifest: "/manifest.json",
-  themeColor: "#0a0a0a",
   icons: {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({
