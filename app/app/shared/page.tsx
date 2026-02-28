@@ -17,7 +17,6 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
-  type User,
 } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 
@@ -35,15 +34,27 @@ type DreamEmoji = {
 
 type SharedDream = {
   id: string;
-  title?: string; // есть, но не показываем
+
+  title?: string;
   text?: string;
+
   dateKey?: string;
   timeKey?: string;
   sharedAtMs?: number;
+
+  ownerUid?: string;
+  ownerDreamId?: string;
+
+  // author fields (saved when sharing)
+  authorName?: string | null;
+  authorEmail?: string | null;
+
   emojis?: DreamEmoji[] | any;
+
   wordCount?: number;
   charCount?: number;
   langGuess?: string;
+
   reactions?: {
     heart?: number;
     like?: number;
@@ -104,11 +115,24 @@ function normalizeEmojis(v: any): DreamEmoji[] {
   return [];
 }
 
-function initialsFromUser(u: User) {
-  const name = (u.displayName ?? "").trim();
-  const email = (u.email ?? "").trim();
-  const src = name || email || "U";
-  const parts = src.split(/[\s._-]+/).filter(Boolean);
+// ✅ initials from email (preferred), fallback to name; NEVER use ownerUid/uuid
+function authorLabel(d: SharedDream) {
+  const email = (d.authorEmail ?? "").trim();
+  if (email) return email;
+
+  const name = (d.authorName ?? "").trim();
+  if (name) return name;
+
+  return "U";
+}
+
+function initialsFromEmailOrText(s: string) {
+  const src = (s ?? "").trim();
+  if (!src) return "U";
+
+  const left = src.includes("@") ? src.split("@")[0] : src; // email -> part before @
+  const parts = left.split(/[\s._-]+/).filter(Boolean);
+
   const a = (parts[0]?.[0] ?? "U").toUpperCase();
   const b = (parts[1]?.[0] ?? parts[0]?.[1] ?? "").toUpperCase();
   return (a + b).slice(0, 2);
@@ -116,7 +140,6 @@ function initialsFromUser(u: User) {
 
 export default function SharedPage() {
   const [uid, setUid] = useState<string | null>(null);
-  const [userLabel, setUserLabel] = useState<string>(""); // optional
   const [items, setItems] = useState<SharedDream[]>([]);
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -126,7 +149,6 @@ export default function SharedPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u ? u.uid : null);
-      setUserLabel(u ? initialsFromUser(u) : "");
       if (!u) return;
       ensureUserProfileOnSignIn(u);
     });
@@ -187,7 +209,13 @@ export default function SharedPage() {
       try {
         const pairs = await Promise.all(
           items.map(async (it) => {
-            const rRef = doc(firestore, "shared_dreams", it.id, "reactions", uid);
+            const rRef = doc(
+              firestore,
+              "shared_dreams",
+              it.id,
+              "reactions",
+              uid
+            );
             const rSnap = await getDoc(rRef);
             const data = rSnap.exists() ? (rSnap.data() as any) : {};
             const mr: MyReactions = {
@@ -234,7 +262,13 @@ export default function SharedPage() {
 
     try {
       const dreamRef = doc(firestore, "shared_dreams", dreamId);
-      const reactRef = doc(firestore, "shared_dreams", dreamId, "reactions", uid);
+      const reactRef = doc(
+        firestore,
+        "shared_dreams",
+        dreamId,
+        "reactions",
+        uid
+      );
 
       await runTransaction(firestore, async (tx) => {
         const [dreamSnap, reactSnap] = await Promise.all([
@@ -250,6 +284,7 @@ export default function SharedPage() {
         const prevOn = reactSnap.exists()
           ? !!(reactSnap.data() as any)[key]
           : false;
+
         const nextOn = !prevOn;
         const nextCount = Math.max(0, oldCount + (nextOn ? 1 : -1));
 
@@ -258,7 +293,11 @@ export default function SharedPage() {
           updatedAt: serverTimestamp(),
         });
 
-        tx.set(reactRef, { [key]: nextOn, updatedAt: serverTimestamp() }, { merge: true });
+        tx.set(
+          reactRef,
+          { [key]: nextOn, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
       });
     } catch (e: any) {
       // rollback
@@ -289,7 +328,7 @@ export default function SharedPage() {
 
             <button
               onClick={signInGoogle}
-  className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
+              className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
             >
               <FcGoogle className="text-xl" />
               <span>Sign in with Google</span>
@@ -308,7 +347,6 @@ export default function SharedPage() {
       <div className={locked ? "pointer-events-none select-none" : ""}>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-semibold text-[var(--text)]">Feed</h1>
-
         </div>
 
         {error && !locked && (
@@ -328,41 +366,45 @@ export default function SharedPage() {
               const r = d.reactions ?? {};
               const emojis = normalizeEmojis(d.emojis);
 
+              const aLabel = authorLabel(d); // ✅ email first
+              const aInit = initialsFromEmailOrText(aLabel);
+
               return (
                 <div
                   key={d.id}
                   className="p-5 rounded-2xl bg-[var(--card)] border border-white/10"
                 >
-                 <div className="flex items-center justify-between gap-3">
-  <div className="min-w-0 flex items-center gap-3">
-    {/* initials */}
-    {uid && (
-      <div className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[10px] text-[var(--muted)]">
-        {userLabel}
-      </div>
-    )}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex items-center gap-3">
+                      {/* ✅ author initials (email-based; never uuid) */}
+                      <div
+                        className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[10px] text-[var(--muted)]"
+                        title={aLabel}
+                      >
+                        {aInit}
+                      </div>
 
-    {/* icons */}
-    {emojis.length > 0 ? (
-      <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
-        {emojis.slice(0, 5).map((em, i) => (
-          <span
-            key={`${d.id}:${em.native}:${i}`}
-            title={em.name || em.id || "emoji"}
-            className="cursor-help"
-          >
-            {em.native}
-          </span>
-        ))}
-      </span>
-    ) : null}
-  </div>
+                      {/* icons */}
+                      {emojis.length > 0 ? (
+                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
+                          {emojis.slice(0, 5).map((em, i) => (
+                            <span
+                              key={`${d.id}:${em.native}:${i}`}
+                              title={em.name || em.id || "emoji"}
+                              className="cursor-help"
+                            >
+                              {em.native}
+                            </span>
+                          ))}
+                        </span>
+                      ) : null}
+                    </div>
 
-  {/* date */}
-  <div className="text-xs text-[var(--muted)] whitespace-nowrap">
-    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-  </div>
-</div>
+                    {/* date */}
+                    <div className="text-xs text-[var(--muted)] whitespace-nowrap">
+                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                    </div>
+                  </div>
 
                   <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
                     {d.text}

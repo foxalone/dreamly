@@ -878,6 +878,10 @@ export default function DreamsPage() {
         ownerUid: uid2,
         ownerDreamId: dreamId,
 
+          // ✅ author label for feed initials
+  authorName: (u.displayName ?? "").trim() || null,
+  authorEmail: (u.email ?? "").trim() || null,
+
         title: dream.title ?? "",
         text: dream.text ?? "",
 
