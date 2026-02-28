@@ -3,11 +3,13 @@
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { auth, firestore } from "@/lib/firebase";
 import {
@@ -476,7 +478,11 @@ export default function DreamsPage() {
   const hintsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    setUid(auth.currentUser?.uid ?? null);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setUid(user?.uid ?? null);
+    });
+
+    return () => unsub();
   }, []);
 
   // ✅ RTDB emojiHints
@@ -755,9 +761,24 @@ export default function DreamsPage() {
 
   const router = useRouter();
 
+  function getSignInNextPath() {
+    if (typeof window === "undefined") return "/app/dreams";
+    const next = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    return next || "/app/dreams";
+  }
+
   function goToSignIn() {
     setOpen(false);
-    router.push(`/signin?next=${encodeURIComponent("/app/dreams")}`);
+    router.push(`/signin?next=${encodeURIComponent(getSignInNextPath())}`);
+  }
+
+  function requireAuthOrRedirect() {
+    const user = auth.currentUser;
+    if (!user) {
+      goToSignIn();
+      return null;
+    }
+    return user;
   }
 
   function close() {
@@ -771,15 +792,8 @@ export default function DreamsPage() {
 
     setError(null);
 
-    let u = auth.currentUser;
-    if (!u) {
-      goToSignIn();
-      return;
-    }
-    if (!u) {
-      setError("Please sign in with Google to save dreams.");
-      return;
-    }
+    const u = requireAuthOrRedirect();
+    if (!u) return;
 
     const now = new Date();
     const payload = {
@@ -835,15 +849,8 @@ export default function DreamsPage() {
   }
 
   async function shareDream(dreamId: string) {
-    let u = auth.currentUser;
-    if (!u) {
-      goToSignIn();
-      return;
-    }
-    if (!u) {
-      setError("Please sign in with Google to share dreams.");
-      return;
-    }
+    const u = requireAuthOrRedirect();
+    if (!u) return;
 
     const uid2 = u.uid;
     if (!uid2) return;
@@ -910,15 +917,8 @@ export default function DreamsPage() {
   }
 
   async function analyzeDream(dreamId: string) {
-    let u = auth.currentUser;
-    if (!u) {
-      goToSignIn();
-      return;
-    }
-    if (!u) {
-      setError("Please sign in with Google to analyze dreams.");
-      return;
-    }
+    const u = requireAuthOrRedirect();
+    if (!u) return;
 
     const uid2 = u.uid;
     if (!uid2) return;
@@ -978,15 +978,8 @@ export default function DreamsPage() {
   }
 
   async function deleteDream(dreamId: string) {
-    let u = auth.currentUser;
-    if (!u) {
-      goToSignIn();
-      return;
-    }
-    if (!u) {
-      setError("Please sign in with Google to delete dreams.");
-      return;
-    }
+    const u = requireAuthOrRedirect();
+    if (!u) return;
 
     const uid2 = u.uid;
     if (!uid2) return;
@@ -1046,15 +1039,8 @@ export default function DreamsPage() {
   }
 
   async function extractRoots(dreamId: string) {
-    let u = auth.currentUser;
-    if (!u) {
-      goToSignIn();
-      return;
-    }
-    if (!u) {
-      setError("Please sign in with Google to extract roots.");
-      return;
-    }
+    const u = requireAuthOrRedirect();
+    if (!u) return;
 
     const uid2 = u.uid;
     if (!uid2) return;
@@ -1236,11 +1222,8 @@ export default function DreamsPage() {
 
         <button
           onClick={() => {
-            const u = auth.currentUser;
-            if (!u) {
-              goToSignIn();
-              return;
-            }
+            const u = requireAuthOrRedirect();
+            if (!u) return;
             setOpen(true);
           }}
           className="
@@ -1271,7 +1254,7 @@ export default function DreamsPage() {
             onClick={goToSignIn}
             className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
           >
-            <span className="text-lg">G</span>
+            <FcGoogle className="text-lg" />
             <span>Sign in with Google</span>
           </button>
         </div>
