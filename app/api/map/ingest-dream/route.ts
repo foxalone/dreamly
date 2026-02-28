@@ -17,27 +17,15 @@ function todayKeyUTC(ms: number) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// TODO: заменить на реальный GeoIP провайдер.
-// Сейчас fallback Washington, US.
-async function geoFromRequest(req: Request) {
-  const country = "US";
-  const admin1 = "DC";
-  const city = "Washington";
-  const cityId = `${country}|${admin1}|${city}`;
-  return { country, admin1, city, cityId };
-}
-
-// ✅ helper: if no coords yet -> call /api/map/resolve-city
+// helper: if no coords yet -> call /api/map/resolve-city
 async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
   try {
     const db = adminFirestore();
     const statsSnap = await db.collection("city_emoji_stats").doc(cityId).get();
     const d = statsSnap.exists ? (statsSnap.data() as any) : null;
 
-    // if already has coords -> skip
     if (d && typeof d.lat === "number" && typeof d.lng === "number") return;
 
-    // call internal API (same origin) - fire & forget
     const url = new URL("/api/map/resolve-city", req.url);
     fetch(url.toString(), {
       method: "POST",
@@ -45,7 +33,7 @@ async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
       body: JSON.stringify({ cityId }),
     }).catch(() => {});
   } catch {
-    // ignore: coords resolving is best-effort
+    // ignore
   }
 }
 
@@ -56,15 +44,11 @@ export async function POST(req: Request) {
     const dreamId = s(body?.dreamId);
 
     if (!uid || !dreamId) {
-      return NextResponse.json(
-        { error: "Missing uid or dreamId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing uid or dreamId" }, { status: 400 });
     }
 
     const db = adminFirestore();
 
-    // idempotency doc (чтобы не считать дважды)
     const ingestId = `${uid}_${dreamId}`;
     const ingestRef = db.collection("map_ingested").doc(ingestId);
 
@@ -89,36 +73,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skipped: true, reason: "no_emojis" });
     }
 
-    const geo = await geoFromRequest(req);
-    const { country, admin1, city, cityId } = geo;
-
+    // ✅ читаем город из user doc
     const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const user = userSnap.exists ? (userSnap.data() as any) : {};
+
+    const cityId = s(user?.currentCityId);
+    const city = s(user?.currentCity);
+    const country = s(user?.currentCountry);
+    const admin1 = s(user?.currentAdmin1);
+
     const userStatsRef = userRef.collection("stats").doc("emoji");
     const userDailyRef = userRef.collection("emoji_daily").doc(dateKey);
-
-    const cityStatsRef = db.collection("city_emoji_stats").doc(cityId);
-    const cityDailyRef = db.collection("city_emoji_daily").doc(`${cityId}_${dateKey}`);
 
     await db.runTransaction(async (tx) => {
       const ing = await tx.get(ingestRef);
       if (ing.exists) return;
 
-      // user minimal profile (обновляем city и lastLogin)
+      // обновляем только lastLogin — НЕ город
       tx.set(
         userRef,
         {
           uid,
           lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
-          currentCityId: cityId,
-          currentCity: city,
-          currentCountry: country,
-          currentAdmin1: admin1,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
 
-      // user stats all time
+      // ===== USER ALL TIME =====
       tx.set(
         userStatsRef,
         {
@@ -127,6 +110,7 @@ export async function POST(req: Request) {
         },
         { merge: true }
       );
+
       for (const em of natives) {
         tx.set(
           userStatsRef,
@@ -135,7 +119,7 @@ export async function POST(req: Request) {
         );
       }
 
-      // user daily
+      // ===== USER DAILY =====
       tx.set(
         userDailyRef,
         {
@@ -145,6 +129,7 @@ export async function POST(req: Request) {
         },
         { merge: true }
       );
+
       for (const em of natives) {
         tx.set(
           userDailyRef,
@@ -153,51 +138,57 @@ export async function POST(req: Request) {
         );
       }
 
-      // city stats all time
-      tx.set(
-        cityStatsRef,
-        {
-          cityId,
-          city,
-          country,
-          admin1,
-          totalDreams: admin.firestore.FieldValue.increment(1),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      for (const em of natives) {
+      // ===== CITY STATS (только если есть cityId) =====
+      if (cityId) {
+        const cityStatsRef = db.collection("city_emoji_stats").doc(cityId);
+        const cityDailyRef = db.collection("city_emoji_daily").doc(`${cityId}_${dateKey}`);
+
         tx.set(
           cityStatsRef,
-          { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+          {
+            cityId,
+            city,
+            country,
+            admin1,
+            totalDreams: admin.firestore.FieldValue.increment(1),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
           { merge: true }
         );
-      }
 
-      // city daily
-      tx.set(
-        cityDailyRef,
-        {
-          cityId,
-          dateKey,
-          totalDreams: admin.firestore.FieldValue.increment(1),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      for (const em of natives) {
+        for (const em of natives) {
+          tx.set(
+            cityStatsRef,
+            { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+            { merge: true }
+          );
+        }
+
         tx.set(
           cityDailyRef,
-          { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+          {
+            cityId,
+            dateKey,
+            totalDreams: admin.firestore.FieldValue.increment(1),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
           { merge: true }
         );
+
+        for (const em of natives) {
+          tx.set(
+            cityDailyRef,
+            { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+            { merge: true }
+          );
+        }
       }
 
       // mark ingested
       tx.set(ingestRef, {
         uid,
         dreamId,
-        cityId,
+        cityId: cityId || null,
         dateKey,
         createdAtMs,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -205,13 +196,14 @@ export async function POST(req: Request) {
       });
     });
 
-    // ✅ HERE: after transaction, resolve coords (best-effort)
-    // (не ждём, чтобы не тормозить ответ)
-    resolveCityCoordsIfNeeded(req, cityId);
+    if (cityId) resolveCityCoordsIfNeeded(req, cityId);
 
-    return NextResponse.json({ ok: true, cityId, dateKey });
+    return NextResponse.json({ ok: true, cityId: cityId || null, dateKey });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ error: e?.message ?? "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message ?? "Server error" },
+      { status: 500 }
+    );
   }
 }
