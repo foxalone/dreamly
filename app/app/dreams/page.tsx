@@ -2,14 +2,13 @@
 
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 
 import { auth, firestore } from "@/lib/firebase";
 import {
@@ -759,26 +758,17 @@ export default function DreamsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const router = useRouter();
-
-  function getSignInNextPath() {
-    if (typeof window === "undefined") return "/app/dreams";
-    const next = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    return next || "/app/dreams";
-  }
-
-  function goToSignIn() {
-    setOpen(false);
-    router.push(`/signin?next=${encodeURIComponent(getSignInNextPath())}`);
-  }
-
-  function requireAuthOrRedirect() {
-    const user = auth.currentUser;
-    if (!user) {
-      goToSignIn();
-      return null;
+  async function signInGoogle() {
+    setError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      await signInWithPopup(auth, provider);
+      // uid will update via onAuthStateChanged
+    } catch (e: any) {
+      console.error("Google sign-in failed:", e);
+      setError(e?.message ?? "Google sign-in failed.");
     }
-    return user;
   }
 
   function close() {
@@ -792,7 +782,7 @@ export default function DreamsPage() {
 
     setError(null);
 
-    const u = requireAuthOrRedirect();
+    const u = auth.currentUser;
     if (!u) return;
 
     const now = new Date();
@@ -849,7 +839,7 @@ export default function DreamsPage() {
   }
 
   async function shareDream(dreamId: string) {
-    const u = requireAuthOrRedirect();
+    const u = auth.currentUser;
     if (!u) return;
 
     const uid2 = u.uid;
@@ -917,7 +907,7 @@ export default function DreamsPage() {
   }
 
   async function analyzeDream(dreamId: string) {
-    const u = requireAuthOrRedirect();
+    const u = auth.currentUser;
     if (!u) return;
 
     const uid2 = u.uid;
@@ -978,7 +968,7 @@ export default function DreamsPage() {
   }
 
   async function deleteDream(dreamId: string) {
-    const u = requireAuthOrRedirect();
+    const u = auth.currentUser;
     if (!u) return;
 
     const uid2 = u.uid;
@@ -1039,7 +1029,7 @@ export default function DreamsPage() {
   }
 
   async function extractRoots(dreamId: string) {
-    const u = requireAuthOrRedirect();
+    const u = auth.currentUser;
     if (!u) return;
 
     const uid2 = u.uid;
@@ -1145,6 +1135,7 @@ export default function DreamsPage() {
   const aliveDreams = useMemo(() => dreams.filter((d) => (d as any).deleted !== true), [dreams]);
   const sharedDreams = useMemo(() => aliveDreams.filter((d) => d.shared === true), [aliveDreams]);
   const visibleDreams = tab === "SHARED" ? sharedDreams : aliveDreams;
+  const locked = !uid;
 
   useEffect(() => {
     if (!uid) return;
@@ -1186,7 +1177,31 @@ export default function DreamsPage() {
   }, [uid, tab, aliveDreams]);
 
   return (
-    <main className="min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
+    <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
+      {locked && (
+        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
+          <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-6">
+            <div className="text-[var(--text)] text-lg font-semibold">You are not signed in.</div>
+            <div className="mt-2 text-[var(--muted)]">Sign in with Google to create and save your dreams.</div>
+
+            <button
+              onClick={signInGoogle}
+              className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
+            >
+              <FcGoogle className="text-xl" />
+              <span>Sign in with Google</span>
+            </button>
+
+            {error && (
+              <div className="mt-4 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={locked ? "pointer-events-none select-none" : ""}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -1222,8 +1237,6 @@ export default function DreamsPage() {
 
         <button
           onClick={() => {
-            const u = requireAuthOrRedirect();
-            if (!u) return;
             setOpen(true);
           }}
           className="
@@ -1244,21 +1257,6 @@ export default function DreamsPage() {
           <span>New</span>
         </button>
       </div>
-
-      {/* Signed-out hint */}
-      {!uid && (
-        <div className="mt-5 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] text-sm text-[var(--muted)] flex items-center justify-between gap-3 flex-wrap">
-          <div className="min-w-0">You are not signed in. Sign in with Google to create and save your dreams.</div>
-
-          <button
-            onClick={goToSignIn}
-            className="px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
-          >
-            <FcGoogle className="text-lg" />
-            <span>Sign in with Google</span>
-          </button>
-        </div>
-      )}
 
       {/* Error */}
       {error && (
@@ -1627,6 +1625,7 @@ export default function DreamsPage() {
             </div>
           );
         })()}
+      </div>
 
       <BottomNav hidden={open} />
     </main>
