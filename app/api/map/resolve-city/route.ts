@@ -1,3 +1,5 @@
+// app/api/map/resolve-city/route.ts
+
 import { NextResponse } from "next/server";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import admin from "firebase-admin";
