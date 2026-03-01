@@ -31,52 +31,7 @@ function pdtEndpoint() {
     : "https://www.paypal.com/cgi-bin/webscr";
 }
 
-// PDT parser: first line SUCCESS/FAIL, then key=value lines
-function parsePdt(body: string) {
-  const lines = body
-    .split(/\r?\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const first = lines[0] ?? "";
-  const data: PdtData = {};
-
-  for (const line of lines.slice(1)) {
-    const i = line.indexOf("=");
-    if (i <= 0) continue;
-
-    const k = line.slice(0, i).trim();
-    const rawV = line.slice(i + 1);
-    // PayPal returns urlencoded with "+" spaces
-    const v = decodeURIComponent(rawV.replace(/\+/g, "%20"));
-    data[k] = v;
-  }
-
-  return { ok: first === "SUCCESS", first, data };
-}
-
-async function pdtVerify(tx: string) {
-  const at = mustEnv("PAYPAL_PDT_TOKEN"); // Identity Token
-
-  const form = new URLSearchParams();
-  form.set("cmd", "_notify-synch");
-  form.set("tx", tx);
-  form.set("at", at);
-
-  const r = await fetch(pdtEndpoint(), {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form.toString(),
-    cache: "no-store",
-  });
-
-  const text = await r.text();
-  const parsed = parsePdt(text);
-  if (!parsed.ok) throw new Error(`PDT verify failed: ${parsed.first || "UNKNOWN"}`);
-  return parsed.data;
-}
-
-// ----- helpers -----
+// ---------- parsing/helpers ----------
 function firstNonEmpty(...vals: Array<string | undefined | null>) {
   for (const v of vals) {
     if (typeof v === "string" && v.trim()) return v.trim();
@@ -84,13 +39,8 @@ function firstNonEmpty(...vals: Array<string | undefined | null>) {
   return "";
 }
 
-function pickGross(data: PdtData) {
-  // PayPal иногда возвращает разные поля
-  return firstNonEmpty(data["mc_gross"], data["payment_gross"], data["gross"]);
-}
-
-function pickCurrency(data: PdtData) {
-  return firstNonEmpty(data["mc_currency"], data["currency_code"], data["currency"]);
+function safeString(v: unknown) {
+  return typeof v === "string" ? v : "";
 }
 
 function normMoney(v: string) {
@@ -98,6 +48,14 @@ function normMoney(v: string) {
   const s = String(v ?? "").trim().replace(",", ".");
   const n = Number(s);
   return Number.isFinite(n) ? n.toFixed(2) : "";
+}
+
+function pickGross(data: PdtData) {
+  return firstNonEmpty(data["mc_gross"], data["payment_gross"], data["gross"]);
+}
+
+function pickCurrency(data: PdtData) {
+  return firstNonEmpty(data["mc_currency"], data["currency_code"], data["currency"]);
 }
 
 function pickReceiver(data: PdtData) {
@@ -116,8 +74,80 @@ function findPackByAmount(gross: string, currency: string) {
   return null;
 }
 
-function safeString(v: unknown) {
-  return typeof v === "string" ? v : "";
+// PDT parser: first line SUCCESS/FAIL, then key=value lines
+function parsePdt(body: string) {
+  const lines = body
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const first = lines[0] ?? "";
+  const data: PdtData = {};
+
+  for (const line of lines.slice(1)) {
+    const i = line.indexOf("=");
+    if (i <= 0) continue;
+
+    const k = line.slice(0, i).trim();
+    const rawV = line.slice(i + 1);
+    const v = decodeURIComponent(rawV.replace(/\+/g, "%20"));
+    data[k] = v;
+  }
+
+  return { ok: first === "SUCCESS", first, data };
+}
+
+async function fetchTextWithTimeout(url: string, init: RequestInit, timeoutMs = 12000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...init, signal: ctrl.signal });
+    const text = await r.text();
+    return { r, text };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function pdtVerify(tx: string) {
+  const at = mustEnv("PAYPAL_PDT_TOKEN"); // Identity Token
+
+  const form = new URLSearchParams();
+  form.set("cmd", "_notify-synch");
+  form.set("tx", tx);
+  form.set("at", at);
+
+  const { r, text } = await fetchTextWithTimeout(
+    pdtEndpoint(),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+      cache: "no-store",
+    },
+    12000
+  );
+
+  // если PayPal отдал не 200 — тоже покажем тело
+  if (!r.ok) {
+    throw new Error(`PDT HTTP ${r.status}. Raw=${text.slice(0, 400)}`);
+  }
+
+  const parsed = parsePdt(text);
+  if (!parsed.ok) {
+    // САМОЕ ВАЖНОЕ: увидеть Raw, чтобы понять причину FAIL
+    throw new Error(`PDT verify failed: ${parsed.first || "UNKNOWN"}. Raw=${text.slice(0, 400)}`);
+  }
+
+  return parsed.data;
+}
+
+function trimHugeObject(data: PdtData, maxKeys = 120) {
+  // чтобы случайно не записать слишком много
+  const out: PdtData = {};
+  const keys = Object.keys(data).slice(0, maxKeys);
+  for (const k of keys) out[k] = data[k];
+  return out;
 }
 
 export async function POST(req: Request) {
@@ -146,8 +176,7 @@ export async function POST(req: Request) {
     const currencyRaw = pickCurrency(data);
     const txnId = firstNonEmpty(data["txn_id"], tx);
 
-    // ✅ receiver safety check (optional but recommended)
-    // Если не хочешь требовать env — просто оставь PAYPAL_RECEIVER_EMAIL пустым/не задавай.
+    // receiver safety check (optional)
     const expectedReceiver = (process.env.PAYPAL_RECEIVER_EMAIL || "").trim().toLowerCase();
     if (expectedReceiver) {
       const receiver = pickReceiver(data);
@@ -175,7 +204,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ packId вычисляем на сервере по сумме/валюте
+    // packId вычисляем на сервере по сумме/валюте
     const found = findPackByAmount(gross, currency);
     if (!found) {
       return NextResponse.json(
@@ -192,7 +221,7 @@ export async function POST(req: Request) {
 
     await db.runTransaction(async (t) => {
       const txSnap = await t.get(txRef);
-      if (txSnap.exists) return; // already processed
+      if (txSnap.exists) return;
 
       t.set(txRef, {
         uid,
@@ -203,13 +232,12 @@ export async function POST(req: Request) {
         paymentStatus,
         rawTx: tx,
 
-        // debug/helpful fields
+        // debug fields
         receiver: pickReceiver(data),
         payerEmail: firstNonEmpty(data["payer_email"]),
         itemName: firstNonEmpty(data["item_name"]),
         paymentDate: firstNonEmpty(data["payment_date"]),
-        // храним весь PDT ответ — супер полезно для разборов (можно убрать позже)
-        pdt: data,
+        pdt: trimHugeObject(data),
 
         createdAt: FieldValue.serverTimestamp(),
       });
