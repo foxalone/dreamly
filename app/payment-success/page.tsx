@@ -4,23 +4,21 @@ import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 
 export default function PaymentSuccessPage() {
-  const [msg, setMsg] = useState("Проверяем оплату…");
+  const [msg, setMsg] = useState("Проверяем платёж…");
 
   useEffect(() => {
     (async () => {
       const url = new URL(window.location.href);
-      const token = url.searchParams.get("token"); // PayPal обычно так
-      const packId = url.searchParams.get("pack") ?? "pack_20"; // ты добавишь pack в ссылку
-      const orderId = token; // в payment links часто token = orderId
+      const tx = url.searchParams.get("tx"); // PayPal PDT tx
 
-      if (!orderId) {
-        setMsg("Не найден orderId/token в URL.");
+      if (!tx) {
+        setMsg("Не найден tx в URL (PayPal не передал идентификатор транзакции).");
         return;
       }
 
       const user = auth.currentUser;
       if (!user) {
-        setMsg("Нужно войти в аккаунт, чтобы начислить кредиты.");
+        setMsg("Войди в аккаунт в Dreamly, чтобы начислить кредиты (платёж уже в PayPal).");
         return;
       }
 
@@ -29,23 +27,24 @@ export default function PaymentSuccessPage() {
       const r = await fetch("/api/paypal/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, packId, idToken }),
+        body: JSON.stringify({ tx, idToken }),
       });
 
       const j = await r.json();
+
       if (!r.ok) {
-        setMsg(`Ошибка: ${j?.error ?? "verify failed"}`);
+        setMsg(`Ошибка начисления: ${j?.error ?? "verify failed"}`);
         return;
       }
 
-      setMsg(`Готово! Начислено кредитов: ${j.creditsAdded}`);
+      setMsg(`✅ Готово! Начислено: ${j.creditsAdded} кредитов (pack: ${j.packId}).`);
     })();
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
+    <main style={{ padding: 24 }}>
       <h1>Оплата</h1>
       <p>{msg}</p>
-    </div>
+    </main>
   );
 }

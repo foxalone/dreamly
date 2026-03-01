@@ -5,6 +5,10 @@ import { User, onAuthStateChanged, signOut } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
+import { doc, onSnapshot } from "firebase/firestore";
+import { firestore } from "@/lib/firebase";
+
+
 
 function initialsFromUser(u: User) {
   const name = (u.displayName ?? "").trim();
@@ -27,6 +31,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() =>
     onAuthStateChanged(auth, (u) => {
@@ -35,6 +40,26 @@ export default function ProfilePage() {
       ensureUserProfileOnSignIn(u);
     }),
   []);
+
+  useEffect(() => {
+  if (!user?.uid) {
+    setCredits(null);
+    return;
+  }
+
+  const ref = doc(firestore, "users", user.uid);
+
+  const unsub = onSnapshot(ref, (snap) => {
+    if (!snap.exists()) {
+      setCredits(0);
+      return;
+    }
+    const data = snap.data();
+    setCredits(data?.credits ?? 0);
+  });
+
+  return () => unsub();
+}, [user]);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
@@ -60,6 +85,22 @@ export default function ProfilePage() {
       setBusy(false);
     }
   }
+
+  const PAYPAL_LINKS = {
+  pack_20: process.env.NEXT_PUBLIC_PAYPAL_LINK_PACK_20,
+  pack_50: process.env.NEXT_PUBLIC_PAYPAL_LINK_PACK_50,
+  pack_120: process.env.NEXT_PUBLIC_PAYPAL_LINK_PACK_120,
+  pack_300: process.env.NEXT_PUBLIC_PAYPAL_LINK_PACK_300,
+} as const;
+
+function goBuy(packId: keyof typeof PAYPAL_LINKS) {
+  const url = PAYPAL_LINKS[packId];
+  if (!url) {
+    alert(`Missing PayPal link for ${packId}. Check env NEXT_PUBLIC_PAYPAL_LINK_${packId.toUpperCase()}`);
+    return;
+  }
+  window.location.href = url;
+}
 
   async function copyUid() {
     if (!user?.uid) return;
@@ -102,6 +143,8 @@ export default function ProfilePage() {
    "sGbA77TlcsatEMrgEvCv7Shjrj32",
 ]);
 
+const [showCredits, setShowCredits] = useState(false);
+
 const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
 
   return (
@@ -135,6 +178,31 @@ const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
           {busy ? "..." : "Sign out"}
         </button>
 
+        <button
+  onClick={() => setShowCredits((v) => !v)}
+  disabled={!user}
+  className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+>
+  💳 Buy credits
+</button>
+
+
+{user ? (
+  <div
+    className={`
+      h-11 px-4 rounded-full
+      bg-[rgba(16,185,129,0.12)]
+      border border-[rgba(16,185,129,0.25)]
+      text-[var(--text)]
+      flex items-center gap-2
+      font-semibold
+    `}
+    title="Your current balance"
+  >
+    <span className="opacity-80">💳</span>
+    <span>{credits === null ? "…" : credits}</span>
+  </div>
+) : null}
        {isAdmin ? (
   <Link
     href="/app/profile/admin-dashboard"
@@ -174,6 +242,55 @@ const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
           Refund
         </Link>
       </div>
+
+      {user && showCredits ? (
+  <div className="mt-6">
+    <div className={`${card} p-5`}>
+      <div className={`text-lg font-semibold ${titleText}`}>Buy credits</div>
+      <div className={`text-sm ${mutedText} mt-1`}>
+        Credits are added automatically after successful payment.
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          onClick={() => goBuy("pack_20")}
+          className="text-left rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:opacity-95 transition"
+        >
+          <div className={`font-semibold ${titleText}`}>20 credits</div>
+          <div className={`text-sm ${mutedText}`}>$3.99</div>
+        </button>
+
+        <button
+          onClick={() => goBuy("pack_50")}
+          className="text-left rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:opacity-95 transition"
+        >
+          <div className={`font-semibold ${titleText}`}>50 credits</div>
+          <div className={`text-sm ${mutedText}`}>$7.99</div>
+        </button>
+
+        <button
+          onClick={() => goBuy("pack_120")}
+          className="text-left rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:opacity-95 transition"
+        >
+          <div className={`font-semibold ${titleText}`}>120 credits</div>
+          <div className={`text-sm ${mutedText}`}>$14.99</div>
+        </button>
+
+        <button
+          onClick={() => goBuy("pack_300")}
+          className="text-left rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:opacity-95 transition"
+        >
+          <div className={`font-semibold ${titleText}`}>300 credits</div>
+          <div className={`text-sm ${mutedText}`}>$29.99</div>
+        </button>
+      </div>
+
+      <div className={`text-xs ${mutedText} mt-4`}>
+        Tip: after payment you’ll be redirected back to Dreamly automatically.
+      </div>
+    </div>
+  </div>
+) : null}
 
       {/* PROFILE CARD */}
       <div className="mt-8">
