@@ -224,9 +224,6 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                       <div className="text-lg font-semibold text-[var(--text)]">{c.title}</div>
                       <div className="mt-1 text-sm text-[var(--muted)]">{c.subtitle}</div>
                     </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)] text-[var(--muted)]">
-                      {packLabel(p)}
-                    </span>
                   </div>
 
                   <div className="mt-4 text-2xl font-semibold text-[var(--text)]">{fmtMoney(p.price, p.currency)}</div>
