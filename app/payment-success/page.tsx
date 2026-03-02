@@ -1,134 +1,153 @@
+// app/payment-success/page.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { auth } from "@/lib/firebase";
 
-type Status = "idle" | "waiting_auth" | "verifying" | "ok" | "need_login" | "error";
+type Status = "idle" | "need_login" | "verifying" | "success" | "error";
 
-const LS_KEY = "dreamly_pending_paypal_tx";
+function getOrderIdFromUrl(url: URL) {
+  // PayPal Orders return обычно даёт token=<ORDER_ID>
+  // Иногда могут прокинуть orderId / token / PayerID — берём самое вероятное.
+  return (
+    url.searchParams.get("token") ||
+    url.searchParams.get("orderId") ||
+    url.searchParams.get("order_id") ||
+    ""
+  ).trim();
+}
 
 export default function PaymentSuccessPage() {
-  const router = useRouter();
-
   const [status, setStatus] = useState<Status>("idle");
   const [msg, setMsg] = useState("Проверяем платёж…");
-  const [tx, setTx] = useState<string | null>(null);
+  const [details, setDetails] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string>("");
 
-  const ranRef = useRef(false);
+  const canRetry = useMemo(() => status === "error", [status]);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const txFromUrl = url.searchParams.get("tx");
-    const txFromLs = localStorage.getItem(LS_KEY);
+  async function runCapture(oid: string) {
+    setStatus("verifying");
+    setMsg("Начисляем кредиты…");
+    setDetails(null);
 
-    const realTx = txFromUrl || txFromLs;
-
-    if (!realTx) {
-      setStatus("error");
-      setMsg("Не найден параметр tx в URL. PayPal не передал идентификатор транзакции.");
+    const user = auth.currentUser;
+    if (!user) {
+      setStatus("need_login");
+      setMsg("Войди в аккаунт в Dreamly, чтобы начислить кредиты.");
       return;
     }
 
-    // если пришёл свежий tx — сохраним, чтобы не потерять при логине
-    if (txFromUrl) localStorage.setItem(LS_KEY, txFromUrl);
+    const idToken = await user.getIdToken();
 
-    setTx(realTx);
-    setStatus("waiting_auth");
-    setMsg("Готово. Ждём вход в аккаунт…");
-
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!realTx) return;
-
-      // если уже пытались верифицировать в этом заходе — не дублим
-      if (ranRef.current) return;
-
-      if (!user) {
-        setStatus("need_login");
-        setMsg("Войди в аккаунт в Dreamly, чтобы начислить кредиты (платёж уже в PayPal).");
-        return;
-      }
-
-      ranRef.current = true;
-
-      try {
-        setStatus("verifying");
-        setMsg("Начисляем кредиты…");
-
-        const idToken = await user.getIdToken(true);
-
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
-
-        const r = await fetch("/api/paypal/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tx: realTx, idToken }),
-          signal: controller.signal,
-        }).finally(() => clearTimeout(timeout));
-
-        const j = await r.json().catch(() => ({}));
-
-        if (!r.ok) {
-          setStatus("error");
-          setMsg(`Ошибка начисления: ${j?.error ?? "verify failed"}`);
-          ranRef.current = false; // дадим повторить
-          return;
-        }
-
-        // успех: tx больше не нужен
-        localStorage.removeItem(LS_KEY);
-
-        setStatus("ok");
-        setMsg(`✅ Готово! Начислено: ${j.creditsAdded} кредитов.`);
-
-        // небольшая пауза и уводим в профиль (там onSnapshot обновит credits)
-        setTimeout(() => router.replace("/app/profile"), 900);
-      } catch (e: any) {
-        setStatus("error");
-        setMsg(`Ошибка сети/таймаут: ${e?.message ?? "unknown error"}`);
-        ranRef.current = false;
-      }
+    const r = await fetch("/api/paypal/capture-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: oid, idToken }),
     });
 
-    return () => unsub();
-  }, [router]);
+    const j = await r.json().catch(() => ({}));
 
-  function retry() {
-    if (!tx) return;
-    ranRef.current = false;
-    // просто “перезапустим” логику через reload
-    window.location.reload();
+    if (!r.ok) {
+      setStatus("error");
+      setMsg(`Ошибка начисления: ${j?.error ?? "capture failed"}`);
+      // полезно видеть что пришло
+      if (j) setDetails(JSON.stringify(j, null, 2));
+      return;
+    }
+
+    setStatus("success");
+    setMsg(`✅ Готово! Начислено: ${j.creditsAdded ?? "?"} кредитов.`);
+    setDetails(
+      JSON.stringify(
+        {
+          packId: j.packId,
+          creditsAdded: j.creditsAdded,
+          captureId: j.captureId,
+          orderId: j.orderId,
+        },
+        null,
+        2
+      )
+    );
+
+    // Авто-редирект на профиль через 1.2с
+    setTimeout(() => {
+      window.location.href = "/app/profile";
+    }, 1200);
   }
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const oid = getOrderIdFromUrl(url);
+
+    setOrderId(oid);
+
+    if (!oid) {
+      setStatus("error");
+      setMsg("Не найден token/orderId в URL (PayPal не передал идентификатор заказа).");
+      return;
+    }
+
+    runCapture(oid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Оплата</h1>
-      <p>{msg}</p>
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text)] px-6 py-10">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-semibold">Оплата</h1>
+        <p className="mt-3 text-[var(--muted)]">{msg}</p>
 
-      {status === "need_login" ? (
-        <p style={{ opacity: 0.8, marginTop: 12 }}>
-          Открой Dreamly, залогинься, и вернись на эту вкладку — начисление продолжится автоматически.
-        </p>
-      ) : null}
+        {status === "need_login" ? (
+          <div className="mt-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] p-5">
+            <div className="text-sm text-[var(--muted)]">
+              После входа обнови эту страницу — мы повторим начисление по orderId.
+            </div>
 
-      {status === "error" ? (
-        <button
-          onClick={retry}
-          style={{
-            marginTop: 16,
-            padding: "10px 14px",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.15)",
-            background: "rgba(255,255,255,0.06)",
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          Повторить
-        </button>
-      ) : null}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href="/signin?next=/payment-success"
+                className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition no-underline inline-flex items-center"
+              >
+                Войти
+              </Link>
+
+              {orderId ? (
+                <button
+                  onClick={() => runCapture(orderId)}
+                  className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition"
+                >
+                  Повторить
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {canRetry && orderId ? (
+          <div className="mt-6">
+            <button
+              onClick={() => runCapture(orderId)}
+              className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition"
+            >
+              Повторить
+            </button>
+          </div>
+        ) : null}
+
+        {details ? (
+          <pre className="mt-6 text-xs overflow-auto rounded-2xl bg-[var(--card)] border border-[var(--border)] p-4 whitespace-pre-wrap">
+            {details}
+          </pre>
+        ) : null}
+
+        {status === "success" ? (
+          <div className="mt-6 text-sm text-[var(--muted)]">
+            Перенаправляем в профиль…
+          </div>
+        ) : null}
+      </div>
     </main>
   );
 }
