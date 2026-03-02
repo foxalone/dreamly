@@ -31,8 +31,6 @@ function packLabel(p: { credits: number }) {
   return "Try";
 }
 
-export const dynamic = "force-dynamic";
-
 export default function UpgradePage() {
   const router = useRouter();
   const sp = useSearchParams();
