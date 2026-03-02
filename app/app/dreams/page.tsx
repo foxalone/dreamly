@@ -3,6 +3,7 @@
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { useRouter } from "next/navigation";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
@@ -24,6 +25,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  runTransaction,
 } from "firebase/firestore";
 
 
@@ -436,7 +438,9 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 // Page
 // ------------------------
 export default function DreamsPage() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
 
@@ -445,6 +449,8 @@ export default function DreamsPage() {
 
   const [dreams, setDreams] = useState<Dream[]>([]);
   const [uid, setUid] = useState<string | null>(null);
+  const [credits, setCredits] = useState(0);
+  const [creditsLoading, setCreditsLoading] = useState(true);
 
   const [tab, setTab] = useState<Tab>("ALL");
 
@@ -743,6 +749,52 @@ export default function DreamsPage() {
   }, [uid]);
 
   useEffect(() => {
+    if (!uid) {
+      setCredits(0);
+      setCreditsLoading(false);
+      return;
+    }
+
+    setCreditsLoading(true);
+    const userRef = doc(firestore, "users", uid);
+    const unsub = onSnapshot(
+      userRef,
+      async (snap) => {
+        if (!snap.exists()) {
+          setCredits(0);
+          setCreditsLoading(false);
+          return;
+        }
+
+        const data2 = snap.data() as any;
+        const nextCredits = Number.isFinite(Number(data2?.credits))
+          ? Math.max(0, Math.floor(Number(data2.credits)))
+          : 0;
+        setCredits(nextCredits);
+        setCreditsLoading(false);
+
+        if (data2?.credits === undefined) {
+          await setDoc(
+            userRef,
+            {
+              credits: 0,
+              creditsUpdatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          ).catch(() => {});
+        }
+      },
+      (err) => {
+        console.error("credits onSnapshot error:", err);
+        setCredits(0);
+        setCreditsLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [uid]);
+
+  useEffect(() => {
     const root = document.documentElement;
     if (open) root.classList.add("modal-open");
     else root.classList.remove("modal-open");
@@ -788,6 +840,11 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
+    if (credits < 1) {
+      setError("Not enough credits to save a dream.");
+      setCreditsOpen(true);
+      return;
+    }
 
     const now = new Date();
     const payload = {
@@ -829,7 +886,42 @@ export default function DreamsPage() {
 
     setSaving(true);
     try {
-      const docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
+      const userRef = doc(firestore, "users", u.uid);
+      await runTransaction(firestore, async (tx) => {
+        const userSnap = await tx.get(userRef);
+        const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
+        if (currentCredits < 1) {
+          throw new Error("INSUFFICIENT_CREDITS_SAVE");
+        }
+        tx.set(
+          userRef,
+          {
+            credits: currentCredits - 1,
+            creditsUpdatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      });
+
+      let docRef: any;
+      try {
+        docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
+      } catch (e) {
+        await runTransaction(firestore, async (tx) => {
+          const userSnap = await tx.get(userRef);
+          const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
+          tx.set(
+            userRef,
+            {
+              credits: currentCredits + 1,
+              creditsUpdatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }).catch(() => {});
+        throw e;
+      }
+
       setOpen(false);
       setSaving(false);
 
@@ -837,9 +929,20 @@ export default function DreamsPage() {
         extractRoots(docRef.id).catch(() => {});
       }, 50);
     } catch (e: any) {
+      if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
+        setError("Not enough credits to save a dream.");
+        setCreditsOpen(true);
+        setSaving(false);
+        return;
+      }
       setError(e?.message ?? "Failed to save dream.");
       setSaving(false);
     }
+  }
+
+  function startCheckout(packageId: string) {
+    setCreditsOpen(false);
+    router.push(`/app/upgrade?pkg=${encodeURIComponent(packageId)}`);
   }
 
   async function shareDream(dreamId: string) {
@@ -931,6 +1034,12 @@ export default function DreamsPage() {
       return;
     }
 
+    if (credits < 2) {
+      setError("Not enough credits to analyze. Requires 2 credits.");
+      setCreditsOpen(true);
+      return;
+    }
+
     setError(null);
     setAnalysisBusyId(dreamId);
 
@@ -952,12 +1061,45 @@ export default function DreamsPage() {
 
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
-        analysisText,
-        analysisAtMs: nowMs,
-        analysisModel: data2?.model ?? null,
-        updatedAt: serverTimestamp(),
+      const userRef = doc(firestore, "users", uid2);
+      await runTransaction(firestore, async (tx) => {
+        const userSnap = await tx.get(userRef);
+        const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
+        if (currentCredits < 2) {
+          throw new Error("INSUFFICIENT_CREDITS_ANALYZE");
+        }
+        tx.set(
+          userRef,
+          {
+            credits: currentCredits - 2,
+            creditsUpdatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
       });
+
+      try {
+        await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
+          analysisText,
+          analysisAtMs: nowMs,
+          analysisModel: data2?.model ?? null,
+          updatedAt: serverTimestamp(),
+        });
+      } catch (e) {
+        await runTransaction(firestore, async (tx) => {
+          const userSnap = await tx.get(userRef);
+          const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
+          tx.set(
+            userRef,
+            {
+              credits: currentCredits + 2,
+              creditsUpdatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }).catch(() => {});
+        throw e;
+      }
 
       setDreams((prev) =>
         prev.map((x) =>
@@ -969,7 +1111,12 @@ export default function DreamsPage() {
 
       openAnalysis(dreamId);
     } catch (e: any) {
+      if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
+        setError("Not enough credits to analyze. Requires 2 credits.");
+        setCreditsOpen(true);
+      } else {
       setError(e?.message ?? "Failed to analyze dream.");
+      }
     } finally {
       setAnalysisBusyId(null);
     }
@@ -1138,7 +1285,7 @@ export default function DreamsPage() {
     }
   }
 
-  const canSave = useMemo(() => !!text.trim() && !saving, [text, saving]);
+  const canSave = useMemo(() => !!text.trim() && !saving && credits >= 1, [text, saving, credits]);
 
   const aliveDreams = useMemo(() => dreams.filter((d) => (d as any).deleted !== true), [dreams]);
   const sharedDreams = useMemo(() => aliveDreams.filter((d) => d.shared === true), [aliveDreams]);
@@ -1214,6 +1361,7 @@ export default function DreamsPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold">Your Dreams</h1>
+          <div className="mt-2 text-sm text-[var(--muted)]">Credits: {creditsLoading ? "…" : credits}</div>
 
           {/* Tabs */}
           <div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
@@ -1373,7 +1521,7 @@ export default function DreamsPage() {
                             isAnalyzing ? "opacity-80 cursor-wait" : "",
                             isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
                           ].join(" ")}
-                          title={hasAnalysis ? "View analysis" : "Analyze with AI"}
+                          title={hasAnalysis ? "View analysis" : "Analyze with AI (Requires 2 credits)"}
                         >
                           {isAnalyzing ? "Analyzing…" : hasAnalysis ? "Analysis" : "Analyze"}
                         </button>
@@ -1576,13 +1724,19 @@ export default function DreamsPage() {
                     Cancel
                   </button>
 
-                  <button
-                    onClick={save}
-                    disabled={!canSave}
-                    className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
-                  >
-                    {saving ? "Saving…" : "Save"}
-                  </button>
+                  {credits >= 1 ? (
+                    <button
+                      onClick={save}
+                      disabled={!canSave}
+                      className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
+                    >
+                      {saving ? "Saving…" : "Save"}
+                    </button>
+                  ) : (
+                    <button onClick={() => setCreditsOpen(true)} className={["dream-primary-btn"].join(" ")} type="button">
+                      Add credits
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1595,6 +1749,41 @@ export default function DreamsPage() {
       </div>
 
       {/* Analysis popup */}
+
+      {creditsOpen && (
+        <div
+          className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={() => setCreditsOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-[var(--card)] p-5 shadow-2xl border border-[var(--border)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-lg font-semibold text-[var(--text)]">Add credits</div>
+                <div className="mt-1 text-sm text-[var(--muted)]">Current credits: {creditsLoading ? "…" : credits}</div>
+              </div>
+              <button onClick={() => setCreditsOpen(false)} className={["dream-btn", "dream-btn--neutral"].join(" ")}>
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-2">
+              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("20")}>
+                Buy 20 credits
+              </button>
+              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("50")}>
+                Buy 50 credits
+              </button>
+              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("120")}>
+                Buy 120 credits
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {analysisOpenId &&
         (() => {
           const d = dreams.find((x) => x.id === analysisOpenId);
