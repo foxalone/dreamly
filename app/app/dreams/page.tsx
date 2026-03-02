@@ -440,7 +440,6 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 export default function DreamsPage() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [creditsOpen, setCreditsOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
 
@@ -840,11 +839,11 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-    if (credits < 1) {
-      setError("Not enough credits to save a dream.");
-      setCreditsOpen(true);
-      return;
-    }
+   if (credits < 1) {
+  setError("Not enough credits to save a dream.");
+  router.push("/app/upgrade");
+  return;
+}
 
     const now = new Date();
     const payload = {
@@ -929,21 +928,17 @@ export default function DreamsPage() {
         extractRoots(docRef.id).catch(() => {});
       }, 50);
     } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-        setError("Not enough credits to save a dream.");
-        setCreditsOpen(true);
-        setSaving(false);
-        return;
-      }
+   if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
+  setError("Not enough credits to save a dream.");
+  setSaving(false);
+  router.push("/app/upgrade");
+  return;
+}
       setError(e?.message ?? "Failed to save dream.");
       setSaving(false);
     }
   }
 
-  function startCheckout(packageId: string) {
-    setCreditsOpen(false);
-    router.push(`/app/upgrade?pkg=${encodeURIComponent(packageId)}`);
-  }
 
   async function shareDream(dreamId: string) {
     const u = auth.currentUser;
@@ -1034,11 +1029,11 @@ export default function DreamsPage() {
       return;
     }
 
-    if (credits < 2) {
-      setError("Not enough credits to analyze. Requires 2 credits.");
-      setCreditsOpen(true);
-      return;
-    }
+   if (credits < 2) {
+  setError("Not enough credits to analyze. Requires 2 credits.");
+  router.push("/app/upgrade");
+  return;
+}
 
     setError(null);
     setAnalysisBusyId(dreamId);
@@ -1111,12 +1106,12 @@ export default function DreamsPage() {
 
       openAnalysis(dreamId);
     } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
-        setError("Not enough credits to analyze. Requires 2 credits.");
-        setCreditsOpen(true);
-      } else {
-      setError(e?.message ?? "Failed to analyze dream.");
-      }
+    if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
+  setError("Not enough credits to analyze. Requires 2 credits.");
+  router.push("/app/upgrade");
+} else {
+  setError(e?.message ?? "Failed to analyze dream.");
+}
     } finally {
       setAnalysisBusyId(null);
     }
@@ -1361,34 +1356,45 @@ export default function DreamsPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold">Your Dreams</h1>
-          <div className="mt-2 text-sm text-[var(--muted)]">Credits: {creditsLoading ? "…" : credits}</div>
 
-          {/* Tabs */}
-          <div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
-            <button
-              onClick={() => setTab("ALL")}
-              className={[
-                "px-4 py-2 rounded-full text-sm font-semibold transition",
-                tab === "ALL"
-                  ? "bg-[var(--text)] text-[var(--bg)]"
-                  : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-              ].join(" ")}
-            >
-              All <span className="opacity-70">({aliveDreams.length})</span>
-            </button>
+       {/* Tabs */}
+<div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
+  <button
+    onClick={() => setTab("ALL")}
+    className={[
+      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      tab === "ALL"
+        ? "bg-[var(--text)] text-[var(--bg)]"
+        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+    ].join(" ")}
+  >
+    All <span className="opacity-70">({aliveDreams.length})</span>
+  </button>
 
-            <button
-              onClick={() => setTab("SHARED")}
-              className={[
-                "px-4 py-2 rounded-full text-sm font-semibold transition",
-                tab === "SHARED"
-                  ? "bg-[var(--text)] text-[var(--bg)]"
-                  : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-              ].join(" ")}
-            >
-              Shared <span className="opacity-70">({sharedDreams.length})</span>
-            </button>
-          </div>
+  <button
+    onClick={() => setTab("SHARED")}
+    className={[
+      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      tab === "SHARED"
+        ? "bg-[var(--text)] text-[var(--bg)]"
+        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+    ].join(" ")}
+  >
+    Shared <span className="opacity-70">({sharedDreams.length})</span>
+  </button>
+
+  {/* ✅ Credits pill (не переключает таб, а ведёт на апгрейд) */}
+  <button
+    onClick={() => router.push("/app/upgrade")}
+    className={[
+      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+    ].join(" ")}
+    title="Add credits"
+  >
+    Credits <span className="opacity-70">({creditsLoading ? "…" : credits})</span>
+  </button>
+</div>
         </div>
 
         <button
@@ -1733,9 +1739,9 @@ export default function DreamsPage() {
                       {saving ? "Saving…" : "Save"}
                     </button>
                   ) : (
-                    <button onClick={() => setCreditsOpen(true)} className={["dream-primary-btn"].join(" ")} type="button">
-                      Add credits
-                    </button>
+                  <button onClick={() => router.push("/app/upgrade")} className={["dream-primary-btn"].join(" ")} type="button">
+  Add credits
+</button>
                   )}
                 </div>
               </div>
@@ -1749,40 +1755,6 @@ export default function DreamsPage() {
       </div>
 
       {/* Analysis popup */}
-
-      {creditsOpen && (
-        <div
-          className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-          onClick={() => setCreditsOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl bg-[var(--card)] p-5 shadow-2xl border border-[var(--border)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-lg font-semibold text-[var(--text)]">Add credits</div>
-                <div className="mt-1 text-sm text-[var(--muted)]">Current credits: {creditsLoading ? "…" : credits}</div>
-              </div>
-              <button onClick={() => setCreditsOpen(false)} className={["dream-btn", "dream-btn--neutral"].join(" ")}>
-                Close
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-2">
-              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("20")}>
-                Buy 20 credits
-              </button>
-              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("50")}>
-                Buy 50 credits
-              </button>
-              <button className={["dream-btn", "dream-btn--neutral"].join(" ")} onClick={() => startCheckout("120")}>
-                Buy 120 credits
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {analysisOpenId &&
         (() => {
