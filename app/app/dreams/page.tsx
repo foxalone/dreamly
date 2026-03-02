@@ -482,6 +482,8 @@ export default function DreamsPage() {
 
   const hintsRef = useRef<Record<string, string>>({});
 
+  const MAX_DREAM_CHARS = 2000;
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setUid(user?.uid ?? null);
@@ -832,7 +834,15 @@ export default function DreamsPage() {
   }
 
   async function save() {
+
+
     const v = text.trim();
+    if (v.length > MAX_DREAM_CHARS) {
+  setError(`Dream is too long. Max ${MAX_DREAM_CHARS} characters.`);
+  return;
+}
+
+
     if (!v || saving) return;
 
     setError(null);
@@ -1646,26 +1656,35 @@ export default function DreamsPage() {
               </div>
 
               <div className="mt-4">
-                <textarea
-                  ref={inputRef}
-                  value={text}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setText(v);
+               <textarea
+  ref={inputRef}
+  value={text}
+  onChange={(e) => {
+    const raw = e.target.value ?? "";
+    const v = raw.length > MAX_DREAM_CHARS ? raw.slice(0, MAX_DREAM_CHARS) : raw;
 
-                    const next = detectRecLangFromText(v);
-                    if (next) setRecLang(next);
-                  }}
-                  placeholder="Type your dream…"
-                  rows={5}
-                  disabled={saving}
-                  className="w-full resize-none rounded-2xl p-4
-                             bg-[var(--card)] text-[var(--text)]
-                             border border-[var(--border)] outline-none
-                             focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
-                             disabled:opacity-60"
-                />
-                <div className="mt-2 text-xs text-[var(--muted)]">Keep it short for Phase One. You can add tags later.</div>
+    setText(v);
+
+    const next = detectRecLangFromText(v);
+    if (next) setRecLang(next);
+  }}
+  maxLength={MAX_DREAM_CHARS}
+  placeholder="Type your dream…"
+  rows={5}
+  disabled={saving}
+  className="w-full resize-none rounded-2xl p-4
+             bg-[var(--card)] text-[var(--text)]
+             border border-[var(--border)] outline-none
+             focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
+             disabled:opacity-60"
+/>
+
+<div className="mt-2 flex items-center justify-between text-xs text-[var(--muted)]">
+  <span className="opacity-70">Max {MAX_DREAM_CHARS} chars</span>
+  <span className={text.length >= MAX_DREAM_CHARS ? "text-red-200" : ""}>
+    {text.length}/{MAX_DREAM_CHARS}
+  </span>
+</div>
               </div>
 
               {recInterim ? (
@@ -1744,10 +1763,6 @@ export default function DreamsPage() {
 </button>
                   )}
                 </div>
-              </div>
-
-              <div className="mt-3 text-xs text-[var(--muted)]">
-                Next: мы подключим Speech-to-Text и будем сохранять всё как текст.
               </div>
             </div>
           </div>

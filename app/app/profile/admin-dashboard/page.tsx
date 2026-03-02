@@ -13,6 +13,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
+import { collection, where } from "firebase/firestore";
+
 import {
   getDatabase,
   onValue,
@@ -30,6 +32,11 @@ type DreamAdmin = {
   id: string;
   userId: string;
 
+   // ✅ для shared_dreams
+  dreamId?: string;   // original dream id (если отдельно хранишь)
+
+authorName?: string | null;
+authorEmail?: string | null;
   title?: string;
   text?: string;
 
@@ -148,57 +155,89 @@ export default function AdminDashboardPage() {
   []);
   useEffect(() => setLoading(false), []);
 
-  // ✅ Live dreams query
-  useEffect(() => {
-    setErr(null);
+// ✅ Live dreams query
+useEffect(() => {
+  setErr(null);
 
-    if (!user || !isAdmin) {
-      setItems([]);
-      return;
-    }
+  if (!user || !isAdmin) {
+    setItems([]);
+    return;
+  }
 
-    const q = query(
-      collectionGroup(firestore, "dreams"),
-      orderBy("createdAtMs", "desc"),
-      limit(pageSize)
-    );
+  const q = onlyShared
+    ? query(
+        collection(firestore, "shared_dreams"),
+        orderBy("sharedAtMs", "desc"),
+        limit(pageSize)
+      )
+    : query(
+        collectionGroup(firestore, "dreams"),
+        orderBy("createdAtMs", "desc"),
+        limit(pageSize)
+      );
 
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const rows: DreamAdmin[] = snap.docs.map((d) => {
-          const data = d.data() as any;
-          const refPath = d.ref.path;
-          const userId = pickUserIdFromPath(refPath);
+  const unsub = onSnapshot(
+    q,
+    (snap) => {
+      const rows: DreamAdmin[] = snap.docs.map((d) => {
+        const data = d.data() as any;
+
+        if (onlyShared) {
+          // ✅ shared_dreams docId у тебя: "{uid}_{dreamId}" (по скрину)
+          const [uidPart, ...rest] = String(d.id).split("_");
+          const dreamId = rest.join("_");
 
           return {
             id: d.id,
-            userId,
+            userId: data.ownerUid || uidPart || "unknown",
+            dreamId: data.ownerDreamId || dreamId || "",
 
             title: data.title,
             text: data.text,
 
             createdAtMs: data.createdAtMs,
-            dateKey: data.dateKey,
-            timeKey: data.timeKey,
-
-            shared: !!data.shared,
+            shared: true,
             sharedAtMs: data.sharedAtMs,
 
             deleted: !!data.deleted,
             deletedAtMs: data.deletedAtMs,
 
             emojis: Array.isArray(data.emojis) ? data.emojis : [],
+
+            authorName: data.authorName ?? null,
+            authorEmail: data.authorEmail ?? null,
           };
-        });
+        }
 
-        setItems(rows);
-      },
-      (e) => setErr(e?.message ?? "Failed to load")
-    );
+        // ✅ обычные dreams из users/*/dreams/*
+        const refPath = d.ref.path;
+        const userId = pickUserIdFromPath(refPath);
 
-    return () => unsub();
-  }, [user?.uid, isAdmin, pageSize]);
+        return {
+          id: d.id,
+          userId,
+
+          title: data.title,
+          text: data.text,
+
+          createdAtMs: data.createdAtMs,
+          shared: !!data.shared,
+          sharedAtMs: data.sharedAtMs,
+
+          deleted: !!data.deleted,
+          deletedAtMs: data.deletedAtMs,
+
+          emojis: Array.isArray(data.emojis) ? data.emojis : [],
+        };
+      });
+
+      setItems(rows);
+    },
+    (e) => setErr(e?.message ?? "Failed to load")
+  );
+
+  return () => unsub();
+}, [user?.uid, isAdmin, pageSize, onlyShared]);
 
   // ✅ RTDB: live load config JSON
   useEffect(() => {
@@ -280,34 +319,57 @@ export default function AdminDashboardPage() {
     return r;
   }, [items, showDeleted, onlyShared]);
 
-  async function hideFromShared(d: DreamAdmin) {
-    if (!isAdmin) return;
-    if (!confirm("Hide this dream from Shared?")) return;
+async function hideFromShared(d: DreamAdmin) {
+  if (!isAdmin) return;
+  if (!confirm("Hide this dream from Shared?")) return;
 
-    const ref = doc(firestore, "users", d.userId, "dreams", d.id);
+  // 1) убрать флаг в оригинале (если знаем dreamId)
+  if (d.userId && (d.dreamId || (!onlyShared && d.id))) {
+    const originalDreamId = d.dreamId || d.id;
+    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
     await updateDoc(ref, { shared: false, sharedAtMs: null });
   }
 
-  async function softDelete(d: DreamAdmin) {
-    if (!isAdmin) return;
-    if (!confirm("Soft delete this dream?")) return;
+  // 2) удалить из shared_dreams (если мы в режиме onlyShared — d.id это docId shared_dreams)
+  const sharedDocId = onlyShared ? d.id : `${d.userId}_${d.id}`;
+  await deleteDoc(doc(firestore, "shared_dreams", sharedDocId));
+}
 
-    const ref = doc(firestore, "users", d.userId, "dreams", d.id);
-    await updateDoc(ref, {
-      deleted: true,
-      deletedAtMs: Date.now(),
-      shared: false,
-      sharedAtMs: null,
-    });
-  }
 
-  async function hardDelete(d: DreamAdmin) {
-    if (!isAdmin) return;
-    if (!confirm("HARD DELETE? Permanently remove document?")) return;
+  function sharedDocIdFor(d: DreamAdmin, onlyShared: boolean) {
+  return onlyShared ? d.id : `${d.userId}_${d.id}`;
+}
 
-    const ref = doc(firestore, "users", d.userId, "dreams", d.id);
-    await deleteDoc(ref);
-  }
+async function softDelete(d: DreamAdmin) {
+  if (!isAdmin) return;
+  if (!confirm("Soft delete this dream?")) return;
+
+  const originalDreamId = d.dreamId || d.id;
+  const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+
+  await updateDoc(ref, {
+    deleted: true,
+    deletedAtMs: Date.now(),
+    shared: false,
+    sharedAtMs: null,
+  });
+
+  // ✅ убрать из shared_dreams тоже
+  await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
+}
+
+async function hardDelete(d: DreamAdmin) {
+  if (!isAdmin) return;
+  if (!confirm("HARD DELETE? Permanently remove document?")) return;
+
+  const originalDreamId = d.dreamId || d.id;
+  const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+
+  await deleteDoc(ref);
+
+  // ✅ убрать из shared_dreams тоже (на случай если есть)
+  await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
+}
 
   async function saveHints() {
     if (!isAdmin) return;
@@ -584,9 +646,6 @@ export default function AdminDashboardPage() {
               <div key={`${d.userId}_${d.id}`} className={`${card} p-4`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className={`font-semibold ${titleText} truncate`}>
-                      {d.title?.trim() ? d.title : "Untitled dream"}
-                    </div>
 
                     <div className={`mt-1 text-xs ${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
                       <span>
@@ -620,9 +679,11 @@ export default function AdminDashboardPage() {
                       </div>
                     ) : null}
 
-                    {d.text ? (
-                      <div className={`mt-3 text-sm ${mutedText}`}>{clampText(d.text, 240)}</div>
-                    ) : null}
+                   {d.text ? (
+  <div className={`mt-3 text-sm ${mutedText} whitespace-pre-wrap break-words`}>
+    {d.text}
+  </div>
+) : null}
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">

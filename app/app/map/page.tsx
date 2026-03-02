@@ -17,7 +17,6 @@ type CityEmojiDoc = {
   lat?: number;
   lng?: number;
   totalDreams?: number;
-  // emojis хранится как поля emojis.🍃, emojis.🪁 и т.д.
 };
 
 type EmojiItem = { emoji: string; count: number; rank: number };
@@ -75,10 +74,10 @@ function metersToLngLatOffset(meters: number, latDeg: number, ox: number, oy: nu
 
 // zoom -> сколько top показываем
 function maxRankByZoom(z: number) {
-  if (z < 4) return 0;   // top1
-  if (z < 6) return 2;   // top3
-  if (z < 8) return 4;   // top5
-  return Number.POSITIVE_INFINITY; // <-- на большом зуме все
+  if (z < 4) return 0; // top1
+  if (z < 6) return 2; // top3
+  if (z < 8) return 4; // top5
+  return Number.POSITIVE_INFINITY; // на большом зуме все
 }
 
 // базовый размер от zoom
@@ -93,6 +92,37 @@ function baseSizeByZoom(z: number) {
 function weightByCount(count: number) {
   // log(2)=0.69, log(101)=4.61 → нормальный диапазон
   return 0.85 + Math.log(count + 1) * 0.22;
+}
+
+// ---------- theme helpers (как у тебя: dark по умолчанию, light если html.light) ----------
+type ThemeMode = "light" | "dark";
+
+function getAppTheme(): ThemeMode {
+  return document.documentElement.classList.contains("light") ? "light" : "dark";
+}
+
+function styleUrlForTheme(t: ThemeMode) {
+  return t === "dark"
+    ? "mapbox://styles/mapbox/dark-v11"
+    : "mapbox://styles/mapbox/light-v11";
+}
+
+function applyFog(map: mapboxgl.Map, t: ThemeMode) {
+  try {
+    if (t === "dark") {
+      map.setFog({
+        color: "rgb(15, 15, 20)",
+        "high-color": "rgb(25, 25, 35)",
+        "horizon-blend": 0.08,
+      } as any);
+    } else {
+      map.setFog({
+        color: "rgb(245, 246, 250)",
+        "high-color": "rgb(220, 230, 255)",
+        "horizon-blend": 0.12,
+      } as any);
+    }
+  } catch {}
 }
 
 // ---------- component ----------
@@ -111,7 +141,7 @@ export default function MapPage() {
       lat: number;
       lng: number;
       totalDreams?: number;
-      items: EmojiItem[]; // top5
+      items: EmojiItem[];
     }>
   >([]);
 
@@ -133,7 +163,8 @@ export default function MapPage() {
       if (!cityId) return;
 
       const emojiMap = extractEmojisFromDoc(raw);
-      const items = toTopItems(emojiMap, 999999999); // или Object.keys(emojiMap).length      if (items.length === 0) return;
+      const items = toTopItems(emojiMap, 999999999);
+      if (items.length === 0) return;
 
       rows.push({
         cityId,
@@ -148,8 +179,7 @@ export default function MapPage() {
     });
 
     dataRef.current = rows;
-    console.log("city_emoji_stats docs:", snap.size);
-    console.log("cities with emojis:", rows.length);
+    console.log("cities:", rows.length);
   }
 
   function clearMarkers() {
@@ -184,7 +214,6 @@ export default function MapPage() {
         el.style.lineHeight = "1";
         el.style.userSelect = "none";
         el.style.cursor = "pointer";
-        // чуть стабильнее на разных браузерах
         el.style.transform = "translate(-50%, -50%)";
 
         const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
@@ -213,7 +242,10 @@ export default function MapPage() {
             });
           }
 
-          popupRef.current.setLngLat([city.lng + dLng, city.lat + dLat]).setHTML(html).addTo(map);
+          popupRef.current
+            .setLngLat([city.lng + dLng, city.lat + dLat])
+            .setHTML(html)
+            .addTo(map);
         });
 
         markersRef.current.push(marker);
@@ -225,9 +257,11 @@ export default function MapPage() {
     if (!mapElRef.current) return;
     if (mapRef.current) return;
 
+    const initialTheme = getAppTheme();
+
     const map = new mapboxgl.Map({
       container: mapElRef.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: styleUrlForTheme(initialTheme),
       center: DEFAULT_CENTER,
       zoom: 3.2,
       projection: { name: "globe" },
@@ -236,27 +270,36 @@ export default function MapPage() {
 
     mapRef.current = map;
 
+    // fog после каждой загрузки стиля
     map.on("style.load", () => {
-      try {
-        map.setFog({
-          color: "rgb(15, 15, 20)",
-          "high-color": "rgb(25, 25, 35)",
-          "horizon-blend": 0.08,
-        } as any);
-      } catch {}
+      applyFog(map, getAppTheme());
     });
 
     map.on("load", async () => {
       await loadData();
       renderMarkers(map);
-
-      // обновляем маркеры после изменения зума (и логика top1/top3/top5 тоже тут)
       map.on("zoomend", () => renderMarkers(map));
-
-      // если двигаешь карту — маркеры остаются, ничего не надо
     });
 
+    // ✅ слушаем переключение темы приложения (html.classList: light добавляется/убирается)
+    const root = document.documentElement;
+    let lastTheme: ThemeMode = initialTheme;
+
+    const obs = new MutationObserver(() => {
+      const nextTheme = getAppTheme();
+      if (nextTheme === lastTheme) return;
+      lastTheme = nextTheme;
+
+      map.setStyle(styleUrlForTheme(nextTheme));
+
+      // если вдруг в будущем будут слои/источники — можно перерендерить после смены стиля:
+      // map.once("style.load", () => renderMarkers(map));
+    });
+
+    obs.observe(root, { attributes: true, attributeFilter: ["class"] });
+
     return () => {
+      obs.disconnect();
       try {
         popupRef.current?.remove();
       } catch {}
