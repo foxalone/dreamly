@@ -22,11 +22,39 @@ export const grantWelcomeCredits = functions
   .auth.user()
   .onCreate(async (user) => {
     const userRef = db.doc(`users/${user.uid}`);
+    const ledgerRef = userRef.collection("creditLedger").doc("welcome_bonus");
 
     await db.runTransaction(async (tx) => {
       const snap = await tx.get(userRef);
-      if (snap.exists) return;
 
+      // Если профиль уже создан клиентом — просто убедимся, что бонус выдан
+      if (snap.exists) {
+        const data = snap.data() || {};
+
+        // Уже выдавали — выходим
+        if (data.welcomeBonusGranted) return;
+
+        // Выдаём бонус, не затирая существующие данные/кредиты
+        tx.update(userRef, {
+          // если credits отсутствует, increment всё равно корректно выставит число
+          credits: FieldValue.increment(WELCOME_CREDITS),
+          welcomeBonusGranted: true,
+          // можно обновить initials, если хочешь (не обязательно)
+          initials: data.initials ?? emailInitials(user.email),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+        // Делаем ledger запись 1 раз (фиксированный id)
+        tx.set(ledgerRef, {
+          type: "welcome_bonus",
+          delta: WELCOME_CREDITS,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+
+        return;
+      }
+
+      // Если профиля ещё нет — создаём сразу с бонусом
       tx.set(userRef, {
         uid: user.uid,
         email: user.email ?? null,
@@ -41,7 +69,7 @@ export const grantWelcomeCredits = functions
         updatedAt: FieldValue.serverTimestamp(),
       });
 
-      tx.set(userRef.collection("creditLedger").doc(), {
+      tx.set(ledgerRef, {
         type: "welcome_bonus",
         delta: WELCOME_CREDITS,
         createdAt: FieldValue.serverTimestamp(),
