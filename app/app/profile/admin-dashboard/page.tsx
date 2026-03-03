@@ -716,7 +716,7 @@ async function loadUsers() {
   } finally {
     if (!localAbort.aborted) setUsersLoading(false);
   }
-}s
+}
   useEffect(() => {
     if (!user || !isAdmin) return;
     if (tab !== "USERS") return;
