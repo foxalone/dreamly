@@ -622,97 +622,101 @@ export default function AdminDashboardPage() {
   // ---------------------------
   // USERS TAB: load aggregated rows
   // ---------------------------
-  async function loadUsers() {
-    if (!isAdmin) return;
+async function loadUsers() {
+  if (!isAdmin) return;
 
-    setUsersErr(null);
-    setUsersLoading(true);
+  setUsersErr(null);
+  setUsersLoading(true);
 
-    const localAbort = { aborted: false };
-    usersAbortRef.current = localAbort;
+  const localAbort = { aborted: false };
+  usersAbortRef.current = localAbort;
 
-    try {
-      const usersQ = fbQuery(collection(firestore, "users"), fbLimit(usersLimit));
-      const usersSnap = await getDocs(usersQ);
+  try {
+    const usersQ = fbQuery(collection(firestore, "users"), fbLimit(usersLimit));
+    const usersSnap = await getDocs(usersQ);
 
-      const base = usersSnap.docs.map((d) => {
-        const data = d.data() as any;
-        return {
-          uid: d.id,
-          email: bestEmailFromUserDoc(data),
-        };
+    const base = usersSnap.docs.map((d) => {
+      const data = d.data() as any;
+      return {
+        uid: d.id,
+        email: bestEmailFromUserDoc(data),
+      };
+    });
+
+    const rows = await mapLimit(base, 8, async (u) => {
+      if (localAbort.aborted) throw new Error("aborted");
+
+      // 1) count dreams
+      const dreamsRef = collection(firestore, "users", u.uid, "dreams");
+      const dreamsCountSnap = await getCountFromServer(dreamsRef);
+      const dreamsCount = dreamsCountSnap.data().count ?? 0;
+
+      // 2) count shared dreams (by ownerUid)
+      const sharedQ = fbQuery(
+        collection(firestore, "shared_dreams"),
+        where("ownerUid", "==", u.uid),
+      );
+      const sharedCountSnap = await getCountFromServer(sharedQ as any);
+      const sharedCount = sharedCountSnap.data().count ?? 0;
+
+      // 3) most frequent icons (emoji symbols)
+      const iconsMap = new Map<string, number>();
+
+      const dreamsSampleQ = fbQuery(
+        collection(firestore, "users", u.uid, "dreams"),
+        fbOrderBy("createdAtMs", "desc"),
+        fbLimit(Math.max(1, iconsSamplePerUser)),
+      );
+      const dreamsSampleSnap = await getDocs(dreamsSampleQ);
+
+      dreamsSampleSnap.docs.forEach((dd) => {
+        const data = dd.data() as any;
+        const emojis = Array.isArray(data?.emojis) ? data.emojis : [];
+
+        for (const e of emojis) {
+          const native = String(e?.native ?? "").trim();
+          const id = String(e?.id ?? "").trim();
+
+          const resolved = native || (id ? emojiNativeByIdRef.current?.[id] : "") || "";
+          if (!resolved) continue;
+
+          iconsMap.set(resolved, (iconsMap.get(resolved) ?? 0) + 1);
+        }
       });
 
-      const rows = await mapLimit(base, 8, async (u) => {
-        if (localAbort.aborted) throw new Error("aborted");
+      const topIcons = Array.from(iconsMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([k]) => k);
 
-        // 1) count dreams
-        const dreamsRef = collection(firestore, "users", u.uid, "dreams");
-        const dreamsCountSnap = await getCountFromServer(dreamsRef);
-        const dreamsCount = dreamsCountSnap.data().count ?? 0;
+      // 4) RTDB analytics
+      const [upgradeVisits, packClicks] = await Promise.all([
+        readRtdbNum(`analytics/dreamly_upgrade/${u.uid}/visits`),
+        readRtdbNum(`analytics/dreamly_upgrade/${u.uid}/packClicks`),
+      ]);
 
-        // 2) count shared dreams (by ownerUid)
-        const sharedQ = fbQuery(
-          collection(firestore, "shared_dreams"),
-          where("ownerUid", "==", u.uid),
-        );
-        const sharedCountSnap = await getCountFromServer(sharedQ as any);
-        const sharedCount = sharedCountSnap.data().count ?? 0;
+      const row: UserRow = {
+        uid: u.uid,
+        email: u.email || "—",
+        dreamsCount,
+        sharedCount,
+        upgradeVisits,
+        packClicks,
+        topIcons,
+      };
 
-        // 3) most frequent icons (emoji symbols)
-        const iconsMap = new Map<string, number>();
+      return row;
+    });
 
-        const dreamsSampleQ = fbQuery(
-          collection(firestore, "users", u.uid, "dreams"),
-          fbOrderBy("createdAtMs", "desc"),
-          fbLimit(Math.max(1, iconsSamplePerUser)),
-        );
-        const dreamsSampleSnap = await getDocs(dreamsSampleQ);
-
-        dreamsSampleSnap.docs.forEach((dd) => {
-          const data = dd.data() as any;
-          const emojis = Array.isArray(data?.emojis) ? data.emojis : [];
-
-          for (const e of emojis) {
-            const native = String(e?.native ?? "").trim();
-            const id = String(e?.id ?? "").trim();
-
-            // ✅ show icons "as is"
-            const resolved =
-              native ||
-              (id ? emojiNativeByIdRef.current?.[id] : "") ||
-              "";
-
-            if (!resolved) continue;
-            iconsMap.set(resolved, (iconsMap.get(resolved) ?? 0) + 1);
-          }
-        });
-
-        const topIcons = Array.from(iconsMap.entries())
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 3)
-          .map(([k]) => k);
-
-        const row: UserRow = {
-          uid: u.uid,
-          email: u.email || "—",
-          dreamsCount,
-          sharedCount,
-          topIcons,
-        };
-        return row;
-      });
-
-      if (!localAbort.aborted) setUsersRows(rows);
-    } catch (e: any) {
-      if (String(e?.message ?? "") !== "aborted") {
-        setUsersErr(e?.message ?? "Failed to load users");
-      }
-    } finally {
-      if (!localAbort.aborted) setUsersLoading(false);
+    if (!localAbort.aborted) setUsersRows(rows);
+  } catch (e: any) {
+    if (String(e?.message ?? "") !== "aborted") {
+      setUsersErr(e?.message ?? "Failed to load users");
     }
+  } finally {
+    if (!localAbort.aborted) setUsersLoading(false);
   }
-
+}s
   useEffect(() => {
     if (!user || !isAdmin) return;
     if (tab !== "USERS") return;
@@ -1253,7 +1257,7 @@ export default function AdminDashboardPage() {
 
                   {!usersFiltered.length && !usersLoading ? (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center">
+                      <td colSpan={8} className="p-6 text-center">
                         <div className={`text-sm ${mutedText}`}>No users found.</div>
                       </td>
                     </tr>
