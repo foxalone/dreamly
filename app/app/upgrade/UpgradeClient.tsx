@@ -1,15 +1,27 @@
 "use client";
 
 import BottomNav from "../BottomNav";
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { auth, firestore } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 
-import { CREDIT_PACKS, type PackId } from "@/lib/credits/packs";
+import {
+  getApps,
+  initializeApp,
+  type FirebaseApp,
+} from "firebase/app";
+import {
+  getDatabase,
+  ref as rtdbRef,
+  runTransaction,
+  set,
+  type Database,
+} from "firebase/database";
 
+import { CREDIT_PACKS, type PackId } from "@/lib/credits/packs";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 type UIStatus = "idle" | "creating" | "paying" | "success" | "error";
@@ -22,6 +34,34 @@ function fmtMoney(price: string, currency: string) {
     currency: String(currency || "USD").toUpperCase(),
     maximumFractionDigits: 2,
   }).format(v);
+}
+
+// ---- RTDB instance (safe even if firebase.ts doesn't export it) ----
+// If your "@/lib/firebase" already initializes the app, getApps()[0] exists.
+// If not, we try to init from env (client-side).
+function getClientApp(): FirebaseApp {
+  const apps = getApps();
+  if (apps.length) return apps[0];
+
+  // Fallback init (only if needed)
+  const cfg = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  };
+
+  // If your project never needs this fallback, it won’t run.
+  return initializeApp(cfg as any);
+}
+
+const rtdb: Database = getDatabase(getClientApp());
+
+async function incRtdb(path: string, by = 1) {
+  await runTransaction(rtdbRef(rtdb, path), (cur) => Number(cur || 0) + by);
 }
 
 function packLabel(p: { credits: number }) {
@@ -55,11 +95,39 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   const [error, setError] = useState<string | null>(null);
   const [lastAdded, setLastAdded] = useState<number | null>(null);
 
+  // ✅ фиксируем packId, который реально ушёл в create-order
+  const checkoutPackRef = useRef<PackId | null>(null);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUid(u?.uid ?? null));
     return () => unsub();
   }, []);
 
+  // ✅ visit tracking (once per session)
+  useEffect(() => {
+    if (!uid) return;
+
+    const key = `dreamly_upgrade_visit_${uid}`;
+    if (sessionStorage.getItem(key) === "1") return;
+
+    (async () => {
+      try {
+        await runTransaction(
+          rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/visits`),
+          (cur) => Number(cur || 0) + 1
+        );
+
+
+        await set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastVisit`), Date.now());
+
+        sessionStorage.setItem(key, "1");
+      } catch (e) {
+        console.error("dreamly upgrade visit tracking failed:", e);
+      }
+    })();
+  }, [uid]);
+
+  // credits live
   useEffect(() => {
     if (!uid) {
       setCredits(0);
@@ -93,13 +161,13 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   const paypalClientId = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "").trim();
   const paypalEnabled = !!paypalClientId;
 
-  const scriptOptions = useMemo(() => {
-    return {
-      clientId: paypalClientId || "test",
-      currency: String(pack.currency).toUpperCase(),
-      intent: "capture",
-    } as const;
-  }, [paypalClientId, pack.currency]);
+ const scriptOptions = useMemo(() => {
+  return {
+    clientId: paypalClientId,
+    currency: "USD", // ← фиксированная валюта
+    intent: "capture",
+  } as const;
+}, [paypalClientId]);
 
   async function getIdTokenOrThrow() {
     const u = auth.currentUser;
@@ -112,6 +180,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   async function createOrderOnServer(packId: PackId): Promise<string> {
     setStatus("creating");
     setError(null);
+
+    // ✅ фиксируем именно тот packId, который реально уходит на сервер
+    checkoutPackRef.current = packId;
 
     const r = await fetch("/api/paypal/create-order", {
       method: "POST",
@@ -172,7 +243,11 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
         <div className="mt-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] p-5">
           <div className="text-[var(--text)] font-semibold">You are not signed in.</div>
           <div className="mt-2 text-[var(--muted)] text-sm">Please sign in first, then come back to buy credits.</div>
-          <button onClick={() => router.push("/signin?next=/app/upgrade")} className="mt-4 dream-primary-btn" type="button">
+          <button
+            onClick={() => router.push("/signin?next=/app/upgrade")}
+            className="mt-4 dream-primary-btn"
+            type="button"
+          >
             Go to Sign in
           </button>
         </div>
@@ -211,6 +286,16 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                   setStatus("idle");
                   setError(null);
                   setLastAdded(null);
+
+                  if (!uid) return;
+
+                  incRtdb(`analytics/dreamly_upgrade/${uid}/packClicks`, 1).catch(console.error);
+                  incRtdb(`analytics/dreamly_upgrade/${uid}/packs/${c.id}`, 1).catch(console.error);
+
+                  incRtdb(`analytics/dreamly_upgrade/_global/packClicks`, 1).catch(console.error);
+                  incRtdb(`analytics/dreamly_upgrade/_global/packs/${c.id}`, 1).catch(console.error);
+
+                  set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastClick`), Date.now()).catch(console.error);
                 }}
                 className={[
                   "text-left rounded-3xl border shadow-sm transition",
@@ -224,9 +309,13 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                       <div className="text-lg font-semibold text-[var(--text)]">{c.title}</div>
                       <div className="mt-1 text-sm text-[var(--muted)]">{c.subtitle}</div>
                     </div>
+                    {/* optional badge */}
+                    {/* <div className="text-xs opacity-80">{packLabel(p)}</div> */}
                   </div>
 
-                  <div className="mt-4 text-2xl font-semibold text-[var(--text)]">{fmtMoney(p.price, p.currency)}</div>
+                  <div className="mt-4 text-2xl font-semibold text-[var(--text)]">
+                    {fmtMoney(p.price, p.currency)}
+                  </div>
                   <div className="mt-3 text-sm text-[var(--muted)] space-y-1">
                     <div>• Instant credits</div>
                     <div>• Use for save / analyze</div>
@@ -262,31 +351,49 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                 <div className={status === "paying" ? "opacity-70 pointer-events-none" : ""}>
                   <PayPalButtons
                     style={{ layout: "horizontal", label: "pay" }}
-                    forceReRender={[selected, pack.currency, pack.price]}
-                   createOrder={async () => {
-  setError(null);
-  setLastAdded(null);
+forceReRender={[selected]}
+                    createOrder={async () => {
+                      setError(null);
+                      setLastAdded(null);
 
-  try {
-    const orderId = await createOrderOnServer(selected);
-    if (!orderId) {
-      setStatus("error");
-      setError("Failed to create PayPal order.");
-      return ""; // ✅ важно: вернуть строку
-    }
-    return orderId;
-  } catch (e: any) {
-    console.error("createOrder failed:", e);
-    setStatus("error");
-    setError(e?.message ?? "Failed to create order.");
-    return ""; // ✅ не бросаем исключение
-  }
-}}
+                      if (uid) {
+                        incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStarts`, 1).catch(console.error);
+                        incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStartsByPack/${selected}`, 1).catch(console.error);
+                        set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastCheckoutStart`), Date.now()).catch(console.error);
+                      }
+
+                      try {
+                        const orderId = await createOrderOnServer(selected);
+                        if (!orderId) {
+                          setStatus("error");
+                          setError("Failed to create PayPal order.");
+                          return "";
+                        }
+                        return orderId;
+                      } catch (e: any) {
+                        console.error("createOrder failed:", e);
+                        setStatus("error");
+                        setError(e?.message ?? "Failed to create order.");
+                        return "";
+                      }
+                    }}
                     onApprove={async (data) => {
                       try {
                         const orderID = String((data as any)?.orderID || "");
                         if (!orderID) throw new Error("Missing orderID from PayPal.");
+
+                        const packAtCheckout = checkoutPackRef.current ?? selected;
+
                         await captureOrderOnServer(orderID);
+
+                        if (uid) {
+                          incRtdb(`analytics/dreamly_upgrade/${uid}/purchases`, 1).catch(console.error);
+                          incRtdb(`analytics/dreamly_upgrade/${uid}/purchasesByPack/${packAtCheckout}`, 1).catch(console.error);
+                          set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastPurchase`), Date.now()).catch(console.error);
+
+                          incRtdb(`analytics/dreamly_upgrade/_global/purchases`, 1).catch(console.error);
+                          incRtdb(`analytics/dreamly_upgrade/_global/purchasesByPack/${packAtCheckout}`, 1).catch(console.error);
+                        }
                       } catch (e: any) {
                         setStatus("error");
                         setError(e?.message ?? "Payment capture failed.");
@@ -307,7 +414,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
             {status === "paying" && <div className="mt-3 text-sm text-[var(--muted)]">Finalizing payment…</div>}
           </div>
 
-          <div className="mt-4 text-xs text-[var(--muted)]">By purchasing, you agree this is a one-time digital credit top-up.</div>
+          <div className="mt-4 text-xs text-[var(--muted)]">
+            By purchasing, you agree this is a one-time digital credit top-up.
+          </div>
         </div>
       )}
 
