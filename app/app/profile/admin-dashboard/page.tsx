@@ -11,9 +11,14 @@ import {
   orderBy,
   query,
   updateDoc,
+  getDocs,
+  getCountFromServer,
+  orderBy as fbOrderBy,
+  limit as fbLimit,
+  query as fbQuery,
+  collection,
+  where,
 } from "firebase/firestore";
-
-import { collection, where } from "firebase/firestore";
 
 import {
   getDatabase,
@@ -32,11 +37,12 @@ type DreamAdmin = {
   id: string;
   userId: string;
 
-   // ✅ для shared_dreams
-  dreamId?: string;   // original dream id (если отдельно хранишь)
+  // ✅ для shared_dreams
+  dreamId?: string; // original dream id
 
-authorName?: string | null;
-authorEmail?: string | null;
+  authorName?: string | null;
+  authorEmail?: string | null;
+
   title?: string;
   text?: string;
 
@@ -55,13 +61,7 @@ authorEmail?: string | null;
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG";
-
-function clampText(s?: string, n = 180) {
-  const t = (s ?? "").trim();
-  if (!t) return "";
-  return t.length > n ? t.slice(0, n) + "…" : t;
-}
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -105,6 +105,50 @@ function uniq(arr: string[]) {
   return out;
 }
 
+type UserRow = {
+  uid: string;
+  email: string;
+  dreamsCount: number;
+  sharedCount: number;
+  topIcons: string[]; // ✅ emoji symbols
+};
+
+function bestEmailFromUserDoc(d: any) {
+  const e =
+    d?.email ??
+    d?.authEmail ??
+    d?.authorEmail ??
+    d?.providerEmail ??
+    d?.userEmail ??
+    "";
+  return String(e ?? "").trim();
+}
+
+function fmtTopIcons(xs: string[]) {
+  return xs.length ? xs.join(" · ") : "—";
+}
+
+// простая “конкурентность”
+async function mapLimit<T, R>(
+  arr: T[],
+  limitN: number,
+  fn: (x: T, idx: number) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = [];
+  let i = 0;
+
+  const workers = new Array(Math.max(1, limitN)).fill(0).map(async () => {
+    while (true) {
+      const idx = i++;
+      if (idx >= arr.length) return;
+      out[idx] = await fn(arr[idx], idx);
+    }
+  });
+
+  await Promise.all(workers);
+  return out;
+}
+
 export default function AdminDashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,13 +162,13 @@ export default function AdminDashboardPage() {
   const [onlyShared, setOnlyShared] = useState(false);
   const [pageSize, setPageSize] = useState(50);
 
-  // CONFIG (your old JSON editor)
+  // CONFIG
   const [hintsPath, setHintsPath] = useState("/app_config/dreamly/emojiHints/en");
   const [hintsJson, setHintsJson] = useState<string>("{}");
   const [hintsErr, setHintsErr] = useState<string | null>(null);
   const [hintsSaving, setHintsSaving] = useState(false);
 
-  // EMOJIS (overrides editor)
+  // EMOJIS (overrides)
   const overridesPath = "/app_config/dreamly/emojiOverrides/en";
   const [overrides, setOverrides] = useState<OverridesMap>({});
   const overridesRef = useRef<OverridesMap>({});
@@ -133,6 +177,19 @@ export default function AdminDashboardPage() {
   const [emojiLimit, setEmojiLimit] = useState(60);
   const [emojiSavingId, setEmojiSavingId] = useState<string | null>(null);
   const [emojiSaveErr, setEmojiSaveErr] = useState<string | null>(null);
+
+  // USERS TAB
+  const [usersRows, setUsersRows] = useState<UserRow[]>([]);
+  const [usersErr, setUsersErr] = useState<string | null>(null);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersLimit, setUsersLimit] = useState(100);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [iconsSamplePerUser, setIconsSamplePerUser] = useState(200);
+  const usersAbortRef = useRef<{ aborted: boolean }>({ aborted: false });
+
+  // USERS TAB: emoji resolver (id -> native)
+  const [usersEmojiReady, setUsersEmojiReady] = useState(false);
+  const emojiNativeByIdRef = useRef<Record<string, string>>({});
 
   const isAdmin = !!user?.uid && ADMIN_UIDS.has(user.uid);
 
@@ -146,98 +203,100 @@ export default function AdminDashboardPage() {
     "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:opacity-90";
   const pillDisabled = "disabled:opacity-50 disabled:cursor-not-allowed";
 
-  useEffect(() =>
-    onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (!u) return;
-      ensureUserProfileOnSignIn(u);
-    }),
-  []);
+  useEffect(
+    () =>
+      onAuthStateChanged(auth, (u) => {
+        setUser(u);
+        if (!u) return;
+        ensureUserProfileOnSignIn(u);
+      }),
+    [],
+  );
   useEffect(() => setLoading(false), []);
 
-// ✅ Live dreams query
-useEffect(() => {
-  setErr(null);
+  // ✅ Live dreams query
+  useEffect(() => {
+    setErr(null);
 
-  if (!user || !isAdmin) {
-    setItems([]);
-    return;
-  }
+    if (!user || !isAdmin) {
+      setItems([]);
+      return;
+    }
 
-  const q = onlyShared
-    ? query(
-        collection(firestore, "shared_dreams"),
-        orderBy("sharedAtMs", "desc"),
-        limit(pageSize)
-      )
-    : query(
-        collectionGroup(firestore, "dreams"),
-        orderBy("createdAtMs", "desc"),
-        limit(pageSize)
-      );
+    const q = onlyShared
+      ? query(
+          collection(firestore, "shared_dreams"),
+          orderBy("sharedAtMs", "desc"),
+          limit(pageSize),
+        )
+      : query(
+          collectionGroup(firestore, "dreams"),
+          orderBy("createdAtMs", "desc"),
+          limit(pageSize),
+        );
 
-  const unsub = onSnapshot(
-    q,
-    (snap) => {
-      const rows: DreamAdmin[] = snap.docs.map((d) => {
-        const data = d.data() as any;
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const rows: DreamAdmin[] = snap.docs.map((d) => {
+          const data = d.data() as any;
 
-        if (onlyShared) {
-          // ✅ shared_dreams docId у тебя: "{uid}_{dreamId}" (по скрину)
-          const [uidPart, ...rest] = String(d.id).split("_");
-          const dreamId = rest.join("_");
+          if (onlyShared) {
+            // shared_dreams docId: "{uid}_{dreamId}"
+            const [uidPart, ...rest] = String(d.id).split("_");
+            const dreamId = rest.join("_");
+
+            return {
+              id: d.id,
+              userId: data.ownerUid || uidPart || "unknown",
+              dreamId: data.ownerDreamId || dreamId || "",
+
+              title: data.title,
+              text: data.text,
+
+              createdAtMs: data.createdAtMs,
+              shared: true,
+              sharedAtMs: data.sharedAtMs,
+
+              deleted: !!data.deleted,
+              deletedAtMs: data.deletedAtMs,
+
+              emojis: Array.isArray(data.emojis) ? data.emojis : [],
+
+              authorName: data.authorName ?? null,
+              authorEmail: data.authorEmail ?? null,
+            };
+          }
+
+          // dreams from users/*/dreams/*
+          const refPath = d.ref.path;
+          const userId = pickUserIdFromPath(refPath);
 
           return {
             id: d.id,
-            userId: data.ownerUid || uidPart || "unknown",
-            dreamId: data.ownerDreamId || dreamId || "",
+            userId,
 
             title: data.title,
             text: data.text,
 
             createdAtMs: data.createdAtMs,
-            shared: true,
+            shared: !!data.shared,
             sharedAtMs: data.sharedAtMs,
 
             deleted: !!data.deleted,
             deletedAtMs: data.deletedAtMs,
 
             emojis: Array.isArray(data.emojis) ? data.emojis : [],
-
-            authorName: data.authorName ?? null,
-            authorEmail: data.authorEmail ?? null,
           };
-        }
+        });
 
-        // ✅ обычные dreams из users/*/dreams/*
-        const refPath = d.ref.path;
-        const userId = pickUserIdFromPath(refPath);
+        setItems(rows);
+      },
+      (e) => setErr(e?.message ?? "Failed to load"),
+    );
 
-        return {
-          id: d.id,
-          userId,
-
-          title: data.title,
-          text: data.text,
-
-          createdAtMs: data.createdAtMs,
-          shared: !!data.shared,
-          sharedAtMs: data.sharedAtMs,
-
-          deleted: !!data.deleted,
-          deletedAtMs: data.deletedAtMs,
-
-          emojis: Array.isArray(data.emojis) ? data.emojis : [],
-        };
-      });
-
-      setItems(rows);
-    },
-    (e) => setErr(e?.message ?? "Failed to load")
-  );
-
-  return () => unsub();
-}, [user?.uid, isAdmin, pageSize, onlyShared]);
+    return () => unsub();
+  }, [user?.uid, isAdmin, pageSize, onlyShared]);
 
   // ✅ RTDB: live load config JSON
   useEffect(() => {
@@ -257,7 +316,7 @@ useEffect(() => {
       (e) => {
         console.warn("RTDB read failed:", e);
         setHintsErr((e as any)?.message ?? "Failed to read config");
-      }
+      },
     );
 
     return () => unsub();
@@ -275,8 +334,7 @@ useEffect(() => {
       p,
       (snap) => {
         const v = snap.val();
-        const obj: OverridesMap =
-          v && typeof v === "object" && !Array.isArray(v) ? v : {};
+        const obj: OverridesMap = v && typeof v === "object" && !Array.isArray(v) ? v : {};
         overridesRef.current = obj;
         setOverrides(obj);
         setEmojiSaveErr(null);
@@ -284,13 +342,13 @@ useEffect(() => {
       (e) => {
         console.warn("RTDB overrides read failed:", e);
         setEmojiSaveErr((e as any)?.message ?? "Failed to read overrides");
-      }
+      },
     );
 
     return () => unsub();
   }, [user?.uid, isAdmin, tab]);
 
-  // ✅ init emoji-mart index (client)
+  // ✅ init emoji-mart index (client) for EMOJIS TAB search
   useEffect(() => {
     if (tab !== "EMOJIS") return;
     let alive = true;
@@ -312,6 +370,41 @@ useEffect(() => {
     };
   }, [tab]);
 
+  // ✅ init emoji-mart map (id -> native) for USERS TAB
+  useEffect(() => {
+    if (tab !== "USERS") return;
+
+    let alive = true;
+
+    (async () => {
+      try {
+        await init({ data });
+        if (!alive) return;
+
+        const map: Record<string, string> = {};
+        // emoji-mart data structure contains a huge emojis map
+        // @ts-ignore
+        const all = (data as any)?.emojis || {};
+        for (const [id, v] of Object.entries(all)) {
+          const native = (v as any)?.skins?.[0]?.native || "";
+          if (native) map[String(id)] = native;
+        }
+
+        emojiNativeByIdRef.current = map;
+        setUsersEmojiReady(true);
+      } catch (e) {
+        console.warn("users emoji init failed", e);
+        if (!alive) return;
+        emojiNativeByIdRef.current = {};
+        setUsersEmojiReady(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [tab]);
+
   const filtered = useMemo(() => {
     let r = items;
     if (!showDeleted) r = r.filter((x) => !x.deleted);
@@ -319,57 +412,53 @@ useEffect(() => {
     return r;
   }, [items, showDeleted, onlyShared]);
 
-async function hideFromShared(d: DreamAdmin) {
-  if (!isAdmin) return;
-  if (!confirm("Hide this dream from Shared?")) return;
+  async function hideFromShared(d: DreamAdmin) {
+    if (!isAdmin) return;
+    if (!confirm("Hide this dream from Shared?")) return;
 
-  // 1) убрать флаг в оригинале (если знаем dreamId)
-  if (d.userId && (d.dreamId || (!onlyShared && d.id))) {
-    const originalDreamId = d.dreamId || d.id;
-    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
-    await updateDoc(ref, { shared: false, sharedAtMs: null });
+    // 1) убрать флаг в оригинале
+    if (d.userId && (d.dreamId || (!onlyShared && d.id))) {
+      const originalDreamId = d.dreamId || d.id;
+      const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+      await updateDoc(ref, { shared: false, sharedAtMs: null });
+    }
+
+    // 2) удалить из shared_dreams
+    const sharedDocId = onlyShared ? d.id : `${d.userId}_${d.id}`;
+    await deleteDoc(doc(firestore, "shared_dreams", sharedDocId));
   }
 
-  // 2) удалить из shared_dreams (если мы в режиме onlyShared — d.id это docId shared_dreams)
-  const sharedDocId = onlyShared ? d.id : `${d.userId}_${d.id}`;
-  await deleteDoc(doc(firestore, "shared_dreams", sharedDocId));
-}
+  function sharedDocIdFor(d: DreamAdmin, onlySharedFlag: boolean) {
+    return onlySharedFlag ? d.id : `${d.userId}_${d.id}`;
+  }
 
+  async function softDelete(d: DreamAdmin) {
+    if (!isAdmin) return;
+    if (!confirm("Soft delete this dream?")) return;
 
-  function sharedDocIdFor(d: DreamAdmin, onlyShared: boolean) {
-  return onlyShared ? d.id : `${d.userId}_${d.id}`;
-}
+    const originalDreamId = d.dreamId || d.id;
+    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
 
-async function softDelete(d: DreamAdmin) {
-  if (!isAdmin) return;
-  if (!confirm("Soft delete this dream?")) return;
+    await updateDoc(ref, {
+      deleted: true,
+      deletedAtMs: Date.now(),
+      shared: false,
+      sharedAtMs: null,
+    });
 
-  const originalDreamId = d.dreamId || d.id;
-  const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+    await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
+  }
 
-  await updateDoc(ref, {
-    deleted: true,
-    deletedAtMs: Date.now(),
-    shared: false,
-    sharedAtMs: null,
-  });
+  async function hardDelete(d: DreamAdmin) {
+    if (!isAdmin) return;
+    if (!confirm("HARD DELETE? Permanently remove document?")) return;
 
-  // ✅ убрать из shared_dreams тоже
-  await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
-}
+    const originalDreamId = d.dreamId || d.id;
+    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
 
-async function hardDelete(d: DreamAdmin) {
-  if (!isAdmin) return;
-  if (!confirm("HARD DELETE? Permanently remove document?")) return;
-
-  const originalDreamId = d.dreamId || d.id;
-  const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
-
-  await deleteDoc(ref);
-
-  // ✅ убрать из shared_dreams тоже (на случай если есть)
-  await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
-}
+    await deleteDoc(ref);
+    await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
+  }
 
   async function saveHints() {
     if (!isAdmin) return;
@@ -474,10 +563,8 @@ async function hardDelete(d: DreamAdmin) {
       const name = String(cur.name ?? "").trim();
       const iconKey = String(cur.iconKey ?? "").trim().toLowerCase();
 
-      // keywords always stored as array of lowercased strings
       const kws = uniq(Array.isArray(cur.keywords) ? cur.keywords : []).slice(0, 50);
 
-      // if everything empty -> delete override node
       const empty = !name && !iconKey && kws.length === 0;
 
       const value: any = empty
@@ -491,7 +578,6 @@ async function hardDelete(d: DreamAdmin) {
       const db = getDatabase();
       await rtdbSet(rtdbRef(db, `${overridesPath}/${id}`), value);
 
-      // ✅ sync local state immediately
       setOverrides((prev) => {
         const next = { ...prev };
         if (value === null) delete next[id];
@@ -517,6 +603,122 @@ async function hardDelete(d: DreamAdmin) {
       navigator.clipboard?.writeText(text);
     } catch {}
   }
+
+  // ---------------------------
+  // USERS TAB: load aggregated rows
+  // ---------------------------
+  async function loadUsers() {
+    if (!isAdmin) return;
+
+    setUsersErr(null);
+    setUsersLoading(true);
+
+    const localAbort = { aborted: false };
+    usersAbortRef.current = localAbort;
+
+    try {
+      const usersQ = fbQuery(collection(firestore, "users"), fbLimit(usersLimit));
+      const usersSnap = await getDocs(usersQ);
+
+      const base = usersSnap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+          uid: d.id,
+          email: bestEmailFromUserDoc(data),
+        };
+      });
+
+      const rows = await mapLimit(base, 8, async (u) => {
+        if (localAbort.aborted) throw new Error("aborted");
+
+        // 1) count dreams
+        const dreamsRef = collection(firestore, "users", u.uid, "dreams");
+        const dreamsCountSnap = await getCountFromServer(dreamsRef);
+        const dreamsCount = dreamsCountSnap.data().count ?? 0;
+
+        // 2) count shared dreams (by ownerUid)
+        const sharedQ = fbQuery(
+          collection(firestore, "shared_dreams"),
+          where("ownerUid", "==", u.uid),
+        );
+        const sharedCountSnap = await getCountFromServer(sharedQ as any);
+        const sharedCount = sharedCountSnap.data().count ?? 0;
+
+        // 3) most frequent icons (emoji symbols)
+        const iconsMap = new Map<string, number>();
+
+        const dreamsSampleQ = fbQuery(
+          collection(firestore, "users", u.uid, "dreams"),
+          fbOrderBy("createdAtMs", "desc"),
+          fbLimit(Math.max(1, iconsSamplePerUser)),
+        );
+        const dreamsSampleSnap = await getDocs(dreamsSampleQ);
+
+        dreamsSampleSnap.docs.forEach((dd) => {
+          const data = dd.data() as any;
+          const emojis = Array.isArray(data?.emojis) ? data.emojis : [];
+
+          for (const e of emojis) {
+            const native = String(e?.native ?? "").trim();
+            const id = String(e?.id ?? "").trim();
+
+            // ✅ show icons "as is"
+            const resolved =
+              native ||
+              (id ? emojiNativeByIdRef.current?.[id] : "") ||
+              "";
+
+            if (!resolved) continue;
+            iconsMap.set(resolved, (iconsMap.get(resolved) ?? 0) + 1);
+          }
+        });
+
+        const topIcons = Array.from(iconsMap.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([k]) => k);
+
+        const row: UserRow = {
+          uid: u.uid,
+          email: u.email || "—",
+          dreamsCount,
+          sharedCount,
+          topIcons,
+        };
+        return row;
+      });
+
+      if (!localAbort.aborted) setUsersRows(rows);
+    } catch (e: any) {
+      if (String(e?.message ?? "") !== "aborted") {
+        setUsersErr(e?.message ?? "Failed to load users");
+      }
+    } finally {
+      if (!localAbort.aborted) setUsersLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+    if (tab !== "USERS") return;
+
+    loadUsers();
+
+    return () => {
+      usersAbortRef.current.aborted = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, user?.uid, isAdmin, usersLimit, iconsSamplePerUser]);
+
+  const usersFiltered = useMemo(() => {
+    const q = norm(usersSearch);
+    if (!q) return usersRows;
+
+    return usersRows.filter((r) => {
+      const hay = `${r.uid} ${r.email} ${r.topIcons.join(" ")}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [usersRows, usersSearch]);
 
   if (!loading && !user) {
     return (
@@ -550,9 +752,13 @@ async function hardDelete(d: DreamAdmin) {
               <>
                 Emoji overrides (RTDB: <span className="font-mono">{overridesPath}</span>)
               </>
-            ) : (
+            ) : tab === "CONFIG" ? (
               <>
                 Realtime config (RTDB: <span className="font-mono">{hintsPath}</span>)
+              </>
+            ) : (
+              <>
+                Users analytics (Firestore: <span className="font-mono">users/*</span>)
               </>
             )}
           </div>
@@ -606,23 +812,29 @@ async function hardDelete(d: DreamAdmin) {
         >
           Config
         </button>
+
+        <button
+          onClick={() => setTab("USERS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "USERS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Users
+        </button>
       </div>
 
       {/* DREAMS TAB */}
       {tab === "DREAMS" && (
         <>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setOnlyShared((v) => !v)}
-              className={`${pillBase} ${pillSurface}`}
-            >
+            <button onClick={() => setOnlyShared((v) => !v)} className={`${pillBase} ${pillSurface}`}>
               {onlyShared ? "Only Shared: ON" : "Only Shared: OFF"}
             </button>
 
-            <button
-              onClick={() => setShowDeleted((v) => !v)}
-              className={`${pillBase} ${pillSurface}`}
-            >
+            <button onClick={() => setShowDeleted((v) => !v)} className={`${pillBase} ${pillSurface}`}>
               {showDeleted ? "Show Deleted: ON" : "Show Deleted: OFF"}
             </button>
 
@@ -646,7 +858,6 @@ async function hardDelete(d: DreamAdmin) {
               <div key={`${d.userId}_${d.id}`} className={`${card} p-4`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-
                     <div className={`mt-1 text-xs ${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
                       <span>
                         user: <span className="font-mono">{d.userId}</span>
@@ -679,11 +890,11 @@ async function hardDelete(d: DreamAdmin) {
                       </div>
                     ) : null}
 
-                   {d.text ? (
-  <div className={`mt-3 text-sm ${mutedText} whitespace-pre-wrap break-words`}>
-    {d.text}
-  </div>
-) : null}
+                    {d.text ? (
+                      <div className={`mt-3 text-sm ${mutedText} whitespace-pre-wrap break-words`}>
+                        {d.text}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">
@@ -812,18 +1023,13 @@ async function hardDelete(d: DreamAdmin) {
                           </div>
                         </div>
 
-                        {/* ✅ 3 fields now */}
                         <div className="mt-3 grid gap-2 sm:grid-cols-3">
                           <div>
-                            <div className={`text-xs ${mutedText} mb-1`}>
-                              Override icon key (Dream icons)
-                            </div>
+                            <div className={`text-xs ${mutedText} mb-1`}>Override icon key (Dream icons)</div>
                             <input
                               value={ovIconKey}
                               onChange={(e) =>
-                                setOverrideField(id, {
-                                  iconKey: e.target.value.trim().toLowerCase(),
-                                })
+                                setOverrideField(id, { iconKey: e.target.value.trim().toLowerCase() })
                               }
                               placeholder='e.g. "bell"'
                               className="w-full rounded-xl px-3 py-2 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none"
@@ -841,9 +1047,7 @@ async function hardDelete(d: DreamAdmin) {
                           </div>
 
                           <div>
-                            <div className={`text-xs ${mutedText} mb-1`}>
-                              Override keywords (comma separated)
-                            </div>
+                            <div className={`text-xs ${mutedText} mb-1`}>Override keywords (comma separated)</div>
                             <input
                               value={ovKeywords}
                               onChange={(e) =>
@@ -937,6 +1141,112 @@ async function hardDelete(d: DreamAdmin) {
             <div className={`mt-3 text-xs ${mutedText}`}>
               Example: <span className="font-mono">{`{ "floor": "ground", "wood": "tree" }`}</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* USERS TAB */}
+      {tab === "USERS" && (
+        <div className="mt-6 space-y-4">
+          <div className={`${card} p-4`}>
+            <div className={`font-semibold ${titleText}`}>Users table</div>
+            <div className={`mt-1 text-sm ${mutedText}`}>
+              uuid, email, dreams count, shared count, top emoji (from last {iconsSamplePerUser} dreams/user).
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 items-center">
+              <input
+                value={usersSearch}
+                onChange={(e) => setUsersSearch(e.target.value)}
+                placeholder='Search: uid / email / emoji'
+                className="flex-1 min-w-[240px] rounded-2xl px-4 py-3 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none"
+              />
+
+              <button
+                onClick={() => setUsersLimit((n) => (n === 100 ? 200 : 100))}
+                className={`${pillBase} ${pillSurface}`}
+              >
+                Limit: {usersLimit}
+              </button>
+
+              <button
+                onClick={() => setIconsSamplePerUser((n) => (n === 200 ? 80 : 200))}
+                className={`${pillBase} ${pillSurface}`}
+                title="How many latest dreams to scan per user for top emoji"
+              >
+                Scan: {iconsSamplePerUser}
+              </button>
+
+              <button
+                onClick={loadUsers}
+                disabled={usersLoading}
+                className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+              >
+                {usersLoading ? "Loading…" : "Refresh"}
+              </button>
+
+              <div className={`text-sm ${mutedText}`}>
+                {usersLoading ? "Computing…" : `${usersFiltered.length} rows`}
+                {!usersEmojiReady ? " · emoji loading…" : ""}
+              </div>
+            </div>
+
+            {usersErr ? (
+              <div className="mt-3 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
+                {usersErr}
+              </div>
+            ) : null}
+          </div>
+
+          <div className={`${card} overflow-hidden`}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-[var(--border)]">
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">User UUID</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Email</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Dreams</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Shared</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Most frequent icons</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersFiltered.map((r) => (
+                    <tr key={r.uid} className="border-b border-[var(--border)] last:border-b-0">
+                      <td className="p-3 font-mono text-xs text-[var(--text)]">{r.uid}</td>
+                      <td className="p-3 text-[var(--text)]">{r.email || "—"}</td>
+                      <td className="p-3 text-[var(--text)]">{r.dreamsCount}</td>
+                      <td className="p-3 text-[var(--text)]">{r.sharedCount}</td>
+                      <td className="p-3 text-[var(--text)] text-lg leading-none">
+                        {fmtTopIcons(r.topIcons)}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => copy(r.uid)}
+                          className="text-xs px-3 py-2 rounded-full border border-[var(--border)] bg-[rgba(127,127,127,0.10)] hover:opacity-90"
+                        >
+                          Copy uid
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {!usersFiltered.length && !usersLoading ? (
+                    <tr>
+                      <td colSpan={6} className="p-6 text-center">
+                        <div className={`text-sm ${mutedText}`}>No users found.</div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className={`text-xs ${mutedText}`}>
+            Примечание: Shared count берётся из <span className="font-mono">shared_dreams</span> по полю{" "}
+            <span className="font-mono">ownerUid</span>. Если у тебя другое поле — скажи, подстрою.
           </div>
         </div>
       )}

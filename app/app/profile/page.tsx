@@ -289,13 +289,16 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
           {busy ? "..." : "Sign out"}
         </button>
 
-        <button
-          onClick={() => setShowCredits((v) => !v)}
-          disabled={!user}
-          className={`${pillBase} ${pillSurface} ${pillDisabled}`}
-        >
-          💳 Buy credits
-        </button>
+       <button
+  onClick={() => {
+    if (!user) return;
+    window.location.href = "/app/upgrade";
+  }}
+  disabled={!user}
+  className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+>
+  💳 Buy credits
+</button>
 
         {user ? (
           <div

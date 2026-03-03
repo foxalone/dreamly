@@ -263,17 +263,25 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                   <PayPalButtons
                     style={{ layout: "horizontal", label: "pay" }}
                     forceReRender={[selected, pack.currency, pack.price]}
-                    createOrder={async () => {
-                      try {
-                        setError(null);
-                        setLastAdded(null);
-                        return await createOrderOnServer(selected);
-                      } catch (e: any) {
-                        setStatus("error");
-                        setError(e?.message ?? "Failed to create order.");
-                        throw e;
-                      }
-                    }}
+                   createOrder={async () => {
+  setError(null);
+  setLastAdded(null);
+
+  try {
+    const orderId = await createOrderOnServer(selected);
+    if (!orderId) {
+      setStatus("error");
+      setError("Failed to create PayPal order.");
+      return ""; // ✅ важно: вернуть строку
+    }
+    return orderId;
+  } catch (e: any) {
+    console.error("createOrder failed:", e);
+    setStatus("error");
+    setError(e?.message ?? "Failed to create order.");
+    return ""; // ✅ не бросаем исключение
+  }
+}}
                     onApprove={async (data) => {
                       try {
                         const orderID = String((data as any)?.orderID || "");
