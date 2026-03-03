@@ -23,6 +23,7 @@ import {
 import {
   getDatabase,
   onValue,
+    get, // ✅ добавили
   ref as rtdbRef,
   set as rtdbSet,
 } from "firebase/database";
@@ -111,6 +112,8 @@ type UserRow = {
   dreamsCount: number;
   sharedCount: number;
   topIcons: string[]; // ✅ emoji symbols
+    upgradeVisits: number; // ✅ new
+  packClicks: number;    // ✅ new
 };
 
 function bestEmailFromUserDoc(d: any) {
@@ -147,6 +150,18 @@ async function mapLimit<T, R>(
 
   await Promise.all(workers);
   return out;
+}
+
+async function readRtdbNum(path: string): Promise<number> {
+  try {
+    const db = getDatabase();
+    const snap = await get(rtdbRef(db, path));
+    const v = snap.val();
+    const n = Number(v ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export default function AdminDashboardPage() {
@@ -1207,6 +1222,8 @@ export default function AdminDashboardPage() {
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Email</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Dreams</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Shared</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Upgrade visits</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Pack clicks</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Most frequent icons</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]"></th>
                   </tr>
@@ -1218,6 +1235,8 @@ export default function AdminDashboardPage() {
                       <td className="p-3 text-[var(--text)]">{r.email || "—"}</td>
                       <td className="p-3 text-[var(--text)]">{r.dreamsCount}</td>
                       <td className="p-3 text-[var(--text)]">{r.sharedCount}</td>
+                      <td className="p-3 text-[var(--text)]">{r.upgradeVisits}</td>
+                      <td className="p-3 text-[var(--text)]">{r.packClicks}</td>    
                       <td className="p-3 text-[var(--text)] text-lg leading-none">
                         {fmtTopIcons(r.topIcons)}
                       </td>
