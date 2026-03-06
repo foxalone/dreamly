@@ -150,23 +150,45 @@ export default function MapPage() {
     const snap = await getDocs(q);
 
     const rows: typeof dataRef.current = [];
+    let missingCoords = 0;
+    let emptyCityId = 0;
+    let emptyEmojis = 0;
 
     snap.forEach((docSnap) => {
       const raw = docSnap.data() as any;
       const d = raw as CityEmojiDoc;
 
+      const cityId = String(raw.cityId ?? docSnap.id ?? "").trim();
+      if (!cityId) {
+        emptyCityId += 1;
+        return;
+      }
+
       const lat = safeNum(raw.lat);
       const lng = safeNum(raw.lng);
-      if (lat == null || lng == null) return;
-
-      const cityId = String(raw.cityId ?? docSnap.id ?? "").trim();
-      if (!cityId) return;
+      if (lat == null || lng == null) {
+        missingCoords += 1;
+        if (cityId === "France|Paris") {
+          console.log("[map/debug] France|Paris skipped: missing lat/lng", {
+            cityId,
+            lat: raw.lat ?? null,
+            lng: raw.lng ?? null,
+          });
+        }
+        return;
+      }
 
       const emojiMap = extractEmojisFromDoc(raw);
       const items = toTopItems(emojiMap, 999999999);
-      if (items.length === 0) return;
+      if (items.length === 0) {
+        emptyEmojis += 1;
+        if (cityId === "France|Paris") {
+          console.log("[map/debug] France|Paris skipped: no emojis", { cityId });
+        }
+        return;
+      }
 
-      rows.push({
+      const row = {
         cityId,
         city: raw.city ?? d.city,
         admin1: raw.admin1 ?? d.admin1,
@@ -175,11 +197,30 @@ export default function MapPage() {
         lng,
         totalDreams: safeNum(raw.totalDreams) ?? undefined,
         items,
-      });
+      };
+
+      rows.push(row);
+
+      if (cityId === "France|Paris") {
+        console.log("[map/debug] France|Paris loaded into marker source", {
+          cityId,
+          lat,
+          lng,
+          emojis: items.length,
+          totalDreams: row.totalDreams ?? null,
+        });
+      }
     });
 
     dataRef.current = rows;
-    console.log("cities:", rows.length);
+    console.log("[map/debug] loaded city_emoji_stats", {
+      fetchedDocs: snap.size,
+      markerRows: rows.length,
+      missingCoords,
+      emptyCityId,
+      emptyEmojis,
+      hasFranceParis: rows.some((r) => r.cityId === "France|Paris"),
+    });
   }
 
   function clearMarkers() {
@@ -201,6 +242,14 @@ export default function MapPage() {
       const n = visible.length;
 
       visible.forEach((it, idx) => {
+        if (city.cityId === "France|Paris") {
+          console.log("[map/debug] France|Paris marker candidate", {
+            rank: it.rank,
+            emoji: it.emoji,
+            count: it.count,
+            zoom: z,
+          });
+        }
         // rank 0 в центре, остальные вокруг (смещение в метрах)
         const { ox, oy } = offsetForIndex(idx, n);
         const rMeters = it.rank === 0 ? 0 : 1200 + it.rank * 260;
