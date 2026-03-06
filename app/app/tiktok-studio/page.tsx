@@ -720,28 +720,13 @@ useEffect(() => {
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold text-[var(--text)]">TikTok Studio</h1>
         
-          <div className="mt-4 flex flex-wrap gap-2">
-            {(["idle", "saved", "visuals", "analyzed", "shared"] as Step[]).map((s, i) => (
-              <span
-                key={s}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs border",
-                  step === s
-                    ? "bg-[var(--text)] text-[var(--bg)] border-transparent"
-                    : "border-[var(--border)] text-[var(--muted)]"
-                )}
-              >
-                {i + 1}) {s}
-              </span>
-            ))}
-          </div>
         </div>
 
         <button
           onClick={resetDraft}
           className="px-4 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--text)] font-semibold hover:opacity-90"
         >
-          New Draft
+          Add Dream
         </button>
       </div>
 
