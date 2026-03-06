@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import {
   collectionGroup,
   deleteDoc,
@@ -217,6 +218,8 @@ export default function AdminDashboardPage() {
   const pillSurface =
     "bg-[var(--card)] text-[var(--text)] border border-[var(--border)] hover:opacity-90";
   const pillDisabled = "disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const router = useRouter();
 
   useEffect(
     () =>
@@ -783,15 +786,25 @@ async function loadUsers() {
           </div>
         </div>
 
-        {tab === "CONFIG" ? (
-          <button
-            onClick={saveHints}
-            disabled={hintsSaving}
-            className={`${pillBase} ${pillSurface} ${pillDisabled}`}
-          >
-            {hintsSaving ? "Saving…" : "Save"}
-          </button>
-        ) : null}
+     <div className="flex items-center gap-2">
+  <button
+    onClick={() => router.push("/app/tiktok-studio")}
+    className={`${pillBase} ${pillSurface}`}
+    title="Open TikTok Studio"
+  >
+    TikTok Studio
+  </button>
+
+  {tab === "CONFIG" ? (
+    <button
+      onClick={saveHints}
+      disabled={hintsSaving}
+      className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+    >
+      {hintsSaving ? "Saving…" : "Save"}
+    </button>
+  ) : null}
+</div>
       </div>
 
       {/* Tabs */}
