@@ -6,11 +6,26 @@ import admin from "firebase-admin";
 
 type Body = { cityId: string };
 
-// cityId = "US|NY|New York"
+// cityId examples:
+// - "US|NY|New York" (country|admin1|city)
+// - "France|Paris" (country|city)
 function parseCityId(cityId: string) {
   const parts = String(cityId ?? "").split("|").map((s) => s.trim()).filter(Boolean);
-  const [country, admin1, ...rest] = parts;
-  const city = rest.join("|"); // на случай если в названии будет "|"
+
+  if (parts.length < 2) {
+    return { country: "", admin1: "", city: "" };
+  }
+
+  const country = parts[0] ?? "";
+
+  // 2 части: country|city
+  if (parts.length === 2) {
+    return { country, admin1: "", city: parts[1] ?? "" };
+  }
+
+  // 3+ частей: country|admin1|city(with possible '|')
+  const admin1 = parts[1] ?? "";
+  const city = parts.slice(2).join("|");
   return { country: country ?? "", admin1: admin1 ?? "", city: city ?? "" };
 }
 
@@ -28,7 +43,7 @@ async function geocodeCity(params: { city: string; admin1: string; country: stri
 
   // Mapbox geocoding: place
   // query example: "New York, NY, US"
-  const q = `${params.city}, ${params.admin1}, ${params.country}`.trim();
+  const q = [params.city, params.admin1, params.country].filter(Boolean).join(", ").trim();
   const url =
     `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
     `?access_token=${encodeURIComponent(token)}` +
