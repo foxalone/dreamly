@@ -265,67 +265,50 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
     <main className="px-6 py-10 max-w-3xl mx-auto">
       <h1 className={`text-3xl font-semibold ${titleText}`}>Profile</h1>
 
-      {/* TOP BUTTONS */}
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <button onClick={toggleTheme} className={`${pillBase} ${pillSurface}`}>
-          <span className="mr-2">{theme === "dark" ? "☀️" : "🌙"}</span>
-          {theme === "dark" ? "Light" : "Dark"}
-        </button>
+     {/* TOP BUTTONS */}
+<div className="mt-6 flex flex-wrap md:flex-nowrap items-center gap-3">
+  <button onClick={toggleTheme} className={`${pillBase} ${pillSurface}`}>
+    <span className="mr-2">{theme === "dark" ? "☀️" : "🌙"}</span>
+    {theme === "dark" ? "Light" : "Dark"}
+  </button>
 
-        <button
-          onClick={copyUid}
-          disabled={!user}
-          className={`${pillBase} ${pillSurface} ${pillDisabled}`}
-          title={user?.uid ?? ""}
-        >
-          {user ? (copied ? "Copied!" : "Copy UUID") : "Copy UUID"}
-        </button>
+  <button
+    onClick={copyUid}
+    disabled={!user}
+    className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+    title={user?.uid ?? ""}
+  >
+    {user ? (copied ? "Copied!" : "Copy UUID") : "Copy UUID"}
+  </button>
 
-        <button
-          onClick={doSignOut}
-          disabled={!user || busy}
-          className={`${pillBase} bg-red-600 text-white border-transparent hover:bg-red-500 ${pillDisabled}`}
-        >
-          {busy ? "..." : "Sign out"}
-        </button>
+  <button
+    onClick={() => {
+      if (!user) return;
+      window.location.href = "/app/upgrade";
+    }}
+    disabled={!user}
+    className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+  >
+    💳 Buy credits
+  </button>
 
-       <button
-  onClick={() => {
-    if (!user) return;
-    window.location.href = "/app/upgrade";
-  }}
-  disabled={!user}
-  className={`${pillBase} ${pillSurface} ${pillDisabled}`}
->
-  💳 Buy credits
-</button>
-
-        {user ? (
-          <div
-            className={`
-              h-11 px-4 rounded-full
-              bg-[rgba(16,185,129,0.12)]
-              border border-[rgba(16,185,129,0.25)]
-              text-[var(--text)]
-              flex items-center gap-2
-              font-semibold
-            `}
-            title="Your current balance"
-          >
-            <span className="opacity-80">💳</span>
-            <span>{credits === null ? "…" : credits}</span>
-          </div>
-        ) : null}
-
-        {isAdmin ? (
-          <Link
-            href="/app/profile/admin-dashboard"
-            className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
-          >
-            Admin dashboard
-          </Link>
-        ) : null}
-      </div>
+  {user ? (
+    <div
+      className="
+        h-11 px-4 rounded-full
+        bg-[rgba(16,185,129,0.12)]
+        border border-[rgba(16,185,129,0.25)]
+        text-[var(--text)]
+        flex items-center gap-2
+        font-semibold
+      "
+      title="Your current balance"
+    >
+      <span className="opacity-80">💳</span>
+      <span>{credits === null ? "…" : credits}</span>
+    </div>
+  ) : null}
+</div>
 
       {/* TOP LINKS */}
       <div
@@ -522,6 +505,26 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
           </div>
         </Link>
       </div>
+
+      {/* BOTTOM ACTIONS */}
+<div className="mt-6 flex flex-col sm:flex-row gap-3">
+  <button
+    onClick={doSignOut}
+    disabled={!user || busy}
+    className={`${pillBase} bg-red-600 text-white border-transparent hover:bg-red-500 ${pillDisabled}`}
+  >
+    {busy ? "..." : "Sign out"}
+  </button>
+
+  {isAdmin ? (
+    <Link
+      href="/app/profile/admin-dashboard"
+      className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
+    >
+      Admin dashboard
+    </Link>
+  ) : null}
+</div>
     </main>
   );
 }
