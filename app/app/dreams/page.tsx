@@ -1586,19 +1586,11 @@ export default function DreamsPage() {
                   );
                 })()}
 
-                <div className="mt-3 text-xs text-[var(--muted)] flex items-end justify-between gap-3 flex-wrap">
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
-                    <span>{d.wordCount ?? 0} words</span>
-                    <span>{d.charCount ?? 0} chars</span>
-                    {d.source ? <span>{d.source}</span> : null}
-                    {isShared ? <span className="opacity-80">shared</span> : null}
-                  </div>
-
-                  <div className="opacity-70 whitespace-nowrap">
-                    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-                  </div>
-                </div>
-
+         <div className="mt-3 text-xs text-[var(--muted)] flex justify-end">
+  <div className="opacity-70 whitespace-nowrap">
+    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+  </div>
+</div>
                 {tab === "SHARED" &&
                   (() => {
                     const r = publicReactions[d.id] ?? { heart: 0, like: 0, star: 0 };
