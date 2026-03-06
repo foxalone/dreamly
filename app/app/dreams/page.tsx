@@ -1669,7 +1669,7 @@ export default function DreamsPage() {
     if (next) setRecLang(next);
   }}
   maxLength={MAX_DREAM_CHARS}
-  placeholder="Type your dream…"
+  placeholder="Record or type your dream. Save it, then analyze it with AI."
   rows={5}
   disabled={saving}
   className="w-full resize-none rounded-2xl p-4

@@ -90,7 +90,7 @@ function effectiveKeywords(id?: string, libKeywords?: string[]) {
 }
 
 // ------------------------
-// emoji scoring (NO ID SEARCH)
+// emoji scoring
 // ------------------------
 function hasWord(hay: string, word: string) {
   const h = String(hay ?? "").toLowerCase();
@@ -114,7 +114,6 @@ function isGarbageEmoji(r: any) {
   if (id.includes("skin-tone")) return true;
   if (id.startsWith("keycap_") || name.includes("keycap")) return true;
   if (name.includes("regional indicator")) return true;
-
   if (looksLikeBadPhraseEmoji(id, name)) return true;
 
   return false;
@@ -154,12 +153,12 @@ function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
 }
 
 const STOP = new Set([
-  "i","me","my","we","you","he","she","it","they",
-  "a","an","the","and","or","but",
-  "was","were","am","is","are","be","been",
-  "to","of","in","on","at","for","with","from","into","over","under",
-  "that","this","there","here","then",
-  "dream","dreamed","dreaming",
+  "i", "me", "my", "we", "you", "he", "she", "it", "they",
+  "a", "an", "the", "and", "or", "but",
+  "was", "were", "am", "is", "are", "be", "been",
+  "to", "of", "in", "on", "at", "for", "with", "from", "into", "over", "under",
+  "that", "this", "there", "here", "then",
+  "dream", "dreamed", "dreaming",
 ]);
 
 function tokenizeEn(s: string) {
@@ -268,7 +267,6 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
   return top ? { native: top.native, id: top.id, name: top.name } : null;
 }
 
-
 export default function TikTokStudioPage() {
   const router = useRouter();
 
@@ -291,6 +289,7 @@ export default function TikTokStudioPage() {
 
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [iconsGenerated, setIconsGenerated] = useState(false);
 
   // City search
   const [cityQ, setCityQ] = useState("");
@@ -302,45 +301,44 @@ export default function TikTokStudioPage() {
 
   const MAX_DREAM_CHARS = 2000;
 
-
   const hintsRef = useRef<Record<string, string>>({});
 
-// ✅ RTDB emojiHints
-useEffect(() => {
-  const db = getDatabase();
-  const p = rtdbRef(db, "/app_config/dreamly/emojiHints/en");
+  // RTDB emojiHints
+  useEffect(() => {
+    const db = getDatabase();
+    const p = rtdbRef(db, "/app_config/dreamly/emojiHints/en");
 
-  const cb = (snap: any) => {
-    const v = snap.val();
-    if (v && typeof v === "object") {
-      const next: Record<string, string> = {};
-      for (const [k, val] of Object.entries(v)) {
-        const kk = String(k || "").toLowerCase().trim();
-        const vv = String(val || "").toLowerCase().trim();
-        if (kk && vv) next[kk] = vv;
+    const cb = (snap: any) => {
+      const v = snap.val();
+      if (v && typeof v === "object") {
+        const next: Record<string, string> = {};
+        for (const [k, val] of Object.entries(v)) {
+          const kk = String(k || "").toLowerCase().trim();
+          const vv = String(val || "").toLowerCase().trim();
+          if (kk && vv) next[kk] = vv;
+        }
+        if (Object.keys(next).length > 0) hintsRef.current = next;
       }
-      if (Object.keys(next).length > 0) hintsRef.current = next;
-    }
-  };
+    };
 
-  onValue(p, cb, (err: any) => console.warn("RTDB emojiHints load failed:", err));
-  return () => off(p, "value", cb);
-}, []);
+    onValue(p, cb, (err: any) => console.warn("RTDB emojiHints load failed:", err));
+    return () => off(p, "value", cb);
+  }, []);
 
-// ✅ RTDB emojiOverrides
-useEffect(() => {
-  const db = getDatabase();
-  const p = rtdbRef(db, "/app_config/dreamly/emojiOverrides/en");
+  // RTDB emojiOverrides
+  useEffect(() => {
+    const db = getDatabase();
+    const p = rtdbRef(db, "/app_config/dreamly/emojiOverrides/en");
 
-  const cb = (snap: any) => {
-    const v = snap.val();
-    const obj: OverridesMap = v && typeof v === "object" && !Array.isArray(v) ? v : {};
-    EMOJI_OVERRIDES = obj;
-  };
+    const cb = (snap: any) => {
+      const v = snap.val();
+      const obj: OverridesMap = v && typeof v === "object" && !Array.isArray(v) ? v : {};
+      EMOJI_OVERRIDES = obj;
+    };
 
-  onValue(p, cb, (err: any) => console.warn("RTDB emojiOverrides load failed:", err));
-  return () => off(p, "value", cb);
-}, []);
+    onValue(p, cb, (err: any) => console.warn("RTDB emojiOverrides load failed:", err));
+    return () => off(p, "value", cb);
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -354,7 +352,11 @@ useEffect(() => {
       }
 
       try {
-       setIsAdmin(u.uid === "sGbA77TlcsatEMrgEvCv7Shjrj32");
+        // можно оставить твой жёсткий uid
+        setIsAdmin(u.uid === "sGbA77TlcsatEMrgEvCv7Shjrj32");
+        // либо заменить на firestore-check:
+        // const snap = await getDoc(doc(firestore, "users", u.uid));
+        // setIsAdmin(snap.exists() ? (snap.data() as any)?.isAdmin === true : false);
       } catch {
         setIsAdmin(false);
       } finally {
@@ -365,38 +367,37 @@ useEffect(() => {
     return () => unsub();
   }, []);
 
-
   function textForIconPicker(text: string, lang?: string) {
-  const t = (text ?? "").toLowerCase();
+    const t = (text ?? "").toLowerCase();
 
-  if (lang === "ru") {
-    return t
-      .replaceAll("лес", "forest")
-      .replaceAll("дерев", "tree")
-      .replaceAll("колокол", "bell")
-      .replaceAll("ветер", "wind")
-      .replaceAll("музык", "music")
-      .replaceAll("мелоди", "music")
-      .replaceAll("свет", "sun")
-      .replaceAll("солнц", "sun")
-      .replaceAll("тишин", "silence")
-      .replaceAll("звук", "sound");
+    if (lang === "ru") {
+      return t
+        .replaceAll("лес", "forest")
+        .replaceAll("дерев", "tree")
+        .replaceAll("колокол", "bell")
+        .replaceAll("ветер", "wind")
+        .replaceAll("музык", "music")
+        .replaceAll("мелоди", "music")
+        .replaceAll("свет", "sun")
+        .replaceAll("солнц", "sun")
+        .replaceAll("тишин", "silence")
+        .replaceAll("звук", "sound");
+    }
+
+    return t;
   }
 
-  return t;
-}
+  function normalizeRootForEmojiLive(root: string, lang?: string) {
+    const s = (root ?? "").trim();
+    if (!s) return "";
+    const lower = s.toLowerCase().trim();
 
-function normalizeRootForEmojiLive(root: string, lang?: string) {
-  const s = (root ?? "").trim();
-  if (!s) return "";
-  const lower = s.toLowerCase().trim();
+    const hints = hintsRef.current || {};
+    const mapped = hints[lower];
+    if (mapped) return mapped;
 
-  const hints = hintsRef.current || {};
-  const mapped = hints[lower];
-  if (mapped) return mapped;
-
-  return textForIconPicker(s, lang);
-}
+    return textForIconPicker(s, lang);
+  }
 
   async function idToken() {
     const u = auth.currentUser;
@@ -425,30 +426,32 @@ function normalizeRootForEmojiLive(root: string, lang?: string) {
     if (!r.ok) throw new Error(j?.error ?? "Request failed");
     return j;
   }
+useEffect(() => {
+  const q = cityQ.trim();
+  if (!q) {
+    setCityItems([]);
+    return;
+  }
 
-  
-  // debounce city search
-  useEffect(() => {
-    const q = cityQ.trim();
-    if (!q) {
+  if (cityTimer.current) {
+    clearTimeout(cityTimer.current);
+  }
+
+  cityTimer.current = setTimeout(async () => {
+    try {
+      const j = await apiGet(`/api/admin/tiktok/city-search?q=${encodeURIComponent(q)}`);
+      setCityItems(Array.isArray(j?.items) ? j.items : []);
+    } catch {
       setCityItems([]);
-      return;
     }
+  }, 250);
 
-    if (cityTimer.current) clearTimeout(cityTimer.current);
-
-    cityTimer.current = setTimeout(async () => {
-      try {
-        const j = await apiGet(`/api/admin/tiktok/city-search?q=${encodeURIComponent(q)}`);
-        setCityItems(Array.isArray(j?.items) ? j.items : []);
-      } catch {
-        setCityItems([]);
-      }
-    }, 250);
-
-    return () => cityTimer.current && clearTimeout(cityTimer.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cityQ]);
+  return () => {
+    if (cityTimer.current) {
+      clearTimeout(cityTimer.current);
+    }
+  };
+}, [cityQ]);
 
   const canSave = useMemo(() => {
     const t = text.trim();
@@ -465,6 +468,7 @@ function normalizeRootForEmojiLive(root: string, lang?: string) {
     setAnalysisText("");
     setStep("idle");
     setError(null);
+    setIconsGenerated(false);
 
     setCity(null);
     setCityQ("");
@@ -490,6 +494,8 @@ function normalizeRootForEmojiLive(root: string, lang?: string) {
 
     setError(null);
     setBusy("save");
+    setIconsGenerated(false);
+
     try {
       const j = await apiPost("/api/admin/tiktok/save", { text: t, city });
       const id = String(j?.dreamId ?? "").trim();
@@ -498,8 +504,8 @@ function normalizeRootForEmojiLive(root: string, lang?: string) {
       setDreamId(id);
       setStep("saved");
 
-      // auto generate visuals
-      setTimeout(() => generateVisuals(id), 120);
+      // сразу генерируем иконки автоматически
+      await generateVisuals(id);
     } catch (e: any) {
       setError(e?.message ?? "Save failed");
     } finally {
@@ -507,108 +513,95 @@ function normalizeRootForEmojiLive(root: string, lang?: string) {
     }
   }
 
-async function generateVisuals(idArg?: string) {
-  const id = idArg || dreamId;
-  const t = text.trim();
-  if (!id || !t) return;
+  async function generateVisuals(idArg?: string) {
+    const id = idArg || dreamId;
+    const t = text.trim();
+    if (!id || !t) return;
 
-  setError(null);
-  setBusy("visuals");
+    setError(null);
+    setBusy("visuals");
 
-  // helper: выбрасываем “пустые” ключи, у которых нет glyph в словаре
-  function filterIconsEn(keys: DreamIconKey[], max: number) {
-    const out: DreamIconKey[] = [];
-    for (const k of keys ?? []) {
-      const icon = (DREAM_ICONS_EN as any)?.[k];
-      const glyph = icon?.emoji ?? icon?.native;
-      if (!glyph) continue;
-      out.push(k);
-      if (out.length >= max) break;
+    function filterIconsEn(keys: DreamIconKey[], max: number) {
+      const out: DreamIconKey[] = [];
+      for (const k of keys ?? []) {
+        const icon = (DREAM_ICONS_EN as any)?.[k];
+        const glyph = icon?.emoji ?? icon?.native;
+        if (!glyph) continue;
+        out.push(k);
+        if (out.length >= max) break;
+      }
+      return out;
     }
-    return out;
+
+    try {
+      const res = await fetch("/api/dreams/rootwords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: t }),
+      });
+
+      const data2 = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data2?.error ?? "rootwords failed");
+
+      const counts = desiredCountsFromText(t);
+
+      const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
+      const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
+
+      const rootsMajor = rootsArr
+        .slice(0, counts.roots)
+        .map((x: any) => String(x ?? "").trim())
+        .filter(Boolean);
+
+      const rootsEnMajor = rootsEnArr
+        .slice(0, counts.roots)
+        .map((x: any) => String(x ?? "").trim())
+        .filter(Boolean);
+
+      if (!rootsMajor.length || !rootsEnMajor.length) {
+        throw new Error("Нет root-слов — добавь чуть больше деталей.");
+      }
+
+      const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
+      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+      const iconsFinal = filterIconsEn(iconsEnRaw ?? [], counts.icons);
+
+      const picked = await Promise.all(
+        rootsEnMajor.map((r: string) =>
+          pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en")
+        )
+      );
+      const emojisFinal = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
+
+      setRoots(rootsMajor);
+      setRootsEn(rootsEnMajor);
+      setIconsEn(iconsFinal);
+      setEmojis(emojisFinal);
+      setStep("visuals");
+      setIconsGenerated(true);
+
+      if (!iconsFinal.length && !emojisFinal.length) {
+        setError("Не удалось подобрать ни иконки, ни эмодзи.");
+      }
+
+      await apiPost("/api/admin/tiktok/update", {
+        dreamId: id,
+        city,
+        roots: rootsMajor,
+        rootsEn: rootsEnMajor,
+        rootsLang: data2?.lang ?? null,
+        iconsEn: iconsFinal,
+        emojis: emojisFinal,
+        ingestMap: true,
+      });
+    } catch (e: any) {
+      console.error("[visuals] error:", e);
+      setError(e?.message ?? "Generate visuals failed");
+      setIconsGenerated(false);
+    } finally {
+      setBusy(null);
+    }
   }
-
-  try {
-    // 1) roots from existing endpoint
-    const res = await fetch("/api/dreams/rootwords", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: t }),
-    });
-
-    const data2 = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data2?.error ?? "rootwords failed");
-
-    const counts = desiredCountsFromText(t);
-
-    // ✅ rootwords route (твоя новая версия) возвращает roots/rootsEn
-    const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
-    const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
-
-    const rootsMajor = rootsArr
-      .slice(0, counts.roots)
-      .map((x: any) => String(x ?? "").trim())
-      .filter(Boolean);
-
-    const rootsEnMajor = rootsEnArr
-      .slice(0, counts.roots)
-      .map((x: any) => String(x ?? "").trim())
-      .filter(Boolean);
-
-    if (!rootsMajor.length || !rootsEnMajor.length) {
-      throw new Error("Нет root-слов — добавь чуть больше деталей.");
-    }
-
-    // 2) icons from rootsEn
-    const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
-    const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
-    const iconsFinal = filterIconsEn(iconsEnRaw ?? [], counts.icons);
-
-    console.log("[visuals] rootsMajor:", rootsMajor);
-    console.log("[visuals] rootsEnMajor:", rootsEnMajor);
-    console.log("[visuals] normalizedEn:", normalizedEn);
-    console.log("[visuals] iconsEnRaw:", iconsEnRaw);
-    console.log("[visuals] iconsFinal:", iconsFinal);
-
-    // 3) emojis (как в DreamsPage): emoji-mart candidates -> AI pick
-    const picked = await Promise.all(
-      rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
-    );
-    const emojisFinal = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
-
-    console.log("[visuals] emojisFinal:", emojisFinal);
-
-    // set state
-    setRoots(rootsMajor);
-    setRootsEn(rootsEnMajor);
-    setIconsEn(iconsFinal);
-    setEmojis(emojisFinal);
-    setStep("visuals");
-
-    // мягкая подсказка если что-то пустое
-    if (!iconsFinal.length && !emojisFinal.length) {
-      setError("Не удалось подобрать ни иконки, ни эмодзи — проверь словарь DREAM_ICONS_EN и emoji-pick API.");
-    }
-
-    // ✅ сохраняем visuals в seed dream
-   // ✅ сохраняем visuals + триггерим карту
-await apiPost("/api/admin/tiktok/update", {
-  dreamId: id,
-  city,                 // ← город из state страницы
-  roots: rootsMajor,
-  rootsEn: rootsEnMajor,
-  rootsLang: data2?.lang ?? null,
-  iconsEn: iconsFinal,
-  emojis: emojisFinal,
-  ingestMap: true,
-});
-  } catch (e: any) {
-    console.error("[visuals] error:", e);
-    setError(e?.message ?? "Generate visuals failed");
-  } finally {
-    setBusy(null);
-  }
-}
 
   async function analyze() {
     const id = dreamId;
@@ -633,7 +626,6 @@ await apiPost("/api/admin/tiktok/update", {
       setAnalysisText(a);
       setStep("analyzed");
 
-      // ✅ сохраняем analysis в seed dream
       await apiPost("/api/admin/tiktok/update", {
         dreamId: id,
         analysisText: a,
@@ -672,7 +664,6 @@ await apiPost("/api/admin/tiktok/update", {
     setBusy("delete");
     try {
       await apiPost("/api/admin/tiktok/delete", { dreamId: id });
-      // оставим текст, но покажем что deleted
       setError("Deleted ✅ (seed + shared)");
     } catch (e: any) {
       setError(e?.message ?? "Delete failed");
@@ -681,9 +672,12 @@ await apiPost("/api/admin/tiktok/update", {
     }
   }
 
-  // ---------- render gates ----------
   if (!ready) {
-    return <main className="min-h-screen px-5 py-10 max-w-3xl mx-auto text-[var(--muted)]">Loading…</main>;
+    return (
+      <main className="min-h-screen px-5 py-10 max-w-3xl mx-auto text-[var(--muted)]">
+        Loading…
+      </main>
+    );
   }
 
   if (!uid) {
@@ -707,29 +701,25 @@ await apiPost("/api/admin/tiktok/update", {
       </main>
     );
   }
-const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
-  const icon = (DREAM_ICONS_EN as any)?.[k];
 
-  // ✅ никогда не "прячем" результат
-  const glyph = icon?.emoji ?? icon?.native ?? "⬤";
+  const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
+    const icon = (DREAM_ICONS_EN as any)?.[k];
+    const glyph = icon?.emoji ?? icon?.native ?? "⬤";
 
-  return {
-    k,
-    glyph,
-    label: icon?.label || icon?.name || String(k),
-    found: !!icon,
-  };
-});
+    return {
+      k,
+      glyph,
+      label: icon?.label || icon?.name || String(k),
+      found: !!icon,
+    };
+  });
 
   return (
     <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold text-[var(--text)]">TikTok Studio</h1>
-          <div className="mt-2 text-sm text-[var(--muted)]">
-            Город → сон → icons → analysis → share. Всё сохраняется в seed-аккаунт.
-          </div>
-
+        
           <div className="mt-4 flex flex-wrap gap-2">
             {(["idle", "saved", "visuals", "analyzed", "shared"] as Step[]).map((s, i) => (
               <span
@@ -761,12 +751,10 @@ const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
         </div>
       ) : null}
 
-      {/* City picker */}
       <div className="mt-7 rounded-3xl bg-[var(--card)] border border-[var(--border)] p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-[var(--text)]">City</div>
-            <div className="text-xs text-[var(--muted)]">Выбери любой город — он пойдёт в данные карты.</div>
           </div>
 
           {city?.label ? (
@@ -813,12 +801,10 @@ const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
         </div>
       </div>
 
-      {/* Dream input */}
       <div className="mt-4 rounded-3xl bg-[var(--card)] border border-[var(--border)] p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-[var(--text)]">Dream text</div>
-            <div className="text-xs text-[var(--muted)]">Коротко — лучше для TikTok.</div>
           </div>
 
           <div className="text-xs text-[var(--muted)]">
@@ -839,65 +825,41 @@ const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
           className="mt-3 w-full resize-none rounded-2xl p-4 bg-[var(--bg)] text-[var(--text)] border border-[var(--border)] outline-none focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]"
         />
 
-   {/* Preview icons */}
-<div className="mt-3 flex flex-col gap-2">
-  <div className="flex flex-wrap items-center gap-3">
-    {iconsEn.length ? (
-      <div className="inline-flex items-center gap-2 text-[22px] leading-none">
-        {iconsPreview.map((x) => (
-          <span
-            key={String(x.k)}
-            title={`${x.label}${x.found ? "" : " (MISSING IN DICT)"}`}
-            className={cn("cursor-help", !x.found && "opacity-50")}
-          >
-            {x.glyph}
-          </span>
-        ))}
-      </div>
-    ) : (
-      <div className="text-xs text-[var(--muted)]">Нажми “Generate Icons” — иконки появятся тут.</div>
-    )}
+        <div className="mt-3 flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+          
 
-    {roots?.length ? (
-      <div className="flex flex-wrap gap-2">
-        {roots.slice(0, 6).map((w, i) => (
-          <span
-            key={w + i}
-            className="px-2 py-1 rounded-full border border-[var(--border)] text-xs text-[var(--muted)]"
-          >
-            {w}
-          </span>
-        ))}
-      </div>
-    ) : null}
-  </div>
+            {roots?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {roots.slice(0, 6).map((w, i) => (
+                  <span
+                    key={w + i}
+                    className="px-2 py-1 rounded-full border border-[var(--border)] text-xs text-[var(--muted)]"
+                  >
+                    {w}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-  {/* ✅ маленькая диагностика: ключи + что найдено/нет */}
-  <div className="text-[11px] text-[var(--muted)] font-mono">
-    keys: {(iconsEn ?? []).join(", ") || "—"}{" "}
-    {iconsEn.length
-      ? `| missing: ${
-          iconsEn.filter((k) => !(DREAM_ICONS_EN as any)?.[k]).join(", ") || "—"
-        }`
-      : ""}
-  </div>
-</div>
+       
+        </div>
 
-{(emojis ?? []).length ? (
-  <div className="inline-flex items-center gap-2 text-[22px] leading-none">
-    {emojis.slice(0, 6).map((em, i) => (
-      <span
-        key={`${em.native}:${i}`}
-        title={em.name || em.id || "emoji"}
-        className="cursor-help"
-      >
-        {em.native}
-      </span>
-    ))}
-  </div>
-) : null}
+        {(emojis ?? []).length ? (
+          <div className="mt-2 inline-flex items-center gap-2 text-[22px] leading-none">
+            {emojis.slice(0, 6).map((em, i) => (
+              <span
+                key={`${em.native}:${i}`}
+                title={em.name || em.id || "emoji"}
+                className="cursor-help"
+              >
+                {em.native}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
-        {/* Actions */}
         <div className="mt-5 flex flex-wrap gap-2">
           <button
             onClick={saveToSeed}
@@ -907,18 +869,19 @@ const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
               canSave ? "bg-[var(--text)] text-[var(--bg)] hover:opacity-90" : "opacity-60 cursor-not-allowed"
             )}
           >
-            {busy === "save" ? "Saving…" : "Save (seed)"}
+            {busy === "save" || busy === "visuals" ? "Saving…" : "Save (seed)"}
           </button>
 
           <button
-            onClick={() => generateVisuals()}
-            disabled={!dreamId || !!busy}
+            disabled
             className={cn(
-              "px-5 py-3 rounded-2xl font-semibold border border-[var(--border)] bg-[var(--card)] text-[var(--text)] hover:opacity-90",
-              (!dreamId || !!busy) && "opacity-60 cursor-not-allowed"
+              "px-5 py-3 rounded-2xl font-semibold border border-[var(--border)]",
+              iconsGenerated
+                ? "bg-[var(--bg)] text-[var(--muted)] opacity-70 cursor-not-allowed"
+                : "bg-[var(--card)] text-[var(--muted)] opacity-60 cursor-not-allowed"
             )}
           >
-            {busy === "visuals" ? "Generating…" : "Generate Icons"}
+            {busy === "visuals" ? "Generating…" : iconsGenerated ? "Icons generated" : "Auto after save"}
           </button>
 
           <button
@@ -954,24 +917,17 @@ const iconsPreview = (iconsEn ?? []).slice(0, 8).map((k) => {
             {busy === "delete" ? "Deleting…" : "Delete"}
           </button>
 
-          <button
-            onClick={() => router.push("/app/profile/admin-dashboard")}
-            disabled={!!busy}
-            className={cn(
-              "px-5 py-3 rounded-2xl font-semibold border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] hover:opacity-90",
-              !!busy && "opacity-60 cursor-not-allowed"
-            )}
-          >
-            Back to Admin
-          </button>
         </div>
       </div>
 
-      {/* Analysis panel */}
       <div className="mt-4 rounded-3xl bg-[var(--card)] border border-[var(--border)] p-5">
         <div className="text-sm font-semibold text-[var(--text)]">Analysis</div>
         <div className="mt-3 text-sm text-[var(--text)] whitespace-pre-wrap break-words leading-relaxed">
-          {analysisText.trim() ? analysisText : <span className="text-[var(--muted)]">No analysis yet.</span>}
+          {analysisText.trim() ? (
+            analysisText
+          ) : (
+            <span className="text-[var(--muted)]">No analysis yet.</span>
+          )}
         </div>
       </div>
 

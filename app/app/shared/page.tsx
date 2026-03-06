@@ -440,12 +440,6 @@ export default function SharedPage() {
                         );
                       })}
                     </div>
-
-                    <div className="text-xs text-[var(--muted)] flex gap-3">
-                      <span>{d.wordCount ?? 0} words</span>
-                      <span>{d.charCount ?? 0} chars</span>
-                      {d.langGuess ? <span>{d.langGuess}</span> : null}
-                    </div>
                   </div>
                 </div>
               );
