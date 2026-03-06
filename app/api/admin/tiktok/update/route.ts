@@ -17,8 +17,8 @@ type CityPick = {
 type Body = {
   dreamId?: string;
 
-  city?: CityPick | null;          // ✅ NEW
-  ingestMap?: boolean;             // ✅ NEW (default true)
+  city?: CityPick | null;
+  ingestMap?: boolean;
 
   roots?: string[];
   rootsEn?: string[];
@@ -61,13 +61,19 @@ function cleanCity(c: any): CityPick | null {
 }
 
 async function callIngest(req: Request, uid: string, dreamId: string) {
-  // ВАЖНО: абсолютный URL на текущий хост
-  const url = new URL("/api/map/ingest", req.url);
-  await fetch(url.toString(), {
+  const url = new URL("/api/map/ingest-dream", req.url);
+  const resp = await fetch(url.toString(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uid, dreamId }),
-  }).catch(() => {});
+  });
+
+  if (!resp.ok) {
+    const j = await resp.json().catch(() => ({}));
+    throw new Error(j?.error ? `ingest failed: ${j.error}` : `ingest failed: ${resp.status}`);
+  }
+
+  return resp.json().catch(() => ({}));
 }
 
 export async function POST(req: Request) {
@@ -82,9 +88,16 @@ export async function POST(req: Request) {
     const db = adminDb();
 
     const city = cleanCity(body.city);
-    const ingestMap = body.ingestMap !== false; // default true
+    const ingestMap = body.ingestMap !== false;
 
-    // 1) patch dream doc
+    console.log("[tiktok/update] incoming city:", city ? {
+      cityId: city.cityId,
+      cityLabel: city.label,
+      city: city.city ?? null,
+      country: city.country ?? null,
+      admin1: city.admin1 ?? null,
+    } : null);
+
     const patch: any = {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
@@ -120,15 +133,34 @@ export async function POST(req: Request) {
       patch.rootsUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
     }
 
-    // (опционально) сохраняем город и в dream doc тоже (может пригодиться)
     if (city) {
+      patch.city = {
+        cityId: city.cityId,
+        label: city.label,
+        city: city.city ?? null,
+        country: city.country ?? null,
+        admin1: city.admin1 ?? null,
+        lat: city.lat ?? null,
+        lng: city.lng ?? null,
+      };
       patch.cityId = city.cityId;
       patch.cityLabel = city.label;
+      patch.cityName = city.city ?? null;
+      patch.cityCountry = city.country ?? null;
+      patch.cityAdmin1 = city.admin1 ?? null;
+      patch.country = city.country ?? null;
+      patch.admin1 = city.admin1 ?? null;
+      patch.lat = city.lat ?? null;
+      patch.lng = city.lng ?? null;
+
+      patch.studio = {
+        kind: "tiktok",
+        cityLabel: city.label,
+      };
     }
 
     await db.doc(`users/${uid}/dreams/${dreamId}`).set(patch, { merge: true });
 
-    // 2) если пришёл city — обновляем currentCity* у seed user (КЛЮЧЕВО ДЛЯ КАРТЫ)
     if (city) {
       await db.doc(`users/${uid}`).set(
         {
@@ -142,12 +174,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3) ingest map (по умолчанию true) — чтобы city_emoji_stats обновился сразу
+    let ingestResult: any = null;
     if (ingestMap) {
-      await callIngest(req, uid, dreamId);
+      ingestResult = await callIngest(req, uid, dreamId);
     }
 
-    return NextResponse.json({ ok: true, ingested: ingestMap, cityId: city?.cityId ?? null });
+    return NextResponse.json({
+      ok: true,
+      ingested: ingestMap,
+      cityId: city?.cityId ?? null,
+      ingestResult,
+    });
   } catch (e: any) {
     const msg = e?.message ?? "update failed";
     const code = msg === "FORBIDDEN" ? 403 : msg === "UNAUTHENTICATED" ? 401 : 500;
