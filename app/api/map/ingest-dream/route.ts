@@ -5,6 +5,14 @@ import { adminFirestore } from "@/lib/firebaseAdmin";
 type Body = { uid: string; dreamId: string };
 type DreamEmoji = { native: string; id?: string; name?: string };
 
+type ResolvedCity = {
+  cityId: string;
+  city: string;
+  country: string;
+  admin1: string;
+  source: "dream" | "user";
+};
+
 function s(v: any) {
   return String(v ?? "").trim();
 }
@@ -17,7 +25,6 @@ function todayKeyUTC(ms: number) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// helper: if no coords yet -> call /api/map/resolve-city
 async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
   try {
     const db = adminFirestore();
@@ -35,6 +42,26 @@ async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
   } catch {
     // ignore
   }
+}
+
+function getDreamCity(dream: any): Omit<ResolvedCity, "source"> {
+  const dreamCity = dream?.city && typeof dream.city === "object" ? dream.city : null;
+
+  const cityId = s(dreamCity?.cityId || dream?.cityId);
+  const city = s(dreamCity?.city || dream?.cityName || dream?.cityLabel || dream?.city);
+  const country = s(dreamCity?.country || dream?.cityCountry || dream?.country);
+  const admin1 = s(dreamCity?.admin1 || dream?.cityAdmin1 || dream?.admin1);
+
+  return { cityId, city, country, admin1 };
+}
+
+function getUserCity(user: any): Omit<ResolvedCity, "source"> {
+  return {
+    cityId: s(user?.currentCityId),
+    city: s(user?.currentCity),
+    country: s(user?.currentCountry),
+    admin1: s(user?.currentAdmin1),
+  };
 }
 
 export async function POST(req: Request) {
@@ -57,13 +84,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    const dreamRef = db.collection("users").doc(uid).collection("dreams").doc(dreamId);
+    const userRef = db.collection("users").doc(uid);
+    const dreamRef = userRef.collection("dreams").doc(dreamId);
     const dreamSnap = await dreamRef.get();
     if (!dreamSnap.exists) {
       return NextResponse.json({ error: "Dream not found" }, { status: 404 });
     }
 
     const dream = dreamSnap.data() || {};
+    const isTikTokDream = s(dream?.studio?.kind).toLowerCase() === "tiktok";
+
     const emojis: DreamEmoji[] = Array.isArray(dream.emojis) ? dream.emojis : [];
     const createdAtMs = Number(dream.createdAtMs ?? Date.now());
     const dateKey = s(dream.dateKey) || todayKeyUTC(createdAtMs);
@@ -73,15 +103,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skipped: true, reason: "no_emojis" });
     }
 
-    // ✅ читаем город из user doc
-    const userRef = db.collection("users").doc(uid);
     const userSnap = await userRef.get();
     const user = userSnap.exists ? (userSnap.data() as any) : {};
 
-    const cityId = s(user?.currentCityId);
-    const city = s(user?.currentCity);
-    const country = s(user?.currentCountry);
-    const admin1 = s(user?.currentAdmin1);
+    const fromDream = getDreamCity(dream);
+    const fromUser = getUserCity(user);
+
+    const useDream = !!fromDream.cityId;
+    const resolvedCity: ResolvedCity = {
+      ...(useDream ? fromDream : fromUser),
+      source: useDream ? "dream" : "user",
+    };
+
+    if (isTikTokDream) {
+      console.log("[tiktok/ingest] city source:", resolvedCity.source, {
+        dream: fromDream,
+        user: fromUser,
+      });
+    }
 
     const userStatsRef = userRef.collection("stats").doc("emoji");
     const userDailyRef = userRef.collection("emoji_daily").doc(dateKey);
@@ -90,7 +129,6 @@ export async function POST(req: Request) {
       const ing = await tx.get(ingestRef);
       if (ing.exists) return;
 
-      // обновляем только lastLogin — НЕ город
       tx.set(
         userRef,
         {
@@ -101,7 +139,6 @@ export async function POST(req: Request) {
         { merge: true }
       );
 
-      // ===== USER ALL TIME =====
       tx.set(
         userStatsRef,
         {
@@ -119,7 +156,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ===== USER DAILY =====
       tx.set(
         userDailyRef,
         {
@@ -138,18 +174,17 @@ export async function POST(req: Request) {
         );
       }
 
-      // ===== CITY STATS (только если есть cityId) =====
-      if (cityId) {
-        const cityStatsRef = db.collection("city_emoji_stats").doc(cityId);
-        const cityDailyRef = db.collection("city_emoji_daily").doc(`${cityId}_${dateKey}`);
+      if (resolvedCity.cityId) {
+        const cityStatsRef = db.collection("city_emoji_stats").doc(resolvedCity.cityId);
+        const cityDailyRef = db.collection("city_emoji_daily").doc(`${resolvedCity.cityId}_${dateKey}`);
 
         tx.set(
           cityStatsRef,
           {
-            cityId,
-            city,
-            country,
-            admin1,
+            cityId: resolvedCity.cityId,
+            city: resolvedCity.city,
+            country: resolvedCity.country,
+            admin1: resolvedCity.admin1,
             totalDreams: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           },
@@ -167,7 +202,7 @@ export async function POST(req: Request) {
         tx.set(
           cityDailyRef,
           {
-            cityId,
+            cityId: resolvedCity.cityId,
             dateKey,
             totalDreams: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -184,11 +219,10 @@ export async function POST(req: Request) {
         }
       }
 
-      // mark ingested
       tx.set(ingestRef, {
         uid,
         dreamId,
-        cityId: cityId || null,
+        cityId: resolvedCity.cityId || null,
         dateKey,
         createdAtMs,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -196,9 +230,13 @@ export async function POST(req: Request) {
       });
     });
 
-    if (cityId) resolveCityCoordsIfNeeded(req, cityId);
+    if (isTikTokDream) {
+      console.log("[tiktok/ingest] cityId -> city_emoji_stats:", resolvedCity.cityId || null);
+    }
 
-    return NextResponse.json({ ok: true, cityId: cityId || null, dateKey });
+    if (resolvedCity.cityId) resolveCityCoordsIfNeeded(req, resolvedCity.cityId);
+
+    return NextResponse.json({ ok: true, cityId: resolvedCity.cityId || null, dateKey });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json(
