@@ -317,6 +317,14 @@ export default function MapPage() {
       antialias: true,
     });
 
+    map.addControl(
+  new mapboxgl.NavigationControl({
+    showCompass: false,
+    visualizePitch: false,
+  }),
+  "top-right"
+);
+
     mapRef.current = map;
 
     // fog после каждой загрузки стиля

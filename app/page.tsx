@@ -8,9 +8,15 @@ export default function HomePage() {
 
       <div className="text-center max-w-2xl">
 
-        <h1 className="text-4xl sm:text-6xl font-semibold tracking-wide mb-8">
-          Dreamly
-        </h1>
+       <h1
+  className="text-4xl sm:text-6xl font-semibold tracking-wide mb-8 bg-clip-text text-transparent"
+  style={{
+    backgroundImage:
+      "linear-gradient(90deg, #ff4d6d 0%, #ff9e00 18%, #ffd60a 36%, #38d39f 54%, #4dabf7 72%, #9775fa 100%)",
+  }}
+>
+  Dreamly
+</h1>
 
         <h2 className="text-xl sm:text-2xl font-medium">
           AI Dream Journal & Anonymous Dream Map

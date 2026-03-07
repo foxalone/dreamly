@@ -9,7 +9,7 @@ import { doc, getDoc } from "firebase/firestore";
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
 
-import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
+import { getDatabase, ref as rtdbRef, onValue, off, get } from "firebase/database";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 
@@ -55,12 +55,13 @@ function normalizeForIconsEn(input: string) {
 function desiredCountsFromText(text: string) {
   const wc = (text ?? "").trim().split(/\s+/).filter(Boolean).length;
   const cc = (text ?? "").trim().length;
-  if (wc <= 12 || cc <= 80) return { roots: 2, emojis: 1, icons: 1 };
-  if (wc <= 25 || cc <= 160) return { roots: 3, emojis: 2, icons: 2 };
-  if (wc <= 55 || cc <= 320) return { roots: 5, emojis: 4, icons: 3 };
+
+  if (wc <= 12 && cc <= 80) return { roots: 2, emojis: 2, icons: 2 };
+  if (wc <= 25 && cc <= 160) return { roots: 3, emojis: 3, icons: 3 };
+  if (wc <= 55 && cc <= 320) return { roots: 5, emojis: 4, icons: 3 };
+
   return { roots: 6, emojis: 5, icons: 4 };
 }
-
 // ------------------------
 // Emoji overrides (RTDB)
 // ------------------------
@@ -478,6 +479,46 @@ useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
+
+ async function loadDreamFromTikTokStudio() {
+  setError(null);
+  setBusy("load-dream");
+
+  try {
+    const db = getDatabase();
+    const snap = await get(rtdbRef(db, "/tiktok_studio/dream"));
+
+    if (!snap.exists()) {
+      throw new Error("В /tiktok_studio/dream ничего нет.");
+    }
+
+    const dreamText = String(snap.val() ?? "").trim();
+
+    if (!dreamText) {
+      throw new Error("Сон пустой.");
+    }
+
+    resetDraft();
+
+    let i = 0;
+    const timer = setInterval(() => {
+      i += 1;
+      setText(dreamText.slice(0, i));
+
+      if (i >= dreamText.length) {
+        clearInterval(timer);
+        setBusy(null);
+      }
+    }, 90);
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  } catch (e: any) {
+    setError(e?.message ?? "Не удалось загрузить сон из RTDB");
+    setBusy(null);
+  }
+}
   async function saveToSeed() {
     const t = text.trim();
     if (!t) return;
@@ -718,16 +759,28 @@ useEffect(() => {
     <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-3xl font-semibold text-[var(--text)]">TikTok Studio</h1>
-        
+
+<h4
+  className="text-base font-semibold bg-clip-text text-transparent"
+  style={{
+    backgroundImage:
+      "linear-gradient(90deg, #ff4d6d 0%, #ff9e00 18%, #ffd60a 36%, #38d39f 54%, #4dabf7 72%, #9775fa 100%)",
+  }}
+>
+  dreamly.art
+</h4>
         </div>
 
-        <button
-          onClick={resetDraft}
-          className="px-4 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--text)] font-semibold hover:opacity-90"
-        >
-          Add Dream
-        </button>
+       <button
+  onClick={loadDreamFromTikTokStudio}
+  disabled={!!busy}
+  className={cn(
+    "px-4 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--text)] font-semibold hover:opacity-90",
+    !!busy && "opacity-60 cursor-not-allowed"
+  )}
+>
+  {busy === "load-dream" ? "Loading..." : "Add Dream"}
+</button>
       </div>
 
       {error ? (
@@ -854,7 +907,7 @@ useEffect(() => {
               canSave ? "bg-[var(--text)] text-[var(--bg)] hover:opacity-90" : "opacity-60 cursor-not-allowed"
             )}
           >
-            {busy === "save" || busy === "visuals" ? "Saving…" : "Save (seed)"}
+            {busy === "save" || busy === "visuals" ? "Saving…" : "Save dream"}
           </button>
 
           <button
