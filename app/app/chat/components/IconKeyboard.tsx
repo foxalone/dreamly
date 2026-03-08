@@ -2,7 +2,6 @@ import { ICON_KEYBOARD_ROWS, NUMBER_KEYS } from "../iconComposer";
 
 export type IconKeyboardProps = {
   open: boolean;
-  value: string;
   onInsert: (token: string) => void;
   onBackspace: () => void;
   onClear: () => void;
@@ -10,95 +9,81 @@ export type IconKeyboardProps = {
   onSend?: () => void;
 };
 
-function KeyButton({ label, onClick, className }: { label: string; onClick: () => void; className?: string }) {
+function IconKeyButton({ label, title, onClick }: { label: string; title: string; onClick: () => void }) {
   return (
     <button
       type="button"
+      title={title}
+      aria-label={title}
       onClick={onClick}
-      className={`rounded-xl border border-white/10 bg-white/[0.04] px-2 py-2 text-xl transition hover:bg-white/[0.09] active:scale-[0.98] ${className ?? ""}`}
+      className="h-14 min-w-[56px] shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-[22px] leading-none transition hover:bg-white/[0.09] active:scale-[0.98]"
     >
       {label}
     </button>
   );
 }
 
-export function IconKeyboard({
-  open,
-  value,
-  onInsert,
-  onBackspace,
-  onClear,
-  onClose,
-  onSend,
-}: IconKeyboardProps) {
+export function IconKeyboard({ open, onInsert, onBackspace, onClear, onClose, onSend }: IconKeyboardProps) {
   if (!open) return null;
 
   return (
-    <div className="mb-3 rounded-2xl border border-white/10 bg-[color:color-mix(in_srgb,var(--card)_92%,black)] p-3 shadow-2xl shadow-black/40 sm:p-4">
-      <div className="max-h-[40vh] overflow-auto pr-1">
-        <div className="space-y-2">
-          {ICON_KEYBOARD_ROWS.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-              {row.map((icon) => (
-                <KeyButton key={icon} label={icon} onClick={() => onInsert(icon)} />
-              ))}
-            </div>
-          ))}
-
-          <div className="grid grid-cols-5 gap-2 pt-1 sm:grid-cols-10">
-            {NUMBER_KEYS.map((num) => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => onInsert(num)}
-                className="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-2 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20 active:scale-[0.98]"
-              >
-                {num}
-              </button>
+    <div className="absolute bottom-full left-0 z-50 mb-3 w-full max-w-[min(980px,calc(100vw-32px))] rounded-3xl border border-white/10 bg-[color:color-mix(in_srgb,var(--card)_88%,black)] p-3 shadow-2xl shadow-black/45 sm:p-4">
+      <div className="space-y-2.5">
+        {ICON_KEYBOARD_ROWS.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+            {row.map((item) => (
+              <IconKeyButton key={item.key} label={item.emoji} title={item.label} onClick={() => onInsert(item.emoji)} />
             ))}
           </div>
+        ))}
 
-          <div className="grid grid-cols-3 gap-2 pt-1">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+          {NUMBER_KEYS.map((num) => (
             <button
+              key={num}
               type="button"
-              onClick={() => onInsert(" ")}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium transition hover:bg-white/[0.09] active:scale-[0.99]"
+              onClick={() => onInsert(num)}
+              className="h-11 min-w-[48px] shrink-0 rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20 active:scale-[0.98]"
             >
-              Space
+              {num}
             </button>
-            <button
-              type="button"
-              onClick={onBackspace}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium transition hover:bg-white/[0.09] active:scale-[0.99]"
-            >
-              Backspace
-            </button>
-            <button
-              type="button"
-              onClick={onClear}
-              className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 active:scale-[0.99]"
-            >
-              Clear all
-            </button>
-          </div>
+          ))}
         </div>
-      </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-        <p className="max-w-full truncate text-xs text-[var(--muted)]">Draft: {value || "—"}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap pt-0.5">
+          <button
+            type="button"
+            onClick={() => onInsert(" ")}
+            className="h-11 shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium transition hover:bg-white/[0.09] active:scale-[0.99]"
+          >
+            Space
+          </button>
+          <button
+            type="button"
+            onClick={onBackspace}
+            className="h-11 shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium transition hover:bg-white/[0.09] active:scale-[0.99]"
+          >
+            Backspace
+          </button>
+          <button
+            type="button"
+            onClick={onClear}
+            className="h-11 shrink-0 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 active:scale-[0.99]"
+          >
+            Clear all
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-white/15 bg-white/[0.03] px-3 py-1.5 text-xs font-medium transition hover:bg-white/[0.09]"
+            className="h-11 shrink-0 rounded-xl border border-white/15 bg-white/[0.03] px-3 text-sm font-medium transition hover:bg-white/[0.09]"
           >
-            Close keyboard
+            Close
           </button>
           {onSend ? (
             <button
               type="button"
               onClick={onSend}
-              className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
+              className="h-11 shrink-0 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
             >
               Send
             </button>

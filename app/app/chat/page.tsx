@@ -350,13 +350,9 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <form
-                  onSubmit={onSendMessage}
-                  className="border-t border-white/10 p-3 pb-4 sm:p-4 sm:pb-5"
-                >
+                <form onSubmit={onSendMessage} className="relative border-t border-white/10 p-3 pb-4 sm:p-4 sm:pb-5">
                   <IconKeyboard
                     open={iconKeyboardOpen}
-                    value={draft}
                     onInsert={onInsertToken}
                     onBackspace={onBackspaceToken}
                     onClear={() => setDraft("")}
