@@ -41,6 +41,8 @@ type DreamAdmin = {
 
   // ✅ для shared_dreams
   dreamId?: string; // original dream id
+  storyId?: string;
+  sourceType?: "dream" | "story";
 
   authorName?: string | null;
   authorEmail?: string | null;
@@ -80,6 +82,20 @@ function pickUserIdFromPath(refPath: string) {
   const i = parts.indexOf("users");
   if (i >= 0 && parts[i + 1]) return parts[i + 1];
   return "unknown";
+}
+
+function sourceCollection(d: DreamAdmin) {
+  return d.sourceType === "story" ? "stories" : "dreams";
+}
+
+function sourceDocId(d: DreamAdmin) {
+  return d.sourceType === "story" ? d.storyId || d.id : d.dreamId || d.id;
+}
+
+function sharedDocIdFor(d: DreamAdmin, onlySharedFlag: boolean) {
+  if (onlySharedFlag) return d.id;
+  if (d.sourceType === "story") return `${d.userId}_story_${sourceDocId(d)}`;
+  return `${d.userId}_${sourceDocId(d)}`;
 }
 
 // ✅ Added iconKey
@@ -260,14 +276,17 @@ export default function AdminDashboardPage() {
           const data = d.data() as any;
 
           if (onlyShared) {
-            // shared_dreams docId: "{uid}_{dreamId}"
+            // shared_dreams docId legacy: "{uid}_{dreamId}", stories: "{uid}_story_{storyId}"
             const [uidPart, ...rest] = String(d.id).split("_");
-            const dreamId = rest.join("_");
+            const tailId = rest.join("_");
+            const sourceType = data.sourceType === "story" ? "story" : "dream";
 
             return {
               id: d.id,
               userId: data.ownerUid || uidPart || "unknown",
-              dreamId: data.ownerDreamId || dreamId || "",
+              dreamId: sourceType === "dream" ? data.ownerDreamId || tailId || "" : undefined,
+              storyId: sourceType === "story" ? data.ownerStoryId || tailId || "" : undefined,
+              sourceType,
 
               title: data.title,
               text: data.text,
@@ -435,27 +454,21 @@ export default function AdminDashboardPage() {
     if (!confirm("Hide this dream from Shared?")) return;
 
     // 1) убрать флаг в оригинале
-    if (d.userId && (d.dreamId || (!onlyShared && d.id))) {
-      const originalDreamId = d.dreamId || d.id;
-      const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+    if (d.userId && sourceDocId(d)) {
+      const ref = doc(firestore, "users", d.userId, sourceCollection(d), sourceDocId(d));
       await updateDoc(ref, { shared: false, sharedAtMs: null });
     }
 
     // 2) удалить из shared_dreams
-    const sharedDocId = onlyShared ? d.id : `${d.userId}_${d.id}`;
+    const sharedDocId = sharedDocIdFor(d, onlyShared);
     await deleteDoc(doc(firestore, "shared_dreams", sharedDocId));
-  }
-
-  function sharedDocIdFor(d: DreamAdmin, onlySharedFlag: boolean) {
-    return onlySharedFlag ? d.id : `${d.userId}_${d.id}`;
   }
 
   async function softDelete(d: DreamAdmin) {
     if (!isAdmin) return;
     if (!confirm("Soft delete this dream?")) return;
 
-    const originalDreamId = d.dreamId || d.id;
-    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+    const ref = doc(firestore, "users", d.userId, sourceCollection(d), sourceDocId(d));
 
     await updateDoc(ref, {
       deleted: true,
@@ -471,8 +484,7 @@ export default function AdminDashboardPage() {
     if (!isAdmin) return;
     if (!confirm("HARD DELETE? Permanently remove document?")) return;
 
-    const originalDreamId = d.dreamId || d.id;
-    const ref = doc(firestore, "users", d.userId, "dreams", originalDreamId);
+    const ref = doc(firestore, "users", d.userId, sourceCollection(d), sourceDocId(d));
 
     await deleteDoc(ref);
     await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));

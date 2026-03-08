@@ -70,10 +70,25 @@ type Dream = {
   analysisModel?: string;
 
   iconsEn?: DreamIconKey[];
+  sourceType?: ContentType;
 };
 
-type Tab = "ALL" | "SHARED";
+type ContentType = "dream" | "story";
+type Tab = "ALL" | "SHARED" | "STORIES";
 type RecStatus = "idle" | "listening" | "paused" | "error";
+
+function getCollectionNameByType(type: ContentType) {
+  return type === "story" ? "stories" : "dreams";
+}
+
+function getDisplayPrefix(type: ContentType) {
+  return type === "story" ? "Story" : "Dream";
+}
+
+function getSharedDocId(uid: string, type: ContentType, itemId: string) {
+  if (type === "dream") return `${uid}_${itemId}`;
+  return `${uid}_${type}_${itemId}`;
+}
 
 // ------------------------
 // utils (твои же)
@@ -447,11 +462,13 @@ export default function DreamsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [dreams, setDreams] = useState<Dream[]>([]);
+  const [stories, setStories] = useState<Dream[]>([]);
   const [uid, setUid] = useState<string | null>(null);
   const [credits, setCredits] = useState(0);
   const [creditsLoading, setCreditsLoading] = useState(true);
 
   const [tab, setTab] = useState<Tab>("ALL");
+  const [composerType, setComposerType] = useState<ContentType>("dream");
 
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -479,6 +496,7 @@ export default function DreamsPage() {
 
   const [analysisBusyId, setAnalysisBusyId] = useState<string | null>(null);
   const [analysisOpenId, setAnalysisOpenId] = useState<string | null>(null);
+  const [analysisOpenType, setAnalysisOpenType] = useState<ContentType>("dream");
 
   const hintsRef = useRef<Record<string, string>>({});
 
@@ -531,8 +549,9 @@ export default function DreamsPage() {
     return () => off(p, "value", cb);
   }, []);
 
-  function openAnalysis(dreamId: string) {
-    setAnalysisOpenId(dreamId);
+  function openAnalysis(itemId: string, type: ContentType = "dream") {
+    setAnalysisOpenType(type);
+    setAnalysisOpenId(itemId);
   }
   function closeAnalysis() {
     setAnalysisOpenId(null);
@@ -751,6 +770,37 @@ export default function DreamsPage() {
 
   useEffect(() => {
     if (!uid) {
+      setStories([]);
+      return;
+    }
+
+    const q1 = query(
+      collection(firestore, "users", uid, "stories"),
+      orderBy("createdAtMs", "desc"),
+      limit(200)
+    );
+
+    const unsub = onSnapshot(
+      q1,
+      (snap) => {
+        const items: Dream[] = snap.docs.map((d) => ({
+          id: d.id,
+          sourceType: "story",
+          ...(d.data() as any),
+        }));
+        setStories(items);
+      },
+      (err) => {
+        console.error("stories onSnapshot error:", err);
+        setError(err?.message ?? "Failed to load stories.");
+      }
+    );
+
+    return () => unsub();
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid) {
       setCredits(0);
       setCreditsLoading(false);
       return;
@@ -833,15 +883,117 @@ export default function DreamsPage() {
     setOpen(false);
   }
 
+  async function extractRootsForItem(itemId: string, type: ContentType) {
+    const u = auth.currentUser;
+    if (!u) return;
+
+    const uid2 = u.uid;
+    if (!uid2) return;
+    if (rootsBusyId || deletingId || sharingId) return;
+
+    const list = type === "story" ? stories : dreams;
+    let item = list.find((d) => d.id === itemId) as any;
+    if (!item) {
+      const snap = await getDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId));
+      if (!snap.exists()) return;
+      item = { id: itemId, ...(snap.data() as any) };
+    }
+
+    const t = String(item?.text ?? "").trim();
+    if (!t) return;
+
+    const hasRoots =
+      (Array.isArray(item?.roots) && item.roots.length > 0) ||
+      (Array.isArray(item?.rootsEn) && item.rootsEn.length > 0);
+
+    const hasVisuals =
+      (Array.isArray(item?.emojis) && item.emojis.length > 0) ||
+      (Array.isArray(item?.iconsEn) && item.iconsEn.length > 0);
+
+    if (hasRoots && hasVisuals) return;
+
+    setError(null);
+    setRootsBusyId(itemId);
+
+    try {
+      const res = await fetch("/api/dreams/rootwords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: t }),
+      });
+
+      const data2 = await res.json();
+      if (!res.ok) throw new Error(data2?.error ?? "API failed");
+
+      const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
+      const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
+
+      const counts = desiredCountsFromText(t);
+      const rootsMajor = rootsArr.slice(0, counts.roots);
+      const rootsEnMajor = rootsEnArr.slice(0, counts.roots);
+
+      if (!rootsMajor.length || !rootsEnMajor.length) {
+        throw new Error("No roots found. Try writing a bit more details.");
+      }
+
+      const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
+      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
+      const iconsEn = filterIconsEn(iconsEnRaw, counts.icons);
+
+      const picked = await Promise.all(
+        rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
+      );
+
+      const emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
+
+      await updateDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId), {
+        roots: rootsMajor,
+        rootsEn: rootsEnMajor,
+        rootsLang: data2?.lang ?? null,
+        rootsTop: [],
+        iconsEn,
+        emojis,
+        rootsUpdatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      if (type === "dream") {
+        try {
+          await ingestDreamForMap({ uid: uid2, dreamId: itemId });
+        } catch (e) {
+          console.warn("map ingest failed", e);
+        }
+      }
+
+      const apply = (x: Dream) =>
+        x.id === itemId
+          ? {
+              ...x,
+              roots: rootsMajor,
+              rootsEn: rootsEnMajor,
+              rootsLang: data2?.lang ?? null,
+              rootsTop: [],
+              iconsEn,
+              emojis,
+            }
+          : x;
+
+      if (type === "story") setStories((prev) => prev.map(apply));
+      else setDreams((prev) => prev.map(apply));
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to extract roots.");
+    } finally {
+      setRootsBusyId(null);
+    }
+  }
+
   async function save() {
-
-
     const v = text.trim();
+    const noun = composerType === "story" ? "Story" : "Dream";
     if (v.length > MAX_DREAM_CHARS) {
-  setError(`Dream is too long. Max ${MAX_DREAM_CHARS} characters.`);
-  return;
-}
-
+      setError(`${noun} is too long. Max ${MAX_DREAM_CHARS} characters.`);
+      return;
+    }
 
     if (!v || saving) return;
 
@@ -849,11 +1001,11 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-   if (credits < 1) {
-  setError("Not enough credits to save a dream.");
-  router.push("/app/upgrade");
-  return;
-}
+    if (credits < 1) {
+      setError(`Not enough credits to save a ${composerType}.`);
+      router.push("/app/upgrade");
+      return;
+    }
 
     const now = new Date();
     const payload = {
@@ -891,6 +1043,11 @@ export default function DreamsPage() {
       rootsEn: [] as string[],
       rootsLang: null as any,
       rootsUpdatedAt: null as any,
+
+      sourceType: composerType,
+      ownerUid: u.uid,
+      authorName: (u.displayName ?? "").trim() || null,
+      authorEmail: (u.email ?? "").trim() || null,
     };
 
     setSaving(true);
@@ -914,7 +1071,7 @@ export default function DreamsPage() {
 
       let docRef: any;
       try {
-        docRef = await addDoc(collection(firestore, "users", u.uid, "dreams"), payload);
+        docRef = await addDoc(collection(firestore, "users", u.uid, getCollectionNameByType(composerType)), payload);
       } catch (e) {
         await runTransaction(firestore, async (tx) => {
           const userSnap = await tx.get(userRef);
@@ -934,23 +1091,23 @@ export default function DreamsPage() {
       setOpen(false);
       setSaving(false);
 
+      const createdType = composerType;
       setTimeout(() => {
-        extractRoots(docRef.id).catch(() => {});
+        extractRootsForItem(docRef.id, createdType).catch(() => {});
       }, 50);
     } catch (e: any) {
-   if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-  setError("Not enough credits to save a dream.");
-  setSaving(false);
-  router.push("/app/upgrade");
-  return;
-}
-      setError(e?.message ?? "Failed to save dream.");
+      if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
+        setError(`Not enough credits to save a ${composerType}.`);
+        setSaving(false);
+        router.push("/app/upgrade");
+        return;
+      }
+      setError(e?.message ?? `Failed to save ${composerType}.`);
       setSaving(false);
     }
   }
 
-
-  async function shareDream(dreamId: string) {
+  async function shareItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
     if (!u) return;
 
@@ -959,50 +1116,54 @@ export default function DreamsPage() {
     if (sharingId || deletingId) return;
 
     setError(null);
-    setSharingId(dreamId);
+    setSharingId(itemId);
 
-    const dream = dreams.find((x) => x.id === dreamId);
-    if (!dream) {
-      setError("Dream not found in local state.");
+    const list = type === "story" ? stories : dreams;
+    const item = list.find((x) => x.id === itemId);
+    if (!item) {
+      setError(`${getDisplayPrefix(type)} not found in local state.`);
       setSharingId(null);
       return;
     }
 
-    setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, shared: true, sharedAtMs: Date.now() } : d)));
+    const optimistic = (d: Dream) => (d.id === itemId ? { ...d, shared: true, sharedAtMs: Date.now() } : d);
+    if (type === "story") setStories((prev) => prev.map(optimistic));
+    else setDreams((prev) => prev.map(optimistic));
 
     try {
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId), {
         shared: true,
         sharedAtMs: nowMs,
         sharedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      const sharedId = `${uid2}_${dreamId}`;
+      const sharedId = getSharedDocId(uid2, type, itemId);
 
       await setDoc(doc(firestore, "shared_dreams", sharedId), {
         ownerUid: uid2,
-        ownerDreamId: dreamId,
+        ownerDreamId: type === "dream" ? itemId : null,
+        ownerStoryId: type === "story" ? itemId : null,
+        sourceType: type,
 
-          // ✅ author label for feed initials
-  authorName: (u.displayName ?? "").trim() || null,
-  authorEmail: (u.email ?? "").trim() || null,
+        authorName: (u.displayName ?? "").trim() || null,
+        authorEmail: (u.email ?? "").trim() || null,
 
-        title: dream.title ?? "",
-        text: dream.text ?? "",
+        title: item.title ?? "",
+        text: item.text ?? "",
 
-        dateKey: dream.dateKey ?? null,
-        timeKey: dream.timeKey ?? null,
-        createdAtMs: dream.createdAtMs ?? null,
+        dateKey: item.dateKey ?? null,
+        timeKey: item.timeKey ?? null,
+        createdAtMs: item.createdAtMs ?? null,
 
-        wordCount: dream.wordCount ?? null,
-        charCount: dream.charCount ?? null,
-        langGuess: (dream as any).langGuess ?? null,
+        wordCount: item.wordCount ?? null,
+        charCount: item.charCount ?? null,
+        langGuess: (item as any).langGuess ?? null,
 
-        iconsEn: (dream as any).iconsEn ?? [],
-        emojis: (dream as any).emojis ?? [],
+        iconsEn: (item as any).iconsEn ?? [],
+        emojis: (item as any).emojis ?? [],
 
         sharedAtMs: nowMs,
         sharedAt: serverTimestamp(),
@@ -1015,8 +1176,10 @@ export default function DreamsPage() {
 
       setTab("SHARED");
     } catch (e: any) {
-      setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, shared: false } : d)));
-      setError(e?.message ?? "Failed to share dream.");
+      const rollback = (d: Dream) => (d.id === itemId ? { ...d, shared: false } : d);
+      if (type === "story") setStories((prev) => prev.map(rollback));
+      else setDreams((prev) => prev.map(rollback));
+      setError(e?.message ?? `Failed to share ${type}.`);
     } finally {
       setSharingId(null);
     }
@@ -1127,7 +1290,7 @@ export default function DreamsPage() {
     }
   }
 
-  async function deleteDream(dreamId: string) {
+  async function deleteItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
     if (!u) return;
 
@@ -1136,29 +1299,33 @@ export default function DreamsPage() {
     if (deletingId || sharingId) return;
 
     setError(null);
-    setDeletingId(dreamId);
+    setDeletingId(itemId);
 
-    setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, deleted: true } : d)));
+    const optimistic = (d: Dream) => (d.id === itemId ? { ...d, deleted: true } : d);
+    if (type === "story") setStories((prev) => prev.map(optimistic));
+    else setDreams((prev) => prev.map(optimistic));
 
     try {
       const nowMs = Date.now();
 
-      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
+      await updateDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId), {
         deleted: true,
         deletedAtMs: nowMs,
         deletedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      const sharedId = `${uid2}_${dreamId}`;
+      const sharedId = getSharedDocId(uid2, type, itemId);
       await updateDoc(doc(firestore, "shared_dreams", sharedId), {
         deleted: true,
         deletedAtMs: nowMs,
         updatedAt: serverTimestamp(),
       }).catch(() => {});
     } catch (e: any) {
-      setDreams((prev) => prev.map((d) => (d.id === dreamId ? { ...d, deleted: false } : d)));
-      setError(e?.message ?? "Failed to delete dream.");
+      const rollback = (d: Dream) => (d.id === itemId ? { ...d, deleted: false } : d);
+      if (type === "story") setStories((prev) => prev.map(rollback));
+      else setDreams((prev) => prev.map(rollback));
+      setError(e?.message ?? `Failed to delete ${type}.`);
     } finally {
       setDeletingId(null);
     }
@@ -1188,113 +1355,21 @@ export default function DreamsPage() {
     return out;
   }
 
-  async function extractRoots(dreamId: string) {
-    const u = auth.currentUser;
-    if (!u) return;
-
-    const uid2 = u.uid;
-    if (!uid2) return;
-    if (rootsBusyId || deletingId || sharingId) return;
-
-    let dream = dreams.find((d) => d.id === dreamId) as any;
-    if (!dream) {
-      const snap = await getDoc(doc(firestore, "users", uid2, "dreams", dreamId));
-      if (!snap.exists()) return;
-      dream = { id: dreamId, ...(snap.data() as any) };
-    }
-
-    const t = String(dream?.text ?? "").trim();
-    if (!t) return;
-
-    const hasRoots =
-      (Array.isArray(dream?.roots) && dream.roots.length > 0) ||
-      (Array.isArray(dream?.rootsEn) && dream.rootsEn.length > 0);
-
-    const hasVisuals =
-      (Array.isArray(dream?.emojis) && dream.emojis.length > 0) ||
-      (Array.isArray(dream?.iconsEn) && dream.iconsEn.length > 0);
-
-    if (hasRoots && hasVisuals) return;
-
-    setError(null);
-    setRootsBusyId(dreamId);
-
-    try {
-      const res = await fetch("/api/dreams/rootwords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t }),
-      });
-
-      const data2 = await res.json();
-      if (!res.ok) throw new Error(data2?.error ?? "API failed");
-
-      const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
-      const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
-
-      const counts = desiredCountsFromText(t);
-
-      const rootsMajor = rootsArr.slice(0, counts.roots);
-      const rootsEnMajor = rootsEnArr.slice(0, counts.roots);
-
-      if (!rootsMajor.length || !rootsEnMajor.length) {
-        throw new Error("No roots found. Try writing a bit more details.");
-      }
-
-      const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
-      const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
-      const iconsEn = filterIconsEn(iconsEnRaw, counts.icons);
-
-      const picked = await Promise.all(
-        rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
-      );
-
-      const emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
-
-      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
-        roots: rootsMajor,
-        rootsEn: rootsEnMajor,
-        rootsLang: data2?.lang ?? null,
-        rootsTop: [],
-        iconsEn,
-        emojis,
-        rootsUpdatedAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      try {
-        await ingestDreamForMap({ uid: uid2, dreamId });
-      } catch (e) {
-        console.warn("map ingest failed", e);
-      }
-
-      setDreams((prev) =>
-        prev.map((x) =>
-          x.id === dreamId
-            ? {
-                ...x,
-                roots: rootsMajor,
-                rootsEn: rootsEnMajor,
-                rootsLang: data2?.lang ?? null,
-                rootsTop: [],
-                iconsEn,
-                emojis,
-              }
-            : x
-        )
-      );
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to extract roots.");
-    } finally {
-      setRootsBusyId(null);
-    }
-  }
-
   const canSave = useMemo(() => !!text.trim() && !saving && credits >= 1, [text, saving, credits]);
 
-  const aliveDreams = useMemo(() => dreams.filter((d) => (d as any).deleted !== true), [dreams]);
-  const sharedDreams = useMemo(() => aliveDreams.filter((d) => d.shared === true), [aliveDreams]);
-  const visibleDreams = tab === "SHARED" ? sharedDreams : aliveDreams;
+  const aliveDreams = useMemo(
+    () => dreams.filter((d) => (d as any).deleted !== true).map((d) => ({ ...d, sourceType: "dream" as const })),
+    [dreams]
+  );
+  const aliveStories = useMemo(
+    () => stories.filter((d) => (d as any).deleted !== true).map((d) => ({ ...d, sourceType: "story" as const })),
+    [stories]
+  );
+  const sharedItems = useMemo(
+    () => [...aliveDreams, ...aliveStories].filter((d) => d.shared === true),
+    [aliveDreams, aliveStories]
+  );
+  const visibleItems = tab === "SHARED" ? sharedItems : tab === "STORIES" ? aliveStories : aliveDreams;
   const locked = !uid;
 
   useEffect(() => {
@@ -1304,11 +1379,12 @@ export default function DreamsPage() {
     let cancelled = false;
 
     (async () => {
-      const shared = aliveDreams.filter((d) => d.shared === true);
+      const shared = sharedItems;
 
       const pairs = await Promise.all(
         shared.map(async (d) => {
-          const sharedId = `${uid}_${d.id}`;
+          const sourceType = d.sourceType ?? "dream";
+          const sharedId = getSharedDocId(uid, sourceType, d.id);
           const snap = await getDoc(doc(firestore, "shared_dreams", sharedId));
           const data2 = snap.exists() ? (snap.data() as any) : {};
           const r = data2.reactions ?? {};
@@ -1326,7 +1402,7 @@ export default function DreamsPage() {
       if (cancelled) return;
 
       const map: Record<string, { heart: number; like: number; star: number }> = {};
-      for (const [dreamId, r] of pairs) map[dreamId] = r;
+      for (const [itemId, r] of pairs) map[itemId] = r;
 
       setPublicReactions(map);
     })().catch((e) => console.error(e));
@@ -1334,7 +1410,7 @@ export default function DreamsPage() {
     return () => {
       cancelled = true;
     };
-  }, [uid, tab, aliveDreams]);
+  }, [uid, tab, sharedItems]);
 
   return (
     <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
@@ -1342,7 +1418,7 @@ export default function DreamsPage() {
         <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
           <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-6">
             <div className="text-[var(--text)] text-lg font-semibold">You are not signed in.</div>
-            <div className="mt-2 text-[var(--muted)]">Sign in with Google to create and save your dreams.</div>
+            <div className="mt-2 text-[var(--muted)]">Sign in with Google to create and save your dreams and stories.</div>
 
             <button
               onClick={signInGoogle}
@@ -1390,7 +1466,19 @@ export default function DreamsPage() {
         : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
     ].join(" ")}
   >
-    Shared <span className="opacity-70">({sharedDreams.length})</span>
+    Shared <span className="opacity-70">({sharedItems.length})</span>
+  </button>
+
+  <button
+    onClick={() => setTab("STORIES")}
+    className={[
+      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      tab === "STORIES"
+        ? "bg-[var(--text)] text-[var(--bg)]"
+        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+    ].join(" ")}
+  >
+    Stories <span className="opacity-70">({aliveStories.length})</span>
   </button>
 
   {/* ✅ Credits pill (не переключает таб, а ведёт на апгрейд) */}
@@ -1409,6 +1497,7 @@ export default function DreamsPage() {
 
         <button
           onClick={() => {
+            setComposerType(tab === "STORIES" ? "story" : "dream");
             setOpen(true);
           }}
           className="
@@ -1438,13 +1527,13 @@ export default function DreamsPage() {
       )}
 
       {/* List */}
-      {!uid ? null : visibleDreams.length === 0 ? (
+      {!uid ? null : visibleItems.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
-          {tab === "SHARED" ? "No shared dreams yet. Share one from the All tab." : "No dreams yet. Add your first one."}
+          {tab === "SHARED" ? "No shared items yet. Share one from All or Stories." : tab === "STORIES" ? "No stories yet. Add your first one." : "No dreams yet. Add your first one."}
         </div>
       ) : (
         <div className="mt-8 space-y-3">
-          {visibleDreams.map((d, index) => {
+          {visibleItems.map((d, index) => {
             const isShared = d.shared === true;
             const isSharing = sharingId === d.id;
             const isDeleting = deletingId === d.id;
@@ -1458,14 +1547,14 @@ export default function DreamsPage() {
               (Array.isArray(d.emojis) && d.emojis.length > 0) ||
               (Array.isArray(d.iconsEn) && d.iconsEn.length > 0);
 
-            const dreamNum = visibleDreams.length - index;
+            const itemNum = visibleItems.length - index;
 
             return (
               <div key={d.id} className="p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                      <div className="text-base font-semibold">Dream #{dreamNum}</div>
+                      <div className="text-base font-semibold">{getDisplayPrefix((d.sourceType ?? "dream") as ContentType)} #{itemNum}</div>
 
                       {isRootsBusy && !(hasRoots && hasVisuals) && (
                         <span className="text-xs text-[var(--muted)]">Generating…</span>
@@ -1508,7 +1597,7 @@ export default function DreamsPage() {
 
                   <div className="flex items-center gap-2 flex-wrap justify-end">
                     <button
-                      onClick={() => shareDream(d.id)}
+                      onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
                       disabled={isShared || isSharing || isDeleting}
                       className={[
                         "dream-btn",
@@ -1521,7 +1610,7 @@ export default function DreamsPage() {
                       {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
                     </button>
 
-                    {(() => {
+                    {(d.sourceType ?? "dream") === "dream" && (() => {
                       const hasAnalysis = !!(d.analysisText ?? "").trim();
                       const isAnalyzing = analysisBusyId === d.id;
                       const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
@@ -1546,7 +1635,8 @@ export default function DreamsPage() {
 
                     <button
                       onClick={() => {
-                        if (confirm("Delete this dream?")) deleteDream(d.id);
+                        const kind = getDisplayPrefix((d.sourceType ?? "dream") as ContentType).toLowerCase();
+                        if (confirm(`Delete this ${kind}?`)) deleteItem(d.id, (d.sourceType ?? "dream") as ContentType);
                       }}
                       disabled={isDeleting || isSharing}
                       className={[
@@ -1636,7 +1726,7 @@ export default function DreamsPage() {
 
             <div className="px-5 sm:px-6 pt-4 pb-5">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">New Dream</h2>
+                <h2 className="text-lg font-semibold">New {getDisplayPrefix(composerType)}</h2>
 
                 <button
                   onClick={close}
@@ -1661,7 +1751,11 @@ export default function DreamsPage() {
     if (next) setRecLang(next);
   }}
   maxLength={MAX_DREAM_CHARS}
-  placeholder="Record or type your dream. Save it, then analyze it with AI."
+  placeholder={
+    composerType === "story"
+      ? "Record or type your story. Save it to generate roots and icons."
+      : "Record or type your dream. Save it, then analyze it with AI."
+  }
   rows={5}
   disabled={saving}
   className="w-full resize-none rounded-2xl p-4
@@ -1765,7 +1859,7 @@ export default function DreamsPage() {
 
       {analysisOpenId &&
         (() => {
-          const d = dreams.find((x) => x.id === analysisOpenId);
+          const d = (analysisOpenType === "story" ? stories : dreams).find((x) => x.id === analysisOpenId);
           const txt = (d?.analysisText ?? "").trim();
 
           return (
