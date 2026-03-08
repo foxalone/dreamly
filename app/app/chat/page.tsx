@@ -143,6 +143,7 @@ export default function ChatPage() {
       },
     ]);
     setDraft("");
+    setIconKeyboardOpen(false);
   }
 
   async function onCopyInviteLink() {

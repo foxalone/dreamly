@@ -1,4 +1,4 @@
-import { ICON_KEYBOARD_ROWS, NUMBER_KEYS } from "../iconComposer";
+import { DREAM_EMOJI_ROWS, NUMBER_KEYS } from "../iconComposer";
 
 export type IconKeyboardProps = {
   open: boolean;
@@ -26,16 +26,30 @@ function IconKeyButton({ label, title, onClick }: { label: string; title: string
 export function IconKeyboard({ open, onInsert, onBackspace, onClear, onClose, onSend }: IconKeyboardProps) {
   if (!open) return null;
 
+  const onSendAndClose = () => {
+    onSend?.();
+    onClose();
+  };
+
   return (
     <div className="absolute bottom-full left-0 z-50 mb-3 w-full max-w-[min(980px,calc(100vw-32px))] rounded-3xl border border-white/10 bg-[color:color-mix(in_srgb,var(--card)_88%,black)] p-3 shadow-2xl shadow-black/45 sm:p-4">
       <div className="space-y-2.5">
-        {ICON_KEYBOARD_ROWS.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
-            {row.map((item) => (
-              <IconKeyButton key={item.key} label={item.emoji} title={item.label} onClick={() => onInsert(item.emoji)} />
+        <div className="overflow-x-auto pb-1">
+          <div className="w-max space-y-2.5">
+            {DREAM_EMOJI_ROWS.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex gap-2 whitespace-nowrap">
+                {row.map((item, emojiIndex) => (
+                  <IconKeyButton
+                    key={`${item.native}-${emojiIndex}`}
+                    label={item.native}
+                    title={item.name || item.id || "emoji"}
+                    onClick={() => onInsert(item.native)}
+                  />
+                ))}
+              </div>
             ))}
           </div>
-        ))}
+        </div>
 
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
           {NUMBER_KEYS.map((num) => (
@@ -82,7 +96,7 @@ export function IconKeyboard({ open, onInsert, onBackspace, onClear, onClose, on
           {onSend ? (
             <button
               type="button"
-              onClick={onSend}
+              onClick={onSendAndClose}
               className="h-11 shrink-0 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
             >
               Send

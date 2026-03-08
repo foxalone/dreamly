@@ -1,102 +1,62 @@
-import { DREAM_ICONS_EN, type DreamIconKey } from "@/lib/dream-icons/dreamIcons.en";
+import data from "@emoji-mart/data";
 
-const ICON_GLYPHS_BY_KEY: Record<DreamIconKey, { emoji: string; label: string }> = {
-  forest: { emoji: "🌲", label: "Forest" },
-  bell: { emoji: "🔔", label: "Bell" },
-  wind: { emoji: "💨", label: "Wind" },
-  music: { emoji: "🎵", label: "Music" },
-  light: { emoji: "☀️", label: "Light" },
-  night: { emoji: "🌙", label: "Night" },
-  stars: { emoji: "✨", label: "Stars" },
-  rain: { emoji: "🌧️", label: "Rain" },
-  snow: { emoji: "🌨️", label: "Snow" },
-  storm: { emoji: "⛈️", label: "Storm" },
-  water: { emoji: "🌊", label: "Water" },
-  fire: { emoji: "🔥", label: "Fire" },
-  tears: { emoji: "💧", label: "Tears" },
-  mountain: { emoji: "⛰️", label: "Mountain" },
-  nature: { emoji: "🍃", label: "Nature" },
-  flowers: { emoji: "🌸", label: "Flowers" },
-  bird: { emoji: "🐦", label: "Bird" },
-  insects: { emoji: "🐛", label: "Insects" },
-  fish: { emoji: "🐟", label: "Fish" },
-  animals: { emoji: "🐾", label: "Animals" },
-  home: { emoji: "🏠", label: "Home" },
-  city: { emoji: "🏙️", label: "City" },
-  hospital: { emoji: "🏥", label: "Hospital" },
-  school: { emoji: "🏫", label: "School" },
-  shop: { emoji: "🏪", label: "Shop" },
-  car: { emoji: "🚗", label: "Car" },
-  public_transport: { emoji: "🚌", label: "Public transport" },
-  train: { emoji: "🚆", label: "Train" },
-  plane: { emoji: "✈️", label: "Plane" },
-  ship: { emoji: "🚢", label: "Ship" },
-  route: { emoji: "🛣️", label: "Route" },
-  navigation: { emoji: "🧭", label: "Navigation" },
-  footsteps: { emoji: "👣", label: "Footsteps" },
-  location: { emoji: "📍", label: "Location" },
-  key: { emoji: "🗝️", label: "Key" },
-  lock: { emoji: "🔒", label: "Lock" },
-  protection: { emoji: "🛡️", label: "Protection" },
-  watching: { emoji: "👁️", label: "Watching" },
-  hiding: { emoji: "🙈", label: "Hiding" },
-  search: { emoji: "🔍", label: "Search" },
-  phone: { emoji: "📞", label: "Phone" },
-  chat: { emoji: "💬", label: "Chat" },
-  people: { emoji: "👥", label: "People" },
-  person: { emoji: "🧍", label: "Person" },
-  baby: { emoji: "👶", label: "Baby" },
-  love: { emoji: "❤️", label: "Love" },
-  heartbreak: { emoji: "💔", label: "Heartbreak" },
-  happy: { emoji: "🙂", label: "Happy" },
-  sad: { emoji: "😔", label: "Sad" },
-  anger: { emoji: "😠", label: "Anger" },
-  laugh: { emoji: "😆", label: "Laugh" },
-  death: { emoji: "💀", label: "Death" },
-  ghost: { emoji: "👻", label: "Ghost" },
-  magic: { emoji: "✨", label: "Magic" },
-  idea: { emoji: "💡", label: "Idea" },
-  time: { emoji: "🕒", label: "Time" },
-  date: { emoji: "📅", label: "Date" },
-  waiting: { emoji: "⏳", label: "Waiting" },
-  camera: { emoji: "📷", label: "Camera" },
-  tv: { emoji: "📺", label: "TV" },
-  game: { emoji: "🎮", label: "Game" },
-  reading: { emoji: "📖", label: "Reading" },
-  writing: { emoji: "✏️", label: "Writing" },
-  cut: { emoji: "✂️", label: "Cut" },
-  shopping: { emoji: "🛍️", label: "Shopping" },
-  money: { emoji: "💳", label: "Money" },
-  work: { emoji: "💼", label: "Work" },
-  food: { emoji: "🍽️", label: "Food" },
-  coffee: { emoji: "☕", label: "Coffee" },
-  fruit: { emoji: "🍎", label: "Fruit" },
-  pizza: { emoji: "🍕", label: "Pizza" },
-  drums: { emoji: "🥁", label: "Drums" },
-  guitar: { emoji: "🎸", label: "Guitar" },
-  singing: { emoji: "🎤", label: "Singing" },
-  silence: { emoji: "🔇", label: "Silence" },
-  loud: { emoji: "🔊", label: "Loud" },
-  danger: { emoji: "⚠️", label: "Danger" },
-  fight: { emoji: "⚔️", label: "Fight" },
+export type DreamEmojiItem = {
+  native: string;
+  id?: string;
+  name?: string;
 };
 
-export type IconKeyboardItem = {
-  key: DreamIconKey;
-  emoji: string;
-  label: string;
+type EmojiMartEntry = {
+  id?: string;
+  name?: string;
+  native?: string;
+  skins?: Array<{ native?: string }>;
 };
 
-export const ALL_ICON_ITEMS: IconKeyboardItem[] = (Object.keys(DREAM_ICONS_EN) as DreamIconKey[])
-  .map((key) => ({ key, ...(ICON_GLYPHS_BY_KEY[key] ?? { emoji: "", label: key }) }))
-  .filter((item) => Boolean(item.emoji?.trim()));
+type EmojiMartData = {
+  emojis?: Record<string, EmojiMartEntry>;
+};
 
-const ROW_SIZE = Math.ceil(ALL_ICON_ITEMS.length / 3);
+function norm(s: unknown): string {
+  return String(s ?? "").toLowerCase().trim();
+}
 
-export const ICON_KEYBOARD_ROWS: IconKeyboardItem[][] = [
-  ALL_ICON_ITEMS.slice(0, ROW_SIZE),
-  ALL_ICON_ITEMS.slice(ROW_SIZE, ROW_SIZE * 2),
-  ALL_ICON_ITEMS.slice(ROW_SIZE * 2),
+function isGarbageEmoji(emoji: EmojiMartEntry): boolean {
+  const id = norm(emoji?.id);
+  const name = norm(emoji?.name);
+
+  if (id.startsWith("flag-") || name.includes("flag")) return true;
+  if (id.includes("skin-tone")) return true;
+  if (id.startsWith("keycap_") || name.includes("keycap")) return true;
+  if (name.includes("regional indicator")) return true;
+  return false;
+}
+
+function toDreamEmojiLibrary(): DreamEmojiItem[] {
+  const map = ((data as EmojiMartData)?.emojis ?? {}) as Record<string, EmojiMartEntry>;
+  const all = Object.values(map);
+  const uniqueByNative = new Map<string, DreamEmojiItem>();
+
+  for (const item of all) {
+    if (!item || isGarbageEmoji(item)) continue;
+    const native = item.skins?.[0]?.native || item.native || "";
+    if (!native || uniqueByNative.has(native)) continue;
+    uniqueByNative.set(native, {
+      native,
+      id: item.id,
+      name: item.name,
+    });
+  }
+
+  return Array.from(uniqueByNative.values());
+}
+
+export const ALL_DREAM_EMOJIS: DreamEmojiItem[] = toDreamEmojiLibrary();
+
+export const DREAM_EMOJI_ROWS: DreamEmojiItem[][] = [
+  ALL_DREAM_EMOJIS.filter((_, index) => index % 3 === 0),
+  ALL_DREAM_EMOJIS.filter((_, index) => index % 3 === 1),
+  ALL_DREAM_EMOJIS.filter((_, index) => index % 3 === 2),
 ];
 
 export const NUMBER_KEYS: string[] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
