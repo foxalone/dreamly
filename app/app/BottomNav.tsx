@@ -122,6 +122,27 @@ function IconMap({ active }: { active: boolean }) {
   );
 }
 
+function IconChat({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path
+        d="M6.5 5h11A2.5 2.5 0 0 1 20 7.5v7A2.5 2.5 0 0 1 17.5 17H11l-4.5 3v-3H6.5A2.5 2.5 0 0 1 4 14.5v-7A2.5 2.5 0 0 1 6.5 5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        opacity={active ? 1 : 0.75}
+      />
+      <path
+        d="M8.5 10h7M8.5 13h4.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        opacity={active ? 1 : 0.75}
+      />
+    </svg>
+  );
+}
+
 function AvatarIcon({
   user,
   active,
@@ -199,12 +220,18 @@ export default function BottomNav({ hidden }: BottomNavProps) {
         icon: (a) => <IconShared active={a} />,
         activeClass: "text-red-500",
       },
-       {
-      href: "/app/map",
-      label: "Map",
-      icon: (a) => <IconMap active={a} />,
-      activeClass: "text-purple-500",
-    },
+      {
+        href: "/app/chat",
+        label: "Chat",
+        icon: (a) => <IconChat active={a} />,
+        activeClass: "text-cyan-400",
+      },
+      {
+        href: "/app/map",
+        label: "Map",
+        icon: (a) => <IconMap active={a} />,
+        activeClass: "text-purple-500",
+      },
     ],
     []
   );
@@ -231,7 +258,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="mx-auto max-w-3xl px-4 pb-4">
         <div className="bottom-nav-shell rounded-3xl backdrop-blur-md">
-          <div className="grid grid-cols-4">
+          <div className="grid grid-cols-5">
             {baseItems.map((it) => {
               const active = isActive(it.href);
 
