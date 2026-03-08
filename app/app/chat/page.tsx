@@ -1,6 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { IconComposerInput } from "./components/IconComposerInput";
+import { IconKeyboard } from "./components/IconKeyboard";
+import { appendToken, isValidIconMessage, sanitizeIconMessage } from "./iconComposer";
 
 type ChatItem = {
   id: string;
@@ -66,6 +69,7 @@ export default function ChatPage() {
   const [showContacts, setShowContacts] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [iconKeyboardOpen, setIconKeyboardOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const filteredChats = useMemo(() => {
@@ -100,8 +104,30 @@ export default function ChatPage() {
 
   function onSendMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const text = draft.trim();
-    if (!text || !selectedChatId) return;
+    onSendCurrentDraft();
+  }
+
+  function onInsertToken(token: string) {
+    if (token === " ") {
+      setDraft((prev) => `${prev.trimEnd()} `);
+      return;
+    }
+    setDraft((prev) => appendToken(prev, token));
+  }
+
+  function onBackspaceToken() {
+    setDraft((prev) => {
+      const trimmed = prev.trimEnd();
+      if (!trimmed) return "";
+      const parts = trimmed.split(" ");
+      parts.pop();
+      return parts.join(" ");
+    });
+  }
+
+  function onSendCurrentDraft() {
+    const text = sanitizeIconMessage(draft);
+    if (!isValidIconMessage(text) || !selectedChatId) return;
 
     const now = new Date();
     const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -293,24 +319,34 @@ export default function ChatPage() {
                 </div>
 
                 <div className="flex-1 space-y-3 overflow-auto p-3 sm:p-4">
-                  {selectedMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cls("flex", message.mine ? "justify-end" : "justify-start")}
-                    >
+                  {selectedMessages.map((message) => {
+                    const iconOnly = isValidIconMessage(message.text);
+                    return (
                       <div
-                        className={cls(
-                          "max-w-[85%] rounded-2xl px-3 py-2 sm:max-w-[70%]",
-                          message.mine
-                            ? "rounded-br-md bg-cyan-500/20 text-cyan-100"
-                            : "rounded-bl-md border border-white/10 bg-white/5"
-                        )}
+                        key={message.id}
+                        className={cls("flex", message.mine ? "justify-end" : "justify-start")}
                       >
-                        <p className="text-sm leading-relaxed">{message.text}</p>
-                        <p className="mt-1 text-right text-[10px] text-[var(--muted)]">{message.time}</p>
+                        <div
+                          className={cls(
+                            "max-w-[85%] rounded-2xl px-3 py-2 sm:max-w-[70%]",
+                            message.mine
+                              ? "rounded-br-md bg-cyan-500/20 text-cyan-100"
+                              : "rounded-bl-md border border-white/10 bg-white/5"
+                          )}
+                        >
+                          <p
+                            className={cls(
+                              "leading-relaxed break-words",
+                              iconOnly ? "text-xl tracking-wide" : "text-sm"
+                            )}
+                          >
+                            {message.text}
+                          </p>
+                          <p className="mt-1 text-right text-[10px] text-[var(--muted)]">{message.time}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div ref={messagesEndRef} />
                 </div>
 
@@ -318,27 +354,21 @@ export default function ChatPage() {
                   onSubmit={onSendMessage}
                   className="border-t border-white/10 p-3 pb-4 sm:p-4 sm:pb-5"
                 >
-                  <div className="flex items-end gap-2">
-                    <button
-                      type="button"
-                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-[var(--muted)] transition hover:bg-white/10"
-                    >
-                      +
-                    </button>
-                    <textarea
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      rows={1}
-                      placeholder="Type a message"
-                      className="max-h-32 min-h-[42px] flex-1 resize-y rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none transition placeholder:text-[var(--muted)] focus:border-cyan-400/40"
-                    />
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-500/20"
-                    >
-                      Send
-                    </button>
-                  </div>
+                  <IconKeyboard
+                    open={iconKeyboardOpen}
+                    value={draft}
+                    onInsert={onInsertToken}
+                    onBackspace={onBackspaceToken}
+                    onClear={() => setDraft("")}
+                    onClose={() => setIconKeyboardOpen(false)}
+                    onSend={onSendCurrentDraft}
+                  />
+                  <IconComposerInput
+                    value={draft}
+                    onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
+                    onSend={onSendCurrentDraft}
+                    sendDisabled={!isValidIconMessage(sanitizeIconMessage(draft))}
+                  />
                 </form>
               </>
             ) : (
