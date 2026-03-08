@@ -34,6 +34,7 @@ type DreamEmoji = {
 
 type SharedDream = {
   id: string;
+  sourceType?: "dream" | "story";
 
   title?: string;
   text?: string;
@@ -44,6 +45,7 @@ type SharedDream = {
 
   ownerUid?: string;
   ownerDreamId?: string;
+  ownerStoryId?: string;
 
   // author fields (saved when sharing)
   authorName?: string | null;
@@ -136,6 +138,10 @@ function initialsFromEmailOrText(s: string) {
   const a = (parts[0]?.[0] ?? "U").toUpperCase();
   const b = (parts[1]?.[0] ?? parts[0]?.[1] ?? "").toUpperCase();
   return (a + b).slice(0, 2);
+}
+
+function getSharedTypeLabel(d: SharedDream) {
+  return d.sourceType === "story" ? "Story" : "Dream";
 }
 
 export default function SharedPage() {
@@ -323,7 +329,7 @@ export default function SharedPage() {
               You are not signed in.
             </div>
             <div className="mt-2 text-[var(--muted)]">
-              Sign in with Google to view shared dreams and react.
+              Sign in with Google to view shared dreams and stories and react.
             </div>
 
             <button
@@ -357,14 +363,16 @@ export default function SharedPage() {
 
         {list.length === 0 ? (
           <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
-            No shared dreams yet.
+            No shared items yet.
           </div>
         ) : (
           <div className="mt-8 space-y-3">
-            {list.map((d) => {
+            {list.map((d, index) => {
               const myR = my[d.id] ?? { heart: false, like: false, star: false };
               const r = d.reactions ?? {};
               const emojis = normalizeEmojis(d.emojis);
+              const sourceLabel = getSharedTypeLabel(d);
+              const sourceNum = list.length - index;
 
               const aLabel = authorLabel(d); // ✅ email first
               const aInit = initialsFromEmailOrText(aLabel);
@@ -409,6 +417,8 @@ export default function SharedPage() {
                   <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
                     {d.text}
                   </div>
+
+                  <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
 
                   <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex gap-2">
