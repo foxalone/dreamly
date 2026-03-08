@@ -296,10 +296,13 @@ function desiredCountsFromText(text: string) {
   const wc = countWords(text);
   const cc = (text ?? "").trim().length;
 
-  if (wc <= 12 || cc <= 80) return { roots: 2, emojis: 1, icons: 1 };
-  if (wc <= 25 || cc <= 160) return { roots: 3, emojis: 2, icons: 2 };
-  if (wc <= 55 || cc <= 320) return { roots: 5, emojis: 4, icons: 3 };
-  return { roots: 6, emojis: 5, icons: 4 };
+  if (!wc && !cc) return { roots: 2, emojis: 1, icons: 1 };
+
+  const roots = Math.min(8, Math.max(2, Math.ceil(wc / 22)));
+  const emojis = Math.min(6, Math.max(1, Math.ceil(wc / 24)));
+  const icons = Math.min(5, Math.max(1, Math.ceil(wc / 30)));
+
+  return { roots, emojis, icons };
 }
 
 const STOP = new Set([
@@ -1562,7 +1565,7 @@ export default function DreamsPage() {
 
                       {Array.isArray(d.emojis) && d.emojis.length > 0 && (
                         <span className="inline-flex items-baseline gap-2 text-[18px] leading-none">
-                          {d.emojis.slice(0, 5).map((em, i) => (
+                          {d.emojis.slice(0, 7).map((em, i) => (
                             <span
                               key={`${d.id}:${em.native}:${i}`}
                               title={em.name || em.id || "emoji"}
