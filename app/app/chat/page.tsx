@@ -70,6 +70,7 @@ export default function ChatPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [iconKeyboardOpen, setIconKeyboardOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const filteredChats = useMemo(() => {
@@ -156,10 +157,166 @@ export default function ChatPage() {
     }
   }
 
+  function onSelectChat(chatId: string) {
+    setSelectedChatId(chatId);
+    setMobileView("chat");
+  }
+
+  const chatsListPane = (
+    <aside className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4">
+      <input
+        type="text"
+        placeholder="Search chats"
+        value={chatQuery}
+        onChange={(e) => setChatQuery(e.target.value)}
+        className="mb-3 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none transition placeholder:text-[var(--muted)] focus:border-cyan-400/40"
+      />
+
+      <div className="max-h-[58vh] space-y-2 overflow-auto pr-1">
+        {filteredChats.map((chat) => {
+          const active = chat.id === selectedChatId;
+          return (
+            <button
+              key={chat.id}
+              type="button"
+              onClick={() => onSelectChat(chat.id)}
+              className={cls(
+                "w-full rounded-2xl border p-3 text-left transition",
+                active
+                  ? "border-cyan-400/45 bg-cyan-500/10"
+                  : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <div className="relative">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
+                    {chat.avatarText}
+                  </div>
+                  {chat.online && (
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-[var(--card)] bg-emerald-400" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-sm font-medium">{chat.name}</p>
+                    <span className="text-[10px] text-[var(--muted)]">{chat.time}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="truncate text-xs text-[var(--muted)]">{chat.lastMessage}</p>
+                    {chat.unreadCount ? (
+                      <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                        {chat.unreadCount}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
+
+  const conversationPane = (isMobile: boolean) => (
+    <section className="flex min-h-[58vh] flex-col rounded-2xl border border-white/10 bg-black/20">
+      {selectedChat ? (
+        <>
+          <div className="flex items-center justify-between border-b border-white/10 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {isMobile && (
+                <button
+                  type="button"
+                  onClick={() => setMobileView("list")}
+                  className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium transition hover:bg-white/10"
+                >
+                  ← Back
+                </button>
+              )}
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
+                {selectedChat.avatarText}
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{selectedChat.name}</p>
+                <p className="text-xs text-[var(--muted)]">
+                  {selectedChat.online ? "online" : "last seen recently"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--muted)]">
+              <button type="button" className="rounded-full border border-white/10 px-2.5 py-1 text-xs hover:bg-white/10">⋯</button>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-3 overflow-auto p-3 sm:p-4">
+            {selectedMessages.map((message) => {
+              const iconOnly = isValidIconMessage(message.text);
+              return (
+                <div
+                  key={message.id}
+                  className={cls("flex", message.mine ? "justify-end" : "justify-start")}
+                >
+                  <div
+                    className={cls(
+                      "max-w-[85%] rounded-2xl px-3 py-2 sm:max-w-[70%]",
+                      message.mine
+                        ? "rounded-br-md bg-cyan-500/20 text-cyan-100"
+                        : "rounded-bl-md border border-white/10 bg-white/5"
+                    )}
+                  >
+                    <p
+                      className={cls(
+                        "leading-relaxed break-words",
+                        iconOnly ? "text-xl tracking-wide" : "text-sm"
+                      )}
+                    >
+                      {message.text}
+                    </p>
+                    <p className="mt-1 text-right text-[10px] text-[var(--muted)]">{message.time}</p>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form onSubmit={onSendMessage} className="relative border-t border-white/10 p-3 pb-4 sm:p-4 sm:pb-5">
+            <IconKeyboard
+              open={iconKeyboardOpen}
+              onInsert={onInsertToken}
+              onBackspace={onBackspaceToken}
+              onClear={() => setDraft("")}
+              onClose={() => setIconKeyboardOpen(false)}
+              onSend={onSendCurrentDraft}
+            />
+            <IconComposerInput
+              value={draft}
+              onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
+              onSend={onSendCurrentDraft}
+              sendDisabled={!isValidIconMessage(sanitizeIconMessage(draft))}
+            />
+          </form>
+        </>
+      ) : (
+        <div className="flex h-full min-h-[58vh] items-center justify-center p-6 text-center">
+          <div>
+            <p className="text-base font-medium">No chat selected</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">Pick a chat from the left to start messaging.</p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-8">
       <section className="rounded-3xl border border-white/10 bg-[color:color-mix(in_srgb,var(--card)_94%,transparent)] p-4 sm:p-5">
-        <header className="mb-4 flex flex-col gap-3 border-b border-white/10 pb-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
+        <header
+          className={cls(
+            "mb-4 flex flex-col gap-3 border-b border-white/10 pb-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between",
+            mobileView === "chat" && "hidden lg:flex"
+          )}
+        >
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Chat</h1>
             <p className="text-sm text-[var(--muted)]">Talk with friends about dreams</p>
@@ -189,7 +346,7 @@ export default function ChatPage() {
           </div>
         </header>
 
-        {(showContacts || showInvite) && (
+        {(showContacts || showInvite) && mobileView === "list" && (
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-3 sm:mb-5 sm:p-4">
             {showContacts ? (
               <div>
@@ -244,139 +401,17 @@ export default function ChatPage() {
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4">
-            <input
-              type="text"
-              placeholder="Search chats"
-              value={chatQuery}
-              onChange={(e) => setChatQuery(e.target.value)}
-              className="mb-3 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none transition placeholder:text-[var(--muted)] focus:border-cyan-400/40"
-            />
+        <div className={cls("mb-4 lg:hidden", mobileView === "chat" && "hidden")}>
+          {mobileView === "list" && chatsListPane}
+        </div>
 
-            <div className="max-h-[58vh] space-y-2 overflow-auto pr-1">
-              {filteredChats.map((chat) => {
-                const active = chat.id === selectedChatId;
-                return (
-                  <button
-                    key={chat.id}
-                    type="button"
-                    onClick={() => setSelectedChatId(chat.id)}
-                    className={cls(
-                      "w-full rounded-2xl border p-3 text-left transition",
-                      active
-                        ? "border-cyan-400/45 bg-cyan-500/10"
-                        : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
-                          {chat.avatarText}
-                        </div>
-                        {chat.online && (
-                          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-[var(--card)] bg-emerald-400" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-medium">{chat.name}</p>
-                          <span className="text-[10px] text-[var(--muted)]">{chat.time}</span>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between gap-2">
-                          <p className="truncate text-xs text-[var(--muted)]">{chat.lastMessage}</p>
-                          {chat.unreadCount ? (
-                            <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
-                              {chat.unreadCount}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
+        <div className={cls("lg:hidden", mobileView !== "chat" && "hidden")}>
+          {mobileView === "chat" && conversationPane(true)}
+        </div>
 
-          <section className="flex min-h-[58vh] flex-col rounded-2xl border border-white/10 bg-black/20">
-            {selectedChat ? (
-              <>
-                <div className="flex items-center justify-between border-b border-white/10 p-3 sm:p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
-                      {selectedChat.avatarText}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{selectedChat.name}</p>
-                      <p className="text-xs text-[var(--muted)]">
-                        {selectedChat.online ? "online" : "last seen recently"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[var(--muted)]">
-                    <button type="button" className="rounded-full border border-white/10 px-2.5 py-1 text-xs hover:bg-white/10">⋯</button>
-                  </div>
-                </div>
-
-                <div className="flex-1 space-y-3 overflow-auto p-3 sm:p-4">
-                  {selectedMessages.map((message) => {
-                    const iconOnly = isValidIconMessage(message.text);
-                    return (
-                      <div
-                        key={message.id}
-                        className={cls("flex", message.mine ? "justify-end" : "justify-start")}
-                      >
-                        <div
-                          className={cls(
-                            "max-w-[85%] rounded-2xl px-3 py-2 sm:max-w-[70%]",
-                            message.mine
-                              ? "rounded-br-md bg-cyan-500/20 text-cyan-100"
-                              : "rounded-bl-md border border-white/10 bg-white/5"
-                          )}
-                        >
-                          <p
-                            className={cls(
-                              "leading-relaxed break-words",
-                              iconOnly ? "text-xl tracking-wide" : "text-sm"
-                            )}
-                          >
-                            {message.text}
-                          </p>
-                          <p className="mt-1 text-right text-[10px] text-[var(--muted)]">{message.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <form onSubmit={onSendMessage} className="relative border-t border-white/10 p-3 pb-4 sm:p-4 sm:pb-5">
-                  <IconKeyboard
-                    open={iconKeyboardOpen}
-                    onInsert={onInsertToken}
-                    onBackspace={onBackspaceToken}
-                    onClear={() => setDraft("")}
-                    onClose={() => setIconKeyboardOpen(false)}
-                    onSend={onSendCurrentDraft}
-                  />
-                  <IconComposerInput
-                    value={draft}
-                    onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
-                    onSend={onSendCurrentDraft}
-                    sendDisabled={!isValidIconMessage(sanitizeIconMessage(draft))}
-                  />
-                </form>
-              </>
-            ) : (
-              <div className="flex h-full min-h-[58vh] items-center justify-center p-6 text-center">
-                <div>
-                  <p className="text-base font-medium">No chat selected</p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">Pick a chat from the left to start messaging.</p>
-                </div>
-              </div>
-            )}
-          </section>
+        <div className="hidden gap-4 lg:grid lg:grid-cols-[340px_minmax(0,1fr)]">
+          {chatsListPane}
+          {conversationPane(false)}
         </div>
       </section>
     </main>
