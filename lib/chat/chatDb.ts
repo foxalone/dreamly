@@ -112,7 +112,7 @@ export function subscribeChatMessages(chatId: string, currentUid: string, callba
         .map((record) => ({
           id: record.id,
           chatId: record.chatId,
-          text: buildPreviewText(record.text, record.icons ?? [], record.type),
+text: record.text,
           time: formatMessageTime(record.createdAt),
           mine: record.senderUid === currentUid,
           type: record.type,

@@ -76,6 +76,11 @@ export default function ChatPage() {
     [chats, selectedChatId]
   );
 
+  const presenceKeys = useMemo(
+  () => chats.slice(0, 12).map((chat) => chat.otherUid).join("|"),
+  [chats]
+);
+
   const recentEmojiItems = useMemo(() => {
     const allItems = DREAM_EMOJI_CATEGORIES.flatMap((category) => category.items);
 
@@ -127,27 +132,41 @@ export default function ChatPage() {
   }, [user?.uid]);
 
   useEffect(() => {
-    const bucket = listPresenceUnsubsRef.current;
-    for (const unsub of bucket.values()) unsub();
-    bucket.clear();
+  const bucket = listPresenceUnsubsRef.current;
+  for (const unsub of bucket.values()) unsub();
+  bucket.clear();
 
-    chats.slice(0, 12).forEach((chat) => {
-      const unsub = subscribePresence(chat.otherUid, (presence) => {
-        const online = Boolean(presence?.online);
-        setChats((prev) =>
-          prev.map((item) =>
-            item.otherUid === chat.otherUid ? { ...item, online } : item
-          )
-        );
+  const topChats = chats.slice(0, 12);
+
+  topChats.forEach((chat) => {
+    const unsub = subscribePresence(chat.otherUid, (presence) => {
+      const online = Boolean(presence?.online);
+
+      setChats((prev) => {
+        let changed = false;
+
+        const next = prev.map((item) => {
+          if (item.otherUid !== chat.otherUid) return item;
+          if ((item.online ?? false) === online) return item;
+
+          changed = true;
+          return { ...item, online };
+        });
+
+        return changed ? next : prev;
       });
-      bucket.set(chat.otherUid, unsub);
     });
 
-    return () => {
-      for (const unsub of bucket.values()) unsub();
-      bucket.clear();
-    };
-  }, [chats]);
+    bucket.set(chat.otherUid, unsub);
+  });
+
+  return () => {
+    for (const unsub of bucket.values()) unsub();
+    bucket.clear();
+  };
+}, [presenceKeys]);
+
+
 
   useEffect(() => {
     if (!user?.uid || !selectedChatId) return;
@@ -431,13 +450,13 @@ export default function ChatPage() {
                     {chat.avatarText}
                   </div>
                   {chat.online && (
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
-                      style={{
-                        borderColor: "var(--card)",
-                        background: "#10b981",
-                      }}
-                    />
+                   <span
+  className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
+  style={{
+    borderColor: "var(--card)",
+    background: chat.online ? "#10b981" : "#ef4444",
+  }}
+/>
                   )}
                 </div>
 
@@ -518,43 +537,25 @@ export default function ChatPage() {
                 </button>
               )}
 
-              <div
-                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                style={{
-                  background:
-                    "color-mix(in srgb, var(--text) 6%, var(--card))",
-                  color: "var(--text)",
-                }}
-              >
-                {selectedChat.avatarText}
-                {activePresenceOnline && (
-                  <span
-                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
-                    style={{
-                      borderColor: "var(--card)",
-                      background: "#10b981",
-                    }}
-                  />
-                )}
-              </div>
+       <div
+  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+  style={{
+    background:
+      "color-mix(in srgb, var(--text) 6%, var(--card))",
+    color: "var(--text)",
+  }}
+>
+  {selectedChat.avatarText}
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium" style={{ color: "var(--text)" }}>
-                    {selectedChat.name}
-                  </p>
-                  <span
-                    className="inline-block h-2 w-2 rounded-full"
-                    style={{
-                      background: activePresenceOnline ? "#10b981" : "var(--muted)",
-                    }}
-                  />
-                </div>
+  <span
+    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
+    style={{
+      borderColor: "var(--card)",
+      background: activePresenceOnline ? "#10b981" : "#ef4444",
+    }}
+  />
+</div>
 
-                <p className="text-[11px]" style={{ color: "var(--muted)" }}>
-                  {typingOther ? "typing…" : activePresenceOnline ? "online" : "offline"}
-                </p>
-              </div>
             </div>
 
             <div

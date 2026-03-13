@@ -151,23 +151,6 @@ function CategoryTabButton({
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
-  );
-}
-
 function SpaceIcon() {
   return (
     <svg
@@ -391,13 +374,7 @@ export function IconKeyboard({
       <div className="space-y-3">
         <div className="space-y-2">
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <CategoryTabButton
-              label={<SearchIcon />}
-              title="Search"
-              active={false}
-              onClick={() => {}}
-            />
-
+           
             {sections.map((section) => (
               <CategoryTabButton
                 key={section.key}
