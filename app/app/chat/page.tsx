@@ -662,8 +662,8 @@ export default function ChatPage() {
 
   if (authReady && !user) {
     return (
-      <main className="mx-auto h-[calc(100dvh-96px)] w-full max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">
-        <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
+<main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
+          <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
           <p style={{ color: "var(--muted)" }}>Sign in to use chat.</p>
         </section>
       </main>
@@ -671,14 +671,14 @@ export default function ChatPage() {
   }
 
   return (
-<main className="mx-auto h-full w-full max-w-6xl overflow-hidden px-4 pt-5 sm:px-6 lg:px-8">
-        <section
-        className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border p-4 sm:p-5"
-        style={{
-          borderColor: "var(--border)",
-          background: "color-mix(in srgb, var(--card) 94%, transparent)",
-        }}
-      >
+<main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
+  <section
+  className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border p-4 sm:p-5"
+  style={{
+    borderColor: "var(--border)",
+    background: "color-mix(in srgb, var(--card) 94%, transparent)",
+  }}
+>
         <header
           className={cls(
             "mb-4 shrink-0 flex flex-col gap-3 border-b pb-4 sm:mb-5",
