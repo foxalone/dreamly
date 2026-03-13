@@ -25,12 +25,14 @@ import { extractIcons } from "@/lib/chat/chatFormat";
 import { setupPresence, subscribePresence } from "@/lib/chat/chatPresence";
 import type { ChatPreview, ChatUser, UIMessage } from "@/lib/chat/chatTypes";
 
-const seedContacts: ChatUser[] = [
-  { uid: "dreamly_michael", displayName: "Michael" },
-  { uid: "dreamly_anna", displayName: "Anna" },
-  { uid: "dreamly_mike", displayName: "Mike" },
-  { uid: "dreamly_sara", displayName: "Sara" },
-];
+const SUPPORT_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
+
+const supportContact: ChatUser & { avatarText: string; online: boolean } = {
+  uid: SUPPORT_UID,
+  displayName: "Dreamly",
+  avatarText: "DR",
+  online: false,
+};
 
 function cls(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -51,6 +53,7 @@ export default function ChatPage() {
   const [recentIcons, setRecentIcons] = useState<string[]>([]);
   const [typingOther, setTypingOther] = useState(false);
   const [activePresenceOnline, setActivePresenceOnline] = useState(false);
+  const [supportOnline, setSupportOnline] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
@@ -185,6 +188,14 @@ export default function ChatPage() {
   useEffect(() => {
     if (!user?.uid) return;
     return subscribeRecentIcons(user.uid, setRecentIcons);
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid || user.uid === SUPPORT_UID) return;
+
+    return subscribePresence(SUPPORT_UID, (presence) => {
+      setSupportOnline(Boolean(presence?.online));
+    });
   }, [user?.uid]);
 
   useEffect(() => {
@@ -341,6 +352,8 @@ export default function ChatPage() {
     onSelectChat(chatId);
   }
 
+  const showSupportStarter = Boolean(user?.uid && user.uid !== SUPPORT_UID);
+
   const chatsListPane = (
     <aside
       className="flex h-full min-h-0 min-w-0 flex-col rounded-2xl border p-3 sm:p-4"
@@ -352,21 +365,28 @@ export default function ChatPage() {
       {!filteredChats.length && (
         <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            No chats yet. Start one:
+            No chats yet
           </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {seedContacts.map((contact) => (
+          <p className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
+            Message Dreamly for feedback, bugs, or questions.
+          </p>
+          {showSupportStarter ? (
+            <div className="mt-2 flex flex-wrap gap-2">
               <button
-                key={contact.uid}
                 type="button"
-                onClick={() => void onStartSeedContactChat(contact)}
+                onClick={() =>
+                  void onStartSeedContactChat({
+                    ...supportContact,
+                    online: supportOnline,
+                  })
+                }
                 className="rounded-full border px-2.5 py-1 text-xs"
                 style={{ borderColor: "var(--border)", color: "var(--text)" }}
               >
-                {contact.displayName}
+                {supportContact.displayName}
               </button>
-            ))}
-          </div>
+            </div>
+          ) : null}
         </div>
       )}
 
