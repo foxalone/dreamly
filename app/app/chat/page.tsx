@@ -27,11 +27,10 @@ import type { ChatPreview, ChatUser, UIMessage } from "@/lib/chat/chatTypes";
 
 const SUPPORT_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
 
-const supportContact: ChatUser & { avatarText: string; online: boolean } = {
+const supportContact: ChatUser & { avatarText: string } = {
   uid: SUPPORT_UID,
   displayName: "Dreamly",
   avatarText: "DR",
-  online: false,
 };
 
 function cls(...classes: Array<string | false | undefined>) {
@@ -370,20 +369,24 @@ export default function ChatPage() {
           <p className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
             Message Dreamly for feedback, bugs, or questions.
           </p>
+
           {showSupportStarter ? (
             <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() =>
-                  void onStartSeedContactChat({
-                    ...supportContact,
-                    online: supportOnline,
-                  })
-                }
-                className="rounded-full border px-2.5 py-1 text-xs"
+                onClick={() => void onStartSeedContactChat(supportContact)}
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs"
                 style={{ borderColor: "var(--border)", color: "var(--text)" }}
               >
-                {supportContact.displayName}
+                <span className="relative inline-flex h-2.5 w-2.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{
+                      background: supportOnline ? "#10b981" : "var(--muted)",
+                    }}
+                  />
+                </span>
+                <span>{supportContact.displayName}</span>
               </button>
             </div>
           ) : null}
@@ -536,14 +539,21 @@ export default function ChatPage() {
               </div>
 
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium" style={{ color: "var(--text)" }}>
-                  {selectedChat.name}
-                </p>
-                {typingOther && (
-                  <p className="text-[11px]" style={{ color: "var(--muted)" }}>
-                    typing…
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-medium" style={{ color: "var(--text)" }}>
+                    {selectedChat.name}
                   </p>
-                )}
+                  <span
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{
+                      background: activePresenceOnline ? "#10b981" : "var(--muted)",
+                    }}
+                  />
+                </div>
+
+                <p className="text-[11px]" style={{ color: "var(--muted)" }}>
+                  {typingOther ? "typing…" : activePresenceOnline ? "online" : "offline"}
+                </p>
               </div>
             </div>
 
