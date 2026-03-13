@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { IconComposerInput } from "./components/IconComposerInput";
@@ -54,7 +54,7 @@ export default function ChatPage() {
   const [activePresenceOnline, setActivePresenceOnline] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesListRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
   const listPresenceUnsubsRef = useRef<Map<string, () => void>>(new Map());
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,6 +80,8 @@ export default function ChatPage() {
   () => chats.slice(0, 12).map((chat) => chat.otherUid).join("|"),
   [chats]
 );
+
+const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
 
   const recentEmojiItems = useMemo(() => {
     const allItems = DREAM_EMOJI_CATEGORIES.flatMap((category) => category.items);
@@ -244,17 +246,6 @@ export default function ChatPage() {
   }, [showInvite, inviteCopied]);
 
   useEffect(() => {
-    if (!selectedChatId) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
-  }, [selectedChatId]);
-
-  useEffect(() => {
-    if (shouldAutoScrollRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
-  }, [messages.length]);
-
-  useEffect(() => {
     if (!user?.uid || !selectedChatId) return;
 
     const hasDraft = sanitizeIconMessage(draft).length > 0;
@@ -278,6 +269,8 @@ export default function ChatPage() {
       }
     };
   }, [selectedChatId, user?.uid]);
+
+ 
 
   function onScrollMessages(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -335,7 +328,7 @@ export default function ChatPage() {
     setDraft("");
     setIconKeyboardOpen(false);
     await setTyping(selectedChatId, user.uid, false);
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+scrollMessagesToBottom("smooth");
   }
 
   async function onCopyInviteLink() {
@@ -347,11 +340,63 @@ export default function ChatPage() {
       setInviteCopied(false);
     }
   }
+function onSelectChat(chatId: string) {
+  shouldAutoScrollRef.current = true;
+  setSelectedChatId(chatId);
+  setMobileView("chat");
+}
 
-  function onSelectChat(chatId: string) {
-    setSelectedChatId(chatId);
-    setMobileView("chat");
-  }
+function scrollMessagesToBottom(behavior: ScrollBehavior = "auto") {
+  const el = messagesListRef.current;
+  if (!el) return;
+
+  el.scrollTo({
+    top: el.scrollHeight,
+    behavior,
+  });
+}
+
+useLayoutEffect(() => {
+  if (!selectedChatId) return;
+
+  shouldAutoScrollRef.current = true;
+
+  const id1 = requestAnimationFrame(() => {
+    const id2 = requestAnimationFrame(() => {
+      scrollMessagesToBottom("auto");
+    });
+
+    (window as any).__chatScrollRaf2 = id2;
+  });
+
+  (window as any).__chatScrollRaf1 = id1;
+
+  return () => {
+    cancelAnimationFrame((window as any).__chatScrollRaf1);
+    cancelAnimationFrame((window as any).__chatScrollRaf2);
+  };
+}, [selectedChatId, mobileView]);
+
+useLayoutEffect(() => {
+  if (!selectedChatId) return;
+  if (!lastMessageId) return;
+  if (!shouldAutoScrollRef.current) return;
+
+  const id1 = requestAnimationFrame(() => {
+    const id2 = requestAnimationFrame(() => {
+      scrollMessagesToBottom("smooth");
+    });
+
+    (window as any).__chatMsgScrollRaf2 = id2;
+  });
+
+  (window as any).__chatMsgScrollRaf1 = id1;
+
+  return () => {
+    cancelAnimationFrame((window as any).__chatMsgScrollRaf1);
+    cancelAnimationFrame((window as any).__chatMsgScrollRaf2);
+  };
+}, [selectedChatId, lastMessageId, mobileView]);
 
   async function onStartSeedContactChat(contact: ChatUser) {
     if (!user) return;
@@ -576,8 +621,12 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4" onScroll={onScrollMessages}>
-            <div className="space-y-3">
+<div
+  ref={messagesListRef}
+  className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4"
+  onScroll={onScrollMessages}
+>
+              <div className="space-y-3">
               {messages.map((message) => {
                 const iconOnly = message.type === "icons";
 
@@ -615,7 +664,6 @@ export default function ChatPage() {
                   </div>
                 );
               })}
-              <div ref={messagesEndRef} />
             </div>
           </div>
 
