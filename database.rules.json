@@ -1,0 +1,71 @@
+{
+  "rules": {
+    "presence": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        "online": { ".validate": "newData.isBoolean()" },
+        "lastSeenAt": { ".validate": "newData.isNumber()" },
+        "name": { ".validate": "newData.val() === null || newData.isString()" },
+        "photoURL": { ".validate": "newData.val() === null || newData.isString()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "user_chats": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "user_recent_icons": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "chats": {
+      "$chatId": {
+        ".read": "auth != null && data.child('members').child(auth.uid).val() === true",
+        ".write": "auth != null && (data.child('members').child(auth.uid).val() === true || (!data.exists() && newData.child('members').child(auth.uid).val() === true))",
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "members": {
+          "$uid": { ".validate": "newData.val() === true" }
+        }
+      }
+    },
+    "chat_messages": {
+      "$chatId": {
+        ".read": "auth != null && root.child('chats').child($chatId).child('members').child(auth.uid).val() === true",
+        "$messageId": {
+          ".write": "auth != null && root.child('chats').child($chatId).child('members').child(auth.uid).val() === true",
+          "id": { ".validate": "newData.isString()" },
+          "chatId": { ".validate": "newData.val() === $chatId" },
+          "senderUid": { ".validate": "newData.isString()" },
+          "text": { ".validate": "newData.isString()" },
+          "type": { ".validate": "newData.val() === 'text' || newData.val() === 'icons' || newData.val() === 'mixed'" },
+          "icons": { ".validate": "newData.isList()" },
+          "createdAt": { ".validate": "newData.isNumber()" },
+          "editedAt": { ".validate": "newData.val() === null || newData.isNumber()" },
+          "seenBy": {
+            "$uid": { ".validate": "newData.val() === true" }
+          }
+        }
+      }
+    },
+    "chat_meta": {
+      "$chatId": {
+        ".read": "auth != null && root.child('chats').child($chatId).child('members').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('chats').child($chatId).child('members').child(auth.uid).val() === true",
+        "typing": {
+          "$uid": { ".validate": "newData.isBoolean()" }
+        },
+        "lastReadAt": {
+          "$uid": { ".validate": "newData.isNumber()" }
+        }
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
