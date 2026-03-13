@@ -34,7 +34,7 @@ export async function createOrGetDirectChat(currentUser: ChatUser, otherUser: Ch
 
   const currentChatRef = ref(db, `user_chats/${currentUser.uid}/${chatId}`);
   const otherChatRef = ref(db, `user_chats/${otherUser.uid}/${chatId}`);
-  const [currentSnap, otherSnap] = await Promise.all([get(currentChatRef), get(otherChatRef)]);
+  const currentSnap = await get(currentChatRef);
 
   if (!currentSnap.exists()) {
     await set(currentChatRef, {
@@ -51,20 +51,18 @@ export async function createOrGetDirectChat(currentUser: ChatUser, otherUser: Ch
     } satisfies UserChatRecord);
   }
 
-  if (!otherSnap.exists()) {
-    await set(otherChatRef, {
-      chatId,
-      otherUid: currentUser.uid,
-      otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
-      otherPhotoURL: currentUser.photoURL ?? null,
-      lastMessage: "",
-      lastMessageType: "text",
-      lastMessageAt: 0,
-      lastSenderUid: "",
-      unreadCount: 0,
-      updatedAt: now,
-    } satisfies UserChatRecord);
-  }
+  await update(otherChatRef, {
+    chatId,
+    otherUid: currentUser.uid,
+    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
+    otherPhotoURL: currentUser.photoURL ?? null,
+    lastMessage: "",
+    lastMessageType: "text",
+    lastMessageAt: 0,
+    lastSenderUid: "",
+    unreadCount: 0,
+    updatedAt: now,
+  } satisfies UserChatRecord);
 
   return chatId;
 }
