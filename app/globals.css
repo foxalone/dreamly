@@ -201,6 +201,40 @@ html.modal-open .bottom-nav {
   border-color: rgba(59,130,246,.55);
 }
 
+:root {
+  --accent: #22d3ee;
+  --success: #10b981;
+}
+
+/* ===== CHAT BUBBLES ===== */
+
+.chat-bubble-in {
+  background: color-mix(in srgb, var(--text) 4%, var(--card));
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.chat-bubble-out {
+  background: color-mix(in srgb, #22d3ee 26%, var(--card));
+  border: 1px solid color-mix(in srgb, #22d3ee 42%, var(--border));
+  color: var(--text);
+}
+
+.chat-bubble-time {
+  color: var(--muted);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --accent: #06b6d4;
+    --success: #10b981;
+  }
+}
+
+.light {
+  --accent: #06b6d4;
+  --success: #10b981;
+}
+
 .dream-btn--blue {
   background: rgb(59, 130, 246); /* blue-500 */
   color: white;
