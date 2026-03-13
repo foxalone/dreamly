@@ -219,6 +219,9 @@ html.modal-open .bottom-nav {
   border: 1px solid color-mix(in srgb, #22d3ee 42%, var(--border));
   color: var(--text);
 }
+html, body {
+  overscroll-behavior-y: none;
+}
 
 .chat-bubble-time {
   color: var(--muted);
