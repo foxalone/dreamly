@@ -46,7 +46,7 @@ export function IconComposerInput({
         readOnly
         onKeyDown={blockTyping}
         rows={1}
-        placeholder="Compose with icons only"
+        placeholder=""
         className="max-h-32 min-h-[42px] flex-1 resize-y rounded-xl border px-3 py-2 text-base outline-none transition"
         style={{
           borderColor: "var(--border)",
