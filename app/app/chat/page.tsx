@@ -418,8 +418,8 @@ useLayoutEffect(() => {
   const showSupportStarter = Boolean(user?.uid && user.uid !== SUPPORT_UID);
 
   const chatsListPane = (
-    <aside
-      className="flex h-full min-h-0 min-w-0 flex-col rounded-2xl border p-3 sm:p-4"
+  <aside
+  className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border p-3 sm:p-4"
       style={{
         borderColor: "var(--border)",
         background: "color-mix(in srgb, var(--text) 4%, var(--card))",
@@ -721,17 +721,17 @@ useLayoutEffect(() => {
   return (
 <main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
   <section
-  className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border p-4 sm:p-5"
-  style={{
+  className="flex h-full min-h-0 flex-col gap-4 overflow-hidden rounded-3xl border p-4 sm:gap-5 sm:p-5"
+    style={{
     borderColor: "var(--border)",
     background: "color-mix(in srgb, var(--card) 94%, transparent)",
   }}
 >
         <header
-          className={cls(
-            "mb-4 shrink-0 flex flex-col gap-3 border-b pb-4 sm:mb-5",
-            mobileView === "chat" && "hidden lg:flex"
-          )}
+  className={cls(
+    "shrink-0 flex flex-col gap-3 border-b pb-4",
+    mobileView === "chat" && "hidden lg:flex"
+  )}
           style={{ borderColor: "var(--border)" }}
         >
           <div>
@@ -788,8 +788,8 @@ useLayoutEffect(() => {
         </header>
 
         {showInvite && mobileView === "list" && (
-          <div
-            className="mb-4 shrink-0 rounded-2xl border p-3 sm:mb-5 sm:p-4"
+  <div
+    className="shrink-0 rounded-2xl border p-3 sm:p-4"
             style={{
               borderColor: "var(--border)",
               background: "color-mix(in srgb, var(--text) 4%, var(--card))",
