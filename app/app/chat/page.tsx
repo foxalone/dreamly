@@ -671,8 +671,8 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="mx-auto h-[calc(100dvh-96px)] w-full max-w-6xl overflow-hidden px-4 pt-5 sm:px-6 lg:px-8">
-      <section
+<main className="mx-auto h-full w-full max-w-6xl overflow-hidden px-4 pt-5 sm:px-6 lg:px-8">
+        <section
         className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border p-4 sm:p-5"
         style={{
           borderColor: "var(--border)",
