@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { IconComposerInput } from "./components/IconComposerInput";
@@ -38,6 +39,7 @@ function cls(...classes: Array<string | false | undefined>) {
 }
 
 export default function ChatPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [chatQuery, setChatQuery] = useState("");
@@ -45,8 +47,6 @@ export default function ChatPage() {
   const [selectedChatId, setSelectedChatId] = useState("");
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [draft, setDraft] = useState("");
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteCopied, setInviteCopied] = useState(false);
   const [iconKeyboardOpen, setIconKeyboardOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [recentIcons, setRecentIcons] = useState<string[]>([]);
@@ -59,6 +59,10 @@ export default function ChatPage() {
   const listPresenceUnsubsRef = useRef<Map<string, () => void>>(new Map());
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldAutoScrollRef = useRef(true);
+  const chatScrollRaf1Ref = useRef<number | null>(null);
+  const chatScrollRaf2Ref = useRef<number | null>(null);
+  const chatMsgScrollRaf1Ref = useRef<number | null>(null);
+  const chatMsgScrollRaf2Ref = useRef<number | null>(null);
 
   const filteredChats = useMemo(() => {
     const q = chatQuery.trim().toLowerCase();
@@ -77,11 +81,11 @@ export default function ChatPage() {
   );
 
   const presenceKeys = useMemo(
-  () => chats.slice(0, 12).map((chat) => chat.otherUid).join("|"),
-  [chats]
-);
+    () => chats.slice(0, 12).map((chat) => chat.otherUid).join("|"),
+    [chats]
+  );
 
-const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
+  const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
 
   const recentEmojiItems = useMemo(() => {
     const allItems = DREAM_EMOJI_CATEGORIES.flatMap((category) => category.items);
@@ -134,41 +138,39 @@ const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
   }, [user?.uid]);
 
   useEffect(() => {
-  const bucket = listPresenceUnsubsRef.current;
-  for (const unsub of bucket.values()) unsub();
-  bucket.clear();
-
-  const topChats = chats.slice(0, 12);
-
-  topChats.forEach((chat) => {
-    const unsub = subscribePresence(chat.otherUid, (presence) => {
-      const online = Boolean(presence?.online);
-
-      setChats((prev) => {
-        let changed = false;
-
-        const next = prev.map((item) => {
-          if (item.otherUid !== chat.otherUid) return item;
-          if ((item.online ?? false) === online) return item;
-
-          changed = true;
-          return { ...item, online };
-        });
-
-        return changed ? next : prev;
-      });
-    });
-
-    bucket.set(chat.otherUid, unsub);
-  });
-
-  return () => {
+    const bucket = listPresenceUnsubsRef.current;
     for (const unsub of bucket.values()) unsub();
     bucket.clear();
-  };
-}, [presenceKeys]);
 
+    const topChats = chats.slice(0, 12);
 
+    topChats.forEach((chat) => {
+      const unsub = subscribePresence(chat.otherUid, (presence) => {
+        const online = Boolean(presence?.online);
+
+        setChats((prev) => {
+          let changed = false;
+
+          const next = prev.map((item) => {
+            if (item.otherUid !== chat.otherUid) return item;
+            if ((item.online ?? false) === online) return item;
+
+            changed = true;
+            return { ...item, online };
+          });
+
+          return changed ? next : prev;
+        });
+      });
+
+      bucket.set(chat.otherUid, unsub);
+    });
+
+    return () => {
+      for (const unsub of bucket.values()) unsub();
+      bucket.clear();
+    };
+  }, [presenceKeys]);
 
   useEffect(() => {
     if (!user?.uid || !selectedChatId) return;
@@ -240,12 +242,6 @@ const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
   }, [iconKeyboardOpen]);
 
   useEffect(() => {
-    if (!showInvite || !inviteCopied) return;
-    const t = setTimeout(() => setInviteCopied(false), 1400);
-    return () => clearTimeout(t);
-  }, [showInvite, inviteCopied]);
-
-  useEffect(() => {
     if (!user?.uid || !selectedChatId) return;
 
     const hasDraft = sanitizeIconMessage(draft).length > 0;
@@ -269,8 +265,6 @@ const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
       }
     };
   }, [selectedChatId, user?.uid]);
-
- 
 
   function onScrollMessages(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -328,75 +322,66 @@ const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
     setDraft("");
     setIconKeyboardOpen(false);
     await setTyping(selectedChatId, user.uid, false);
-scrollMessagesToBottom("smooth");
+    scrollMessagesToBottom("smooth");
   }
 
-  async function onCopyInviteLink() {
-    const inviteUrl = "https://dreamly.app/invite/dream-chat";
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      setInviteCopied(true);
-    } catch {
-      setInviteCopied(false);
-    }
+  function onSelectChat(chatId: string) {
+    shouldAutoScrollRef.current = true;
+    setSelectedChatId(chatId);
+    setMobileView("chat");
   }
-function onSelectChat(chatId: string) {
-  shouldAutoScrollRef.current = true;
-  setSelectedChatId(chatId);
-  setMobileView("chat");
-}
 
-function scrollMessagesToBottom(behavior: ScrollBehavior = "auto") {
-  const el = messagesListRef.current;
-  if (!el) return;
+  function scrollMessagesToBottom(behavior: ScrollBehavior = "auto") {
+    const el = messagesListRef.current;
+    if (!el) return;
 
-  el.scrollTo({
-    top: el.scrollHeight,
-    behavior,
-  });
-}
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior,
+    });
+  }
 
-useLayoutEffect(() => {
-  if (!selectedChatId) return;
+  useLayoutEffect(() => {
+    if (!selectedChatId) return;
 
-  shouldAutoScrollRef.current = true;
+    shouldAutoScrollRef.current = true;
 
-  const id1 = requestAnimationFrame(() => {
-    const id2 = requestAnimationFrame(() => {
-      scrollMessagesToBottom("auto");
+    const id1 = requestAnimationFrame(() => {
+      const id2 = requestAnimationFrame(() => {
+        scrollMessagesToBottom("auto");
+      });
+
+      chatScrollRaf2Ref.current = id2;
     });
 
-    (window as any).__chatScrollRaf2 = id2;
-  });
+    chatScrollRaf1Ref.current = id1;
 
-  (window as any).__chatScrollRaf1 = id1;
+    return () => {
+      if (chatScrollRaf1Ref.current !== null) cancelAnimationFrame(chatScrollRaf1Ref.current);
+      if (chatScrollRaf2Ref.current !== null) cancelAnimationFrame(chatScrollRaf2Ref.current);
+    };
+  }, [selectedChatId, mobileView]);
 
-  return () => {
-    cancelAnimationFrame((window as any).__chatScrollRaf1);
-    cancelAnimationFrame((window as any).__chatScrollRaf2);
-  };
-}, [selectedChatId, mobileView]);
+  useLayoutEffect(() => {
+    if (!selectedChatId) return;
+    if (!lastMessageId) return;
+    if (!shouldAutoScrollRef.current) return;
 
-useLayoutEffect(() => {
-  if (!selectedChatId) return;
-  if (!lastMessageId) return;
-  if (!shouldAutoScrollRef.current) return;
+    const id1 = requestAnimationFrame(() => {
+      const id2 = requestAnimationFrame(() => {
+        scrollMessagesToBottom("smooth");
+      });
 
-  const id1 = requestAnimationFrame(() => {
-    const id2 = requestAnimationFrame(() => {
-      scrollMessagesToBottom("smooth");
+      chatMsgScrollRaf2Ref.current = id2;
     });
 
-    (window as any).__chatMsgScrollRaf2 = id2;
-  });
+    chatMsgScrollRaf1Ref.current = id1;
 
-  (window as any).__chatMsgScrollRaf1 = id1;
-
-  return () => {
-    cancelAnimationFrame((window as any).__chatMsgScrollRaf1);
-    cancelAnimationFrame((window as any).__chatMsgScrollRaf2);
-  };
-}, [selectedChatId, lastMessageId, mobileView]);
+    return () => {
+      if (chatMsgScrollRaf1Ref.current !== null) cancelAnimationFrame(chatMsgScrollRaf1Ref.current);
+      if (chatMsgScrollRaf2Ref.current !== null) cancelAnimationFrame(chatMsgScrollRaf2Ref.current);
+    };
+  }, [selectedChatId, lastMessageId, mobileView]);
 
   async function onStartSeedContactChat(contact: ChatUser) {
     if (!user) return;
@@ -418,8 +403,8 @@ useLayoutEffect(() => {
   const showSupportStarter = Boolean(user?.uid && user.uid !== SUPPORT_UID);
 
   const chatsListPane = (
-  <aside
-  className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border p-3 sm:p-4"
+    <aside
+      className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border p-3 sm:p-4"
       style={{
         borderColor: "var(--border)",
         background: "color-mix(in srgb, var(--text) 4%, var(--card))",
@@ -495,13 +480,13 @@ useLayoutEffect(() => {
                     {chat.avatarText}
                   </div>
                   {chat.online && (
-                   <span
-  className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
-  style={{
-    borderColor: "var(--card)",
-    background: chat.online ? "#10b981" : "#ef4444",
-  }}
-/>
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
+                      style={{
+                        borderColor: "var(--card)",
+                        background: chat.online ? "#10b981" : "#ef4444",
+                      }}
+                    />
                   )}
                 </div>
 
@@ -582,25 +567,24 @@ useLayoutEffect(() => {
                 </button>
               )}
 
-       <div
-  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-  style={{
-    background:
-      "color-mix(in srgb, var(--text) 6%, var(--card))",
-    color: "var(--text)",
-  }}
->
-  {selectedChat.avatarText}
+              <div
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--text) 6%, var(--card))",
+                  color: "var(--text)",
+                }}
+              >
+                {selectedChat.avatarText}
 
-  <span
-    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
-    style={{
-      borderColor: "var(--card)",
-      background: activePresenceOnline ? "#10b981" : "#ef4444",
-    }}
-  />
-</div>
-
+                <span
+                  className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
+                  style={{
+                    borderColor: "var(--card)",
+                    background: activePresenceOnline ? "#10b981" : "#ef4444",
+                  }}
+                />
+              </div>
             </div>
 
             <div
@@ -621,12 +605,12 @@ useLayoutEffect(() => {
             </div>
           </div>
 
-<div
-  ref={messagesListRef}
-  className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4"
-  onScroll={onScrollMessages}
->
-              <div className="space-y-3">
+          <div
+            ref={messagesListRef}
+            className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4"
+            onScroll={onScrollMessages}
+          >
+            <div className="space-y-3">
               {messages.map((message) => {
                 const iconOnly = message.type === "icons";
 
@@ -710,8 +694,8 @@ useLayoutEffect(() => {
 
   if (authReady && !user) {
     return (
-<main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
-          <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
+      <main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
+        <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
           <p style={{ color: "var(--muted)" }}>Sign in to use chat.</p>
         </section>
       </main>
@@ -719,19 +703,19 @@ useLayoutEffect(() => {
   }
 
   return (
-<main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
-  <section
-  className="flex h-full min-h-0 flex-col gap-4 overflow-hidden rounded-3xl border p-4 sm:gap-5 sm:p-5"
-    style={{
-    borderColor: "var(--border)",
-    background: "color-mix(in srgb, var(--card) 94%, transparent)",
-  }}
->
+    <main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
+      <section
+        className="flex h-full min-h-0 flex-col gap-4 overflow-hidden rounded-3xl border p-4 sm:gap-5 sm:p-5"
+        style={{
+          borderColor: "var(--border)",
+          background: "color-mix(in srgb, var(--card) 94%, transparent)",
+        }}
+      >
         <header
-  className={cls(
-    "shrink-0 flex flex-col gap-3 border-b pb-4",
-    mobileView === "chat" && "hidden lg:flex"
-  )}
+          className={cls(
+            "shrink-0 flex flex-col gap-3 border-b pb-4",
+            mobileView === "chat" && "hidden lg:flex"
+          )}
           style={{ borderColor: "var(--border)" }}
         >
           <div>
@@ -759,7 +743,7 @@ useLayoutEffect(() => {
 
             <button
               type="button"
-              onClick={() => setShowInvite((v) => !v)}
+              onClick={() => router.push("/app/chat/add-friend")}
               aria-label="Add friend"
               title="Add friend"
               className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border transition"
@@ -786,55 +770,6 @@ useLayoutEffect(() => {
             </button>
           </div>
         </header>
-
-        {showInvite && mobileView === "list" && (
-  <div
-    className="shrink-0 rounded-2xl border p-3 sm:p-4"
-            style={{
-              borderColor: "var(--border)",
-              background: "color-mix(in srgb, var(--text) 4%, var(--card))",
-            }}
-          >
-            <div>
-              <h2
-                className="mb-2 text-sm font-semibold"
-                style={{ color: "var(--text)" }}
-              >
-                Invite a friend
-              </h2>
-              <p className="mb-3 text-xs" style={{ color: "var(--muted)" }}>
-                Invite friends to chat about dreams and shared stories.
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  readOnly
-                  value="https://dreamly.app/invite/dream-chat"
-                  className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
-                  style={{
-                    borderColor: "var(--border)",
-                    background:
-                      "color-mix(in srgb, var(--bg) 82%, var(--card))",
-                    color: "var(--muted)",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={onCopyInviteLink}
-                  className="rounded-xl border px-4 py-2 text-sm font-medium transition"
-                  style={{
-                    borderColor:
-                      "color-mix(in srgb, #22d3ee 40%, var(--border))",
-                    background:
-                      "color-mix(in srgb, #22d3ee 12%, var(--card))",
-                    color: "color-mix(in srgb, #22d3ee 78%, var(--text))",
-                  }}
-                >
-                  {inviteCopied ? "Copied" : "Copy"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div
           className={cls(
