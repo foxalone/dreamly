@@ -1,4 +1,4 @@
-const INVITE_URL = "https://dreamly.app/invite/dream-chat";
+const INVITE_URL = "https://dreamly.art/invite/dream-chat";
 const DEFAULT_INVITE_TEXT = "Join me on Dreamly Chat — let’s share dreams and stories.";
 
 function encode(value: string): string {
