@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { IconComposerInput } from "./components/IconComposerInput";
 import { IconKeyboard } from "./components/IconKeyboard";
 import {
@@ -9,134 +11,25 @@ import {
   isValidIconMessage,
   sanitizeIconMessage,
 } from "./iconComposer";
+import {
+  createOrGetDirectChat,
+  markChatAsRead,
+  sendChatMessage,
+  setTyping,
+  subscribeChatMessages,
+  subscribeRecentIcons,
+  subscribeTyping,
+  subscribeUserChats,
+} from "@/lib/chat/chatDb";
+import { extractIcons } from "@/lib/chat/chatFormat";
+import { setupPresence, subscribePresence } from "@/lib/chat/chatPresence";
+import type { ChatPreview, ChatUser, UIMessage } from "@/lib/chat/chatTypes";
 
-type ChatItem = {
-  id: string;
-  name: string;
-  avatarText: string;
-  lastMessage: string;
-  time: string;
-  unreadCount?: number;
-  online?: boolean;
-};
-
-type Message = {
-  id: string;
-  chatId: string;
-  text: string;
-  time: string;
-  mine: boolean;
-};
-
-const initialChats: ChatItem[] = [
-  {
-    id: "michael",
-    name: "Michael",
-    avatarText: "MI",
-    lastMessage: "That dream felt too real 😮",
-    time: "09:42",
-    unreadCount: 2,
-    online: true,
-  },
-  {
-    id: "anna",
-    name: "Anna",
-    avatarText: "AN",
-    lastMessage: "Send me your journal note later",
-    time: "08:27",
-    online: true,
-  },
-  {
-    id: "dream-group",
-    name: "Dream Group",
-    avatarText: "DG",
-    lastMessage: "Tonight theme: flying dreams",
-    time: "Yesterday",
-    unreadCount: 5,
-  },
-  {
-    id: "mike",
-    name: "Mike",
-    avatarText: "MK",
-    lastMessage: "I saw the same symbol too",
-    time: "Yesterday",
-  },
-  {
-    id: "sara",
-    name: "Sara",
-    avatarText: "SA",
-    lastMessage: "Good night 🌙",
-    time: "Mon",
-    online: true,
-  },
-  {
-    id: "family",
-    name: "Family",
-    avatarText: "FA",
-    lastMessage: "Dinner tomorrow at 7",
-    time: "Sun",
-    unreadCount: 1,
-  },
-  {
-    id: "work",
-    name: "Work",
-    avatarText: "WK",
-    lastMessage: "Reminder: review notes",
-    time: "Sun",
-  },
-  {
-    id: "lucid-dreamers",
-    name: "Lucid Dreamers",
-    avatarText: "LD",
-    lastMessage: "Try reality checks every hour",
-    time: "Sat",
-    unreadCount: 3,
-  },
-];
-
-const initialMessages: Message[] = [
-  {
-    id: "1",
-    chatId: "michael",
-    text: "Hey! Did you write down your dream?",
-    time: "09:33",
-    mine: false,
-  },
-  {
-    id: "2",
-    chatId: "michael",
-    text: "Yep, just now. It had a giant blue moon.",
-    time: "09:35",
-    mine: true,
-  },
-  {
-    id: "3",
-    chatId: "michael",
-    text: "That dream felt too real 😮",
-    time: "09:42",
-    mine: false,
-  },
-  {
-    id: "4",
-    chatId: "anna",
-    text: "Morning!",
-    time: "08:10",
-    mine: false,
-  },
-  {
-    id: "5",
-    chatId: "anna",
-    text: "Morning, Anna 👋",
-    time: "08:12",
-    mine: true,
-  },
-  {
-    id: "6",
-    chatId: "dream-group",
-    text: "Tonight theme: flying dreams",
-    time: "21:18",
-    mine: false,
-  },
+const seedContacts: ChatUser[] = [
+  { uid: "dreamly_michael", displayName: "Michael" },
+  { uid: "dreamly_anna", displayName: "Anna" },
+  { uid: "dreamly_mike", displayName: "Mike" },
+  { uid: "dreamly_sara", displayName: "Sara" },
 ];
 
 function cls(...classes: Array<string | false | undefined>) {
@@ -144,40 +37,41 @@ function cls(...classes: Array<string | false | undefined>) {
 }
 
 export default function ChatPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [chatQuery, setChatQuery] = useState("");
-  const [selectedChatId, setSelectedChatId] = useState(
-    initialChats[0]?.id ?? ""
-  );
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [chats, setChats] = useState<ChatPreview[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState("");
+  const [messages, setMessages] = useState<UIMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [iconKeyboardOpen, setIconKeyboardOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [recentIcons, setRecentIcons] = useState<string[]>([]);
+  const [typingOther, setTypingOther] = useState(false);
+  const [activePresenceOnline, setActivePresenceOnline] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
+  const listPresenceUnsubsRef = useRef<Map<string, () => void>>(new Map());
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldAutoScrollRef = useRef(true);
 
   const filteredChats = useMemo(() => {
     const q = chatQuery.trim().toLowerCase();
-    if (!q) return initialChats;
+    if (!q) return chats;
 
-    return initialChats.filter(
+    return chats.filter(
       (chat) =>
         chat.name.toLowerCase().includes(q) ||
         chat.lastMessage.toLowerCase().includes(q)
     );
-  }, [chatQuery]);
+  }, [chatQuery, chats]);
 
   const selectedChat = useMemo(
-    () => initialChats.find((chat) => chat.id === selectedChatId) ?? null,
-    [selectedChatId]
-  );
-
-  const selectedMessages = useMemo(
-    () => messages.filter((message) => message.chatId === selectedChatId),
-    [messages, selectedChatId]
+    () => chats.find((chat) => chat.id === selectedChatId) ?? null,
+    [chats, selectedChatId]
   );
 
   const recentEmojiItems = useMemo(() => {
@@ -187,6 +81,111 @@ export default function ChatPage() {
       .map((native) => allItems.find((item) => item.native === native))
       .filter((item): item is NonNullable<typeof item> => Boolean(item));
   }, [recentIcons]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
+      if (!nextUser) {
+        setChats([]);
+        setMessages([]);
+        setSelectedChatId("");
+      }
+      setAuthReady(true);
+    });
+
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    return setupPresence(user);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    return subscribeUserChats(user.uid, (incomingChats) => {
+      setChats((prev) => {
+        const onlineByUid = new Map(prev.map((item) => [item.otherUid, item.online ?? false]));
+        const typingByUid = new Map(prev.map((item) => [item.otherUid, item.typing ?? false]));
+
+        return incomingChats.map((chat) => ({
+          ...chat,
+          online: onlineByUid.get(chat.otherUid) ?? false,
+          typing: typingByUid.get(chat.otherUid) ?? false,
+        }));
+      });
+
+      setSelectedChatId((current) => {
+        if (!incomingChats.length) return "";
+        if (current && incomingChats.some((chat) => chat.id === current)) return current;
+        return incomingChats[0].id;
+      });
+    });
+  }, [user?.uid]);
+
+  useEffect(() => {
+    const bucket = listPresenceUnsubsRef.current;
+    for (const unsub of bucket.values()) unsub();
+    bucket.clear();
+
+    chats.slice(0, 12).forEach((chat) => {
+      const unsub = subscribePresence(chat.otherUid, (presence) => {
+        const online = Boolean(presence?.online);
+        setChats((prev) =>
+          prev.map((item) =>
+            item.otherUid === chat.otherUid ? { ...item, online } : item
+          )
+        );
+      });
+      bucket.set(chat.otherUid, unsub);
+    });
+
+    return () => {
+      for (const unsub of bucket.values()) unsub();
+      bucket.clear();
+    };
+  }, [chats]);
+
+  useEffect(() => {
+    if (!user?.uid || !selectedChatId) return;
+
+    return subscribeChatMessages(selectedChatId, user.uid, (nextMessages) => {
+      setMessages(nextMessages);
+    });
+  }, [selectedChatId, user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid || !selectedChatId) return;
+    void markChatAsRead(selectedChatId, user.uid);
+  }, [selectedChatId, user?.uid, messages.length]);
+
+  useEffect(() => {
+    if (!user?.uid || !selectedChat) return;
+
+    const unsubPresence = subscribePresence(selectedChat.otherUid, (presence) => {
+      setActivePresenceOnline(Boolean(presence?.online));
+    });
+
+    const unsubTyping = subscribeTyping(selectedChat.id, selectedChat.otherUid, (typing) => {
+      setTypingOther(typing);
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === selectedChat.id ? { ...chat, typing } : chat
+        )
+      );
+    });
+
+    return () => {
+      unsubPresence();
+      unsubTyping();
+    };
+  }, [selectedChat, user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    return subscribeRecentIcons(user.uid, setRecentIcons);
+  }, [user?.uid]);
 
   useEffect(() => {
     if (!iconKeyboardOpen) return;
@@ -210,31 +209,59 @@ export default function ChatPage() {
   }, [iconKeyboardOpen]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [selectedChatId, selectedMessages.length]);
-
-  useEffect(() => {
     if (!showInvite || !inviteCopied) return;
     const t = setTimeout(() => setInviteCopied(false), 1400);
     return () => clearTimeout(t);
   }, [showInvite, inviteCopied]);
 
+  useEffect(() => {
+    if (!selectedChatId) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [selectedChatId]);
+
+  useEffect(() => {
+    if (shouldAutoScrollRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (!user?.uid || !selectedChatId) return;
+
+    const hasDraft = sanitizeIconMessage(draft).length > 0;
+    void setTyping(selectedChatId, user.uid, hasDraft);
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      void setTyping(selectedChatId, user.uid, false);
+    }, 1200);
+
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [draft, selectedChatId, user?.uid]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (user?.uid && selectedChatId) {
+        void setTyping(selectedChatId, user.uid, false);
+      }
+    };
+  }, [selectedChatId, user?.uid]);
+
+  function onScrollMessages(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    shouldAutoScrollRef.current = distance < 120;
+  }
+
   function onSendMessage(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSendCurrentDraft();
+    void onSendCurrentDraft();
   }
 
   function onInsertToken(token: string) {
-    if (token !== " ") {
-      setRecentIcons((prev) => {
-        const next = [token, ...prev.filter((x) => x !== token)];
-        return next.slice(0, 24);
-      });
-    }
-
     if (token === " ") {
       setDraft((prev) => `${prev.trimEnd()} `);
       return;
@@ -253,28 +280,33 @@ export default function ChatPage() {
     });
   }
 
-  function onSendCurrentDraft() {
+  async function onSendCurrentDraft() {
+    if (!user || !selectedChat) return;
+
     const text = sanitizeIconMessage(draft);
     if (!isValidIconMessage(text) || !selectedChatId) return;
 
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, "0")}:${String(
-      now.getMinutes()
-    ).padStart(2, "0")}`;
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: String(now.getTime()),
-        chatId: selectedChatId,
-        text,
-        time,
-        mine: true,
+    const ok = await sendChatMessage({
+      chatId: selectedChatId,
+      currentUser: user,
+      otherUser: {
+        uid: selectedChat.otherUid,
+        displayName: selectedChat.name,
+        photoURL: selectedChat.photoURL,
       },
-    ]);
+      text,
+      icons: extractIcons(text),
+    }).catch((error) => {
+      console.error("sendChatMessage failed", error);
+      return false;
+    });
+
+    if (!ok) return;
 
     setDraft("");
     setIconKeyboardOpen(false);
+    await setTyping(selectedChatId, user.uid, false);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }
 
   async function onCopyInviteLink() {
@@ -292,6 +324,23 @@ export default function ChatPage() {
     setMobileView("chat");
   }
 
+  async function onStartSeedContactChat(contact: ChatUser) {
+    if (!user) return;
+
+    const chatId = await createOrGetDirectChat(
+      {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+      },
+      contact
+    );
+
+    if (!chatId) return;
+    onSelectChat(chatId);
+  }
+
   const chatsListPane = (
     <aside
       className="flex h-full min-h-0 min-w-0 flex-col rounded-2xl border p-3 sm:p-4"
@@ -300,6 +349,27 @@ export default function ChatPage() {
         background: "color-mix(in srgb, var(--text) 4%, var(--card))",
       }}
     >
+      {!filteredChats.length && (
+        <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>
+            No chats yet. Start one:
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {seedContacts.map((contact) => (
+              <button
+                key={contact.uid}
+                type="button"
+                onClick={() => void onStartSeedContactChat(contact)}
+                className="rounded-full border px-2.5 py-1 text-xs"
+                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              >
+                {contact.displayName}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
         {filteredChats.map((chat) => {
           const active = chat.id === selectedChatId;
@@ -369,7 +439,7 @@ export default function ChatPage() {
                       className="truncate text-xs"
                       style={{ color: "var(--muted)" }}
                     >
-                      {chat.lastMessage}
+                      {chat.typing ? "typing…" : chat.lastMessage || "No messages yet"}
                     </p>
                     {chat.unreadCount ? (
                       <span
@@ -434,7 +504,7 @@ export default function ChatPage() {
                 }}
               >
                 {selectedChat.avatarText}
-                {selectedChat.online && (
+                {activePresenceOnline && (
                   <span
                     className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border"
                     style={{
@@ -442,6 +512,17 @@ export default function ChatPage() {
                       background: "#10b981",
                     }}
                   />
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium" style={{ color: "var(--text)" }}>
+                  {selectedChat.name}
+                </p>
+                {typingOther && (
+                  <p className="text-[11px]" style={{ color: "var(--muted)" }}>
+                    typing…
+                  </p>
                 )}
               </div>
             </div>
@@ -464,10 +545,10 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4" onScroll={onScrollMessages}>
             <div className="space-y-3">
-              {selectedMessages.map((message) => {
-                const iconOnly = isValidIconMessage(message.text);
+              {messages.map((message) => {
+                const iconOnly = message.type === "icons";
 
                 return (
                   <div
@@ -525,7 +606,7 @@ export default function ChatPage() {
             <IconComposerInput
               value={draft}
               onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
-              onSend={onSendCurrentDraft}
+              onSend={() => void onSendCurrentDraft()}
               sendDisabled={!isValidIconMessage(sanitizeIconMessage(draft))}
             />
           </form>
@@ -547,6 +628,16 @@ export default function ChatPage() {
       )}
     </section>
   );
+
+  if (authReady && !user) {
+    return (
+      <main className="mx-auto h-[calc(100dvh-96px)] w-full max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">
+        <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
+          <p style={{ color: "var(--muted)" }}>Sign in to use chat.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto h-[calc(100dvh-96px)] w-full max-w-6xl overflow-hidden px-4 pt-5 sm:px-6 lg:px-8">
