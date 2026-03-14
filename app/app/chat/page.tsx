@@ -65,7 +65,12 @@ export default function ChatPage() {
   const chatMsgScrollRaf2Ref = useRef<number | null>(null);
 
   const searchParams = useSearchParams();
-const requestedChatId = searchParams.get("chat") ?? "";
+const [requestedChatId, setRequestedChatId] = useState("");
+
+useEffect(() => {
+  const id = searchParams.get("chat") ?? "";
+  setRequestedChatId(id);
+}, [searchParams]);
 
   const filteredChats = useMemo(() => {
     const q = chatQuery.trim().toLowerCase();
