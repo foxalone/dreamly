@@ -12,6 +12,8 @@ import {
 } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { subscribeUnreadCount } from "@/lib/chat/subscribeUnreadCount";
+import { updateFaviconBadge } from "@/lib/chat/updateFaviconBadge";
 import { auth } from "@/lib/firebase";
 
 type Item = {
@@ -193,6 +195,7 @@ type BottomNavProps = {
 export default function BottomNav({ hidden }: BottomNavProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [busy, setBusy] = useState(false);
 
   useEffect(() =>
@@ -202,6 +205,23 @@ export default function BottomNav({ hidden }: BottomNavProps) {
       ensureUserProfileOnSignIn(u);
     }),
   []);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setUnreadCount(0);
+      updateFaviconBadge(0);
+      return;
+    }
+
+    const unsubscribe = subscribeUnreadCount(user.uid, (totalUnread) => {
+      setUnreadCount(totalUnread);
+      updateFaviconBadge(totalUnread);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.uid]);
 
   const isActive = (href: string) =>
     pathname === href || pathname?.startsWith(href + "/");
@@ -251,6 +271,8 @@ export default function BottomNav({ hidden }: BottomNavProps) {
 
   if (hidden) return null;
 
+  const chatBadgeLabel = unreadCount > 9 ? "9+" : String(unreadCount);
+
   const profileHref = "/app/profile";
   const profileActive = isActive(profileHref);
 
@@ -272,7 +294,21 @@ export default function BottomNav({ hidden }: BottomNavProps) {
                     active ? it.activeClass : "text-[var(--muted)]"
                   )}
                 >
-                  {it.icon(active)}
+                  {it.href === "/app/chat" ? (
+                    <span className="relative inline-flex">
+                      {it.icon(active)}
+                      {unreadCount > 0 ? (
+                        <span
+                          className="absolute -right-2 -top-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold"
+                          aria-label={`${unreadCount} unread messages`}
+                        >
+                          {chatBadgeLabel}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    it.icon(active)
+                  )}
                   <span className="text-xs">{it.label}</span>
                 </Link>
               );
