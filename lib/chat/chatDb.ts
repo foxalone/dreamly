@@ -49,25 +49,35 @@ export async function createOrGetDirectChat(
 
   const currentChatRef = ref(db, `user_chats/${currentUser.uid}/${chatId}`);
   const otherChatRef = ref(db, `user_chats/${otherUser.uid}/${chatId}`);
-  const currentSnap = await get(currentChatRef);
+const currentSnap = await get(currentChatRef);
 
-  if (!currentSnap.exists()) {
-    await set(currentChatRef, {
-      chatId,
-      otherUid: otherUser.uid,
-      otherName: otherUser.displayName ?? otherUser.email ?? "Unknown",
-      otherPhotoURL: otherUser.photoURL ?? null,
-      lastMessage: "",
-      lastMessageType: "text",
-      lastMessageAt: 0,
-      lastSenderUid: "",
-      unreadCount: 0,
-      updatedAt: now,
-      ...(systemMeta ?? {}),
-    } satisfies UserChatRecord);
-  }
+if (!currentSnap.exists()) {
+  await set(currentChatRef, {
+    chatId,
+    otherUid: otherUser.uid,
+    otherName: otherUser.displayName ?? otherUser.email ?? "Unknown",
+    otherPhotoURL: otherUser.photoURL ?? null,
+    lastMessage: "",
+    lastMessageType: "text",
+    lastMessageAt: 0,
+    lastSenderUid: "",
+    unreadCount: 0,
+    updatedAt: now,
+    ...(systemMeta ?? {}),
+  } satisfies UserChatRecord);
+} else {
+  await update(currentChatRef, {
+    otherUid: otherUser.uid,
+    otherName: otherUser.displayName ?? otherUser.email ?? "Unknown",
+    otherPhotoURL: otherUser.photoURL ?? null,
+    ...(systemMeta ?? {}),
+  });
+}
 
-  await update(otherChatRef, {
+const otherSnap = await get(otherChatRef);
+
+if (!otherSnap.exists()) {
+  await set(otherChatRef, {
     chatId,
     otherUid: currentUser.uid,
     otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
@@ -80,6 +90,14 @@ export async function createOrGetDirectChat(
     updatedAt: now,
     ...(systemMeta ?? {}),
   } satisfies UserChatRecord);
+} else {
+  await update(otherChatRef, {
+    otherUid: currentUser.uid,
+    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
+    otherPhotoURL: currentUser.photoURL ?? null,
+    ...(systemMeta ?? {}),
+  });
+}
 
   return chatId;
 }
@@ -163,12 +181,16 @@ type SendParams = {
   icons?: string[];
 };
 
-export async function sendChatMessage({ chatId, currentUser, otherUser, text, icons = [] }: SendParams): Promise<boolean> {
+export async function sendChatMessage({
+  chatId,
+  currentUser,
+  otherUser,
+  text,
+  icons = [],
+}: SendParams): Promise<boolean> {
   const rawText = text.replace(/\s+/g, " ").trim();
   const sanitizedText = sanitizeIconMessage(rawText);
   const normalizedText = sanitizedText === rawText ? sanitizedText : rawText;
-
-
 
   const parsedIcons = icons.length ? icons.filter(Boolean) : extractIcons(sanitizedText);
   const type = detectMessageType(normalizedText, parsedIcons);
@@ -182,9 +204,13 @@ export async function sendChatMessage({ chatId, currentUser, otherUser, text, ic
   const messageId = messageRef.key;
   if (!messageId) return false;
 
-const previewText = normalizedText;
+  const previewText = normalizedText;
+  const isSupportChat =
+    currentUser.uid === SUPPORT_UID || otherUser.uid === SUPPORT_UID;
 
-
+  const supportMeta = isSupportChat
+    ? { isSystem: true, isPinned: true, canDelete: false }
+    : {};
 
   const messagePayload: ChatMessageRecord = {
     id: messageId,
@@ -213,24 +239,26 @@ const previewText = normalizedText;
     lastSenderUid: currentUser.uid,
     unreadCount: 0,
     updatedAt: now,
-    ...(otherUser.uid === SUPPORT_UID ? { isSystem: true, isPinned: true, canDelete: false } : {}),
+    ...supportMeta,
+  };
+
+  const recipientPreview: Omit<UserChatRecord, "unreadCount"> = {
+    chatId,
+    otherUid: currentUser.uid,
+    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
+    otherPhotoURL: currentUser.photoURL ?? null,
+    lastMessage: previewText,
+    lastMessageType: type,
+    lastMessageAt: now,
+    lastSenderUid: currentUser.uid,
+    updatedAt: now,
+    ...supportMeta,
   };
 
   await Promise.all([
     update(ref(db, `chats/${chatId}`), { updatedAt: now }),
     update(ref(db, `user_chats/${currentUser.uid}/${chatId}`), senderPreview),
-    update(ref(db, `user_chats/${otherUser.uid}/${chatId}`), {
-      chatId,
-      otherUid: currentUser.uid,
-      otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
-      otherPhotoURL: currentUser.photoURL ?? null,
-      lastMessage: previewText,
-      lastMessageType: type,
-      lastMessageAt: now,
-      lastSenderUid: currentUser.uid,
-      updatedAt: now,
-      ...(currentUser.uid === SUPPORT_UID ? { isSystem: true, isPinned: true, canDelete: false } : {}),
-    } satisfies Omit<UserChatRecord, "unreadCount">),
+    update(ref(db, `user_chats/${otherUser.uid}/${chatId}`), recipientPreview),
   ]);
 
   await runTransaction(ref(db, `user_chats/${otherUser.uid}/${chatId}/unreadCount`), (current) => {
@@ -244,7 +272,6 @@ const previewText = normalizedText;
 
   return true;
 }
-
 
 export async function ensureSupportChatForUser(currentUser: ChatUser): Promise<string | null> {
   if (!currentUser.uid || currentUser.uid === SUPPORT_UID) {
