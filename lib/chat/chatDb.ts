@@ -1,4 +1,4 @@
-import { getDatabase, get, onValue, push, ref, set, update } from "firebase/database";
+import { getDatabase, get, increment, onValue, push, ref, set, update } from "firebase/database";
 import type { User } from "firebase/auth";
 import app from "@/lib/firebase";
 import { sanitizeIconMessage } from "@/app/app/chat/iconComposer";
@@ -216,9 +216,26 @@ export async function sendChatMessage({
     ...supportMeta,
   };
 
+  const receiverPreview: Partial<UserChatRecord> = {
+    chatId,
+    otherUid: currentUser.uid,
+    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
+    otherPhotoURL: currentUser.photoURL ?? null,
+    lastMessage: previewText,
+    lastMessageType: type,
+    lastMessageAt: now,
+    lastSenderUid: currentUser.uid,
+    updatedAt: now,
+    ...supportMeta,
+  };
+
 await Promise.all([
   update(ref(db, `chats/${chatId}`), { updatedAt: now }),
   update(ref(db, `user_chats/${currentUser.uid}/${chatId}`), senderPreview),
+  update(ref(db, `user_chats/${otherUser.uid}/${chatId}`), {
+    ...receiverPreview,
+    unreadCount: increment(1),
+  }),
 ]);
 
 
