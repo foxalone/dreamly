@@ -2,7 +2,7 @@ import { getDatabase, get, onValue, push, ref, runTransaction, set, update } fro
 import type { User } from "firebase/auth";
 import app from "@/lib/firebase";
 import { sanitizeIconMessage } from "@/app/app/chat/iconComposer";
-import { buildAvatarText, buildPreviewText, detectMessageType, extractIcons, formatMessageTime } from "./chatFormat";
+import { buildAvatarText, detectMessageType, extractIcons, formatMessageTime } from "./chatFormat";
 import type { ChatMessageRecord, ChatPreview, ChatUser, UIMessage, UserChatRecord } from "./chatTypes";
 
 const db = getDatabase(app);
@@ -144,6 +144,9 @@ export async function sendChatMessage({ chatId, currentUser, otherUser, text, ic
   const rawText = text.replace(/\s+/g, " ").trim();
   const sanitizedText = sanitizeIconMessage(rawText);
   const normalizedText = sanitizedText === rawText ? sanitizedText : rawText;
+
+
+
   const parsedIcons = icons.length ? icons.filter(Boolean) : extractIcons(sanitizedText);
   const type = detectMessageType(normalizedText, parsedIcons);
 
@@ -156,7 +159,9 @@ export async function sendChatMessage({ chatId, currentUser, otherUser, text, ic
   const messageId = messageRef.key;
   if (!messageId) return false;
 
-  const previewText = buildPreviewText(normalizedText, parsedIcons, type);
+const previewText = normalizedText;
+
+
 
   const messagePayload: ChatMessageRecord = {
     id: messageId,

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { IconComposerInput } from "./components/IconComposerInput";
 import { IconKeyboard } from "./components/IconKeyboard";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   appendToken,
   DREAM_EMOJI_CATEGORIES,
@@ -50,9 +50,9 @@ export default function ChatPage() {
   const [iconKeyboardOpen, setIconKeyboardOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const [recentIcons, setRecentIcons] = useState<string[]>([]);
-  const [typingOther, setTypingOther] = useState(false);
   const [activePresenceOnline, setActivePresenceOnline] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
+  const requestedChatConsumedRef = useRef(false);
 
   const messagesListRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
@@ -63,6 +63,9 @@ export default function ChatPage() {
   const chatScrollRaf2Ref = useRef<number | null>(null);
   const chatMsgScrollRaf1Ref = useRef<number | null>(null);
   const chatMsgScrollRaf2Ref = useRef<number | null>(null);
+
+  const searchParams = useSearchParams();
+const requestedChatId = searchParams.get("chat") ?? "";
 
   const filteredChats = useMemo(() => {
     const q = chatQuery.trim().toLowerCase();
@@ -84,6 +87,8 @@ export default function ChatPage() {
     () => chats.slice(0, 12).map((chat) => chat.otherUid).join("|"),
     [chats]
   );
+
+  const keyboardRef = useRef<HTMLDivElement | null>(null);
 
   const lastMessageId = messages.length ? messages[messages.length - 1].id : "";
 
@@ -129,13 +134,40 @@ export default function ChatPage() {
         }));
       });
 
-      setSelectedChatId((current) => {
-        if (!incomingChats.length) return "";
-        if (current && incomingChats.some((chat) => chat.id === current)) return current;
-        return incomingChats[0].id;
-      });
+     setSelectedChatId((current) => {
+  if (!incomingChats.length) return "";
+
+  if (
+    !requestedChatConsumedRef.current &&
+    requestedChatId &&
+    incomingChats.some((chat) => chat.id === requestedChatId)
+  ) {
+    requestedChatConsumedRef.current = true;
+    return requestedChatId;
+  }
+
+  if (current && incomingChats.some((chat) => chat.id === current)) {
+    return current;
+  }
+
+  return incomingChats[0].id;
+});
     });
-  }, [user?.uid]);
+}, [user?.uid, requestedChatId]);
+
+useEffect(() => {
+  if (!selectedChatId) return;
+  if (!requestedChatId) return;
+  if (selectedChatId !== requestedChatId) return;
+
+  router.replace("/app/chat");
+}, [selectedChatId, requestedChatId, router]);
+
+useEffect(() => {
+  if (!requestedChatId) return;
+  if (selectedChatId !== requestedChatId) return;
+  setMobileView("chat");
+}, [requestedChatId, selectedChatId]);
 
   useEffect(() => {
     const bucket = listPresenceUnsubsRef.current;
@@ -193,7 +225,6 @@ export default function ChatPage() {
     });
 
     const unsubTyping = subscribeTyping(selectedChat.id, selectedChat.otherUid, (typing) => {
-      setTypingOther(typing);
       setChats((prev) =>
         prev.map((chat) =>
           chat.id === selectedChat.id ? { ...chat, typing } : chat
@@ -226,7 +257,12 @@ export default function ChatPage() {
     const handleOutsidePointer = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
-      if (composerRef.current?.contains(target)) return;
+if (
+  composerRef.current?.contains(target) ||
+  keyboardRef.current?.contains(target)
+) {
+  return;
+}
       setIconKeyboardOpen(false);
     };
 
@@ -657,14 +693,15 @@ export default function ChatPage() {
             className="relative shrink-0 border-t p-3 pb-4 sm:p-4 sm:pb-5"
             style={{ borderColor: "var(--border)" }}
           >
-            <IconKeyboard
-              open={iconKeyboardOpen}
-              onInsert={onInsertToken}
-              onBackspace={onBackspaceToken}
-              onClear={() => setDraft("")}
-              onClose={() => setIconKeyboardOpen(false)}
-              recentItems={recentEmojiItems}
-            />
+           <IconKeyboard
+  ref={keyboardRef}
+  open={iconKeyboardOpen}
+  onInsert={onInsertToken}
+  onBackspace={onBackspaceToken}
+  onClear={() => setDraft("")}
+  onClose={() => setIconKeyboardOpen(false)}
+  recentItems={recentEmojiItems}
+/>
 
             <IconComposerInput
               value={draft}

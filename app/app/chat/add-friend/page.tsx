@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged, type User } from "firebase/auth";
+
+import { auth } from "@/lib/firebase";
 import { InviteActionButton } from "../components/InviteActionButton";
 import {
   copyInviteLink,
@@ -14,15 +17,27 @@ import {
 
 export default function AddFriendPage() {
   const router = useRouter();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
 
-  const inviteUrl = useMemo(() => getChatInviteUrl(), []);
-  const inviteMessage = useMemo(() => getInviteMessage(), []);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
+      setAuthReady(true);
+    });
+
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
-    setCanNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+    setCanNativeShare(
+      typeof navigator !== "undefined" &&
+        typeof navigator.share === "function"
+    );
   }, []);
 
   useEffect(() => {
@@ -31,25 +46,46 @@ export default function AddFriendPage() {
     return () => clearTimeout(timer);
   }, [copied]);
 
+  const inviteUrl = useMemo(() => {
+    if (typeof window === "undefined" || !user?.uid) return "";
+    return getChatInviteUrl(window.location.origin, user.uid);
+  }, [user?.uid]);
+
+  const inviteMessage = useMemo(() => getInviteMessage(), []);
+
+  const actionsDisabled = !authReady || !user?.uid || !inviteUrl;
+
   const onCopy = async () => {
+    if (actionsDisabled) return;
     const ok = await copyInviteLink(inviteUrl);
     if (ok) setCopied(true);
   };
 
   const onWhatsApp = () => {
-    window.open(getWhatsAppShareUrl(inviteUrl, inviteMessage), "_blank", "noopener,noreferrer");
+    if (actionsDisabled) return;
+    window.open(
+      getWhatsAppShareUrl(inviteUrl, inviteMessage),
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   const onTelegram = () => {
-    window.open(getTelegramShareUrl(inviteUrl, inviteMessage), "_blank", "noopener,noreferrer");
+    if (actionsDisabled) return;
+    window.open(
+      getTelegramShareUrl(inviteUrl, inviteMessage),
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   const onSms = () => {
+    if (actionsDisabled) return;
     window.location.href = getSmsShareUrl(inviteUrl, inviteMessage);
   };
 
   const onNativeShare = async () => {
-    if (!canNativeShare || sharing) return;
+    if (!canNativeShare || sharing || actionsDisabled) return;
 
     setSharing(true);
     try {
@@ -59,7 +95,7 @@ export default function AddFriendPage() {
         url: inviteUrl,
       });
     } catch {
-      // Silent fail by design.
+      // silent fail
     } finally {
       setSharing(false);
     }
@@ -87,7 +123,11 @@ export default function AddFriendPage() {
           >
             ← Back
           </button>
-          <h1 className="text-xl font-semibold sm:text-2xl" style={{ color: "var(--text)" }}>
+
+          <h1
+            className="text-xl font-semibold sm:text-2xl"
+            style={{ color: "var(--text)" }}
+          >
             Add friend
           </h1>
         </header>
@@ -103,26 +143,33 @@ export default function AddFriendPage() {
             background: "color-mix(in srgb, var(--text) 4%, var(--card))",
           }}
         >
-          <label className="mb-2 block text-xs font-medium" style={{ color: "var(--muted)" }}>
+          <label
+            className="mb-2 block text-xs font-medium"
+            style={{ color: "var(--muted)" }}
+          >
             Invite link
           </label>
 
           <div className="flex gap-2">
             <input
               readOnly
-              value={inviteUrl}
+              value={
+                inviteUrl ||
+                (authReady ? "Sign in required to create invite link" : "Loading...")
+              }
               className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
               style={{
                 borderColor: "var(--border)",
                 background: "color-mix(in srgb, var(--bg) 82%, var(--card))",
-                color: "var(--text)",
+                color: inviteUrl ? "var(--text)" : "var(--muted)",
               }}
             />
 
             <button
               type="button"
               onClick={() => void onCopy()}
-              className="rounded-xl border px-3 py-2 text-sm font-medium transition"
+              disabled={actionsDisabled}
+              className="rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 borderColor: "color-mix(in srgb, #22d3ee 40%, var(--border))",
                 background: "color-mix(in srgb, #22d3ee 12%, var(--card))",
@@ -140,6 +187,7 @@ export default function AddFriendPage() {
             subtitle="Open WhatsApp with your invite prefilled"
             onClick={onWhatsApp}
             icon={<span className="text-lg leading-none">🟢</span>}
+            disabled={actionsDisabled}
           />
 
           <InviteActionButton
@@ -147,6 +195,7 @@ export default function AddFriendPage() {
             subtitle="Open Telegram share composer"
             onClick={onTelegram}
             icon={<span className="text-lg leading-none">✈️</span>}
+            disabled={actionsDisabled}
           />
 
           <InviteActionButton
@@ -154,6 +203,7 @@ export default function AddFriendPage() {
             subtitle="Send invite message with your default SMS app"
             onClick={onSms}
             icon={<span className="text-lg leading-none">💬</span>}
+            disabled={actionsDisabled}
           />
 
           <InviteActionButton
@@ -161,6 +211,7 @@ export default function AddFriendPage() {
             subtitle="Copy invite URL to clipboard"
             onClick={() => void onCopy()}
             icon={<span className="text-lg leading-none">📋</span>}
+            disabled={actionsDisabled}
           />
 
           {canNativeShare ? (
@@ -169,7 +220,7 @@ export default function AddFriendPage() {
               subtitle="Use your device share sheet"
               onClick={() => void onNativeShare()}
               icon={<span className="text-lg leading-none">📤</span>}
-              disabled={sharing}
+              disabled={actionsDisabled || sharing}
             />
           ) : null}
         </div>
