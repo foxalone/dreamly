@@ -60,6 +60,8 @@ export default function ChatPage() {
   const listPresenceUnsubsRef = useRef<Map<string, () => void>>(new Map());
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldAutoScrollRef = useRef(true);
+  const sendingRef = useRef(false);
+const [isSending, setIsSending] = useState(false);
   const chatScrollRaf1Ref = useRef<number | null>(null);
   const chatScrollRaf2Ref = useRef<number | null>(null);
   const chatMsgScrollRaf1Ref = useRef<number | null>(null);
@@ -359,12 +361,17 @@ if (
     });
   }
 
-  async function onSendCurrentDraft() {
-    if (!user || !selectedChat) return;
+ async function onSendCurrentDraft() {
+  if (sendingRef.current) return;
+  if (!user || !selectedChat) return;
 
-    const text = sanitizeIconMessage(draft);
-    if (!isValidIconMessage(text) || !selectedChatId) return;
+  const text = sanitizeIconMessage(draft);
+  if (!isValidIconMessage(text) || !selectedChatId) return;
 
+  sendingRef.current = true;
+  setIsSending(true);
+
+  try {
     const ok = await sendChatMessage({
       chatId: selectedChatId,
       currentUser: user,
@@ -386,8 +393,11 @@ if (
     setIconKeyboardOpen(false);
     await setTyping(selectedChatId, user.uid, false);
     scrollMessagesToBottom("smooth");
+  } finally {
+    sendingRef.current = false;
+    setIsSending(false);
   }
-
+}
   function onSelectChat(chatId: string) {
     shouldAutoScrollRef.current = true;
     setSelectedChatId(chatId);
@@ -730,12 +740,12 @@ if (
   recentItems={recentEmojiItems}
 />
 
-            <IconComposerInput
-              value={draft}
-              onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
-              onSend={() => void onSendCurrentDraft()}
-              sendDisabled={!isValidIconMessage(sanitizeIconMessage(draft))}
-            />
+           <IconComposerInput
+  value={draft}
+  onToggleKeyboard={() => setIconKeyboardOpen((v) => !v)}
+  onSend={() => void onSendCurrentDraft()}
+  sendDisabled={isSending || !isValidIconMessage(sanitizeIconMessage(draft))}
+/>
           </form>
         </>
       ) : (

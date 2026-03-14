@@ -1,4 +1,4 @@
-import { getDatabase, get, onValue, push, ref, runTransaction, set, update } from "firebase/database";
+import { getDatabase, get, onValue, push, ref, set, update } from "firebase/database";
 import type { User } from "firebase/auth";
 import app from "@/lib/firebase";
 import { sanitizeIconMessage } from "@/app/app/chat/iconComposer";
@@ -47,8 +47,7 @@ export async function createOrGetDirectChat(
     });
   }
 
-  const currentChatRef = ref(db, `user_chats/${currentUser.uid}/${chatId}`);
-  const otherChatRef = ref(db, `user_chats/${otherUser.uid}/${chatId}`);
+const currentChatRef = ref(db, `user_chats/${currentUser.uid}/${chatId}`);
 const currentSnap = await get(currentChatRef);
 
 if (!currentSnap.exists()) {
@@ -70,31 +69,6 @@ if (!currentSnap.exists()) {
     otherUid: otherUser.uid,
     otherName: otherUser.displayName ?? otherUser.email ?? "Unknown",
     otherPhotoURL: otherUser.photoURL ?? null,
-    ...(systemMeta ?? {}),
-  });
-}
-
-const otherSnap = await get(otherChatRef);
-
-if (!otherSnap.exists()) {
-  await set(otherChatRef, {
-    chatId,
-    otherUid: currentUser.uid,
-    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
-    otherPhotoURL: currentUser.photoURL ?? null,
-    lastMessage: "",
-    lastMessageType: "text",
-    lastMessageAt: 0,
-    lastSenderUid: "",
-    unreadCount: 0,
-    updatedAt: now,
-    ...(systemMeta ?? {}),
-  } satisfies UserChatRecord);
-} else {
-  await update(otherChatRef, {
-    otherUid: currentUser.uid,
-    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
-    otherPhotoURL: currentUser.photoURL ?? null,
     ...(systemMeta ?? {}),
   });
 }
@@ -242,29 +216,12 @@ export async function sendChatMessage({
     ...supportMeta,
   };
 
-  const recipientPreview: Omit<UserChatRecord, "unreadCount"> = {
-    chatId,
-    otherUid: currentUser.uid,
-    otherName: currentUser.displayName ?? currentUser.email ?? "Unknown",
-    otherPhotoURL: currentUser.photoURL ?? null,
-    lastMessage: previewText,
-    lastMessageType: type,
-    lastMessageAt: now,
-    lastSenderUid: currentUser.uid,
-    updatedAt: now,
-    ...supportMeta,
-  };
+await Promise.all([
+  update(ref(db, `chats/${chatId}`), { updatedAt: now }),
+  update(ref(db, `user_chats/${currentUser.uid}/${chatId}`), senderPreview),
+]);
 
-  await Promise.all([
-    update(ref(db, `chats/${chatId}`), { updatedAt: now }),
-    update(ref(db, `user_chats/${currentUser.uid}/${chatId}`), senderPreview),
-    update(ref(db, `user_chats/${otherUser.uid}/${chatId}`), recipientPreview),
-  ]);
 
-  await runTransaction(ref(db, `user_chats/${otherUser.uid}/${chatId}/unreadCount`), (current) => {
-    const count = Number(current ?? 0);
-    return Number.isFinite(count) ? count + 1 : 1;
-  });
 
   if (parsedIcons.length > 0) {
     await saveRecentIcons(currentUser.uid, parsedIcons);
