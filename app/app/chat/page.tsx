@@ -5,7 +5,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { IconComposerInput } from "./components/IconComposerInput";
 import { IconKeyboard } from "./components/IconKeyboard";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   appendToken,
   DREAM_EMOJI_CATEGORIES,
@@ -64,13 +64,18 @@ export default function ChatPage() {
   const chatMsgScrollRaf1Ref = useRef<number | null>(null);
   const chatMsgScrollRaf2Ref = useRef<number | null>(null);
 
-  const searchParams = useSearchParams();
 const [requestedChatId, setRequestedChatId] = useState("");
 
+
 useEffect(() => {
-  const id = searchParams.get("chat") ?? "";
+  if (typeof window === "undefined") return;
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("chat") ?? "";
   setRequestedChatId(id);
-}, [searchParams]);
+}, []);
+
+
 
   const filteredChats = useMemo(() => {
     const q = chatQuery.trim().toLowerCase();
