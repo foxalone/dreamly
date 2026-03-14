@@ -79,6 +79,15 @@ export default function AddFriendPage() {
     );
   };
 
+  const onGmail = () => {
+  if (actionsDisabled) return;
+
+  const subject = encodeURIComponent("Join me on Dreamly Chat");
+  const body = encodeURIComponent(`${inviteMessage}\n\n${inviteUrl}`);
+
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+};
+
   const onSms = () => {
     if (actionsDisabled) return;
     window.location.href = getSmsShareUrl(inviteUrl, inviteMessage);
@@ -197,6 +206,14 @@ export default function AddFriendPage() {
             icon={<span className="text-lg leading-none">✈️</span>}
             disabled={actionsDisabled}
           />
+
+<InviteActionButton
+  title="Share via Gmail"
+  subtitle="Send invite via email"
+  onClick={onGmail}
+  icon={<span className="text-lg leading-none">📧</span>}
+  disabled={actionsDisabled}
+/>
 
           <InviteActionButton
             title="Share via SMS"
