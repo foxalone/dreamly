@@ -7,17 +7,32 @@ import type { ChatMessageRecord, ChatPreview, ChatUser, UIMessage, UserChatRecor
 
 const db = getDatabase(app);
 
+export const SUPPORT_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
+
+
 export function getChatId(uidA: string, uidB: string): string {
   return [uidA, uidB].sort().join("__");
 }
 
-export async function createOrGetDirectChat(currentUser: ChatUser, otherUser: ChatUser): Promise<string | null> {
+export async function createOrGetDirectChat(
+  currentUser: ChatUser,
+  otherUser: ChatUser,
+  options?: { isSystem?: boolean; isPinned?: boolean; canDelete?: boolean }
+): Promise<string | null> {
   if (!currentUser.uid || !otherUser.uid || currentUser.uid === otherUser.uid) {
     return null;
   }
 
   const chatId = getChatId(currentUser.uid, otherUser.uid);
   const now = Date.now();
+  const isSupportChat = currentUser.uid === SUPPORT_UID || otherUser.uid === SUPPORT_UID;
+  const systemMeta = isSupportChat
+    ? {
+        isSystem: options?.isSystem ?? true,
+        isPinned: options?.isPinned ?? true,
+        canDelete: options?.canDelete ?? false,
+      }
+    : null;
   const chatRef = ref(db, `chats/${chatId}`);
   const chatSnap = await get(chatRef);
 
@@ -48,6 +63,7 @@ export async function createOrGetDirectChat(currentUser: ChatUser, otherUser: Ch
       lastSenderUid: "",
       unreadCount: 0,
       updatedAt: now,
+      ...(systemMeta ?? {}),
     } satisfies UserChatRecord);
   }
 
@@ -62,6 +78,7 @@ export async function createOrGetDirectChat(currentUser: ChatUser, otherUser: Ch
     lastSenderUid: "",
     unreadCount: 0,
     updatedAt: now,
+    ...(systemMeta ?? {}),
   } satisfies UserChatRecord);
 
   return chatId;
@@ -86,8 +103,14 @@ export function subscribeUserChats(uid: string, callback: (chats: ChatPreview[])
           time: formatMessageTime(record.lastMessageAt),
           unreadCount: record.unreadCount ?? 0,
           updatedAt: record.updatedAt ?? 0,
+          isSystem: record.isSystem ?? false,
+          isPinned: record.isPinned ?? false,
+          canDelete: record.canDelete ?? true,
         }))
-        .sort((a, b) => b.updatedAt - a.updatedAt);
+        .sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return b.updatedAt - a.updatedAt;
+        });
 
       callback(chats);
     },
@@ -190,6 +213,7 @@ const previewText = normalizedText;
     lastSenderUid: currentUser.uid,
     unreadCount: 0,
     updatedAt: now,
+    ...(otherUser.uid === SUPPORT_UID ? { isSystem: true, isPinned: true, canDelete: false } : {}),
   };
 
   await Promise.all([
@@ -205,6 +229,7 @@ const previewText = normalizedText;
       lastMessageAt: now,
       lastSenderUid: currentUser.uid,
       updatedAt: now,
+      ...(currentUser.uid === SUPPORT_UID ? { isSystem: true, isPinned: true, canDelete: false } : {}),
     } satisfies Omit<UserChatRecord, "unreadCount">),
   ]);
 
@@ -218,6 +243,27 @@ const previewText = normalizedText;
   }
 
   return true;
+}
+
+
+export async function ensureSupportChatForUser(currentUser: ChatUser): Promise<string | null> {
+  if (!currentUser.uid || currentUser.uid === SUPPORT_UID) {
+    return null;
+  }
+
+  return createOrGetDirectChat(
+    currentUser,
+    {
+      uid: SUPPORT_UID,
+      displayName: "Dreamly",
+      photoURL: null,
+    },
+    {
+      isSystem: true,
+      isPinned: true,
+      canDelete: false,
+    }
+  );
 }
 
 export async function markChatAsRead(chatId: string, currentUid: string): Promise<void> {
