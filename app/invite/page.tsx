@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -23,10 +23,8 @@ type InviterInfo = {
 
 export default function InvitePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const inviterUid = searchParams.get("from") ?? "";
-
+  const [inviterUid, setInviterUid] = useState("");
   const [authReady, setAuthReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [inviter, setInviter] = useState<InviterInfo | null>(null);
@@ -40,6 +38,11 @@ export default function InvitePage() {
   const inviterName = useMemo(() => {
     return inviter?.displayName?.trim() || "A Dreamly user";
   }, [inviter]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInviterUid(params.get("from") ?? "");
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -95,6 +98,16 @@ export default function InvitePage() {
       }
     }
 
+    if (!inviterUid) {
+      if (window.location.search.includes("from=")) {
+        void loadInviter();
+      } else {
+        setError("Invite link is invalid.");
+        setLoadingInviter(false);
+      }
+      return;
+    }
+
     void loadInviter();
 
     return () => {
@@ -111,7 +124,7 @@ export default function InvitePage() {
   }, [authReady, currentUser, inviter]);
 
   async function joinChat(user: User, inviterInfo: InviterInfo) {
-    if (!inviterInfo?.uid) return;
+    if (!inviterInfo.uid) return;
 
     if (user.uid === inviterInfo.uid) {
       router.replace("/app/chat");
@@ -156,6 +169,7 @@ export default function InvitePage() {
   async function onSignIn() {
     try {
       setError("");
+      setJoining(false);
 
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
