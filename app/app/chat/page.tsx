@@ -14,6 +14,8 @@ import {
 } from "./iconComposer";
 import {
   createOrGetDirectChat,
+  ensureSupportChatForUser,
+  SUPPORT_UID,
   markChatAsRead,
   sendChatMessage,
   setTyping,
@@ -25,8 +27,6 @@ import {
 import { extractIcons } from "@/lib/chat/chatFormat";
 import { setupPresence, subscribePresence } from "@/lib/chat/chatPresence";
 import type { ChatPreview, ChatUser, UIMessage } from "@/lib/chat/chatTypes";
-
-const SUPPORT_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
 
 const supportContact: ChatUser & { avatarText: string } = {
   uid: SUPPORT_UID,
@@ -53,6 +53,7 @@ export default function ChatPage() {
   const [activePresenceOnline, setActivePresenceOnline] = useState(false);
   const [supportOnline, setSupportOnline] = useState(false);
   const requestedChatConsumedRef = useRef(false);
+  const ensuredSupportChatUidRef = useRef<string | null>(null);
 
   const messagesListRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
@@ -128,6 +129,22 @@ useEffect(() => {
     if (!user) return;
     return setupPresence(user);
   }, [user]);
+
+  useEffect(() => {
+    if (!user?.uid || user.uid === SUPPORT_UID) return;
+    if (ensuredSupportChatUidRef.current === user.uid) return;
+
+    ensuredSupportChatUidRef.current = user.uid;
+    void ensureSupportChatForUser({
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+    }).catch((error) => {
+      console.error("ensureSupportChatForUser failed", error);
+      ensuredSupportChatUidRef.current = null;
+    });
+  }, [user?.uid, user?.displayName, user?.email, user?.photoURL]);
 
   useEffect(() => {
     if (!user?.uid) return;

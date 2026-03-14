@@ -12,6 +12,9 @@ export type ChatPreview = {
   online?: boolean;
   typing?: boolean;
   updatedAt: number;
+  isSystem?: boolean;
+  isPinned?: boolean;
+  canDelete?: boolean;
 };
 
 export type UIMessage = {
@@ -56,6 +59,9 @@ export type UserChatRecord = {
   lastSenderUid: string;
   unreadCount: number;
   updatedAt: number;
+  isSystem?: boolean;
+  isPinned?: boolean;
+  canDelete?: boolean;
 };
 
 export type PresenceRecord = {
