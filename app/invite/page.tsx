@@ -23,8 +23,8 @@ type InviterInfo = {
 
 export default function InvitePage() {
   const router = useRouter();
+  const [inviterUid, setInviterUid] = useState<string | null>(null);
 
-  const [inviterUid, setInviterUid] = useState("");
   const [authReady, setAuthReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [inviter, setInviter] = useState<InviterInfo | null>(null);
@@ -39,10 +39,10 @@ export default function InvitePage() {
     return inviter?.displayName?.trim() || "A Dreamly user";
   }, [inviter]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setInviterUid(params.get("from") ?? "");
-  }, []);
+ useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  setInviterUid(params.get("from"));
+}, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -53,67 +53,62 @@ export default function InvitePage() {
     return () => unsub();
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+ useEffect(() => {
+  let cancelled = false;
 
-    async function loadInviter() {
-      if (!inviterUid) {
-        setError("Invite link is invalid.");
-        setLoadingInviter(false);
+  async function loadInviter(uid: string) {
+    try {
+      setError("");
+      setLoadingInviter(true);
+
+      const snap = await getDoc(doc(firestore, "users", uid));
+
+      if (!snap.exists()) {
+        if (!cancelled) {
+          setError("Inviter not found.");
+          setLoadingInviter(false);
+        }
         return;
       }
 
-      try {
-        const snap = await getDoc(doc(firestore, "users", inviterUid));
+      const data = snap.data();
 
-        if (!snap.exists()) {
-          if (!cancelled) {
-            setError("Inviter not found.");
-            setLoadingInviter(false);
-          }
-          return;
-        }
-
-        const data = snap.data();
-
-        if (!cancelled) {
-          setInviter({
-            uid: inviterUid,
-            displayName:
-              typeof data.displayName === "string" && data.displayName.trim()
-                ? data.displayName
-                : "Dreamly user",
-            photoURL:
-              typeof data.photoURL === "string" ? data.photoURL : null,
-            email: typeof data.email === "string" ? data.email : null,
-          });
-          setLoadingInviter(false);
-        }
-      } catch (e) {
-        console.error("Failed to load inviter", e);
-        if (!cancelled) {
-          setError("Failed to open invite.");
-          setLoadingInviter(false);
-        }
-      }
-    }
-
-    if (!inviterUid) {
-      if (window.location.search.includes("from=")) {
-        void loadInviter();
-      } else {
-        setError("Invite link is invalid.");
+      if (!cancelled) {
+        setInviter({
+          uid,
+          displayName:
+            typeof data.displayName === "string" && data.displayName.trim()
+              ? data.displayName
+              : "Dreamly user",
+          photoURL: typeof data.photoURL === "string" ? data.photoURL : null,
+          email: typeof data.email === "string" ? data.email : null,
+        });
+        setError("");
         setLoadingInviter(false);
       }
-      return;
+    } catch (e) {
+      console.error("Failed to load inviter", e);
+      if (!cancelled) {
+        setError("Failed to open invite.");
+        setLoadingInviter(false);
+      }
     }
+  }
 
-    void loadInviter();
+  if (inviterUid === null) return; // ещё не прочитали URL
 
-    return () => {
-      cancelled = true;
-    };
-  }, [inviterUid]);
+  if (!inviterUid) {
+    setError("Invite link is invalid.");
+    setLoadingInviter(false);
+    return;
+  }
+
+  void loadInviter(inviterUid);
+
+  return () => {
+    cancelled = true;
+  };
+}, [inviterUid]);
 
   useEffect(() => {
     if (!authReady || !currentUser || !inviter) return;
