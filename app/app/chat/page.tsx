@@ -766,14 +766,14 @@ if (
     </section>
   );
 
+  useEffect(() => {
+    if (authReady && !user) {
+      router.replace("/signin?next=/app/chat");
+    }
+  }, [authReady, user, router]);
+
   if (authReady && !user) {
-    return (
-      <main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
-        <section className="flex h-full items-center justify-center rounded-3xl border p-6" style={{ borderColor: "var(--border)" }}>
-          <p style={{ color: "var(--muted)" }}>Sign in to use chat.</p>
-        </section>
-      </main>
-    );
+    return null;
   }
 
   return (

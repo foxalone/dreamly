@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   collection,
   doc,
@@ -13,16 +14,13 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-} from "firebase/auth";
-import { FcGoogle } from "react-icons/fc";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import BottomNav from "../BottomNav";
+
+const SIGNIN_NEXT = "/signin?next=/app/shared";
 
 type ReactionKey = "heart" | "like" | "star";
 
@@ -145,13 +143,14 @@ function getSharedTypeLabel(d: SharedDream) {
 }
 
 export default function SharedPage() {
+  const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
   const [items, setItems] = useState<SharedDream[]>([]);
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ auth state only (no anonymous login)
+  // ✅ auth state only (no anonymous login). Guests are allowed to view.
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u ? u.uid : null);
@@ -160,20 +159,6 @@ export default function SharedPage() {
     });
     return () => unsub();
   }, []);
-
-  async function signInGoogle() {
-    setError(null);
-    try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      const cred = await signInWithPopup(auth, provider);
-      await ensureUserProfileOnSignIn(cred.user);
-      // onAuthStateChanged will update uid
-    } catch (e: any) {
-      console.error("Google sign-in failed:", e);
-      setError(e?.message ?? "Google sign-in failed.");
-    }
-  }
 
   // ✅ realtime shared_dreams feed
   useEffect(() => {
@@ -252,7 +237,10 @@ export default function SharedPage() {
   const list = useMemo(() => items, [items]);
 
   async function toggleReaction(dreamId: string, key: ReactionKey) {
-    if (!uid) return;
+    if (!uid) {
+      router.push(SIGNIN_NEXT);
+      return;
+    }
 
     const lock = `${dreamId}:${key}`;
     if (busyKey) return;
@@ -317,45 +305,14 @@ export default function SharedPage() {
     }
   }
 
-  const locked = !uid;
-
   return (
     <main className="relative min-h-screen px-6 py-10 max-w-3xl mx-auto">
-      {/* 🔒 Blur overlay + Google sign in card */}
-      {locked && (
-        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
-          <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-white/10 shadow-xl p-6">
-            <div className="text-[var(--text)] text-lg font-semibold">
-              You are not signed in.
-            </div>
-            <div className="mt-2 text-[var(--muted)]">
-              Sign in with Google to view shared dreams and stories and react.
-            </div>
-
-            <button
-              onClick={signInGoogle}
-              className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
-            >
-              <FcGoogle className="text-xl" />
-              <span>Sign in with Google</span>
-            </button>
-
-            {error && (
-              <div className="mt-4 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
-                {error}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* lock content interactions under overlay */}
-      <div className={locked ? "pointer-events-none select-none" : ""}>
+      <div>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-semibold text-[var(--text)]">Feed</h1>
         </div>
 
-        {error && !locked && (
+        {error && (
           <div className="mt-5 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
             {error}
           </div>
@@ -431,7 +388,6 @@ export default function SharedPage() {
                           "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
                           active ? `react-btn--${x.key}` : "",
                           isBusy ? "opacity-70 cursor-wait" : "",
-                          !uid ? "opacity-60 cursor-not-allowed" : "",
                         ]
                           .filter(Boolean)
                           .join(" ");
@@ -440,9 +396,9 @@ export default function SharedPage() {
                           <button
                             key={x.key}
                             onClick={() => toggleReaction(d.id, x.key)}
-                            disabled={!uid || isBusy}
+                            disabled={isBusy}
                             className={cls}
-                            title={x.label}
+                            title={uid ? x.label : `Sign in to ${x.label.toLowerCase()}`}
                           >
                             <span>{x.emoji}</span>
                             <span className="tabular-nums">{count}</span>

@@ -11,6 +11,7 @@ import {
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
+import BottomNav from "@/app/app/BottomNav";
 
 export default function SignInClient() {
   const router = useRouter();
@@ -20,6 +21,19 @@ export default function SignInClient() {
     const n = sp.get("next");
     return n && n.startsWith("/") ? n : "/app/dreams";
   }, [sp]);
+
+  const subtitle = useMemo(() => {
+    if (next.startsWith("/app/chat")) {
+      return "Sign in with Google to chat with your friends.";
+    }
+    if (next.startsWith("/app/shared")) {
+      return "Sign in with Google to react and share dreams.";
+    }
+    if (next.startsWith("/app/map")) {
+      return "Sign in with Google to explore the dream map.";
+    }
+    return "Sign in with Google to save your dreams.";
+  }, [next]);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -56,11 +70,11 @@ export default function SignInClient() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4 pb-28">
       <div className="w-full max-w-sm rounded-2xl bg-[var(--card)] p-6 shadow-2xl border border-[var(--border)]">
         <h1 className="text-xl font-bold text-[var(--text)]">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Войдите через Google, чтобы сохранять сны.
+          {subtitle}
         </p>
 
         {err && (
@@ -86,6 +100,7 @@ export default function SignInClient() {
           Cancel
         </button>
       </div>
+      <BottomNav />
     </main>
   );
 }

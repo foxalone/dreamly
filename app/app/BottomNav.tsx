@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import {
   GoogleAuthProvider,
@@ -192,6 +192,7 @@ type BottomNavProps = {
 
 export default function BottomNav({ hidden }: BottomNavProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -203,8 +204,17 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     }),
   []);
 
+  // On /signin, mirror the active tab of the page the user was redirected from.
+  const effectivePath = useMemo(() => {
+    if (pathname === "/signin") {
+      const next = searchParams?.get("next");
+      if (next && next.startsWith("/")) return next;
+    }
+    return pathname ?? "";
+  }, [pathname, searchParams]);
+
   const isActive = (href: string) =>
-    pathname === href || pathname?.startsWith(href + "/");
+    effectivePath === href || effectivePath.startsWith(href + "/");
 
   const baseItems: Item[] = useMemo(
     () => [
