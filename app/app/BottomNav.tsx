@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import {
   GoogleAuthProvider,
@@ -192,9 +192,9 @@ type BottomNavProps = {
 
 export default function BottomNav({ hidden }: BottomNavProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signinNext, setSigninNext] = useState<string | null>(null);
 
   useEffect(() =>
     onAuthStateChanged(auth, (u) => {
@@ -204,14 +204,23 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     }),
   []);
 
-  // On /signin, mirror the active tab of the page the user was redirected from.
-  const effectivePath = useMemo(() => {
-    if (pathname === "/signin") {
-      const next = searchParams?.get("next");
-      if (next && next.startsWith("/")) return next;
+  // On /signin, read ?next= from window.location to mirror the active tab.
+  // Done in an effect (not useSearchParams) so pages that include this nav
+  // can still be statically generated.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (pathname !== "/signin") {
+      setSigninNext(null);
+      return;
     }
+    const n = new URLSearchParams(window.location.search).get("next");
+    setSigninNext(n && n.startsWith("/") ? n : null);
+  }, [pathname]);
+
+  const effectivePath = useMemo(() => {
+    if (pathname === "/signin" && signinNext) return signinNext;
     return pathname ?? "";
-  }, [pathname, searchParams]);
+  }, [pathname, signinNext]);
 
   const isActive = (href: string) =>
     effectivePath === href || effectivePath.startsWith(href + "/");
