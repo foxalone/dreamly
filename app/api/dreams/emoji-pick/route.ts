@@ -17,8 +17,25 @@ type Body = {
   candidates: Candidate[];
 };
 
-function toStr(x: any) {
+function toStr(x: unknown) {
   return String(x ?? "").trim();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : toStr(error);
+}
+
+function parseJsonObject(text: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 function pickFirst(cands: Candidate[], reason: string) {
@@ -32,20 +49,20 @@ function pickFirst(cands: Candidate[], reason: string) {
 }
 
 // максимально “живучее” извлечение текста из responses.create
-function extractOutputText(resp: any): string {
+function extractOutputText(resp: unknown): string {
   // 1) некоторые версии SDK дают output_text
-  const direct = toStr(resp?.output_text);
+  const direct = isRecord(resp) ? toStr(resp.output_text) : "";
   if (direct) return direct;
 
   // 2) официальный формат: output -> content -> text
-  const out = resp?.output;
+  const out = isRecord(resp) ? resp.output : undefined;
   if (Array.isArray(out)) {
     const chunks: string[] = [];
     for (const item of out) {
-      const content = item?.content;
+      const content = isRecord(item) ? item.content : undefined;
       if (!Array.isArray(content)) continue;
       for (const c of content) {
-        const t = toStr(c?.text);
+        const t = isRecord(c) ? toStr(c.text) : "";
         if (t) chunks.push(t);
       }
     }
@@ -71,7 +88,7 @@ export async function POST(req: Request) {
 
     const root = toStr(body?.root);
     const lang = toStr(body?.lang) || "unknown";
-    const candidates = Array.isArray(body?.candidates) ? (body!.candidates as Candidate[]) : [];
+    const candidates = Array.isArray(body?.candidates) ? body.candidates : [];
 
     if (!root) return NextResponse.json({ error: "Missing root" }, { status: 400 });
     if (!candidates.length) return NextResponse.json({ error: "Missing candidates" }, { status: 400 });
@@ -101,7 +118,7 @@ export async function POST(req: Request) {
         name: { type: "string" },
         reason: { type: "string" },
       },
-      required: ["native"],
+      required: ["native", "id", "name", "reason"],
     } as const;
 
     const payload = {
@@ -119,7 +136,7 @@ export async function POST(req: Request) {
 
     // 1) Пытаемся structured output
     let outText = "";
-    let parsed: any = null;
+    let parsed: Record<string, unknown> | null = null;
 
     try {
       const resp = await client.responses.create({
@@ -142,15 +159,11 @@ export async function POST(req: Request) {
 
       outText = extractOutputText(resp);
       if (outText) {
-        try {
-          parsed = JSON.parse(outText);
-        } catch {
-          parsed = null;
-        }
+        parsed = parseJsonObject(outText);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       // structured output иногда может падать — сделаем fallback ниже
-      console.warn("emoji-pick structured failed:", e?.message ?? e);
+      console.warn("emoji-pick structured failed:", errorMessage(e));
     }
 
     // 2) Fallback: обычный JSON без schema
@@ -166,14 +179,10 @@ export async function POST(req: Request) {
 
         const txt2 = extractOutputText(resp2);
         if (txt2) {
-          try {
-            parsed = JSON.parse(txt2);
-          } catch {
-            parsed = null;
-          }
+          parsed = parseJsonObject(txt2);
         }
-      } catch (e: any) {
-        console.warn("emoji-pick fallback failed:", e?.message ?? e);
+      } catch (e: unknown) {
+        console.warn("emoji-pick fallback failed:", errorMessage(e));
       }
     }
 
@@ -191,11 +200,11 @@ export async function POST(req: Request) {
       name: found.name ?? "",
       reason: toStr(parsed?.reason) || "picked",
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     // важное: вернуть текст ошибки, чтобы ты видел его в Network->Response
     console.error("emoji-pick error:", e);
     return NextResponse.json(
-      { error: e?.message ?? "emoji-pick failed", stack: toStr(e?.stack) ? "see server logs" : undefined },
+      { error: errorMessage(e) || "emoji-pick failed", stack: e instanceof Error && toStr(e.stack) ? "see server logs" : undefined },
       { status: 500 }
     );
   }
