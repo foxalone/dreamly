@@ -483,7 +483,7 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
 
       <div className="mt-4">
         <Link
-          href="https://play.google.com/store/apps/details?id=com.app.mycoins&hl=en"
+          href="https://currencyhub.app/"
           className={`${card} p-4 flex items-start gap-4 hover:opacity-95 transition no-underline`}
           target="_blank"
           rel="noreferrer"
