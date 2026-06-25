@@ -1,15 +1,12 @@
 // src/app/api/dreams/analyze/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 
 type Body = {
   text: string;
   lang?: string;
 };
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   const t = text ?? "";
@@ -24,6 +21,11 @@ function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
 
 export async function POST(req: Request) {
   try {
+    const apiKey = getOneiroOpenAiApiKey();
+    if (!apiKey) {
+      return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
+    }
+
     const body = (await req.json()) as Body;
 
     const text = String(body?.text ?? "").trim();
@@ -56,6 +58,7 @@ Keep it under ~1000 characters.
 
     // Using chat.completions for compatibility
     const model = process.env.OPENAI_DREAM_MODEL || "gpt-4o-mini";
+    const openai = new OpenAI({ apiKey });
 
     const resp = await openai.chat.completions.create({
       model,

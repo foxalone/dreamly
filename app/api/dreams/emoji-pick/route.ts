@@ -1,6 +1,7 @@
 // src/app/api/dreams/emoji-pick/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 
 export const runtime = "nodejs";
 
@@ -76,10 +77,10 @@ function extractOutputText(resp: unknown): string {
 
 export async function POST(req: Request) {
   try {
-    const apiKey = toStr(process.env.OPENAI_API_KEY);
+    const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY in environment (.env.local). Restart dev server after setting it." },
+        { error: getMissingOneiroOpenAiKeyMessage() },
         { status: 500 }
       );
     }

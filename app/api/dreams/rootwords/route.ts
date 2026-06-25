@@ -1,10 +1,9 @@
 // app/api/dreams/rootwords/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 
 export const runtime = "nodejs";
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function toStr(x: any) {
   return String(x ?? "").trim();
@@ -41,6 +40,12 @@ function mapLangToRecLang(lang: string): "en" | "ru" | "he" | "unknown" {
 
 export async function POST(req: Request) {
   try {
+    const apiKey = getOneiroOpenAiApiKey();
+    if (!apiKey) {
+      return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
+    }
+
+    const client = new OpenAI({ apiKey });
     const body = await req.json().catch(() => ({}));
     const text = toStr(body?.text);
 
