@@ -1,390 +1,644 @@
-export const DREAM_SLUGS = [
-  "snake",
-  "water",
-  "flying",
-  "baby",
-  "death",
-  "teeth",
-  "dog",
-] as const;
+export const DREAM_CATEGORIES = {
+  animals: {
+    label: "Animal dreams",
+    description: "Instinct, trust, boundaries, protection, and the untamed parts of the self.",
+    icon: "🐾",
+  },
+  body: {
+    label: "Body dreams",
+    description: "Confidence, health awareness, expression, identity, and personal control.",
+    icon: "🫧",
+  },
+  water: {
+    label: "Water dreams",
+    description: "Emotion, intuition, change, cleansing, and what moves below awareness.",
+    icon: "🌊",
+  },
+  "life-events": {
+    label: "Life event dreams",
+    description: "Beginnings, endings, responsibility, relationships, value, and transition.",
+    icon: "🌱",
+  },
+  "fear-nightmares": {
+    label: "Fear & nightmare dreams",
+    description: "Pressure, avoidance, insecurity, vulnerability, and the need for safety.",
+    icon: "🌘",
+  },
+  places: {
+    label: "Place dreams",
+    description: "Belonging, memory, inner structure, privacy, and emotional foundations.",
+    icon: "🏠",
+  },
+  movement: {
+    label: "Movement dreams",
+    description: "Freedom, direction, ambition, control, progress, and changing perspective.",
+    icon: "🧭",
+  },
+  objects: {
+    label: "Object & value dreams",
+    description: "Security, opportunity, self-worth, resources, and practical priorities.",
+    icon: "✨",
+  },
+} as const;
 
-export type DreamSlug = (typeof DREAM_SLUGS)[number];
-
-export type DreamFaq = {
-  question: string;
-  answer: string;
-};
+export type DreamCategory = keyof typeof DREAM_CATEGORIES;
 
 export type DreamScenario = {
   title: string;
   meaning: string;
 };
 
-export type RelatedDream = {
-  slug: DreamSlug;
-  reason: string;
+export type DreamFaq = {
+  question: string;
+  answer: string;
 };
 
-export type DreamEntry = {
-  slug: DreamSlug;
-  symbol: string;
-  emoji: string;
-  accent: string;
-  shortMeaning: string;
-  metaDescription: string;
+export type DreamSections = {
   introduction: string[];
-  scenarios: DreamScenario[];
+  general: string[];
   psychological: string[];
   spiritual: string[];
   islamic: string[];
   biblical: string[];
-  questions: DreamFaq[];
-  related: RelatedDream[];
+  commonScenarios: DreamScenario[];
+  faq: DreamFaq[];
 };
 
-export const DREAM_DICTIONARY: Record<DreamSlug, DreamEntry> = {
-  snake: {
+export type DreamEntry = {
+  slug: string;
+  canonicalSlug: string;
+  parentSlug?: string;
+  title: string;
+  name: string;
+  category: DreamCategory;
+  icon: string;
+  accent: string;
+  aliases: string[];
+  variationSlugs: string[];
+  relatedSymbols: string[];
+  shortMeaning: string;
+  seoTitle: string;
+  seoDescription: string;
+  sections: DreamSections;
+};
+
+type VariationSeed = {
+  slug: string;
+  name: string;
+  focus: string;
+  aliases?: string[];
+};
+
+type ClusterSeed = {
+  slug: string;
+  name: string;
+  category: DreamCategory;
+  icon: string;
+  accent: string;
+  summary: string;
+  aliases: string[];
+  relatedSymbols: string[];
+  variations: VariationSeed[];
+};
+
+const CLUSTERS: ClusterSeed[] = [
+  {
     slug: "snake",
-    symbol: "Snake",
-    emoji: "🐍",
+    name: "snake",
+    category: "animals",
+    icon: "🐍",
     accent: "#72d572",
-    shortMeaning: "Transformation, hidden fear, instinct, healing, or a situation that requires alertness.",
-    metaDescription:
-      "What does it mean to dream about snakes? Explore psychological, spiritual, Islamic, and biblical interpretations, common scenarios, and related dream symbols.",
-    introduction: [
-      "A snake in a dream often appears when something powerful is moving beneath the surface of your life. Because snakes shed their skin, they can represent renewal, recovery, and the uncomfortable process of becoming someone new. Their silent movement and sudden strike can also express suspicion, a boundary being crossed, or a fear you have not fully named.",
-      "The emotional tone matters more than a universal definition. A calm snake may point toward wisdom or instinct; an aggressive snake may mirror pressure, betrayal, or a threat. Your own culture, beliefs, experiences, and feelings about snakes should always guide the final interpretation.",
+    summary: "transformation, hidden fear, instinct, healing, and situations that require alertness",
+    aliases: ["serpent", "snakes", "dream about snake", "snake in a dream"],
+    relatedSymbols: ["water", "death", "dog", "spider"],
+    variations: [
+      { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
+      { slug: "white-snake", name: "white snake", focus: "unfamiliar wisdom, clarity, healing, or a truth arriving in an unexpected form" },
+      { slug: "green-snake", name: "green snake", focus: "growth, renewal, jealousy, health, or instinct connected with a new opportunity" },
+      { slug: "snake-bite", name: "snake bite", focus: "a sudden wake-up call, painful truth, conflict, or urgent boundary issue" },
+      { slug: "dead-snake", name: "dead snake", focus: "the end of a threat, a completed transformation, or instinct that has been suppressed" },
+      { slug: "many-snakes", name: "many snakes", focus: "multiple pressures, social mistrust, overstimulation, or several changes happening together" },
+      { slug: "big-snake", name: "big snake", focus: "a fear, temptation, responsibility, or personal power that feels impossible to ignore" },
     ],
-    scenarios: [
-      { title: "Being bitten by a snake", meaning: "A sharp wake-up call, painful truth, conflict, or urgent issue demanding attention." },
-      { title: "A snake chasing you", meaning: "Avoidance of a fear, difficult conversation, temptation, or emotionally charged person." },
-      { title: "Killing a snake", meaning: "Regaining control, ending a harmful pattern, or confronting something you once feared." },
-      { title: "Many snakes", meaning: "Overstimulation, several hidden worries, social mistrust, or a period of intense change." },
-      { title: "A calm or friendly snake", meaning: "Growing trust in your intuition, healing energy, or acceptance of personal power." },
-      { title: "A snake shedding its skin", meaning: "A direct image of renewal, leaving an identity behind, and emerging changed." },
+  },
+  {
+    slug: "teeth",
+    name: "teeth",
+    category: "body",
+    icon: "🦷",
+    accent: "#a78bfa",
+    summary: "confidence, communication, appearance, control, aging, and anxiety about change or loss",
+    aliases: ["tooth", "dream about teeth", "teeth dream", "teeth in a dream"],
+    relatedSymbols: ["death", "falling", "money", "baby"],
+    variations: [
+      { slug: "teeth-falling-out", name: "teeth falling out", focus: "loss of control, embarrassment, transition, or concern about how others see you" },
+      { slug: "broken-teeth", name: "broken teeth", focus: "damaged confidence, regret after conflict, or pressure that has exceeded your limits" },
+      { slug: "loose-teeth", name: "loose teeth", focus: "uncertainty, an unstable decision, or awareness that a change can no longer be postponed" },
+      { slug: "pulling-teeth", name: "pulling teeth", focus: "choosing a painful release, forcing change, or removing a problem at personal cost" },
+      { slug: "rotten-teeth", name: "rotten teeth", focus: "a neglected concern, lingering shame, harmful communication, or fear that something is worsening" },
+      { slug: "losing-teeth", name: "losing teeth", focus: "vulnerability, aging, social anxiety, or difficulty holding onto a familiar identity" },
     ],
-    psychological: [
-      "Psychologically, a snake can embody an instinctive reaction that the conscious mind has tried to ignore. It may appear around anxiety, attraction, rivalry, mistrust, or a major transition. The dream gives this hidden energy a vivid shape so you can notice it instead of carrying it as vague tension.",
-      "Ask what happened immediately before the snake appeared and how your body reacted. Freezing may reflect helplessness; watching with curiosity may indicate readiness to understand a difficult feeling. The snake does not automatically mean that someone is dangerous—it can just as easily represent your own strength, anger, desire, or capacity to heal.",
+  },
+  {
+    slug: "water",
+    name: "water",
+    category: "water",
+    icon: "🌊",
+    accent: "#38bdf8",
+    summary: "emotion, intuition, cleansing, uncertainty, and the changing state of your inner world",
+    aliases: ["dream about water", "water in a dream", "water dream meaning"],
+    relatedSymbols: ["flying", "death", "baby", "house"],
+    variations: [
+      { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
+      { slug: "ocean", name: "ocean", focus: "vast emotion, freedom, uncertainty, or contact with forces larger than the conscious self" },
+      { slug: "river", name: "river", focus: "the direction of life, emotional flow, passage of time, or movement through transition" },
+      { slug: "drowning", name: "drowning", focus: "emotional overwhelm, exhaustion, loss of control, or difficulty asking for support" },
+      { slug: "dirty-water", name: "dirty water", focus: "confusion, emotional residue, mixed motives, or a situation that is hard to read clearly" },
+      { slug: "clear-water", name: "clear water", focus: "peace, honesty, emotional clarity, recovery, or trust in the direction of your life" },
+      { slug: "rain", name: "rain", focus: "release, renewal, sadness, fertility, or a cleansing process that cannot be rushed" },
     ],
-    spiritual: [
-      "Across many spiritual traditions, the snake is linked with life force, transformation, cycles, and knowledge. A snake dream may accompany an inner awakening or a time when old beliefs are falling away. Its closeness to the earth can also suggest grounding and a return to basic wisdom.",
-      "Spiritual meanings are personal rather than predictive. Consider whether the dream invited reverence, fear, or discernment. It may be asking you to respect change, protect your energy, or distinguish genuine insight from seductive appearances.",
+  },
+  {
+    slug: "death",
+    name: "death",
+    category: "life-events",
+    icon: "🕯️",
+    accent: "#94a3b8",
+    summary: "endings, transformation, grief, mortality, release, and the closing of an old identity",
+    aliases: ["dying", "dream about death", "death in a dream", "death dream meaning"],
+    relatedSymbols: ["baby", "snake", "water", "falling"],
+    variations: [
+      { slug: "someone-dying", name: "someone dying", focus: "fear of separation, a changing relationship, grief, or recognition that another person is changing" },
+      { slug: "dead-person", name: "a dead person", focus: "memory, unfinished emotion, longing, comfort, or qualities associated with someone who has died" },
+      { slug: "funeral", name: "a funeral", focus: "acknowledging an ending, honoring what has passed, and beginning the process of letting go" },
+      { slug: "being-killed", name: "being killed", focus: "feeling overpowered, abruptly changed, silenced, or unable to control an important ending" },
+      { slug: "killing-someone", name: "killing someone", focus: "intense conflict, rejected traits, buried anger, or a forceful attempt to end a pattern" },
+      { slug: "dead-relative", name: "a dead relative", focus: "grief, family memory, inherited values, unresolved words, or a wish for comfort and connection" },
     ],
-    islamic: [
-      "In classical Islamic dream literature, a snake is often treated as a possible symbol of hostility, rivalry, concealed harm, or worldly power. Details can change the reading: the snake’s location, size, behavior, and the dreamer’s response all matter. Overcoming it may suggest overcoming an adversarial situation; fear without injury may reflect caution rather than actual harm.",
-      "Islam also distinguishes meaningful dreams from ordinary dreams and distressing dreams. A disturbing image should not be treated as certain knowledge or used to accuse another person. Seek calm, make du’a, and consult a trustworthy, knowledgeable person if the dream continues to trouble you.",
+  },
+  {
+    slug: "baby",
+    name: "baby",
+    category: "life-events",
+    icon: "👶",
+    accent: "#fb923c",
+    summary: "new beginnings, vulnerability, potential, responsibility, and a tender part of life that needs care",
+    aliases: ["infant", "dream about baby", "baby in a dream", "baby dream meaning"],
+    relatedSymbols: ["pregnancy", "water", "death", "dog"],
+    variations: [
+      { slug: "newborn-baby", name: "newborn baby", focus: "very recent potential, a fragile beginning, or a responsibility that has only just arrived" },
+      { slug: "crying-baby", name: "crying baby", focus: "an unmet emotional need, neglected project, or vulnerable issue asking directly for attention" },
+      { slug: "baby-boy", name: "baby boy", focus: "new active energy, emerging confidence, family hopes, or a beginning shaped by masculine associations" },
+      { slug: "baby-girl", name: "baby girl", focus: "new receptive energy, tenderness, family hopes, or a beginning shaped by feminine associations" },
+      { slug: "holding-a-baby", name: "holding a baby", focus: "accepting responsibility, protecting potential, or forming a bond with something newly important" },
+      { slug: "lost-baby", name: "lost baby", focus: "fear of failure, neglected potential, separation anxiety, or uncertainty about caring for what matters" },
     ],
-    biblical: [
-      "In the Bible, the serpent can symbolize temptation, deception, and the need for spiritual discernment, especially through the Genesis story. Yet serpent imagery is not one-dimensional: Moses’ bronze serpent is connected with healing, and Jesus tells his followers to be wise as serpents while remaining innocent.",
-      "A biblical reflection might therefore ask where wisdom and caution are needed, where temptation is active, or where healing is possible. A dream is not automatically a divine message; weigh it alongside scripture, prayer, character, and the real circumstances of your life.",
+  },
+  {
+    slug: "pregnancy",
+    name: "pregnancy",
+    category: "life-events",
+    icon: "🤰",
+    accent: "#f472b6",
+    summary: "creation, development, anticipation, responsibility, and something important growing before it is ready to emerge",
+    aliases: ["pregnant", "dream about pregnancy", "pregnancy in a dream", "pregnancy dream meaning"],
+    relatedSymbols: ["baby", "water", "death", "house"],
+    variations: [
+      { slug: "being-pregnant", name: "being pregnant", focus: "personally carrying an idea, identity, responsibility, or change that is still developing" },
+      { slug: "pregnancy-test", name: "a pregnancy test", focus: "waiting for confirmation, fearing consequences, or needing clarity about a life-changing possibility" },
+      { slug: "giving-birth", name: "giving birth", focus: "bringing a project, role, relationship, or new phase into visible and demanding reality" },
+      { slug: "miscarriage", name: "miscarriage", focus: "grief, fear of lost potential, interrupted plans, or direct processing of a deeply personal experience" },
+      { slug: "pregnant-woman", name: "a pregnant woman", focus: "witnessing potential, sensing change in another person, or recognizing growth around you" },
     ],
-    questions: [
-      { question: "Is dreaming about a snake a bad sign?", answer: "Not necessarily. It may reflect fear or mistrust, but it can also symbolize healing, intuition, renewal, and personal growth. Your emotion and the snake’s behavior are the strongest clues." },
-      { question: "What does a snake bite mean in a dream?", answer: "A bite often represents urgency: a painful truth, sudden conflict, strong emotional reaction, or a problem that can no longer be ignored." },
-      { question: "What does the snake’s color mean?", answer: "Color adds context rather than a fixed rule. Black may intensify mystery or fear, green can suggest growth or jealousy, white can suggest clarity or an unfamiliar spiritual theme, and red can emphasize passion or danger." },
-      { question: "Why do I keep dreaming about snakes?", answer: "Recurring snake dreams may indicate an unresolved fear, ongoing change, boundary issue, or instinctive feeling you have not addressed. Record each version and look for repeated places, people, and emotions." },
+  },
+  {
+    slug: "dog",
+    name: "dog",
+    category: "animals",
+    icon: "🐕",
+    accent: "#f59e0b",
+    summary: "loyalty, friendship, protection, instinct, companionship, and boundaries under pressure",
+    aliases: ["dogs", "puppy", "dream about dog", "dog in a dream"],
+    relatedSymbols: ["cat", "snake", "baby", "spider"],
+    variations: [
+      { slug: "black-dog", name: "black dog", focus: "unknown instinct, grief, protection, depression, or a loyal presence that is difficult to understand" },
+      { slug: "white-dog", name: "white dog", focus: "trustworthy support, peace, protection, innocence, or reassurance from a familiar bond" },
+      { slug: "dog-bite", name: "dog bite", focus: "betrayal, threatened boundaries, conflict, or anger breaking through a relationship built on trust" },
+      { slug: "friendly-dog", name: "friendly dog", focus: "companionship, emotional safety, dependable support, or comfort with your own instincts" },
+      { slug: "aggressive-dog", name: "aggressive dog", focus: "defensive anger, social conflict, fear of betrayal, or a protective response that feels uncontrolled" },
+      { slug: "dead-dog", name: "dead dog", focus: "grief, the end of a friendship, lost trust, or a dependable part of life that has changed" },
     ],
-    related: [
-      { slug: "water", reason: "Both symbols often reveal emotions moving below conscious awareness." },
-      { slug: "death", reason: "Snake shedding and death dreams can both mark endings and transformation." },
-      { slug: "dog", reason: "Compare a symbol of uncertain instinct with one commonly tied to trust and loyalty." },
+  },
+  {
+    slug: "cat",
+    name: "cat",
+    category: "animals",
+    icon: "🐈",
+    accent: "#c084fc",
+    summary: "independence, intuition, curiosity, sensuality, boundaries, and relationships that resist control",
+    aliases: ["cats", "kitten", "dream about cat", "cat in a dream"],
+    relatedSymbols: ["dog", "snake", "spider", "house"],
+    variations: [
+      { slug: "black-cat", name: "black cat", focus: "mystery, intuition, superstition, independence, or anxiety about something you cannot fully predict" },
+      { slug: "white-cat", name: "white cat", focus: "gentle intuition, apparent innocence, emotional distance, or a subtle issue beneath a calm surface" },
+      { slug: "cat-attack", name: "cat attack", focus: "scratched boundaries, indirect conflict, mistrust, or an independent person resisting pressure" },
+      { slug: "kittens", name: "kittens", focus: "playfulness, vulnerable independence, small responsibilities, or new curiosity that needs protection" },
+      { slug: "dead-cat", name: "dead cat", focus: "lost independence, ignored intuition, grief, or the ending of a private and self-protective phase" },
     ],
+  },
+  {
+    slug: "flying",
+    name: "flying",
+    category: "movement",
+    icon: "🪽",
+    accent: "#8b5cf6",
+    summary: "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
+    aliases: ["flight", "dream about flying", "flying in a dream", "flying dream meaning"],
+    relatedSymbols: ["falling", "water", "car", "being-chased"],
+    variations: [
+      { slug: "flying-high", name: "flying high", focus: "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground" },
+      { slug: "flying-over-water", name: "flying over water", focus: "gaining perspective on strong emotions or moving between freedom and emotional depth" },
+      { slug: "flying-without-wings", name: "flying without wings", focus: "unexpected agency, imagination, spiritual possibility, or confidence without familiar support" },
+      { slug: "falling-while-flying", name: "falling while flying", focus: "fear of losing success, status, confidence, control, or a promising opportunity" },
+    ],
+  },
+  {
+    slug: "falling",
+    name: "falling",
+    category: "fear-nightmares",
+    icon: "🪂",
+    accent: "#fb7185",
+    summary: "loss of control, insecurity, surrender, sudden change, and anxiety about failing or losing support",
+    aliases: ["fall", "dream about falling", "falling in a dream", "falling dream meaning"],
+    relatedSymbols: ["flying", "being-chased", "death", "water"],
+    variations: [
+      { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences" },
+      { slug: "falling-off-building", name: "falling off a building", focus: "instability in a structured area of life such as work, reputation, plans, or achievement" },
+      { slug: "falling-into-water", name: "falling into water", focus: "sudden immersion in emotion, surrender to uncertainty, or an abrupt loss of emotional distance" },
+      { slug: "falling-and-waking-up", name: "falling and waking up", focus: "a body-startle response, accumulated stress, or a fear that becomes urgent enough to interrupt sleep" },
+    ],
+  },
+  {
+    slug: "being-chased",
+    name: "being chased",
+    category: "fear-nightmares",
+    icon: "🏃",
+    accent: "#ef4444",
+    summary: "avoidance, pressure, unresolved conflict, threatened safety, and a problem that keeps demanding attention",
+    aliases: ["chasing", "dream about being chased", "chased in a dream", "running away dream"],
+    relatedSymbols: ["falling", "death", "dog", "snake"],
+    variations: [
+      { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
+      { slug: "chased-by-animal", name: "being chased by an animal", focus: "instinct, fear, anger, desire, or a natural reaction that the conscious mind is avoiding" },
+      { slug: "chased-by-monster", name: "being chased by a monster", focus: "an exaggerated fear, shame, trauma, or problem that has become larger through avoidance" },
+      { slug: "hiding-from-someone", name: "hiding from someone", focus: "self-protection, secrecy, avoidance of confrontation, or the need for a safer boundary" },
+    ],
+  },
+  {
+    slug: "house",
+    name: "house",
+    category: "places",
+    icon: "🏠",
+    accent: "#14b8a6",
+    summary: "the self, family, privacy, memory, emotional foundations, and the different rooms of inner life",
+    aliases: ["home", "dream about house", "house in a dream", "home dream meaning"],
+    relatedSymbols: ["baby", "pregnancy", "money", "death"],
+    variations: [
+      { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
+      { slug: "new-house", name: "new house", focus: "a fresh identity, changed circumstances, future plans, or emotional space that is still unfamiliar" },
+      { slug: "burning-house", name: "burning house", focus: "intense change, family conflict, emotional overload, purification, or fear of losing security" },
+      { slug: "empty-house", name: "empty house", focus: "loneliness, unused potential, emotional absence, or a part of the self waiting to be inhabited" },
+      { slug: "childhood-house", name: "childhood house", focus: "formative memory, family patterns, safety, unresolved history, or comparison between past and present" },
+      { slug: "haunted-house", name: "haunted house", focus: "persistent memory, unresolved fear, family history, or an avoided part of your inner world" },
+    ],
+  },
+  {
+    slug: "money",
+    name: "money",
+    category: "objects",
+    icon: "💰",
+    accent: "#22c55e",
+    summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
+    aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
+    relatedSymbols: ["house", "car", "gold", "teeth"],
+    variations: [
+      { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
+      { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
+      { slug: "coins", name: "coins", focus: "small but tangible value, accumulated effort, everyday choices, luck, or attention to modest resources" },
+      { slug: "gold", name: "gold", focus: "lasting value, aspiration, spiritual richness, status, temptation, or something precious that requires discernment" },
+      { slug: "wallet", name: "wallet", focus: "identity, personal resources, privacy, financial access, or the practical container for what you value" },
+      { slug: "stealing-money", name: "stealing money", focus: "guilt, unfair exchange, desperation, envy, or taking value without a secure sense of deserving it" },
+    ],
+  },
+  {
+    slug: "spider",
+    name: "spider",
+    category: "animals",
+    icon: "🕷️",
+    accent: "#64748b",
+    summary: "patience, creativity, entanglement, fear, careful strategy, and the networks being built around you",
+    aliases: ["spiders", "dream about spider", "spider in a dream", "spider dream meaning"],
+    relatedSymbols: ["snake", "cat", "dog", "house"],
+    variations: [
+      { slug: "big-spider", name: "big spider", focus: "a fear, influence, creative task, or complicated situation that has become difficult to overlook" },
+      { slug: "black-spider", name: "black spider", focus: "hidden anxiety, patient strategy, an unknown influence, or a complicated issue operating quietly" },
+      { slug: "spider-bite", name: "spider bite", focus: "a small but potent conflict, betrayal, warning, or consequence from an entangled situation" },
+      { slug: "killing-spider", name: "killing a spider", focus: "confronting fear, ending manipulation, breaking a pattern, or rejecting a patient creative process" },
+      { slug: "spider-web", name: "spider web", focus: "connection, creativity, careful planning, entrapment, or consequences woven over time" },
+    ],
+  },
+  {
+    slug: "car",
+    name: "car",
+    category: "movement",
+    icon: "🚗",
+    accent: "#0ea5e9",
+    summary: "direction, agency, progress, status, control, and the way you are moving through practical life",
+    aliases: ["vehicle", "automobile", "dream about car", "car in a dream"],
+    relatedSymbols: ["flying", "falling", "money", "house"],
+    variations: [
+      { slug: "car-accident", name: "car accident", focus: "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life" },
+      { slug: "driving-car", name: "driving a car", focus: "personal agency, responsibility, confidence, and how much control you feel over your current direction" },
+      { slug: "losing-car", name: "losing a car", focus: "lost direction, reduced independence, confusion about progress, or difficulty accessing your usual agency" },
+      { slug: "stolen-car", name: "stolen car", focus: "violated autonomy, stolen opportunity, identity disruption, or fear that someone else controls your direction" },
+      { slug: "car-crash", name: "car crash", focus: "conflicting goals, abrupt failure, accumulated pressure, or an urgent need to change course" },
+      { slug: "brake-failure", name: "brake failure", focus: "inability to slow down, weak boundaries, accelerating pressure, or fear that consequences cannot be stopped" },
+    ],
+  },
+];
+
+const CATEGORY_LENSES: Record<DreamCategory, { psychological: string; spiritual: string; biblical: string }> = {
+  animals: {
+    psychological: "instinct, attachment, trust, threat detection, and reactions that happen before conscious reasoning",
+    spiritual: "discernment, natural wisdom, protection, and respectful contact with the untamed parts of life",
+    biblical: "wisdom, stewardship, appetite, protection, and the moral meaning created by an animal’s behavior",
+  },
+  body: {
+    psychological: "self-image, communication, health awareness, vulnerability, and the wish to remain capable and in control",
+    spiritual: "embodiment, integrity, humility, and care for the physical life through which meaning is expressed",
+    biblical: "the body as lived responsibility, the power of speech, human frailty, and strength used with wisdom",
   },
   water: {
-    slug: "water",
-    symbol: "Water",
-    emoji: "🌊",
-    accent: "#48b9ff",
-    shortMeaning: "Emotion, intuition, cleansing, uncertainty, and the changing state of your inner world.",
-    metaDescription:
-      "Discover the meaning of water dreams, from clear oceans to floods. Explore psychological, spiritual, Islamic, and biblical interpretations and common questions.",
-    introduction: [
-      "Water dreams commonly mirror the emotional climate of your life. Water can soothe, support, cleanse, overwhelm, or hide what lies beneath, making it a natural image for feelings and the unconscious. Calm, clear water often accompanies emotional steadiness, while rough, murky, or rising water may reflect confusion, pressure, or feelings that are becoming difficult to contain.",
-      "Notice the form of the water and your relationship to it. Were you drinking, swimming, floating, drowning, watching from shore, or searching for a way across? The same ocean can mean freedom to one dreamer and vulnerability to another.",
-    ],
-    scenarios: [
-      { title: "Clear, calm water", meaning: "Emotional clarity, peace, restoration, or trust in the direction of your life." },
-      { title: "Flooding water", meaning: "Feelings, responsibilities, or changes that seem to be exceeding your capacity." },
-      { title: "Drowning", meaning: "Emotional overwhelm, loss of control, or difficulty asking for the support you need." },
-      { title: "Swimming", meaning: "Actively navigating emotion; ease or struggle in the water reflects your current confidence." },
-      { title: "Dirty or muddy water", meaning: "Confusion, mixed motives, emotional residue, or a situation that is hard to read." },
-      { title: "Drinking water", meaning: "Renewal, a need for emotional nourishment, healing, or a return to what is essential." },
-    ],
-    psychological: [
-      "From a psychological perspective, water often represents emotions that cannot be captured neatly in words. A dream may translate stress into a flood, emotional distance into a frozen lake, or relief into a warm bath. This does not predict an event; it dramatizes your current inner experience.",
-      "Depth is an important clue. Looking into deep water can suggest curiosity or anxiety about unknown parts of yourself. Crossing water may represent a transition. If you are rescuing someone, ask whether you are carrying another person’s feelings—or trying to recover a neglected part of your own life.",
-    ],
-    spiritual: [
-      "Spiritually, water is widely associated with purification, rebirth, blessing, surrender, and the flow of life. A water dream may arrive during a period of emotional release or when you are being invited to soften control and move with change.",
-      "Clean water can feel like renewal, while a storm may symbolize spiritual testing or a necessary clearing. Rather than treating the dream as prophecy, consider what needs cleansing, what needs to flow again, and where you need a steadier inner shore.",
-    ],
-    islamic: [
-      "Water carries rich meanings in Islamic life and classical dream interpretation, including purity, mercy, knowledge, livelihood, and life itself. Clean, beneficial water may suggest ease or blessing, while polluted, bitter, or destructive water can reflect hardship or troubled conditions. Context and the dreamer’s state remain essential.",
-      "Wudu and water’s purifying role may make a cleansing dream especially resonant, but no single image guarantees a future outcome. Respond to a comforting dream with gratitude; respond to a disturbing one without panic, and avoid making major decisions from symbolism alone.",
-    ],
-    biblical: [
-      "Biblical water imagery ranges from creation and cleansing to chaos and judgment. Still waters evoke restoration, living water evokes spiritual life, baptism represents renewal, and storms or floods can express danger and testing. The dream’s tone helps identify which theme feels most relevant.",
-      "A biblical reflection may ask whether you need refreshment, faith amid uncertainty, repentance, or healthy limits around overwhelming emotion. Interpret the image humbly and in the wider context of prayer, scripture, and everyday wisdom.",
-    ],
-    questions: [
-      { question: "What does clear water mean in a dream?", answer: "Clear water often points to peace, honesty, emotional clarity, or recovery. If it felt cold or frightening, however, it could instead emphasize distance or vulnerability." },
-      { question: "What does a flood mean in a dream?", answer: "A flood commonly pictures emotions or demands that feel uncontained. Look for what the water entered, what you tried to save, and whether the water eventually receded." },
-      { question: "Why do I dream of the ocean?", answer: "The ocean can represent vast emotion, freedom, the unknown, or forces larger than the individual self. Calmness, waves, weather, and distance from shore refine the meaning." },
-      { question: "Does drowning in a dream mean something bad will happen?", answer: "No. It more often reflects present overwhelm, exhaustion, or loss of control. If these feelings continue while awake, consider practical support rather than treating the dream as a prediction." },
-    ],
-    related: [
-      { slug: "flying", reason: "Water and flying dreams often contrast emotional depth with freedom and perspective." },
-      { slug: "baby", reason: "Both can symbolize renewal, vulnerability, and a fresh emotional beginning." },
-      { slug: "death", reason: "Water crossings and death imagery frequently appear during major transitions." },
-    ],
+    psychological: "emotion, memory, regulation, uncertainty, and feelings that are easier to picture than to explain",
+    spiritual: "cleansing, renewal, surrender, depth, and movement through a changing season",
+    biblical: "creation, cleansing, living water, chaos, testing, refuge, and renewed life",
   },
-  flying: {
-    slug: "flying",
-    symbol: "Flying",
-    emoji: "🪽",
-    accent: "#b69cff",
-    shortMeaning: "Freedom, ambition, perspective, escape, confidence, or a desire to move beyond limits.",
-    metaDescription:
-      "What does flying in a dream mean? Explore common flying scenarios and their psychological, spiritual, Islamic, and biblical interpretations.",
-    introduction: [
-      "Flying dreams often create an unforgettable sense of freedom. Rising above streets, landscapes, or crowds can reflect confidence, possibility, and a wider perspective on problems that once felt too close. When flight is unstable or frightening, the same image may reveal fear of failure, lack of control, or pressure to maintain success.",
-      "Pay attention to how you took off, how high you flew, and whether you could choose your direction. Effortless flight differs from being carried by a violent wind. The people and places below can also show what you are seeking distance from—or hoping to understand more clearly.",
-    ],
-    scenarios: [
-      { title: "Flying effortlessly", meaning: "Confidence, relief, creative momentum, or feeling capable of moving beyond a limit." },
-      { title: "Struggling to stay airborne", meaning: "Self-doubt, unstable progress, fatigue, or anxiety about maintaining expectations." },
-      { title: "Flying very high", meaning: "Big ambition and expanded perspective, sometimes mixed with disconnection from practical life." },
-      { title: "Flying away from danger", meaning: "A wish to escape pressure or discover a solution outside familiar patterns." },
-      { title: "Falling after flying", meaning: "Fear of losing status, control, confidence, or a promising opportunity." },
-      { title: "Flying over water", meaning: "Gaining perspective on strong feelings or moving between freedom and emotional depth." },
-    ],
-    psychological: [
-      "Psychologically, flight can express agency: the feeling that normal restrictions no longer apply. It may follow a breakthrough, new relationship, career opportunity, or creative discovery. It can also compensate for a waking life that feels confined, giving the mind a temporary experience of spaciousness and control.",
-      "If the dream includes fear, ask what success would require from you. Difficulty steering can mirror uncertainty; hiding your ability to fly may reflect discomfort with attention or talent. A recurring pleasant flying dream may simply be your mind rehearsing confidence and possibility.",
-    ],
-    spiritual: [
-      "Spiritual interpretations connect flying with transcendence, expanded awareness, and release from burdens. Seeing the world from above can symbolize a broader viewpoint or a desire to live by higher values rather than immediate pressure.",
-      "Grounding still matters. A dream of soaring may encourage hope, but it can also ask whether inspiration is connected to action. Healthy spiritual growth usually brings greater presence and responsibility, not only escape from ordinary life.",
-    ],
-    islamic: [
-      "In classical Islamic dream traditions, flying can be associated with travel, change of condition, aspiration, or movement between places and responsibilities. Controlled flight and a safe landing differ from aimless flight or disappearing into the sky, and interpretations vary with the dreamer’s circumstances.",
-      "Because dream symbols are not certain evidence, avoid using a flight dream to predict status, travel, or death. Reflect on it with humility, gratitude if it was pleasant, and practical judgment about any real-life change you are considering.",
-    ],
-    biblical: [
-      "The Bible uses wings and rising flight as images of refuge, renewed strength, divine care, and swift movement. Eagles especially suggest endurance and renewed perspective. Human pride and overreaching, however, are also recurring biblical cautions, so the emotional and moral context matters.",
-      "A biblical reading might ask whether the dream points toward hope, trust, escape from responsibility, or ambition without grounding. Let it prompt reflection rather than assuming that every vivid flight is revelation.",
-    ],
-    questions: [
-      { question: "Why did flying feel completely real?", answer: "Dreams can simulate movement and balance very vividly, especially during REM sleep. The realism does not make the dream predictive, but it can make its emotional message memorable." },
-      { question: "What does it mean if I can control my flight?", answer: "Controlled flight often suggests confidence, adaptability, or growing agency. It may also occur during a lucid dream, when you become partly aware that you are dreaming." },
-      { question: "Why can’t I stay in the air?", answer: "Losing altitude often mirrors self-doubt, inconsistent energy, fear of failure, or a goal that needs more practical support." },
-      { question: "Is flying in a dream a spiritual experience?", answer: "It can carry spiritual meaning for the dreamer, but it can also be an ordinary expression of freedom, ambition, or imagination. The lasting effect and your wider beliefs provide context." },
-    ],
-    related: [
-      { slug: "water", reason: "Flying above water often combines perspective with the emotional unknown." },
-      { slug: "death", reason: "Both symbols can appear when an old limitation or identity is being left behind." },
-      { slug: "baby", reason: "New beginnings can feel both vulnerable and full of possibility." },
-    ],
+  "life-events": {
+    psychological: "identity development, attachment, responsibility, grief, hope, and the tension between an ending and a beginning",
+    spiritual: "transition, surrender, renewal, purpose, and patient care for what is emerging or passing away",
+    biblical: "promise, mortality, faithful responsibility, new life, grief, and hope shaped by discernment",
   },
-  baby: {
-    slug: "baby",
-    symbol: "Baby",
-    emoji: "👶",
-    accent: "#ffb86b",
-    shortMeaning: "New beginnings, vulnerability, potential, responsibility, or a tender part of yourself.",
-    metaDescription:
-      "Understand dreams about babies through psychological, spiritual, Islamic, and biblical perspectives, including pregnancy, crying babies, and common questions.",
-    introduction: [
-      "A baby in a dream often symbolizes something new, dependent, and full of possibility. It may represent an idea, relationship, identity, responsibility, or part of yourself that needs patient care. Baby dreams are common during major transitions and do not necessarily refer to literal pregnancy or a future child.",
-      "The baby’s condition and your response are central. Joy can suggest readiness to nurture a beginning; panic may reflect feeling unprepared; forgetting or losing the baby may show fear of neglecting something important. Personal experiences with parenting, fertility, and family naturally shape the dream’s emotional weight.",
-    ],
-    scenarios: [
-      { title: "Holding a baby", meaning: "Accepting a new responsibility, protecting potential, or connecting with tenderness." },
-      { title: "A crying baby", meaning: "An unmet emotional need, neglected project, or vulnerable issue asking for attention." },
-      { title: "Losing a baby", meaning: "Fear of failure, lost potential, or anxiety about caring for what matters." },
-      { title: "Giving birth", meaning: "Bringing an idea, identity, or new life phase into visible form after development." },
-      { title: "An abandoned baby", meaning: "A disowned need, forgotten talent, or responsibility that has been left without care." },
-      { title: "A smiling baby", meaning: "Hope, uncomplicated joy, emotional renewal, or confidence in a new beginning." },
-    ],
-    psychological: [
-      "Psychologically, a dream baby can represent emerging potential and the vulnerable ‘new self’ that comes with change. New habits, creative work, recovery, and relationships all require attention before they become stable. The dream may show how you feel about that dependence.",
-      "It may also connect with your own need for care. If you are always the capable one, a crying or abandoned baby can symbolize needs you dismiss in waking life. For people dealing with pregnancy, loss, or fertility stress, the image may process direct hopes and fears and deserves especially gentle, personal interpretation.",
-    ],
-    spiritual: [
-      "Spiritually, babies can symbolize innocence, renewal, trust, and a gift whose full nature is not yet known. The dream may invite a beginner’s mind or ask you to protect something sincere before exposing it to judgment.",
-      "Newness is not the same as ease. Spiritual beginnings need patience, boundaries, and ordinary care. Consider what small living possibility in your life needs consistent attention rather than a dramatic leap.",
-    ],
-    islamic: [
-      "In Islamic reflection, children may evoke blessing, mercy, responsibility, innocence, and sometimes the worries that accompany care. Classical interpretations vary greatly according to whether the child is known, healthy, distressed, carried, or found, and according to the dreamer’s own circumstances.",
-      "A baby dream should not be treated as proof of pregnancy or a guaranteed future event. Receive a comforting dream with gratitude, and approach an upsetting one with compassion and du’a rather than certainty or fear.",
-    ],
-    biblical: [
-      "Biblically, children can represent blessing, humility, dependence, promise, and new life. Stories of long-awaited births also make a baby a powerful image of hope, while the responsibility to protect the vulnerable remains equally strong.",
-      "A biblical reflection might ask what promise, calling, or tender responsibility needs faithful care. It may also invite childlike trust—not childish avoidance—while remembering that a dream must be discerned rather than automatically labeled a message from God.",
-    ],
-    questions: [
-      { question: "Does dreaming about a baby mean I am pregnant?", answer: "No. Baby dreams frequently symbolize new responsibilities, ideas, or emotional needs. If pregnancy is possible, only an appropriate test or medical advice can answer that question." },
-      { question: "What does an unknown baby mean?", answer: "An unfamiliar baby often represents potential you do not yet fully recognize: a new role, ability, project, or vulnerable aspect of yourself." },
-      { question: "Why was the baby crying?", answer: "Crying usually signals an unmet need. Ask what in your life has been postponed, undernourished, or unable to communicate directly." },
-      { question: "What does giving birth in a dream mean?", answer: "It commonly symbolizes completion of a developmental phase and the arrival of something new into your visible life, whether creative, relational, or personal." },
-    ],
-    related: [
-      { slug: "water", reason: "Both dreams can carry themes of birth, emotion, cleansing, and renewal." },
-      { slug: "death", reason: "Endings and beginnings often appear together during a major life transition." },
-      { slug: "dog", reason: "Care, attachment, protection, and responsibility connect these dream symbols." },
-    ],
+  "fear-nightmares": {
+    psychological: "stress, avoidance, loss of control, nervous-system arousal, and problems that feel larger when they remain unaddressed",
+    spiritual: "courage, refuge, boundaries, honesty, and the difference between wise caution and fear-led action",
+    biblical: "fear, refuge, courage, testing, perseverance, and trust that remains connected to practical wisdom",
   },
-  death: {
-    slug: "death",
-    symbol: "Death",
-    emoji: "🕯️",
-    accent: "#a8a8bd",
-    shortMeaning: "An ending, transformation, grief, fear of loss, or the release of an old identity.",
-    metaDescription:
-      "Dreaming about death rarely predicts literal death. Explore psychological, spiritual, Islamic, and biblical meanings, common scenarios, and questions.",
-    introduction: [
-      "Dreams about death can be frightening, but they rarely indicate a literal event. More often, death gives the dreaming mind a dramatic image for an ending: a relationship changing, a role being left behind, a habit losing its power, or an identity entering a new phase. It can also be a direct way of processing grief, health anxiety, aging, or recent news.",
-      "Who died, how it happened, and what you felt afterward all matter. Grief may show attachment and fear of change; relief can reveal that a burden is ending; calmness may suggest acceptance. If the dream follows a real bereavement, it may simply be part of the mind’s ongoing work of remembering and adapting.",
-    ],
-    scenarios: [
-      { title: "Your own death", meaning: "A major identity shift, loss of control, renewal, or concern about mortality." },
-      { title: "A loved one dying", meaning: "Fear of separation, a changing relationship, grief, or recognition that they are changing." },
-      { title: "Attending a funeral", meaning: "Acknowledging an ending, honoring what was, and beginning to let go." },
-      { title: "A dead person appearing alive", meaning: "Memory, unfinished emotion, longing, comfort, or qualities associated with that person." },
-      { title: "Dying and returning", meaning: "Recovery, radical change, a second chance, or an identity rebuilt after difficulty." },
-      { title: "Trying to prevent a death", meaning: "Resistance to unavoidable change or a strong desire to protect someone or something." },
-    ],
-    psychological: [
-      "Psychologically, death dreams often accompany transitions because the mind experiences meaningful change as both gain and loss. Graduation, parenthood, separation, relocation, recovery, and career change can all end a familiar version of life. The dream makes that invisible ending concrete.",
-      "They may also express ordinary mortality anxiety or grief. Repeated distressing dreams after trauma or loss deserve care, not superstition. Journaling, talking with someone you trust, and professional support can be more useful than searching for a fixed prediction.",
-    ],
-    spiritual: [
-      "Spiritually, death often symbolizes surrender, release, initiation, and transformation. Something outgrown may need to end before a more honest way of living can emerge. The image can therefore feel solemn without being negative.",
-      "The useful question is often not ‘Will this happen?’ but ‘What is already ending, and how can I meet that change consciously?’ Spiritual interpretation should make room for grief and practical reality rather than bypassing them with a promise of instant rebirth.",
-    ],
-    islamic: [
-      "Islamic teachings treat death, the soul, and the unseen with seriousness, while dream interpretation remains uncertain and context-dependent. Classical sources give many different symbolic readings of death, return to life, burial, and funerals; no isolated dream can establish when someone will die.",
-      "Do not spread fear or make accusations from a death dream. If it is disturbing, seek refuge in Allah, pray, and share it only with someone trustworthy if needed. If it evokes remembrance of mortality, it may be used as a gentle prompt toward repentance, gratitude, and better conduct—not prediction.",
-    ],
-    biblical: [
-      "Biblically, death can be associated with human mortality, judgment, sacrifice, the end of an old way of life, and the hope of resurrection. New Testament imagery of dying to an old self and walking in new life makes death a potent symbol of moral and spiritual transformation.",
-      "A biblical reflection might examine what needs to be released, where grief needs comfort, or where hope is being renewed. Scripture also encourages sober discernment; a frightening dream should not be assumed to announce a literal death.",
-    ],
-    questions: [
-      { question: "Does dreaming of someone dying mean they will die?", answer: "No. There is no reliable basis for treating a death dream as a forecast. It more commonly reflects fear, change, grief, attachment, or your perception of the relationship." },
-      { question: "Why did I dream about my own death?", answer: "Your own death may symbolize a major identity transition, loss of control, a wish to escape pressure, or ordinary awareness of mortality." },
-      { question: "What does it mean when a deceased loved one visits?", answer: "Such dreams can be a meaningful part of grief, memory, longing, or comfort. Different spiritual traditions understand them differently, and certainty is not possible from the dream alone." },
-      { question: "Why do death dreams repeat?", answer: "Recurring dreams can follow unresolved grief, ongoing transition, health anxiety, trauma, or persistent stress. If they disrupt sleep or daily life, consider speaking with a mental-health professional." },
-    ],
-    related: [
-      { slug: "baby", reason: "Dreams of endings and new life often arrive during the same transition." },
-      { slug: "snake", reason: "A snake shedding its skin is another strong symbol of transformation." },
-      { slug: "water", reason: "Crossing deep water can mirror grief, surrender, and emotional change." },
-    ],
+  places: {
+    psychological: "memory, belonging, privacy, family patterns, identity, and the internal structures that create safety",
+    spiritual: "foundation, hospitality, sanctuary, inherited patterns, and the inner space being prepared for growth",
+    biblical: "household, foundation, refuge, stewardship, inheritance, and the quality of what a life is built upon",
   },
-  teeth: {
-    slug: "teeth",
-    symbol: "Teeth",
-    emoji: "🦷",
-    accent: "#e6d9ff",
-    shortMeaning: "Anxiety, confidence, communication, appearance, control, or concern about change and loss.",
-    metaDescription:
-      "Why do teeth fall out in dreams? Explore psychological, spiritual, Islamic, and biblical interpretations of common teeth dream scenarios.",
-    introduction: [
-      "Dreams of teeth falling out, breaking, or crumbling are remarkably common. Teeth are tied to appearance, speech, nourishment, strength, and age, so changes to them can express anxiety about how you are seen, what you have said, or whether you can handle a demanding situation. The dream can also be prompted by real physical sensations such as jaw tension or dental discomfort.",
-      "Look at what you were trying to do when the teeth changed. Speaking may point toward communication; looking in a mirror may emphasize self-image; chewing can relate to processing a difficult experience. Shame, pain, surprise, and relief each lead toward different interpretations.",
-    ],
-    scenarios: [
-      { title: "Teeth falling out", meaning: "Loss of confidence or control, transition, embarrassment, or anxiety about appearance." },
-      { title: "Teeth crumbling", meaning: "A situation or self-image that feels fragile, overstrained, or difficult to maintain." },
-      { title: "Loose teeth", meaning: "Uncertainty, an unstable decision, fear of speaking, or awareness that change is coming." },
-      { title: "Broken teeth", meaning: "Vulnerability after conflict, damaged confidence, regret, or pressure exceeding your limits." },
-      { title: "Rotten teeth", meaning: "A neglected issue, lingering shame, harmful communication, or concern that something is worsening." },
-      { title: "New or perfect teeth", meaning: "Renewed confidence, improved communication, healing, or a stronger public identity." },
-    ],
-    psychological: [
-      "Psychologically, teeth dreams often cluster around stress, social evaluation, and perceived loss of control. Because the mouth is central to expression, damaged teeth can represent words you cannot say, words you regret, or fear that you will not be taken seriously.",
-      "They can also be bodily dreams. Grinding, clenching, sleep disruption, or a real dental concern may be incorporated into dream imagery. A recurring dream with waking pain is a reason to check the physical cause as well as exploring the emotional context.",
-    ],
-    spiritual: [
-      "Spiritually, teeth may symbolize personal power, discernment, and the ability to ‘break down’ experience into something you can absorb. Losing them can mark a season of humility or a transition away from an identity based on appearance and control.",
-      "The dream may invite more careful speech and stronger inner foundations. Avoid fatalistic interpretations: a useful spiritual reading should lead toward awareness, integrity, and care rather than fear.",
-    ],
-    islamic: [
-      "Classical Islamic dream literature sometimes relates teeth to family members, longevity, debts, or changes within a household, with different teeth assigned different symbolic roles. These systems are detailed and interpretations vary according to what happened to the tooth, whether there was pain or blood, and what became of it.",
-      "Popular claims that a falling-tooth dream certainly predicts death are not a sound basis for fear. Dreams do not establish the unseen. Consider your real circumstances, avoid alarming relatives, and consult a trustworthy person grounded in Islamic knowledge if the dream weighs heavily on you.",
-    ],
-    biblical: [
-      "In biblical imagery, teeth can signify strength, conflict, appetite, judgment, or suffering. ‘Gnashing of teeth’ expresses anguish, while broken teeth can picture the defeat of violent power. These images do not create a single fixed code for modern dreams.",
-      "A biblical reflection might focus on speech, self-control, the use of strength, or anxiety about loss. As with other dreams, discernment is more responsible than turning one bodily symbol into a prediction.",
-    ],
-    questions: [
-      { question: "Why are teeth-falling-out dreams so common?", answer: "Teeth combine several universal concerns—appearance, communication, aging, health, and control. Jaw clenching and other sleep sensations may also contribute." },
-      { question: "Does a teeth dream predict death?", answer: "No reliable evidence supports that claim. It is a culturally widespread interpretation, but anxiety, transition, communication, self-image, and physical sensations are more grounded explanations." },
-      { question: "What does blood mean in a teeth dream?", answer: "Blood may intensify the sense of pain, personal cost, vitality, or family connection. It does not by itself make the dream predictive." },
-      { question: "Could the dream mean I need a dentist?", answer: "Possibly. Dreams can incorporate pain, pressure, grinding, or worry about dental health. Persistent discomfort, bleeding, or tooth damage should be assessed by a dental professional." },
-    ],
-    related: [
-      { slug: "death", reason: "Both can express anxiety about loss, aging, and irreversible change." },
-      { slug: "snake", reason: "Bites, teeth, and hidden threats can overlap in dreams about boundaries and fear." },
-      { slug: "flying", reason: "Compare a dream of lost control with one centered on freedom and agency." },
-    ],
+  movement: {
+    psychological: "agency, ambition, direction, escape, competence, and confidence in navigating change",
+    spiritual: "calling, perspective, freedom, grounded progress, and alignment between inspiration and action",
+    biblical: "journey, guidance, renewed strength, humility, and the wisdom to choose a sound path",
   },
-  dog: {
-    slug: "dog",
-    symbol: "Dog",
-    emoji: "🐕",
-    accent: "#f2b35f",
-    shortMeaning: "Loyalty, friendship, protection, instinct, companionship, or a boundary under pressure.",
-    metaDescription:
-      "What does a dog symbolize in dreams? Explore friendly, attacking, lost, and black dog dreams through psychological, spiritual, Islamic, and biblical perspectives.",
-    introduction: [
-      "Dogs in dreams often reflect loyalty, companionship, protection, and social instinct. A friendly dog may represent trusted support or your own dependable nature, while a barking or attacking dog can express conflict, violated boundaries, or fear that loyalty has been broken. Your real experiences with dogs strongly affect the meaning.",
-      "Notice whether the dog was yours, a stranger, a pet from the past, or a wild pack. Its condition and behavior may mirror the state of a relationship or an instinct you are learning to trust. A neglected dog can point toward neglected friendship, play, movement, or self-protection.",
-    ],
-    scenarios: [
-      { title: "A friendly dog", meaning: "Trust, support, companionship, emotional safety, or comfort with your instincts." },
-      { title: "A dog attacking or biting", meaning: "Conflict, betrayal, threatened boundaries, fear, or instinctive anger breaking through." },
-      { title: "A lost dog", meaning: "Disconnection from loyalty, belonging, guidance, or a dependable part of yourself." },
-      { title: "A barking dog", meaning: "A warning, demand for attention, communication problem, or boundary being announced." },
-      { title: "A dog protecting you", meaning: "Reliable support, healthy defenses, courage, or a strong protective instinct." },
-      { title: "A deceased pet", meaning: "Memory, grief, enduring affection, comfort, or renewed connection to an earlier life chapter." },
-    ],
-    psychological: [
-      "Psychologically, a dog can personify attachment and instinct. Its behavior may resemble the emotional pattern of a relationship: dependable, demanding, playful, protective, abandoned, or unpredictable. It can also represent how comfortable you are with closeness and trust.",
-      "An aggressive dog is not always an external enemy. It may be your own anger or protective response, especially if you routinely suppress conflict. A playful dog may signal a need for uncomplicated connection, movement, and joy.",
-    ],
-    spiritual: [
-      "Spiritually, dogs are often associated with guardianship, fidelity, guidance, and the ability to sense what the rational mind misses. A dog appearing at a threshold or on a journey may symbolize protection or the need to trust a grounded instinct.",
-      "The dream may also ask whether devotion has become unhealthy dependence, or whether protection has become aggression. True loyalty includes discernment and boundaries, not blind obedience.",
-    ],
-    islamic: [
-      "Dogs have varied associations in Islamic law, culture, history, and classical dream literature. Depending on context, a dream dog may be read in relation to guarding, hunting, loyalty, base impulses, hostility, or a person of weak conduct. A trained helpful dog is symbolically different from a threatening or uncontrolled one.",
-      "Because personal experience and cultural context matter, avoid turning the symbol into a judgment about a real person. A dream is not evidence of impurity, guilt, or future harm. Reflect calmly and seek reliable guidance if a religious concern persists.",
-    ],
-    biblical: [
-      "Dogs in biblical texts can appear as scavengers or figures in warnings, reflecting their ancient social setting; they also appear through images of persistence, guarding, and life at the edge of the household. Modern companionship with dogs adds a personal layer not captured by a single ancient reference.",
-      "A biblical reflection may ask about loyalty, humility, protection, appetite, or discernment about company. The dream’s actual behavior and your response are more useful than assuming every dog carries the same moral meaning.",
-    ],
-    questions: [
-      { question: "What does a friendly dog mean in a dream?", answer: "It often represents trust, companionship, reliable support, or a healthy relationship with your own instincts. A familiar dog may also bring memories tied to a particular period of life." },
-      { question: "What does a dog bite mean?", answer: "A bite may signal conflict, betrayal, a boundary violation, or anger that demands attention. Consider the location of the bite and what happened immediately before it." },
-      { question: "What does a black dog mean?", answer: "A black dog can intensify mystery, fear, grief, protection, or the unknown. Color is only one clue; the dog’s behavior and your personal associations matter more." },
-      { question: "Why did I dream of a pet who died?", answer: "Dreaming of a deceased pet can be part of grief and loving memory. It may bring comfort or reconnect you with the qualities and life period associated with that animal." },
-    ],
-    related: [
-      { slug: "snake", reason: "Both animal dreams explore instinct, trust, warning, and personal boundaries." },
-      { slug: "baby", reason: "Care, attachment, vulnerability, and protection connect these symbols." },
-      { slug: "teeth", reason: "Dog-bite and teeth imagery can both reveal conflict and defensive reactions." },
-    ],
+  objects: {
+    psychological: "value, security, opportunity, self-worth, scarcity, and the meaning assigned to practical resources",
+    spiritual: "stewardship, gratitude, attachment, generosity, and discernment about what is truly valuable",
+    biblical: "stewardship, provision, treasure, justice, contentment, and the relationship between resources and character",
   },
 };
 
-export function isDreamSlug(value: string): value is DreamSlug {
-  return DREAM_SLUGS.includes(value as DreamSlug);
+function titleCase(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function makeTitle(name: string) {
+  return `${titleCase(name)} Dream Meaning`;
+}
+
+function makeAliases(name: string, aliases: string[] = []) {
+  return Array.from(new Set([name, `dream about ${name}`, `${name} in a dream`, `${name} dream meaning`, ...aliases]));
+}
+
+function makeSections({
+  title,
+  name,
+  category,
+  summary,
+  focus,
+  parentName,
+  variationSeeds,
+}: {
+  title: string;
+  name: string;
+  category: DreamCategory;
+  summary: string;
+  focus?: string;
+  parentName?: string;
+  variationSeeds?: VariationSeed[];
+}): DreamSections {
+  const lens = CATEGORY_LENSES[category];
+  const subject = name.toLowerCase();
+  const parentContext = parentName
+    ? `It narrows the broader ${parentName} symbol to one particular image: ${focus}.`
+    : `Its core themes include ${summary}.`;
+
+  const introduction = [
+    `${title} can be understood by starting with the scene, the emotion it created, and what was changing around it. ${parentContext} The most useful interpretation connects those details with your current life rather than treating the dream as a fixed prediction.`,
+    `A dream about ${subject} may feel positive, frightening, or strangely neutral. That emotional tone changes the reading: curiosity can suggest readiness to understand the symbol, while panic can reveal pressure, avoidance, or a need for safety. Personal history and cultural or religious beliefs remain essential context for ${title}.`,
+  ];
+
+  const general = [
+    `In general, ${title} points toward ${focus ?? summary}. The dream may be drawing attention to something already developing in waking life, especially where the same feeling of uncertainty, attraction, responsibility, or urgency appears.`,
+    `Details refine the general meaning of ${title}. Notice where the ${subject} appeared, who else was present, what changed, and whether you acted or only watched. A calm ending often suggests integration; an unresolved ending may show that the underlying question still needs attention.`,
+  ];
+
+  const psychological = [
+    `Psychologically, ${title} can give visible form to ${lens.psychological}. Dreams often turn a complex inner state into one memorable scene, allowing the mind to rehearse a response without claiming that the scene will literally happen.`,
+    `For a personal psychological reading of ${title}, compare the strongest dream emotion with recent experiences. If the ${subject} was recurring, the repetition may reflect an unresolved decision, relationship pattern, stressor, or need that has not yet found a direct expression.`,
+  ];
+
+  const spiritual = [
+    `Spiritually, ${title} may invite reflection on ${lens.spiritual}. The image can mark a season of attention or transition, but its value lies in the honesty and awareness it encourages rather than in certainty about future events.`,
+    `A grounded spiritual response to ${title} is to ask what quality needs to be practiced now—patience, courage, release, protection, gratitude, or discernment. Useful interpretation should deepen responsibility and presence, not create fear or replace practical judgment.`,
+  ];
+
+  const islamic = [
+    `In an Islamic context, ${title} should be approached with humility. Dream traditions distinguish comforting or meaningful dreams from ordinary mental activity and distressing dreams, so the image may be considered in relation to ${focus ?? summary} without being treated as certain knowledge of the unseen.`,
+    `A disturbing ${title} is not evidence against another person and should not be used to predict harm. Seek refuge in Allah, make du’a, and share the dream only with someone trustworthy if guidance is needed. A reassuring dream can be received with gratitude while decisions remain grounded in faith, character, and real circumstances.`,
+  ];
+
+  const biblical = [
+    `A biblical reflection on ${title} can begin with themes of ${lens.biblical}. Scripture does not provide a fixed code for every modern dream image, so the symbol is best weighed alongside its behavior in the dream, the dreamer’s circumstances, prayer, and the wider counsel of scripture.`,
+    `Consider whether ${title} highlights wisdom, temptation, stewardship, fear, hope, or a needed change in conduct. A vivid dream may prompt sincere reflection, but it should not automatically be labeled a divine message or used to make a serious decision without discernment.`,
+  ];
+
+  const commonScenarios: DreamScenario[] = variationSeeds?.length
+    ? variationSeeds.slice(0, 6).map((variation) => ({
+        title: titleCase(variation.name),
+        meaning: `Within ${title}, this variation emphasizes ${variation.focus}.`,
+      }))
+    : [
+        { title: `Feeling calm around ${subject}`, meaning: `Calmness in ${title} may show growing acceptance, perspective, or confidence with the underlying theme.` },
+        { title: `Feeling afraid of ${subject}`, meaning: `Fear in ${title} can intensify concerns about danger, change, judgment, vulnerability, or lost control.` },
+        { title: `A recurring ${subject} dream`, meaning: `Repetition suggests that the question represented by ${title} remains active or emotionally unfinished.` },
+        { title: `${titleCase(subject)} after a major change`, meaning: `When ${title} follows a transition, it may help the mind organize unfamiliar emotions and responsibilities.` },
+        { title: `Watching ${subject} from a distance`, meaning: `Distance in ${title} can suggest observation, emotional caution, or a problem not yet approached directly.` },
+      ];
+
+  const faq: DreamFaq[] = [
+    {
+      question: `What does ${subject} mean in a dream?`,
+      answer: `${title} commonly relates to ${focus ?? summary}. Your emotion, the setting, and what happened immediately before and after the symbol provide the most personal clues.`,
+    },
+    {
+      question: `Is dreaming about ${subject} a bad sign?`,
+      answer: `No. ${title} is not automatically positive or negative and does not reliably predict an event. A frightening version may reflect stress, while a calm version may suggest understanding, readiness, or growth.`,
+    },
+    {
+      question: `What is the psychological meaning of ${subject}?`,
+      answer: `The psychological meaning of ${title} often concerns ${lens.psychological}. Compare that theme with current relationships, decisions, pressures, and bodily feelings.`,
+    },
+    {
+      question: `What is the spiritual meaning of ${subject}?`,
+      answer: `The spiritual meaning of ${title} may involve ${lens.spiritual}. Treat that as an invitation to reflect and act wisely, not as proof of a supernatural prediction.`,
+    },
+    {
+      question: `Why do I keep dreaming about ${subject}?`,
+      answer: `A recurring ${title} may track an unresolved feeling, repeated stressor, changing identity, or important need. Record each version and look for repeated emotions, people, places, and outcomes.`,
+    },
+  ];
+
+  return { introduction, general, psychological, spiritual, islamic, biblical, commonScenarios, faq };
+}
+
+function buildDictionary() {
+  const entries: DreamEntry[] = [];
+
+  for (const cluster of CLUSTERS) {
+    const title = makeTitle(cluster.name);
+    const variationSlugs = cluster.variations.map((variation) => variation.slug);
+    const parent: DreamEntry = {
+      slug: cluster.slug,
+      canonicalSlug: cluster.slug,
+      title,
+      name: cluster.name,
+      category: cluster.category,
+      icon: cluster.icon,
+      accent: cluster.accent,
+      aliases: makeAliases(cluster.name, cluster.aliases),
+      variationSlugs,
+      relatedSymbols: cluster.relatedSymbols,
+      shortMeaning: titleCase(cluster.summary) + ".",
+      seoTitle: `${title} - Psychological, Spiritual, Islamic & Biblical Meaning`,
+      seoDescription: `Discover what ${cluster.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+      sections: makeSections({
+        title,
+        name: cluster.name,
+        category: cluster.category,
+        summary: cluster.summary,
+        variationSeeds: cluster.variations,
+      }),
+    };
+    entries.push(parent);
+
+    for (const variation of cluster.variations) {
+      const variationTitle = makeTitle(variation.name);
+      entries.push({
+        slug: variation.slug,
+        canonicalSlug: variation.slug,
+        parentSlug: cluster.slug,
+        title: variationTitle,
+        name: variation.name,
+        category: cluster.category,
+        icon: cluster.icon,
+        accent: cluster.accent,
+        aliases: makeAliases(variation.name, variation.aliases),
+        variationSlugs: cluster.variations
+          .filter((candidate) => candidate.slug !== variation.slug)
+          .map((candidate) => candidate.slug),
+        relatedSymbols: cluster.relatedSymbols,
+        shortMeaning: `${titleCase(variation.focus)}.`,
+        seoTitle: `${variationTitle} - Psychological, Spiritual, Islamic & Biblical Meaning`,
+        seoDescription: `Discover what ${variation.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+        sections: makeSections({
+          title: variationTitle,
+          name: variation.name,
+          category: cluster.category,
+          summary: cluster.summary,
+          focus: variation.focus,
+          parentName: cluster.name,
+        }),
+      });
+    }
+  }
+
+  return entries;
+}
+
+export const ALL_DREAM_ENTRIES: DreamEntry[] = buildDictionary();
+
+export const DREAM_DICTIONARY: Record<string, DreamEntry> = Object.fromEntries(
+  ALL_DREAM_ENTRIES.map((entry) => [entry.slug, entry]),
+);
+
+if (Object.keys(DREAM_DICTIONARY).length !== ALL_DREAM_ENTRIES.length) {
+  throw new Error("Dream dictionary contains duplicate slugs.");
+}
+
+for (const entry of ALL_DREAM_ENTRIES) {
+  if (entry.parentSlug && !DREAM_DICTIONARY[entry.parentSlug]) {
+    throw new Error(`Dream entry ${entry.slug} references missing parent ${entry.parentSlug}.`);
+  }
+  for (const linkedSlug of [...entry.variationSlugs, ...entry.relatedSymbols]) {
+    if (!DREAM_DICTIONARY[linkedSlug]) {
+      throw new Error(`Dream entry ${entry.slug} references missing symbol ${linkedSlug}.`);
+    }
+  }
+}
+
+export const DREAM_SLUGS: string[] = ALL_DREAM_ENTRIES.map((entry) => entry.slug);
+
+export const PARENT_DREAMS: DreamEntry[] = ALL_DREAM_ENTRIES.filter((entry) => !entry.parentSlug);
+
+export const POPULAR_DREAM_SLUGS = [
+  "snake",
+  "teeth-falling-out",
+  "water",
+  "being-chased",
+  "pregnancy",
+  "death",
+  "flying",
+  "dog",
+  "falling",
+  "baby",
+  "spider",
+  "car-accident",
+] as const;
+
 export function getDreamEntry(slug: string): DreamEntry | undefined {
-  return isDreamSlug(slug) ? DREAM_DICTIONARY[slug] : undefined;
+  return DREAM_DICTIONARY[slug];
+}
+
+export function getParentEntry(entry: DreamEntry): DreamEntry {
+  return entry.parentSlug ? DREAM_DICTIONARY[entry.parentSlug] : entry;
+}
+
+export function getDreamVariations(entry: DreamEntry): DreamEntry[] {
+  const parent = getParentEntry(entry);
+  return parent.variationSlugs
+    .map((slug) => DREAM_DICTIONARY[slug])
+    .filter((candidate): candidate is DreamEntry => Boolean(candidate));
+}
+
+export function getRelatedDreams(entry: DreamEntry): DreamEntry[] {
+  return entry.relatedSymbols
+    .map((slug) => DREAM_DICTIONARY[slug])
+    .filter((candidate): candidate is DreamEntry => Boolean(candidate));
+}
+
+export function getDreamsByCategory(category: DreamCategory): DreamEntry[] {
+  return PARENT_DREAMS.filter((entry) => entry.category === category);
 }
