@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dreamly.art"),
   title: "Dreamly",
   description: "AI Dream Journal & Anonymous Dream Map",
   manifest: "/manifest.json",

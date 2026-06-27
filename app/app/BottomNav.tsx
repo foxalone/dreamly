@@ -58,6 +58,27 @@ function IconDreams({ active }: { active: boolean }) {
   );
 }
 
+function IconDictionary({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path
+        d="M4.5 5.5A2.5 2.5 0 0 1 7 3h5v17H7a2.5 2.5 0 0 0-2.5 1V5.5ZM19.5 5.5A2.5 2.5 0 0 0 17 3h-5v17h5a2.5 2.5 0 0 1 2.5 1V5.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        opacity={active ? 1 : 0.75}
+      />
+      <path
+        d="M7.5 7H9M15 7h1.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        opacity={active ? 1 : 0.75}
+      />
+    </svg>
+  );
+}
+
 function IconShared({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
@@ -246,6 +267,12 @@ export default function BottomNav({ hidden }: BottomNavProps) {
         activeClass: "text-cyan-400",
       },
       {
+        href: "/dreams",
+        label: "Dictionary",
+        icon: (a) => <IconDictionary active={a} />,
+        activeClass: "text-amber-400",
+      },
+      {
         href: "/app/map",
         label: "Map",
         icon: (a) => <IconMap active={a} />,
@@ -277,7 +304,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="mx-auto max-w-3xl px-4 pb-4">
         <div className="bottom-nav-shell rounded-3xl backdrop-blur-md">
-          <div className="grid grid-cols-5">
+          <div className="grid grid-cols-6">
             {baseItems.map((it) => {
               const active = isActive(it.href);
 
@@ -297,7 +324,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
               );
             })}
 
-            {/* Slot 3: Sign in OR Profile avatar */}
+            {/* Final slot: Sign in OR Profile avatar */}
             {user ? (
               <Link
                 href={profileHref}

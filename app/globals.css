@@ -48,6 +48,10 @@ html, body {
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -246,4 +250,3 @@ html, body {
 
 .dream-btn--blue:hover { filter: brightness(0.95); }
 .dream-btn--blue:active { transform: scale(0.98); }
-

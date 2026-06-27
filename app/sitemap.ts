@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { DREAM_SLUGS } from "@/lib/dream-dictionary";
 
 const SITE = "https://dreamly.art";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  return [
+  const core: MetadataRoute.Sitemap = [
     {
       url: `${SITE}/`,
       lastModified: now,
@@ -30,5 +31,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    {
+      url: `${SITE}/dreams`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
   ];
+
+  const dictionary: MetadataRoute.Sitemap = DREAM_SLUGS.map((slug) => ({
+    url: `${SITE}/dreams/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  return [...core, ...dictionary];
 }
