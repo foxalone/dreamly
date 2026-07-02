@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { DREAM_DICTIONARY, POPULAR_DREAM_SLUGS } from "@/lib/dream-dictionary";
 
 export default function HomePage() {
@@ -7,7 +7,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-black text-white px-6">
-      <section className="min-h-screen flex items-center justify-center">
+      <section className="relative min-h-[92svh] flex items-center justify-center">
         <div className="text-center max-w-2xl">
           <h1
             className="text-4xl sm:text-6xl font-semibold tracking-wide mb-8 bg-clip-text text-transparent"
@@ -39,9 +39,17 @@ export default function HomePage() {
             Start Free
           </Link>
         </div>
+
+        <a
+          href="#popular-dreams"
+          className="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-neutral-400 transition-colors hover:text-white"
+        >
+          <span className="text-sm font-medium">Popular dream meanings</span>
+          <ChevronDown size={20} className="animate-bounce" aria-hidden="true" />
+        </a>
       </section>
 
-      <section aria-labelledby="popular-dreams-title" className="mx-auto max-w-4xl pb-24">
+      <section id="popular-dreams" aria-labelledby="popular-dreams-title" className="mx-auto max-w-4xl scroll-mt-8 pb-24 pt-6">
         <div className="text-center">
           <h2 id="popular-dreams-title" className="text-2xl sm:text-3xl font-semibold tracking-tight">
             Popular dream meanings
