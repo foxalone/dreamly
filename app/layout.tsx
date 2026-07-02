@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dreamly.art"),
-  title: "Dreamly",
-  description: "AI Dream Journal & Anonymous Dream Map",
+  title: "Dreamly — AI Dream Interpreter & Dream Journal",
+  description:
+    "Interpret your dreams with AI, keep a private dream journal, and explore an anonymous world map of what people are dreaming. Free dream dictionary included.",
+  openGraph: {
+    siteName: "Dreamly",
+    type: "website",
+  },
   manifest: "/manifest.json",
   icons: {
     icon: "/icon-192.png",
