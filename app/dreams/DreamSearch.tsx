@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import type { DreamCategory } from "@/lib/dream-dictionary";
@@ -22,6 +22,22 @@ function normalize(value: string) {
 export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   const [query, setQuery] = useState("");
   const normalizedQuery = normalize(query);
+
+  // Support /dreams?q=... deep links (used by the WebSite SearchAction schema).
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("q");
+    if (initial) setQuery(initial);
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (query) {
+      url.searchParams.set("q", query);
+    } else {
+      url.searchParams.delete("q");
+    }
+    window.history.replaceState(null, "", url);
+  }, [query]);
 
   const results = useMemo(() => {
     if (!normalizedQuery) return [];

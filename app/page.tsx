@@ -112,6 +112,14 @@ export default function HomePage() {
     url: "https://dreamly.art",
     description:
       "AI dream interpreter, private dream journal, anonymous dream map, and a free dream dictionary.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://dreamly.art/dreams?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const webAppJsonLd = {
