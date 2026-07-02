@@ -79,6 +79,8 @@ export type DreamEntry = {
   shortMeaning: string;
   seoTitle: string;
   seoDescription: string;
+  /** ISO date (YYYY-MM-DD) the entry's content last materially changed. Drives sitemap lastmod. */
+  updatedAt: string;
   sections: DreamSections;
 };
 
@@ -98,8 +100,14 @@ type ClusterSeed = {
   summary: string;
   aliases: string[];
   relatedSymbols: string[];
+  /** Set (YYYY-MM-DD) when a cluster's content materially changes; falls back to DICTIONARY_UPDATED_AT. */
+  updatedAt?: string;
   variations: VariationSeed[];
 };
+
+// Last date the shared dictionary templates/content changed. Bump this when editing
+// makeSections/makeTitle etc.; bump a cluster's own updatedAt when editing just that cluster.
+const DICTIONARY_UPDATED_AT = "2026-06-27";
 
 const CLUSTERS: ClusterSeed[] = [
   {
@@ -920,6 +928,7 @@ function buildDictionary() {
   for (const cluster of CLUSTERS) {
     const title = makeTitle(cluster.name);
     const variationSlugs = cluster.variations.map((variation) => variation.slug);
+    const updatedAt = cluster.updatedAt ?? DICTIONARY_UPDATED_AT;
     const parent: DreamEntry = {
       slug: cluster.slug,
       canonicalSlug: cluster.slug,
@@ -934,6 +943,7 @@ function buildDictionary() {
       shortMeaning: titleCase(cluster.summary) + ".",
       seoTitle: `${title} - Psychological, Spiritual, Islamic & Biblical Meaning`,
       seoDescription: `Discover what ${cluster.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+      updatedAt,
       sections: makeSections({
         title,
         name: cluster.name,
@@ -963,6 +973,7 @@ function buildDictionary() {
         shortMeaning: `${titleCase(variation.focus)}.`,
         seoTitle: `${variationTitle} - Psychological, Spiritual, Islamic & Biblical Meaning`,
         seoDescription: `Discover what ${variation.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+        updatedAt,
         sections: makeSections({
           title: variationTitle,
           name: variation.name,
