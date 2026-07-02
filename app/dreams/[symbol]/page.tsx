@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: entry.seoTitle,
       description: entry.seoDescription,
     },
