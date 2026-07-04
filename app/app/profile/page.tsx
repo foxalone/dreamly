@@ -37,7 +37,7 @@ const PACK_LABELS: Record<PackId, { title: string; price: string; currency: stri
 };
 
 export default function ProfilePage() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light" | "system">("system");
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -91,20 +91,24 @@ export default function ProfilePage() {
   }, [user?.uid]);
 
   // --- theme ---
+  function applyTheme(t: "dark" | "light" | "system") {
+    const c = document.documentElement.classList;
+    c.remove("light", "dark");
+    if (t === "light" || t === "dark") c.add(t);
+  }
+
   useEffect(() => {
-    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
-    const t = saved ?? "dark";
+    const saved = localStorage.getItem("theme");
+    const t = saved === "light" || saved === "dark" ? saved : "system";
     setTheme(t);
-    if (t === "light") document.documentElement.classList.add("light");
-    else document.documentElement.classList.remove("light");
+    applyTheme(t);
   }, []);
 
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
+  function selectTheme(next: "dark" | "light" | "system") {
     setTheme(next);
-    localStorage.setItem("theme", next);
-    if (next === "light") document.documentElement.classList.add("light");
-    else document.documentElement.classList.remove("light");
+    if (next === "system") localStorage.removeItem("theme");
+    else localStorage.setItem("theme", next);
+    applyTheme(next);
   }
 
   async function doSignOut() {
@@ -267,10 +271,35 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
 
      {/* TOP BUTTONS */}
 <div className="mt-6 flex flex-wrap md:flex-nowrap items-center gap-3">
-  <button onClick={toggleTheme} className={`${pillBase} ${pillSurface}`}>
-    <span className="mr-2">{theme === "dark" ? "☀️" : "🌙"}</span>
-    {theme === "dark" ? "Light" : "Dark"}
-  </button>
+  <div
+    className={`h-11 p-1 rounded-full border bg-[var(--card)] border-[var(--border)] flex items-center`}
+    role="radiogroup"
+    aria-label="Theme"
+  >
+    {(
+      [
+        { id: "light", icon: "☀️", label: "Light" },
+        { id: "dark", icon: "🌙", label: "Dark" },
+        { id: "system", icon: "💻", label: "System" },
+      ] as const
+    ).map((opt) => (
+      <button
+        key={opt.id}
+        role="radio"
+        aria-checked={theme === opt.id}
+        onClick={() => selectTheme(opt.id)}
+        className={[
+          "h-9 px-3 rounded-full text-sm font-semibold transition",
+          theme === opt.id
+            ? "bg-[var(--text)] text-[var(--bg)]"
+            : "text-[var(--muted)] hover:text-[var(--text)]",
+        ].join(" ")}
+      >
+        <span className="mr-1">{opt.icon}</span>
+        {opt.label}
+      </button>
+    ))}
+  </div>
 
   <button
     onClick={copyUid}

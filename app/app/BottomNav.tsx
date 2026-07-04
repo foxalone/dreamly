@@ -196,7 +196,7 @@ function AvatarIcon({
     <div
       className={cls(
         "shrink-0 rounded-full flex items-center justify-center font-semibold",
-        "bg-white/10 text-white",
+        "bg-[rgba(127,127,127,0.18)] text-[var(--text)]",
         ring
       )}
       style={{ width: size, height: size, fontSize: 10, lineHeight: "10px" }}

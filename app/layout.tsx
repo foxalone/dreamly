@@ -47,6 +47,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         {children}
         <InstallPwaBanner />

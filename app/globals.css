@@ -12,6 +12,7 @@
   --surface: var(--card);               /* surface for bottom nav */
   --border: rgba(255,255,255,0.10);     /* subtle divider */
   --shadow: 0 -12px 30px rgba(0,0,0,0.35);
+  color-scheme: dark;
 }
 
 /* Автоматическая светлая тема если система light */
@@ -26,6 +27,7 @@
     --surface: #ffffff;
     --border: rgba(0,0,0,0.10);
     --shadow: 0 -12px 30px rgba(0,0,0,0.08);
+    color-scheme: light;
   }
 }
 
@@ -40,6 +42,19 @@
   --surface: #ffffff;
   --border: rgba(0,0,0,0.10);
   --shadow: 0 -12px 30px rgba(0,0,0,0.08);
+  color-scheme: light;
+}
+
+/* Ручное переключение через class="dark" (перекрывает системную light-тему) */
+.dark {
+  --bg: #0a0a0a;
+  --card: #151515;
+  --text: #ffffff;
+  --muted: #9ca3af;
+  --surface: var(--card);
+  --border: rgba(255,255,255,0.10);
+  --shadow: 0 -12px 30px rgba(0,0,0,0.35);
+  color-scheme: dark;
 }
 
 /* ===== DREAM DICTIONARY THEME ===== */
@@ -78,6 +93,23 @@
     --dd-accent-text: #6d28d9;
     color-scheme: light;
   }
+}
+
+.dark .dream-dictionary {
+  --dd-bg: #09090d;
+  --dd-header: color-mix(in srgb, #09090d 86%, transparent);
+  --dd-surface: #111117;
+  --dd-surface-soft: rgba(255, 255, 255, 0.035);
+  --dd-surface-hover: rgba(255, 255, 255, 0.07);
+  --dd-text: #fafafa;
+  --dd-text-soft: #d4d4d8;
+  --dd-muted: #a1a1aa;
+  --dd-subtle: #71717a;
+  --dd-faint: #52525b;
+  --dd-border: rgba(255, 255, 255, 0.08);
+  --dd-border-strong: rgba(255, 255, 255, 0.2);
+  --dd-accent-text: #c4b5fd;
+  color-scheme: dark;
 }
 
 .light .dream-dictionary {
@@ -294,6 +326,11 @@ html, body {
 
 .light {
   --accent: #06b6d4;
+  --success: #10b981;
+}
+
+.dark {
+  --accent: #22d3ee;
   --success: #10b981;
 }
 
