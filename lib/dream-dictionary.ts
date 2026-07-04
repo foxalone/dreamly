@@ -1826,6 +1826,64 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
 };
 
 /**
+ * Hand-written meta tags for the highest-traffic pages, replacing the generated
+ * seoTitle/seoDescription templates. Titles aim for ~50-60 chars with the query
+ * up front; descriptions for ~150-160 chars with a reason to click.
+ */
+const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  snake: {
+    seoTitle: "Snake Dream Meaning: What Snakes in Dreams Really Symbolize",
+    seoDescription:
+      "Bitten, chased, or just watched? What snake dreams mean in psychology, Islam, and the Bible — plus six scenarios and why the snake's color changes the reading.",
+  },
+  "teeth-falling-out": {
+    seoTitle: "Teeth Falling Out Dream Meaning: Why It's So Common",
+    seoDescription:
+      "Nearly 2 in 5 people dream their teeth fall out. What it means psychologically, what Islam and the Bible say, and when it's just your jaw clenching in your sleep.",
+  },
+  "being-chased": {
+    seoTitle: "Being Chased in a Dream: Meaning, Causes & How to Stop It",
+    seoDescription:
+      "Chase dreams are the most common nightmare on earth — and who's chasing you matters. What they mean, plus the rehearsal technique that changes how they end.",
+  },
+  ex: {
+    seoTitle: "Dreaming About Your Ex? What It Means (It's Rarely Love)",
+    seoDescription:
+      "Dreaming of an ex years later is normal — and usually not about wanting them back. What reunion, argument, and apology dreams mean, and why they start now.",
+  },
+  cheating: {
+    seoTitle: "Cheating Dream Meaning: Why You Dream About Infidelity",
+    seoDescription:
+      "Dreams of cheating — yours or your partner's — don't predict betrayal. What they say about trust and insecurity, and how to shake the next-morning anger.",
+  },
+  pregnancy: {
+    seoTitle: "Pregnancy Dream Meaning: Not Pregnant? Here's What It Says",
+    seoDescription:
+      "Pregnancy dreams visit men, teens, and grandmothers alike: something is growing that isn't ready to show. Meanings by scenario, and why pregnant sleep is so vivid.",
+  },
+  death: {
+    seoTitle: "Death Dream Meaning: Why It's an Ending, Not a Prediction",
+    seoDescription:
+      "Dreaming of death — your own or a loved one's — marks change and endings, not fate. Psychological, Islamic, and biblical readings, plus dreams of the deceased.",
+  },
+  falling: {
+    seoTitle: "Falling Dream Meaning: Lost Support or Just a Hypnic Jerk?",
+    seoDescription:
+      "That jolt as you drift off has a name — and falling dreams with a plot have a meaning. What failing support says about your life, and how to stop the dreams.",
+  },
+  flying: {
+    seoTitle: "Flying Dream Meaning: Freedom, Ambition & Lucid Flight",
+    seoDescription:
+      "Flying dreams are the nightmare's happy opposite: agency, escape, perspective. What struggling to stay airborne means — and how to have these dreams more often.",
+  },
+  water: {
+    seoTitle: "Water Dream Meaning: What the Water's State Says About You",
+    seoDescription:
+      "Clear, murky, rising, or drowning-deep — water in dreams mirrors your emotional life. Readings for every scenario, plus Islamic and biblical water symbolism.",
+  },
+};
+
+/**
  * Curated combination pages ("dreaming of X and Y"). Only pairs with genuine
  * semantic overlap are listed — never generated cartesian-style.
  * URL: /dreams/{primary}-and-{secondary}. Growth = add a row here.
@@ -1959,14 +2017,17 @@ function buildDictionary() {
     });
   }
 
-  for (const slug of Object.keys(SECTION_OVERRIDES)) {
+  for (const slug of [...Object.keys(SECTION_OVERRIDES), ...Object.keys(META_OVERRIDES)]) {
     if (!entries.some((entry) => entry.slug === slug)) {
-      throw new Error(`SECTION_OVERRIDES references missing entry: ${slug}`);
+      throw new Error(`Override references missing entry: ${slug}`);
     }
   }
   for (const entry of entries) {
-    const override = SECTION_OVERRIDES[entry.slug];
-    if (override) entry.sections = { ...entry.sections, ...override };
+    const sectionOverride = SECTION_OVERRIDES[entry.slug];
+    if (sectionOverride) entry.sections = { ...entry.sections, ...sectionOverride };
+    const metaOverride = META_OVERRIDES[entry.slug];
+    if (metaOverride?.seoTitle) entry.seoTitle = metaOverride.seoTitle;
+    if (metaOverride?.seoDescription) entry.seoDescription = metaOverride.seoDescription;
   }
 
   return entries;
