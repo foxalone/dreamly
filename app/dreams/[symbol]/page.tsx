@@ -19,10 +19,13 @@ import SectionJumpNav from "../SectionJumpNav";
 import {
   DREAM_CATEGORIES,
   DREAM_SLUGS,
+  getCategorySiblings,
+  getCombosForSymbol,
   getDreamEntry,
   getDreamVariations,
   getParentEntry,
   getRelatedDreams,
+  getRingLinks,
   type DreamEntry,
 } from "@/lib/dream-dictionary";
 
@@ -120,6 +123,9 @@ export default async function DreamSymbolPage({ params }: PageProps) {
     : variations;
   const relatedSymbols = getRelatedDreams(entry);
   const category = DREAM_CATEGORIES[entry.category];
+  const categorySiblings = getCategorySiblings(entry);
+  const ringLinks = getRingLinks(entry);
+  const combos = getCombosForSymbol(entry.parentSlug ?? entry.slug).filter((combo) => combo.slug !== entry.slug);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -127,6 +133,13 @@ export default async function DreamSymbolPage({ params }: PageProps) {
     headline: entry.title,
     description: entry.seoDescription,
     mainEntityOfPage: `https://dreamly.art/dreams/${entry.canonicalSlug}`,
+    image: {
+      "@type": "ImageObject",
+      url: `https://dreamly.art/dreams/${entry.canonicalSlug}/opengraph-image`,
+      width: 1200,
+      height: 630,
+      caption: `${entry.title} — illustrated card for the ${entry.name} dream symbol`,
+    },
     articleSection: category.label,
     keywords: entry.aliases.join(", "),
     isPartOf: entry.parentSlug
@@ -151,6 +164,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
   const breadcrumbItems = [
     { name: "Home", url: "https://dreamly.art/" },
     { name: "Dream Dictionary", url: "https://dreamly.art/dreams" },
+    { name: category.label, url: `https://dreamly.art/dreams/categories/${entry.category}` },
     ...(entry.parentSlug ? [{ name: parent.title, url: `https://dreamly.art/dreams/${parent.slug}` }] : []),
     { name: entry.title, url: `https://dreamly.art/dreams/${entry.canonicalSlug}` },
   ];
@@ -194,7 +208,12 @@ export default async function DreamSymbolPage({ params }: PageProps) {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: entry.accent }}>
                   {entry.parentSlug ? "Dream variation" : "Parent dream symbol"}
                 </p>
-                <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold text-[var(--dd-subtle)]">{category.label}</span>
+                <Link
+                  href={`/dreams/categories/${entry.category}`}
+                  className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold text-[var(--dd-subtle)] transition hover:text-[var(--dd-text)]"
+                >
+                  {category.label}
+                </Link>
               </div>
               <h1 className="mt-3 text-balance text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">{entry.title}</h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--dd-muted)] sm:text-lg sm:leading-8">{entry.shortMeaning}</p>
@@ -305,6 +324,56 @@ export default async function DreamSymbolPage({ params }: PageProps) {
             {relatedSymbols.map((related) => <EntryCard key={related.slug} entry={related} label={related.parentSlug ? "Related variation" : "Related parent"} />)}
           </div>
         </section>
+
+        {combos.length > 0 ? (
+          <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="combos-title">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Combined symbols</p>
+            <h2 id="combos-title" className="mt-1.5 text-2xl font-semibold tracking-tight">Combination dreams with {parent.name}</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {combos.map((combo) => <EntryCard key={combo.slug} entry={combo} label="Combination" />)}
+            </div>
+          </section>
+        ) : null}
+
+        {categorySiblings.length > 0 ? (
+          <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="category-siblings-title">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Same theme</p>
+                <h2 id="category-siblings-title" className="mt-1.5 text-2xl font-semibold tracking-tight">More {category.label.toLowerCase()}</h2>
+              </div>
+              <Link href={`/dreams/categories/${entry.category}`} className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: entry.accent }}>
+                View all {category.label.toLowerCase()} <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {categorySiblings.map((sibling) => <EntryCard key={sibling.slug} entry={sibling} />)}
+            </div>
+          </section>
+        ) : null}
+
+        <nav className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="continue-title">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Keep reading</p>
+          <h2 id="continue-title" className="mt-1.5 text-2xl font-semibold tracking-tight">Continue exploring the dictionary</h2>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {ringLinks.map((link) => (
+              <Link
+                key={link.slug}
+                href={`/dreams/${link.slug}`}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--dd-border)] bg-[var(--dd-surface-soft)] px-3.5 py-2 text-sm text-[var(--dd-muted)] transition hover:border-[var(--dd-border-strong)] hover:text-[var(--dd-text)]"
+              >
+                <span aria-hidden="true">{link.icon}</span>
+                {link.title}
+              </Link>
+            ))}
+            <Link
+              href="/dreams/a-z"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--dd-border)] px-3.5 py-2 text-sm font-semibold text-[var(--dd-text-soft)] transition hover:border-[var(--dd-border-strong)] hover:text-[var(--dd-text)]"
+            >
+              Browse all symbols A–Z <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
+        </nav>
 
         <aside className="rounded-2xl border border-amber-400/20 bg-amber-300/[0.07] p-5 text-xs leading-6 text-[var(--dd-subtle)]">
           Dream meanings are a tool for reflection, not prediction or diagnosis. Religious sections summarize broad interpretive traditions and are not religious rulings.

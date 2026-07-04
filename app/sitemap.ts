@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { ALL_DREAM_ENTRIES } from "@/lib/dream-dictionary";
+import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
 
 const SITE = "https://dreamly.art";
 
@@ -44,6 +44,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
+  const hubs: MetadataRoute.Sitemap = [
+    "/dreams/a-z",
+    "/dreams/most-common",
+    "/dreams/nightmares",
+    "/dreams/biblical",
+    "/dreams/islamic",
+    "/dreams/spiritual",
+    ...(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category) => `/dreams/categories/${category}`),
+  ].map((path) => ({
+    url: `${SITE}${path}`,
+    lastModified: dictionaryUpdatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
   const dictionary: MetadataRoute.Sitemap = ALL_DREAM_ENTRIES.map((entry) => ({
     url: `${SITE}/dreams/${entry.canonicalSlug}`,
     lastModified: entry.updatedAt,
@@ -51,5 +66,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: entry.parentSlug ? 0.7 : 0.8,
   }));
 
-  return [...core, ...dictionary];
+  return [...core, ...hubs, ...dictionary];
 }

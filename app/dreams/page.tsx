@@ -133,14 +133,14 @@ export default function DreamDictionaryPage() {
               const info = DREAM_CATEGORIES[category];
               const count = ALL_DREAM_ENTRIES.filter((entry) => entry.category === category).length;
               return (
-                <a key={category} href={`#${category}`} className="group rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--dd-border-strong)]">
+                <Link key={category} href={`/dreams/categories/${category}`} className="group rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--dd-border-strong)]">
                   <div className="flex items-start justify-between gap-3">
                     <span className="text-3xl" aria-hidden="true">{info.icon}</span>
                     <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold text-[var(--dd-subtle)]">{count} pages</span>
                   </div>
                   <h3 className="mt-4 font-semibold text-[var(--dd-text)]">{info.label}</h3>
                   <p className="mt-2 text-sm leading-6 text-[var(--dd-muted)]">{info.description}</p>
-                </a>
+                </Link>
               );
             })}
           </nav>
