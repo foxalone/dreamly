@@ -1447,11 +1447,11 @@ export default function DreamsPage() {
           <h1 className="text-3xl font-semibold">Your Dreams</h1>
 
        {/* Tabs */}
-<div className="mt-3 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
+<div className="mt-3 inline-flex max-w-full overflow-x-auto rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
   <button
     onClick={() => setTab("ALL")}
     className={[
-      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       tab === "ALL"
         ? "bg-[var(--text)] text-[var(--bg)]"
         : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
@@ -1463,7 +1463,7 @@ export default function DreamsPage() {
   <button
     onClick={() => setTab("SHARED")}
     className={[
-      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       tab === "SHARED"
         ? "bg-[var(--text)] text-[var(--bg)]"
         : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
@@ -1475,7 +1475,7 @@ export default function DreamsPage() {
   <button
     onClick={() => setTab("STORIES")}
     className={[
-      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       tab === "STORIES"
         ? "bg-[var(--text)] text-[var(--bg)]"
         : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
@@ -1488,7 +1488,7 @@ export default function DreamsPage() {
   <button
     onClick={() => router.push("/app/upgrade")}
     className={[
-      "px-4 py-2 rounded-full text-sm font-semibold transition",
+      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
     ].join(" ")}
     title="Add credits"

@@ -369,7 +369,7 @@ export default function MapPage() {
   }, []);
 
   return (
-    <div style={{ height: "100vh", width: "100%", position: "relative" }}>
+    <div style={{ height: "calc(100dvh - 96px)", width: "100%", position: "relative" }}>
       <div
         ref={mapElRef}
         style={{ height: "100%", width: "100%", borderRadius: 16, overflow: "hidden" }}

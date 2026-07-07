@@ -302,7 +302,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
 
   return (
     <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 transition-all duration-300">
-      <div className="mx-auto max-w-3xl px-4 pb-4">
+      <div className="mx-auto max-w-3xl px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="bottom-nav-shell rounded-3xl backdrop-blur-md">
           <div className="grid grid-cols-6">
             {baseItems.map((it) => {
