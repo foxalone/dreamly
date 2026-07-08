@@ -173,7 +173,7 @@ export default function HomePage() {
           </p>
 
           <Link
-            href="/app"
+            href="/dreams"
             className="mt-10 inline-block bg-purple-600 hover:bg-purple-500
                        text-white text-lg font-semibold
                        px-10 py-4 rounded-2xl
@@ -286,7 +286,7 @@ export default function HomePage() {
           Free to start. Your first interpretation is a dream away.
         </p>
         <Link
-          href="/app"
+          href="/dreams"
           className="mt-8 inline-block bg-purple-600 hover:bg-purple-500 text-white text-lg font-semibold px-10 py-4 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95"
         >
           Start Free
