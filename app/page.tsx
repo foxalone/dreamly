@@ -145,7 +145,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white px-6">
+    <main className="min-h-screen bg-[var(--bg)] px-6 text-[var(--text)]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }} />
@@ -167,7 +167,7 @@ export default function HomePage() {
             AI Dream Interpreter, Dream Journal & Anonymous Dream Map
           </h1>
 
-          <p className="mt-6 text-neutral-400 text-base sm:text-lg">
+          <p className="mt-6 text-[var(--muted)] text-base sm:text-lg">
             Capture your dreams. Discover shared symbols.
             See what the world is dreaming.
           </p>
@@ -186,7 +186,7 @@ export default function HomePage() {
 
         <a
           href="#features"
-          className="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-neutral-400 transition-colors hover:text-white"
+          className="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
         >
           <span className="text-sm font-medium">Discover Dreamly</span>
           <ChevronDown size={20} className="animate-bounce" aria-hidden="true" />
@@ -198,7 +198,7 @@ export default function HomePage() {
           <h2 id="features-title" className="text-2xl sm:text-3xl font-semibold tracking-tight">
             Everything your dreams deserve
           </h2>
-          <p className="mt-4 text-neutral-400 text-base sm:text-lg">
+          <p className="mt-4 text-[var(--muted)] text-base sm:text-lg">
             One place to understand your dreams — interpret them with AI, keep
             them safe in a journal, and see how they connect to the rest of the world.
           </p>
@@ -206,12 +206,12 @@ export default function HomePage() {
 
         <div className="mt-10 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
           {FEATURES.map(({ icon: Icon, title, description, href, linkLabel }) => (
-            <div key={title} className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
+            <div key={title} className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
               <span className="grid size-11 place-items-center rounded-xl bg-purple-600/15 text-purple-400">
                 <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
               </span>
               <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-              <p className="mt-2 flex-1 text-sm leading-6 text-neutral-400">{description}</p>
+              <p className="mt-2 flex-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
               <Link href={href} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300">
                 {linkLabel} <ArrowRight size={14} aria-hidden="true" />
               </Link>
@@ -225,7 +225,7 @@ export default function HomePage() {
           <h2 id="popular-dreams-title" className="text-2xl sm:text-3xl font-semibold tracking-tight">
             Popular dream meanings
           </h2>
-          <p className="mt-4 text-neutral-400 text-base sm:text-lg">
+          <p className="mt-4 text-[var(--muted)] text-base sm:text-lg">
             Explore the dream dictionary — psychological, spiritual, Islamic, and
             biblical interpretations of the symbols people dream about most.
           </p>
@@ -236,16 +236,16 @@ export default function HomePage() {
             <Link
               key={entry.slug}
               href={`/dreams/${entry.slug}`}
-              className="group flex min-w-0 items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4 transition hover:-translate-y-0.5 hover:border-neutral-600 hover:bg-neutral-900"
+              className="group flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--text)] hover:bg-[var(--surface)]"
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-neutral-900 text-2xl" aria-hidden="true">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface)] text-2xl" aria-hidden="true">
                 {entry.icon}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-semibold">{entry.title}</span>
-                <span className="mt-0.5 block truncate text-xs text-neutral-500">{entry.shortMeaning}</span>
+                <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">{entry.shortMeaning}</span>
               </span>
-              <ArrowRight size={15} className="shrink-0 text-neutral-600 transition group-hover:translate-x-0.5 group-hover:text-white" aria-hidden="true" />
+              <ArrowRight size={15} className="shrink-0 text-[var(--muted)] transition group-hover:translate-x-0.5 group-hover:text-[var(--text)]" aria-hidden="true" />
             </Link>
           ))}
         </div>
@@ -253,7 +253,7 @@ export default function HomePage() {
         <div className="mt-10 text-center">
           <Link
             href="/dreams"
-            className="inline-flex items-center gap-2 rounded-2xl border border-neutral-700 px-8 py-3.5 text-base font-semibold transition-all duration-200 hover:border-neutral-500 hover:bg-neutral-900"
+            className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] px-8 py-3.5 text-base font-semibold transition-all duration-200 hover:border-[var(--text)] hover:bg-[var(--card)]"
           >
             Browse the full dream dictionary
             <ArrowRight size={17} aria-hidden="true" />
@@ -267,12 +267,12 @@ export default function HomePage() {
         </h2>
         <div className="mt-8 space-y-3">
           {FAQ.map(({ question, answer }) => (
-            <details key={question} className="group rounded-2xl border border-neutral-800 bg-neutral-950 p-5 open:bg-neutral-900">
+            <details key={question} className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 open:bg-[var(--surface)]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold sm:text-base">
                 {question}
-                <span className="text-xl font-light text-neutral-500 transition group-open:rotate-45">+</span>
+                <span className="text-xl font-light text-[var(--muted)] transition group-open:rotate-45">+</span>
               </summary>
-              <p className="mt-4 pr-6 text-sm leading-7 text-neutral-400">{answer}</p>
+              <p className="mt-4 pr-6 text-sm leading-7 text-[var(--muted)]">{answer}</p>
             </details>
           ))}
         </div>
@@ -282,7 +282,7 @@ export default function HomePage() {
         <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">
           Start understanding your dreams tonight
         </h2>
-        <p className="mt-4 text-neutral-400 text-base sm:text-lg">
+        <p className="mt-4 text-[var(--muted)] text-base sm:text-lg">
           Free to start. Your first interpretation is a dream away.
         </p>
         <Link
