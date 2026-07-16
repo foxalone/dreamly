@@ -274,10 +274,10 @@ export default function BottomNav({ hidden }: BottomNavProps) {
   const profileActive = isActive(profileHref);
 
   return (
-    <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 transition-all duration-300">
-      <div className="mx-auto max-w-3xl px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="bottom-nav-shell rounded-3xl backdrop-blur-md">
-          <div className="grid grid-cols-5">
+    <nav className="bottom-nav fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-x-hidden transition-all duration-300">
+      <div className="mx-auto w-full max-w-3xl min-w-0 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="bottom-nav-shell w-full min-w-0 rounded-3xl backdrop-blur-md">
+          <div className="grid w-full min-w-0 grid-cols-5">
             {baseItems.map((it) => {
               const active = isActive(it.href);
 
@@ -286,13 +286,13 @@ export default function BottomNav({ hidden }: BottomNavProps) {
                   key={it.href}
                   href={it.href}
                   className={cls(
-                    "flex flex-col items-center justify-center gap-1 py-3",
+                    "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
                     "text-sm font-medium transition-colors select-none",
                     active ? it.activeClass : "text-[var(--muted)]"
                   )}
                 >
                   {it.icon(active)}
-                  <span className="text-xs">{it.label}</span>
+                  <span className="max-w-full truncate text-xs">{it.label}</span>
                 </Link>
               );
             })}
@@ -302,27 +302,27 @@ export default function BottomNav({ hidden }: BottomNavProps) {
               <Link
                 href={profileHref}
                 className={cls(
-                  "flex flex-col items-center justify-center gap-1 py-3",
+                  "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
                   "text-sm font-medium transition-colors select-none",
                   profileActive ? "text-green-500" : "text-[var(--muted)]"
                 )}
               >
                 <AvatarIcon user={user} active={profileActive} />
-                <span className="text-xs">Profile</span>
+                <span className="max-w-full truncate text-xs">Profile</span>
               </Link>
             ) : (
               <button
                 onClick={signInGoogle}
                 disabled={busy}
                 className={cls(
-                  "flex flex-col items-center justify-center gap-1 py-3",
+                  "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
                   "text-sm font-medium transition-colors select-none",
                   "text-[var(--muted)]",
                   busy && "opacity-60 cursor-not-allowed"
                 )}
               >
                 <IconSignIn active={false} />
-                <span className="text-xs">{busy ? "..." : "Sign in"}</span>
+                <span className="max-w-full truncate text-xs">{busy ? "..." : "Sign in"}</span>
               </button>
             )}
           </div>
