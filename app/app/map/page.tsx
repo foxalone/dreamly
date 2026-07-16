@@ -94,11 +94,14 @@ function weightByCount(count: number) {
   return 0.85 + Math.log(count + 1) * 0.22;
 }
 
-// ---------- theme helpers (как у тебя: dark по умолчанию, light если html.light) ----------
+// ---------- theme helpers ----------
 type ThemeMode = "light" | "dark";
 
 function getAppTheme(): ThemeMode {
-  return document.documentElement.classList.contains("light") ? "light" : "dark";
+  const root = document.documentElement;
+  if (root.classList.contains("light")) return "light";
+  if (root.classList.contains("dark")) return "dark";
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
 function styleUrlForTheme(t: ThemeMode) {
@@ -355,8 +358,22 @@ export default function MapPage() {
 
     obs.observe(root, { attributes: true, attributeFilter: ["class"] });
 
+    const systemTheme = window.matchMedia("(prefers-color-scheme: light)");
+    const onSystemThemeChange = () => {
+      // An explicit light/dark choice takes precedence over the system setting.
+      if (root.classList.contains("light") || root.classList.contains("dark")) return;
+
+      const nextTheme = getAppTheme();
+      if (nextTheme === lastTheme) return;
+      lastTheme = nextTheme;
+      map.setStyle(styleUrlForTheme(nextTheme));
+    };
+
+    systemTheme.addEventListener("change", onSystemThemeChange);
+
     return () => {
       obs.disconnect();
+      systemTheme.removeEventListener("change", onSystemThemeChange);
       try {
         popupRef.current?.remove();
       } catch {}
