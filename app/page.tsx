@@ -204,7 +204,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <div className="mt-10 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
           {FEATURES.map(({ icon: Icon, title, description, href, linkLabel }) => (
             <div key={title} className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-950 p-6">
               <span className="grid size-11 place-items-center rounded-xl bg-purple-600/15 text-purple-400">
@@ -231,12 +231,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {popularDreams.map((entry) => (
             <Link
               key={entry.slug}
               href={`/dreams/${entry.slug}`}
-              className="group flex items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4 transition hover:-translate-y-0.5 hover:border-neutral-600 hover:bg-neutral-900"
+              className="group flex min-w-0 items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-950 p-4 transition hover:-translate-y-0.5 hover:border-neutral-600 hover:bg-neutral-900"
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-neutral-900 text-2xl" aria-hidden="true">
                 {entry.icon}
