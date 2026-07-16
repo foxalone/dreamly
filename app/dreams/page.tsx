@@ -35,7 +35,7 @@ const FEATURED_CATEGORIES: DreamCategory[] = [
 
 function SymbolLinkGrid({ slugs }: { slugs: readonly string[] }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {slugs.map((slug) => {
         const entry = DREAM_DICTIONARY[slug];
         if (!entry) return null;
@@ -128,7 +128,7 @@ export default function DreamDictionaryPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">Browse by theme</p>
             <h2 id="categories-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Dream categories</h2>
           </div>
-          <nav className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Dream categories">
+          <nav className="mt-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Dream categories">
             {(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category) => {
               const info = DREAM_CATEGORIES[category];
               const count = ALL_DREAM_ENTRIES.filter((entry) => entry.category === category).length;
@@ -154,7 +154,7 @@ export default function DreamDictionaryPage() {
               <h2 id="parent-symbols-title" className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Parent symbols</h2>
             </div>
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {PARENT_DREAMS.map((entry) => (
               <article key={entry.slug} className="rounded-3xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -199,7 +199,7 @@ export default function DreamDictionaryPage() {
           const slugs = parents.flatMap((parent) => [parent.slug, ...parent.variationSlugs.slice(0, 3)]);
           return (
             <section key={category} id={category} className="scroll-mt-24 border-t border-[var(--dd-border)] py-12 sm:py-16" aria-labelledby={`${category}-title`}>
-              <div className="grid gap-7 lg:grid-cols-[270px_1fr] lg:gap-12">
+              <div className="grid min-w-0 grid-cols-1 gap-7 lg:grid-cols-[270px_1fr] lg:gap-12">
                 <div>
                   <span className="text-4xl" aria-hidden="true">{info.icon}</span>
                   <h2 id={`${category}-title`} className="mt-4 text-2xl font-semibold tracking-tight">{info.label}</h2>
@@ -213,7 +213,7 @@ export default function DreamDictionaryPage() {
         })}
 
         <section id="places" className="scroll-mt-24 border-t border-[var(--dd-border)] pt-12 sm:pt-16">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
             {(["places", "movement", "objects"] as DreamCategory[]).map((category) => {
               const info = DREAM_CATEGORIES[category];
               const parents = getDreamsByCategory(category);
