@@ -124,7 +124,7 @@ type ClusterSeed = {
 
 // Last date the shared dictionary templates/content changed. Bump this when editing
 // makeSections/makeTitle etc.; bump a cluster's own updatedAt when editing just that cluster.
-const DICTIONARY_UPDATED_AT = "2026-07-04";
+const DICTIONARY_UPDATED_AT = "2026-07-18";
 
 const CLUSTERS: ClusterSeed[] = [
   {
@@ -134,7 +134,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🐍",
     accent: "#72d572",
     summary: "transformation, hidden fear, instinct, healing, and situations that require alertness",
-    aliases: ["serpent", "snakes", "dream about snake", "snake in a dream"],
+    aliases: ["serpent", "snakes", "dream about snake", "snake in a dream", "dreaming of snakes"],
     relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator"],
     variations: [
       { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
@@ -144,6 +144,7 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "dead-snake", name: "dead snake", focus: "the end of a threat, a completed transformation, or instinct that has been suppressed" },
       { slug: "many-snakes", name: "many snakes", focus: "multiple pressures, social mistrust, overstimulation, or several changes happening together" },
       { slug: "big-snake", name: "big snake", focus: "a fear, temptation, responsibility, or personal power that feels impossible to ignore" },
+      { slug: "snakes-in-water", name: "snakes in water", focus: "hidden threat inside emotion, intuition mixed with fear, or change moving through a deep feeling", aliases: ["dreaming of snakes in water", "snake in water", "snakes swimming"] },
     ],
   },
   {
@@ -208,8 +209,8 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "👶",
     accent: "#fb923c",
     summary: "new beginnings, vulnerability, potential, responsibility, and a tender part of life that needs care",
-    aliases: ["infant", "dream about baby", "baby in a dream", "baby dream meaning"],
-    relatedSymbols: ["pregnancy", "water", "death", "dog", "hospital", "teeth", "house", "wedding", "mother"],
+    aliases: ["infant", "dream about baby", "baby in a dream", "baby dream meaning", "dream dictionary baby", "baby dream dictionary"],
+    relatedSymbols: ["pregnancy", "water", "death", "dog", "hospital", "teeth", "house", "wedding", "mother", "crawling"],
     variations: [
       { slug: "newborn-baby", name: "newborn baby", focus: "very recent potential, a fragile beginning, or a responsibility that has only just arrived" },
       { slug: "crying-baby", name: "crying baby", focus: "an unmet emotional need, neglected project, or vulnerable issue asking directly for attention" },
@@ -295,7 +296,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#fb7185",
     summary: "loss of control, insecurity, surrender, sudden change, and anxiety about failing or losing support",
     aliases: ["fall", "dream about falling", "falling in a dream", "falling dream meaning"],
-    relatedSymbols: ["flying", "being-chased", "death", "water", "school", "teeth", "car", "being-naked"],
+    relatedSymbols: ["flying", "being-chased", "death", "water", "school", "teeth", "car", "being-naked", "crawling"],
     variations: [
       { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences" },
       { slug: "falling-off-building", name: "falling off a building", focus: "instability in a structured area of life such as work, reputation, plans, or achievement" },
@@ -311,7 +312,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ef4444",
     summary: "avoidance, pressure, unresolved conflict, threatened safety, and a problem that keeps demanding attention",
     aliases: ["chasing", "dream about being chased", "chased in a dream", "running away dream"],
-    relatedSymbols: ["falling", "flying", "death", "dog", "snake", "prison", "school", "forest", "demon", "being-naked"],
+    relatedSymbols: ["falling", "flying", "death", "dog", "snake", "prison", "school", "forest", "demon", "being-naked", "crawling"],
     variations: [
       { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
       { slug: "chased-by-animal", name: "being chased by an animal", focus: "instinct, fear, anger, desire, or a natural reaction that the conscious mind is avoiding" },
@@ -363,7 +364,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#64748b",
     summary: "patience, creativity, entanglement, fear, careful strategy, and the networks being built around you",
     aliases: ["spiders", "dream about spider", "spider in a dream", "spider dream meaning"],
-    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat"],
+    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat", "crawling"],
     variations: [
       { slug: "big-spider", name: "big spider", focus: "a fear, influence, creative task, or complicated situation that has become difficult to overlook" },
       { slug: "black-spider", name: "black spider", focus: "hidden anxiety, patient strategy, an unknown influence, or a complicated issue operating quietly" },
@@ -382,7 +383,7 @@ const CLUSTERS: ClusterSeed[] = [
     aliases: ["vehicle", "automobile", "dream about car", "car in a dream"],
     relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone"],
     variations: [
-      { slug: "car-accident", name: "car accident", focus: "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life" },
+      { slug: "car-accident", name: "car accident", focus: "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life", aliases: ["car accident dream meaning", "car accident dream meaning islam", "dream about car accident"] },
       { slug: "driving-car", name: "driving a car", focus: "personal agency, responsibility, confidence, and how much control you feel over your current direction" },
       { slug: "losing-car", name: "losing a car", focus: "lost direction, reduced independence, confusion about progress, or difficulty accessing your usual agency" },
       { slug: "stolen-car", name: "stolen car", focus: "violated autonomy, stolen opportunity, identity disruption, or fear that someone else controls your direction" },
@@ -637,7 +638,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🐎",
     accent: "#b45309",
     summary: "power, drive, freedom, instinct, and the energy that carries you toward an important goal",
-    aliases: ["horses", "dream about horse", "horse in a dream"],
+    aliases: ["horses", "dream about horse", "horse in a dream", "horse in dream meaning", "horse in dream meaning islam"],
     relatedSymbols: ["forest", "castle", "car", "elephant"],
     variations: [
       { slug: "white-horse", name: "a white horse", focus: "purity of purpose, hope, or a powerful drive guided by clear intention" },
@@ -797,7 +798,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🔥",
     accent: "#f97316",
     summary: "transformation, passion, anger, destruction, purification, and energy that can either warm or consume",
-    aliases: ["flames", "burning", "dream about fire", "fire in a dream"],
+    aliases: ["flames", "burning", "dream about fire", "fire in a dream", "fire dream dictionary", "fire dream meaning"],
     relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death"],
     variations: [
       { slug: "escaping-a-fire", name: "escaping a fire", focus: "survival instinct, urgent change, or getting clear of a situation before it consumes you" },
@@ -871,7 +872,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#dc2626",
     summary: "life force, vitality, injury, sacrifice, family bonds, and energy being spent or lost",
     aliases: ["bleeding", "dream about blood", "blood in a dream"],
-    relatedSymbols: ["teeth", "death", "hospital", "hair", "illness"],
+    relatedSymbols: ["teeth", "death", "hospital", "hair", "illness", "wedding"],
     variations: [
       { slug: "bleeding", name: "bleeding", focus: "energy draining away, an emotional wound still open, or a loss that has not been addressed" },
       { slug: "blood-on-hands", name: "blood on your hands", focus: "guilt, responsibility for harm, or anxiety about the consequences of your actions" },
@@ -891,7 +892,7 @@ const CLUSTERS: ClusterSeed[] = [
     aliases: ["dream about hair", "hair in a dream", "hair dream meaning"],
     relatedSymbols: ["teeth", "blood"],
     variations: [
-      { slug: "hair-falling-out", name: "hair falling out", focus: "loss of confidence, health anxiety, aging, or fear of losing strength and attractiveness" },
+      { slug: "hair-falling-out", name: "hair falling out", focus: "loss of confidence, health anxiety, aging, or fear of losing strength and attractiveness", aliases: ["dream dictionary hair falling out", "hair falling out dream meaning", "dreaming of hair falling out"] },
       { slug: "cutting-hair", name: "cutting hair", focus: "a deliberate change of identity, letting go of the past, or asserting control over self-image" },
       { slug: "long-hair", name: "long hair", focus: "freedom, strength, sensuality, patience, or an identity grown over a long time" },
       { slug: "white-or-gray-hair", name: "white or gray hair", focus: "aging, wisdom, anxiety about time passing, or respect earned through experience" },
@@ -915,7 +916,7 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "arguing-with-ex", name: "arguing with an ex", focus: "unexpressed anger, unfinished business, or an internal debate that never got resolved" },
       { slug: "ex-apologizing", name: "an ex apologizing", focus: "a longing for acknowledgment, self-repair, or giving yourself the closure they never offered" },
       { slug: "ex-with-someone-else", name: "an ex with someone else", focus: "jealousy, comparison, acceptance of an ending, or anxiety about being replaced" },
-      { slug: "ex-family", name: "an ex's family", focus: "lingering attachments to a shared world, or grief for connections lost alongside the relationship" },
+      { slug: "ex-family", name: "an ex's family", focus: "lingering attachments to a shared world, or grief for connections lost alongside the relationship", aliases: ["ex and his family in dreams", "dreaming of ex and family", "what does it mean when you ex and his family are in your dreams", "ex's family in a dream"] },
     ],
   },
   {
@@ -925,7 +926,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🥀",
     accent: "#be123c",
     summary: "trust, insecurity, guilt, betrayal, and fears about loyalty within a close relationship",
-    aliases: ["infidelity", "being cheated on", "dream about cheating", "cheating in a dream"],
+    aliases: ["infidelity", "being cheated on", "dream about cheating", "cheating in a dream", "cheating dream meaning"],
     relatedSymbols: ["ex", "wedding", "kissing"],
     variations: [
       { slug: "partner-cheating", name: "your partner cheating", focus: "insecurity, fear of abandonment, or unmet needs in the relationship — not evidence of real betrayal" },
@@ -943,8 +944,17 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "💍",
     accent: "#e879f9",
     summary: "commitment, union, transition, public promises, and the joining of different parts of life",
-    aliases: ["marriage", "getting married", "dream about wedding", "wedding in a dream"],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy"],
+    aliases: [
+      "marriage",
+      "getting married",
+      "dream about wedding",
+      "wedding in a dream",
+      "what does dreaming a wedding mean",
+      "what does a dream of a wedding mean",
+      "what does a wedding dream mean",
+      "wedding dream meaning",
+    ],
+    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1087,7 +1097,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "👻",
     accent: "#94a3b8",
     summary: "unresolved past, memory, guilt, presence of what has ended, and feelings that refuse to stay buried",
-    aliases: ["spirit", "haunting", "dream about ghost", "ghost in a dream"],
+    aliases: ["spirit", "haunting", "dream about ghost", "ghost in a dream", "ghost in dream meaning", "ghost dream meaning"],
     relatedSymbols: ["demon", "angel", "death", "house", "cemetery", "god"],
     variations: [
       { slug: "ghost-of-a-loved-one", name: "the ghost of a loved one", focus: "continuing bonds, unfinished grief, or comfort and messages associated with someone who has died" },
@@ -1159,7 +1169,14 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🐊",
     accent: "#3f6212",
     summary: "hidden danger, primal instinct, deception, and threats lurking beneath a calm surface",
-    aliases: ["crocodile", "dream about alligator", "alligator in a dream", "crocodile in a dream"],
+    aliases: [
+      "crocodile",
+      "dream about alligator",
+      "alligator in a dream",
+      "crocodile in a dream",
+      "what does dreaming about an alligator mean",
+      "alligator dream meaning",
+    ],
     relatedSymbols: ["snake", "water", "shark"],
     variations: [
       { slug: "alligator-attack", name: "an alligator attack", focus: "a hidden threat striking suddenly, or betrayal from something that seemed dormant" },
@@ -1213,7 +1230,14 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "💼",
     accent: "#0d9488",
     summary: "duty, identity, performance, security, and the balance between effort and the rest of life",
-    aliases: ["job", "workplace", "dream about work", "work in a dream"],
+    aliases: [
+      "job",
+      "workplace",
+      "dream about work",
+      "work in a dream",
+      "spiritual meaning of dreaming about work",
+      "dreaming about work meaning",
+    ],
     relatedSymbols: ["money", "school", "father"],
     variations: [
       { slug: "being-fired", name: "being fired", focus: "insecurity about your position, fear of rejection, or readiness to leave a role that no longer fits" },
@@ -1240,6 +1264,31 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "unknown-caller", name: "an unknown caller", focus: "an unrecognized part of yourself or an unexpected message trying to reach awareness" },
       { slug: "missed-calls", name: "missed calls", focus: "neglected relationships, overlooked signals, or guilt about unavailability" },
       { slug: "phone-ringing", name: "a phone ringing", focus: "something demanding your attention now, or an opportunity requiring a response" },
+    ],
+  },
+  {
+    slug: "crawling",
+    name: "crawling",
+    category: "movement",
+    icon: "🦵",
+    accent: "#a78bfa",
+    summary: "slow progress, vulnerability, regression, humility, and moving forward when standing feels impossible",
+    aliases: [
+      "dreams about crawling",
+      "dream about crawling",
+      "crawling in a dream",
+      "crawling dream meaning",
+      "dreaming of crawling",
+    ],
+    relatedSymbols: ["being-chased", "falling", "spider", "baby"],
+    updatedAt: "2026-07-18",
+    variations: [
+      { slug: "crawling-on-the-floor", name: "crawling on the floor", focus: "humility, starting over, or progress that feels undignified but necessary" },
+      { slug: "crawling-like-a-baby", name: "crawling like a baby", focus: "regression to an earlier stage, dependence, or returning to foundations before you can stand again" },
+      { slug: "crawling-through-a-tunnel", name: "crawling through a tunnel", focus: "a narrow passage through difficulty, or progress that requires getting low and patient" },
+      { slug: "unable-to-stand-crawling", name: "unable to stand and crawling instead", focus: "depleted strength, lost status, or a season where the only available movement is slow and close to the ground" },
+      { slug: "crawling-away-from-danger", name: "crawling away from danger", focus: "escaping under constraint, survival without full power, or getting clear of a threat with whatever strength remains" },
+      { slug: "someone-crawling-toward-you", name: "someone crawling toward you", focus: "a need, fear, or person approaching from a vulnerable or unsettling place" },
     ],
   },
 ];
@@ -2233,6 +2282,152 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What does drowning mean in Islamic interpretation?", answer: "Gravely but contextually: being overwhelmed by worldly affairs or trial, with the sea often standing for the dunya's dangerous vastness — while surfacing alive reads toward rescue after difficulty. The Qur'an supplies the response: Yunus's cry from the depths was answered, and despair of relief is the one thing forbidden to the overwhelmed." },
     ],
   },
+  crawling: {
+    introduction: [
+      "Dreams about crawling are oddly specific: you are moving, but not the way adults move. Hands and knees, a floor that feels endless, sometimes a tunnel so low you cannot stand. Searchers looking up this image often wake with a mix of shame and urgency — progress is happening, but it feels undignified, infantile, or painfully slow.",
+      "That dual feeling is the interpretive key. Crawling is still forward motion. The dream rarely says you are stuck; it says the only available gear right now is close to the ground. Whether that reads as humility, exhaustion, regression, or survival depends on whether you were fleeing, exploring, or simply unable to stand.",
+    ],
+    general: [
+      "Start with why you were crawling. Escaping danger on hands and knees points to survival under constraint — you are getting clear with less power than you want. Crawling like a baby often revisits dependence, early needs, or a life stage where standing on your own still feels premature. A tunnel forces patience: the passage is real, but the posture required is low and careful.",
+      "Notice the floor and the audience. Being watched while crawling intensifies shame about status or competence. An empty room makes the dream more about private capacity. If you could almost stand but kept dropping back down, the dream may be measuring depleted strength rather than a permanent loss of agency.",
+    ],
+    psychological: [
+      "Psychologically, crawling dreams often appear during transitions that strip familiar competence — new jobs, illness, divorce, starting over after a failure. The adult body remembers infancy's only locomotion and borrows it when standing feels unsafe or premature. Clinicians also see these dreams alongside burnout: the psyche stages progress without dignity when pride can no longer fuel speed.",
+      "Regression is not automatically pathology here. Returning to a crawl can mean rebuilding from foundations — skills, relationships, or self-trust that need to be relearned before upright life resumes. Ask what in waking life currently requires you to move slowly, ask for help, or accept a less polished version of yourself.",
+    ],
+    spiritual: [
+      "Spiritually, crawling can be read as humility without humiliation: getting low enough to pass through a narrow gate. Many traditions treat the low path as purifying — ego cannot fit through certain doors standing tall. The dream may invite honest inventory of pride, impatience, or a rush to appear recovered before you actually are.",
+      "A grounded response is practical: name the tunnel you are in, shorten the daily distance you expect of yourself, and treat slow progress as sacred rather than shameful. Crawling becomes a problem only when the dreamer refuses to crawl at all and waits indefinitely for the day standing feels effortless.",
+    ],
+    islamic: [
+      "In an Islamic framing, dreams of constrained movement are often weighed against the dreamer's current trial (ibtila') rather than as fixed omens. Difficulty walking or advancing can reflect worldly hardship, humility before Allah, or a season where reliance on one's own strength is being gently corrected — without claiming certain knowledge of the unseen.",
+      "A distressing crawling dream is met like other unsettling dreams: seek refuge in Allah, avoid spreading fear through speculation, and let waking conduct remain guided by faith, patience (sabr), and evidence. If the dream ends in safety or reaching a destination, it may be received with gratitude as encouragement through a hard passage.",
+    ],
+    faq: [
+      { question: "What do dreams about crawling mean?", answer: "They commonly point to slow but real progress, vulnerability, or a season where standing — status, strength, independence — feels unavailable. Emotion and setting decide whether the tone is shame, survival, or humble rebuilding." },
+      { question: "Is dreaming of crawling a bad sign?", answer: "Not automatically. Crawling is still movement. A fearful crawl away from danger differs from a calm crawl through a tunnel toward light. Treat the dream as a status report on capacity, not a prediction." },
+      { question: "Why do I dream I can only crawl like a baby?", answer: "Baby-crawling imagery often tracks dependence, early needs resurfacing, or starting a chapter where adult competence has not caught up yet — a new role, recovery, or identity rebuild." },
+      { question: "What if someone is crawling toward me?", answer: "That figure may represent a need, fear, or person approaching from a vulnerable or unsettling place. Note whether you help, flee, or freeze — that reaction maps onto how you meet neediness or threat when awake." },
+    ],
+  },
+  "car-accident": {
+    introduction: [
+      "A car accident dream usually feels like a jolt: metal, glass, the split-second before impact. People searching for car accident dream meaning — including Islamic readings — are often less worried about literal crashes than about a collision already forming in waking life: two plans, two people, or two versions of the self heading for the same intersection.",
+      "Cars in dreams stand for direction and agency. An accident interrupts that story. The useful question is not 'Will I crash?' but 'Where am I going too fast, with too little control, or toward a conflict I have not named?'",
+    ],
+    general: [
+      "Details carry the reading. Were you driving, a passenger, or a witness? Drivers often map the dream onto personal responsibility; passengers onto someone else's choices steering your life; witnesses onto fear of collateral damage. Whether brakes failed, another car swerved, or you hit something stationary separates inner recklessness from outer disruption.",
+      "Aftermath matters as much as impact. Walking away unhurt can mean a wake-up call survived; injuries focus the cost; searching for someone after the crash points to relationships tangled in the collision of plans.",
+    ],
+    islamic: [
+      "In classical Islamic dream interpretation, vehicles and journeys are frequently read in relation to one's worldly path, livelihood, and the consequences of haste. An accident motif may be taken as a caution about recklessness, disputed affairs, or a sudden trial — always with humility, never as certain prediction of harm to a specific person.",
+      "A frightening car-accident dream is not evidence against others and should not seed suspicion. The recommended response to a distressing dream is to seek refuge in Allah, make du'a, avoid narrating it widely in a way that spreads fear, and ground decisions in faith, character, and real circumstances rather than omen-hunting.",
+    ],
+    faq: [
+      { question: "What does a car accident dream mean?", answer: "It commonly reflects a collision of plans, fear of consequences, sudden disruption, or worry about life's direction — not a reliable prediction of a real crash." },
+      { question: "What is the Islamic meaning of a car accident dream?", answer: "It may be approached as a caution about haste, livelihood stress, or trial on one's path, without treating the dream as certain knowledge of the unseen. Seek refuge in Allah if the dream distresses you, and do not use it to accuse or predict harm." },
+      { question: "I dreamed I caused the accident. Am I guilty of something?", answer: "Dream guilt often tracks waking responsibility you already feel — a decision, a conflict, a risk. Use it as an invitation to review your direction, not as a verdict." },
+    ],
+  },
+  horse: {
+    introduction: [
+      "Horse dreams feel kinetic: power under you, or power coming at you. Across cultures the horse carries drive, status, and freedom — and in Islamic dream literature it is among the more carefully graded animal symbols. Searchers asking for horse in dream meaning, including Islamic views, are usually tracking ambition, control, and whether their energy is servant or master.",
+      "Color, riding, and wildness refine the image. A white horse often leans toward clear purpose; a black horse toward unfamiliar drive; riding suggests command; being chased by a horse suggests your own ambition has become the pursuer.",
+    ],
+    islamic: [
+      "In classical Islamic interpretation, horses are often linked to honor, power, provision, and sometimes jihad in the broader sense of striving — with details changing the tone. A fine, obedient horse could be read toward strength and standing; an unruly or injured horse toward disrupted affairs or weakened capacity. Transmitted readings vary by school and dreamer, so humility remains essential.",
+      "As with other animal dreams, a horse vision is not a license to boast or to fear a fixed fate. Receive a reassuring dream with gratitude; meet a distressing one by seeking refuge in Allah and keeping waking decisions tied to evidence, prayer, and good character rather than speculation about the unseen.",
+    ],
+    faq: [
+      { question: "What does a horse mean in a dream?", answer: "Usually power, drive, freedom, and the energy carrying you toward a goal. Whether you ride, race, or flee the horse tells you how controlled that drive currently feels." },
+      { question: "What is the Islamic meaning of a horse in a dream?", answer: "Classical interpreters often connected horses with honor, strength, and provision, graded by the animal's condition and your relationship to it. Treat any reading as possible counsel, not certainty." },
+      { question: "Is dreaming of a white horse good?", answer: "Often it leans positive — clear intention, hope, or guided power — but your emotion in the dream still outweighs color folklore." },
+    ],
+  },
+  work: {
+    introduction: [
+      "Dreaming about work is so common that people often dismiss it as leftover stress — yet the spiritual meaning of dreaming about work is usually sharper than that. The office, the boss, the late shift, the pink slip: these scenes stage duty, identity, and the question of whether your effort still serves a life you recognize.",
+      "When the dream feels heavy, it is rarely predicting tomorrow's meeting. It is asking whether vocation has crowded out rest, whether performance has replaced worth, or whether a role is ending while you keep showing up in sleep.",
+    ],
+    spiritual: [
+      "Spiritually, work dreams invite discernment about calling versus compulsion. Effort can be stewardship — skill offered with integrity — or it can become an idol that measures the soul in output. A dream of being overwhelmed, late, or fired often marks the moment that balance has tipped and the inner life is filing a complaint.",
+      "A grounded spiritual response is to ask what quality the dream asks you to practice: honesty about capacity, courage to set a boundary, gratitude for provision, or willingness to release a role that no longer fits. Useful interpretation deepens responsibility and presence; it does not turn every inbox anxiety into prophecy.",
+    ],
+    faq: [
+      { question: "What is the spiritual meaning of dreaming about work?", answer: "It often concerns vocation, stewardship, burnout, and whether effort still aligns with purpose — an invitation to rebalance duty and the rest of life, not a prediction of job loss." },
+      { question: "Why do I keep dreaming about my job?", answer: "Recurring work dreams usually track unresolved pressure, identity fused to performance, or a decision about a role that waking hours keep postponing." },
+      { question: "Is dreaming of being fired a bad omen?", answer: "Usually it reflects insecurity, fear of rejection, or readiness to leave a role that no longer fits — not a reliable forecast of termination." },
+    ],
+  },
+  ghost: {
+    introduction: [
+      "Ghost in dream meaning searches usually come from the same night: someone who should be gone is still in the room. The figure may be a loved one, a stranger, or a presence without a face. In every case the dream borrows the language of hauntings to talk about unfinished feeling — grief, guilt, memory, or a past self that will not stay buried.",
+      "Unlike a nightmare monster, a ghost often feels personal. That intimacy is the clue. The dream is less about the afterlife as spectacle and more about what still occupies your inner house.",
+    ],
+    faq: [
+      { question: "What does a ghost in a dream mean?", answer: "Commonly unresolved past, memory, guilt, or the presence of something that has ended but still shapes you. The ghost's mood — gentle, angry, silent — steers the reading." },
+      { question: "Is dreaming of a ghost a bad sign?", answer: "Not by default. Friendly or comforting ghosts often track continuing bonds and grief; attacking ghosts more often stage guilt or a past that feels actively disruptive." },
+      { question: "What if the ghost is someone I know who died?", answer: "Many dreamers experience this as connection, unfinished words, or comfort. It is not proof of a visitation, but it can be a meaningful way the mind continues the relationship." },
+    ],
+  },
+  "snake-and-water": {
+    introduction: [
+      "Dreaming of snakes in water combines two of the most loaded dream symbols: the snake's threat-and-transformation and water's emotional depth. Searchers often remember the image vividly — snakes swimming, coiling under a surface, or surfacing beside them — because instinct and feeling arrive in one scene.",
+      "Read the pair together rather than as two separate dictionary entries. The water tells you the issue is emotional or intuitive; the snake tells you something in that current needs alertness, honesty, or change.",
+    ],
+    general: [
+      "Clear water with a visible snake can mean a threat or truth you can already name. Murky water hides the snake and often maps onto confusion, mixed motives, or a fear you sense but cannot yet define. Snakes that ignore you in the water differ from snakes that pursue — presence versus pressure.",
+      "Your body in the scene matters. Swimming calmly near snakes may show growing tolerance for instinctive or uncomfortable feelings. Freezing on the shore suggests avoidance. Killing snakes in water can mean trying to force emotional clarity through control.",
+    ],
+    faq: [
+      { question: "What does dreaming of snakes in water mean?", answer: "It commonly points to a hidden threat or transformation inside an emotional situation — intuition mixed with caution, or change moving through deep feeling." },
+      { question: "Are snakes in water a bad omen?", answer: "Not automatically. The dream asks for alertness in an emotional area of life. Calm endings lean toward integration; chase or bite scenes lean toward a live conflict needing attention." },
+    ],
+  },
+  "wedding-and-blood": {
+    introduction: [
+      "A wedding with blood in a dream — sometimes searched as 'wedding in bled a dream' — is jarring because vows and wounding arrive together. White and red collide: commitment marked by cost, family tension, sacrifice, or a union that feels stained before it begins.",
+      "Blood does not automatically cancel the wedding's meaning. It grades it. The dream may be asking what this commitment will cost, whose pain is being ignored, or whether a bond is being sealed over an unhealed injury.",
+    ],
+    general: [
+      "Note whose blood and when it appears. Blood on a dress or hands during vows focuses on identity and responsibility inside the commitment. Blood at a reception or among relatives often points to family conflict riding along with the union. A calm ceremony that suddenly turns bloody can mark a truth breaking through denial.",
+      "Your role matters: bride, groom, guest, or outsider. Guests often process someone else's costly commitment; the couple-to-be may be weighing readiness against fear of harm — emotional, reputational, or practical.",
+    ],
+    faq: [
+      { question: "What does a wedding with blood mean in a dream?", answer: "It often symbolizes commitment intertwined with cost, sacrifice, conflict, or an emotional wound that the union has not resolved — not a prediction of literal violence." },
+      { question: "Is dreaming of blood at a wedding a bad omen for marriage?", answer: "Treat it as a prompt to examine doubts, family pressure, or unfinished hurt around commitment — not as fate. Calm reflection beats omen panic." },
+    ],
+  },
+  "hair-falling-out": {
+    introduction: [
+      "Hair falling out in a dream hits vanity and vitality at once. Searchers opening a dream dictionary for hair falling out usually wake touching their scalp — the image is bodily enough to feel almost literal. Symbolically it tracks confidence, aging, attractiveness, and control over how you present yourself.",
+      "Like teeth dreams, this one is soaked in exposure. Hair is public identity; watching it shed stages fear of being seen diminished. Health anxiety, stress, and real shedding can also feed the image, so start with body and stress before assuming pure metaphor.",
+    ],
+    faq: [
+      { question: "What does hair falling out mean in a dream dictionary?", answer: "Commonly loss of confidence, aging anxiety, health worry, or fear of losing strength and attractiveness. Context and emotion refine whether the tone is vanity, grief, or stress." },
+      { question: "Is it about real hair loss?", answer: "Sometimes. High stress and actual shedding can appear in dreams. If waking life includes scalp worry or illness anxiety, include that in the reading alongside symbolism." },
+    ],
+  },
+  alligator: {
+    introduction: [
+      "What does dreaming about an alligator mean? Usually something patient and dangerous under a calm surface. Alligators (and crocodiles) wait. The dream borrows that biology for threats, instincts, or deceptions that do not rush — they linger until you step too close.",
+      "Water settings intensify the reading: emotion with teeth. An alligator in the house brings the threat into private life. An attack concentrates the moment the dormant danger finally moves.",
+    ],
+    faq: [
+      { question: "What does dreaming about an alligator mean?", answer: "Hidden danger, primal instinct, or a threat that seemed dormant. Where the alligator appears — water, house, chase — tells you which area of life needs alertness." },
+      { question: "Is an alligator dream a warning about a person?", answer: "It can reflect mistrust you already feel, but it is not proof someone is betraying you. Use it to audit gut feelings and boundaries, not to accuse." },
+    ],
+  },
+  "ex-family": {
+    introduction: [
+      "Dreaming of an ex and his family — or her family — often hurts in a specific way: you are not only revisiting the person, but the whole world that came with them. Holidays, parents, siblings, the in-law version of a future that ended. Searchers asking what it means when an ex and his family are in your dreams are usually grieving a social fabric, not just a romance.",
+      "These dreams commonly return after you thought you were done. The family figures can stand for belonging you lost, approval you still want, or patterns from that relationship still echoing in how you attach now.",
+    ],
+    faq: [
+      { question: "What does it mean when your ex and his family are in your dreams?", answer: "Often lingering attachment to a shared world, grief for connections lost with the breakup, or unfinished emotion about belonging and approval — not necessarily a wish to reunite." },
+      { question: "Does dreaming of an ex's family mean they miss me?", answer: "Dreams are not messages from other people. They reflect your psyche's unfinished business with that chapter. Focus on what you still need — closure, community, or self-worth — rather than their feelings." },
+    ],
+  },
 };
 
 /**
@@ -2341,6 +2536,61 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "Drowning dreams are overload reports — and the dream-self rarely calls for help. What being pulled under, unseen shores, and sudden footing mean.",
   },
+  crawling: {
+    seoTitle: "Dreams About Crawling: Meaning, Regression & Slow Progress",
+    seoDescription:
+      "Dreaming of crawling often points to vulnerability, starting over, or progress when standing feels impossible. Psychological, spiritual, Islamic, and biblical readings.",
+  },
+  ghost: {
+    seoTitle: "Ghost in Dream Meaning: Unfinished Past, Guilt & Memory",
+    seoDescription:
+      "What a ghost in a dream means — loved ones, hauntings, and houses that still hold the past. Psychological, spiritual, Islamic, and biblical interpretations.",
+  },
+  alligator: {
+    seoTitle: "Alligator Dream Meaning: Hidden Danger Beneath the Surface",
+    seoDescription:
+      "What dreaming about an alligator means — attacks, water, and threats that wait patiently. Psychological, spiritual, Islamic, and biblical readings.",
+  },
+  "hair-falling-out": {
+    seoTitle: "Hair Falling Out Dream Meaning | Dream Dictionary",
+    seoDescription:
+      "Dream dictionary entry for hair falling out: loss of confidence, aging anxiety, and identity under pressure — plus spiritual, Islamic, and biblical angles.",
+  },
+  "car-accident": {
+    seoTitle: "Car Accident Dream Meaning (Including Islamic Views)",
+    seoDescription:
+      "What a car accident dream means psychologically and in Islamic dream tradition — collisions of plans, fear of consequence, and when the dream is about direction, not fate.",
+  },
+  horse: {
+    seoTitle: "Horse in Dream Meaning: Power, Drive & Islamic Readings",
+    seoDescription:
+      "Horse dream meaning across psychology and classical Islamic interpretation — white and black horses, riding, races, and the drive carrying you toward a goal.",
+  },
+  work: {
+    seoTitle: "Spiritual Meaning of Dreaming About Work",
+    seoDescription:
+      "What dreaming about work means spiritually and psychologically — duty, identity, burnout, and the balance between effort and the rest of life.",
+  },
+  "ex-family": {
+    seoTitle: "Dreaming of an Ex and Their Family: What It Means",
+    seoDescription:
+      "What it means when your ex and his family appear in your dreams — lingering bonds, grief for a shared world, and why these dreams often return after closure.",
+  },
+  "snake-and-water": {
+    seoTitle: "Dreaming of Snakes in Water: Combined Meaning",
+    seoDescription:
+      "What dreaming of snakes in water means — hidden threat inside emotion, intuition mixed with fear, and change moving through deep feeling.",
+  },
+  "wedding-and-blood": {
+    seoTitle: "Wedding and Blood Dream Meaning: Cost of Commitment",
+    seoDescription:
+      "What a wedding with blood in a dream means — sacrifice, family tension, stained vows, or a union that feels costly. Psychological and spiritual readings.",
+  },
+  "snakes-in-water": {
+    seoTitle: "Snakes in Water Dream Meaning: Emotion Meets Threat",
+    seoDescription:
+      "Dreaming of snakes in water often mixes intuition with caution. What swimming snakes mean psychologically, spiritually, and in Islamic dream tradition.",
+  },
 };
 
 /**
@@ -2356,7 +2606,18 @@ type ComboSeed = {
 };
 
 const COMBINATIONS: ComboSeed[] = [
-  { primary: "snake", secondary: "water", focus: "an emotional situation that carries a hidden threat, or transformation moving through deep feeling" },
+  {
+    primary: "snake",
+    secondary: "water",
+    focus: "an emotional situation that carries a hidden threat, or transformation moving through deep feeling",
+    aliases: [
+      "dreaming of snakes in water",
+      "snakes in water",
+      "snake in water dream",
+      "snakes swimming in water",
+      "dream about snakes in water",
+    ],
+  },
   { primary: "snake", secondary: "baby", focus: "a vulnerable new beginning shadowed by fear, or protective alertness around something fragile" },
   { primary: "snake", secondary: "fire", focus: "a threat combined with rapid change: anger, temptation, or transformation that feels dangerous" },
   { primary: "snake", secondary: "house", focus: "a threat or transformation inside your private life, family, or personal foundations" },
@@ -2369,6 +2630,19 @@ const COMBINATIONS: ComboSeed[] = [
   { primary: "cat", secondary: "dog", focus: "the tension between independence and loyalty, or two relationship styles in conflict" },
   { primary: "dog", secondary: "snake", focus: "trust and threat side by side: loyalty tested, or a warning within a trusted relationship" },
   { primary: "wedding", secondary: "death", focus: "commitment and ending intertwined: an old identity closing as a binding new chapter begins" },
+  {
+    primary: "wedding",
+    secondary: "blood",
+    focus: "a commitment marked by cost, sacrifice, family tension, or a union that feels stained by conflict or loss",
+    aliases: [
+      "wedding in blood",
+      "wedding in bled a dream",
+      "blood at a wedding",
+      "bloody wedding dream",
+      "wedding with blood",
+      "dreaming of a wedding and blood",
+    ],
+  },
   { primary: "teeth", secondary: "blood", focus: "a loss that costs something vital: confidence, health, or words that wound on their way out" },
   { primary: "fire", secondary: "water", focus: "opposing forces in one scene: passion against emotion, destruction against renewal, or conflict seeking balance" },
   { primary: "house", secondary: "water", focus: "emotion flooding into private life: feelings rising inside family, memory, or personal foundations" },
@@ -2549,14 +2823,17 @@ export const POPULAR_DREAM_SLUGS = [
   "teeth-falling-out",
   "water",
   "being-chased",
-  "pregnancy",
+  "wedding",
+  "ghost",
+  "cheating",
   "death",
   "flying",
-  "dog",
-  "falling",
   "baby",
-  "spider",
+  "fire",
   "car-accident",
+  "hair-falling-out",
+  "alligator",
+  "crawling",
 ] as const;
 
 export function getDreamEntry(slug: string): DreamEntry | undefined {

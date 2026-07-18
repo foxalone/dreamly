@@ -11,22 +11,29 @@ import {
 import { DREAM_DICTIONARY, POPULAR_DREAM_SLUGS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: "Dreamly — AI Dream Interpreter & Dream Journal",
+  title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
   description:
-    "Interpret your dreams with AI, keep a private dream journal, and explore an anonymous world map of what people are dreaming. Free dream dictionary with psychological, spiritual, Islamic, and biblical meanings.",
+    "Ask what your dream means with AI dream interpretation — instant personal readings, a private dream journal, and a free dream dictionary with psychological, spiritual, Islamic, and biblical meanings.",
+  keywords: [
+    "dream meaning ai",
+    "what does my dream mean ai",
+    "ai dream interpreter",
+    "dream dictionary",
+    "dream meaning",
+  ],
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Dreamly — AI Dream Interpreter & Dream Journal",
+    title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
     description:
-      "Interpret your dreams with AI, keep a private dream journal, and explore an anonymous world map of what people are dreaming.",
+      "AI dream meaning in seconds — interpret any dream, keep a private journal, and explore a free dream dictionary.",
     url: "/",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dreamly — AI Dream Interpreter & Dream Journal",
+    title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
     description:
-      "Interpret your dreams with AI, keep a private dream journal, and explore an anonymous world map of what people are dreaming.",
+      "AI dream meaning in seconds — interpret any dream, keep a private journal, and explore a free dream dictionary.",
   },
 };
 
@@ -67,6 +74,11 @@ const FEATURES = [
 
 const FAQ = [
   {
+    question: "What does my dream mean? Can AI interpret it?",
+    answer:
+      "Yes. Dreamly is an AI dream interpreter: you describe your dream in plain language, and it analyzes the symbols, emotions, and setting to offer a personal dream meaning. It is a tool for reflection — not prediction or medical diagnosis — and pairs well with Dreamly's free dream dictionary for symbols like weddings, ghosts, snakes, and more.",
+  },
+  {
     question: "What is Dreamly?",
     answer:
       "Dreamly is an AI dream interpreter and dream journal. You describe a dream, and Dreamly analyzes its symbols and emotions to offer a personal interpretation. You can also keep a private journal of your dreams, browse a free dream dictionary, and explore an anonymous world map of what people are dreaming.",
@@ -87,9 +99,9 @@ const FAQ = [
       "Yes. Your dream journal is private by default and only visible to you. Dreams appear on the public dream map only if you choose to share them, and shared dreams are anonymous.",
   },
   {
-    question: "What do common dreams like snakes or teeth falling out mean?",
+    question: "What do common dreams like snakes, weddings, or ghosts mean?",
     answer:
-      "Common dreams tend to carry recurring themes: snakes often relate to transformation or hidden fear, teeth falling out to loss of control, being chased to avoidance, and water to emotion. Dreamly's dream dictionary covers these and hundreds of other symbols with psychological, spiritual, Islamic, and biblical interpretations.",
+      "Common dreams tend to carry recurring themes: snakes often relate to transformation or hidden fear, weddings to commitment and transition, ghosts to unfinished memory or grief, and cheating dreams to trust and insecurity. Dreamly's dream dictionary covers these and hundreds of other symbols with psychological, spiritual, Islamic, and biblical interpretations.",
   },
 ];
 
@@ -111,7 +123,7 @@ export default function HomePage() {
     alternateName: "Dreamly AI",
     url: "https://dreamly.art",
     description:
-      "AI dream interpreter, private dream journal, anonymous dream map, and a free dream dictionary.",
+      "What does my dream mean? AI dream interpreter, private dream journal, anonymous dream map, and a free dream dictionary.",
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -164,12 +176,12 @@ export default function HomePage() {
           </p>
 
           <h1 className="text-xl sm:text-2xl font-medium">
-            AI Dream Interpreter, Dream Journal & Anonymous Dream Map
+            What Does My Dream Mean? AI Dream Interpreter & Journal
           </h1>
 
           <p className="mt-6 text-[var(--muted)] text-base sm:text-lg">
-            Capture your dreams. Discover shared symbols.
-            See what the world is dreaming.
+            Get AI dream meaning in seconds, keep a private journal,
+            and explore a free dream dictionary of symbols people search for most.
           </p>
 
           <Link
