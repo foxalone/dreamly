@@ -32,6 +32,7 @@ import {
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
+import QuickSymbolQueries from "./QuickSymbolQueries";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -66,7 +67,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "DOCS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -876,6 +877,11 @@ async function loadUsers() {
               <>
                 Realtime config (RTDB: <span className="font-mono">{hintsPath}</span>)
               </>
+            ) : tab === "QUERIES" ? (
+              <>
+                Quick symbol search log (Firestore:{" "}
+                <span className="font-mono">quick_symbol_queries</span>)
+              </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
             ) : (
@@ -955,6 +961,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Users
+        </button>
+
+        <button
+          onClick={() => setTab("QUERIES")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "QUERIES"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Queries
         </button>
 
         <button
@@ -1411,6 +1429,8 @@ async function loadUsers() {
           </div>
         </div>
       )}
+
+      {tab === "QUERIES" && <QuickSymbolQueries />}
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MoonStar } from "lucide-react";
 import BottomNav from "@/app/app/BottomNav";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
+import QuickSymbolFab from "./QuickSymbolFab";
 
 const HUB_LINKS: { href: string; label: string }[] = [
   { href: "/dreams", label: "Dream Dictionary" },
@@ -62,6 +63,7 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
           </nav>
         </div>
       </footer>
+      <QuickSymbolFab />
       <BottomNav />
     </div>
   );

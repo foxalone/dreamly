@@ -32,6 +32,9 @@ export default function SignInClient() {
     if (next.startsWith("/app/map")) {
       return "Sign in with Google to explore the dream map.";
     }
+    if (next.startsWith("/dreams")) {
+      return "Sign in with Google to look up dream symbols.";
+    }
     return "Sign in with Google to save your dreams.";
   }, [next]);
 

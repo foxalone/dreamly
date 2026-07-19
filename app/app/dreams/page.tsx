@@ -3,7 +3,7 @@
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { Keyboard, Mic } from "lucide-react";
+import { Keyboard, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
@@ -53,7 +53,8 @@ type Dream = {
   timeKey?: string;
   wordCount?: number;
   charCount?: number;
-  source?: "manual" | "voice";
+  source?: "manual" | "voice" | "dreamer";
+  summary?: string;
   shared?: boolean;
   sharedAtMs?: number;
   emojis?: DreamEmoji[];
@@ -1607,21 +1608,31 @@ export default function DreamsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap justify-end">
-                    <button
-                      onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
-                      disabled={isShared || isSharing || isDeleting}
-                      className={[
-                        "dream-btn",
-                        isShared ? "dream-btn--shared" : "dream-btn--neutral",
-                        isSharing ? "opacity-70 cursor-wait" : "",
-                        isDeleting ? "opacity-60 cursor-not-allowed" : "",
-                      ].join(" ")}
-                      title={isShared ? "Already shared" : "Publish to Shared feed"}
-                    >
-                      {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
-                    </button>
+                    {d.source !== "dreamer" ? (
+                      <button
+                        onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
+                        disabled={isShared || isSharing || isDeleting}
+                        className={[
+                          "dream-btn",
+                          isShared ? "dream-btn--shared" : "dream-btn--neutral",
+                          isSharing ? "opacity-70 cursor-wait" : "",
+                          isDeleting ? "opacity-60 cursor-not-allowed" : "",
+                        ].join(" ")}
+                        title={isShared ? "Already shared" : "Publish to Shared feed"}
+                      >
+                        {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
+                      </button>
+                    ) : (
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)]"
+                        title="From Quick symbol"
+                      >
+                        <MoonStar size={12} aria-hidden />
+                        Quick
+                      </span>
+                    )}
 
-                    {(d.sourceType ?? "dream") === "dream" && (() => {
+                    {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && (() => {
                       const hasAnalysis = !!(d.analysisText ?? "").trim();
                       const isAnalyzing = analysisBusyId === d.id;
                       const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
@@ -1664,6 +1675,11 @@ export default function DreamsPage() {
                 </div>
 
                 <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
+                {d.source === "dreamer" && (d.summary || d.analysisText) ? (
+                  <div className="mt-3 rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)] px-3 py-2.5 text-sm text-[var(--muted)] whitespace-pre-wrap break-words">
+                    {(d.summary || d.analysisText || "").trim()}
+                  </div>
+                ) : null}
 
                 {(() => {
                   const chips =
@@ -1690,10 +1706,24 @@ export default function DreamsPage() {
                   <div className="mt-3 text-xs text-[var(--muted)] flex justify-end items-center gap-2">
                     <span
                       className="opacity-70 inline-flex items-center"
-                      title={d.source === "voice" ? "Recorded" : "Typed"}
-                      aria-label={d.source === "voice" ? "Recorded" : "Typed"}
+                      title={
+                        d.source === "dreamer"
+                          ? "Quick symbol"
+                          : d.source === "voice"
+                            ? "Recorded"
+                            : "Typed"
+                      }
+                      aria-label={
+                        d.source === "dreamer"
+                          ? "Quick symbol"
+                          : d.source === "voice"
+                            ? "Recorded"
+                            : "Typed"
+                      }
                     >
-                      {d.source === "voice" ? (
+                      {d.source === "dreamer" ? (
+                        <MoonStar size={14} strokeWidth={1.8} aria-hidden />
+                      ) : d.source === "voice" ? (
                         <Mic size={14} strokeWidth={1.8} aria-hidden />
                       ) : (
                         <Keyboard size={14} strokeWidth={1.8} aria-hidden />
