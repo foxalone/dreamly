@@ -3,7 +3,16 @@ import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import type { User } from "firebase/auth";
 
 let lastUpsertAtRef = 0;
-let lastCityUpsertAtRef = 0;
+
+const CITY_UPDATES_PER_DAY = 2;
+
+function todayKeyUTC(ms = Date.now()) {
+  const d = new Date(ms);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 async function upsertUserProfile(u: User) {
   const ref = doc(firestore, "users", u.uid);
@@ -69,15 +78,25 @@ async function lookupCityByIp(): Promise<{
 }
 
 async function ensureUserCity(u: User) {
-  const now = Date.now();
-  if (now - lastCityUpsertAtRef < 15000) return;
-  lastCityUpsertAtRef = now;
-
   try {
+    const userRef = doc(firestore, "users", u.uid);
+    const snap = await getDoc(userRef);
+    const data = snap.exists() ? (snap.data() as any) : null;
+
+    const dayKey = todayKeyUTC();
+    const sameDay = String(data?.cityUpdateDayKey ?? "") === dayKey;
+    const updatesToday = sameDay ? Number(data?.cityUpdatesToday ?? 0) : 0;
+
+    // Max 2 IP city overwrites per UTC day
+    if (sameDay && Number.isFinite(updatesToday) && updatesToday >= CITY_UPDATES_PER_DAY) {
+      const existingCityId = String(data?.currentCityId ?? "").trim();
+      if (existingCityId) await resolveCityCoordsIfNeeded(existingCityId);
+      return;
+    }
+
     const geo = await lookupCityByIp();
     if (!geo) return;
 
-    const userRef = doc(firestore, "users", u.uid);
     await setDoc(
       userRef,
       {
@@ -87,6 +106,8 @@ async function ensureUserCity(u: User) {
         currentAdmin1: geo.admin1 || null,
         citySource: "ip",
         cityUpdatedAt: serverTimestamp(),
+        cityUpdateDayKey: dayKey,
+        cityUpdatesToday: (Number.isFinite(updatesToday) ? updatesToday : 0) + 1,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
