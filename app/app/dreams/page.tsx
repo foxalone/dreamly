@@ -960,12 +960,14 @@ export default function DreamsPage() {
         updatedAt: serverTimestamp(),
       });
 
-      if (type === "dream") {
-        try {
-          await ingestDreamForMap({ uid: uid2, dreamId: itemId });
-        } catch (e) {
-          console.warn("map ingest failed", e);
-        }
+      try {
+        await ingestDreamForMap({
+          uid: uid2,
+          dreamId: itemId,
+          sourceType: type,
+        });
+      } catch (e) {
+        console.warn("map ingest failed", e);
       }
 
       const apply = (x: Dream) =>

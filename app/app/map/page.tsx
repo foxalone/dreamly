@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -8,6 +8,8 @@ import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+
+type MapFilter = "all" | "dreams" | "stories";
 
 type CityEmojiDoc = {
   cityId?: string;
@@ -17,9 +19,23 @@ type CityEmojiDoc = {
   lat?: number;
   lng?: number;
   totalDreams?: number;
+  totalStories?: number;
 };
 
 type EmojiItem = { emoji: string; count: number; rank: number };
+
+type CityRow = {
+  cityId: string;
+  city?: string;
+  admin1?: string;
+  country?: string;
+  lat: number;
+  lng: number;
+  totalDreams?: number;
+  totalStories?: number;
+  dreamItems: EmojiItem[];
+  storyItems: EmojiItem[];
+};
 
 const DEFAULT_CENTER: [number, number] = [-77.0369, 38.9072];
 
@@ -31,16 +47,42 @@ function safeNum(n: any): number | null {
   return Number.isFinite(x) ? x : null;
 }
 
-// вытаскиваем эмодзи из "плоских" полей вида "emojis.🍃": 100
-function extractEmojisFromDoc(raw: any): Record<string, number> {
+/** Support flat "emojis.🍃" keys and nested { emojis: { "🍃": n } }. */
+function extractEmojisFromDoc(
+  raw: any,
+  prefix: "emojis" | "storyEmojis"
+): Record<string, number> {
   const out: Record<string, number> = {};
   if (!raw || typeof raw !== "object") return out;
 
+  const dotted = `${prefix}.`;
   for (const [key, value] of Object.entries(raw)) {
-    if (!key.startsWith("emojis.")) continue;
-    const emoji = key.slice("emojis.".length);
+    if (!key.startsWith(dotted)) continue;
+    const emoji = key.slice(dotted.length);
     const num = Number(value);
     if (emoji && Number.isFinite(num) && num > 0) out[emoji] = num;
+  }
+
+  const nested = raw[prefix];
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+    for (const [emoji, value] of Object.entries(nested)) {
+      const num = Number(value);
+      if (emoji && Number.isFinite(num) && num > 0) {
+        out[emoji] = (out[emoji] ?? 0) + num;
+      }
+    }
+  }
+
+  return out;
+}
+
+function mergeEmojiMaps(
+  a: Record<string, number>,
+  b: Record<string, number>
+): Record<string, number> {
+  const out: Record<string, number> = { ...a };
+  for (const [emoji, count] of Object.entries(b)) {
+    out[emoji] = (out[emoji] ?? 0) + count;
   }
   return out;
 }
@@ -52,6 +94,18 @@ function toTopItems(map: Record<string, number>, max: number): EmojiItem[] {
     .sort((a, b) => b.count - a.count)
     .slice(0, max)
     .map((x, idx) => ({ ...x, rank: idx }));
+}
+
+function itemsForFilter(city: CityRow, filter: MapFilter): EmojiItem[] {
+  if (filter === "dreams") return city.dreamItems;
+  if (filter === "stories") return city.storyItems;
+  return toTopItems(
+    mergeEmojiMaps(
+      Object.fromEntries(city.dreamItems.map((x) => [x.emoji, x.count])),
+      Object.fromEntries(city.storyItems.map((x) => [x.emoji, x.count]))
+    ),
+    999999999
+  );
 }
 
 // равномерно по окружности
@@ -90,7 +144,6 @@ function baseSizeByZoom(z: number) {
 
 // множитель от count (чтобы 100 было заметно больше 1)
 function weightByCount(count: number) {
-  // log(2)=0.69, log(101)=4.61 → нормальный диапазон
   return 0.85 + Math.log(count + 1) * 0.22;
 }
 
@@ -128,6 +181,12 @@ function applyFog(map: mapboxgl.Map, t: ThemeMode) {
   } catch {}
 }
 
+const FILTERS: { key: MapFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "dreams", label: "Dreams" },
+  { key: "stories", label: "Stories" },
+];
+
 // ---------- component ----------
 export default function MapPage() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -135,24 +194,15 @@ export default function MapPage() {
   const popupRef = useRef<mapboxgl.Popup | null>(null);
 
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const dataRef = useRef<
-    Array<{
-      cityId: string;
-      city?: string;
-      admin1?: string;
-      country?: string;
-      lat: number;
-      lng: number;
-      totalDreams?: number;
-      items: EmojiItem[];
-    }>
-  >([]);
+  const dataRef = useRef<CityRow[]>([]);
+  const filterRef = useRef<MapFilter>("all");
+  const [filter, setFilter] = useState<MapFilter>("all");
 
   async function loadData() {
     const q = query(collection(firestore, "city_emoji_stats"), limit(5000));
     const snap = await getDocs(q);
 
-    const rows: typeof dataRef.current = [];
+    const rows: CityRow[] = [];
     let missingCoords = 0;
     let emptyCityId = 0;
     let emptyEmojis = 0;
@@ -171,27 +221,20 @@ export default function MapPage() {
       const lng = safeNum(raw.lng);
       if (lat == null || lng == null) {
         missingCoords += 1;
-        if (cityId === "France|Paris") {
-          console.log("[map/debug] France|Paris skipped: missing lat/lng", {
-            cityId,
-            lat: raw.lat ?? null,
-            lng: raw.lng ?? null,
-          });
-        }
         return;
       }
 
-      const emojiMap = extractEmojisFromDoc(raw);
-      const items = toTopItems(emojiMap, 999999999);
-      if (items.length === 0) {
+      const dreamMap = extractEmojisFromDoc(raw, "emojis");
+      const storyMap = extractEmojisFromDoc(raw, "storyEmojis");
+      const dreamItems = toTopItems(dreamMap, 999999999);
+      const storyItems = toTopItems(storyMap, 999999999);
+
+      if (dreamItems.length === 0 && storyItems.length === 0) {
         emptyEmojis += 1;
-        if (cityId === "France|Paris") {
-          console.log("[map/debug] France|Paris skipped: no emojis", { cityId });
-        }
         return;
       }
 
-      const row = {
+      rows.push({
         cityId,
         city: raw.city ?? d.city,
         admin1: raw.admin1 ?? d.admin1,
@@ -199,20 +242,10 @@ export default function MapPage() {
         lat,
         lng,
         totalDreams: safeNum(raw.totalDreams) ?? undefined,
-        items,
-      };
-
-      rows.push(row);
-
-      if (cityId === "France|Paris") {
-        console.log("[map/debug] France|Paris loaded into marker source", {
-          cityId,
-          lat,
-          lng,
-          emojis: items.length,
-          totalDreams: row.totalDreams ?? null,
-        });
-      }
+        totalStories: safeNum(raw.totalStories) ?? undefined,
+        dreamItems,
+        storyItems,
+      });
     });
 
     dataRef.current = rows;
@@ -222,7 +255,6 @@ export default function MapPage() {
       missingCoords,
       emptyCityId,
       emptyEmojis,
-      hasFranceParis: rows.some((r) => r.cityId === "France|Paris"),
     });
   }
 
@@ -237,23 +269,16 @@ export default function MapPage() {
     const z = map.getZoom();
     const maxRank = maxRankByZoom(z);
     const base = baseSizeByZoom(z);
+    const activeFilter = filterRef.current;
 
     for (const city of dataRef.current) {
-      const visible = city.items.filter((it) => it.rank <= maxRank);
+      const items = itemsForFilter(city, activeFilter);
+      const visible = items.filter((it) => it.rank <= maxRank);
       if (visible.length === 0) continue;
 
       const n = visible.length;
 
       visible.forEach((it, idx) => {
-        if (city.cityId === "France|Paris") {
-          console.log("[map/debug] France|Paris marker candidate", {
-            rank: it.rank,
-            emoji: it.emoji,
-            count: it.count,
-            zoom: z,
-          });
-        }
-        // rank 0 в центре, остальные вокруг (смещение в метрах)
         const { ox, oy } = offsetForIndex(idx, n);
         const rMeters = it.rank === 0 ? 0 : 1200 + it.rank * 260;
         const { dLat, dLng } = metersToLngLatOffset(rMeters, city.lat, ox, oy);
@@ -275,10 +300,20 @@ export default function MapPage() {
         el.addEventListener("click", (ev) => {
           ev.stopPropagation();
 
+          const kindLabel =
+            activeFilter === "dreams"
+              ? "Dreams"
+              : activeFilter === "stories"
+                ? "Stories"
+                : "All";
+
           const html = `
             <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
               <div style="font-size: 18px; line-height: 1.2;">
                 ${it.emoji} <b>${it.count}</b>
+              </div>
+              <div style="opacity: .7; margin-top: 4px; font-size: 11px;">
+                ${kindLabel}
               </div>
               <div style="opacity: .85; margin-top: 6px;">
                 ${[city.city, city.admin1, city.country].filter(Boolean).join(", ")}
@@ -306,6 +341,12 @@ export default function MapPage() {
   }
 
   useEffect(() => {
+    filterRef.current = filter;
+    const map = mapRef.current;
+    if (map) renderMarkers(map);
+  }, [filter]);
+
+  useEffect(() => {
     if (!mapElRef.current) return;
     if (mapRef.current) return;
 
@@ -321,16 +362,15 @@ export default function MapPage() {
     });
 
     map.addControl(
-  new mapboxgl.NavigationControl({
-    showCompass: false,
-    visualizePitch: false,
-  }),
-  "top-right"
-);
+      new mapboxgl.NavigationControl({
+        showCompass: false,
+        visualizePitch: false,
+      }),
+      "top-right"
+    );
 
     mapRef.current = map;
 
-    // fog после каждой загрузки стиля
     map.on("style.load", () => {
       applyFog(map, getAppTheme());
     });
@@ -341,7 +381,6 @@ export default function MapPage() {
       map.on("zoomend", () => renderMarkers(map));
     });
 
-    // ✅ слушаем переключение темы приложения (html.classList: light добавляется/убирается)
     const root = document.documentElement;
     let lastTheme: ThemeMode = initialTheme;
 
@@ -351,16 +390,12 @@ export default function MapPage() {
       lastTheme = nextTheme;
 
       map.setStyle(styleUrlForTheme(nextTheme));
-
-      // если вдруг в будущем будут слои/источники — можно перерендерить после смены стиля:
-      // map.once("style.load", () => renderMarkers(map));
     });
 
     obs.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     const systemTheme = window.matchMedia("(prefers-color-scheme: light)");
     const onSystemThemeChange = () => {
-      // An explicit light/dark choice takes precedence over the system setting.
       if (root.classList.contains("light") || root.classList.contains("dark")) return;
 
       const nextTheme = getAppTheme();
@@ -391,6 +426,26 @@ export default function MapPage() {
         ref={mapElRef}
         style={{ height: "100%", width: "100%", borderRadius: 16, overflow: "hidden" }}
       />
+
+      <div
+        className="absolute top-3 left-3 z-10 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_88%,transparent)] p-1 gap-1 backdrop-blur-sm shadow-sm"
+      >
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilter(f.key)}
+            className={[
+              "px-3 py-1.5 rounded-full text-xs font-semibold transition",
+              filter === f.key
+                ? "bg-[var(--text)] text-[var(--bg)]"
+                : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+            ].join(" ")}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

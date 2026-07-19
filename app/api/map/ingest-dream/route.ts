@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 
-type Body = { uid: string; dreamId: string };
+type SourceType = "dream" | "story";
+type Body = { uid: string; dreamId: string; sourceType?: SourceType };
 type DreamEmoji = { native: string; id?: string; name?: string };
 
 type ResolvedCity = {
@@ -10,11 +11,15 @@ type ResolvedCity = {
   city: string;
   country: string;
   admin1: string;
-  source: "dream" | "user";
+  source: "item" | "user";
 };
 
 function s(v: any) {
   return String(v ?? "").trim();
+}
+
+function normalizeSourceType(v: unknown): SourceType {
+  return s(v).toLowerCase() === "story" ? "story" : "dream";
 }
 
 function todayKeyUTC(ms: number) {
@@ -44,13 +49,13 @@ async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
   }
 }
 
-function getDreamCity(dream: any): Omit<ResolvedCity, "source"> {
-  const dreamCity = dream?.city && typeof dream.city === "object" ? dream.city : null;
+function getItemCity(item: any): Omit<ResolvedCity, "source"> {
+  const itemCity = item?.city && typeof item.city === "object" ? item.city : null;
 
-  const cityId = s(dreamCity?.cityId || dream?.cityId);
-  const city = s(dreamCity?.city || dream?.cityName || dream?.cityLabel || dream?.city);
-  const country = s(dreamCity?.country || dream?.cityCountry || dream?.country);
-  const admin1 = s(dreamCity?.admin1 || dream?.cityAdmin1 || dream?.admin1);
+  const cityId = s(itemCity?.cityId || item?.cityId);
+  const city = s(itemCity?.city || item?.cityName || item?.cityLabel || item?.city);
+  const country = s(itemCity?.country || item?.cityCountry || item?.country);
+  const admin1 = s(itemCity?.admin1 || item?.cityAdmin1 || item?.admin1);
 
   return { cityId, city, country, admin1 };
 }
@@ -64,63 +69,86 @@ function getUserCity(user: any): Omit<ResolvedCity, "source"> {
   };
 }
 
+function emojiFieldPrefix(sourceType: SourceType) {
+  return sourceType === "story" ? "storyEmojis" : "emojis";
+}
+
+function totalField(sourceType: SourceType) {
+  return sourceType === "story" ? "totalStories" : "totalDreams";
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Body;
     const uid = s(body?.uid);
-    const dreamId = s(body?.dreamId);
+    const itemId = s(body?.dreamId);
+    const sourceType = normalizeSourceType(body?.sourceType);
 
-    if (!uid || !dreamId) {
+    if (!uid || !itemId) {
       return NextResponse.json({ error: "Missing uid or dreamId" }, { status: 400 });
     }
 
     const db = adminFirestore();
 
-    const ingestId = `${uid}_${dreamId}`;
+    const ingestId =
+      sourceType === "story" ? `${uid}_story_${itemId}` : `${uid}_${itemId}`;
     const ingestRef = db.collection("map_ingested").doc(ingestId);
 
     const ingestSnap = await ingestRef.get();
     if (ingestSnap.exists) {
-      return NextResponse.json({ ok: true, skipped: true });
+      return NextResponse.json({ ok: true, skipped: true, sourceType });
     }
 
     const userRef = db.collection("users").doc(uid);
-    const dreamRef = userRef.collection("dreams").doc(dreamId);
-    const dreamSnap = await dreamRef.get();
-    if (!dreamSnap.exists) {
-      return NextResponse.json({ error: "Dream not found" }, { status: 404 });
+    const collectionName = sourceType === "story" ? "stories" : "dreams";
+    const itemRef = userRef.collection(collectionName).doc(itemId);
+    const itemSnap = await itemRef.get();
+    if (!itemSnap.exists) {
+      return NextResponse.json(
+        { error: sourceType === "story" ? "Story not found" : "Dream not found" },
+        { status: 404 }
+      );
     }
 
-    const dream = dreamSnap.data() || {};
-    const isTikTokDream = s(dream?.studio?.kind).toLowerCase() === "tiktok";
+    const item = itemSnap.data() || {};
+    const isTikTokDream =
+      sourceType === "dream" && s(item?.studio?.kind).toLowerCase() === "tiktok";
 
-    const emojis: DreamEmoji[] = Array.isArray(dream.emojis) ? dream.emojis : [];
-    const createdAtMs = Number(dream.createdAtMs ?? Date.now());
-    const dateKey = s(dream.dateKey) || todayKeyUTC(createdAtMs);
+    const emojis: DreamEmoji[] = Array.isArray(item.emojis) ? item.emojis : [];
+    const createdAtMs = Number(item.createdAtMs ?? Date.now());
+    const dateKey = s(item.dateKey) || todayKeyUTC(createdAtMs);
 
     const natives = emojis.map((e) => s(e?.native)).filter(Boolean);
     if (natives.length === 0) {
-      return NextResponse.json({ ok: true, skipped: true, reason: "no_emojis" });
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: "no_emojis",
+        sourceType,
+      });
     }
 
     const userSnap = await userRef.get();
     const user = userSnap.exists ? (userSnap.data() as any) : {};
 
-    const fromDream = getDreamCity(dream);
+    const fromItem = getItemCity(item);
     const fromUser = getUserCity(user);
 
-    const useDream = !!fromDream.cityId;
+    const useItem = !!fromItem.cityId;
     const resolvedCity: ResolvedCity = {
-      ...(useDream ? fromDream : fromUser),
-      source: useDream ? "dream" : "user",
+      ...(useItem ? fromItem : fromUser),
+      source: useItem ? "item" : "user",
     };
 
     if (isTikTokDream) {
       console.log("[tiktok/ingest] city source:", resolvedCity.source, {
-        dream: fromDream,
+        item: fromItem,
         user: fromUser,
       });
     }
+
+    const emojiPrefix = emojiFieldPrefix(sourceType);
+    const totalKey = totalField(sourceType);
 
     const userStatsRef = userRef.collection("stats").doc("emoji");
     const userDailyRef = userRef.collection("emoji_daily").doc(dateKey);
@@ -142,7 +170,7 @@ export async function POST(req: Request) {
       tx.set(
         userStatsRef,
         {
-          totalDreams: admin.firestore.FieldValue.increment(1),
+          [totalKey]: admin.firestore.FieldValue.increment(1),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -151,7 +179,7 @@ export async function POST(req: Request) {
       for (const em of natives) {
         tx.set(
           userStatsRef,
-          { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+          { [`${emojiPrefix}.${em}`]: admin.firestore.FieldValue.increment(1) },
           { merge: true }
         );
       }
@@ -160,7 +188,7 @@ export async function POST(req: Request) {
         userDailyRef,
         {
           dateKey,
-          totalDreams: admin.firestore.FieldValue.increment(1),
+          [totalKey]: admin.firestore.FieldValue.increment(1),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -169,14 +197,16 @@ export async function POST(req: Request) {
       for (const em of natives) {
         tx.set(
           userDailyRef,
-          { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+          { [`${emojiPrefix}.${em}`]: admin.firestore.FieldValue.increment(1) },
           { merge: true }
         );
       }
 
       if (resolvedCity.cityId) {
         const cityStatsRef = db.collection("city_emoji_stats").doc(resolvedCity.cityId);
-        const cityDailyRef = db.collection("city_emoji_daily").doc(`${resolvedCity.cityId}_${dateKey}`);
+        const cityDailyRef = db
+          .collection("city_emoji_daily")
+          .doc(`${resolvedCity.cityId}_${dateKey}`);
 
         tx.set(
           cityStatsRef,
@@ -185,7 +215,7 @@ export async function POST(req: Request) {
             city: resolvedCity.city,
             country: resolvedCity.country,
             admin1: resolvedCity.admin1,
-            totalDreams: admin.firestore.FieldValue.increment(1),
+            [totalKey]: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           },
           { merge: true }
@@ -194,7 +224,7 @@ export async function POST(req: Request) {
         for (const em of natives) {
           tx.set(
             cityStatsRef,
-            { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+            { [`${emojiPrefix}.${em}`]: admin.firestore.FieldValue.increment(1) },
             { merge: true }
           );
         }
@@ -204,7 +234,7 @@ export async function POST(req: Request) {
           {
             cityId: resolvedCity.cityId,
             dateKey,
-            totalDreams: admin.firestore.FieldValue.increment(1),
+            [totalKey]: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           },
           { merge: true }
@@ -213,7 +243,7 @@ export async function POST(req: Request) {
         for (const em of natives) {
           tx.set(
             cityDailyRef,
-            { [`emojis.${em}`]: admin.firestore.FieldValue.increment(1) },
+            { [`${emojiPrefix}.${em}`]: admin.firestore.FieldValue.increment(1) },
             { merge: true }
           );
         }
@@ -221,7 +251,9 @@ export async function POST(req: Request) {
 
       tx.set(ingestRef, {
         uid,
-        dreamId,
+        dreamId: itemId,
+        itemId,
+        sourceType,
         cityId: resolvedCity.cityId || null,
         dateKey,
         createdAtMs,
@@ -236,7 +268,12 @@ export async function POST(req: Request) {
 
     if (resolvedCity.cityId) resolveCityCoordsIfNeeded(req, resolvedCity.cityId);
 
-    return NextResponse.json({ ok: true, cityId: resolvedCity.cityId || null, dateKey });
+    return NextResponse.json({
+      ok: true,
+      cityId: resolvedCity.cityId || null,
+      dateKey,
+      sourceType,
+    });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json(
