@@ -1407,7 +1407,7 @@ async function loadUsers() {
             Примечание: Shared count — из <span className="font-mono">shared_dreams.ownerUid</span>.
             Last login — Firebase Auth <span className="font-mono">lastSignInTime</span>.
             City — Firestore <span className="font-mono">currentCity / currentCountry / currentAdmin1</span>{" "}
-            (браузерный geolocation + Nominatim, не IP). Таблица по last login (новые сверху).
+            (по IP: Vercel geo headers → fallback ipwho.is). Таблица по last login (новые сверху).
           </div>
         </div>
       )}

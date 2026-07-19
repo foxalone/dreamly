@@ -33,46 +33,6 @@ async function upsertUserProfile(u: User) {
   await setDoc(ref, { ...base, ...first }, { merge: true });
 }
 
-function getBrowserPosition(): Promise<{ lat: number; lng: number }> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined" || !navigator?.geolocation) {
-      reject(new Error("Geolocation not available"));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      (err) => reject(err),
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 5 * 60 * 1000,
-      }
-    );
-  });
-}
-
-async function reverseCityFromCoords(lat: number, lon: number) {
-  const url =
-    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}` +
-    `&lon=${encodeURIComponent(String(lon))}&zoom=10&addressdetails=1`;
-
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`Reverse geocoding failed: ${res.status}`);
-
-  const data = (await res.json()) as any;
-  const addr = data?.address ?? {};
-
-  const country = String(addr?.country_code ?? "").toUpperCase().trim();
-  const admin1 = String(addr?.state ?? addr?.region ?? "").trim();
-  const city = String(addr?.city ?? addr?.town ?? addr?.village ?? addr?.municipality ?? "").trim();
-
-  if (!country || !admin1 || !city) return null;
-  return { country, admin1, city, cityId: `${country}|${admin1}|${city}` };
-}
-
 async function resolveCityCoordsIfNeeded(cityId: string) {
   try {
     await fetch("/api/map/resolve-city", {
@@ -85,42 +45,55 @@ async function resolveCityCoordsIfNeeded(cityId: string) {
   }
 }
 
+async function lookupCityByIp(): Promise<{
+  cityId: string;
+  city: string;
+  country: string;
+  admin1: string;
+} | null> {
+  const res = await fetch("/api/geo/ip-city", {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) return null;
+
+  const cityId = String(data?.cityId ?? "").trim();
+  const city = String(data?.city ?? "").trim();
+  const country = String(data?.country ?? "").trim();
+  const admin1 = String(data?.admin1 ?? "").trim();
+
+  if (!cityId || !city || !country) return null;
+  return { cityId, city, country, admin1 };
+}
+
 async function ensureUserCity(u: User) {
   const now = Date.now();
   if (now - lastCityUpsertAtRef < 15000) return;
   lastCityUpsertAtRef = now;
 
   try {
-    const userRef = doc(firestore, "users", u.uid);
-    const snap = await getDoc(userRef);
-    const data = snap.exists() ? (snap.data() as any) : null;
-
-    if (data?.currentCityId && data?.currentCity && data?.currentCountry && data?.currentAdmin1) {
-      await resolveCityCoordsIfNeeded(String(data.currentCityId));
-      return;
-    }
-
-    const pos = await getBrowserPosition();
-    const geo = await reverseCityFromCoords(pos.lat, pos.lng);
+    const geo = await lookupCityByIp();
     if (!geo) return;
 
+    const userRef = doc(firestore, "users", u.uid);
     await setDoc(
       userRef,
       {
         currentCityId: geo.cityId,
         currentCity: geo.city,
         currentCountry: geo.country,
-        currentAdmin1: geo.admin1,
+        currentAdmin1: geo.admin1 || null,
+        citySource: "ip",
+        cityUpdatedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       },
       { merge: true }
     );
 
     await resolveCityCoordsIfNeeded(geo.cityId);
-  } catch (e: any) {
-    if (e?.code === 1 || e?.name === "NotAllowedError" || e?.name === "PermissionDeniedError") {
-      return;
-    }
+  } catch (e) {
     console.warn("ensureUserCity failed:", e);
   }
 }
