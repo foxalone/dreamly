@@ -76,6 +76,44 @@
   color-scheme: dark;
 }
 
+@keyframes quick-symbol-bounce {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0);
+  }
+  78% {
+    transform: translateY(-7px);
+  }
+  86% {
+    transform: translateY(0);
+  }
+  92% {
+    transform: translateY(-3px);
+  }
+  96% {
+    transform: translateY(0);
+  }
+}
+
+.dream-dictionary .quick-symbol-cta {
+  animation: quick-symbol-bounce 2.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.dream-dictionary .quick-symbol-cta:hover,
+.dream-dictionary .quick-symbol-cta:focus-visible,
+.dream-dictionary .quick-symbol-cta--still {
+  animation: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-dictionary .quick-symbol-cta {
+    animation: none;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   .dream-dictionary {
     --dd-bg: #f7f7fb;

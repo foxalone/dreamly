@@ -270,12 +270,15 @@ export default function QuickSymbolFab() {
           setOpen(true);
           setError(null);
         }}
-        className="fixed z-[60] bottom-[5.75rem] right-4 sm:right-6 flex items-center gap-2 rounded-full border border-violet-400/30 bg-[color-mix(in_srgb,var(--dd-surface)_92%,transparent)] px-3.5 py-3 text-sm font-semibold text-[var(--dd-text)] shadow-lg backdrop-blur-md transition hover:border-violet-400/50 hover:bg-violet-500/15"
+        className={[
+          "quick-symbol-cta inline-flex items-center gap-1.5 rounded-full border border-violet-300/40 bg-violet-500 px-3 py-2 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(167,139,250,0.25),0_8px_24px_rgba(124,58,237,0.35)] transition hover:bg-violet-400 sm:gap-2 sm:px-3.5 sm:text-sm",
+          open ? "quick-symbol-cta--still" : "",
+        ].join(" ")}
         aria-label="Quick dream symbol"
         title="Quick symbol"
       >
-        <MoonStar size={18} className="text-[var(--dd-accent-text)]" aria-hidden />
-        <span className="hidden sm:inline">Quick</span>
+        <MoonStar size={16} className="shrink-0" aria-hidden />
+        <span>Ask</span>
       </button>
 
       {open ? (

@@ -26,17 +26,20 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
             </span>
             <span>Dreamly Dictionary</span>
           </Link>
-          <Link
-            href="/app/dreams"
-            className="rounded-full border border-[var(--dd-border)] px-3.5 py-2 text-xs font-medium text-[var(--dd-text-soft)] transition hover:border-violet-400/30 hover:bg-violet-400/10 hover:text-[var(--dd-text)]"
-          >
-            Open journal
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <QuickSymbolFab />
+            <Link
+              href="/app/dreams"
+              className="rounded-full border border-[var(--dd-border)] px-3.5 py-2 text-xs font-medium text-[var(--dd-text-soft)] transition hover:border-violet-400/30 hover:bg-violet-400/10 hover:text-[var(--dd-text)]"
+            >
+              Open journal
+            </Link>
+          </div>
         </div>
       </header>
       <div>{children}</div>
       <footer className="border-t border-[var(--dd-border)] pb-32">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8">
           <nav aria-label="Dictionary hubs">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Explore</p>
             <ul className="mt-4 space-y-2">
@@ -63,7 +66,6 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
           </nav>
         </div>
       </footer>
-      <QuickSymbolFab />
       <BottomNav />
     </div>
   );
