@@ -74,7 +74,7 @@ type Dream = {
 };
 
 type ContentType = "dream" | "story";
-type Tab = "ALL" | "SHARED" | "STORIES";
+type Tab = "DREAMS" | "STORIES" | "SHARED";
 type RecStatus = "idle" | "listening" | "paused" | "error";
 
 function getCollectionNameByType(type: ContentType) {
@@ -470,7 +470,7 @@ export default function DreamsPage() {
   const [credits, setCredits] = useState(0);
   const [creditsLoading, setCreditsLoading] = useState(true);
 
-  const [tab, setTab] = useState<Tab>("ALL");
+  const [tab, setTab] = useState<Tab>("DREAMS");
   const [composerType, setComposerType] = useState<ContentType>("dream");
 
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -1444,32 +1444,20 @@ export default function DreamsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-3xl font-semibold">Your Dreams</h1>
+          <h1 className="text-3xl font-semibold">Your Diary</h1>
 
-       {/* Tabs */}
+       {/* Tabs: Dreams → Stories → Shared → Credits */}
 <div className="mt-3 inline-flex max-w-full overflow-x-auto rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
   <button
-    onClick={() => setTab("ALL")}
+    onClick={() => setTab("DREAMS")}
     className={[
       "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      tab === "ALL"
+      tab === "DREAMS"
         ? "bg-[var(--text)] text-[var(--bg)]"
         : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
     ].join(" ")}
   >
-    All <span className="opacity-70">({aliveDreams.length})</span>
-  </button>
-
-  <button
-    onClick={() => setTab("SHARED")}
-    className={[
-      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      tab === "SHARED"
-        ? "bg-[var(--text)] text-[var(--bg)]"
-        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-    ].join(" ")}
-  >
-    Shared <span className="opacity-70">({sharedItems.length})</span>
+    Dreams <span className="opacity-70">({aliveDreams.length})</span>
   </button>
 
   <button
@@ -1484,7 +1472,19 @@ export default function DreamsPage() {
     Stories <span className="opacity-70">({aliveStories.length})</span>
   </button>
 
-  {/* ✅ Credits pill (не переключает таб, а ведёт на апгрейд) */}
+  <button
+    onClick={() => setTab("SHARED")}
+    className={[
+      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
+      tab === "SHARED"
+        ? "bg-[var(--text)] text-[var(--bg)]"
+        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+    ].join(" ")}
+  >
+    Shared <span className="opacity-70">({sharedItems.length})</span>
+  </button>
+
+  {/* Credits pill (не переключает таб, а ведёт на апгрейд) */}
   <button
     onClick={() => router.push("/app/upgrade")}
     className={[
@@ -1532,7 +1532,7 @@ export default function DreamsPage() {
       {/* List */}
       {!uid ? null : visibleItems.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
-          {tab === "SHARED" ? "No shared items yet. Share one from All or Stories." : tab === "STORIES" ? "No stories yet. Add your first one." : "No dreams yet. Add your first one."}
+          {tab === "SHARED" ? "No shared items yet. Share one from Dreams or Stories." : tab === "STORIES" ? "No stories yet. Add your first one." : "No dreams yet. Add your first one."}
         </div>
       ) : (
         <div className="mt-8 space-y-3">
