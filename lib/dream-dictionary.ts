@@ -124,7 +124,7 @@ type ClusterSeed = {
 
 // Last date the shared dictionary templates/content changed. Bump this when editing
 // makeSections/makeTitle etc.; bump a cluster's own updatedAt when editing just that cluster.
-const DICTIONARY_UPDATED_AT = "2026-07-18";
+const DICTIONARY_UPDATED_AT = "2026-07-19";
 
 const CLUSTERS: ClusterSeed[] = [
   {
@@ -173,7 +173,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#38bdf8",
     summary: "emotion, intuition, cleansing, uncertainty, and the changing state of your inner world",
     aliases: ["dream about water", "water in a dream", "water dream meaning"],
-    relatedSymbols: ["snake", "death", "baby", "pregnancy", "falling", "beach", "fish", "shark", "fire", "storm", "alligator"],
+    relatedSymbols: ["snake", "death", "baby", "pregnancy", "falling", "beach", "fish", "shark", "fire", "storm", "alligator", "tunnel"],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
       { slug: "ocean", name: "ocean", focus: "vast emotion, freedom, uncertainty, or contact with forces larger than the conscious self" },
@@ -192,7 +192,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#94a3b8",
     summary: "endings, transformation, grief, mortality, release, and the closing of an old identity",
     aliases: ["dying", "dream about death", "death in a dream", "death dream meaning"],
-    relatedSymbols: ["snake", "water", "falling", "teeth", "baby", "cemetery", "church", "hospital", "being-chased", "blood", "wedding", "ghost", "angel", "mother", "fire", "father", "illness"],
+    relatedSymbols: ["snake", "water", "falling", "teeth", "baby", "cemetery", "church", "hospital", "being-chased", "blood", "wedding", "ghost", "angel", "mother", "fire", "father", "illness", "tunnel"],
     variations: [
       { slug: "someone-dying", name: "someone dying", focus: "fear of separation, a changing relationship, grief, or recognition that another person is changing" },
       { slug: "dead-person", name: "a dead person", focus: "memory, unfinished emotion, longing, comfort, or qualities associated with someone who has died" },
@@ -209,7 +209,15 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "👶",
     accent: "#fb923c",
     summary: "new beginnings, vulnerability, potential, responsibility, and a tender part of life that needs care",
-    aliases: ["infant", "dream about baby", "baby in a dream", "baby dream meaning", "dream dictionary baby", "baby dream dictionary"],
+    aliases: [
+      "infant",
+      "dream about baby",
+      "baby in a dream",
+      "baby dream meaning",
+      "dream dictionary baby",
+      "baby dream dictionary",
+      "psychological meaning of dreaming about a baby",
+    ],
     relatedSymbols: ["pregnancy", "water", "death", "dog", "hospital", "teeth", "house", "wedding", "mother", "crawling"],
     variations: [
       { slug: "newborn-baby", name: "newborn baby", focus: "very recent potential, a fragile beginning, or a responsibility that has only just arrived" },
@@ -296,12 +304,25 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#fb7185",
     summary: "loss of control, insecurity, surrender, sudden change, and anxiety about failing or losing support",
     aliases: ["fall", "dream about falling", "falling in a dream", "falling dream meaning"],
-    relatedSymbols: ["flying", "being-chased", "death", "water", "school", "teeth", "car", "being-naked", "crawling"],
+    relatedSymbols: ["flying", "being-chased", "death", "water", "school", "teeth", "car", "being-naked", "crawling", "tunnel"],
     variations: [
       { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences" },
       { slug: "falling-off-building", name: "falling off a building", focus: "instability in a structured area of life such as work, reputation, plans, or achievement" },
       { slug: "falling-into-water", name: "falling into water", focus: "sudden immersion in emotion, surrender to uncertainty, or an abrupt loss of emotional distance" },
       { slug: "falling-and-waking-up", name: "falling and waking up", focus: "a body-startle response, accumulated stress, or a fear that becomes urgent enough to interrupt sleep" },
+      {
+        slug: "fear-of-heights",
+        name: "fear of heights",
+        focus: "acrophobia, exposure after progress, vertigo at a life edge, and the dread of losing footing",
+        aliases: [
+          "traumdeutung höhenangst",
+          "höhenangst traumdeutung",
+          "höhenangst traum",
+          "acrophobia dream meaning",
+          "dreaming of fear of heights",
+          "fear of heights dream meaning",
+        ],
+      },
     ],
   },
   {
@@ -312,7 +333,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ef4444",
     summary: "avoidance, pressure, unresolved conflict, threatened safety, and a problem that keeps demanding attention",
     aliases: ["chasing", "dream about being chased", "chased in a dream", "running away dream"],
-    relatedSymbols: ["falling", "flying", "death", "dog", "snake", "prison", "school", "forest", "demon", "being-naked", "crawling"],
+    relatedSymbols: ["falling", "flying", "death", "dog", "snake", "prison", "school", "forest", "demon", "being-naked", "crawling", "tunnel"],
     variations: [
       { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
       { slug: "chased-by-animal", name: "being chased by an animal", focus: "instinct, fear, anger, desire, or a natural reaction that the conscious mind is avoiding" },
@@ -1237,6 +1258,9 @@ const CLUSTERS: ClusterSeed[] = [
       "work in a dream",
       "spiritual meaning of dreaming about work",
       "dreaming about work meaning",
+      "dream of working",
+      "dreaming of working",
+      "working dream meaning",
     ],
     relatedSymbols: ["money", "school", "father"],
     variations: [
@@ -1280,7 +1304,7 @@ const CLUSTERS: ClusterSeed[] = [
       "crawling dream meaning",
       "dreaming of crawling",
     ],
-    relatedSymbols: ["being-chased", "falling", "spider", "baby"],
+    relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel"],
     updatedAt: "2026-07-18",
     variations: [
       { slug: "crawling-on-the-floor", name: "crawling on the floor", focus: "humility, starting over, or progress that feels undignified but necessary" },
@@ -1289,6 +1313,32 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "unable-to-stand-crawling", name: "unable to stand and crawling instead", focus: "depleted strength, lost status, or a season where the only available movement is slow and close to the ground" },
       { slug: "crawling-away-from-danger", name: "crawling away from danger", focus: "escaping under constraint, survival without full power, or getting clear of a threat with whatever strength remains" },
       { slug: "someone-crawling-toward-you", name: "someone crawling toward you", focus: "a need, fear, or person approaching from a vulnerable or unsettling place" },
+    ],
+  },
+  {
+    slug: "tunnel",
+    name: "tunnel",
+    category: "places",
+    icon: "🕳️",
+    accent: "#64748b",
+    summary: "passage, transition, the unknown ahead, and moving through a narrow phase toward light or deeper dark",
+    aliases: [
+      "biblical meaning of dreaming of a tunnel",
+      "dream about a tunnel",
+      "tunnel dream meaning",
+      "dreaming of a tunnel",
+      "dream of a tunnel",
+      "what does a tunnel mean in a dream",
+    ],
+    relatedSymbols: ["crawling", "falling", "being-chased", "death", "water"],
+    updatedAt: "2026-07-19",
+    variations: [
+      { slug: "light-at-end-of-tunnel", name: "light at the end of a tunnel", focus: "hope after hardship, a visible exit from a hard season, or faith that the passage ends in relief" },
+      { slug: "dark-tunnel", name: "a dark tunnel", focus: "uncertainty, fear of the next phase, or moving forward without a clear view of the outcome" },
+      { slug: "endless-tunnel", name: "an endless tunnel", focus: "fatigue with a transition that feels without end, or waiting for relief that keeps receding" },
+      { slug: "blocked-tunnel", name: "a blocked tunnel", focus: "a path forward that feels sealed, stalled progress, or resistance to entering the next chapter" },
+      { slug: "train-in-a-tunnel", name: "a train in a tunnel", focus: "being carried through change without full control, or collective momentum through a dark stretch" },
+      { slug: "exiting-a-tunnel", name: "exiting a tunnel", focus: "emergence, clarity after confinement, or the first breath of a new phase" },
     ],
   },
 ];
@@ -2152,6 +2202,7 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { title: "Someone Handing You a Baby", meaning: "Responsibility transferring: a duty, project, or dependent arriving via someone else's decision — the dream's question is whether you accept the handoff, and the dream usually shows your answer before you've admitted it awake. Who does the handing tends to be exactly who it is in life." },
     ],
     faq: [
+      { question: "What is the psychological meaning of dreaming about a baby?", answer: "Psychologically, a baby often stands for new potential under your care — a project, recovery, relationship, or emerging self — or, for parents and expectant parents, caregiving vigilance. The baby's condition is usually a status report on how that new thing is being tended." },
       { question: "I'm not a parent and don't want kids. Why do I dream about babies?", answer: "Because the dream-baby is the mind's icon for anything new and dependent: ventures, creative work, healing, a changing identity. Ask what in your life is under a year old and needs regular feeding — most dreamers can answer immediately, and the dream's plot is usually a fair review of how the feeding is going." },
       { question: "I keep dreaming I lost or forgot my baby. Am I a bad parent?", answer: "The opposite inference is better supported: studies of new parents find infant-peril dreams in the substantial majority, and they track vigilance — the caregiving system running drills. They fade as the baby grows. Distressing frequency plus daytime intrusive fear is worth mentioning to a doctor, as postpartum anxiety is treatable." },
       { question: "Does dreaming of a baby mean pregnancy is coming?", answer: "No — dream-babies forecast nothing. In those trying to conceive, baby dreams are hope and worry rehearsing; in others, they're symbolic of new undertakings. The one predictive-sounding pattern is mundane: people often dream of babies after deciding, consciously or not, to begin something." },
@@ -2355,8 +2406,72 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
     ],
     faq: [
       { question: "What is the spiritual meaning of dreaming about work?", answer: "It often concerns vocation, stewardship, burnout, and whether effort still aligns with purpose — an invitation to rebalance duty and the rest of life, not a prediction of job loss." },
+      { question: "What does a dream of working mean?", answer: "A dream of working usually reflects duty, identity, and performance pressure — or a calling question about whether your effort still fits the life you want. Details (boss, lateness, firing, old job) refine which part of vocation is speaking." },
       { question: "Why do I keep dreaming about my job?", answer: "Recurring work dreams usually track unresolved pressure, identity fused to performance, or a decision about a role that waking hours keep postponing." },
       { question: "Is dreaming of being fired a bad omen?", answer: "Usually it reflects insecurity, fear of rejection, or readiness to leave a role that no longer fits — not a reliable forecast of termination." },
+    ],
+  },
+  tunnel: {
+    introduction: [
+      "A tunnel dream is almost always about passage: you are between where you were and where you are going, with limited visibility and no easy exit to the sides. Searchers looking for the biblical meaning of dreaming of a tunnel often wake with the same question — am I trapped, or am I simply mid-journey?",
+      "Scripture and psychology both treat narrow passages seriously. The dream borrows architecture for a life season: confinement, faith without full sight, and the hope (or dread) of what waits at the far opening.",
+    ],
+    general: [
+      "Read the tunnel by light, length, and your motion. Light ahead grades hope; pitch dark grades trust under uncertainty; an endless tube grades fatigue with a transition that will not resolve. Walking calmly differs from running, crawling, or being carried — those map onto agency inside the change.",
+      "Companions and blockages matter. Alone in a tunnel often personalizes the trial; a crowd can mean a shared hardship or social pressure. A sealed exit or cave-in stages fear that the next chapter is closed — ask what waking choice feels blocked rather than treating it as fate.",
+    ],
+    psychological: [
+      "Psychologically, tunnels stage liminality: identity between roles, recovery between illness and health, grief between loss and reorganization. The narrowness mirrors how few options feel available mid-transition, even when the destination is good.",
+      "Anxiety-prone dreamers may loop the same tunnel when a decision is postponed. Completing the passage in the dream — exiting into light or open air — often coincides with accepting a next step awake, however small.",
+    ],
+    spiritual: [
+      "Spiritually, the tunnel is a classic image of faith under constraint: moving forward when the full path is not visible. Many traditions treat the dark middle as formative rather than punitive — a season that strips distraction so that dependence, patience, or courage can grow.",
+      "A useful spiritual response is practical: name the passage you are in, shorten the daily distance you demand of yourself, and watch for honest 'light' signs without forcing premature exits. The dream asks for steadfastness more than drama.",
+    ],
+    islamic: [
+      "In an Islamic framing, dreams of dark passages or constrained travel may be weighed against the dreamer's current trial and reliance on Allah, without treating the image as certain knowledge of the unseen. Difficulty on a path can reflect worldly hardship or a season of sabr — patience with trust — rather than a fixed omen.",
+      "A frightening tunnel dream is met like other unsettling dreams: seek refuge in Allah, avoid spreading fear through speculation, and keep waking decisions tied to faith, evidence, and good character. If the dream ends in light or open space, receive that texture with gratitude as encouragement, not as a guarantee of timing.",
+    ],
+    biblical: [
+      "The biblical imagination is full of passages through the dark toward deliverance: Israel through the sea's corridor of walls, Jonah in the fish's confinement, and the 'valley of the shadow of death' walked with the Shepherd. Narrow ways also appear as moral architecture — the gate that is small, the road that is hard — so a tunnel dream can ask whether the hard path is the faithful one.",
+      "Light at the end of a tunnel resonates with hope texts without becoming a code: 'the people walking in darkness have seen a great light,' and resurrection itself is emergence from a sealed place. A biblical reflection asks: what confinement am I in, who walks with me, and what would faithful next steps look like before the exit is fully visible? The dream is for prayerful discernment, not private prediction.",
+    ],
+    commonScenarios: [
+      { title: "Light at the End of the Tunnel", meaning: "Hope after hardship — a sense that the difficult season has an exit. Note whether you are moving toward the light or standing still staring at it." },
+      { title: "A Completely Dark Tunnel", meaning: "Transition without clarity. Often tracks decisions or recoveries where you must act before outcomes are visible." },
+      { title: "An Endless Tunnel", meaning: "Fatigue with a process that will not resolve. Ask what waking expectation keeps resetting the finish line." },
+      { title: "A Blocked or Collapsed Tunnel", meaning: "Fear that a path forward is sealed. Map it onto a specific stalled choice, relationship, or opportunity rather than global doom." },
+      { title: "Riding a Train Through a Tunnel", meaning: "Being carried through change — less personal steering, more collective or systemic momentum. Useful when life feels on rails you did not lay." },
+      { title: "Exiting Into Open Air", meaning: "Emergence and relief. Often marks the emotional beginning of a new phase before logistics catch up." },
+    ],
+    faq: [
+      { question: "What is the biblical meaning of dreaming of a tunnel?", answer: "It commonly images a narrow passage through trial toward deliverance or a hard-but-faithful path — akin to valleys, sealed places, and narrow gates in scripture. Read it as an invitation to trust and next steps, not as a coded prophecy." },
+      { question: "Is a tunnel dream a bad omen?", answer: "Not by default. Tunnels are passages. Fear grades the emotion of the transition; light, exit, or calm walking often lean toward hope and progress." },
+      { question: "What if I never reach the end of the tunnel?", answer: "Endless-tunnel dreams usually track burnout with a process or a postponed decision. Shorten the next waking step instead of waiting for a cinematic exit." },
+      { question: "Does light at the end of the tunnel mean my problems are over?", answer: "It more often means relief is conceivable and worth moving toward — encouragement, not a timestamp. Keep attending to the passage you are still in." },
+    ],
+  },
+  "fear-of-heights": {
+    introduction: [
+      "Fear of heights in a dream — searched in German as traumdeutung höhenangst — usually stages vertigo at a life edge: a promotion, a risk, a view of how far you could fall. The dream may never show falling; the terror of the drop is enough.",
+      "Unlike a simple falling dream, höhenangst imagery often freezes you at the brink. The question is less 'Will I fall?' than 'Can I stand this exposure without losing my footing?'",
+    ],
+    general: [
+      "Note whether you chose the height or were placed there. Climbing willingly then panicking maps onto ambition meeting fear. Being forced to a ledge often tracks pressure from others. Looking down versus refusing to look separates curiosity about risk from total avoidance.",
+      "Railings, wind, and companions refine the reading. A secure barrier that you still distrust points to safety you cannot feel. Wind that threatens balance can be emotional turbulence. Someone urging you forward or holding you back is often exactly who they are in waking life.",
+    ],
+    psychological: [
+      "Psychologically, acrophobia dreams borrow the body's altitude alarm for status and competence fears: success that feels precarious, visibility that feels unsafe, or progress that outran your sense of support. Clinicians also see them after real elevation anxiety or after taking on roles with farther-to-fall consequences.",
+      "If the dream freezes you mid-step, ask what waking decision feels like a ledge — speak up, launch, leave, commit. The dream exaggerates height; the underlying hesitation is usually specific and nameable.",
+    ],
+    spiritual: [
+      "Spiritually, high places can mean perspective and temptation alike — a wider view that also exposes pride or isolation. A fear-of-heights dream may invite humility: hold the vantage without pretending you are invulnerable, and seek steady ground in practice, prayer, or trusted counsel.",
+      "A grounded response is to distinguish wise caution from fear that blocks a needed step. Courage here is rarely a leap; it is one secure foothold at a time.",
+    ],
+    faq: [
+      { question: "What does traumdeutung höhenangst mean in a dream?", answer: "Höhenangst (fear of heights) in dreams usually symbolizes exposure, precarious success, or anxiety about falling from a hard-won position — a psychological and spiritual status report, not a prediction of literal falls." },
+      { question: "Is dreaming of fear of heights the same as dreaming of falling?", answer: "Related but not identical. Falling focuses on the drop; fear of heights focuses on standing at the edge. Many dreamers get the brink without the fall." },
+      { question: "Why do I freeze at the top in the dream?", answer: "Freezing often maps onto a waking choice where ambition and fear cancel each other. Name the ledge decision; the dream usually softens once a small next step is taken." },
     ],
   },
   ghost: {
@@ -2517,9 +2632,9 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "Failing brakes, back-seat driving, a stolen car — vehicle dreams are control reports. What each scenario says about who's steering, and how to read yours.",
   },
   baby: {
-    seoTitle: "Baby Dream Meaning: Why the Baby Is Rarely a Baby",
+    seoTitle: "Psychological Meaning of Dreaming About a Baby",
     seoDescription:
-      "Baby dreams stand for whatever is new and depends on you — a project, a healing, a self. What crying, forgotten, and strangely wise dream-babies mean.",
+      "What dreaming about a baby means psychologically — new potential, caregiving anxiety, and why the dream-baby is rarely a literal child. Spiritual and biblical angles too.",
   },
   wedding: {
     seoTitle: "Wedding Dream Meaning: Disasters, Strangers & Cold Feet",
@@ -2569,7 +2684,17 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
   work: {
     seoTitle: "Spiritual Meaning of Dreaming About Work",
     seoDescription:
-      "What dreaming about work means spiritually and psychologically — duty, identity, burnout, and the balance between effort and the rest of life.",
+      "What dreaming about work — or a dream of working — means spiritually and psychologically: duty, identity, burnout, and balance between effort and the rest of life.",
+  },
+  tunnel: {
+    seoTitle: "Biblical Meaning of Dreaming of a Tunnel",
+    seoDescription:
+      "What a tunnel dream means biblically and psychologically — narrow passages, light at the end, and faithful next steps through a hard season.",
+  },
+  "fear-of-heights": {
+    seoTitle: "Fear of Heights Dream Meaning (Traumdeutung Höhenangst)",
+    seoDescription:
+      "What fear of heights in a dream means — höhenangst, exposure after progress, and freezing at the edge. Psychological and spiritual readings.",
   },
   "ex-family": {
     seoTitle: "Dreaming of an Ex and Their Family: What It Means",
@@ -2834,6 +2959,8 @@ export const POPULAR_DREAM_SLUGS = [
   "hair-falling-out",
   "alligator",
   "crawling",
+  "tunnel",
+  "work",
 ] as const;
 
 export function getDreamEntry(slug: string): DreamEntry | undefined {
