@@ -128,12 +128,19 @@ type UserRow = {
   uid: string;
   email: string;
   lastLoginAtMs: number | null;
+  city: string;
+  cityId: string;
   dreamsCount: number;
   sharedCount: number;
   topIcons: string[]; // ✅ emoji symbols
   upgradeVisits: number; // ✅ new
   packClicks: number; // ✅ new
 };
+
+function fmtUserCity(city: string, country: string, admin1: string) {
+  const parts = [city, admin1, country].map((x) => String(x ?? "").trim()).filter(Boolean);
+  return parts.length ? parts.join(", ") : "—";
+}
 
 function toMs(v: unknown): number | null {
   if (v == null) return null;
@@ -687,6 +694,10 @@ async function loadUsers() {
         // Firestore fallback (synced from Auth on login)
         lastLoginAtMs:
           toMs(data?.authLastSignInTime) ?? toMs(data?.lastLoginAt) ?? null,
+        city: String(data?.currentCity ?? "").trim(),
+        country: String(data?.currentCountry ?? "").trim(),
+        admin1: String(data?.currentAdmin1 ?? "").trim(),
+        cityId: String(data?.currentCityId ?? "").trim(),
       };
     });
 
@@ -777,6 +788,8 @@ async function loadUsers() {
         uid: u.uid,
         email,
         lastLoginAtMs,
+        city: fmtUserCity(u.city, u.country, u.admin1),
+        cityId: u.cityId,
         dreamsCount,
         sharedCount,
         upgradeVisits,
@@ -816,7 +829,8 @@ async function loadUsers() {
     const list = !q
       ? usersRows
       : usersRows.filter((r) => {
-          const hay = `${r.uid} ${r.email} ${r.topIcons.join(" ")}`.toLowerCase();
+          const hay =
+            `${r.uid} ${r.email} ${r.city} ${r.cityId} ${r.topIcons.join(" ")}`.toLowerCase();
           return hay.includes(q);
         });
 
@@ -1336,6 +1350,7 @@ async function loadUsers() {
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">User UUID</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Email</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Last login</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">City</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Dreams</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Shared</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Upgrade visits</th>
@@ -1351,6 +1366,12 @@ async function loadUsers() {
                       <td className="p-3 text-[var(--text)]">{r.email || "—"}</td>
                       <td className="p-3 text-[var(--text)] whitespace-nowrap">
                         {fmtLastLogin(r.lastLoginAtMs)}
+                      </td>
+                      <td
+                        className="p-3 text-[var(--text)] max-w-[180px] truncate"
+                        title={r.cityId || r.city || undefined}
+                      >
+                        {r.city || "—"}
                       </td>
                       <td className="p-3 text-[var(--text)]">{r.dreamsCount}</td>
                       <td className="p-3 text-[var(--text)]">{r.sharedCount}</td>
@@ -1372,7 +1393,7 @@ async function loadUsers() {
 
                   {!usersFiltered.length && !usersLoading ? (
                     <tr>
-                      <td colSpan={9} className="p-6 text-center">
+                      <td colSpan={10} className="p-6 text-center">
                         <div className={`text-sm ${mutedText}`}>No users found.</div>
                       </td>
                     </tr>
@@ -1383,12 +1404,10 @@ async function loadUsers() {
           </div>
 
           <div className={`text-xs ${mutedText}`}>
-            Примечание: Shared count берётся из <span className="font-mono">shared_dreams</span> по полю{" "}
-            <span className="font-mono">ownerUid</span>. Last login — из{" "}
-            <span className="font-mono">Firebase Auth</span> (
-            <span className="font-mono">metadata.lastSignInTime</span>), fallback на Firestore{" "}
-            <span className="font-mono">authLastSignInTime</span> /{" "}
-            <span className="font-mono">lastLoginAt</span>. Таблица отсортирована по last login (новые сверху).
+            Примечание: Shared count — из <span className="font-mono">shared_dreams.ownerUid</span>.
+            Last login — Firebase Auth <span className="font-mono">lastSignInTime</span>.
+            City — Firestore <span className="font-mono">currentCity / currentCountry / currentAdmin1</span>{" "}
+            (браузерный geolocation + Nominatim, не IP). Таблица по last login (новые сверху).
           </div>
         </div>
       )}
