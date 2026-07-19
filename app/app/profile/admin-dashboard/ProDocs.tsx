@@ -23,9 +23,25 @@ const ACTIONS = [
   { action: "Translate (shared feed)", cost: "0", note: "GPT через API, кэш в Firebase" },
 ] as const;
 
+type BackfillRow = {
+  uid: string;
+  storyId: string;
+  status: "ingested" | "skipped" | "error";
+  reason?: string;
+};
+
+const SKIP_REASONS: Record<string, string> = {
+  no_emojis: "нет emoji у story",
+  already_ingested: "уже есть в map_ingested",
+  deleted: "story удалена",
+  bad_path: "битый путь users/{uid}/stories",
+  ingest_skipped: "ingest вернул skipped",
+};
+
 export default function ProDocs() {
   const [backfillBusy, setBackfillBusy] = useState(false);
   const [backfillMsg, setBackfillMsg] = useState<string | null>(null);
+  const [backfillRows, setBackfillRows] = useState<BackfillRow[]>([]);
 
   async function runStoryMapBackfill() {
     if (backfillBusy) return;
@@ -36,6 +52,7 @@ export default function ProDocs() {
 
     setBackfillBusy(true);
     setBackfillMsg(null);
+    setBackfillRows([]);
 
     try {
       const u = auth.currentUser;
@@ -49,6 +66,8 @@ export default function ProDocs() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "Backfill failed");
 
+      const rows: BackfillRow[] = Array.isArray(data.results) ? data.results : [];
+      setBackfillRows(rows);
       setBackfillMsg(
         `Готово: total=${data.totalStories ?? 0}, ingested=${data.ingested ?? 0}, skipped=${data.skipped ?? 0}, errors=${data.errors ?? 0}`
       );
@@ -337,6 +356,51 @@ export default function ProDocs() {
               <span className="text-xs text-[var(--muted)] font-mono">{backfillMsg}</span>
             ) : null}
           </div>
+
+          <div className="mt-3 text-xs text-[var(--muted)] space-y-1">
+            <div>
+              <strong className="text-[var(--text)]">skipped</strong> — не ошибка: нет emoji /
+              уже в <span className="font-mono">map_ingested</span> / удалена
+            </div>
+            <div>
+              <strong className="text-[var(--text)]">errors</strong> — ingest упал (часто нет
+              Firebase admin env на сервере). Смотри reason ниже.
+            </div>
+          </div>
+
+          {backfillRows.length > 0 ? (
+            <div className="mt-3 overflow-x-auto rounded-xl border border-[var(--border)]">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_6%,transparent)] text-left">
+                    <th className="p-2 font-semibold">status</th>
+                    <th className="p-2 font-semibold">reason</th>
+                    <th className="p-2 font-semibold">uid</th>
+                    <th className="p-2 font-semibold">storyId</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {backfillRows.map((r) => (
+                    <tr
+                      key={`${r.uid}_${r.storyId}`}
+                      className="border-b border-[var(--border)] last:border-0"
+                    >
+                      <td className="p-2 font-semibold">{r.status}</td>
+                      <td className="p-2 text-[var(--muted)]">
+                        {r.reason
+                          ? SKIP_REASONS[r.reason] || r.reason
+                          : r.status === "ingested"
+                            ? "ok"
+                            : "—"}
+                      </td>
+                      <td className="p-2 font-mono">{r.uid.slice(0, 10)}…</td>
+                      <td className="p-2 font-mono">{r.storyId}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </section>
 
         <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">

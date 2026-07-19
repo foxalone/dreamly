@@ -8,8 +8,19 @@ let cachedServiceAccount: any | null = null;
 function getServiceAccount() {
   if (cachedServiceAccount) return cachedServiceAccount;
 
+  // Prefer JSON env (Vercel / admin routes), fallback to file path (local)
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+  if (json) {
+    cachedServiceAccount = JSON.parse(json);
+    return cachedServiceAccount;
+  }
+
   const p = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (!p) throw new Error("Missing FIREBASE_SERVICE_ACCOUNT_PATH");
+  if (!p) {
+    throw new Error(
+      "Missing FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH"
+    );
+  }
 
   const abs = path.isAbsolute(p) ? p : path.join(process.cwd(), p);
   const raw = fs.readFileSync(abs, "utf8");
