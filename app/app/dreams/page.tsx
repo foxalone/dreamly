@@ -3,6 +3,7 @@
 import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { Keyboard, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
@@ -460,6 +461,8 @@ export default function DreamsPage() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
+  // stays true if voice was used in this composer session (even after stop)
+  const [usedVoice, setUsedVoice] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -643,6 +646,7 @@ export default function DreamsPage() {
 
     rec.onstart = () => {
       setRecording(true);
+      setUsedVoice(true);
       setRecStatus("listening");
     };
 
@@ -863,6 +867,7 @@ export default function DreamsPage() {
       setText("");
       setError(null);
       setSaving(false);
+      setUsedVoice(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -1032,7 +1037,7 @@ export default function DreamsPage() {
 
       tags: [] as string[],
       summary: "",
-      source: recording ? ("voice" as const) : ("manual" as const),
+      source: usedVoice || recording ? ("voice" as const) : ("manual" as const),
 
       deleted: false,
 
@@ -1681,11 +1686,22 @@ export default function DreamsPage() {
                   );
                 })()}
 
-         <div className="mt-3 text-xs text-[var(--muted)] flex justify-end">
-  <div className="opacity-70 whitespace-nowrap">
-    {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-  </div>
-</div>
+                  <div className="mt-3 text-xs text-[var(--muted)] flex justify-end items-center gap-2">
+                    <span
+                      className="opacity-70 inline-flex items-center"
+                      title={d.source === "voice" ? "Recorded" : "Typed"}
+                      aria-label={d.source === "voice" ? "Recorded" : "Typed"}
+                    >
+                      {d.source === "voice" ? (
+                        <Mic size={14} strokeWidth={1.8} aria-hidden />
+                      ) : (
+                        <Keyboard size={14} strokeWidth={1.8} aria-hidden />
+                      )}
+                    </span>
+                    <div className="opacity-70 whitespace-nowrap">
+                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                    </div>
+                  </div>
                 {tab === "SHARED" &&
                   (() => {
                     const r = publicReactions[d.id] ?? { heart: 0, like: 0, star: 0 };
