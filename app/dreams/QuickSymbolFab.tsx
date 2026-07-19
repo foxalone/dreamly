@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2, MoonStar, X } from "lucide-react";
@@ -87,7 +88,12 @@ export default function QuickSymbolFab() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuickResult | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
   const resumeStarted = useRef(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -281,104 +287,119 @@ export default function QuickSymbolFab() {
         <span>Ask</span>
       </button>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-sm p-4"
-          onClick={() => !busy && setOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 shadow-2xl"
-            onClick={(ev) => ev.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-[var(--dd-text)]">Quick symbol</h2>
-                <p className="mt-1 text-xs text-[var(--dd-muted)]">
-                  Up to {QUICK_SYMBOL_MAX_WORDS} words. Dictionary match is free; unknown symbols cost 1 credit. Sign in required.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => !busy && setOpen(false)}
-                className="grid size-8 place-items-center rounded-full text-[var(--dd-subtle)] hover:bg-[var(--dd-surface-hover)]"
-                aria-label="Close"
+      {portalReady && open
+        ? createPortal(
+            <div
+              className="dream-dictionary fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+              onClick={() => !busy && setOpen(false)}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="quick-symbol-title"
+            >
+              <div
+                className="max-h-[min(90dvh,40rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 shadow-2xl"
+                onClick={(ev) => ev.stopPropagation()}
               >
-                <X size={16} />
-              </button>
-            </div>
-
-            <form onSubmit={onSubmit} className="mt-4 space-y-3">
-              <textarea
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                rows={3}
-                maxLength={120}
-                placeholder="e.g. snake, teeth falling out, tunnel…"
-                className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3 py-2.5 text-sm text-[var(--dd-text)] outline-none focus:border-violet-400/40"
-                disabled={busy}
-              />
-              <div className="flex items-center justify-between gap-2 text-xs text-[var(--dd-subtle)]">
-                <span>
-                  {countWords(query)} / {QUICK_SYMBOL_MAX_WORDS} words
-                </span>
-                {user ? (
-                  <span className="truncate max-w-[180px]">{user.email}</span>
-                ) : (
-                  <span>Sign in to continue</span>
-                )}
-              </div>
-
-              {error ? (
-                <div className="rounded-xl border border-red-500/30 bg-red-600/10 px-3 py-2 text-xs text-red-200">
-                  {error}
-                </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={busy || !query.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[var(--dd-text)] px-4 py-2.5 text-sm font-semibold text-[var(--dd-bg)] disabled:opacity-50"
-              >
-                {busy ? (
-                  <>
-                    <Loader2 className="animate-spin" size={16} />
-                    Looking up…
-                  </>
-                ) : user ? (
-                  "Get meaning"
-                ) : (
-                  "Sign in & get meaning"
-                )}
-              </button>
-            </form>
-
-            {result ? (
-              <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
-                <div className="flex items-center justify-between gap-2 text-xs text-[var(--dd-subtle)]">
-                  <span>
-                    {result.matched
-                      ? `${result.match?.icon ?? "🌙"} ${result.match?.title ?? "Match"}`
-                      : "AI draft"}
-                  </span>
-                  <span>{result.cost === 0 ? "Free" : "1 credit"}</span>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--dd-text)] whitespace-pre-wrap">
-                  {result.answer}
-                </p>
-                {result.href ? (
-                  <Link
-                    href={result.href}
-                    className="mt-3 inline-flex text-sm font-semibold text-[var(--dd-accent-text)] hover:underline"
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2
+                      id="quick-symbol-title"
+                      className="text-lg font-semibold text-[var(--dd-text)]"
+                    >
+                      Quick symbol
+                    </h2>
+                    <p className="mt-1 text-xs text-[var(--dd-muted)]">
+                      Up to {QUICK_SYMBOL_MAX_WORDS} words. Dictionary match is free; unknown
+                      symbols cost 1 credit. Sign in required.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => !busy && setOpen(false)}
+                    className="grid size-8 place-items-center rounded-full text-[var(--dd-subtle)] hover:bg-[var(--dd-surface-hover)]"
+                    aria-label="Close"
                   >
-                    Open full page →
-                  </Link>
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <form onSubmit={onSubmit} className="mt-4 space-y-3">
+                  <textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    rows={3}
+                    maxLength={120}
+                    placeholder="e.g. snake, teeth falling out, tunnel…"
+                    className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3 py-2.5 text-sm text-[var(--dd-text)] outline-none focus:border-violet-400/40"
+                    disabled={busy}
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between gap-2 text-xs text-[var(--dd-subtle)]">
+                    <span>
+                      {countWords(query)} / {QUICK_SYMBOL_MAX_WORDS} words
+                    </span>
+                    {user ? (
+                      <span className="truncate max-w-[180px]">{user.email}</span>
+                    ) : (
+                      <span>Sign in to continue</span>
+                    )}
+                  </div>
+
+                  {error ? (
+                    <div className="rounded-xl border border-red-500/30 bg-red-600/10 px-3 py-2 text-xs text-red-200">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={busy || !query.trim()}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[var(--dd-text)] px-4 py-2.5 text-sm font-semibold text-[var(--dd-bg)] disabled:opacity-50"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2 className="animate-spin" size={16} />
+                        Looking up…
+                      </>
+                    ) : user ? (
+                      "Get meaning"
+                    ) : (
+                      "Sign in & get meaning"
+                    )}
+                  </button>
+                </form>
+
+                {result ? (
+                  <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
+                    <div className="flex items-center justify-between gap-2 text-xs text-[var(--dd-subtle)]">
+                      <span>
+                        {result.matched
+                          ? `${result.match?.icon ?? "🌙"} ${result.match?.title ?? "Match"}`
+                          : "AI draft"}
+                      </span>
+                      <span>{result.cost === 0 ? "Free" : "1 credit"}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--dd-text)] whitespace-pre-wrap">
+                      {result.answer}
+                    </p>
+                    {result.href ? (
+                      <Link
+                        href={result.href}
+                        className="mt-3 inline-flex text-sm font-semibold text-[var(--dd-accent-text)] hover:underline"
+                      >
+                        Open full page →
+                      </Link>
+                    ) : null}
+                    <p className="mt-2 text-xs text-[var(--dd-subtle)]">
+                      Saved to your journal (Quick / dreamer).
+                    </p>
+                  </div>
                 ) : null}
-                <p className="mt-2 text-xs text-[var(--dd-subtle)]">Saved to your journal (Quick / dreamer).</p>
               </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }
