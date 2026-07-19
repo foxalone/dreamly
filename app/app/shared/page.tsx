@@ -12,6 +12,7 @@ import {
   query,
   runTransaction,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -29,6 +30,8 @@ type DreamEmoji = {
   name?: string;
   id?: string;
 };
+
+type TargetLang = "en" | "ru" | "he";
 
 type SharedDream = {
   id: string;
@@ -54,6 +57,12 @@ type SharedDream = {
   wordCount?: number;
   charCount?: number;
   langGuess?: string;
+
+  // cached translations by target lang (en/ru/he)
+  translations?: Record<
+    string,
+    string | { text?: string; model?: string; atMs?: number }
+  >;
 
   reactions?: {
     heart?: number;
@@ -142,6 +151,28 @@ function getSharedTypeLabel(d: SharedDream) {
   return d.sourceType === "story" ? "Story" : "Dream";
 }
 
+function getUserTargetLang(): TargetLang {
+  if (typeof window === "undefined") return "en";
+
+  const saved = localStorage.getItem("recLang") ?? "";
+  const nav = (navigator.language || "").toLowerCase();
+  const raw = (saved || nav).toLowerCase();
+
+  if (raw.startsWith("ru")) return "ru";
+  if (raw.startsWith("he") || raw.startsWith("iw")) return "he";
+  return "en";
+}
+
+function getCachedTranslation(
+  d: SharedDream,
+  lang: TargetLang
+): string {
+  const v = d.translations?.[lang];
+  if (!v) return "";
+  if (typeof v === "string") return v.trim();
+  return String(v.text ?? "").trim();
+}
+
 export default function SharedPage() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
@@ -149,6 +180,16 @@ export default function SharedPage() {
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [targetLang, setTargetLang] = useState<TargetLang>("en");
+  // when set, show translated text for that dream id
+  const [showingTranslation, setShowingTranslation] = useState<
+    Record<string, string>
+  >({});
+  const [translateBusyId, setTranslateBusyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTargetLang(getUserTargetLang());
+  }, []);
 
   // ✅ auth state only (no anonymous login). Guests are allowed to view.
   useEffect(() => {
@@ -305,6 +346,92 @@ export default function SharedPage() {
     }
   }
 
+  async function translateDream(d: SharedDream) {
+    const original = (d.text ?? "").trim();
+    if (!original) return;
+
+    // toggle back to original if already showing translation
+    if (showingTranslation[d.id]) {
+      setShowingTranslation((prev) => {
+        const next = { ...prev };
+        delete next[d.id];
+        return next;
+      });
+      return;
+    }
+
+    const lang = getUserTargetLang();
+    setTargetLang(lang);
+
+    const cached = getCachedTranslation(d, lang);
+    if (cached) {
+      setShowingTranslation((prev) => ({ ...prev, [d.id]: cached }));
+      return;
+    }
+
+    if (translateBusyId) return;
+
+    setError(null);
+    setTranslateBusyId(d.id);
+
+    try {
+      const res = await fetch("/api/dreams/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sharedDreamId: d.id,
+          text: original,
+          targetLang: lang,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? "Translate failed");
+
+      const translation = String(data?.translation ?? "").trim();
+      if (!translation) throw new Error("Empty translation");
+
+      setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
+
+      const entry = {
+        text: translation,
+        model: data?.model ?? undefined,
+        atMs: Date.now(),
+      };
+
+      // optimistic local cache so re-clicks don't re-fetch before snapshot updates
+      setItems((prev) =>
+        prev.map((x) =>
+          x.id === d.id
+            ? {
+                ...x,
+                translations: {
+                  ...(x.translations ?? {}),
+                  [lang]: entry,
+                },
+              }
+            : x
+        )
+      );
+
+      // client fallback write if API couldn't persist (permissions / admin env)
+      if (!data?.cached && uid) {
+        try {
+          await updateDoc(doc(firestore, "shared_dreams", d.id), {
+            [`translations.${lang}`]: entry,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (e) {
+          console.warn("client translate cache write failed:", e);
+        }
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to translate.");
+    } finally {
+      setTranslateBusyId(null);
+    }
+  }
+
   return (
     <main className="relative min-h-screen px-6 py-10 max-w-3xl mx-auto">
       <div>
@@ -372,7 +499,7 @@ export default function SharedPage() {
                   </div>
 
                   <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
-                    {d.text}
+                    {showingTranslation[d.id] ?? d.text}
                   </div>
 
                   <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
@@ -406,6 +533,38 @@ export default function SharedPage() {
                         );
                       })}
                     </div>
+
+                    {(() => {
+                      const isShowing = !!showingTranslation[d.id];
+                      const isBusy = translateBusyId === d.id;
+                      const hasCache = !!getCachedTranslation(d, targetLang);
+                      const label = isBusy
+                        ? "Translating…"
+                        : isShowing
+                          ? "Original"
+                          : "Translate";
+
+                      return (
+                        <button
+                          onClick={() => translateDream(d)}
+                          disabled={isBusy || !(d.text ?? "").trim()}
+                          className={[
+                            "react-btn react-btn--translate px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                            isShowing || hasCache ? "react-btn--translate-on" : "",
+                            isBusy ? "opacity-70 cursor-wait" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          title={
+                            isShowing
+                              ? "Show original text"
+                              : `Translate to ${targetLang.toUpperCase()}`
+                          }
+                        >
+                          <span>{label}</span>
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               );
