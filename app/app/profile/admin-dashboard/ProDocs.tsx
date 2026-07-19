@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { auth } from "@/lib/firebase";
+
 /**
  * Внутренняя «Confluence»-страница: как устроена монетизация (кредиты / Upgrade).
  * Данные синхронизированы с кодом: lib/credits/packs.ts, PayPal API, dreams page.
@@ -21,6 +24,41 @@ const ACTIONS = [
 ] as const;
 
 export default function ProDocs() {
+  const [backfillBusy, setBackfillBusy] = useState(false);
+  const [backfillMsg, setBackfillMsg] = useState<string | null>(null);
+
+  async function runStoryMapBackfill() {
+    if (backfillBusy) return;
+    const ok = confirm(
+      "One-time backfill: добавить emoji существующих stories на карту?\nУже ingest’нутые будут пропущены."
+    );
+    if (!ok) return;
+
+    setBackfillBusy(true);
+    setBackfillMsg(null);
+
+    try {
+      const u = auth.currentUser;
+      if (!u) throw new Error("Not signed in");
+      const token = await u.getIdToken();
+
+      const res = await fetch("/api/admin/map/backfill-stories", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? "Backfill failed");
+
+      setBackfillMsg(
+        `Готово: total=${data.totalStories ?? 0}, ingested=${data.ingested ?? 0}, skipped=${data.skipped ?? 0}, errors=${data.errors ?? 0}`
+      );
+    } catch (e: any) {
+      setBackfillMsg(e?.message ?? "Backfill failed");
+    } finally {
+      setBackfillBusy(false);
+    }
+  }
+
   return (
     <article className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
       {/* Confluence-like header */}
@@ -273,6 +311,32 @@ export default function ProDocs() {
               <span className="font-mono text-[var(--text)]">transactions</span>.
             </li>
           </ul>
+        </section>
+
+        <section>
+          <h3 className="text-base font-semibold border-b border-[var(--border)] pb-2">
+            8. Map — one-time backfill stories
+          </h3>
+          <p className="mt-3 text-[var(--muted)]">
+            Проходит все <span className="font-mono text-[var(--text)]">users/*/stories</span> с
+            emoji и пишет их в карту (
+            <span className="font-mono text-[var(--text)]">storyEmojis</span> /{" "}
+            <span className="font-mono text-[var(--text)]">map_ingested</span>). Уже загруженные
+            пропускаются — можно жать повторно.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={runStoryMapBackfill}
+              disabled={backfillBusy}
+              className="px-4 py-2 rounded-full text-sm font-semibold border border-[var(--border)] bg-[var(--text)] text-[var(--bg)] disabled:opacity-60"
+            >
+              {backfillBusy ? "Running…" : "Backfill stories → map"}
+            </button>
+            {backfillMsg ? (
+              <span className="text-xs text-[var(--muted)] font-mono">{backfillMsg}</span>
+            ) : null}
+          </div>
         </section>
 
         <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
