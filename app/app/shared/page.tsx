@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Keyboard, Mic } from "lucide-react";
 import {
   collection,
   doc,
@@ -36,6 +37,7 @@ type TargetLang = "en" | "ru" | "he";
 type SharedDream = {
   id: string;
   sourceType?: "dream" | "story";
+  source?: "manual" | "voice";
 
   title?: string;
   text?: string;
@@ -512,9 +514,22 @@ export default function SharedPage() {
                       ) : null}
                     </div>
 
-                    {/* date */}
-                    <div className="text-xs text-[var(--muted)] whitespace-nowrap">
-                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                    {/* input method + date */}
+                    <div className="text-xs text-[var(--muted)] whitespace-nowrap inline-flex items-center gap-2">
+                      <span
+                        className="opacity-70 inline-flex items-center"
+                        title={d.source === "voice" ? "Recorded" : "Typed"}
+                        aria-label={d.source === "voice" ? "Recorded" : "Typed"}
+                      >
+                        {d.source === "voice" ? (
+                          <Mic size={14} strokeWidth={1.8} aria-hidden />
+                        ) : (
+                          <Keyboard size={14} strokeWidth={1.8} aria-hidden />
+                        )}
+                      </span>
+                      <span className="opacity-70">
+                        {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                      </span>
                     </div>
                   </div>
 

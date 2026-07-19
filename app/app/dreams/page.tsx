@@ -1171,6 +1171,7 @@ export default function DreamsPage() {
         wordCount: item.wordCount ?? null,
         charCount: item.charCount ?? null,
         langGuess: (item as any).langGuess ?? null,
+        source: item.source === "voice" ? "voice" : "manual",
 
         iconsEn: (item as any).iconsEn ?? [],
         emojis: (item as any).emojis ?? [],
