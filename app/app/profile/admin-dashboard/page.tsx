@@ -127,12 +127,40 @@ function uniq(arr: string[]) {
 type UserRow = {
   uid: string;
   email: string;
+  lastLoginAtMs: number | null;
   dreamsCount: number;
   sharedCount: number;
   topIcons: string[]; // ✅ emoji symbols
-    upgradeVisits: number; // ✅ new
-  packClicks: number;    // ✅ new
+  upgradeVisits: number; // ✅ new
+  packClicks: number; // ✅ new
 };
+
+function toMs(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Date.parse(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  // Firestore Timestamp
+  if (typeof (v as any)?.toMillis === "function") {
+    const n = (v as any).toMillis();
+    return Number.isFinite(n) ? n : null;
+  }
+  if (typeof (v as any)?.seconds === "number") {
+    return Math.round((v as any).seconds * 1000);
+  }
+  return null;
+}
+
+function fmtLastLogin(ms: number | null) {
+  if (ms == null) return "—";
+  try {
+    return new Date(ms).toLocaleString();
+  } catch {
+    return "—";
+  }
+}
 
 function bestEmailFromUserDoc(d: any) {
   const e =
@@ -656,11 +684,45 @@ async function loadUsers() {
       return {
         uid: d.id,
         email: bestEmailFromUserDoc(data),
+        // Firestore fallback (synced from Auth on login)
+        lastLoginAtMs:
+          toMs(data?.authLastSignInTime) ?? toMs(data?.lastLoginAt) ?? null,
       };
     });
 
+    // Prefer authoritative lastSignIn from Firebase Auth
+    let authMeta: Record<
+      string,
+      { lastSignInAtMs: number | null; email: string | null }
+    > = {};
+    try {
+      const token = await user?.getIdToken();
+      if (token && base.length) {
+        const res = await fetch("/api/admin/users/auth-meta", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ uids: base.map((x) => x.uid) }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json?.users && typeof json.users === "object") {
+          authMeta = json.users;
+        }
+      }
+    } catch (e) {
+      console.warn("auth-meta fetch failed, using Firestore last login", e);
+    }
+
+    if (localAbort.aborted) throw new Error("aborted");
+
     const rows = await mapLimit(base, 8, async (u) => {
       if (localAbort.aborted) throw new Error("aborted");
+
+      const meta = authMeta[u.uid];
+      const lastLoginAtMs = meta?.lastSignInAtMs ?? u.lastLoginAtMs ?? null;
+      const email = (meta?.email || u.email || "—").trim() || "—";
 
       // 1) count dreams
       const dreamsRef = collection(firestore, "users", u.uid, "dreams");
@@ -713,7 +775,8 @@ async function loadUsers() {
 
       const row: UserRow = {
         uid: u.uid,
-        email: u.email || "—",
+        email,
+        lastLoginAtMs,
         dreamsCount,
         sharedCount,
         upgradeVisits,
@@ -723,6 +786,9 @@ async function loadUsers() {
 
       return row;
     });
+
+    // newest last login first
+    rows.sort((a, b) => (b.lastLoginAtMs ?? 0) - (a.lastLoginAtMs ?? 0));
 
     if (!localAbort.aborted) setUsersRows(rows);
   } catch (e: any) {
@@ -747,12 +813,17 @@ async function loadUsers() {
 
   const usersFiltered = useMemo(() => {
     const q = norm(usersSearch);
-    if (!q) return usersRows;
+    const list = !q
+      ? usersRows
+      : usersRows.filter((r) => {
+          const hay = `${r.uid} ${r.email} ${r.topIcons.join(" ")}`.toLowerCase();
+          return hay.includes(q);
+        });
 
-    return usersRows.filter((r) => {
-      const hay = `${r.uid} ${r.email} ${r.topIcons.join(" ")}`.toLowerCase();
-      return hay.includes(q);
-    });
+    // keep newest last login first (also after search)
+    return [...list].sort(
+      (a, b) => (b.lastLoginAtMs ?? 0) - (a.lastLoginAtMs ?? 0)
+    );
   }, [usersRows, usersSearch]);
 
   if (!loading && !user) {
@@ -1264,6 +1335,7 @@ async function loadUsers() {
                   <tr className="text-left border-b border-[var(--border)]">
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">User UUID</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Email</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Last login</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Dreams</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Shared</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Upgrade visits</th>
@@ -1277,10 +1349,13 @@ async function loadUsers() {
                     <tr key={r.uid} className="border-b border-[var(--border)] last:border-b-0">
                       <td className="p-3 font-mono text-xs text-[var(--text)]">{r.uid}</td>
                       <td className="p-3 text-[var(--text)]">{r.email || "—"}</td>
+                      <td className="p-3 text-[var(--text)] whitespace-nowrap">
+                        {fmtLastLogin(r.lastLoginAtMs)}
+                      </td>
                       <td className="p-3 text-[var(--text)]">{r.dreamsCount}</td>
                       <td className="p-3 text-[var(--text)]">{r.sharedCount}</td>
                       <td className="p-3 text-[var(--text)]">{r.upgradeVisits}</td>
-                      <td className="p-3 text-[var(--text)]">{r.packClicks}</td>    
+                      <td className="p-3 text-[var(--text)]">{r.packClicks}</td>
                       <td className="p-3 text-[var(--text)] text-lg leading-none">
                         {fmtTopIcons(r.topIcons)}
                       </td>
@@ -1297,7 +1372,7 @@ async function loadUsers() {
 
                   {!usersFiltered.length && !usersLoading ? (
                     <tr>
-                      <td colSpan={8} className="p-6 text-center">
+                      <td colSpan={9} className="p-6 text-center">
                         <div className={`text-sm ${mutedText}`}>No users found.</div>
                       </td>
                     </tr>
@@ -1309,7 +1384,11 @@ async function loadUsers() {
 
           <div className={`text-xs ${mutedText}`}>
             Примечание: Shared count берётся из <span className="font-mono">shared_dreams</span> по полю{" "}
-            <span className="font-mono">ownerUid</span>. Если у тебя другое поле — скажи, подстрою.
+            <span className="font-mono">ownerUid</span>. Last login — из{" "}
+            <span className="font-mono">Firebase Auth</span> (
+            <span className="font-mono">metadata.lastSignInTime</span>), fallback на Firestore{" "}
+            <span className="font-mono">authLastSignInTime</span> /{" "}
+            <span className="font-mono">lastLoginAt</span>. Таблица отсортирована по last login (новые сверху).
           </div>
         </div>
       )}
