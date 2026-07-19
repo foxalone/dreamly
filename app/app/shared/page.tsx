@@ -173,6 +173,26 @@ function getCachedTranslation(
   return String(v.text ?? "").trim();
 }
 
+/** Google Translate–style icon (A + 文) */
+function TranslateIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <path
+        d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export default function SharedPage() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
@@ -541,27 +561,26 @@ export default function SharedPage() {
                       const label = isBusy
                         ? "Translating…"
                         : isShowing
-                          ? "Original"
-                          : "Translate";
+                          ? "Show original"
+                          : `Translate to ${targetLang.toUpperCase()}`;
 
                       return (
                         <button
                           onClick={() => translateDream(d)}
                           disabled={isBusy || !(d.text ?? "").trim()}
+                          aria-label={label}
                           className={[
-                            "react-btn react-btn--translate px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                            "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
                             isShowing || hasCache ? "react-btn--translate-on" : "",
                             isBusy ? "opacity-70 cursor-wait" : "",
                           ]
                             .filter(Boolean)
                             .join(" ")}
-                          title={
-                            isShowing
-                              ? "Show original text"
-                              : `Translate to ${targetLang.toUpperCase()}`
-                          }
+                          title={label}
                         >
-                          <span>{label}</span>
+                          <TranslateIcon
+                            className={isBusy ? "animate-pulse" : undefined}
+                          />
                         </button>
                       );
                     })()}
