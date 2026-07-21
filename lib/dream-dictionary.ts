@@ -124,7 +124,7 @@ type ClusterSeed = {
 
 // Last date the shared dictionary templates/content changed. Bump this when editing
 // makeSections/makeTitle etc.; bump a cluster's own updatedAt when editing just that cluster.
-const DICTIONARY_UPDATED_AT = "2026-07-19";
+const DICTIONARY_UPDATED_AT = "2026-07-21";
 
 const CLUSTERS: ClusterSeed[] = [
   {
@@ -134,7 +134,15 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🐍",
     accent: "#72d572",
     summary: "transformation, hidden fear, instinct, healing, and situations that require alertness",
-    aliases: ["serpent", "snakes", "dream about snake", "snake in a dream", "dreaming of snakes"],
+    aliases: [
+      "serpent",
+      "snakes",
+      "dream about snake",
+      "snake in a dream",
+      "dreaming of snakes",
+      "snake dream meaning",
+      "snake in water in dream meaning",
+    ],
     relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator"],
     variations: [
       { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
@@ -144,7 +152,19 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "dead-snake", name: "dead snake", focus: "the end of a threat, a completed transformation, or instinct that has been suppressed" },
       { slug: "many-snakes", name: "many snakes", focus: "multiple pressures, social mistrust, overstimulation, or several changes happening together" },
       { slug: "big-snake", name: "big snake", focus: "a fear, temptation, responsibility, or personal power that feels impossible to ignore" },
-      { slug: "snakes-in-water", name: "snakes in water", focus: "hidden threat inside emotion, intuition mixed with fear, or change moving through a deep feeling", aliases: ["dreaming of snakes in water", "snake in water", "snakes swimming"] },
+      {
+        slug: "snakes-in-water",
+        name: "snakes in water",
+        focus: "hidden threat inside emotion, intuition mixed with fear, or change moving through a deep feeling",
+        aliases: [
+          "dreaming of snakes in water",
+          "snake in water",
+          "snakes swimming",
+          "snake in water in dream meaning",
+          "dream meaning snakes in water",
+          "snakes in water dream meaning",
+        ],
+      },
     ],
   },
   {
@@ -155,7 +175,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#a78bfa",
     summary: "confidence, communication, appearance, control, aging, and anxiety about change or loss",
     aliases: ["tooth", "dream about teeth", "teeth dream", "teeth in a dream"],
-    relatedSymbols: ["death", "falling", "money", "baby", "blood", "hair"],
+    relatedSymbols: ["death", "falling", "money", "baby", "blood", "hair", "mirror"],
     variations: [
       { slug: "teeth-falling-out", name: "teeth falling out", focus: "loss of control, embarrassment, transition, or concern about how others see you" },
       { slug: "broken-teeth", name: "broken teeth", focus: "damaged confidence, regret after conflict, or pressure that has exceeded your limits" },
@@ -172,8 +192,29 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🌊",
     accent: "#38bdf8",
     summary: "emotion, intuition, cleansing, uncertainty, and the changing state of your inner world",
-    aliases: ["dream about water", "water in a dream", "water dream meaning"],
-    relatedSymbols: ["snake", "death", "baby", "pregnancy", "falling", "beach", "fish", "shark", "fire", "storm", "alligator", "tunnel"],
+    aliases: [
+      "dream about water",
+      "water in a dream",
+      "water dream meaning",
+      "water dream dictionary",
+      "dream dictionary water",
+    ],
+    relatedSymbols: [
+      "snake",
+      "death",
+      "baby",
+      "pregnancy",
+      "falling",
+      "beach",
+      "fish",
+      "shark",
+      "fire",
+      "storm",
+      "alligator",
+      "tunnel",
+      "tsunami",
+      "swimming",
+    ],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
       { slug: "ocean", name: "ocean", focus: "vast emotion, freedom, uncertainty, or contact with forces larger than the conscious self" },
@@ -191,8 +232,37 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🕯️",
     accent: "#94a3b8",
     summary: "endings, transformation, grief, mortality, release, and the closing of an old identity",
-    aliases: ["dying", "dream about death", "death in a dream", "death dream meaning"],
-    relatedSymbols: ["snake", "water", "falling", "teeth", "baby", "cemetery", "church", "hospital", "being-chased", "blood", "wedding", "ghost", "angel", "mother", "fire", "father", "illness", "tunnel"],
+    aliases: [
+      "dying",
+      "dream about death",
+      "death in a dream",
+      "death dream meaning",
+      "dream interpretation death",
+      "what is the meaning of a dream about death",
+      "meaning of a dream about death",
+    ],
+    relatedSymbols: [
+      "snake",
+      "water",
+      "falling",
+      "teeth",
+      "baby",
+      "cemetery",
+      "church",
+      "hospital",
+      "being-chased",
+      "blood",
+      "wedding",
+      "ghost",
+      "angel",
+      "mother",
+      "fire",
+      "father",
+      "illness",
+      "tunnel",
+      "nightmare",
+      "grandparents",
+    ],
     variations: [
       { slug: "someone-dying", name: "someone dying", focus: "fear of separation, a changing relationship, grief, or recognition that another person is changing" },
       { slug: "dead-person", name: "a dead person", focus: "memory, unfinished emotion, longing, comfort, or qualities associated with someone who has died" },
@@ -200,6 +270,18 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "being-killed", name: "being killed", focus: "feeling overpowered, abruptly changed, silenced, or unable to control an important ending" },
       { slug: "killing-someone", name: "killing someone", focus: "intense conflict, rejected traits, buried anger, or a forceful attempt to end a pattern" },
       { slug: "dead-relative", name: "a dead relative", focus: "grief, family memory, inherited values, unresolved words, or a wish for comfort and connection" },
+      {
+        slug: "own-death",
+        name: "your own death",
+        focus: "the end of an identity, chapter, or role — not a prediction of literal death",
+        aliases: ["dreaming of my own death", "dreaming I died", "dying in a dream meaning"],
+      },
+      {
+        slug: "dead-parent",
+        name: "a dead parent",
+        focus: "grief, unfinished conversations, inherited patterns, or comfort associated with a parent who has died",
+        aliases: ["dreaming of dead mother", "dreaming of dead father", "deceased parent dream"],
+      },
     ],
   },
   {
@@ -288,7 +370,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#8b5cf6",
     summary: "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
     aliases: ["flight", "dream about flying", "flying in a dream", "flying dream meaning"],
-    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado"],
+    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane"],
     variations: [
       { slug: "flying-high", name: "flying high", focus: "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground" },
       { slug: "flying-over-water", name: "flying over water", focus: "gaining perspective on strong emotions or moving between freedom and emotional depth" },
@@ -303,10 +385,30 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🪂",
     accent: "#fb7185",
     summary: "loss of control, insecurity, surrender, sudden change, and anxiety about failing or losing support",
-    aliases: ["fall", "dream about falling", "falling in a dream", "falling dream meaning"],
-    relatedSymbols: ["flying", "being-chased", "death", "water", "school", "teeth", "car", "being-naked", "crawling", "tunnel"],
+    aliases: [
+      "fall",
+      "dream about falling",
+      "falling in a dream",
+      "falling dream meaning",
+      "dreams about heights",
+    ],
+    relatedSymbols: [
+      "flying",
+      "being-chased",
+      "death",
+      "water",
+      "school",
+      "teeth",
+      "car",
+      "being-naked",
+      "crawling",
+      "tunnel",
+      "heights",
+      "nightmare",
+      "plane",
+    ],
     variations: [
-      { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences" },
+      { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences", aliases: ["dreams about heights", "falling from heights dream"] },
       { slug: "falling-off-building", name: "falling off a building", focus: "instability in a structured area of life such as work, reputation, plans, or achievement" },
       { slug: "falling-into-water", name: "falling into water", focus: "sudden immersion in emotion, surrender to uncertainty, or an abrupt loss of emotional distance" },
       { slug: "falling-and-waking-up", name: "falling and waking up", focus: "a body-startle response, accumulated stress, or a fear that becomes urgent enough to interrupt sleep" },
@@ -321,6 +423,9 @@ const CLUSTERS: ClusterSeed[] = [
           "acrophobia dream meaning",
           "dreaming of fear of heights",
           "fear of heights dream meaning",
+          "dreaming about heights and being scared",
+          "сонник боязнь высоты",
+          "soñar con alturas y tener miedo",
         ],
       },
     ],
@@ -333,7 +438,22 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ef4444",
     summary: "avoidance, pressure, unresolved conflict, threatened safety, and a problem that keeps demanding attention",
     aliases: ["chasing", "dream about being chased", "chased in a dream", "running away dream"],
-    relatedSymbols: ["falling", "flying", "death", "dog", "snake", "prison", "school", "forest", "demon", "being-naked", "crawling", "tunnel"],
+    relatedSymbols: [
+      "falling",
+      "flying",
+      "death",
+      "dog",
+      "snake",
+      "prison",
+      "school",
+      "forest",
+      "demon",
+      "being-naked",
+      "crawling",
+      "tunnel",
+      "heights",
+      "nightmare",
+    ],
     variations: [
       { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
       { slug: "chased-by-animal", name: "being chased by an animal", focus: "instinct, fear, anger, desire, or a natural reaction that the conscious mind is avoiding" },
@@ -349,7 +469,24 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#14b8a6",
     summary: "the self, family, privacy, memory, emotional foundations, and the different rooms of inner life",
     aliases: ["home", "dream about house", "house in a dream", "home dream meaning"],
-    relatedSymbols: ["castle", "hotel", "prison", "school", "church", "money", "baby", "pregnancy", "fire", "earthquake", "mother", "ghost", "rat", "father"],
+    relatedSymbols: [
+      "castle",
+      "hotel",
+      "prison",
+      "school",
+      "church",
+      "money",
+      "baby",
+      "pregnancy",
+      "fire",
+      "earthquake",
+      "mother",
+      "ghost",
+      "rat",
+      "father",
+      "mirror",
+      "grandparents",
+    ],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
       { slug: "new-house", name: "new house", focus: "a fresh identity, changed circumstances, future plans, or emotional space that is still unfamiliar" },
@@ -367,7 +504,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#22c55e",
     summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
     aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
-    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone"],
+    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror"],
     variations: [
       { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
       { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
@@ -402,13 +539,34 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0ea5e9",
     summary: "direction, agency, progress, status, control, and the way you are moving through practical life",
     aliases: ["vehicle", "automobile", "dream about car", "car in a dream"],
-    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone"],
+    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone", "train", "plane"],
     variations: [
-      { slug: "car-accident", name: "car accident", focus: "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life", aliases: ["car accident dream meaning", "car accident dream meaning islam", "dream about car accident"] },
+      {
+        slug: "car-accident",
+        name: "car accident",
+        focus: "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life",
+        aliases: [
+          "car accident dream meaning",
+          "car accident dream meaning islam",
+          "dream about car accident",
+          "car accident dream",
+          "dream analysis car accident",
+        ],
+      },
       { slug: "driving-car", name: "driving a car", focus: "personal agency, responsibility, confidence, and how much control you feel over your current direction" },
       { slug: "losing-car", name: "losing a car", focus: "lost direction, reduced independence, confusion about progress, or difficulty accessing your usual agency" },
       { slug: "stolen-car", name: "stolen car", focus: "violated autonomy, stolen opportunity, identity disruption, or fear that someone else controls your direction" },
-      { slug: "car-crash", name: "car crash", focus: "conflicting goals, abrupt failure, accumulated pressure, or an urgent need to change course" },
+      {
+        slug: "car-crash",
+        name: "car crash",
+        focus: "conflicting goals, abrupt failure, accumulated pressure, or an urgent need to change course",
+        aliases: [
+          "car crash dream meaning",
+          "car crash dream symbolism",
+          "dream interpretation car crash",
+          "car crash dream interpretation",
+        ],
+      },
       { slug: "brake-failure", name: "brake failure", focus: "inability to slow down, weak boundaries, accelerating pressure, or fear that consequences cannot be stopped" },
     ],
   },
@@ -520,7 +678,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0284c7",
     summary: "transition, departure, anticipation, and the pressure of timing during a major life change",
     aliases: ["terminal", "dream about airport", "airport in a dream"],
-    relatedSymbols: ["flying", "car", "hotel"],
+    relatedSymbols: ["flying", "car", "hotel", "train", "plane"],
     variations: [
       { slug: "missing-flight", name: "missing a flight", focus: "fear of lost opportunity, poor timing, or anxiety about a chance that may not return" },
       { slug: "waiting-at-airport", name: "waiting at an airport", focus: "anticipation, suspended plans, or impatience during an unresolved transition" },
@@ -580,7 +738,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#06b6d4",
     summary: "relaxation, emotional exposure, the meeting point of conscious life and deeper feeling, and a need for renewal",
     aliases: ["seaside", "shore", "dream about beach", "beach in a dream"],
-    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm"],
+    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm", "swimming", "tsunami"],
     variations: [
       { slug: "walking-on-beach", name: "walking on a beach", focus: "reflection, slow progress, or finding calm at the edge of strong emotion" },
       { slug: "empty-beach", name: "an empty beach", focus: "solitude, peaceful withdrawal, or a need for space away from daily demands" },
@@ -620,7 +778,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0ea5e9",
     summary: "intuition, emotional resources, abundance, fertility, and ideas or feelings moving beneath the surface",
     aliases: ["fishes", "dream about fish", "fish in a dream"],
-    relatedSymbols: ["water", "shark", "beach"],
+    relatedSymbols: ["water", "shark", "beach", "swimming"],
     variations: [
       { slug: "big-fish", name: "a big fish", focus: "a major opportunity, significant ambition, or an emotional resource that feels unusually large or important" },
       { slug: "dead-fish", name: "a dead fish", focus: "lost opportunity, emotional numbness, or a resource or feeling that has stopped developing" },
@@ -760,7 +918,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0f172a",
     summary: "danger, ruthlessness, deep fear, and the powerful threats that move unseen beneath the surface",
     aliases: ["sharks", "dream about shark", "shark in a dream"],
-    relatedSymbols: ["water", "fish", "beach", "alligator"],
+    relatedSymbols: ["water", "fish", "beach", "alligator", "swimming"],
     variations: [
       { slug: "shark-attack", name: "a shark attack", focus: "sudden danger, fear of betrayal, or a ruthless threat striking without warning" },
       { slug: "dead-shark", name: "a dead shark", focus: "the end of a serious threat, removed danger, or fear that has finally been confronted" },
@@ -819,8 +977,18 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🔥",
     accent: "#f97316",
     summary: "transformation, passion, anger, destruction, purification, and energy that can either warm or consume",
-    aliases: ["flames", "burning", "dream about fire", "fire in a dream", "fire dream dictionary", "fire dream meaning"],
-    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death"],
+    aliases: [
+      "flames",
+      "burning",
+      "dream about fire",
+      "fire in a dream",
+      "fire dream dictionary",
+      "fire dream meaning",
+      "meaning of fire dreams",
+      "dream of a fire meaning",
+      "significance of fire in dreams",
+    ],
+    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death", "tsunami"],
     variations: [
       { slug: "escaping-a-fire", name: "escaping a fire", focus: "survival instinct, urgent change, or getting clear of a situation before it consumes you" },
       { slug: "starting-a-fire", name: "starting a fire", focus: "initiative, suppressed anger, a desire to force change, or the consequences of a deliberate act" },
@@ -838,8 +1006,8 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🌪️",
     accent: "#64748b",
     summary: "chaotic emotion, sudden upheaval, anxiety, and destructive change that arrives without warning",
-    aliases: ["twister", "cyclone", "dream about tornado", "tornado in a dream"],
-    relatedSymbols: ["storm", "earthquake", "fire", "flying"],
+    aliases: ["twister", "cyclone", "dream about tornado", "tornado in a dream", "tornado dream meaning"],
+    relatedSymbols: ["storm", "earthquake", "fire", "flying", "tsunami"],
     variations: [
       { slug: "tornado-coming", name: "a tornado coming toward you", focus: "an approaching crisis, dread about a change you can see but not stop" },
       { slug: "hiding-from-tornado", name: "hiding from a tornado", focus: "self-protection, seeking safety, or bracing for an upheaval outside your control" },
@@ -875,7 +1043,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#475569",
     summary: "emotional turbulence, conflict, accumulated pressure, and a difficult season that eventually passes",
     aliases: ["thunderstorm", "dream about storm", "storm in a dream"],
-    relatedSymbols: ["fire", "tornado", "earthquake", "water", "beach"],
+    relatedSymbols: ["fire", "tornado", "earthquake", "water", "beach", "tsunami"],
     variations: [
       { slug: "thunder-and-lightning", name: "thunder and lightning", focus: "sudden insight, shock, anger discharging, or a dramatic emotional release" },
       { slug: "caught-in-a-storm", name: "being caught in a storm", focus: "feeling exposed in the middle of conflict or turmoil without adequate shelter" },
@@ -911,7 +1079,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#d97706",
     summary: "identity, strength, attractiveness, self-image, and control over how you present yourself",
     aliases: ["dream about hair", "hair in a dream", "hair dream meaning"],
-    relatedSymbols: ["teeth", "blood"],
+    relatedSymbols: ["teeth", "blood", "mirror"],
     variations: [
       { slug: "hair-falling-out", name: "hair falling out", focus: "loss of confidence, health anxiety, aging, or fear of losing strength and attractiveness", aliases: ["dream dictionary hair falling out", "hair falling out dream meaning", "dreaming of hair falling out"] },
       { slug: "cutting-hair", name: "cutting hair", focus: "a deliberate change of identity, letting go of the past, or asserting control over self-image" },
@@ -928,7 +1096,15 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "💔",
     accent: "#f43f5e",
     summary: "unresolved feelings, closure, nostalgia, repeated patterns, and lessons from a past relationship",
-    aliases: ["ex boyfriend", "ex girlfriend", "ex partner", "dream about ex", "dreaming of your ex"],
+    aliases: [
+      "ex boyfriend",
+      "ex girlfriend",
+      "ex partner",
+      "dream about ex",
+      "dreaming of your ex",
+      "what does it mean when you dream of your ex",
+      "what do dreams about my ex mean",
+    ],
     relatedSymbols: ["cheating", "wedding", "kissing", "mother"],
     variations: [
       { slug: "ex-boyfriend", name: "an ex-boyfriend", focus: "unfinished emotion, a pattern from that relationship echoing in your current life" },
@@ -947,7 +1123,14 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🥀",
     accent: "#be123c",
     summary: "trust, insecurity, guilt, betrayal, and fears about loyalty within a close relationship",
-    aliases: ["infidelity", "being cheated on", "dream about cheating", "cheating in a dream", "cheating dream meaning"],
+    aliases: [
+      "infidelity",
+      "being cheated on",
+      "dream about cheating",
+      "cheating in a dream",
+      "cheating dream meaning",
+      "meaning of dreams cheating",
+    ],
     relatedSymbols: ["ex", "wedding", "kissing"],
     variations: [
       { slug: "partner-cheating", name: "your partner cheating", focus: "insecurity, fear of abandonment, or unmet needs in the relationship — not evidence of real betrayal" },
@@ -992,7 +1175,16 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "💋",
     accent: "#fb7185",
     summary: "affection, desire, connection, acceptance, and intimacy offered or received",
-    aliases: ["a kiss", "dream about kissing", "kissing in a dream"],
+    aliases: [
+      "a kiss",
+      "kiss",
+      "dream about kissing",
+      "kissing in a dream",
+      "kiss dream meaning",
+      "biblical meaning of a kiss in a dream",
+      "biblical meaning of kiss in a dream",
+      "kiss in a dream meaning",
+    ],
     relatedSymbols: ["ex", "cheating", "wedding"],
     variations: [
       { slug: "kissing-a-stranger", name: "kissing a stranger", focus: "attraction to something unfamiliar, a new possibility, or an unacknowledged desire" },
@@ -1011,7 +1203,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#f59e0b",
     summary: "nurture, origin, protection, family patterns, and the earliest template of love and care",
     aliases: ["mom", "dream about mother", "mother in a dream", "dreaming of your mom"],
-    relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister"],
+    relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents"],
     variations: [
       { slug: "mother-dying", name: "your mother dying", focus: "fear of losing support, a changing relationship with her, or a shift in your own nurturing role" },
       { slug: "deceased-mother", name: "a deceased mother", focus: "grief, comfort, continued bond, or guidance associated with her memory" },
@@ -1029,7 +1221,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0284c7",
     summary: "authority, guidance, protection, expectation, and the earliest template of structure and approval",
     aliases: ["dad", "dream about father", "father in a dream", "dreaming of your dad"],
-    relatedSymbols: ["mother", "brother", "sister", "death", "house", "work"],
+    relatedSymbols: ["mother", "brother", "sister", "death", "house", "work", "grandparents"],
     variations: [
       { slug: "father-dying", name: "your father dying", focus: "fear of losing guidance, a changing relationship with authority, or a shift in your own protective role" },
       { slug: "deceased-father", name: "a deceased father", focus: "grief, continued bond, unfinished conversations, or guidance associated with his memory" },
@@ -1064,7 +1256,7 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "👭",
     accent: "#db2777",
     summary: "closeness, comparison, empathy, shared history, and a familiar reflection of your own inner life",
-    aliases: ["sisters", "dream about sister", "sister in a dream"],
+    aliases: ["sisters", "dream about sister", "sister in a dream", "sister dream meaning"],
     relatedSymbols: ["brother", "mother", "father"],
     variations: [
       { slug: "sister-dying", name: "your sister dying", focus: "fear of losing closeness, a changing bond, or worry about her wellbeing" },
@@ -1137,7 +1329,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#7f1d1d",
     summary: "inner conflict, temptation, fear, shame, and destructive forces given a face by the dreaming mind",
     aliases: ["devil", "evil spirit", "dream about demons", "demon in a dream"],
-    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god"],
+    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god", "nightmare"],
     variations: [
       { slug: "being-attacked-by-demon", name: "being attacked by a demon", focus: "an inner battle with fear, addiction, anger, or shame that feels stronger than you" },
       { slug: "demon-possession", name: "demonic possession", focus: "feeling controlled by an emotion, habit, or influence that overrides your intentions" },
@@ -1154,7 +1346,14 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "😇",
     accent: "#fcd34d",
     summary: "protection, guidance, hope, conscience, and reassurance arriving in a difficult season",
-    aliases: ["angels", "guardian angel", "dream about angel", "angel in a dream"],
+    aliases: [
+      "angels",
+      "guardian angel",
+      "dream about angel",
+      "angel in a dream",
+      "angel dream meaning",
+      "angels dream meaning",
+    ],
     relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god"],
     variations: [
       { slug: "angel-visiting-you", name: "an angel visiting you", focus: "a need for reassurance, a sense of being guided, or hope during uncertainty" },
@@ -1233,8 +1432,16 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🫣",
     accent: "#f472b6",
     summary: "exposure, vulnerability, shame, authenticity, and the fear of being seen without defenses",
-    aliases: ["naked dream", "being naked", "dream about being naked", "naked in public dream"],
-    relatedSymbols: ["school", "falling", "being-chased"],
+    aliases: [
+      "naked dream",
+      "being naked",
+      "dream about being naked",
+      "naked in public dream",
+      "dream naked in public",
+      "dreams about being naked in public",
+      "dream interpretation naked in public",
+    ],
+    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror"],
     variations: [
       { slug: "naked-at-school", name: "being naked at school", focus: "performance anxiety, fear of judgment, or old social insecurities resurfacing" },
       { slug: "naked-at-work", name: "being naked at work", focus: "professional vulnerability, imposter feelings, or fear of being exposed as unprepared" },
@@ -1303,12 +1510,18 @@ const CLUSTERS: ClusterSeed[] = [
       "crawling in a dream",
       "crawling dream meaning",
       "dreaming of crawling",
+      "dream of crawling on hands and knees",
     ],
     relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel"],
     updatedAt: "2026-07-18",
     variations: [
       { slug: "crawling-on-the-floor", name: "crawling on the floor", focus: "humility, starting over, or progress that feels undignified but necessary" },
-      { slug: "crawling-like-a-baby", name: "crawling like a baby", focus: "regression to an earlier stage, dependence, or returning to foundations before you can stand again" },
+      {
+        slug: "crawling-like-a-baby",
+        name: "crawling like a baby",
+        focus: "regression to an earlier stage, dependence, or returning to foundations before you can stand again",
+        aliases: ["crawling on hands and knees", "dream of crawling on hands and knees"],
+      },
       { slug: "crawling-through-a-tunnel", name: "crawling through a tunnel", focus: "a narrow passage through difficulty, or progress that requires getting low and patient" },
       { slug: "unable-to-stand-crawling", name: "unable to stand and crawling instead", focus: "depleted strength, lost status, or a season where the only available movement is slow and close to the ground" },
       { slug: "crawling-away-from-danger", name: "crawling away from danger", focus: "escaping under constraint, survival without full power, or getting clear of a threat with whatever strength remains" },
@@ -1330,7 +1543,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dream of a tunnel",
       "what does a tunnel mean in a dream",
     ],
-    relatedSymbols: ["crawling", "falling", "being-chased", "death", "water"],
+    relatedSymbols: ["crawling", "falling", "being-chased", "death", "water", "heights", "train"],
     updatedAt: "2026-07-19",
     variations: [
       { slug: "light-at-end-of-tunnel", name: "light at the end of a tunnel", focus: "hope after hardship, a visible exit from a hard season, or faith that the passage ends in relief" },
@@ -1339,6 +1552,215 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "blocked-tunnel", name: "a blocked tunnel", focus: "a path forward that feels sealed, stalled progress, or resistance to entering the next chapter" },
       { slug: "train-in-a-tunnel", name: "a train in a tunnel", focus: "being carried through change without full control, or collective momentum through a dark stretch" },
       { slug: "exiting-a-tunnel", name: "exiting a tunnel", focus: "emergence, clarity after confinement, or the first breath of a new phase" },
+    ],
+  },
+  {
+    slug: "heights",
+    name: "heights",
+    category: "fear-nightmares",
+    icon: "🏔️",
+    accent: "#7c3aed",
+    summary: "exposure, ambition, vertigo at a life edge, and the fear or thrill of standing above familiar ground",
+    aliases: [
+      "dreams about heights",
+      "dream about heights",
+      "heights dream meaning",
+      "dreaming about heights",
+      "dreaming about heights and being scared",
+      "high places dream meaning",
+    ],
+    relatedSymbols: ["falling", "flying", "being-chased", "tunnel"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "standing-at-great-height", name: "standing at a great height", focus: "a vantage point after progress, or exposure that comes with a new role or risk" },
+      { slug: "looking-down-from-heights", name: "looking down from a height", focus: "assessing how far you could fall, comparison with others, or vertigo about a choice" },
+      { slug: "climbing-to-heights", name: "climbing to a height", focus: "ambition, effort toward status, or the strain of rising without solid footing" },
+      { slug: "high-ledge-no-railing", name: "a high ledge without a railing", focus: "precarious success, missing support, or a situation that feels exposed and unsafe" },
+      { slug: "afraid-on-a-bridge", name: "afraid on a high bridge", focus: "transition anxiety, crossing between chapters, or fear of mid-passage failure" },
+      { slug: "heights-without-falling", name: "heights without falling", focus: "the brink itself as the message — dread of exposure rather than the drop" },
+    ],
+  },
+  {
+    slug: "nightmare",
+    name: "nightmare",
+    category: "fear-nightmares",
+    icon: "😱",
+    accent: "#991b1b",
+    summary: "distressing dreams, unresolved fear, overnight stress release, and images the mind uses to process threat",
+    aliases: [
+      "nightmares",
+      "nightmare meaning",
+      "nightmare meanings",
+      "nightmare interpretation",
+      "bad dream interpretation",
+      "horrible dreams meaning",
+      "meaning of your dreams and nightmares",
+      "nightmares meanings",
+    ],
+    relatedSymbols: ["being-chased", "falling", "being-naked", "demon", "death"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "recurring-nightmare", name: "a recurring nightmare", focus: "an unresolved stressor or fear that keeps demanding attention until it is faced awake" },
+      { slug: "horrible-dream", name: "a horrible dream", focus: "intense emotional residue from the day, or a threat simulation that felt too real on waking" },
+      { slug: "waking-from-nightmare", name: "waking from a nightmare", focus: "the body interrupting overload, or relief after the mind finished a stressful rehearsal" },
+      { slug: "childhood-nightmare", name: "a childhood nightmare", focus: "old fears resurfacing, developmental anxiety, or unfinished business from an earlier stage of life" },
+      { slug: "nightmare-about-death", name: "a nightmare about death", focus: "fear of endings, change, or loss — usually symbolic rather than prophetic" },
+      { slug: "sharing-a-nightmare", name: "telling someone about a nightmare", focus: "seeking comfort, reducing the dream's power, or needing the fear witnessed" },
+    ],
+  },
+  {
+    slug: "tsunami",
+    name: "tsunami",
+    category: "water",
+    icon: "🌊",
+    accent: "#0369a1",
+    summary: "overwhelming emotion, anticipatory dread, and a force of feeling too large to stop or negotiate with",
+    aliases: [
+      "tidal wave",
+      "dream about tsunami",
+      "tsunami dream meaning",
+      "tidal wave dream meaning",
+      "dreaming of a tsunami",
+    ],
+    relatedSymbols: ["water", "storm", "beach", "fire", "tornado"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "tsunami-coming", name: "a tsunami coming toward you", focus: "a crisis you can see approaching but feel powerless to stop" },
+      { slug: "running-from-tsunami", name: "running from a tsunami", focus: "escape from emotional overwhelm, or urgency to get clear of a rising demand" },
+      { slug: "surviving-a-tsunami", name: "surviving a tsunami", focus: "endurance after emotional flood, and the rebuilding that follows shock" },
+      { slug: "tsunami-and-family", name: "a tsunami with family nearby", focus: "protectiveness under overwhelm, or shared crisis within close relationships" },
+      { slug: "watching-tsunami-from-afar", name: "watching a tsunami from afar", focus: "witnessing upheaval at a distance, or dread that has not yet become personal" },
+      { slug: "underwater-after-tsunami", name: "being underwater after a tsunami", focus: "immersion in aftermath emotion, or stillness after the wave has passed" },
+    ],
+  },
+  {
+    slug: "swimming",
+    name: "swimming",
+    category: "water",
+    icon: "🏊",
+    accent: "#0891b2",
+    summary: "moving through emotion with skill or struggle, confidence in feeling, and how you navigate depth",
+    aliases: [
+      "dream about swimming",
+      "swimming dream meaning",
+      "dreaming of swimming",
+      "swimming in a dream",
+    ],
+    relatedSymbols: ["water", "beach", "shark", "fish"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "swimming-easily", name: "swimming easily", focus: "emotional fluency, confidence in a feeling-heavy situation, or flow through a difficult season" },
+      { slug: "struggling-to-swim", name: "struggling to swim", focus: "effort without progress in an emotional situation, or fatigue from staying afloat" },
+      { slug: "swimming-underwater", name: "swimming underwater", focus: "deep exploration of feeling, immersion in the unconscious, or holding your breath through intensity" },
+      { slug: "swimming-in-dirty-water", name: "swimming in dirty water", focus: "navigating a murky emotional situation, mixed motives, or unclear boundaries" },
+      { slug: "swimming-to-shore", name: "swimming to shore", focus: "seeking safety, grounding after depth, or effort toward emotional dry land" },
+      { slug: "unable-to-swim", name: "unable to swim", focus: "feeling unprepared for emotional depth, or fear of a situation that requires feeling literacy" },
+    ],
+  },
+  {
+    slug: "mirror",
+    name: "mirror",
+    category: "objects",
+    icon: "🪞",
+    accent: "#a855f7",
+    summary: "self-image, truth, confrontation with identity, and how you see — or refuse to see — yourself",
+    aliases: [
+      "dream about mirror",
+      "mirror dream meaning",
+      "looking in a mirror dream",
+      "dreaming of a mirror",
+    ],
+    relatedSymbols: ["house", "hair", "being-naked", "teeth", "money"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "broken-mirror", name: "a broken mirror", focus: "shattered self-image, a painful truth, or identity that feels fragmented" },
+      { slug: "not-recognizing-yourself", name: "not recognizing yourself in a mirror", focus: "identity shift, dissociation from who you have become, or a role that no longer fits" },
+      { slug: "someone-else-in-mirror", name: "someone else in the mirror", focus: "qualities you project onto others, or a part of yourself you have not claimed" },
+      { slug: "cracked-mirror", name: "a cracked mirror", focus: "distorted self-view, damaged confidence, or a truth seen only in pieces" },
+      { slug: "mirror-in-dark-room", name: "a mirror in a dark room", focus: "self-reflection under uncertainty, or confronting identity without clear light" },
+      { slug: "smashing-a-mirror", name: "smashing a mirror", focus: "rejecting a self-image, rage at how you are seen, or refusing a painful reflection" },
+    ],
+  },
+  {
+    slug: "train",
+    name: "train",
+    category: "movement",
+    icon: "🚆",
+    accent: "#334155",
+    summary: "life direction on a fixed track, collective momentum, timing, and whether you chose the destination",
+    aliases: [
+      "dream about train",
+      "train dream meaning",
+      "dreaming of a train",
+      "train in a dream",
+    ],
+    relatedSymbols: ["car", "tunnel", "airport", "plane"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "missing-a-train", name: "missing a train", focus: "fear of lost timing, a chance that left without you, or regret about hesitation" },
+      { slug: "train-crash", name: "a train crash", focus: "a collective plan colliding with reality, or fear that a committed path ends badly" },
+      { slug: "wrong-train", name: "being on the wrong train", focus: "a life path that no longer fits, or realizing you followed momentum instead of intention" },
+      { slug: "empty-train", name: "an empty train", focus: "solitary progress, isolation on a journey, or a path others have abandoned" },
+      { slug: "train-station", name: "a train station", focus: "waiting for the next chapter, transitions, or choosing among available directions" },
+      { slug: "stopping-a-train", name: "stopping a train", focus: "forcing a halt to automatic momentum, or reclaiming agency from a fixed course" },
+    ],
+  },
+  {
+    slug: "plane",
+    name: "plane",
+    category: "movement",
+    icon: "✈️",
+    accent: "#1d4ed8",
+    summary: "ambition, long-distance transition, trust in systems beyond your control, and elevated perspective",
+    aliases: [
+      "airplane",
+      "dream about plane",
+      "plane dream meaning",
+      "airplane dream meaning",
+      "dreaming of a plane",
+    ],
+    relatedSymbols: ["airport", "flying", "falling", "car", "train"],
+    updatedAt: "2026-07-21",
+    variations: [
+      {
+        slug: "plane-crash",
+        name: "a plane crash",
+        focus: "fear that a high-ambition plan fails catastrophically, or loss of trust in a path you cannot pilot alone",
+        aliases: ["plane crash dream meaning", "airplane crash dream", "dreaming of a plane crash"],
+      },
+      { slug: "flying-in-a-plane", name: "flying in a plane", focus: "progress toward a distant goal, transition, or surrendering control to a larger process" },
+      { slug: "turbulence-on-plane", name: "turbulence on a plane", focus: "instability mid-journey, anxiety during a transition you cannot exit early" },
+      { slug: "missing-a-plane", name: "missing a plane", focus: "a major opportunity lost to timing, preparation, or hesitation" },
+      { slug: "piloting-a-plane", name: "piloting a plane", focus: "unusual responsibility, high-stakes agency, or being asked to steer something larger than yourself" },
+      { slug: "plane-landing", name: "a plane landing", focus: "arrival after ambition, grounding after elevation, or the end of a long transition" },
+    ],
+  },
+  {
+    slug: "grandparents",
+    name: "grandparents",
+    category: "people",
+    icon: "👵",
+    accent: "#b45309",
+    summary: "ancestry, wisdom, inheritance, family memory, and the longer story your life sits inside",
+    aliases: [
+      "grandmother",
+      "grandfather",
+      "grandma",
+      "grandpa",
+      "dream about grandparents",
+      "grandparents dream meaning",
+      "dreaming of grandmother",
+      "dreaming of grandfather",
+    ],
+    relatedSymbols: ["mother", "father", "death", "house"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "deceased-grandparent", name: "a deceased grandparent", focus: "comfort, unfinished words, inherited values, or grief finding a familiar face" },
+      { slug: "grandmother-in-dream", name: "your grandmother", focus: "nurture across generations, family lore, or a softer form of maternal care" },
+      { slug: "grandfather-in-dream", name: "your grandfather", focus: "guidance, legacy, standards, or masculine care across a longer timeline" },
+      { slug: "visiting-grandparents", name: "visiting grandparents", focus: "returning to roots, seeking wisdom, or needing the safety of an earlier household" },
+      { slug: "grandparents-house", name: "grandparents' house", focus: "ancestral foundation, childhood memory, or identity rooted in family history" },
+      { slug: "arguing-with-grandparent", name: "arguing with a grandparent", focus: "clash with inherited values, or renegotiating loyalty to family tradition" },
     ],
   },
 ];
@@ -2632,14 +3054,14 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "Failing brakes, back-seat driving, a stolen car — vehicle dreams are control reports. What each scenario says about who's steering, and how to read yours.",
   },
   baby: {
-    seoTitle: "Psychological Meaning of Dreaming About a Baby",
+    seoTitle: "Baby Dream Meaning | Dream Dictionary Baby Symbolism",
     seoDescription:
-      "What dreaming about a baby means psychologically — new potential, caregiving anxiety, and why the dream-baby is rarely a literal child. Spiritual and biblical angles too.",
+      "Dream dictionary baby meanings — new potential, caregiving anxiety, and why the dream-baby is rarely a literal child. Psychological and spiritual angles.",
   },
   wedding: {
-    seoTitle: "Wedding Dream Meaning: Disasters, Strangers & Cold Feet",
+    seoTitle: "Wedding Dream Meaning: What a Wedding in a Dream Means",
     seoDescription:
-      "Dreaming your wedding goes wrong is the norm, not an omen. What marrying a stranger, a missing partner, and running from the altar say about commitment.",
+      "Wedding dream meaning — disasters, strangers, cold feet, and commitment anxiety. Why wedding dreams go wrong so often, and what they say about vows in waking life.",
   },
   fire: {
     seoTitle: "Fire Dream Meaning: Destruction, Passion or Purification?",
@@ -2652,9 +3074,9 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "Drowning dreams are overload reports — and the dream-self rarely calls for help. What being pulled under, unseen shores, and sudden footing mean.",
   },
   crawling: {
-    seoTitle: "Dreams About Crawling: Meaning, Regression & Slow Progress",
+    seoTitle: "Dream of Crawling on Hands and Knees: Meaning",
     seoDescription:
-      "Dreaming of crawling often points to vulnerability, starting over, or progress when standing feels impossible. Psychological, spiritual, Islamic, and biblical readings.",
+      "What dreaming of crawling — including on hands and knees — means: vulnerability, regression, and slow progress when standing feels impossible.",
   },
   ghost: {
     seoTitle: "Ghost in Dream Meaning: Unfinished Past, Guilt & Memory",
@@ -2692,9 +3114,9 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What a tunnel dream means biblically and psychologically — narrow passages, light at the end, and faithful next steps through a hard season.",
   },
   "fear-of-heights": {
-    seoTitle: "Fear of Heights Dream Meaning (Traumdeutung Höhenangst)",
+    seoTitle: "Fear of Heights Dream Meaning | Dreaming of Heights & Fear",
     seoDescription:
-      "What fear of heights in a dream means — höhenangst, exposure after progress, and freezing at the edge. Psychological and spiritual readings.",
+      "Dreaming about heights and being scared — höhenangst, exposure after progress, and freezing at the edge. Psychological and spiritual readings.",
   },
   "ex-family": {
     seoTitle: "Dreaming of an Ex and Their Family: What It Means",
@@ -2712,9 +3134,94 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What a wedding with blood in a dream means — sacrifice, family tension, stained vows, or a union that feels costly. Psychological and spiritual readings.",
   },
   "snakes-in-water": {
-    seoTitle: "Snakes in Water Dream Meaning: Emotion Meets Threat",
+    seoTitle: "Snake in Water Dream Meaning: Hidden Threat in Emotion",
     seoDescription:
-      "Dreaming of snakes in water often mixes intuition with caution. What swimming snakes mean psychologically, spiritually, and in Islamic dream tradition.",
+      "What snake in water in a dream means — snakes swimming, intuition mixed with fear, and change moving through deep feeling. Psychological and spiritual readings.",
+  },
+  "car-crash": {
+    seoTitle: "Car Crash Dream Meaning: Symbolism & Interpretation",
+    seoDescription:
+      "Car crash dream symbolism — colliding plans, abrupt failure, and pressure to change course. Not a traffic prediction: psychological and spiritual readings.",
+  },
+  sister: {
+    seoTitle: "Sister Dream Meaning: Closeness, Rivalry & Family Bonds",
+    seoDescription:
+      "What dreaming about your sister means — comparison, empathy, shared history, and the parts of yourself she mirrors. Psychological and spiritual readings.",
+  },
+  angel: {
+    seoTitle: "Angel Dream Meaning: Protection, Guidance & Hope",
+    seoDescription:
+      "What angels in dreams mean — guardian visits, messages, and reassurance in a hard season. Psychological, spiritual, Islamic, and biblical interpretations.",
+  },
+  kissing: {
+    seoTitle: "Biblical Meaning of a Kiss in a Dream (And More)",
+    seoDescription:
+      "What a kiss in a dream means biblically and psychologically — affection, desire, acceptance, and intimacy offered or refused. Common kiss scenarios explained.",
+  },
+  "being-naked": {
+    seoTitle: "Naked in Public Dream Meaning: Exposure & Shame",
+    seoDescription:
+      "Dreams about being naked in public usually track vulnerability and fear of being seen — not literal prediction. Psychological and spiritual readings.",
+  },
+  tornado: {
+    seoTitle: "Tornado Dream Meaning: Chaos, Upheaval & Anxiety",
+    seoDescription:
+      "What a tornado in a dream means — approaching crisis, hiding from upheaval, and surviving chaos. Psychological, spiritual, and grounded interpretations.",
+  },
+  heights: {
+    seoTitle: "Dreams About Heights: Meaning, Fear & Vertigo",
+    seoDescription:
+      "What dreams about heights mean — standing at a life edge, looking down, climbing high, and being scared of the drop. Psychological and spiritual readings.",
+  },
+  nightmare: {
+    seoTitle: "Nightmare Meaning & Interpretation: Why Bad Dreams Happen",
+    seoDescription:
+      "Nightmare interpretation that stays grounded — recurring nightmares, horrible dreams, and what distressing dreams usually reflect (stress, fear, unfinished threat).",
+  },
+  tsunami: {
+    seoTitle: "Tsunami Dream Meaning: Overwhelm & Rising Emotion",
+    seoDescription:
+      "What a tsunami or tidal wave dream means — anticipatory dread, emotional flood, and surviving the wave. Psychological and spiritual interpretations.",
+  },
+  swimming: {
+    seoTitle: "Swimming Dream Meaning: Moving Through Emotion",
+    seoDescription:
+      "What dreaming of swimming means — ease, struggle, underwater depth, and reaching shore. How you move through feeling in dream form.",
+  },
+  mirror: {
+    seoTitle: "Mirror Dream Meaning: Self-Image & Hard Truths",
+    seoDescription:
+      "What a mirror in a dream means — broken glass, not recognizing yourself, and confronting identity. Psychological and spiritual readings.",
+  },
+  train: {
+    seoTitle: "Train Dream Meaning: Tracks, Timing & Life Direction",
+    seoDescription:
+      "What dreaming of a train means — missing it, the wrong train, stations, and momentum you did or did not choose. Direction and timing decoded.",
+  },
+  plane: {
+    seoTitle: "Plane Dream Meaning: Ambition, Travel & Plane Crash Dreams",
+    seoDescription:
+      "Airplane dreams and plane crash symbolism — high-stakes plans, turbulence mid-journey, and fear that ambition fails. Grounded interpretations.",
+  },
+  "plane-crash": {
+    seoTitle: "Plane Crash Dream Meaning: High Ambition, Hard Landing",
+    seoDescription:
+      "What a plane crash dream means — trust breaking mid-flight, fear of catastrophic failure, and loss of control on a path you cannot pilot alone.",
+  },
+  grandparents: {
+    seoTitle: "Grandparents Dream Meaning: Ancestry, Wisdom & Memory",
+    seoDescription:
+      "What dreaming of grandparents means — deceased grandparents, grandmother or grandfather visits, and inheritance of family story and values.",
+  },
+  "own-death": {
+    seoTitle: "Dreaming of Your Own Death: Ending, Not Prediction",
+    seoDescription:
+      "What it means to dream you die — usually the end of an identity or chapter, not a literal warning. Psychological and spiritual readings.",
+  },
+  "dead-parent": {
+    seoTitle: "Dreaming of a Dead Parent: Grief, Memory & Comfort",
+    seoDescription:
+      "What dreams of a deceased parent mean — unfinished conversations, inherited patterns, and comfort associated with a mother or father who has died.",
   },
 };
 
@@ -2961,6 +3468,9 @@ export const POPULAR_DREAM_SLUGS = [
   "crawling",
   "tunnel",
   "work",
+  "heights",
+  "nightmare",
+  "mirror",
 ] as const;
 
 export function getDreamEntry(slug: string): DreamEntry | undefined {

@@ -4,8 +4,10 @@ import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { DREAM_DICTIONARY, getAllEntriesByCategory, type DreamEntry } from "@/lib/dream-dictionary";
 
 const SCARY_SYMBOL_SLUGS = [
+  "nightmare",
   "being-chased",
   "falling",
+  "heights",
   "being-naked",
   "demon",
   "ghost",
@@ -15,6 +17,8 @@ const SCARY_SYMBOL_SLUGS = [
   "drowning",
   "being-killed",
   "car-accident",
+  "plane-crash",
+  "tsunami-coming",
   "tornado-coming",
   "haunted-house",
   "burning-house",
@@ -27,13 +31,13 @@ const SCARY_SYMBOL_SLUGS = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "Nightmares Dictionary: Common Bad Dreams Explained | Dreamly",
+  title: "Nightmare Interpretation: Common Bad Dreams Explained | Dreamly",
   description:
-    "Why nightmares happen and what the most common ones mean — being chased, falling, drowning, demons, attacks, and disasters — with grounded, non-alarmist interpretations.",
+    "Nightmare meanings and interpretation — why horrible dreams happen and what being chased, falling, drowning, demons, and disasters usually reflect.",
   alternates: { canonical: "/dreams/nightmares" },
   openGraph: {
-    title: "Nightmares Dictionary: Common Bad Dreams Explained",
-    description: "The most common nightmares and what they usually reflect.",
+    title: "Nightmare Interpretation: Common Bad Dreams Explained",
+    description: "Nightmare meanings for the most common bad dreams — grounded, non-alarmist readings.",
     url: "/dreams/nightmares",
     type: "website",
   },

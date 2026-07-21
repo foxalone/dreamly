@@ -18,6 +18,8 @@ export const metadata: Metadata = {
     "dream meaning ai",
     "what does my dream mean ai",
     "ai dream interpreter",
+    "dreamly ai",
+    "dreamly",
     "dream dictionary",
     "dream meaning",
   ],
