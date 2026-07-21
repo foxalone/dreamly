@@ -214,6 +214,7 @@ const CLUSTERS: ClusterSeed[] = [
       "tunnel",
       "tsunami",
       "swimming",
+      "boat",
     ],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
@@ -300,7 +301,7 @@ const CLUSTERS: ClusterSeed[] = [
       "baby dream dictionary",
       "psychological meaning of dreaming about a baby",
     ],
-    relatedSymbols: ["pregnancy", "water", "death", "dog", "hospital", "teeth", "house", "wedding", "mother", "crawling"],
+    relatedSymbols: ["pregnancy", "water", "death", "dog", "hospital", "teeth", "house", "wedding", "mother", "crawling", "twins", "rabbit"],
     variations: [
       { slug: "newborn-baby", name: "newborn baby", focus: "very recent potential, a fragile beginning, or a responsibility that has only just arrived" },
       { slug: "crying-baby", name: "crying baby", focus: "an unmet emotional need, neglected project, or vulnerable issue asking directly for attention" },
@@ -318,13 +319,19 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#f472b6",
     summary: "creation, development, anticipation, responsibility, and something important growing before it is ready to emerge",
     aliases: ["pregnant", "dream about pregnancy", "pregnancy in a dream", "pregnancy dream meaning"],
-    relatedSymbols: ["baby", "water", "hospital", "house", "wedding"],
+    relatedSymbols: ["baby", "water", "hospital", "house", "wedding", "twins"],
     variations: [
       { slug: "being-pregnant", name: "being pregnant", focus: "personally carrying an idea, identity, responsibility, or change that is still developing" },
       { slug: "pregnancy-test", name: "a pregnancy test", focus: "waiting for confirmation, fearing consequences, or needing clarity about a life-changing possibility" },
       { slug: "giving-birth", name: "giving birth", focus: "bringing a project, role, relationship, or new phase into visible and demanding reality" },
       { slug: "miscarriage", name: "miscarriage", focus: "grief, fear of lost potential, interrupted plans, or direct processing of a deeply personal experience" },
       { slug: "pregnant-woman", name: "a pregnant woman", focus: "witnessing potential, sensing change in another person, or recognizing growth around you" },
+      {
+        slug: "pregnant-with-twins",
+        name: "pregnant with twins",
+        focus: "double potential, divided attention, or two developments growing at once and competing for care",
+        aliases: ["twins pregnancy dream", "dreaming of twin pregnancy"],
+      },
     ],
   },
   {
@@ -335,7 +342,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#f59e0b",
     summary: "loyalty, friendship, protection, instinct, companionship, and boundaries under pressure",
     aliases: ["dogs", "puppy", "dream about dog", "dog in a dream"],
-    relatedSymbols: ["cat", "snake", "baby", "spider", "forest", "wolf", "being-chased"],
+    relatedSymbols: ["cat", "snake", "baby", "spider", "forest", "wolf", "being-chased", "rabbit"],
     variations: [
       { slug: "black-dog", name: "black dog", focus: "unknown instinct, grief, protection, depression, or a loyal presence that is difficult to understand" },
       { slug: "white-dog", name: "white dog", focus: "trustworthy support, peace, protection, innocence, or reassurance from a familiar bond" },
@@ -353,7 +360,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#c084fc",
     summary: "independence, intuition, curiosity, sensuality, boundaries, and relationships that resist control",
     aliases: ["cats", "kitten", "dream about cat", "cat in a dream"],
-    relatedSymbols: ["dog", "snake", "spider", "tiger", "owl", "rat"],
+    relatedSymbols: ["dog", "snake", "spider", "tiger", "owl", "rat", "rabbit"],
     variations: [
       { slug: "black-cat", name: "black cat", focus: "mystery, intuition, superstition, independence, or anxiety about something you cannot fully predict" },
       { slug: "white-cat", name: "white cat", focus: "gentle intuition, apparent innocence, emotional distance, or a subtle issue beneath a calm surface" },
@@ -406,6 +413,8 @@ const CLUSTERS: ClusterSeed[] = [
       "heights",
       "nightmare",
       "plane",
+      "stairs",
+      "trapped",
     ],
     variations: [
       { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences", aliases: ["dreams about heights", "falling from heights dream"] },
@@ -453,6 +462,8 @@ const CLUSTERS: ClusterSeed[] = [
       "tunnel",
       "heights",
       "nightmare",
+      "trapped",
+      "being-lost",
     ],
     variations: [
       { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
@@ -486,6 +497,10 @@ const CLUSTERS: ClusterSeed[] = [
       "father",
       "mirror",
       "grandparents",
+      "stairs",
+      "being-lost",
+      "lottery",
+      "debt",
     ],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
@@ -504,7 +519,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#22c55e",
     summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
     aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
-    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror"],
+    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt"],
     variations: [
       { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
       { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
@@ -678,7 +693,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0284c7",
     summary: "transition, departure, anticipation, and the pressure of timing during a major life change",
     aliases: ["terminal", "dream about airport", "airport in a dream"],
-    relatedSymbols: ["flying", "car", "hotel", "train", "plane"],
+    relatedSymbols: ["flying", "car", "hotel", "train", "plane", "being-lost"],
     variations: [
       { slug: "missing-flight", name: "missing a flight", focus: "fear of lost opportunity, poor timing, or anxiety about a chance that may not return" },
       { slug: "waiting-at-airport", name: "waiting at an airport", focus: "anticipation, suspended plans, or impatience during an unresolved transition" },
@@ -698,7 +713,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#78716c",
     summary: "restriction, guilt, powerlessness, and the wish to be released from a situation that feels inescapable",
     aliases: ["jail", "incarceration", "dream about prison", "prison in a dream"],
-    relatedSymbols: ["house", "being-chased", "hospital"],
+    relatedSymbols: ["house", "being-chased", "hospital", "trapped"],
     variations: [
       { slug: "being-in-prison", name: "being in prison", focus: "restriction, guilt, or a situation in waking life that feels inescapable or unfairly limiting" },
       { slug: "escaping-prison", name: "escaping prison", focus: "a wish for freedom, breaking free from limitation, or reclaiming control over a restrictive situation" },
@@ -738,7 +753,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#06b6d4",
     summary: "relaxation, emotional exposure, the meeting point of conscious life and deeper feeling, and a need for renewal",
     aliases: ["seaside", "shore", "dream about beach", "beach in a dream"],
-    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm", "swimming", "tsunami"],
+    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm", "swimming", "tsunami", "boat"],
     variations: [
       { slug: "walking-on-beach", name: "walking on a beach", focus: "reflection, slow progress, or finding calm at the edge of strong emotion" },
       { slug: "empty-beach", name: "an empty beach", focus: "solitude, peaceful withdrawal, or a need for space away from daily demands" },
@@ -758,7 +773,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#16a34a",
     summary: "the unconscious, uncertainty, instinct, growth, and the unknown territory beyond familiar structure",
     aliases: ["woods", "jungle", "dream about forest", "forest in a dream"],
-    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle"],
+    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle", "being-lost", "rabbit"],
     variations: [
       { slug: "dark-forest", name: "a dark forest", focus: "fear of the unknown, confusion, or an unresolved part of the unconscious mind" },
       { slug: "walking-in-forest", name: "walking in a forest", focus: "exploration, self-discovery, or steady progress through an uncertain stage of life" },
@@ -1043,7 +1058,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#475569",
     summary: "emotional turbulence, conflict, accumulated pressure, and a difficult season that eventually passes",
     aliases: ["thunderstorm", "dream about storm", "storm in a dream"],
-    relatedSymbols: ["fire", "tornado", "earthquake", "water", "beach", "tsunami"],
+    relatedSymbols: ["fire", "tornado", "earthquake", "water", "beach", "tsunami", "boat"],
     variations: [
       { slug: "thunder-and-lightning", name: "thunder and lightning", focus: "sudden insight, shock, anger discharging, or a dramatic emotional release" },
       { slug: "caught-in-a-storm", name: "being caught in a storm", focus: "feeling exposed in the middle of conflict or turmoil without adequate shelter" },
@@ -1239,7 +1254,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#2563eb",
     summary: "loyalty, rivalry, shared history, protection, and a mirror of your own traits in familiar form",
     aliases: ["brothers", "dream about brother", "brother in a dream"],
-    relatedSymbols: ["sister", "mother", "father"],
+    relatedSymbols: ["sister", "mother", "father", "twins"],
     variations: [
       { slug: "brother-dying", name: "your brother dying", focus: "fear of losing a lifelong bond, a changing relationship, or worry about his path" },
       { slug: "arguing-with-brother", name: "arguing with your brother", focus: "rivalry, old family friction, or an inner conflict projected onto a familiar opponent" },
@@ -1257,7 +1272,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#db2777",
     summary: "closeness, comparison, empathy, shared history, and a familiar reflection of your own inner life",
     aliases: ["sisters", "dream about sister", "sister in a dream", "sister dream meaning"],
-    relatedSymbols: ["brother", "mother", "father"],
+    relatedSymbols: ["brother", "mother", "father", "twins"],
     variations: [
       { slug: "sister-dying", name: "your sister dying", focus: "fear of losing closeness, a changing bond, or worry about her wellbeing" },
       { slug: "arguing-with-sister", name: "arguing with your sister", focus: "competition, old grievances, or a disagreement with a part of yourself she represents" },
@@ -1441,7 +1456,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreams about being naked in public",
       "dream interpretation naked in public",
     ],
-    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror"],
+    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror", "trapped"],
     variations: [
       { slug: "naked-at-school", name: "being naked at school", focus: "performance anxiety, fear of judgment, or old social insecurities resurfacing" },
       { slug: "naked-at-work", name: "being naked at work", focus: "professional vulnerability, imposter feelings, or fear of being exposed as unprepared" },
@@ -1469,7 +1484,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of working",
       "working dream meaning",
     ],
-    relatedSymbols: ["money", "school", "father"],
+    relatedSymbols: ["money", "school", "father", "lottery", "debt"],
     variations: [
       { slug: "being-fired", name: "being fired", focus: "insecurity about your position, fear of rejection, or readiness to leave a role that no longer fits" },
       { slug: "being-late-for-work", name: "being late for work", focus: "fear of falling short, overload, or anxiety about meeting relentless expectations" },
@@ -1543,7 +1558,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dream of a tunnel",
       "what does a tunnel mean in a dream",
     ],
-    relatedSymbols: ["crawling", "falling", "being-chased", "death", "water", "heights", "train"],
+    relatedSymbols: ["crawling", "falling", "being-chased", "death", "water", "heights", "train", "stairs", "trapped"],
     updatedAt: "2026-07-19",
     variations: [
       { slug: "light-at-end-of-tunnel", name: "light at the end of a tunnel", focus: "hope after hardship, a visible exit from a hard season, or faith that the passage ends in relief" },
@@ -1569,7 +1584,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming about heights and being scared",
       "high places dream meaning",
     ],
-    relatedSymbols: ["falling", "flying", "being-chased", "tunnel"],
+    relatedSymbols: ["falling", "flying", "being-chased", "tunnel", "stairs"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "standing-at-great-height", name: "standing at a great height", focus: "a vantage point after progress, or exposure that comes with a new role or risk" },
@@ -1646,7 +1661,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of swimming",
       "swimming in a dream",
     ],
-    relatedSymbols: ["water", "beach", "shark", "fish"],
+    relatedSymbols: ["water", "beach", "shark", "fish", "boat"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "swimming-easily", name: "swimming easily", focus: "emotional fluency, confidence in a feeling-heavy situation, or flow through a difficult season" },
@@ -1694,7 +1709,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of a train",
       "train in a dream",
     ],
-    relatedSymbols: ["car", "tunnel", "airport", "plane"],
+    relatedSymbols: ["car", "tunnel", "airport", "plane", "being-lost"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "missing-a-train", name: "missing a train", focus: "fear of lost timing, a chance that left without you, or regret about hesitation" },
@@ -1761,6 +1776,206 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "visiting-grandparents", name: "visiting grandparents", focus: "returning to roots, seeking wisdom, or needing the safety of an earlier household" },
       { slug: "grandparents-house", name: "grandparents' house", focus: "ancestral foundation, childhood memory, or identity rooted in family history" },
       { slug: "arguing-with-grandparent", name: "arguing with a grandparent", focus: "clash with inherited values, or renegotiating loyalty to family tradition" },
+    ],
+  },
+  {
+    slug: "stairs",
+    name: "stairs",
+    category: "places",
+    icon: "🪜",
+    accent: "#78716c",
+    summary: "ascent and descent, effort between levels of life, and the steps required to change status or perspective",
+    aliases: [
+      "staircase",
+      "dream about stairs",
+      "stairs dream meaning",
+      "climbing stairs dream",
+      "dreaming of stairs",
+    ],
+    relatedSymbols: ["house", "falling", "heights", "tunnel"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "climbing-stairs", name: "climbing stairs", focus: "effort toward a higher position, ambition, or progress that requires one step at a time" },
+      { slug: "falling-down-stairs", name: "falling down stairs", focus: "a sudden setback after progress, lost footing in status, or fear of public failure mid-ascent" },
+      { slug: "endless-stairs", name: "endless stairs", focus: "effort without arrival, burnout from climbing, or a goal that keeps moving upward" },
+      { slug: "broken-stairs", name: "broken stairs", focus: "an unreliable path to the next level, missing support, or a plan that cannot hold your weight" },
+      { slug: "descending-stairs", name: "going down stairs", focus: "returning to foundations, humility, or voluntary retreat from a high place" },
+      { slug: "spiral-staircase", name: "a spiral staircase", focus: "progress that circles familiar themes, or rising while revisiting the same emotional ground" },
+    ],
+  },
+  {
+    slug: "trapped",
+    name: "being trapped",
+    category: "fear-nightmares",
+    icon: "🪤",
+    accent: "#b91c1c",
+    summary: "no exit, stuck agency, pressure without escape, and a situation that feels sealed from every side",
+    aliases: [
+      "trapped dream",
+      "dream about being trapped",
+      "being trapped dream meaning",
+      "stuck in a dream",
+      "dreaming of being trapped",
+    ],
+    relatedSymbols: ["being-chased", "prison", "falling", "being-naked", "tunnel"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "trapped-in-a-room", name: "trapped in a room", focus: "a closed chapter of life, private confinement, or options that have narrowed to four walls" },
+      { slug: "trapped-underwater", name: "trapped underwater", focus: "emotional overwhelm with no surface in sight, or feeling sealed inside a feeling you cannot name" },
+      { slug: "trapped-in-a-crowd", name: "trapped in a crowd", focus: "social pressure, lost individuality, or being carried by others' expectations" },
+      { slug: "cant-open-door", name: "unable to open a door", focus: "a blocked exit, a choice that will not yield, or help that remains just out of reach" },
+      { slug: "trapped-in-elevator", name: "trapped in an elevator", focus: "suspended between levels of life, stalled progress, or public helplessness" },
+      { slug: "escaping-being-trapped", name: "escaping after being trapped", focus: "relief after constraint, reclaiming agency, or the first breath after a sealed season" },
+    ],
+  },
+  {
+    slug: "being-lost",
+    name: "being lost",
+    category: "fear-nightmares",
+    icon: "🧭",
+    accent: "#0f766e",
+    summary: "disorientation, missing direction, searching without a map, and the anxiety of not knowing the next turn",
+    aliases: [
+      "lost dream",
+      "dream about being lost",
+      "being lost dream meaning",
+      "getting lost in a dream",
+      "dreaming of being lost",
+    ],
+    relatedSymbols: ["forest", "airport", "being-chased", "house", "train"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "lost-in-a-city", name: "lost in a city", focus: "overwhelm in complex systems, unfamiliar rules, or ambition without a clear route" },
+      { slug: "lost-and-cant-find-home", name: "lost and unable to find home", focus: "identity drift, missing belonging, or fear that your private life no longer orients you" },
+      { slug: "lost-with-no-phone", name: "lost without a phone", focus: "disconnection from help, dependence on tools, or solitude when guidance is needed" },
+      { slug: "asking-directions-dream", name: "asking for directions", focus: "humility, seeking counsel, or admitting you cannot navigate alone" },
+      { slug: "lost-child-in-dream", name: "a lost child", focus: "a vulnerable part of yourself missing care, or worry about someone dependent on you" },
+      { slug: "finding-your-way", name: "finding your way after being lost", focus: "orientation returning, a landmark of meaning, or relief when purpose clarifies" },
+    ],
+  },
+  {
+    slug: "twins",
+    name: "twins",
+    category: "life-events",
+    icon: "👯",
+    accent: "#db2777",
+    summary: "doubling, mirroring, divided attention, and two developments growing side by side",
+    aliases: [
+      "twin dream",
+      "dream about twins",
+      "twins dream meaning",
+      "dreaming of twins",
+      "seeing twins in a dream",
+    ],
+    relatedSymbols: ["baby", "pregnancy", "sister", "brother"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "having-twins", name: "having twins", focus: "double responsibility, two projects at once, or abundance that also divides your energy" },
+      { slug: "identical-twins", name: "identical twins", focus: "mirroring, confusion of identity, or two paths that look the same but are not" },
+      { slug: "twin-babies", name: "twin babies", focus: "fragile double beginnings, or care split between two needy developments" },
+      { slug: "meeting-your-twin", name: "meeting your twin", focus: "encountering a neglected side of yourself, or a relationship that reflects you too closely" },
+      { slug: "twins-fighting", name: "twins fighting", focus: "inner conflict between equal claims, rival priorities, or split loyalties" },
+      { slug: "losing-one-twin", name: "losing one twin", focus: "grief for half of a doubled hope, or fear that one path will cost the other" },
+    ],
+  },
+  {
+    slug: "lottery",
+    name: "lottery",
+    category: "objects",
+    icon: "🎟️",
+    accent: "#ca8a04",
+    summary: "sudden fortune, wishful thinking, chance, and the fantasy of a life changed without ordinary effort",
+    aliases: [
+      "winning the lottery",
+      "lottery dream meaning",
+      "dream about lottery",
+      "dreaming of winning lottery",
+      "lotto dream meaning",
+    ],
+    relatedSymbols: ["money", "debt", "work", "house"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "winning-the-lottery", name: "winning the lottery", focus: "hope for sudden relief, a wish to skip the hard middle, or belief that luck could rewrite your story" },
+      { slug: "losing-lottery-ticket", name: "losing a lottery ticket", focus: "a missed chance, self-sabotage of opportunity, or fear that fortune slipped through your hands" },
+      { slug: "sharing-lottery-win", name: "sharing a lottery win", focus: "questions of fairness, generosity under abundance, or who you imagine beside sudden wealth" },
+      { slug: "fake-lottery-win", name: "a fake lottery win", focus: "disappointment after raised hopes, or suspicion that an easy solution is not real" },
+      { slug: "buying-lottery-ticket", name: "buying a lottery ticket", focus: "investing hope in chance, small ritual of possibility, or outsourcing change to luck" },
+      { slug: "lottery-numbers", name: "lottery numbers", focus: "searching for a code to change fate, or the mind's attempt to order randomness" },
+    ],
+  },
+  {
+    slug: "debt",
+    name: "debt",
+    category: "objects",
+    icon: "📉",
+    accent: "#dc2626",
+    summary: "obligation, weight of what is owed, anxiety about repayment, and exchanges that have fallen out of balance",
+    aliases: [
+      "owing money",
+      "debt dream meaning",
+      "dream about debt",
+      "dreaming of debt",
+      "owing money in a dream",
+    ],
+    relatedSymbols: ["money", "lottery", "work", "house"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "unable-to-pay-debt", name: "unable to pay a debt", focus: "overwhelm about obligation, shame, or a bill — literal or emotional — that exceeds capacity" },
+      { slug: "someone-owes-you", name: "someone owing you", focus: "unpaid recognition, unfinished reciprocity, or waiting for another person to make things even" },
+      { slug: "debt-collectors", name: "debt collectors", focus: "pressure arriving from outside, accountability you cannot postpone, or fear of exposure around money" },
+      { slug: "paying-off-debt", name: "paying off debt", focus: "relief, restored balance, or the hard work of settling what was owed" },
+      { slug: "hidden-debt", name: "a hidden debt", focus: "a secret obligation, guilt kept private, or a cost you have not yet admitted" },
+      { slug: "inheriting-debt", name: "inheriting debt", focus: "family burdens passed down, obligations you did not choose, or legacy costs" },
+    ],
+  },
+  {
+    slug: "rabbit",
+    name: "rabbit",
+    category: "animals",
+    icon: "🐇",
+    accent: "#a78bfa",
+    summary: "fertility, timidity, quick instinct, abundance, and vulnerability that freezes or flees",
+    aliases: [
+      "bunny",
+      "hare",
+      "dream about rabbit",
+      "rabbit dream meaning",
+      "dreaming of a rabbit",
+    ],
+    relatedSymbols: ["dog", "forest", "cat", "baby"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "white-rabbit", name: "a white rabbit", focus: "innocence, a guide into the unexpected, or a gentle invitation to follow curiosity" },
+      { slug: "rabbit-running-away", name: "a rabbit running away", focus: "avoidance, missed opportunity, or a timid part of you fleeing confrontation" },
+      { slug: "many-rabbits", name: "many rabbits", focus: "abundance, fertility themes, or small worries multiplying faster than you can manage" },
+      { slug: "dead-rabbit", name: "a dead rabbit", focus: "lost innocence, ended vulnerability, or grief for something gentle that could not survive" },
+      { slug: "holding-a-rabbit", name: "holding a rabbit", focus: "care for a fragile instinct, tenderness, or responsibility for something easily startled" },
+      { slug: "rabbit-in-house", name: "a rabbit in the house", focus: "timidity entering private life, or a soft need asking for safety at home" },
+    ],
+  },
+  {
+    slug: "boat",
+    name: "boat",
+    category: "water",
+    icon: "⛵",
+    accent: "#0284c7",
+    summary: "navigating emotion with a vessel, crossing uncertain water, and how seaworthy your current life craft feels",
+    aliases: [
+      "ship",
+      "dream about boat",
+      "boat dream meaning",
+      "dreaming of a boat",
+      "ship dream meaning",
+    ],
+    relatedSymbols: ["water", "beach", "swimming", "storm"],
+    updatedAt: "2026-07-21",
+    variations: [
+      { slug: "sinking-boat", name: "a sinking boat", focus: "a plan or relationship taking on water, or fear that your craft cannot hold the emotional load" },
+      { slug: "rowing-a-boat", name: "rowing a boat", focus: "personal effort across emotion, slow progress by your own strength" },
+      { slug: "boat-in-storm", name: "a boat in a storm", focus: "navigating turmoil, holding course under pressure, or leadership when waters turn hostile" },
+      { slug: "empty-boat", name: "an empty boat", focus: "a vessel without purpose, abandoned plans, or solitude on the water" },
+      { slug: "luxury-yacht", name: "a luxury boat or yacht", focus: "status on emotional seas, comfort insulating you from depth, or aspiration dressed as travel" },
+      { slug: "docking-a-boat", name: "docking a boat", focus: "arrival after crossing, securing what you carried, or ending a journey across feeling" },
     ],
   },
 ];
@@ -2921,6 +3136,33 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Are snakes in water a bad omen?", answer: "Not automatically. The dream asks for alertness in an emotional area of life. Calm endings lean toward integration; chase or bite scenes lean toward a live conflict needing attention." },
     ],
   },
+  "snakes-in-water": {
+    introduction: [
+      "Snake in water in dream meaning searches usually describe the same vivid night: serpents swimming, coiled beneath a surface, or gliding through a pool beside you. The image merges two dictionaries — instinctive threat and emotional depth — into one scene that is hard to shake on waking.",
+      "Unlike a snake on dry ground, water relocates the issue into feeling, intuition, and the parts of life that move below speech. The snake says: stay alert. The water says: this is about what you feel, not only what you think.",
+    ],
+    general: [
+      "Visibility is the first fork. A snake clearly seen in clear water is a threat or truth you can already name. Murky water hides the animal and often maps onto confusion or a fear sensed but undefined. Multiple snakes swimming can mean several emotional pressures at once.",
+      "Your stance grades agency. Entering the water calmly near snakes can mark growing tolerance for uncomfortable instinct. Standing frozen on the bank is avoidance. Being bitten in water concentrates a painful truth delivered through emotion.",
+    ],
+    psychological: [
+      "Psychologically, snakes-in-water dreams often appear when relational or bodily intuition conflicts with a clean story you tell yourself. The psyche puts teeth in the current. Clinicians also see them during pregnancy and major transitions — transformation plus protective alertness wearing snake costume in emotional space.",
+      "If you fear snakes waking, include phobia load: the brain may reach for its strongest fear image whenever anxiety needs a shape in a water setting (bath, pool, ocean news).",
+    ],
+    spiritual: [
+      "Spiritually, water-and-serpent pairings appear in healing and temptation traditions alike. Ask whether the presence felt like medicine moving through feeling or like a test inside emotion. Discernment, not panic, is the discipline.",
+      "A grounded response: name the emotional situation that needs honesty this week, and take one alert but non-paranoid step — a conversation, a boundary, a health check — rather than hunting enemies.",
+    ],
+    islamic: [
+      "Classical readings often link snakes to enmity or harm and water to worldly or emotional states; combined, interpreters may caution about harm arising within an emotional or domestic current — always with humility, never as certain accusation of a named person.",
+      "Meet a frightening snakes-in-water dream by seeking refuge in Allah, avoiding rumor based on the image, and letting waking conduct stay just and evidence-based.",
+    ],
+    faq: [
+      { question: "What does snake in water in a dream mean?", answer: "Hidden threat or transformation inside an emotional situation — intuition mixed with caution, or change moving through deep feeling." },
+      { question: "What about dreaming of snakes swimming?", answer: "Movement through emotion with instinctive alertness. Calm swimming snakes differ from pursuing ones — presence versus pressure." },
+      { question: "Is it a bad omen?", answer: "Not automatically. It asks for alertness in a feeling-heavy area of life. Bite or chase scenes lean toward a live conflict; calm endings lean toward integration." },
+    ],
+  },
   "wedding-and-blood": {
     introduction: [
       "A wedding with blood in a dream — sometimes searched as 'wedding in bled a dream' — is jarring because vows and wounding arrive together. White and red collide: commitment marked by cost, family tension, sacrifice, or a union that feels stained before it begins.",
@@ -2963,6 +3205,433 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
     faq: [
       { question: "What does it mean when your ex and his family are in your dreams?", answer: "Often lingering attachment to a shared world, grief for connections lost with the breakup, or unfinished emotion about belonging and approval — not necessarily a wish to reunite." },
       { question: "Does dreaming of an ex's family mean they miss me?", answer: "Dreams are not messages from other people. They reflect your psyche's unfinished business with that chapter. Focus on what you still need — closure, community, or self-worth — rather than their feelings." },
+    ],
+  },
+  kissing: {
+    introduction: [
+      "A kiss in a dream concentrates intimacy into a single contact — consent or its absence, desire or duty, blessing or boundary. Searchers looking for the biblical meaning of a kiss in a dream often wake with a specific face still on their lips and want to know whether scripture treats the image as holy greeting, romantic bond, or warning.",
+      "Kissing dreams are less about prediction than about exchange: what are you offering, receiving, or refusing? A stranger's kiss differs from an ex's; a public kiss differs from one stolen in secret. The mouth is where affection and speech meet, so these dreams often sit next to questions of honesty and closeness.",
+    ],
+    general: [
+      "Start with who and whether you wanted it. A welcome kiss from a partner usually tracks warmth, reconciliation, or hunger for contact. An unwanted kiss flags a boundary issue — attention you did not invite, or intimacy arriving faster than trust. Kissing an ex almost always revisits unfinished chemistry or a quality from that era you miss.",
+      "Setting grades the reading. A wedding kiss leans toward commitment; a hidden kiss toward secrecy or divided loyalty; a kiss that turns sour mid-scene toward disappointment in how closeness actually feels. Note whether words followed the kiss — affection without speech can mean connection that is felt but not yet negotiated awake.",
+    ],
+    psychological: [
+      "Psychologically, kiss dreams stage attachment needs and boundary clarity. Secure dreamers often report affectionate kisses during periods of bonding; anxious dreamers may dream of withheld or interrupted kisses when reassurance feels scarce. Clinicians also see kissing dreams spike around new relationships, reconciliations, and times when the body is asking for touch the schedule has denied.",
+      "Desire in the dream is a poor literal guide. The psyche borrows kissing as the strongest shorthand for acceptance — being chosen, welcomed, or merged with something. Ask what in waking life you want to be closer to: a person, a path, a version of yourself.",
+    ],
+    spiritual: [
+      "Spiritually, a kiss can image blessing, peace, or union — the sealing of goodwill. It can also warn when affection is used to bypass truth. Contemplative readings ask whether the kiss felt like gift or bargain, and whether your waking relationships honor the same honesty the dream demanded.",
+      "A grounded practice after such a dream is simple: name the hunger (affection, approval, reconciliation) and meet one piece of it awake with integrity — a conversation, an apology, or a boundary — rather than hunting the dream-partner for meaning.",
+    ],
+    islamic: [
+      "Islamic interpreters weigh kisses by context, relationship, and permissibility in waking life. Affection within lawful bonds may be read toward harmony or glad tidings; illicit imagery is more often treated as a prompt to guard the heart and lower the gaze than as a coded future event.",
+      "A dream is never a license for what is forbidden. Meet a distressing or tempting kiss dream by seeking refuge in Allah, avoiding narration that spreads fitnah, and strengthening lawful bonds and character — not by treating the scene as permission or prophecy.",
+    ],
+    biblical: [
+      "Scripture uses the kiss across a wide moral range: the holy kiss of greeting among believers, the kisses of the Song of Songs as devoted love, Jacob and Esau's reconciliation, and Judas's kiss as betrayal wearing affection's face. The biblical question is therefore not 'kiss = good' but 'what kind of kiss was this?'",
+      "A biblical reflection asks whether the dream's kiss resembled peace, covenant affection, or a gesture that covered falsehood. Bring the scene into prayer beside texts on love that is truthful and greetings that are sincere — and let waking conduct match the integrity you hope the kiss represented.",
+    ],
+    commonScenarios: [
+      { title: "Kissing a Stranger", meaning: "Attraction to the unfamiliar — a new possibility, trait, or path not yet claimed. Often less about that face than about readiness for a new kind of closeness." },
+      { title: "Kissing an Ex", meaning: "Nostalgia, unfinished chemistry, or a quality from that relationship resurfacing. Check why now — anniversaries and new commitments commonly trigger it." },
+      { title: "A Forced or Unwanted Kiss", meaning: "Boundary violation in symbolic form: attention, pressure, or intimacy arriving without consent. Map it onto waking situations where saying no feels hard." },
+      { title: "A Public Kiss", meaning: "Visibility of the bond — pride, announcement, or anxiety about being seen as a couple or as attached to a choice." },
+      { title: "Refusing a Kiss", meaning: "Self-respect and discernment. The dream may celebrate a boundary you are ready to hold, or rehearse one you still need to set." },
+      { title: "A Kiss That Feels Holy or Peaceful", meaning: "Blessing, reconciliation, or spiritual comfort. Less erotic plot, more seal of goodwill — worth receiving with gratitude rather than over-analyzing." },
+    ],
+    faq: [
+      { question: "What is the biblical meaning of a kiss in a dream?", answer: "Scripture frames kisses as greeting, devoted love, reconciliation — or betrayal. Read your dream's tone against that range: peace and covenant versus affection covering falsehood. It is for discernment, not a fixed omen." },
+      { question: "Does dreaming of kissing someone mean they like me?", answer: "No reliable evidence links dream kisses to another person's waking feelings. The dream reflects your psyche's themes of closeness, desire, and boundary — start there." },
+      { question: "Is kissing an ex in a dream cheating?", answer: "No. You do not control dream casting. It warrants attention only if waking loyalty or longing is also conflicted." },
+      { question: "Why did the kiss feel wrong or sour?", answer: "Often a mismatch between hunger for closeness and the actual safety of the bond — or a warning that something presented as affection is not trustworthy." },
+    ],
+  },
+  "being-naked": {
+    introduction: [
+      "Dreams about being naked in public are among the most searchable nightmare motifs for a reason: exposure without consent. You are in school, at work, on a street — and somehow undressed while everyone else is not. The panic is social before it is sexual. Searchers for naked in public dream meaning usually want one answer: am I about to be humiliated in real life?",
+      "Almost never as a prediction. The dream stages vulnerability, shame, and the fear of being seen without the armor you wear awake — competence, polish, preparation. Sometimes it also stages a quieter wish: to be authentic and still accepted. Which tone you woke with decides the reading.",
+    ],
+    general: [
+      "Ask who noticed. A crowd that stares intensifies performance anxiety. A crowd that does not notice — a classic variant — often means your fear of exposure is larger than the actual risk. Trying to cover up maps onto damage control in waking life; walking on calmly can mark growing self-acceptance.",
+      "Place tags the department of life. Naked at school revisits evaluation and old social hierarchies. Naked at work tracks professional imposter feelings. Naked at home with strangers present may mean private life feeling invaded. Partially clothed dreams usually isolate one vulnerable topic rather than total exposure.",
+    ],
+    psychological: [
+      "Psychologists link naked-in-public dreams to social-evaluative anxiety: fear of negative judgment when status, preparation, or attractiveness feels on trial. They spike before presentations, new jobs, dates, and any situation where you feel underdressed for the role — literally or metaphorically.",
+      "There is also an authenticity reading. Some dreamers report relief mid-dream when nobody cares — a rehearsal for the discovery that imperfect visibility is survivable. If the dream repeats, log the waking trigger within 24 hours; the match is usually obvious.",
+    ],
+    spiritual: [
+      "Spiritually, nakedness can mean truth without costume — the soul before God or conscience. Shame-heavy versions ask where you hide; peaceful versions may invite radical honesty. The discernment is whether the dream calls for covering what should stay private or for dropping a false self.",
+      "A grounded response: choose one place to be more honestly seen this week (a friend, a journal, a prayer) while still honoring wise privacy. Exposure without discernment is not the same as integrity.",
+    ],
+    islamic: [
+      "In Islamic framing, dreams of nakedness are weighed carefully and often tied to themes of exposure, dignity, and the covering Allah loves for believers — without treating every image as a literal scandal to come. Interpreters stress humility and avoiding harm through suspicion or rumor.",
+      "A distressing nakedness dream is met like other unsettling dreams: seek refuge in Allah, do not narrate it in ways that spread shame, and let waking conduct protect ʿird (honor) and modesty. Use the dream as a private prompt toward dignity, not as public drama.",
+    ],
+    biblical: [
+      "Scripture opens with nakedness without shame in Eden, then the fall that introduces covering and fear of being seen. Later texts treat nakedness as vulnerability, poverty, or disgrace in war — and clothing the naked as mercy. A biblical reflection can ask: am I hiding from God and others, or am I being called to honest humility?",
+      "If the dream's shame feels crushing, remember that biblical hope includes being known and still loved. Pair the dream with prayer about worth that does not depend on performance costumes — and practical wisdom about what should remain private.",
+    ],
+    commonScenarios: [
+      { title: "Naked at School or Work", meaning: "Evaluation anxiety — tests, reviews, audiences. Old hierarchies of who is 'prepared' enough resurface." },
+      { title: "Nobody Notices", meaning: "Your fear of exposure outruns reality. Often reassuring once recognized." },
+      { title: "Trying to Cover Up", meaning: "Damage control under pressure. Ask what waking image you are scrambling to protect." },
+      { title: "Feeling Comfortable Naked", meaning: "Self-acceptance and authenticity. Less nightmare, more integration." },
+      { title: "Partially Naked", meaning: "One specific vulnerability — a topic, role, or body concern — rather than total exposure." },
+      { title: "Being Pointed At or Laughed At", meaning: "Acute shame. Map onto a recent criticism, mistake, or fear of ridicule." },
+    ],
+    faq: [
+      { question: "What does dreaming of being naked in public mean?", answer: "Usually vulnerability, shame, or fear of being seen unprepared — sometimes a wish for authenticity. It is a status report on exposure anxiety, not a prediction of humiliation." },
+      { question: "Is a naked dream about sex?", answer: "Sometimes erotic tone is present, but public-naked dreams are more often social than sexual. Judge by emotion: embarrassment points to evaluation; desire points elsewhere." },
+      { question: "Why does nobody notice I'm naked?", answer: "A common and useful variant: the dream contrasts your inner panic with outer indifference, suggesting the feared judgment may be mostly internal." },
+      { question: "How do I stop these dreams?", answer: "Reduce the waking trigger — over-preparation for performances, avoidance of feedback, or harsh self-talk. Imagery rehearsal of walking calmly clothed can also help recurrent versions." },
+    ],
+  },
+  sister: {
+    introduction: [
+      "Sister dream meaning searches usually come from a night that felt familiar: rivalry, loyalty, a shared childhood hallway, or a sister who is no longer as close as she once was. Siblings occupy a unique symbolic slot — peers who knew you before you had a public self. Dreaming of a sister often stages comparison, empathy, and the parts of your personality that grew up beside hers.",
+      "Whether the dream is tender or furious, start with the bond as it actually is now, then ask what quality she carries for you: the responsible one, the free one, the wounded one, the ally. Dreams borrow sisters as mirrors more often than as messengers about her waking life.",
+    ],
+    general: [
+      "Plot matters less than role. Protecting your sister maps onto loyalty and a vulnerable trait you defend. Arguing with her often externalizes an inner conflict — two values that both feel like 'you.' A sister dying or in danger usually tracks fear of losing closeness or worry you have not voiced.",
+      "Age dynamics refine the reading. An older sister may stand for standards and guidance; a younger sister for tenderness and responsibility. Estrangement in the dream asks about unfinished family story. If she appears happier or more successful than you, check waking comparison rather than assuming envy is the whole truth.",
+    ],
+    psychological: [
+      "Sibling dreams draw on early competition for care and identity differentiation — how you became 'not her' while still belonging. Adult sister dreams often revisit those templates when life events (marriage, kids, careers, caregiving for parents) reshuffle the family hierarchy.",
+      "Clinicians note that sister figures can also personify a same-gender peer archetype: collaboration, gossip, solidarity, or betrayal among women (or whoever filled that role). If you have no sister, the dream may still use the word for a friend who occupies sister-space.",
+    ],
+    spiritual: [
+      "Spiritually, sisters can image kinship of soul — shared origin, mutual bearing of burdens. Conflict dreams may invite forgiveness work; protective dreams may invite stewardship of a tender calling. The aim is usually right relationship, not scorekeeping.",
+      "A useful practice: write what you would thank her for and what you would release. Dreamers often find the night image softens once gratitude and boundary are both named.",
+    ],
+    islamic: [
+      "Kinship (silat al-rahim) is emphasized in Islamic teaching; dreams of sisters may prompt care for family ties without becoming certain reports about a sister's unseen state. Avoid using a dream to accuse or to claim knowledge of her private affairs.",
+      "If the dream distresses you, seek refuge in Allah, make du'a for her and for yourselves, and let waking contact be guided by kindness and evidence — not omen logic.",
+    ],
+    biblical: [
+      "Biblical sisters — Miriam, Martha and Mary, Rachel and Leah — carry themes of leadership, jealousy, service, and different ways of loving. A sister dream can ask which pattern you are living: rivalry for blessing, or complementary gifts.",
+      "Reflect in prayer on reconciliation texts and on carrying one another's burdens. The dream is for formation of love inside the family story, not for fortune-telling about her future.",
+    ],
+    commonScenarios: [
+      { title: "Arguing With Your Sister", meaning: "Often an inner debate wearing her face — or unfinished friction from real life asking for a conversation." },
+      { title: "Your Sister in Danger", meaning: "Protectiveness and anxiety about a bond or about a vulnerable trait she represents in you." },
+      { title: "A Warm Reunion", meaning: "Longing for allyship, childhood safety, or repair after distance." },
+      { title: "Comparing Lives", meaning: "Status and path anxiety. The dream exaggerates scorekeeping you already feel awake." },
+      { title: "Sister as a Child", meaning: "Return to formative dynamics — who was favored, who cared, who rebelled." },
+      { title: "An Unknown Sister", meaning: "A sisterly archetype: peer solidarity or rivalry without a literal sibling." },
+    ],
+    faq: [
+      { question: "What does dreaming about your sister mean?", answer: "Commonly closeness, comparison, shared history, and mirrored traits. Emotion and plot tell you whether the tone is loyalty, rivalry, or grief for distance." },
+      { question: "Does a bad dream about my sister mean something will happen to her?", answer: "No reliable predictive link. Treat frightening dreams as anxiety or unfinished feeling — and check on her with ordinary care if you are worried, not because the dream demanded it." },
+      { question: "I dreamed of a sister I don't have. Why?", answer: "The psyche uses 'sister' as a role — peer, ally, rival. It may point to a friend or to a part of yourself that wants sisterly relating." },
+    ],
+  },
+  angel: {
+    introduction: [
+      "Angel dream meaning queries usually follow a night that felt strangely gentle — or strangely urgent. An angel appears, speaks, watches, or simply stands in light. People want to know whether this is comfort, calling, or imagination wearing religious clothes.",
+      "Across traditions angels image protection, guidance, and conscience. The dream's usefulness is less about proving a visitation and more about what reassurance or redirection your life was asking for when the figure arrived.",
+    ],
+    general: [
+      "Tone first: peaceful presence versus stern warning. A comforting angel often arrives in grief, illness, or decision fatigue. A message-bearing angel focuses the question on what you already half-know. Wings without a face can mean help that feels abstract; a familiar face as 'angel' may be a loved one cast in protective role.",
+      "Your response matters. Kneeling, fleeing, arguing, or calmly listening map onto how you meet guidance awake. If the angel leads you somewhere, ask what waking next step that path resembles.",
+    ],
+    psychological: [
+      "Psychologically, angels can personify the caregiving and moral functions of the psyche — the part that wants you safe and aligned. They appear frequently in bereavement dreams and in high-stress periods when the mind needs a trustworthy protector image.",
+      "Skepticism and faith can coexist in interpretation: even if you read the figure as internal, the comfort or conviction it brings is real data about what you need. If angel dreams leave fear rather than peace, examine whether 'guidance' in waking life has felt controlling.",
+    ],
+    spiritual: [
+      "Spiritually, angel dreams invite gratitude, discernment, and courage. Traditions warn against chasing angels as spectacle and encourage testing spirits by fruit — peace, humility, love of good. A grounded response is to thank, then act on the ordinary good the dream illuminated.",
+      "If the dream felt like a summons, translate it into one concrete faithful action this week rather than waiting for another vision.",
+    ],
+    islamic: [
+      "Belief in angels is part of Islamic creed; still, a dream figure is not automatically a literal angelic visitation, and interpreters urge humility. True dreams are possible, yet so are self-talk and confusing images. Do not build aqidah or major life rulings on a single night vision.",
+      "If the dream brings peace and reminds you of Allah, receive it with gratitude and increased worship. If it confuses or frightens, seek refuge in Allah and avoid speculative storytelling. Guidance is confirmed through Qur'an, Sunnah, and sound counsel — not dream chase alone.",
+    ],
+    biblical: [
+      "Biblical angels announce, protect, strengthen, and sometimes terrify before they say 'do not fear.' They serve God's purposes rather than human curiosity. A biblical reflection asks whether the dream's fruit matches scripture's angels: directing attention to God, encouraging obedience, accompanying in trial.",
+      "Weigh any 'message' against scripture and wise counsel. Hebrews reminds that some have entertained angels unawares — often through ordinary hospitality — so the waking follow-through may look like mercy and faithfulness more than mystical drama.",
+    ],
+    commonScenarios: [
+      { title: "An Angel Visiting You", meaning: "Need for reassurance or a sense of being accompanied through uncertainty." },
+      { title: "A Guardian Angel", meaning: "Protection themes — support you may underestimate, or a wish to be watched over." },
+      { title: "An Angel With a Message", meaning: "An insight ready for conscious acknowledgment. Write the words on waking." },
+      { title: "Angel and Demon Together", meaning: "Moral conflict staged visually — constructive versus destructive pulls." },
+      { title: "A Crying Angel", meaning: "Compassion and grief — sorrow your conscience cannot ignore." },
+      { title: "Angel Wings Only", meaning: "Aspiration and the desire to rise above a heavy situation without a full narrative." },
+    ],
+    faq: [
+      { question: "What does an angel in a dream mean?", answer: "Often protection, guidance, hope, or conscience — comfort in a hard season. Tone and message refine whether it feels like reassurance or a call to change." },
+      { question: "Was my dream a real angel?", answer: "Neither psychology nor this page can prove that. Evaluate fruit: peace, humility, alignment with known good. Major decisions still need waking wisdom." },
+      { question: "Are angel dreams always positive?", answer: "Usually leaning protective, but stern or fearful angel dreams can mark conviction or awe. Fear alone does not make the dream evil — nor does light make every image trustworthy without discernment." },
+    ],
+  },
+  tornado: {
+    introduction: [
+      "A tornado dream meaning search usually follows a night of dread with a funnel on the horizon — or already tearing through the house. Tornadoes in dreams stage chaotic emotion and sudden upheaval: something that can be seen coming and still cannot be negotiated with.",
+      "Unlike a gentle storm, the tornado concentrates destruction into a moving point. Ask what in waking life feels like it could touch down without warning — a confrontation, a layoff, a diagnosis scare, a family blowup — and whether you were hiding, running, or watching from a strange calm.",
+    ],
+    general: [
+      "Distance grades urgency. A tornado far away often means witnessing turmoil that is not yet personal. One coming toward you marks anticipatory anxiety. Multiple tornadoes suggest several volatile fronts at once. A tornado destroying a house focuses the hit on home, family, or identity foundations.",
+      "Your strategy is the second half. Hiding in a basement can be wise self-protection. Trying to outrun it may mirror frantic coping. Surviving afterward often reflects resilience you underestimate. If you felt weirdly calm, the psyche may already be accepting a change you still argue with by day.",
+    ],
+    psychological: [
+      "Tornado dreams correlate with anxiety about uncontrollable events and with environments that feel emotionally volatile — conflictual homes, chaotic workplaces, news-cycle dread. They are classic 'looming threat' images: the funnel is visible, the path uncertain.",
+      "People with trauma histories sometimes dream tornadoes as condensed chaos. If the dream recreates a real storm or disaster, prioritize grounding and support; symbolic reading comes after safety.",
+    ],
+    spiritual: [
+      "Spiritually, whirlwinds appear as images of forces larger than personal will — purification, judgment, or the raw power of change. The invitation is rarely to dominate the storm; it is to find refuge, release what cannot be held, and rebuild with clearer priorities.",
+      "After such a dream, name what you can shelter (relationships, health, values) and what you have been clutching that the storm keeps loosening.",
+    ],
+    islamic: [
+      "Destructive wind imagery may be weighed as trial, warning against heedlessness, or reflection of worldly turmoil — always without claiming certain knowledge of a destined disaster. Seek refuge in Allah from fear, make du'a, and do not spread panic from a dream.",
+      "Let waking preparation be practical and faithful: mend relationships, reduce recklessness, trust Allah with what you cannot control. A dream is not a weather forecast.",
+    ],
+    biblical: [
+      "Scripture's whirlwind can carry both theophany and upheaval — Job's encounter, Elijah's departure, prophetic storms. A tornado dream can ask where you need refuge in God amid forces you cannot steer.",
+      "Pair the dream with Psalms of shelter and with wisdom about building on rock. The goal is steadfastness and compassion in chaos, not decoding a private apocalypse.",
+    ],
+    commonScenarios: [
+      { title: "Tornado Coming Toward You", meaning: "Anticipatory dread — a crisis you can sense approaching." },
+      { title: "Hiding From a Tornado", meaning: "Self-protection and bracing. Often healthy caution under real pressure." },
+      { title: "Surviving a Tornado", meaning: "Resilience after upheaval; inventory what still stands." },
+      { title: "Tornado Hits the House", meaning: "Upheaval aimed at belonging, family stability, or personal foundations." },
+      { title: "Multiple Tornadoes", meaning: "Several volatile situations competing for fear." },
+      { title: "Watching From Afar", meaning: "Turmoil at a distance — empathy, dread, or relief that it is not yet yours." },
+    ],
+    faq: [
+      { question: "What does a tornado dream mean?", answer: "Usually chaotic emotion, sudden upheaval, and anxiety about change you cannot control. Details — distance, house damage, survival — refine the focus." },
+      { question: "Is a tornado dream a warning of disaster?", answer: "Not as literal prediction. Treat it as a stress and control report. Practical readiness is wise; omen panic is not." },
+      { question: "Why do I keep dreaming of tornadoes?", answer: "Recurrence tracks ongoing volatility or unresolved dread. Reduce chaos where you can, and name the funnel you keep watching for." },
+    ],
+  },
+  heights: {
+    introduction: [
+      "Dreams about heights — standing on a ledge, looking down, climbing without a railing — are cousins of falling dreams, but the emphasis is often the brink rather than the drop. Searchers for dreams about heights and being scared want to know why success, visibility, or a high place felt unsafe even when nothing fell.",
+      "Height stages exposure and ambition. The view can be thrilling or nauseating. Your body in the dream usually tells the truth: locked knees mean a waking choice where desire and fear cancel; steady footing with awe can mean earned perspective.",
+    ],
+    general: [
+      "Did you climb or were you placed high? Chosen ascent maps onto ambition; forced elevation onto pressure and visibility you did not request. Looking down measures how far there is to fall — status, reputation, a relationship. Refusing to look can be avoidance of consequence.",
+      "Railings, wind, and companions matter. A missing railing is unsupported progress. Wind is emotional turbulence at altitude. Someone pulling you back or pushing you forward is often exactly who influences your risk tolerance awake.",
+    ],
+    psychological: [
+      "Height dreams borrow the vestibular alarm for precarious competence: promotions, launches, public roles, recoveries that still feel fragile. They differ from pure falling dreams by lingering in anticipation — the psyche rehearses standing there.",
+      "If you have waking acrophobia, the dream may simply replay the phobia under stress. If you do not, ask which life ledge currently has a view you both want and fear.",
+    ],
+    spiritual: [
+      "Spiritually, high places mean vision and temptation: clearer sight, and the risk of pride or isolation. The dream may invite humility that keeps the vantage without pretending you are invulnerable.",
+      "Courage here is usually one secure step, not a leap. Seek counsel and practices that steady you at the altitude you have already reached.",
+    ],
+    islamic: [
+      "Dreams of high places may be weighed in relation to status, trial, and reliance on Allah rather than on one's elevation. Avoid reading them as guaranteed rise or fall in dunya rank.",
+      "If the dream frightens you, seek refuge in Allah and let waking conduct stay humble and careful. Gratitude for any sense of perspective is better than chasing height for its own sake.",
+    ],
+    biblical: [
+      "Biblical high places include both encounter (mountains of revelation) and warning (altars of idolatry, pride before a fall). A heights dream can ask which kind of elevation you are living.",
+      "Reflect with texts on humility and sure footing. The Shepherd leads beside still waters and also through valleys — altitude is not the only holy geography.",
+    ],
+    commonScenarios: [
+      { title: "Standing at a Great Height", meaning: "Vantage after progress — or exposure that came with a new role." },
+      { title: "Looking Down", meaning: "Assessing the cost of falling; comparison and vertigo about a choice." },
+      { title: "Climbing Higher", meaning: "Ambition and strain; progress that requires continuous effort." },
+      { title: "No Railing", meaning: "Unsupported success; missing safety in a visible position." },
+      { title: "Afraid on a Bridge", meaning: "Transition anxiety — crossing between chapters mid-air." },
+      { title: "Heights Without Falling", meaning: "The brink itself is the message; dread of exposure more than of impact." },
+    ],
+    faq: [
+      { question: "What do dreams about heights mean?", answer: "Often exposure, ambition, and vertigo at a life edge — fear or thrill about standing above familiar ground. Emotion decides whether the tone is calling or warning." },
+      { question: "Is dreaming of heights the same as dreaming of falling?", answer: "Related. Falling emphasizes the drop; heights emphasize standing at the edge. Many dreamers get one without the other." },
+      { question: "Why am I scared of heights only in dreams?", answer: "The dream may use altitude as a metaphor for precarious status even if waking heights do not bother you. Name the ledge decision in daily life." },
+    ],
+  },
+  nightmare: {
+    introduction: [
+      "Nightmare meaning and nightmare interpretation searches spike after nights that leave the body convinced the threat was real. A nightmare is not just a 'bad dream' — it is a dream that triggers fear intense enough to wake you, often with heart racing and a residue that stains the morning.",
+      "Most nightmares are the mind's threat-simulation and stress-release systems working overtime. They become clinically important when they recur, follow trauma, or make you fear sleep itself. This page stays grounded: what horrible dreams usually reflect, and what actually helps.",
+    ],
+    general: [
+      "Sort the nightmare by plot family: chase, falling, paralysis-adjacent fear, death imagery, disaster, interpersonal attack. Each family points to a different waking load — avoidance, loss of support, overwhelm, grief, chaos, boundary violation. Recurrence means the underlying question is still live.",
+      "Context on the day before matters. Conflict, late news, fever, alcohol, missed sleep, and certain medications all raise nightmare frequency. Rule out the ordinary amplifiers before assuming deep symbolism — then interpret what remains.",
+    ],
+    psychological: [
+      "Research links nightmares to stress, anxiety, PTSD, and disrupted REM. Threat-simulation theory suggests dreaming evolved partly to rehearse danger. Imagery rehearsal therapy — rewriting the ending while awake — has strong evidence for reducing recurrent nightmares.",
+      "Children's nightmares are common and usually developmental. Adult nightmares that begin after a specific event deserve trauma-informed care. If nightmares come with daytime flashbacks or avoidance of sleep, professional support is appropriate — this dictionary is reflection, not treatment.",
+    ],
+    spiritual: [
+      "Spiritual traditions often distinguish ordinary distressing dreams from meaningful warning or attack imagery — and nearly all counsel against granting nightmares authority over the day. Practices of prayer, protection, and releasing the image into trust are common across faiths.",
+      "Use the nightmare as a prompt toward courage and repair in waking life, not as a verdict. If a spiritual frame helps you seek refuge and do good, keep it; if it fuels terror, simplify: safety, rest, and wise counsel first.",
+    ],
+    islamic: [
+      "Islamic teaching distinguishes true dreams, self-talk, and distressing whisperings. Nightmares are generally met by seeking refuge in Allah, spitting lightly to the left, changing position, and not narrating the dream widely. Do not let a nightmare legislate fear about specific people.",
+      "If nightmares persist, combine the prophetic etiquette with practical causes — sleep, stress, unresolved wrongs needing tawbah — and ask Allah for peace in rest.",
+    ],
+    biblical: [
+      "Scripture acknowledges night terrors and also God's presence in the dark. Psalms speak of lying down in safety; Job knows frightening dreams. A biblical response pairs honest lament with trust, and refuses to treat every nightmare as prophecy.",
+      "Bring recurrent nightmares into prayer and, when needed, into pastoral or clinical help. Peace that steadies sleep is a mercy worth asking for.",
+    ],
+    commonScenarios: [
+      { title: "Recurring Nightmare", meaning: "Unresolved stressor or fear demanding attention until faced or reworked with imagery rehearsal." },
+      { title: "Horrible Dream With No Clear Plot", meaning: "Free-floating dread — generalized anxiety or bodily stress narrating itself." },
+      { title: "Waking From a Nightmare", meaning: "The body's interrupt. Ground with breath, light, and a simple reality check before interpreting." },
+      { title: "Childhood Nightmare Returning", meaning: "Old fear templates reactivated by current stress." },
+      { title: "Nightmare About Death", meaning: "Usually endings and change anxiety — not a forecast. Grief and transition amplify these." },
+      { title: "Telling Someone the Nightmare", meaning: "Seeking co-regulation; sharing often reduces the dream's grip." },
+    ],
+    faq: [
+      { question: "What does a nightmare mean?", answer: "Intense fear dreams usually reflect stress, threat rehearsal, or unresolved emotion — sometimes amplified by sleep disruption. Plot family and recurrence refine the reading." },
+      { question: "How do I stop nightmares?", answer: "Improve sleep basics, reduce late stimulants and violent media, address daytime stress, and try imagery rehearsal for repeats. Seek care if nightmares follow trauma or impair life." },
+      { question: "Are nightmares spiritual attacks?", answer: "Some traditions read them that way; even then, the advised response is refuge, calm, and not obsessing. Parallel practical causes should still be checked." },
+      { question: "What is the difference between a nightmare and a bad dream?", answer: "Nightmares typically wake you in fear; bad dreams can be unpleasant without that abrupt fear awakening. Both can be meaningful; nightmares demand more attention to sleep and stress." },
+    ],
+  },
+  "car-crash": {
+    introduction: [
+      "Car crash dream symbolism searches overlap with car accident dreams — metal, impact, the split-second of lost control. Crash imagery intensifies the sense of collision: goals, people, or timelines hitting the same intersection too hard and too fast.",
+      "As with other vehicle dreams, the car is agency and direction. A crash interrupts the story of where you were going. The useful question remains waking, not prophetic: what is colliding, and who was driving?",
+    ],
+    general: [
+      "Driver versus passenger versus witness splits responsibility. Brake failure leans toward momentum you cannot stop. Another car hitting you can map onto someone else's choices disrupting your path. Walking away unhurt often marks a wake-up call survived.",
+      "If the crash repeats, look for a recurring conflict of priorities — work versus family, two relationships, two ambitions — that waking life keeps forcing into the same junction.",
+    ],
+    psychological: [
+      "Crash dreams track feared consequences and loss of control more than traffic fate. Anxiety and exhaustion raise both crash dreams and real driving risk, which is why rest is a fair response to a run of these nights.",
+      "People processing abrupt life failures — firings, breakups, public mistakes — may dream crashes as the psyche's blunt metaphor for impact.",
+    ],
+    faq: [
+      { question: "What does a car crash dream mean?", answer: "Commonly colliding plans, abrupt failure, pressure, or fear of consequences — a direction crisis, not a reliable prediction of a road accident." },
+      { question: "Is car crash dream symbolism different from a car accident dream?", answer: "Mostly overlapping. 'Crash' language often emphasizes impact and total loss of control; interpret with the same driver/passenger/aftermath questions." },
+      { question: "Why do I dream of crashing when I'm a careful driver?", answer: "Because the metaphor is about life direction and consequence, not your parking skills. Map the collision onto waking pressures." },
+    ],
+  },
+  stairs: {
+    introduction: [
+      "Stairs in dreams are almost too clear: you are between levels. Climbing, falling, endless flights, broken steps — each version stages effort, status, and the incremental work of changing altitude in life. Searchers for stairs dream meaning usually wake mid-ascent or mid-tumble.",
+      "Unlike a sudden elevator, stairs demand participation. The dream asks what you are willing to step through to reach the next floor — and whether the structure under you can hold.",
+    ],
+    general: [
+      "Climbing with ease suggests supported progress; climbing forever suggests burnout toward a moving goal. Falling down stairs is setback after progress — often public. Spiral stairs revisit themes while rising. Broken stairs mean the plan or support cannot take your weight yet.",
+      "Notice destination and companions. Stairs to an attic lean toward memory and unused potential; to a basement, toward foundations and what is stored. Someone blocking the stairs is often a real gatekeeper.",
+    ],
+    psychological: [
+      "Stair dreams map hierarchy and incremental achievement. They appear around promotions, recoveries, coursework, and any path that only works one step at a time. Falling on stairs often tracks shame about a visible stumble.",
+      "If stairs appear in a childhood home, early family status dynamics may be in play — who was allowed upstairs, who was sent down.",
+    ],
+    faq: [
+      { question: "What does dreaming of stairs mean?", answer: "Usually progress between levels of life — ambition, effort, setback, or foundation work. Direction (up/down) and condition of the stairs refine the reading." },
+      { question: "Is falling down stairs a bad omen?", answer: "More often a metaphor for setback and lost footing than a prediction. Ask where waking progress feels unstable." },
+      { question: "What do endless stairs mean?", answer: "Effort without arrival — burnout, perfectionism, or a goalpost that keeps moving. Shorten the next real-world step." },
+    ],
+  },
+  trapped: {
+    introduction: [
+      "Dreams of being trapped — sealed room, locked door, underwater with no surface — stage the nightmare of no exit. Searchers for being trapped dream meaning usually wake still pushing on a door that would not open.",
+      "Trapped dreams report stuck agency: a job, relationship, identity, or emotion that feels closed from every side. The first interpretive task is naming the box; the second is finding whether a waking key already exists.",
+    ],
+    general: [
+      "Where you were trapped tags the life area. A room is private confinement; a crowd is social pressure; an elevator is suspended between levels; underwater is emotional seal. Unable to open a door focuses on a specific blocked choice.",
+      "Escaping at the end is clinically and symbolically important — agency returning. If you never escape, ask what waking conversation or decision is still postponed.",
+    ],
+    psychological: [
+      "These dreams correlate with helplessness, depression, coercive relationships, and high-constraint jobs. They also appear in grief when the future feels sealed. Panic disorder and claustrophobia can feed the imagery directly.",
+      "If trapped dreams follow trauma of actual confinement, seek trauma-informed support; dictionary symbolism is secondary to safety.",
+    ],
+    faq: [
+      { question: "What does dreaming of being trapped mean?", answer: "Usually stuckness, missing exits, and pressure without agency — a report on constraint in waking life, not a prophecy of captivity." },
+      { question: "How do I stop trapped dreams?", answer: "Increase real options where you can (boundary, exit plan, help). Imagery rehearsal of finding a door or window helps recurrent versions." },
+      { question: "Is a trapped dream about my relationship?", answer: "It can be — if the relationship is where you feel you cannot leave or speak. It can equally be work, family duty, or an emotion you have sealed in." },
+    ],
+  },
+  "being-lost": {
+    introduction: [
+      "Being lost in a dream — city without a map, forest without a path, unable to find home — stages disorientation. The anxiety is not always danger; sometimes it is simply not knowing the next turn while everyone else seems to.",
+      "Lost dreams ask about direction, belonging, and whether your internal compass still works after a change of life terrain.",
+    ],
+    general: [
+      "Lost in a city leans toward complex systems and unfamiliar rules. Lost and cannot find home focuses identity and belonging. No phone intensifies disconnection from help. Asking directions can be a healthy dream move — humility and counsel.",
+      "Finding your way at the end marks orientation returning. A lost child may be a vulnerable part of you or worry about someone dependent.",
+    ],
+    psychological: [
+      "Disorientation dreams spike after moves, breakups, career changes, and immigration — any time familiar landmarks of self are gone. They also track ADHD-like overwhelm and anxiety that floods working memory.",
+      "Practically, write three 'landmarks' of your current values when awake; dreamers report fewer lost dreams when orientation is explicitly rebuilt.",
+    ],
+    faq: [
+      { question: "What does dreaming of being lost mean?", answer: "Disorientation, missing direction, or belonging anxiety — often after real life terrain has changed." },
+      { question: "Why can't I find my house in dreams?", answer: "Home is identity and safety. Unable to find it usually tracks identity drift or fear that private life no longer orients you." },
+      { question: "Is getting lost a spiritual sign?", answer: "It can prompt prayer for guidance. Pair that with concrete next steps and trusted counsel — lostness is also a psychological map problem." },
+    ],
+  },
+  twins: {
+    introduction: [
+      "Twins in dreams double everything: two babies, two faces, two claims on your attention. Twin dream meaning often points to mirroring, divided energy, or two developments growing side by side — projects, relationships, or parts of the self.",
+      "Even for people not expecting children, twins stage the psyche's interest in pairs: rivalry and complementarity, sameness and difference.",
+    ],
+    general: [
+      "Having twins can mean abundance that splits care. Identical twins emphasize mirroring and identity confusion. Twins fighting externalize equal but opposing priorities. Losing one twin grieves a halved hope.",
+      "If you are pregnant or hoping to be, include the literal layer — pregnancy dreams love fertility imagery — without treating the dream as a guaranteed ultrasound result.",
+    ],
+    faq: [
+      { question: "What does dreaming of twins mean?", answer: "Often doubling, mirroring, and divided attention — two things growing at once. Context decides whether the tone is abundance or overload." },
+      { question: "Does a twin dream mean I will have twins?", answer: "Not reliably. Fertility hopes and fears feed the image. Use medical care for predictions; use the dream for emotional inventory." },
+      { question: "What if I meet my twin in a dream?", answer: "Frequently a neglected side of yourself or a relationship that reflects you closely — integration material more than literal sibling prophecy." },
+    ],
+  },
+  lottery: {
+    introduction: [
+      "Winning the lottery in a dream is a pure wish-image: sudden fortune, skipped struggle, a life rewritten by chance. Lottery dream meaning usually tracks hope for relief and the fantasy that luck could solve what effort has not.",
+      "The dream is less a prediction of numbers than a status report on how heavy ordinary paths feel right now — and what you wish could arrive without the middle.",
+    ],
+    general: [
+      "Winning easily leans toward hunger for rescue. Losing the ticket stages missed chance or self-sabotage. Sharing the win asks who you imagine beside abundance. A fake win marks suspicion of easy answers.",
+      "Pair the dream with money and debt themes in waking life. Sometimes the 'lottery' is not cash but a breakthrough — diagnosis clear, job offer, reconciliation — that would feel like winning.",
+    ],
+    faq: [
+      { question: "What does dreaming of winning the lottery mean?", answer: "Hope for sudden change, relief from pressure, or a wish to skip hard process — rarely a literal forecast of a jackpot." },
+      { question: "Should I play those numbers?", answer: "Dreams are not random-number generators. Play if you enjoy it; do not stake rent on dream digits." },
+      { question: "Why did I lose the winning ticket in the dream?", answer: "Often fear of missing opportunity or difficulty allowing good things to stay — worth exploring if it repeats." },
+    ],
+  },
+  debt: {
+    introduction: [
+      "Debt dreams weigh the ledger: what is owed, who collects, whether you can pay. Debt dream meaning reaches beyond money into emotional obligation — favors, guilt, family burdens, promises unpaid.",
+      "These dreams often arrive when balances — literal or relational — feel unsustainable. The shame tone is a clue: money shame and moral shame use the same night language.",
+    ],
+    general: [
+      "Unable to pay maps onto overwhelm. Someone owing you tracks unpaid recognition. Collectors intensify external pressure and exposure fear. Paying off debt is relief imagery. Hidden debt is secret cost. Inherited debt is legacy burden.",
+      "If finances are truly stressed, include practical steps alongside symbolism — the dream may be amplifying a real spreadsheet problem.",
+    ],
+    faq: [
+      { question: "What does dreaming about debt mean?", answer: "Obligation, imbalance, and anxiety about repayment — financial or emotional. Details tell you which ledger is loudest." },
+      { question: "Is a debt dream only about money?", answer: "No. Guilt, favors, caregiving, and unfinished promises often wear debt costumes." },
+      { question: "What if debt collectors chase me in the dream?", answer: "Pressure and accountability themes — something due that can no longer be postponed. Name the real 'collector' in waking life." },
+    ],
+  },
+  rabbit: {
+    introduction: [
+      "Rabbit dreams borrow speed, fertility, and timidity. A rabbit dream meaning can swing from abundance and gentle instinct to freeze-or-flee vulnerability. White rabbits especially carry curiosity and invitation into the unexpected.",
+      "Watch whether you held the rabbit, chased it, or watched it multiply. Softness under threat is often the emotional core.",
+    ],
+    general: [
+      "A white rabbit may guide or tempt toward wonder. A rabbit running away marks avoidance. Many rabbits can mean fertility themes or small worries breeding fast. A dead rabbit grieves lost innocence. A rabbit in the house brings timidity into private space.",
+      "If pregnancy is on your mind, rabbits' fertility symbolism may be literal-adjacent without being diagnostic.",
+    ],
+    faq: [
+      { question: "What does a rabbit mean in a dream?", answer: "Fertility, timidity, quick instinct, abundance, or vulnerability — behavior and emotion choose which facet dominates." },
+      { question: "Is a white rabbit a good sign?", answer: "Often leans toward innocence, guidance, or curiosity. Your feeling in the dream still outweighs color folklore." },
+      { question: "Why so many rabbits?", answer: "Multiplication imagery — ideas, worries, or fertility themes increasing faster than you can manage." },
+    ],
+  },
+  boat: {
+    introduction: [
+      "A boat dream places you on emotion with a craft: seaworthy or sinking, rowing or drifting, storm-tossed or docking in calm. Boat dream meaning asks how you navigate feeling — and whether your current life vessel can hold the load.",
+      "Ships and small boats differ in scale. A yacht may add status insulation; a rowboat emphasizes personal effort across the water.",
+    ],
+    general: [
+      "Sinking marks a plan or bond taking on water. Rowing is effortful progress. Storms test leadership and faith under turbulence. An empty boat can mean abandoned purpose. Docking is arrival and securing what you carried.",
+      "Who else is aboard matters — crew as support, or overcrowding as emotional load shared poorly.",
+    ],
+    faq: [
+      { question: "What does a boat mean in a dream?", answer: "How you navigate emotion and transition — the seaworthiness of your current craft. Condition of the boat and water refine the reading." },
+      { question: "What does a sinking boat dream mean?", answer: "Fear that a plan, job, or relationship cannot hold the emotional or practical load — a prompt to bail, repair, or abandon ship wisely." },
+      { question: "Is a boat in a storm a bad omen?", answer: "It usually reflects turmoil you are already in. Focus on course, crew, and refuge — not on predicting shipwreck." },
     ],
   },
 };
@@ -3222,6 +3891,46 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Dreaming of a Dead Parent: Grief, Memory & Comfort",
     seoDescription:
       "What dreams of a deceased parent mean — unfinished conversations, inherited patterns, and comfort associated with a mother or father who has died.",
+  },
+  stairs: {
+    seoTitle: "Stairs Dream Meaning: Climbing, Falling & Endless Steps",
+    seoDescription:
+      "What stairs in a dream mean — ascent, setback on the way up, broken steps, and the effort between levels of life. Psychological and spiritual readings.",
+  },
+  trapped: {
+    seoTitle: "Being Trapped Dream Meaning: No Exit & Stuck Agency",
+    seoDescription:
+      "What dreaming of being trapped means — sealed rooms, locked doors, underwater confinement, and how to read stuckness without panic.",
+  },
+  "being-lost": {
+    seoTitle: "Being Lost Dream Meaning: Disorientation & Direction",
+    seoDescription:
+      "What dreaming of being lost means — cities without maps, unable to find home, and rebuilding your inner compass after life terrain changes.",
+  },
+  twins: {
+    seoTitle: "Twins Dream Meaning: Doubling, Mirroring & Divided Care",
+    seoDescription:
+      "What dreaming of twins means — double potential, identity mirrors, rival priorities, and fertility themes without treating the dream as ultrasound.",
+  },
+  lottery: {
+    seoTitle: "Lottery Dream Meaning: Winning, Luck & Sudden Fortune",
+    seoDescription:
+      "What dreaming of the lottery means — jackpot wishes, lost tickets, and the hunger for a life changed without the hard middle.",
+  },
+  debt: {
+    seoTitle: "Debt Dream Meaning: Obligation, Guilt & What Is Owed",
+    seoDescription:
+      "What dreaming about debt means — unpaid balances, collectors, hidden obligations, and emotional ledgers wearing money's clothes.",
+  },
+  rabbit: {
+    seoTitle: "Rabbit Dream Meaning: Fertility, Timidity & Instinct",
+    seoDescription:
+      "What a rabbit in a dream means — white rabbits, fleeing, abundance, and soft vulnerability under threat.",
+  },
+  boat: {
+    seoTitle: "Boat Dream Meaning: Navigating Emotion on the Water",
+    seoDescription:
+      "What a boat or ship in a dream means — sinking craft, storms, rowing, and whether your current vessel can hold the load.",
   },
 };
 
