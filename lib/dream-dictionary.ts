@@ -1527,8 +1527,8 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of crawling",
       "dream of crawling on hands and knees",
     ],
-    relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel"],
-    updatedAt: "2026-07-18",
+    relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel", "trapped"],
+    updatedAt: "2026-07-23",
     variations: [
       { slug: "crawling-on-the-floor", name: "crawling on the floor", focus: "humility, starting over, or progress that feels undignified but necessary" },
       {
@@ -1538,6 +1538,18 @@ const CLUSTERS: ClusterSeed[] = [
         aliases: ["crawling on hands and knees", "dream of crawling on hands and knees"],
       },
       { slug: "crawling-through-a-tunnel", name: "crawling through a tunnel", focus: "a narrow passage through difficulty, or progress that requires getting low and patient" },
+      {
+        slug: "crawling-through-small-spaces",
+        name: "crawling through small spaces",
+        focus: "claustrophobic progress, squeezing through constraint, or advancing only by making yourself smaller",
+        aliases: [
+          "dream about crawling through small spaces",
+          "crawling through tight spaces dream",
+          "dream of crawling in a confined space",
+          "crawling through a small space dream meaning",
+          "dreaming of crawling through a narrow space",
+        ],
+      },
       { slug: "unable-to-stand-crawling", name: "unable to stand and crawling instead", focus: "depleted strength, lost status, or a season where the only available movement is slow and close to the ground" },
       { slug: "crawling-away-from-danger", name: "crawling away from danger", focus: "escaping under constraint, survival without full power, or getting clear of a threat with whatever strength remains" },
       { slug: "someone-crawling-toward-you", name: "someone crawling toward you", focus: "a need, fear, or person approaching from a vulnerable or unsettling place" },
@@ -1817,7 +1829,7 @@ const CLUSTERS: ClusterSeed[] = [
       "stuck in a dream",
       "dreaming of being trapped",
     ],
-    relatedSymbols: ["being-chased", "prison", "falling", "being-naked", "tunnel"],
+    relatedSymbols: ["being-chased", "prison", "falling", "being-naked", "tunnel", "crawling"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "trapped-in-a-room", name: "trapped in a room", focus: "a closed chapter of life, private confinement, or options that have narrowed to four walls" },
@@ -2976,7 +2988,7 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       "That dual feeling is the interpretive key. Crawling is still forward motion. The dream rarely says you are stuck; it says the only available gear right now is close to the ground. Whether that reads as humility, exhaustion, regression, or survival depends on whether you were fleeing, exploring, or simply unable to stand.",
     ],
     general: [
-      "Start with why you were crawling. Escaping danger on hands and knees points to survival under constraint — you are getting clear with less power than you want. Crawling like a baby often revisits dependence, early needs, or a life stage where standing on your own still feels premature. A tunnel forces patience: the passage is real, but the posture required is low and careful.",
+      "Start with why you were crawling. Escaping danger on hands and knees points to survival under constraint — you are getting clear with less power than you want. Crawling like a baby often revisits dependence, early needs, or a life stage where standing on your own still feels premature. A tunnel forces patience: the passage is real, but the posture required is low and careful. Crawling through small spaces sharpens the squeeze — progress only by making yourself smaller.",
       "Notice the floor and the audience. Being watched while crawling intensifies shame about status or competence. An empty room makes the dream more about private capacity. If you could almost stand but kept dropping back down, the dream may be measuring depleted strength rather than a permanent loss of agency.",
     ],
     psychological: [
@@ -2996,6 +3008,61 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Is dreaming of crawling a bad sign?", answer: "Not automatically. Crawling is still movement. A fearful crawl away from danger differs from a calm crawl through a tunnel toward light. Treat the dream as a status report on capacity, not a prediction." },
       { question: "Why do I dream I can only crawl like a baby?", answer: "Baby-crawling imagery often tracks dependence, early needs resurfacing, or starting a chapter where adult competence has not caught up yet — a new role, recovery, or identity rebuild." },
       { question: "What if someone is crawling toward me?", answer: "That figure may represent a need, fear, or person approaching from a vulnerable or unsettling place. Note whether you help, flee, or freeze — that reaction maps onto how you meet neediness or threat when awake." },
+    ],
+  },
+  "crawling-through-small-spaces": {
+    introduction: [
+      "A dream about crawling through small spaces — vents, crawlspaces, gaps under furniture, a corridor too low to stand — combines two pressures: you are moving, and the world will not let you move upright. Searchers often wake still feeling the squeeze in their shoulders: progress was possible only by making themselves smaller.",
+      "That is different from a tunnel with light ahead, and different from open-floor crawling. The small space is the point. The dream stages constraint you must enter on purpose — or already found yourself inside — where dignity, speed, and options shrink to fit the gap.",
+    ],
+    general: [
+      "Read the space by how tight it was and whether an exit existed. A crawlspace you chose to enter leans toward a hard passage you accept; being forced into a gap leans toward coercion or a life that shrank around you. Getting stuck mid-crawl focuses panic about a commitment you cannot reverse. Emerging into open air is clinically and symbolically important — agency returning after constraint.",
+      "Notice what you were crawling toward or away from. Escape through a small space is survival under humiliation of posture. Crawling toward someone or something through a tight gap can mean love, duty, or curiosity that costs comfort. Dirt, dust, and darkness grade shame and unknowns; a clean, lit passage grades deliberate humility.",
+    ],
+    psychological: [
+      "Psychologically, crawling through confined spaces often maps onto claustrophobic life structures: a job with no lateral move, a family role that leaves no room to stand, recovery that forces you to go slow and low. The body borrows crawlspace imagery when waking options feel physically and socially narrowed.",
+      "Waking claustrophobia, panic, or recent experiences of actual tight spaces (medical procedures, crowded transit, hiding) can feed the image directly — include that layer before reaching only for career metaphors. If the dream repeats with rising panic, treat sleep and anxiety care as part of the response.",
+    ],
+    spiritual: [
+      "Spiritually, the narrow way is an old image: a gate that ego cannot pass standing tall. Crawling through a small space can invite honest inventory of what must be shed — pride, haste, a self-image that no longer fits — so a necessary passage becomes possible.",
+      "A grounded response is practical: name the waking constraint, ask what one dignity-preserving step still fits inside it, and refuse to stay in a gap that has no exit. Humility is sacred; captivity dressed as humility is not.",
+    ],
+    islamic: [
+      "In an Islamic framing, dreams of tight, constrained passage are often weighed against present hardship (ibtila') and the dreamer's patience rather than as fixed omens of enclosure. Difficulty moving freely can reflect a worldly trial that requires reliance on Allah and careful, lawful next steps — without claiming certain knowledge of the unseen.",
+      "A frightening confined-crawl dream is met like other distressing dreams: seek refuge in Allah, avoid spreading fear through speculation, and keep waking decisions tied to faith, evidence, and character. If you reached open space or safety, receive that with gratitude as encouragement through a hard stretch.",
+    ],
+    biblical: [
+      "Scripture repeatedly honors the narrow path: the small gate, the hard road, spaces where the proud cannot swagger through. A dream of crawling through a small space can echo that architecture — not as coded prophecy, but as a question about whether the hard, low path is the faithful one for this season.",
+      "Pair that with deliverance imagery: valleys walked with the Shepherd, sealed places that do not stay sealed forever. Biblical reflection asks what confinement you are in, what must be laid down to pass, and what next faithful step looks like before the exit is fully visible.",
+    ],
+    commonScenarios: [
+      { title: "Crawling Through a Vent or Duct", meaning: "Invisible or unofficial routes through a problem — progress that cannot be public yet, or a path that feels undignified but effective." },
+      { title: "Stuck Halfway in a Gap", meaning: "A commitment or role you have entered but cannot reverse; panic about options that narrowed after you moved." },
+      { title: "Crawling Under Something to Escape", meaning: "Survival under constraint — getting clear with less power and less dignity than you want." },
+      { title: "Emerging from a Tight Space into Open Air", meaning: "Relief after a sealed season; agency and breath returning after forced humility." },
+      { title: "Guiding Someone Else Through a Small Space", meaning: "Caretaking through a hard passage — helping another (or a part of yourself) accept a low, slow route." },
+    ],
+    faq: [
+      {
+        question: "What does a dream about crawling through small spaces mean?",
+        answer:
+          "It commonly points to progress under severe constraint — advancing only by making yourself smaller. Emotion and whether you escape decide whether the tone is survival, humility, or stuck panic.",
+      },
+      {
+        question: "Is crawling through tight spaces a bad omen?",
+        answer:
+          "Not automatically. Crawling is still movement. Stuck-and-panicking scenes lean toward a waking bind that needs an exit plan; emerging into open space leans toward a hard passage you are already completing.",
+      },
+      {
+        question: "How is this different from a tunnel dream?",
+        answer:
+          "Tunnels emphasize passage and light ahead. Small spaces emphasize squeeze, claustrophobia, and the cost of fitting. Both can be transitions; the tight crawl asks what you must shed or endure to continue.",
+      },
+      {
+        question: "Could this just be claustrophobia?",
+        answer:
+          "Yes — waking claustrophobia or recent confinement can feed the image. Still ask which life area currently feels too narrow to stand in; the metaphor and the phobia often travel together.",
+      },
     ],
   },
   "car-accident": {
@@ -3746,6 +3813,11 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Dream of Crawling on Hands and Knees: Meaning",
     seoDescription:
       "What dreaming of crawling — including on hands and knees — means: vulnerability, regression, and slow progress when standing feels impossible.",
+  },
+  "crawling-through-small-spaces": {
+    seoTitle: "Dream About Crawling Through Small Spaces: Meaning",
+    seoDescription:
+      "What dreaming of crawling through small or tight spaces means — claustrophobic progress, constraint, and advancing only by making yourself smaller.",
   },
   ghost: {
     seoTitle: "Ghost in Dream Meaning: Unfinished Past, Guilt & Memory",
