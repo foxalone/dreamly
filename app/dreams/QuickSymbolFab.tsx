@@ -385,6 +385,7 @@ export default function QuickSymbolFab() {
                     {result.href ? (
                       <Link
                         href={result.href}
+                        onClick={() => setOpen(false)}
                         className="mt-3 inline-flex text-sm font-semibold text-[var(--dd-accent-text)] hover:underline"
                       >
                         Open full page →
