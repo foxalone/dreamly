@@ -10,7 +10,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbol";
+import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
 
 const PENDING_KEY = "dreamly:quickSymbolPending";
 

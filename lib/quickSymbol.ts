@@ -1,6 +1,7 @@
 import { ALL_DREAM_ENTRIES, type DreamEntry } from "@/lib/dream-dictionary";
+import { countWords, QUICK_SYMBOL_MAX_WORDS } from "@/lib/quickSymbolLimits";
 
-export const QUICK_SYMBOL_MAX_WORDS = 10;
+export { countWords, QUICK_SYMBOL_MAX_WORDS };
 
 export type QuickSymbolMatch = {
   slug: string;
@@ -17,12 +18,6 @@ function normalize(value: string) {
     .trim()
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ");
-}
-
-export function countWords(text: string) {
-  const t = text.trim();
-  if (!t) return 0;
-  return t.split(/\s+/).filter(Boolean).length;
 }
 
 export function normalizeQuickQuery(text: string) {
@@ -45,6 +40,7 @@ export function scoreDreamEntry(query: string, entry: DreamEntry): number {
   return 0;
 }
 
+/** Server-only: walks the full dictionary. Do not import this module from client components. */
 export function findBestDreamMatch(query: string): QuickSymbolMatch | null {
   const q = normalize(query);
   if (!q) return null;

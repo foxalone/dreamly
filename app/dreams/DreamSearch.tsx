@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import type { DreamCategory } from "@/lib/dream-dictionary";
-import { DREAM_CATEGORIES } from "@/lib/dream-dictionary";
+import type { DreamCategory } from "@/lib/dream-categories";
+import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 
 export type DreamSearchItem = {
   slug: string;
