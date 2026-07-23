@@ -2,6 +2,13 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { requireSignedInUid } from "../_lib/requireUser";
+import {
+  EMOJI_PICK_CREDIT_COST,
+  chargeOpenAiCall,
+  refundOpenAiCall,
+  type OpenAiCharge,
+} from "../_lib/credits";
 
 export const runtime = "nodejs";
 
@@ -16,6 +23,7 @@ type Body = {
   root: string;
   lang?: string;
   candidates: Candidate[];
+  idToken?: string;
 };
 
 function toStr(x: unknown) {
@@ -39,23 +47,25 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
   }
 }
 
-function pickFirst(cands: Candidate[], reason: string) {
+function pickFirst(
+  cands: Candidate[],
+  reason: string,
+  extras?: { cost?: number; credits?: number; usedDailyFree?: boolean }
+) {
   const first = cands[0];
   return NextResponse.json({
     native: first.native,
     id: first.id ?? "",
     name: first.name ?? "",
     reason,
+    ...(extras ?? {}),
   });
 }
 
-// максимально “живучее” извлечение текста из responses.create
 function extractOutputText(resp: unknown): string {
-  // 1) некоторые версии SDK дают output_text
   const direct = isRecord(resp) ? toStr(resp.output_text) : "";
   if (direct) return direct;
 
-  // 2) официальный формат: output -> content -> text
   const out = isRecord(resp) ? resp.output : undefined;
   if (Array.isArray(out)) {
     const chunks: string[] = [];
@@ -71,21 +81,19 @@ function extractOutputText(resp: unknown): string {
     if (joined) return joined;
   }
 
-  // 3) на крайний случай
   return "";
 }
 
 export async function POST(req: Request) {
-  try {
-    const apiKey = getOneiroOpenAiApiKey();
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: getMissingOneiroOpenAiKeyMessage() },
-        { status: 500 }
-      );
-    }
+  let uid: string | null = null;
+  let charge: OpenAiCharge | null = null;
 
+  try {
     const body = (await req.json().catch(() => ({}))) as Partial<Body>;
+
+    const auth = await requireSignedInUid(body?.idToken);
+    if ("error" in auth) return auth.error;
+    uid = auth.uid;
 
     const root = toStr(body?.root);
     const lang = toStr(body?.lang) || "unknown";
@@ -94,7 +102,6 @@ export async function POST(req: Request) {
     if (!root) return NextResponse.json({ error: "Missing root" }, { status: 400 });
     if (!candidates.length) return NextResponse.json({ error: "Missing candidates" }, { status: 400 });
 
-    // ✅ Убираем мусор/дубликаты + hard cap
     const uniq = new Map<string, Candidate>();
     for (const c of candidates) {
       const native = toStr(c?.native);
@@ -105,9 +112,21 @@ export async function POST(req: Request) {
     const safeCandidates = Array.from(uniq.values()).slice(0, 20);
     if (!safeCandidates.length) return NextResponse.json({ error: "No valid candidates" }, { status: 400 });
 
-    const client = new OpenAI({ apiKey });
+    const charged = await chargeOpenAiCall(uid, EMOJI_PICK_CREDIT_COST);
+    if ("error" in charged) return charged.error;
+    charge = charged;
 
-    // Лучше использовать модель, которая у тебя точно доступна
+    const apiKey = getOneiroOpenAiApiKey();
+    if (!apiKey) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
+      return NextResponse.json(
+        { error: getMissingOneiroOpenAiKeyMessage() },
+        { status: 500 }
+      );
+    }
+
+    const client = new OpenAI({ apiKey });
     const model = toStr(process.env.OPENAI_EMOJI_MODEL) || "gpt-4o-mini";
 
     const schema = {
@@ -135,8 +154,6 @@ export async function POST(req: Request) {
       })),
     };
 
-    // 1) Пытаемся structured output
-    let outText = "";
     let parsed: Record<string, unknown> | null = null;
 
     try {
@@ -158,16 +175,12 @@ export async function POST(req: Request) {
         temperature: 0.2,
       });
 
-      outText = extractOutputText(resp);
-      if (outText) {
-        parsed = parseJsonObject(outText);
-      }
+      const outText = extractOutputText(resp);
+      if (outText) parsed = parseJsonObject(outText);
     } catch (e: unknown) {
-      // structured output иногда может падать — сделаем fallback ниже
       console.warn("emoji-pick structured failed:", errorMessage(e));
     }
 
-    // 2) Fallback: обычный JSON без schema
     if (!parsed || !toStr(parsed?.native)) {
       try {
         const resp2 = await client.responses.create({
@@ -179,9 +192,7 @@ export async function POST(req: Request) {
         });
 
         const txt2 = extractOutputText(resp2);
-        if (txt2) {
-          parsed = parseJsonObject(txt2);
-        }
+        if (txt2) parsed = parseJsonObject(txt2);
       } catch (e: unknown) {
         console.warn("emoji-pick fallback failed:", errorMessage(e));
       }
@@ -189,10 +200,14 @@ export async function POST(req: Request) {
 
     const pickedNative = toStr(parsed?.native);
     const found = safeCandidates.find((c) => c.native === pickedNative);
+    const paid = {
+      cost: charge.cost,
+      credits: charge.credits,
+      usedDailyFree: charge.usedDailyFree,
+    };
 
     if (!found) {
-      // fallback: первый кандидат (никогда не 500 из-за OpenAI)
-      return pickFirst(safeCandidates, "fallback_first_candidate");
+      return pickFirst(safeCandidates, "fallback_first_candidate", paid);
     }
 
     return NextResponse.json({
@@ -200,12 +215,13 @@ export async function POST(req: Request) {
       id: found.id ?? "",
       name: found.name ?? "",
       reason: toStr(parsed?.reason) || "picked",
+      ...paid,
     });
   } catch (e: unknown) {
-    // важное: вернуть текст ошибки, чтобы ты видел его в Network->Response
+    if (uid && charge) await refundOpenAiCall(uid, charge);
     console.error("emoji-pick error:", e);
     return NextResponse.json(
-      { error: errorMessage(e) || "emoji-pick failed", stack: e instanceof Error && toStr(e.stack) ? "see server logs" : undefined },
+      { error: errorMessage(e) || "emoji-pick failed" },
       { status: 500 }
     );
   }

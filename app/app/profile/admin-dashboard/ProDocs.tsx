@@ -5,7 +5,7 @@ import { auth } from "@/lib/firebase";
 
 /**
  * Внутренняя «Confluence»-страница: как устроена монетизация (кредиты / Upgrade).
- * Данные синхронизированы с кодом: lib/credits/packs.ts, PayPal API, dreams page.
+ * Данные синхронизированы с кодом: lib/credits/packs.ts, app/api/dreams/_lib/credits.ts, PayPal API.
  */
 
 const PACKS = [
@@ -15,12 +15,50 @@ const PACKS = [
   { id: "pack_300", credits: 300, price: "$29.99" },
 ] as const;
 
+/** Платные / условно платные действия — source: app/api/dreams/_lib/credits.ts + dreams page */
 const ACTIONS = [
-  { action: "Save dream / story", cost: "1 кредит", note: "при нехватке → /app/upgrade" },
-  { action: "Analyze dream", cost: "2 кредита", note: "только dreams, не stories" },
-  { action: "Roots / emoji icons", cost: "0", note: "бесплатно, без gate" },
-  { action: "Share / Feed / Dictionary", cost: "0", note: "без списания кредитов" },
-  { action: "Translate (shared feed)", cost: "0", note: "GPT через API, кэш в Firebase" },
+  {
+    action: "Сохранить сон / story",
+    cost: "1 кредит",
+    note: "При save. Списание в клиенте (Firestore). При нехватке → /app/upgrade",
+  },
+  {
+    action: "Analyze (разбор сна)",
+    cost: "2 кредита",
+    note: "Всегда платно. Списание на сервере до OpenAI. Бесплатного слота нет. Только dreams, не stories",
+  },
+  {
+    action: "Quick Symbol — нашли в словаре",
+    cost: "0",
+    note: "Бесплатно, без GPT",
+  },
+  {
+    action: "Quick Symbol — GPT (не нашли)",
+    cost: "1 кредит",
+    note: "Списание на сервере",
+  },
+  {
+    action: "Rootwords (символы после save)",
+    cost: "0 или 1",
+    note: "Сервер: 1-й OpenAI-вызов за сутки (UTC) бесплатно, дальше 1 кредит. Общий дневной слот с translate / emoji-pick",
+  },
+  {
+    action: "Translate в ленте",
+    cost: "0 или 1",
+    note: "Кэш = всегда 0. Новый перевод: из дневного бесплатного слота, иначе 1 кредит",
+  },
+  {
+    action: "Emoji-pick API",
+    cost: "0 или 1",
+    note: "Тот же дневной слот / 1 кредит. В UI авто-эмодзи локальные (0); API платный от abuse",
+  },
+] as const;
+
+const FREE_ALWAYS = [
+  { action: "Словарь /dreams, SEO-страницы", note: "Публичный контент" },
+  { action: "Share в ленту, реакции", note: "Без списания" },
+  { action: "Translate из кэша", note: "Без OpenAI" },
+  { action: "Локальные emoji / иконки в UI", note: "Без вызова emoji-pick API" },
 ] as const;
 
 type BackfillRow = {
@@ -89,7 +127,7 @@ export default function ProDocs() {
           Pro / Upgrade — как это работает
         </h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Обновлено: 2026-07-19 · источник истины в коде, не подписка
+          Обновлено: 2026-07-23 · источник истины в коде, не подписка
         </p>
       </div>
 
@@ -114,7 +152,7 @@ export default function ProDocs() {
           <ol className="mt-3 list-decimal pl-5 space-y-1 text-[var(--muted)]">
             <li>Модель монетизации</li>
             <li>Пакеты кредитов</li>
-            <li>Что списывается</li>
+            <li>Что списывается (актуальная таблица)</li>
             <li>Платёжный flow (PayPal)</li>
             <li>Firebase / данные</li>
             <li>Ключевые файлы</li>
@@ -182,29 +220,98 @@ export default function ProDocs() {
           <h3 className="text-base font-semibold border-b border-[var(--border)] pb-2">
             3. Что списывается
           </h3>
-          <div className="mt-3 overflow-x-auto rounded-xl border border-[var(--border)]">
+
+          <div className="mt-3 rounded-xl border border-[color-mix(in_srgb,#f59e0b_40%,var(--border))] bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-3">
+            <div className="font-semibold">1 бесплатный OpenAI-вызов в день (UTC)</div>
+            <p className="mt-1 text-[var(--muted)]">
+              Общий слот на пользователя для{" "}
+              <span className="font-mono text-[var(--text)]">rootwords</span> +{" "}
+              <span className="font-mono text-[var(--text)]">translate</span> +{" "}
+              <span className="font-mono text-[var(--text)]">emoji-pick</span>. Первый вызов за
+              сутки —{" "}
+              <strong className="text-[var(--text)]">0 кредитов</strong>, дальше — по цене из
+              таблицы.{" "}
+              <strong className="text-[var(--text)]">Analyze</strong> и{" "}
+              <strong className="text-[var(--text)]">Save</strong> в этот слот{" "}
+              <strong className="text-[var(--text)]">не входят</strong>. Поля:{" "}
+              <span className="font-mono text-[var(--text)]">openaiFreeDayKey</span> /{" "}
+              <span className="font-mono text-[var(--text)]">openaiFreeUsed</span>.
+            </p>
+          </div>
+
+          <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">За что берут кредиты</h4>
+          <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--border)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_6%,transparent)] text-left">
                   <th className="p-3 font-semibold">Действие</th>
-                  <th className="p-3 font-semibold">Стоимость</th>
-                  <th className="p-3 font-semibold">Комментарий</th>
+                  <th className="p-3 font-semibold">Цена</th>
+                  <th className="p-3 font-semibold">Когда / комментарий</th>
                 </tr>
               </thead>
               <tbody>
                 {ACTIONS.map((a) => (
                   <tr key={a.action} className="border-b border-[var(--border)] last:border-0">
                     <td className="p-3">{a.action}</td>
-                    <td className="p-3 font-semibold">{a.cost}</td>
+                    <td className="p-3 font-semibold whitespace-nowrap">{a.cost}</td>
                     <td className="p-3 text-[var(--muted)]">{a.note}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">Бесплатно всегда</h4>
+          <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--border)]">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_6%,transparent)] text-left">
+                  <th className="p-3 font-semibold">Действие</th>
+                  <th className="p-3 font-semibold">Цена</th>
+                  <th className="p-3 font-semibold">Комментарий</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FREE_ALWAYS.map((a) => (
+                  <tr key={a.action} className="border-b border-[var(--border)] last:border-0">
+                    <td className="p-3">{a.action}</td>
+                    <td className="p-3 font-semibold">0</td>
+                    <td className="p-3 text-[var(--muted)]">{a.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">Типичный сценарий</h4>
+          <ol className="mt-2 list-decimal pl-5 space-y-1 text-[var(--muted)]">
+            <li>
+              Save сна → <strong className="text-[var(--text)]">−1</strong>
+            </li>
+            <li>
+              Авто-rootwords (первый AI за день) →{" "}
+              <strong className="text-[var(--text)]">0</strong>
+            </li>
+            <li>
+              Analyze → <strong className="text-[var(--text)]">−2</strong>
+            </li>
+            <li>
+              Ещё translate/rootwords в тот же день →{" "}
+              <strong className="text-[var(--text)]">−1</strong>
+            </li>
+          </ol>
+          <p className="mt-2 text-[var(--muted)]">
+            Итого за сон с анализом в тот же день: примерно{" "}
+            <strong className="text-[var(--text)]">3–4 кредита</strong>.
+          </p>
+
           <p className="mt-3 text-[var(--muted)]">
-            При ошибке после списания — refund (+1 / +2) через Firestore transaction в{" "}
-            <span className="font-mono text-[var(--text)]">app/app/dreams/page.tsx</span>.
+            Auth обязателен на AI-роутах. При ошибке GPT — refund кредитов / возврат дневного
+            слота через{" "}
+            <span className="font-mono text-[var(--text)]">
+              app/api/dreams/_lib/credits.ts
+            </span>
+            .
           </p>
         </section>
 
@@ -262,6 +369,11 @@ export default function ProDocs() {
                   <span className="font-mono text-[var(--text)]">creditsUpdatedAt</span>
                 </li>
                 <li>
+                  <span className="font-mono text-[var(--text)]">openaiFreeDayKey</span> /{" "}
+                  <span className="font-mono text-[var(--text)]">openaiFreeUsed</span> — дневной
+                  бесплатный OpenAI-слот
+                </li>
+                <li>
                   <span className="font-mono text-[var(--text)]">welcomeBonusGranted</span>
                 </li>
                 <li>
@@ -302,6 +414,12 @@ export default function ProDocs() {
           </h3>
           <ul className="mt-3 list-disc pl-5 space-y-1.5 font-mono text-xs text-[var(--muted)]">
             <li className="text-[var(--text)]">lib/credits/packs.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/_lib/credits.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/_lib/requireUser.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/analyze/route.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/rootwords/route.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/translate/route.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/quick-symbol/route.ts</li>
             <li className="text-[var(--text)]">app/app/upgrade/UpgradeClient.tsx</li>
             <li className="text-[var(--text)]">app/app/profile/page.tsx</li>
             <li className="text-[var(--text)]">app/api/paypal/create-order/route.ts</li>
@@ -406,6 +524,7 @@ export default function ProDocs() {
         <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
           Эта страница — внутренняя документация в админке (Confluence-style). При изменении
           цен/стоимости действий обновляй{" "}
+          <span className="font-mono text-[var(--text)]">app/api/dreams/_lib/credits.ts</span>,{" "}
           <span className="font-mono text-[var(--text)]">lib/credits/packs.ts</span> и этот блок.
         </div>
       </div>

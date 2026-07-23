@@ -241,29 +241,7 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
   const candidates = uniq.slice(0, 20);
   if (candidates.length === 0) return null;
 
-  try {
-    const resp = await fetch("/api/dreams/emoji-pick", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        root: q,
-        lang: lang ?? "unknown",
-        candidates: candidates.map((c) => ({
-          native: c.native,
-          id: c.id,
-          name: c.name,
-          keywords: c.keywords ?? [],
-        })),
-      }),
-    });
-
-    const out = await resp.json();
-    if (resp.ok) {
-      const picked = candidates.find((c) => c.native === out?.native);
-      if (picked) return { native: picked.native, id: picked.id, name: picked.name };
-    }
-  } catch {}
-
+  // Local emoji match only — AI /api/dreams/emoji-pick costs 1 credit per call.
   const top = candidates[0];
   return top ? { native: top.native, id: top.id, name: top.name } : null;
 }
@@ -575,14 +553,20 @@ useEffect(() => {
     }
 
     try {
+      const token = await idToken();
       const res = await fetch("/api/dreams/rootwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t }),
+        body: JSON.stringify({ text: t, idToken: token }),
       });
 
       const data2 = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data2?.error ?? "rootwords failed");
+      if (!res.ok) {
+        if (data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("Not enough credits for symbol extraction (1 credit after today's free AI call).");
+        }
+        throw new Error(data2?.error ?? "rootwords failed");
+      }
 
       const counts = desiredCountsFromText(t);
 
@@ -652,14 +636,20 @@ useEffect(() => {
     setError(null);
     setBusy("analyze");
     try {
+      const token = await idToken();
       const res = await fetch("/api/dreams/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t, lang: guessLang(t) }),
+        body: JSON.stringify({ text: t, lang: guessLang(t), idToken: token }),
       });
 
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j?.error ?? "Analyze failed");
+      if (!res.ok) {
+        if (j?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("Not enough credits to analyze. Requires 2 credits.");
+        }
+        throw new Error(j?.error ?? "Analyze failed");
+      }
 
       const a = String(j?.analysis ?? "").trim();
       if (!a) throw new Error("Пустой анализ от AI");

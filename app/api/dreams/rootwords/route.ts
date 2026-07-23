@@ -2,6 +2,13 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { requireSignedInUid } from "../_lib/requireUser";
+import {
+  ROOTWORDS_CREDIT_COST,
+  chargeOpenAiCall,
+  refundOpenAiCall,
+  type OpenAiCharge,
+} from "../_lib/credits";
 
 export const runtime = "nodejs";
 
@@ -11,7 +18,7 @@ function toStr(x: any) {
 
 function cleanWord(x: any) {
   return toStr(x)
-    .replace(/[^\p{L}\p{N}\s'-]/gu, "") // keep letters/numbers/spaces/'/-
+    .replace(/[^\p{L}\p{N}\s'-]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -39,25 +46,40 @@ function mapLangToRecLang(lang: string): "en" | "ru" | "he" | "unknown" {
 }
 
 export async function POST(req: Request) {
+  let uid: string | null = null;
+  let charge: OpenAiCharge | null = null;
+
   try {
+    const body = await req.json().catch(() => ({}));
+
+    const auth = await requireSignedInUid(body?.idToken);
+    if ("error" in auth) return auth.error;
+    uid = auth.uid;
+
+    const text = toStr(body?.text);
+    if (!text) return NextResponse.json({ error: "Missing text" }, { status: 400 });
+
+    const charged = await chargeOpenAiCall(uid, ROOTWORDS_CREDIT_COST);
+    if ("error" in charged) return charged.error;
+    charge = charged;
+
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
       return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
     }
 
     const client = new OpenAI({ apiKey });
-    const body = await req.json().catch(() => ({}));
-    const text = toStr(body?.text);
 
-    if (!text) return NextResponse.json({ error: "Missing text" }, { status: 400 });
-
-    // 1) Extract symbolic structure in ORIGINAL language (your existing behavior)
-    const resp = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content: `
+    let resp: any;
+    try {
+      resp = await client.responses.create({
+        model: "gpt-4.1-mini",
+        input: [
+          {
+            role: "system",
+            content: `
 You are a symbolic dream analyzer.
 
 Your task is NOT lemmatization.
@@ -95,53 +117,60 @@ LANGUAGE:
 
 Return only valid JSON.
 `.trim(),
-        },
-        { role: "user", content: text },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "root_words",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              lang: { type: "string" },
-              core: { type: "array", items: { type: "string" } },
-              support: { type: "array", items: { type: "string" } },
-              themes: { type: "array", items: { type: "string" } },
+          },
+          { role: "user", content: text },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "root_words",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                lang: { type: "string" },
+                core: { type: "array", items: { type: "string" } },
+                support: { type: "array", items: { type: "string" } },
+                themes: { type: "array", items: { type: "string" } },
+              },
+              required: ["lang", "core", "support", "themes"],
             },
-            required: ["lang", "core", "support", "themes"],
           },
         },
-      },
-      temperature: 0.2,
-    });
+        temperature: 0.2,
+      });
+    } catch (e: any) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
+      return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
+    }
 
     const jsonText = toStr((resp as any).output_text);
-    const data = JSON.parse(jsonText);
+    let data: any;
+    try {
+      data = JSON.parse(jsonText);
+    } catch {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
+      return NextResponse.json({ error: "Invalid model response" }, { status: 500 });
+    }
 
     const lang = mapLangToRecLang(data?.lang);
-
     const core = Array.isArray(data?.core) ? uniqKeepOrder(data.core) : [];
     const support = Array.isArray(data?.support) ? uniqKeepOrder(data.support) : [];
     const themes = Array.isArray(data?.themes) ? uniqKeepOrder(data.themes) : [];
-
-    // 2) Build a single "roots" list (for your UI & emoji pipeline)
-    //    core first (stronger), then support
     const roots = uniqKeepOrder([...core, ...support]).slice(0, 12);
-
-    // 3) Translate roots -> English ONLY if source lang != en
     let rootsEn = roots;
 
     if (roots.length > 0 && lang !== "en") {
-      const tr = await client.responses.create({
-        model: "gpt-4.1-mini",
-        input: [
-          {
-            role: "system",
-            content: `
+      try {
+        const tr = await client.responses.create({
+          model: "gpt-4.1-mini",
+          input: [
+            {
+              role: "system",
+              content: `
 Translate the given list of dream root words into English.
 
 Rules:
@@ -150,52 +179,54 @@ Rules:
 - Each item should be 1–2 words max.
 - No explanations, no extra keys.
 `.trim(),
-          },
-          { role: "user", content: roots.join("\n") },
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "roots_translation",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                rootsEn: { type: "array", items: { type: "string" } },
+            },
+            { role: "user", content: roots.join("\n") },
+          ],
+          text: {
+            format: {
+              type: "json_schema",
+              name: "roots_translation",
+              strict: true,
+              schema: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  rootsEn: { type: "array", items: { type: "string" } },
+                },
+                required: ["rootsEn"],
               },
-              required: ["rootsEn"],
             },
           },
-        },
-        temperature: 0.1,
-      });
+          temperature: 0.1,
+        });
 
-      const trJsonText = toStr((tr as any).output_text);
-      const trData = JSON.parse(trJsonText);
+        const trJsonText = toStr((tr as any).output_text);
+        const trData = JSON.parse(trJsonText);
+        const translated = Array.isArray(trData?.rootsEn)
+          ? trData.rootsEn.map((x: any) => cleanWord(x)).filter(Boolean)
+          : [];
 
-      const translated = Array.isArray(trData?.rootsEn)
-        ? trData.rootsEn.map((x: any) => cleanWord(x)).filter(Boolean)
-        : [];
-
-      // Safety: if translation is broken, keep original roots as fallback
-      if (translated.length >= Math.min(roots.length, 3)) {
-        rootsEn = translated.slice(0, roots.length);
+        if (translated.length >= Math.min(roots.length, 3)) {
+          rootsEn = translated.slice(0, roots.length);
+        }
+      } catch (e) {
+        console.warn("rootwords EN translation failed; using original roots", e);
       }
     }
 
-    // ✅ Response: keep your existing fields + add roots + rootsEn
     return NextResponse.json({
       lang: lang || "unknown",
       core,
       support,
       themes,
-
-      // NEW:
       roots,
       rootsEn,
+      cost: charge.cost,
+      usedDailyFree: charge.usedDailyFree,
+      credits: charge.credits,
     });
   } catch (e: any) {
+    if (uid && charge) await refundOpenAiCall(uid, charge);
     console.error("rootwords error:", e);
     return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
   }

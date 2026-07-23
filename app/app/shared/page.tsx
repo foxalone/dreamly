@@ -382,6 +382,12 @@ export default function SharedPage() {
       return;
     }
 
+    const u = auth.currentUser;
+    if (!u) {
+      setError("Sign in to translate.");
+      return;
+    }
+
     const lang = getUserTargetLang();
     setTargetLang(lang);
 
@@ -397,6 +403,7 @@ export default function SharedPage() {
     setTranslateBusyId(d.id);
 
     try {
+      const idToken = await u.getIdToken();
       const res = await fetch("/api/dreams/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -404,11 +411,17 @@ export default function SharedPage() {
           sharedDreamId: d.id,
           text: original,
           targetLang: lang,
+          idToken,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error ?? "Translate failed");
+      if (!res.ok) {
+        if (data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("Not enough credits to translate (1 credit after today's free AI call).");
+        }
+        throw new Error(data?.error ?? "Translate failed");
+      }
 
       const translation = String(data?.translation ?? "").trim();
       if (!translation) throw new Error("Empty translation");
@@ -578,6 +591,9 @@ export default function SharedPage() {
                         : isShowing
                           ? "Show original"
                           : `Translate to ${targetLang.toUpperCase()}`;
+                      const title = isBusy || isShowing || hasCache
+                        ? label
+                        : `${label} (free once/day, then 1 credit)`;
 
                       return (
                         <button
@@ -591,7 +607,7 @@ export default function SharedPage() {
                           ]
                             .filter(Boolean)
                             .join(" ")}
-                          title={label}
+                          title={title}
                         >
                           <TranslateIcon
                             className={isBusy ? "animate-pulse" : undefined}

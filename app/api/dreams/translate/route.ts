@@ -6,6 +6,13 @@ import {
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
+import { requireSignedInUid } from "../_lib/requireUser";
+import {
+  TRANSLATE_CREDIT_COST,
+  chargeOpenAiCall,
+  refundOpenAiCall,
+  type OpenAiCharge,
+} from "../_lib/credits";
 
 export const runtime = "nodejs";
 
@@ -13,6 +20,7 @@ type Body = {
   sharedDreamId?: string;
   text?: string;
   targetLang?: string;
+  idToken?: string;
 };
 
 type TargetLang = "en" | "ru" | "he";
@@ -46,7 +54,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
-/** Extract text from responses.create (gpt-5 family). */
 function extractOutputText(resp: unknown): string {
   const direct = isRecord(resp) ? String(resp.output_text ?? "").trim() : "";
   if (direct) return direct;
@@ -67,16 +74,16 @@ function extractOutputText(resp: unknown): string {
 }
 
 export async function POST(req: Request) {
-  try {
-    const apiKey = getOneiroOpenAiApiKey();
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: getMissingOneiroOpenAiKeyMessage() },
-        { status: 500 }
-      );
-    }
+  let uid: string | null = null;
+  let charge: OpenAiCharge | null = null;
 
+  try {
     const body = (await req.json().catch(() => ({}))) as Body;
+
+    const auth = await requireSignedInUid(body?.idToken);
+    if ("error" in auth) return auth.error;
+    uid = auth.uid;
+
     const sharedDreamId = String(body?.sharedDreamId ?? "").trim();
     const targetLang = normalizeTargetLang(body?.targetLang);
     let text = String(body?.text ?? "").trim();
@@ -88,7 +95,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1) Firebase cache (shared across users)
+    // Cache hit — free, does not consume daily free OpenAI slot
     if (sharedDreamId) {
       try {
         const db = adminDb();
@@ -101,6 +108,8 @@ export async function POST(req: Request) {
             return NextResponse.json({
               translation: cached,
               cached: true,
+              cost: 0,
+              usedDailyFree: false,
               model: data?.translations?.[targetLang]?.model ?? null,
               targetLang,
             });
@@ -116,27 +125,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    // 2) GPT translate — gpt-5-nano via Responses API
-    // Separate env from OPENAI_DREAM_MODEL (analyze still uses gpt-4o-mini)
+    const charged = await chargeOpenAiCall(uid, TRANSLATE_CREDIT_COST);
+    if ("error" in charged) return charged.error;
+    charge = charged;
+
+    const apiKey = getOneiroOpenAiApiKey();
+    if (!apiKey) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
+      return NextResponse.json(
+        { error: getMissingOneiroOpenAiKeyMessage() },
+        { status: 500 }
+      );
+    }
+
     const model = process.env.OPENAI_TRANSLATE_MODEL?.trim() || "gpt-5-nano";
     const openai = new OpenAI({ apiKey });
     const langLabel = LANG_LABEL[targetLang];
 
-    const resp = await openai.responses.create({
-      model,
-      instructions:
-        "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
-      input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
-      // keep reasoning cheap for plain translation
-      reasoning: { effort: "minimal" },
-    });
+    let translation = "";
+    try {
+      const resp = await openai.responses.create({
+        model,
+        instructions:
+          "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
+        input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
+        reasoning: { effort: "minimal" },
+      });
+      translation = extractOutputText(resp);
+    } catch (e: any) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
+      return NextResponse.json(
+        { error: e?.message ?? "Translate failed" },
+        { status: 500 }
+      );
+    }
 
-    const translation = extractOutputText(resp);
     if (!translation) {
+      await refundOpenAiCall(uid, charge);
+      charge = null;
       return NextResponse.json({ error: "Empty translation" }, { status: 500 });
     }
 
-    // 3) Save to Firebase for reuse
     if (sharedDreamId) {
       try {
         const db = adminDb();
@@ -157,10 +188,14 @@ export async function POST(req: Request) {
     return NextResponse.json({
       translation,
       cached: false,
+      cost: charge.cost,
+      usedDailyFree: charge.usedDailyFree,
+      credits: charge.credits,
       model,
       targetLang,
     });
   } catch (e: any) {
+    if (uid && charge) await refundOpenAiCall(uid, charge);
     return NextResponse.json(
       { error: e?.message ?? "Translate failed" },
       { status: 500 }

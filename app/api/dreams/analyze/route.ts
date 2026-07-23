@@ -2,10 +2,17 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { requireSignedInUid } from "../_lib/requireUser";
+import {
+  ANALYZE_CREDIT_COST,
+  debitCredits,
+  refundCredits,
+} from "../_lib/credits";
 
 type Body = {
   text: string;
   lang?: string;
+  idToken?: string;
 };
 
 function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
@@ -20,25 +27,37 @@ function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
 }
 
 export async function POST(req: Request) {
-  try {
-    const apiKey = getOneiroOpenAiApiKey();
-    if (!apiKey) {
-      return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
-    }
+  let chargedUid: string | null = null;
 
+  try {
     const body = (await req.json()) as Body;
+
+    const auth = await requireSignedInUid(body?.idToken);
+    if ("error" in auth) return auth.error;
+    const { uid } = auth;
 
     const text = String(body?.text ?? "").trim();
     if (!text) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
+    const debit = await debitCredits(uid, ANALYZE_CREDIT_COST);
+    if ("error" in debit) return debit.error;
+    chargedUid = uid;
+
+    const apiKey = getOneiroOpenAiApiKey();
+    if (!apiKey) {
+      await refundCredits(uid, ANALYZE_CREDIT_COST);
+      chargedUid = null;
+      return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
+    }
+
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
 
- const system =
-  "You provide concise dream analysis text only. No headings, no questions, no advice.";
-  
-const userPrompt = `
+    const system =
+      "You provide concise dream analysis text only. No headings, no questions, no advice.";
+
+    const userPrompt = `
 Dream text:
 """${text}"""
 
@@ -56,29 +75,45 @@ Rules:
 Keep it under ~1000 characters.
 `.trim();
 
-    // Using chat.completions for compatibility
     const model = process.env.OPENAI_DREAM_MODEL || "gpt-4o-mini";
     const openai = new OpenAI({ apiKey });
 
-    const resp = await openai.chat.completions.create({
-      model,
-      temperature: 0.7,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: userPrompt },
-      ],
-    });
+    let analysis = "";
+    try {
+      const resp = await openai.chat.completions.create({
+        model,
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: userPrompt },
+        ],
+      });
+      analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
+    } catch (e: any) {
+      await refundCredits(uid, ANALYZE_CREDIT_COST);
+      chargedUid = null;
+      return NextResponse.json(
+        { error: e?.message ?? "Analyze failed" },
+        { status: 500 }
+      );
+    }
 
-    const analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
     if (!analysis) {
+      await refundCredits(uid, ANALYZE_CREDIT_COST);
+      chargedUid = null;
       return NextResponse.json({ error: "Empty analysis" }, { status: 500 });
     }
 
     return NextResponse.json({
       analysis,
       model,
+      cost: ANALYZE_CREDIT_COST,
+      credits: debit.credits,
     });
   } catch (e: any) {
+    if (chargedUid) {
+      await refundCredits(chargedUid, ANALYZE_CREDIT_COST);
+    }
     return NextResponse.json(
       { error: e?.message ?? "Analyze failed" },
       { status: 500 }

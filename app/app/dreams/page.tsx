@@ -427,29 +427,7 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
   const candidates = uniq.slice(0, 20);
   if (candidates.length === 0) return null;
 
-  try {
-    const resp = await fetch("/api/dreams/emoji-pick", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        root: q,
-        lang: lang ?? "unknown",
-        candidates: candidates.map((c) => ({
-          native: c.native,
-          id: c.id,
-          name: c.name,
-          keywords: c.keywords ?? [],
-        })),
-      }),
-    });
-
-    const out = await resp.json();
-    if (resp.ok) {
-      const picked = candidates.find((c) => c.native === out?.native);
-      if (picked) return { native: picked.native, id: picked.id, name: picked.name };
-    }
-  } catch {}
-
+  // Local emoji match only — AI /api/dreams/emoji-pick costs 1 credit per call.
   const top = candidates[0];
   return top ? { native: top.native, id: top.id, name: top.name } : null;
 }
@@ -925,14 +903,24 @@ export default function DreamsPage() {
     setRootsBusyId(itemId);
 
     try {
+      const idToken = await u.getIdToken();
       const res = await fetch("/api/dreams/rootwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t }),
+        body: JSON.stringify({ text: t, idToken }),
       });
 
-      const data2 = await res.json();
-      if (!res.ok) throw new Error(data2?.error ?? "API failed");
+      const data2 = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("INSUFFICIENT_CREDITS_ROOTWORDS");
+        }
+        throw new Error(data2?.error ?? "API failed");
+      }
+
+      if (Number.isFinite(Number(data2?.credits))) {
+        setCredits(Math.max(0, Math.floor(Number(data2.credits))));
+      }
 
       const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
       const rootsEnArr = Array.isArray(data2?.rootsEn) ? data2.rootsEn : rootsArr;
@@ -992,7 +980,12 @@ export default function DreamsPage() {
       if (type === "story") setStories((prev) => prev.map(apply));
       else setDreams((prev) => prev.map(apply));
     } catch (e: any) {
-      setError(e?.message ?? "Failed to extract roots.");
+      if (e?.message === "INSUFFICIENT_CREDITS_ROOTWORDS") {
+        setError("Not enough credits for symbol extraction (1 credit after today's free AI call).");
+        router.push("/app/upgrade");
+      } else {
+        setError(e?.message ?? "Failed to extract roots.");
+      }
     } finally {
       setRootsBusyId(null);
     }
@@ -1224,61 +1217,42 @@ export default function DreamsPage() {
     setAnalysisBusyId(dreamId);
 
     try {
+      const idToken = await u.getIdToken();
       const res = await fetch("/api/dreams/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: t,
           lang: (dream as any)?.langGuess ?? guessLang(t),
+          idToken,
         }),
       });
 
-      const data2 = await res.json();
-      if (!res.ok) throw new Error(data2?.error ?? "Analyze API failed");
+      const data2 = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("INSUFFICIENT_CREDITS_ANALYZE");
+        }
+        if (data2?.code === "AUTH_REQUIRED" || res.status === 401) {
+          throw new Error("Sign in required.");
+        }
+        throw new Error(data2?.error ?? "Analyze API failed");
+      }
 
       const analysisText = String(data2?.analysis ?? "").trim();
       if (!analysisText) throw new Error("Empty analysis from AI");
 
       const nowMs = Date.now();
 
-      const userRef = doc(firestore, "users", uid2);
-      await runTransaction(firestore, async (tx) => {
-        const userSnap = await tx.get(userRef);
-        const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
-        if (currentCredits < 2) {
-          throw new Error("INSUFFICIENT_CREDITS_ANALYZE");
-        }
-        tx.set(
-          userRef,
-          {
-            credits: currentCredits - 2,
-            creditsUpdatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
+      await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
+        analysisText,
+        analysisAtMs: nowMs,
+        analysisModel: data2?.model ?? null,
+        updatedAt: serverTimestamp(),
       });
 
-      try {
-        await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
-          analysisText,
-          analysisAtMs: nowMs,
-          analysisModel: data2?.model ?? null,
-          updatedAt: serverTimestamp(),
-        });
-      } catch (e) {
-        await runTransaction(firestore, async (tx) => {
-          const userSnap = await tx.get(userRef);
-          const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
-          tx.set(
-            userRef,
-            {
-              credits: currentCredits + 2,
-              creditsUpdatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
-        }).catch(() => {});
-        throw e;
+      if (Number.isFinite(Number(data2?.credits))) {
+        setCredits(Math.max(0, Math.floor(Number(data2.credits))));
       }
 
       setDreams((prev) =>
