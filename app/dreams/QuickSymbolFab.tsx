@@ -11,6 +11,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
+import { QUICK_SYMBOL_OPEN_EVENT, type QuickSymbolOpenDetail } from "./quickSymbolEvents";
 
 const PENDING_KEY = "dreamly:quickSymbolPending";
 
@@ -112,6 +113,19 @@ export default function QuickSymbolFab() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const nextQuery = (event as CustomEvent<QuickSymbolOpenDetail>).detail?.query?.trim();
+      if (nextQuery) setQuery(nextQuery);
+      setError(null);
+      setResult(null);
+      setOpen(true);
+    };
+
+    window.addEventListener(QUICK_SYMBOL_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(QUICK_SYMBOL_OPEN_EVENT, onOpen);
+  }, []);
 
   async function saveToDiary(params: {
     query: string;
