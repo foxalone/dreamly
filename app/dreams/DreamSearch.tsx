@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, MoonStar, Search, X } from "lucide-react";
 import type { DreamCategory } from "@/lib/dream-categories";
@@ -23,6 +23,7 @@ function normalize(value: string) {
 export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   const [query, setQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
+  const lastLoggedQuery = useRef("");
   const normalizedQuery = normalize(query);
 
   // Support /dreams?q=... deep links (used by the WebSite SearchAction schema).
@@ -59,6 +60,41 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
       .slice(0, 8)
       .map(({ item }) => item);
   }, [items, normalizedQuery]);
+
+  const logDictionarySearch = useCallback(
+    (rawQuery: string, matches: DreamSearchItem[]) => {
+      const normalized = normalize(rawQuery);
+      if (normalized.length < 2 || lastLoggedQuery.current === normalized) return;
+
+      lastLoggedQuery.current = normalized;
+      void fetch("/api/dreams/search-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: rawQuery.trim(),
+          resultCount: matches.length,
+          topSlug: matches[0]?.slug ?? null,
+        }),
+        keepalive: true,
+      }).catch(() => {
+        // Search analytics must never interrupt the dictionary experience.
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!normalizedQuery) {
+      lastLoggedQuery.current = "";
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      logDictionarySearch(query, results);
+    }, 900);
+
+    return () => window.clearTimeout(timeout);
+  }, [logDictionarySearch, normalizedQuery, query, results]);
 
   function onAiSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +138,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
                   <li key={item.slug}>
                     <Link
                       href={`/dreams/${item.slug}`}
+                      onClick={() => logDictionarySearch(query, results)}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-[var(--dd-surface-hover)]"
                     >
                       <span className="text-2xl" aria-hidden="true">{item.icon}</span>

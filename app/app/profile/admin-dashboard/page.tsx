@@ -32,6 +32,7 @@ import {
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
+import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
 
 import data from "@emoji-mart/data";
@@ -879,7 +880,8 @@ async function loadUsers() {
               </>
             ) : tab === "QUERIES" ? (
               <>
-                Quick symbol search log (Firestore:{" "}
+                Search logs (Firestore:{" "}
+                <span className="font-mono">dictionary_search_queries</span> +{" "}
                 <span className="font-mono">quick_symbol_queries</span>)
               </>
             ) : tab === "DOCS" ? (
@@ -1430,7 +1432,12 @@ async function loadUsers() {
         </div>
       )}
 
-      {tab === "QUERIES" && <QuickSymbolQueries />}
+      {tab === "QUERIES" && (
+        <>
+          <DictionarySearchQueries />
+          <QuickSymbolQueries />
+        </>
+      )}
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
