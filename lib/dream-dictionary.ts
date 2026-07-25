@@ -2104,6 +2104,30 @@ function makeSections({
  * sharing boilerplate phrasing with the other generated entries.
  * Add a slug key + the sections you want to replace; leave the rest to the template.
  */
+const GSC_ENHANCED_SLUGS = new Set([
+  "dog-and-snake",
+  "cat-and-dog",
+  "arguing-with-sister",
+  "snake-and-fire",
+  "sick-family-member",
+  "crawling-like-a-baby",
+  "running-through-forest",
+  "elephant-in-water",
+  "visiting-someone-in-hospital",
+  "blood-on-clothes",
+  "someone-crawling-toward-you",
+  "flowers-on-a-grave",
+  "kissing-a-celebrity",
+  "spider-and-snake",
+  "wedding-and-death",
+  "crawling-on-the-floor",
+  "death-and-water",
+  "being-late-to-school",
+  "injured-horse",
+  "absent-father",
+]);
+const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
+
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
   snake: {
     introduction: [
@@ -3645,6 +3669,306 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Is a boat in a storm a bad omen?", answer: "It usually reflects turmoil you are already in. Focus on course, crew, and refuge — not on predicting shipwreck." },
     ],
   },
+  "dog-and-snake": {
+    introduction: [
+      "A dog and snake in the same dream place trust beside suspicion. The dog usually represents loyalty, protection, or a familiar relationship; the snake introduces hidden risk, instinct, or change. Together they often appear when something safe no longer feels completely simple.",
+      "The interaction decides the emphasis. A dog defending you from a snake suggests protective instincts or reliable support. A snake threatening the dog may reflect fear that trust, friendship, or innocence is exposed to a danger you have noticed but not yet confronted.",
+    ],
+    general: [
+      "Notice which animal you trusted and which one controlled the scene. If they fought, the dream may stage a conflict between loyalty and self-protection. If they remained calm together, the message can be integration: caution does not have to destroy trust.",
+      "The setting locates the issue. Inside a home, the theme usually concerns private relationships or family. Outdoors, it may concern social pressure, work, or a situation where you are deciding whose instincts to follow.",
+    ],
+    faq: [
+      { question: "What does dreaming of a dog and snake together mean?", answer: "It often reflects trust meeting hidden risk: loyalty, protection, or friendship beside suspicion, instinct, or a change that feels unsafe." },
+      { question: "What if the dog protects me from the snake?", answer: "That usually emphasizes support, good boundaries, or a loyal person — or part of yourself — helping you face a threat without panic." },
+      { question: "Is a dog and snake dream a warning about betrayal?", answer: "It can mirror mistrust you already feel, but it is not proof of betrayal. Compare the dream with evidence and behavior in waking life." },
+    ],
+  },
+  "cat-and-dog": {
+    introduction: [
+      "A cat and dog dream brings two relationship styles into one scene: independence and loyalty, distance and enthusiasm, private instinct and open attachment. The pair often appears when you are trying to balance closeness with room to remain yourself.",
+      "Conflict between the animals may reflect competing needs inside one relationship or within you. Peaceful play suggests those needs can coexist — affection without control, freedom without abandonment.",
+    ],
+    general: [
+      "Ask which animal felt more like you. Identifying with the cat can point to a need for boundaries or autonomy; identifying with the dog may emphasize reassurance, belonging, and dependable contact. Switching sympathy during the dream can reveal a conflict you understand from both sides.",
+      "A chase or fight usually intensifies an unresolved push-pull dynamic. Sharing food, sleeping together, or protecting one another shifts the meaning toward cooperation and acceptance of different temperaments.",
+    ],
+    faq: [
+      { question: "What does a cat and dog dream mean?", answer: "Usually a balance or conflict between independence and loyalty, personal space and attachment, or two people with very different ways of relating." },
+      { question: "What if the cat and dog are fighting?", answer: "The dream may be staging incompatible needs, rivalry, or a relationship where closeness and freedom keep colliding." },
+      { question: "What if the cat and dog are friendly?", answer: "Friendly animals suggest integration: different personalities or needs can coexist without either side losing its nature." },
+    ],
+  },
+  "arguing-with-sister": {
+    introduction: [
+      "Arguing with your sister in a dream often reopens the emotional shorthand of family: comparison, loyalty, old roles, and words that were never fully settled. The dream may use your real sister, but it can also use what she represents in your history.",
+      "The strongest clue is the subject of the argument. Money, parents, partners, attention, or responsibility each points to a different waking tension. If the subject was absurd or unclear, focus on the feeling — being dismissed, competed with, controlled, or unable to protect the bond.",
+    ],
+    general: [
+      "A dream argument does not predict a real fight. It often rehearses a conversation you avoid, releases irritation you suppress, or lets you defend a position that feels difficult to state while awake.",
+      "If your relationship is currently calm, consider whether your sister mirrors a trait you are debating in yourself: confidence, dependence, family duty, or the version of you that existed in childhood.",
+    ],
+    faq: [
+      { question: "Why did I dream about arguing with my sister?", answer: "The dream may process old competition, a current unspoken tension, or a family role that still affects how heard and valued you feel." },
+      { question: "Does the dream mean we are going to fight?", answer: "No. Dreams commonly simulate conflict without predicting it. Use the emotion as a prompt for reflection, not as evidence of future trouble." },
+      { question: "What if I do not speak to my sister anymore?", answer: "Then the argument may express unfinished grief, anger, or the wish to finally say what the relationship never made room for." },
+    ],
+  },
+  "snake-and-fire": {
+    introduction: [
+      "Snake and fire imagery combines two symbols of danger and transformation. The snake changes by shedding its skin; fire changes by consuming what it touches. Together they often mark a situation where instinct, anger, temptation, or rapid change has become impossible to ignore.",
+      "The scene matters more than the symbols in isolation. A snake escaping flames suggests survival under pressure. A snake moving calmly through fire can represent resilience or attraction to risk. A burning snake may signal the end of a fear, but also an attempt to destroy a problem rather than understand it.",
+    ],
+    general: [
+      "Start with your emotional response. Terror points toward overload or threat; fascination can indicate powerful change you are not ready to name; relief after the fire passes suggests release from a long-standing tension.",
+      "Look for a waking conflict that contains both heat and caution — an argument escalating, a desire with consequences, or a transformation moving faster than your sense of safety.",
+    ],
+    faq: [
+      { question: "What does dreaming of a snake and fire mean?", answer: "It often combines hidden risk or instinct with anger, purification, or rapid change — a transformation that feels both necessary and dangerous." },
+      { question: "What if the snake survives the fire?", answer: "Survival can emphasize resilience, a threat that has not disappeared, or an instinct that remains active despite pressure." },
+      { question: "Is a snake and fire dream a bad omen?", answer: "Not by default. It is better read as an intense picture of conflict or change than as a prediction of harm." },
+    ],
+  },
+  "sick-family-member": {
+    introduction: [
+      "Dreaming that a family member is sick can feel like a warning because the emotion is so direct. Most often it reflects care, helplessness, health anxiety, or fear that the family system is becoming less stable — not secret medical knowledge.",
+      "Who becomes ill matters. A parent may represent changing support or authority; a child can concentrate protective fear; a sibling may point to closeness, rivalry, or concern you have not expressed. The dream selects the person who carries the emotional weight.",
+    ],
+    general: [
+      "If someone is genuinely unwell, the dream may simply be processing vigilance and anticipatory grief. If everyone is healthy, ask what feels weakened in the relationship or family: communication, trust, shared responsibility, or your own capacity to care.",
+      "Your role in the dream is equally important. Searching for help suggests urgency and responsibility; sitting beside the person emphasizes presence; being unable to reach them can reflect distance or guilt.",
+    ],
+    faq: [
+      { question: "Does dreaming of a sick family member mean they are ill?", answer: "No. Dreams cannot diagnose another person. They more commonly reflect concern, helplessness, health anxiety, or awareness that a relationship needs care." },
+      { question: "Why do I keep having this dream?", answer: "Recurring versions often track ongoing worry, caregiving stress, or unresolved fear of loss. Look for the concern that remains active during the day." },
+      { question: "Should I tell the family member?", answer: "You can check in because you care, but avoid presenting the dream as a warning. Let real symptoms and ordinary communication guide action." },
+    ],
+  },
+  "crawling-like-a-baby": {
+    introduction: [
+      "Crawling like a baby in a dream reduces movement to its earliest form. The image often appears when confidence, independence, or status has been stripped back and progress must restart from foundations.",
+      "Regression is not the only reading. Babies crawl because they are learning, not failing. If the dream felt curious or determined rather than humiliating, it may describe a new skill, identity, or life chapter that cannot be rushed into adult-sized competence.",
+    ],
+    general: [
+      "Notice whether anyone watched you. Shame under an audience points toward fear of appearing inexperienced; crawling alone may reflect private rebuilding. Reaching a destination despite the posture emphasizes persistence over pride.",
+      "The surface adds context: a childhood floor can return you to early dependency, a workplace to reduced authority, and rough ground to the real cost of making progress with limited strength.",
+    ],
+    faq: [
+      { question: "What does crawling like a baby in a dream mean?", answer: "It often reflects starting over, dependence, reduced confidence, or learning something from the beginning instead of pretending to be fully capable." },
+      { question: "Is crawling like a baby a sign of regression?", answer: "Sometimes, especially if the dream feels humiliating. If it feels purposeful, it can symbolize patient development and rebuilding from basics." },
+      { question: "What if I eventually stand up?", answer: "Standing usually marks restored agency or readiness — a transition from dependence and practice into confident action." },
+    ],
+  },
+  "running-through-forest": {
+    introduction: [
+      "Running through a forest in a dream combines urgency with limited visibility. Trees block the full route, paths divide, and the destination is rarely clear. The dream often reflects moving quickly through a problem you do not yet understand.",
+      "Whether you are escaping or pursuing changes the meaning. Fleeing suggests pressure, avoidance, or survival mode. Running freely can represent vitality and trust in instinct, while searching for someone points toward responsibility inside uncertainty.",
+    ],
+    general: [
+      "A dark forest emphasizes fear and missing information; a green, bright forest can turn the same run into growth or exhilaration. Getting scratched or lost shows the cost of speed without orientation.",
+      "Ask what in waking life feels both urgent and poorly mapped. The dream may not be telling you to stop, but it may be asking for a landmark, ally, or clearer direction before you keep accelerating.",
+    ],
+    faq: [
+      { question: "What does running through a forest in a dream mean?", answer: "Usually urgency inside uncertainty — escaping pressure, following instinct, or moving fast without a clear view of the route ahead." },
+      { question: "What if something is chasing me in the forest?", answer: "The pursuer adds an avoidance or threat theme. Identify what it represents and why the forest makes the problem difficult to see clearly." },
+      { question: "What if running through the forest feels good?", answer: "Enjoyment shifts the meaning toward freedom, vitality, and confidence in instinct rather than fear or escape." },
+    ],
+  },
+  "elephant-in-water": {
+    introduction: [
+      "An elephant in water joins weight and memory with emotion. Elephants are powerful, social, and deliberate; water represents feeling, intuition, and changing depth. The dream often appears when a large emotional matter is being handled slowly rather than avoided.",
+      "Calm bathing suggests relief, support, or the ability to carry something heavy without being overwhelmed. An elephant struggling in deep water can reflect responsibility exceeding available emotional strength.",
+    ],
+    general: [
+      "Water quality refines the picture. Clear water favors honest feeling and recovery; muddy water points to confusion around a serious issue. A river adds movement, while a confined pool may suggest emotion held within strict limits.",
+      "Your distance from the animal matters. Riding or helping it places you inside the responsibility; watching from shore may reflect respect, concern, or reluctance to enter an emotional situation of great weight.",
+    ],
+    faq: [
+      { question: "What does an elephant in water mean in a dream?", answer: "It often symbolizes a large responsibility, deep memory, or powerful emotion being processed with patience and care." },
+      { question: "Is an elephant bathing a positive dream?", answer: "Often yes: bathing can suggest relief, cleansing, play, or strength becoming comfortable with emotion rather than fighting it." },
+      { question: "What if the elephant is drowning?", answer: "That can reflect fear that a strong person, relationship, or responsibility is becoming emotionally overwhelmed and needs support." },
+    ],
+  },
+  "visiting-someone-in-hospital": {
+    introduction: [
+      "Visiting someone in hospital in a dream places you beside vulnerability rather than inside it. The scene often processes concern, caregiving, guilt about distance, or uncertainty about how to help when another person is suffering.",
+      "The patient may be literal, especially during real illness, but can also represent a relationship or part of your life that needs attention. A familiar person highlights that bond; an unknown patient may carry a neglected quality of your own.",
+    ],
+    general: [
+      "What you do during the visit is the key. Sitting quietly emphasizes presence, bringing something suggests practical support, and being refused entry may reflect helplessness or emotional distance.",
+      "Hospitals also suspend ordinary roles. If the person is usually strong, seeing them as a patient can express fear of role reversal or recognition that they need care you are not accustomed to giving.",
+    ],
+    faq: [
+      { question: "What does visiting someone in hospital in a dream mean?", answer: "Usually concern, empathy, caregiving pressure, or a wish to support someone through vulnerability and change." },
+      { question: "Does this dream predict illness?", answer: "No. Dreams are not medical forecasts. If a real concern exists, rely on communication and healthcare rather than the dream." },
+      { question: "What if I cannot find the patient?", answer: "That often reflects helplessness, distance, or uncertainty about where your support is actually needed." },
+    ],
+  },
+  "blood-on-clothes": {
+    introduction: [
+      "Blood on clothes in a dream makes private damage visible. Clothes are the identity presented to other people; blood marks injury, cost, guilt, or intense emotional involvement. Together they often express fear that conflict will leave a mark others can see.",
+      "Whose blood it is changes the reading. Your own blood points toward personal hurt or depleted energy. Someone else's blood can emphasize responsibility, empathy, or worry that another person's crisis has become attached to your public life.",
+    ],
+    general: [
+      "Trying to hide or wash the stain suggests shame, damage control, or a wish to remove evidence of a painful event. Wearing the clothes without concern can indicate acceptance of sacrifice or refusal to conceal what happened.",
+      "The garment adds context: work clothes point toward reputation and performance, formal clothing toward public commitments, and childhood clothing toward an older wound that still colors identity.",
+    ],
+    faq: [
+      { question: "What does blood on clothes mean in a dream?", answer: "It often symbolizes visible consequences, exposed conflict, guilt, or an emotional wound affecting how you believe others see you." },
+      { question: "What if I cannot wash the blood out?", answer: "A permanent stain can reflect regret, unresolved responsibility, or fear that an event has changed your reputation or self-image." },
+      { question: "Does blood on clothes predict harm?", answer: "No. It is generally symbolic of cost, injury, or exposure, not a prediction of violence or illness." },
+    ],
+  },
+  "someone-crawling-toward-you": {
+    introduction: [
+      "Someone crawling toward you in a dream is unsettling because the movement is both vulnerable and persistent. The figure may appear weakened, threatening, desperate, or strangely inhuman; your reaction reveals whether the dream centers on compassion, fear, or a boundary under pressure.",
+      "The crawling person can represent a need that approaches slowly but will not disappear, a relationship asking for attention, or an avoided fear returning in a form that seems powerless yet disturbing.",
+    ],
+    general: [
+      "Recognition matters. A known person often points to concern, guilt, or unfinished tension with them. A stranger may embody an unfamiliar need or part of yourself, while a shadowy figure usually turns uncertainty itself into the threat.",
+      "If you help the person, the dream emphasizes care and willingness to engage. If you run, freeze, or shut a door, it may be testing the line between healthy self-protection and avoidance.",
+    ],
+    faq: [
+      { question: "What does someone crawling toward you in a dream mean?", answer: "It can symbolize a persistent need, fear, or person approaching from a vulnerable or unsettling position, especially something you have tried not to face." },
+      { question: "Why did the crawling person feel frightening?", answer: "Unnatural movement makes intention hard to read. The dream may be expressing uncertainty about whether vulnerability is safe, manipulative, or genuinely in need of help." },
+      { question: "What if I know the person who is crawling?", answer: "Consider your real concern, guilt, responsibility, or boundary with them. The dream reflects your relationship; it does not reveal their hidden intentions." },
+    ],
+  },
+  "flowers-on-a-grave": {
+    introduction: [
+      "Flowers on a grave bring life and death into one quiet image. The grave acknowledges an ending; the flowers preserve love, gratitude, beauty, or memory. The dream often appears when grief is changing from raw absence into an ongoing relationship with what was lost.",
+      "The grave may belong to a person, but it can also mark a finished identity, relationship, home, or period of life. Placing flowers suggests the psyche is trying to honor the ending rather than erase it.",
+    ],
+    general: [
+      "Fresh flowers lean toward active remembrance and tenderness. Wilted flowers can reflect neglected grief, fading connection, or guilt about moving on. Unknown flowers or an unmarked grave may point to a loss that has never been clearly named.",
+      "Your action matters: arranging flowers shows care and ritual, finding flowers already there may suggest shared memory, and refusing to approach the grave can reveal grief that still feels too dangerous to touch.",
+    ],
+    faq: [
+      { question: "What do flowers on a grave mean in a dream?", answer: "They often symbolize remembrance, love after loss, tribute, and a gentler form of closure that allows the past to remain meaningful." },
+      { question: "Does the dream mean someone will die?", answer: "No. Grave imagery usually processes endings and memory; it is not a reliable prediction of death." },
+      { question: "What if the flowers are dead or wilted?", answer: "Wilted flowers may reflect neglected grief, guilt, emotional distance, or fear that an important memory is fading." },
+    ],
+  },
+  "kissing-a-celebrity": {
+    introduction: [
+      "Kissing a celebrity in a dream usually says more about recognition than romance. Public figures carry projected qualities — beauty, confidence, talent, influence, freedom — and the kiss creates sudden intimacy with what they represent.",
+      "The dream may express aspiration, a wish to be chosen, or permission to claim a trait you admire. It can also compensate for feeling overlooked: the most visible person in the room notices you completely.",
+    ],
+    general: [
+      "Ask what the celebrity means to you personally. An admired artist may symbolize creative courage; an athlete, discipline and achievement; a controversial figure, attraction mixed with discomfort. Their symbolic role matters more than fame alone.",
+      "A secret kiss emphasizes private fantasy or hidden ambition. A public kiss can focus status and validation. Rejection by the celebrity often mirrors self-doubt or fear that the life you admire is out of reach.",
+    ],
+    faq: [
+      { question: "What does kissing a celebrity in a dream mean?", answer: "Often aspiration, desire for recognition, or attraction to qualities the celebrity represents rather than a literal connection with that person." },
+      { question: "Does it mean I am attracted to the celebrity?", answer: "Possibly, but dream attraction also stands for identification: wanting their confidence, creativity, status, or freedom." },
+      { question: "Why did the celebrity choose me?", answer: "Being chosen can compensate for feeling unseen or can reflect growing confidence that you deserve attention and opportunity." },
+    ],
+  },
+  "spider-and-snake": {
+    introduction: [
+      "A spider and snake dream layers two different forms of threat. The spider waits, builds, and entangles; the snake hides, changes, and may strike. Together they often represent a situation that feels both strategically complicated and instinctively unsafe.",
+      "The pair can also describe competing fears: being trapped versus being attacked, slow manipulation versus sudden conflict. Which creature draws your attention first usually points to the dominant concern.",
+    ],
+    general: [
+      "If the animals fight, the dream may stage two problems, people, or instincts working against each other. If they cooperate or simply share the space, you may feel surrounded by risks that are difficult to separate.",
+      "A web, nest, bedroom, or house makes the theme more personal. Escaping both animals emphasizes regained agency; watching them calmly can indicate readiness to study a complex problem before acting.",
+    ],
+    faq: [
+      { question: "What does dreaming of a spider and snake mean?", answer: "It often combines entanglement with hidden danger — a layered conflict involving patience, manipulation, instinct, or mistrust." },
+      { question: "What if the spider and snake are fighting?", answer: "Their fight can represent competing threats or two difficult forces weakening each other while you decide whether to intervene." },
+      { question: "Is this dream proof that people are plotting against me?", answer: "No. It can reflect mistrust or social complexity, but waking evidence should guide conclusions about other people." },
+    ],
+  },
+  "wedding-and-death": {
+    introduction: [
+      "Wedding and death in one dream are not opposites as much as two sides of transition. A wedding binds a new identity or commitment; death closes an old one. The combination often appears when a major beginning requires a previous role, freedom, or version of life to end.",
+      "The dream can feel tragic even when the waking change is welcome. Commitment always removes alternatives, and the mind may grieve those paths while still choosing the new chapter.",
+    ],
+    general: [
+      "Timing inside the dream matters. A death before the ceremony emphasizes what must be released before commitment. A death during or after the wedding can express fear that the new bond will erase individuality, family ties, or an earlier life.",
+      "If the deceased person is known, consider what they represent in relation to commitment. If the death is your own, the image usually concerns identity transformation rather than literal danger.",
+    ],
+    faq: [
+      { question: "What does a wedding and death dream mean?", answer: "Usually a beginning and ending intertwined: commitment to a new chapter while an old identity, option, or relationship is being released." },
+      { question: "Is death at a wedding a bad omen?", answer: "No. Dreams often use death to symbolize transition. It does not predict harm to a marriage or wedding." },
+      { question: "Why did the dream feel sad if I am happy about the wedding?", answer: "Positive commitments can still contain grief for independence, old routines, or paths no longer available. Mixed emotion is normal." },
+    ],
+  },
+  "crawling-on-the-floor": {
+    introduction: [
+      "Crawling on the floor in a dream puts progress at the lowest possible level: slow, exposed, and close to the ground. It often reflects humility, exhaustion, reduced status, or a period when moving imperfectly is better than remaining still.",
+      "The dream is not always about defeat. Crawling can be survival and determination — continuing after the usual way of standing, leading, or performing is temporarily unavailable.",
+    ],
+    general: [
+      "The floor identifies the arena. A workplace floor can reflect lost authority or burnout; a childhood home can return you to early dependence; a public floor intensifies shame and fear of judgment.",
+      "Reaching safety or standing up changes the ending toward recovery. Being forced to crawl emphasizes power imbalance, while choosing to crawl may show flexibility and willingness to abandon pride.",
+    ],
+    faq: [
+      { question: "What does crawling on the floor in a dream mean?", answer: "It often symbolizes humility, exhaustion, reduced confidence, or slow progress made with whatever strength is still available." },
+      { question: "Why was I embarrassed while crawling?", answer: "The embarrassment usually points to fear of appearing weak, inexperienced, dependent, or below the status others expect from you." },
+      { question: "What if I crawl to safety?", answer: "That emphasizes survival and resourcefulness: progress may be undignified or slow, but it is still carrying you away from danger." },
+    ],
+  },
+  "death-and-water": {
+    introduction: [
+      "Death and water together often picture an ending moving through emotion. Death closes a chapter; water carries grief, memory, cleansing, and uncertainty. The combination commonly appears when loss is being felt rather than merely understood.",
+      "The water's behavior sets the tone. Calm water can suggest acceptance and release. Floods, waves, or drowning point toward emotion that exceeds current capacity, while crossing water after a death may mark passage into a changed life.",
+    ],
+    general: [
+      "If a person dies in water, consider whether the relationship or quality they represent feels overwhelmed, unreachable, or ready to be released. If the water clears afterward, the dream may be working toward integration rather than catastrophe.",
+      "Personal bereavement can make the image direct. In that case, the dream need not be decoded aggressively; it may simply be giving grief a landscape in which to move.",
+    ],
+    faq: [
+      { question: "What does death and water mean in a dream?", answer: "It often symbolizes grief, emotional release, or a major ending being processed through deep and changing feeling." },
+      { question: "Does dreaming of death in water predict a real death?", answer: "No. Dreams commonly use death for endings and water for emotion; they are not reliable forecasts of tragedy." },
+      { question: "What if the water becomes calm?", answer: "Calm water after loss usually leans toward acceptance, emotional settling, or the possibility of carrying memory without being overwhelmed." },
+    ],
+  },
+  "being-late-to-school": {
+    introduction: [
+      "Being late to school in a dream revives a familiar form of evaluation anxiety: everyone else has started, the rules are fixed, and you are behind before you arrive. The dream often appears around deadlines, comparison, or fear that preparation will not be enough.",
+      "Adults have this dream long after school because school remains the mind's clearest stage for performance, belonging, and judgment. The real 'class' may be a job, relationship, qualification, or life milestone.",
+    ],
+    general: [
+      "Missing the bus emphasizes dependence on timing or systems outside your control. Being unable to find the classroom points to unclear expectations. Arriving without homework or clothes shifts the theme toward exposure and unreadiness.",
+      "Ask where you currently believe everyone else is ahead. The dream may exaggerate the comparison, but it usually identifies a real fear about timing, responsibility, or being evaluated.",
+    ],
+    faq: [
+      { question: "What does being late to school in a dream mean?", answer: "Usually fear of falling behind, missing an expectation, or being judged before you feel prepared." },
+      { question: "Why do adults still dream about school?", answer: "School is a durable symbol for evaluation and comparison, so work deadlines and life milestones often borrow the old setting." },
+      { question: "What if I cannot find the classroom?", answer: "That commonly reflects unclear goals or rules — pressure to perform without knowing exactly where you are supposed to be." },
+    ],
+  },
+  "injured-horse": {
+    introduction: [
+      "An injured horse in a dream turns strength and movement into vulnerability. Horses usually carry energy, freedom, ambition, and the power to move forward; an injury asks what has weakened that drive.",
+      "The horse may represent you, a demanding project, or a strong person you rely on. Feeling responsible for the animal often points to guilt about overwork or neglecting the source of your own momentum.",
+    ],
+    general: [
+      "The injury location can sharpen the meaning. Hurt legs concern movement and support; wounds around the mouth or reins can point to control; exhaustion without a visible wound often mirrors burnout.",
+      "Helping, resting, or treating the horse suggests recovery through care rather than force. Continuing to ride it despite the injury warns against demanding performance from something already depleted.",
+    ],
+    faq: [
+      { question: "What does an injured horse mean in a dream?", answer: "It often symbolizes weakened energy, blocked progress, burnout, or concern that a powerful person or project can no longer carry the same load." },
+      { question: "What if I help the injured horse?", answer: "Helping emphasizes compassion, repair, and the need to protect strength before asking it to perform again." },
+      { question: "Does an injured horse dream predict an accident?", answer: "No. It is generally symbolic of depleted power or restricted movement, not a forecast involving a real horse." },
+    ],
+  },
+  "absent-father": {
+    introduction: [
+      "An absent father in a dream often centers on missing support, guidance, approval, or structure. The father may be absent in real life, emotionally unavailable, deceased, or simply unreachable within the dream; each version gives shape to a different kind of distance.",
+      "The image can also emerge when you are expected to provide your own authority. A decision, responsibility, or transition may expose the place where reassurance was once hoped for but never reliably available.",
+    ],
+    general: [
+      "Searching for him emphasizes longing and unanswered questions. Knowing where he is but being unable to reach him points toward emotional barriers. Feeling relieved by his absence may signal freedom from criticism or an old authority dynamic.",
+      "The dream does not require reconciliation. It may instead support grief, realistic boundaries, or recognition of the guidance you have learned to build elsewhere.",
+    ],
+    faq: [
+      { question: "What does an absent father mean in a dream?", answer: "Often missing guidance, protection, approval, or emotional availability — especially when current responsibilities make that absence feel active again." },
+      { question: "Why do I dream of searching for my father?", answer: "The search can express longing for answers, support, identity, or a form of authority you are trying to develop within yourself." },
+      { question: "What if I feel relieved that he is absent?", answer: "Relief may reflect freedom from pressure, criticism, or an unsafe dynamic. The dream can validate distance as well as longing." },
+    ],
+  },
 };
 
 /**
@@ -3948,6 +4272,106 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "What a boat or ship in a dream means — sinking craft, storms, rowing, and whether your current vessel can hold the load.",
   },
+  "dog-and-snake": {
+    seoTitle: "Dog and Snake Dream Meaning: Trust Meets Hidden Threat",
+    seoDescription:
+      "What a dog and snake together mean in a dream — loyalty beside danger, protection under pressure, and when caution should not destroy trust.",
+  },
+  "cat-and-dog": {
+    seoTitle: "Cat and Dog Dream Meaning: Independence vs Loyalty",
+    seoDescription:
+      "What cats and dogs together mean in dreams — independence versus attachment, fighting versus friendship, and balancing closeness with freedom.",
+  },
+  "arguing-with-sister": {
+    seoTitle: "Arguing With Your Sister in a Dream: Meaning",
+    seoDescription:
+      "Why you dream of arguing with your sister — old rivalry, unspoken tension, family roles, and what the subject of the fight reveals.",
+  },
+  "snake-and-fire": {
+    seoTitle: "Snake and Fire Dream Meaning: Threat, Anger & Change",
+    seoDescription:
+      "What a snake and fire together mean in a dream — hidden danger, intense change, anger, survival, and transformation moving too fast for comfort.",
+  },
+  "sick-family-member": {
+    seoTitle: "Sick Family Member Dream Meaning: Fear, Care & Grief",
+    seoDescription:
+      "Dreaming a family member is sick usually reflects concern, helplessness, or caregiving stress — not a diagnosis. See how the person and setting change it.",
+  },
+  "crawling-like-a-baby": {
+    seoTitle: "Crawling Like a Baby Dream Meaning: Starting Over",
+    seoDescription:
+      "What crawling like a baby in a dream means — dependence, regression, patient learning, and rebuilding confidence from the ground up.",
+  },
+  "running-through-forest": {
+    seoTitle: "Running Through a Forest Dream Meaning: Escape & Fear",
+    seoDescription:
+      "What running through a forest in a dream means — urgency, uncertain direction, escape, instinct, and the difference between fear and freedom.",
+  },
+  "elephant-in-water": {
+    seoTitle: "Elephant in Water Dream Meaning: Memory & Emotion",
+    seoDescription:
+      "What an elephant in water means in a dream — deep memory, emotional weight, patience, and whether a powerful responsibility is coping or drowning.",
+  },
+  "visiting-someone-in-hospital": {
+    seoTitle: "Visiting Someone in Hospital Dream Meaning",
+    seoDescription:
+      "What visiting someone in hospital means in a dream — concern, caregiving, guilt, vulnerability, and how your actions during the visit shape the reading.",
+  },
+  "blood-on-clothes": {
+    seoTitle: "Blood on Clothes Dream Meaning: Exposure & Conflict",
+    seoDescription:
+      "What blood on clothes means in a dream — visible consequences, guilt, emotional injury, and fear that private conflict will stain your public identity.",
+  },
+  "someone-crawling-toward-you": {
+    seoTitle: "Someone Crawling Toward You Dream Meaning",
+    seoDescription:
+      "Why someone crawls toward you in a dream — a persistent need, unsettling vulnerability, approaching fear, and the boundary your reaction reveals.",
+  },
+  "flowers-on-a-grave": {
+    seoTitle: "Flowers on a Grave Dream Meaning: Love & Closure",
+    seoDescription:
+      "What flowers on a grave mean in a dream — remembrance, ongoing love, grief becoming gentler, and how fresh or wilted flowers change the meaning.",
+  },
+  "kissing-a-celebrity": {
+    seoTitle: "Kissing a Celebrity Dream Meaning: Recognition & Desire",
+    seoDescription:
+      "What kissing a celebrity in a dream means — aspiration, recognition, attraction, and the public qualities you may be ready to claim for yourself.",
+  },
+  "spider-and-snake": {
+    seoTitle: "Spider and Snake Dream Meaning: Two Hidden Threats",
+    seoDescription:
+      "What a spider and snake together mean in a dream — entanglement beside sudden danger, layered mistrust, and what changes when they fight.",
+  },
+  "wedding-and-death": {
+    seoTitle: "Wedding and Death Dream Meaning: Ending & Commitment",
+    seoDescription:
+      "What a wedding and death together mean in a dream — a new commitment closing an old chapter, mixed emotions, and why it is not a bad omen.",
+  },
+  "crawling-on-the-floor": {
+    seoTitle: "Crawling on the Floor Dream Meaning: Slow Survival",
+    seoDescription:
+      "What crawling on the floor in a dream means — humility, exhaustion, reduced status, and the determination to keep moving when you cannot stand.",
+  },
+  "death-and-water": {
+    seoTitle: "Death and Water Dream Meaning: Grief, Release & Change",
+    seoDescription:
+      "What death and water together mean in a dream — endings moving through emotion, grief, cleansing, and how calm or violent water changes the reading.",
+  },
+  "being-late-to-school": {
+    seoTitle: "Being Late to School Dream Meaning: Falling Behind",
+    seoDescription:
+      "Why adults dream of being late to school — evaluation anxiety, deadlines, comparison, and the fear of arriving unprepared or already behind.",
+  },
+  "injured-horse": {
+    seoTitle: "Injured Horse Dream Meaning: Lost Strength & Momentum",
+    seoDescription:
+      "What an injured horse means in a dream — burnout, blocked progress, weakened ambition, and why helping the horse changes the reading toward recovery.",
+  },
+  "absent-father": {
+    seoTitle: "Absent Father Dream Meaning: Missing Support & Guidance",
+    seoDescription:
+      "What an absent father means in a dream — missing guidance, approval, or protection, and how searching, distance, or relief changes the interpretation.",
+  },
 };
 
 /**
@@ -4108,7 +4532,7 @@ function buildDictionary() {
     });
   }
 
-  for (const slug of [...Object.keys(SECTION_OVERRIDES), ...Object.keys(META_OVERRIDES)]) {
+  for (const slug of [...Object.keys(SECTION_OVERRIDES), ...Object.keys(META_OVERRIDES), ...GSC_ENHANCED_SLUGS]) {
     if (!entries.some((entry) => entry.slug === slug)) {
       throw new Error(`Override references missing entry: ${slug}`);
     }
@@ -4119,6 +4543,7 @@ function buildDictionary() {
     const metaOverride = META_OVERRIDES[entry.slug];
     if (metaOverride?.seoTitle) entry.seoTitle = metaOverride.seoTitle;
     if (metaOverride?.seoDescription) entry.seoDescription = metaOverride.seoDescription;
+    if (GSC_ENHANCED_SLUGS.has(entry.slug)) entry.updatedAt = GSC_ENHANCEMENT_UPDATED_AT;
   }
 
   return entries;
