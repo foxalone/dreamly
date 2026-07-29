@@ -45,7 +45,7 @@ const FEATURES = [
     title: "AI Dream Interpreter",
     description:
       "Describe any dream in your own words and get an instant, personal interpretation — the symbols, the emotions, and what they may be reflecting from your waking life.",
-    href: "/app",
+    href: "/app/dreams",
     linkLabel: "Interpret a dream",
   },
   {
@@ -53,7 +53,7 @@ const FEATURES = [
     title: "Private Dream Journal",
     description:
       "Record your dreams the moment you wake up. Your journal stays private, and over time Dreamly helps you spot recurring symbols, themes, and patterns.",
-    href: "/app",
+    href: "/app/dreams",
     linkLabel: "Start your journal",
   },
   {

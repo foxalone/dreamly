@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function AppIndex() {
-  redirect("/app/dreams");
+  permanentRedirect("/app/dreams");
 }
-
-
