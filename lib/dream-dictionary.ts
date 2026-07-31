@@ -1161,9 +1161,24 @@ const CLUSTERS: ClusterSeed[] = [
     icon: "🤱",
     accent: "#f59e0b",
     summary: "nurture, origin, protection, family patterns, and the earliest template of love and care",
+    updatedAt: "2026-07-31",
     aliases: ["mom", "dream about mother", "mother in a dream", "dreaming of your mom"],
     relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents"],
     variations: [
+      {
+        slug: "walking-with-my-mother",
+        name: "walking with your mother",
+        focus: "a shared life journey, guidance, emotional closeness or distance, inherited family patterns, and a transition you are navigating together",
+        aliases: [
+          "walking with my mother",
+          "walking with mother",
+          "walking with my mom",
+          "walking with mom",
+          "dreaming of walking with my mother",
+          "dream about walking with my mother",
+          "walking beside my mother in a dream",
+        ],
+      },
       { slug: "mother-dying", name: "your mother dying", focus: "fear of losing support, a changing relationship with her, or a shift in your own nurturing role" },
       { slug: "deceased-mother", name: "a deceased mother", focus: "grief, comfort, continued bond, or guidance associated with her memory" },
       { slug: "arguing-with-mother", name: "arguing with your mother", focus: "conflict over autonomy, old family patterns, or an internal clash with inherited values" },
@@ -2129,6 +2144,80 @@ const GSC_ENHANCED_SLUGS = new Set([
 const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  "walking-with-my-mother": {
+    introduction: [
+      "Dreaming of walking with your mother joins two intimate symbols: your mother and the path beneath you. A mother can represent the real relationship you share, but she can also carry memories of care, approval, protection, criticism, or the values you learned at home. Walking turns those themes into a journey. The dream often asks how her influence travels with you as your life changes — whether it supports your direction, complicates it, or remains present even when you are choosing your own way.",
+      "The emotional atmosphere matters more than the simple fact that you were together. An easy conversation on a familiar road can express companionship and a secure bond; silence may feel peaceful or reveal words left unsaid. If your mother hurried ahead, lagged behind, took your hand, or led you somewhere unfamiliar, the dream may be describing the current balance between guidance and independence. It is not a prediction about her. It is a picture of relationship, memory, and movement at this point in your life.",
+    ],
+    general: [
+      "At its most reassuring, walking with your mother in a dream suggests shared progress. You may be entering a new stage — a move, marriage, parenthood, a career decision, recovery from difficulty — while wanting her encouragement or carrying lessons she gave you. Walking side by side points to mutuality: neither person controls the route, and support can coexist with adult independence. If the dream felt warm, it may simply register gratitude for a relationship that helps you feel accompanied rather than managed.",
+      "A difficult walk changes the emphasis. Getting lost together can reflect uncertainty within the family; struggling to keep pace may reveal pressure to meet expectations; being pulled in opposite directions can mirror a waking conflict between loyalty and your own needs. Pay attention to the destination, terrain, pace, conversation, and who chose the route. Those details show whether the dream is primarily about closeness, responsibility, unresolved history, or permission to continue on a path that is now yours.",
+    ],
+    psychological: [
+      "Psychologically, the mother in this dream can function as both a person and an internal voice. Early experiences of comfort, correction, protection, or unpredictability help shape how people soothe themselves and what they expect from close relationships. Walking beside your mother may show you reviewing that emotional inheritance while moving through a present-day decision. Her dream behavior can resemble the voice you now carry inside: encouraging, anxious, demanding, absent, or quietly dependable.",
+      "The dream can also appear during a healthy renegotiation of closeness. Becoming more independent does not require rejecting your mother, and staying connected does not require following every expectation. If you lead the walk, you may be practicing confidence in your own direction; if she leads, you may want advice or feel pulled back toward a familiar family role. Ask which feeling remained after waking — comfort, guilt, grief, irritation, safety, or pressure — and where that same feeling appears in your current relationships.",
+    ],
+    spiritual: [
+      "Spiritually, walking together can symbolize companionship across generations: care received, wisdom inherited, and the responsibility to decide what you will carry forward. A peaceful path may invite gratitude for the love or resilience associated with your mother. A rough path may highlight a family pattern that needs patience, forgiveness, firmer boundaries, or a different ending. The meaningful question is not whether the route predicts the future, but what kind of person you are becoming while you travel it.",
+      "If the dream felt like guidance, test that feeling against humility and practical reality. The image may encourage reconciliation, a conversation, or appreciation, but it does not demand contact where contact would be unsafe. Sometimes honoring the bond means drawing closer; sometimes it means releasing guilt and walking with compassion at a healthier distance. A grounded spiritual reading makes room for both love and boundaries.",
+    ],
+    islamic: [
+      "In an Islamic reflection, a mother naturally brings to mind mercy, gratitude, and the serious duty of kindness toward parents, while walking can suggest conduct and the direction of one's life. A calm walk with your mother may encourage good companionship, service, du'a for her, or attention to advice that is consistent with faith and sound judgment. If there was tension, the dream may prompt you to examine whether respect, communication, or boundaries need patient repair rather than assigning a fixed omen to the scene.",
+      "Islamic tradition also cautions that not every dream carries a message: some are comforting, some distressing, and many arise from ordinary thoughts and concerns. The dream should not be used as proof that your mother is right or wrong, nor as certain knowledge about what will happen. If your mother is deceased, a tender walk may reflect love and remembrance; it can be met with du'a and good deeds in her memory without claiming that the dream confirms her condition in the unseen.",
+    ],
+    biblical: [
+      "Biblically, walking often describes the course of a person's life rather than movement alone, while the command to honor one's father and mother places family relationships within a framework of gratitude and responsibility. Walking peacefully with your mother may therefore suggest shared values, faithful companionship, or lessons from home that continue to shape your choices. Consider what the two of you discussed and whether the path reflected wisdom, peace, confusion, or a need to turn around.",
+      "Honor does not mean that every inherited pattern must be repeated or that discernment belongs only to the parent. Scripture also presents maturity as taking responsibility for one's own conduct. If the dream path divided, the image may reflect the difficult work of loving your mother while choosing a different course. Weigh the dream through prayer, character, wise counsel, and the real condition of the relationship rather than treating it as a private instruction from God.",
+    ],
+    commonScenarios: [
+      {
+        title: "Walking Side by Side",
+        meaning: "Moving at the same pace often reflects companionship, mutual respect, or a wish for an adult relationship in which closeness does not erase independence.",
+      },
+      {
+        title: "Your Mother Walking Ahead",
+        meaning: "She may represent guidance and experience, or expectations you feel obliged to follow. Your emotion reveals whether her lead felt reassuring or controlling.",
+      },
+      {
+        title: "Leaving Your Mother Behind",
+        meaning: "This can accompany growing independence, guilt about moving on, or concern that changes in your life are creating emotional distance between you.",
+      },
+      {
+        title: "Walking and Talking Together",
+        meaning: "A remembered conversation may express a need for advice, reconciliation, or words you have not found a way to say while awake.",
+      },
+      {
+        title: "Walking With a Deceased Mother",
+        meaning: "This commonly reflects grief, longing, memory, and the continuing inner bond with her. The dream is not reliable proof of a supernatural visitation.",
+      },
+      {
+        title: "Getting Lost With Your Mother",
+        meaning: "An unclear route may mirror shared uncertainty, changing family roles, or the realization that familiar guidance cannot answer every new situation.",
+      },
+    ],
+    faq: [
+      {
+        question: "What does it mean to dream about walking with my mother?",
+        answer: "It often represents a shared life journey, your need for guidance or closeness, and the family values or emotional patterns you carry into a current transition. The mood, path, and who led the walk make the meaning more personal.",
+      },
+      {
+        question: "Is walking with my mother in a dream a good sign?",
+        answer: "A peaceful walk is usually reassuring and can reflect support, gratitude, or growing mutual understanding. A tense or difficult walk is not necessarily a bad sign; it may simply bring conflict, pressure, or changing boundaries into view.",
+      },
+      {
+        question: "What if my mother was silent while we walked?",
+        answer: "Comfortable silence may symbolize trust and presence without explanation. Uncomfortable silence can point to emotional distance, an avoided conversation, grief, or uncertainty about what you need from one another.",
+      },
+      {
+        question: "What does walking with my deceased mother in a dream mean?",
+        answer: "It commonly expresses longing, remembrance, and the way her influence continues within you. It can feel deeply comforting, but the dream alone cannot establish that she visited you or predict an event.",
+      },
+      {
+        question: "Why do I keep dreaming of walking with my mother?",
+        answer: "A recurring walk may track an ongoing change in your relationship, a decision that activates her advice or expectations, unresolved grief, or a repeated tension between family loyalty and your independent direction.",
+      },
+    ],
+  },
   snake: {
     introduction: [
       "Few dream images divide people as sharply as the snake. One dreamer wakes fascinated, another in a cold sweat — and that split runs through the history of interpretation too. In ancient Greece snakes coiled around the staff of Asclepius as emblems of healing; in Genesis the serpent is the tempter; in many South Asian traditions a snake dream signals fortune or a spiritual visitation. Which of those readings fits you depends less on the snake than on what it was doing, and on what you were feeling while it did.",
@@ -4126,6 +4215,11 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Fear of Heights Dream Meaning | Dreaming of Heights & Fear",
     seoDescription:
       "Dreaming about heights and being scared — höhenangst, exposure after progress, and freezing at the edge. Psychological and spiritual readings.",
+  },
+  "walking-with-my-mother": {
+    seoTitle: "Walking With My Mother Dream Meaning",
+    seoDescription:
+      "What walking with your mother in a dream means — guidance, closeness, family patterns, independence, grief, and the path you are navigating together.",
   },
   "ex-family": {
     seoTitle: "Dreaming of an Ex and Their Family: What It Means",
