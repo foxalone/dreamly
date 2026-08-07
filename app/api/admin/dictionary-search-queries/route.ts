@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     );
     const snap = await adminDb()
       .collection("dictionary_search_queries")
-      .orderBy("count", "desc")
+      .orderBy("lastAt", "desc")
       .limit(limitN)
       .get();
 

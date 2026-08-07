@@ -42,8 +42,8 @@ export default function QuickSymbolQueries() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? "Failed to load");
       setRows(Array.isArray(data?.rows) ? data.rows : []);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load");
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Failed to load");
       setRows([]);
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function QuickSymbolQueries() {
         <div>
           <h2 className="text-base font-semibold text-[var(--text)]">Quick symbol queries</h2>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Sorted by popularity. Misses without a dictionary page are SEO candidates.
+            Newest first. Misses without a dictionary page are SEO candidates.
           </p>
         </div>
         <button

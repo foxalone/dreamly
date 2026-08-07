@@ -17,12 +17,12 @@ export async function GET(req: Request) {
     const db = adminDb();
     const snap = await db
       .collection("quick_symbol_queries")
-      .orderBy("count", "desc")
+      .orderBy("lastAt", "desc")
       .limit(limitN)
       .get();
 
     const rows = snap.docs.map((d) => {
-      const data = d.data() as any;
+      const data = d.data();
       return {
         id: d.id,
         query: String(data?.query ?? ""),
@@ -37,8 +37,8 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({ ok: true, rows });
-  } catch (e: any) {
-    const msg = e?.message ?? "Failed to load queries";
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Failed to load queries";
     const code =
       msg === "FORBIDDEN" ? 403 : msg === "UNAUTHENTICATED" ? 401 : 500;
     return NextResponse.json({ error: msg }, { status: code });
