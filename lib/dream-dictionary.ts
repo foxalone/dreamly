@@ -119,7 +119,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#a78bfa",
     summary: "confidence, communication, appearance, control, aging, and anxiety about change or loss",
     aliases: ["tooth", "dream about teeth", "teeth dream", "teeth in a dream"],
-    relatedSymbols: ["death", "falling", "money", "baby", "blood", "hair", "mirror"],
+    relatedSymbols: ["death", "falling", "money", "baby", "blood", "hair", "mirror", "eating"],
     variations: [
       { slug: "teeth-falling-out", name: "teeth falling out", focus: "loss of control, embarrassment, transition, or concern about how others see you" },
       { slug: "broken-teeth", name: "broken teeth", focus: "damaged confidence, regret after conflict, or pressure that has exceeded your limits" },
@@ -445,6 +445,7 @@ const CLUSTERS: ClusterSeed[] = [
       "being-lost",
       "lottery",
       "debt",
+      "eating",
     ],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
@@ -463,7 +464,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#22c55e",
     summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
     aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
-    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt"],
+    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt", "eating"],
     variations: [
       { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
       { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
@@ -1117,7 +1118,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does a wedding dream mean",
       "wedding dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood"],
+    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1163,7 +1164,7 @@ const CLUSTERS: ClusterSeed[] = [
     summary: "nurture, origin, protection, family patterns, and the earliest template of love and care",
     updatedAt: "2026-07-31",
     aliases: ["mom", "dream about mother", "mother in a dream", "dreaming of your mom"],
-    relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents"],
+    relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents", "eating"],
     variations: [
       {
         slug: "walking-with-my-mother",
@@ -1267,7 +1268,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#16a34a",
     summary: "vulnerability, neglected needs, anxiety about health, and a part of life asking for care and rest",
     aliases: ["being sick", "sickness", "disease", "dream about being sick", "illness in a dream"],
-    relatedSymbols: ["hospital", "blood", "death"],
+    relatedSymbols: ["hospital", "blood", "death", "eating"],
     variations: [
       { slug: "being-sick", name: "being sick", focus: "depleted energy, a neglected need, or anxiety about your body and capacity" },
       { slug: "terminal-illness", name: "a terminal illness", focus: "fear of an ending, urgency about time, or a dramatic image of something that feels unfixable" },
@@ -1925,6 +1926,36 @@ const CLUSTERS: ClusterSeed[] = [
     ],
   },
   {
+    slug: "eating",
+    name: "eating",
+    category: "body",
+    icon: "🍽️",
+    accent: "#f59e0b",
+    summary: "nourishment, appetite, receiving, pleasure, scarcity, and the experiences you are trying to take in",
+    aliases: [
+      "eat",
+      "food",
+      "eating in a dream",
+      "dream about eating",
+      "dreaming of eating",
+      "eating dream meaning",
+      "dreaming of food",
+      "food in a dream",
+    ],
+    relatedSymbols: ["teeth", "mother", "house", "money", "illness", "wedding"],
+    updatedAt: "2026-08-07",
+    variations: [
+      { slug: "eating-with-family", name: "eating with family", focus: "belonging, shared care, family roles, or tension around what is given and received at home" },
+      { slug: "eating-alone", name: "eating alone", focus: "independence, loneliness, privacy, or a need that you are meeting without support" },
+      { slug: "eating-at-restaurant", name: "eating at a restaurant", focus: "choice, pleasure, social presentation, or relying on others to provide what you need" },
+      { slug: "eating-delicious-food", name: "eating delicious food", focus: "satisfaction, reward, gratitude, sensual pleasure, or readiness to enjoy what life is offering" },
+      { slug: "eating-spoiled-food", name: "eating spoiled food", focus: "accepting something harmful, disappointment, distrust, or recognizing that an offer is no longer good for you" },
+      { slug: "unable-to-eat", name: "being unable to eat", focus: "blocked receiving, anxiety, refusal, grief, or difficulty accepting care and opportunity" },
+      { slug: "overeating", name: "overeating", focus: "excess, unmet emotional hunger, loss of limits, or trying to fill a need that food cannot satisfy" },
+      { slug: "sharing-food", name: "sharing food", focus: "generosity, reciprocity, intimacy, and the fair distribution of attention or resources" },
+    ],
+  },
+  {
     slug: "boat",
     name: "boat",
     category: "water",
@@ -2144,6 +2175,51 @@ const GSC_ENHANCED_SLUGS = new Set([
 const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  eating: {
+    introduction: [
+      "Eating in a dream usually brings attention to nourishment: what you need, what you are receiving, and whether it truly satisfies you. The food may represent literal appetite, but it can also stand for affection, information, opportunity, comfort, attention, or any experience you are trying to take into yourself. A generous meal can express pleasure and enoughness; spoiled food, forced eating, or an empty plate can reveal mistrust, pressure, or unmet need.",
+      "Begin with the feeling rather than a fixed symbol dictionary. Were you hungry, delighted, ashamed, disgusted, rushed, or unable to swallow? Notice what you ate, who provided it, who sat with you, and whether you felt full afterward. These details distinguish a dream about enjoyment from one about emotional hunger, family dynamics, boundaries, scarcity, or a body simply registering that it went to bed hungry.",
+    ],
+    general: [
+      "At its most positive, eating represents accepting what life offers and allowing yourself to be sustained. Delicious food can accompany reward, recovery, creative inspiration, intimacy, or relief after deprivation. Sharing a meal adds belonging and exchange: the dream may be showing where care circulates freely, or where one person gives while another consumes. A familiar family dish often carries memory as strongly as appetite and may reconnect you with home, culture, or a person associated with care.",
+      "Unpleasant eating dreams shift the question from how much you receive to what you are taking in. Rotten food may symbolize an offer, belief, habit, or relationship that once looked nourishing but now feels wrong. Eating too quickly can mirror urgency or fear that there will not be enough. Being unable to eat may reflect anxiety, grief, refusal, or difficulty accepting help. None of these meanings is automatic: recent meals, dieting, digestive discomfort, medication, hunger, and ordinary food memories can all supply the imagery.",
+    ],
+    psychological: [
+      "Psychologically, eating is a useful image for emotional regulation and assimilation. People speak of being hungry for affection, consuming information, digesting news, and being unable to stomach a situation because the mind naturally borrows the body's feeding language. The dream may therefore review both need and judgment: what are you reaching for, who taught you that you may or may not have it, and does the thing you consume leave you satisfied or still searching?",
+      "The social setting matters. Eating with family can reactivate early patterns around care, control, reward, criticism, and who receives the best portion. Eating alone may feel peaceful when autonomy is needed, or painful when connection is missing. Overeating can depict an attempt to fill a non-food need, but it should not be used to diagnose an eating disorder. If food dreams accompany distress about eating, body image, sleep, or physical symptoms, respond to the waking concern directly and seek appropriate support rather than treating the dream as a medical verdict.",
+    ],
+    spiritual: [
+      "Spiritually, a meal can symbolize receptivity, gratitude, communion, and the recognition that life is sustained through relationship. The dream may invite you to notice what genuinely nourishes your character and what merely offers quick fullness. Receiving food with gratitude can reflect trust and enoughness; hoarding it may expose fear of scarcity; sharing it can point toward generosity and participation in a larger community.",
+      "Discernment is as important as appetite. Not every attractive offering deserves to be taken in, and not every period of emptiness should be filled immediately. Ask what kind of hunger the dream reveals and what response would make you more honest, compassionate, and grounded. A useful spiritual interpretation leads to wise action — rest, gratitude, hospitality, a boundary, or care for a neglected need — rather than a claim that the dream predicts fortune or danger.",
+    ],
+    islamic: [
+      "In an Islamic reflection, food naturally evokes provision, gratitude, lawful and wholesome nourishment, hospitality, and the responsibility not to waste what has been given. A peaceful shared meal may encourage shukr, generosity, family connection, or attention to the way you earn and use provision. Hunger, spoiled food, or conflict at the table can prompt an examination of need, conscience, excess, and fairness without turning the dream into a fixed omen.",
+      "Not every dream carries a special message; many arise from daily concerns, memory, or the body's condition. A dream about questionable food is not proof that a particular person or income is unlawful, and a feast does not guarantee future wealth. Receive a comforting dream with gratitude, leave a disturbing one without building decisions on it, and judge real choices through clear evidence, prayer, sound counsel, and established ethical principles.",
+    ],
+    biblical: [
+      "Biblically, food carries several connected meanings: daily provision, fellowship at the table, covenant, celebration, temptation, and spiritual nourishment. Bread can recall dependence on daily provision; a shared table can suggest welcome and restored relationship; a feast may express joy and abundance. Yet appetite can also become disordered when immediate desire overrides wisdom, so the food's source, condition, and effect matter more than the fact of eating alone.",
+      "A biblical reading can ask whether the dream meal reflects gratitude, hospitality, self-control, exclusion, or hunger for something deeper. The image may resonate with daily bread, meals of fellowship, or the call to care for hungry people, but it is not a private prophecy or a universal code. Test the reflection by its fruit: does it lead toward gratitude, truth, generosity, reconciliation, and responsible care for the body and neighbor?",
+    ],
+    commonScenarios: [
+      { title: "Eating Delicious Food", meaning: "Enjoyment and fullness often reflect satisfaction, reward, gratitude, or permission to receive pleasure. What tasted especially good may identify the kind of nourishment you currently value." },
+      { title: "Eating With Family", meaning: "A family meal can represent belonging and shared care, or revive older patterns around approval, control, fairness, and who is expected to provide for everyone else." },
+      { title: "Eating Alone", meaning: "Solitary eating may express welcome independence and private restoration, or loneliness and the sense that an important need is being handled without companionship." },
+      { title: "Eating at a Restaurant", meaning: "A restaurant emphasizes choice, service, social presentation, and trust in someone else's preparation. The menu, bill, company, and quality of service show whether the experience felt abundant or dependent." },
+      { title: "Eating Spoiled or Disgusting Food", meaning: "Spoiled food often points to something you no longer trust or cannot healthily accept — an idea, offer, habit, relationship, or obligation that has passed its useful point." },
+      { title: "Unable to Eat or Swallow", meaning: "A blocked meal can mirror anxiety, grief, refusal, pressure, or difficulty receiving help. It may also incorporate ordinary bodily sensations, so waking context matters." },
+      { title: "Overeating Without Feeling Full", meaning: "Endless appetite can symbolize excess, scarcity fear, or an emotional need that the available comfort does not actually meet. The missing feeling after the meal is usually the clue." },
+      { title: "Sharing Food With Someone", meaning: "Sharing emphasizes generosity, intimacy, reciprocity, and resource distribution. Notice whether the portions felt fair and whether giving left you connected or depleted." },
+    ],
+    faq: [
+      { question: "What does eating in a dream mean?", answer: "It most often concerns nourishment, receiving, appetite, pleasure, or scarcity. Identify the food, your emotion, who provided it, and whether you felt satisfied to find the most relevant meaning." },
+      { question: "Does dreaming about eating mean I am physically hungry?", answer: "Sometimes. Going to bed hungry, dieting, a late meal, thirst, digestive sensations, or recent food memories can enter a dream directly. The literal explanation can coexist with an emotional one." },
+      { question: "What does eating with family mean in a dream?", answer: "It can reflect belonging, tradition, and shared care, but also family rules about approval, control, fairness, and responsibility. The mood at the table tells you which side is active." },
+      { question: "What does eating spoiled food mean in a dream?", answer: "It commonly symbolizes accepting something that feels harmful, outdated, dishonest, or disappointing. It is a prompt to examine a waking offer or habit, not proof that real food or a person is dangerous." },
+      { question: "Why do I keep dreaming about food?", answer: "Recurring food dreams may track a repeated need, restrictive eating, stress, comfort-seeking, family memories, or literal hunger. Compare several dreams and look for the same emotion and social setting." },
+      { question: "What is the spiritual meaning of eating in a dream?", answer: "Spiritually, eating can represent receiving nourishment, practicing gratitude, joining community, and discerning what you allow into your life. A grounded reading should encourage wise action rather than prediction." },
+      { question: "Is eating in a dream a good or bad sign?", answer: "Neither by itself. A satisfying meal can reflect pleasure and support; forced, rotten, or endless eating can reflect pressure or unmet need. Context and waking circumstances determine the useful interpretation." },
+    ],
+  },
   "walking-with-my-mother": {
     introduction: [
       "Dreaming of walking with your mother joins two intimate symbols: your mother and the path beneath you. A mother can represent the real relationship you share, but she can also carry memories of care, approval, protection, criticism, or the values you learned at home. Walking turns those themes into a journey. The dream often asks how her influence travels with you as your life changes — whether it supports your direction, complicates it, or remains present even when you are choosing your own way.",
@@ -4066,6 +4142,11 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  eating: {
+    seoTitle: "Eating in a Dream Meaning: Hunger, Comfort & Receiving",
+    seoDescription:
+      "What eating in a dream means, from hunger and comfort to emotional nourishment, family meals, spoiled food, overeating, and spiritual interpretations.",
+  },
   snake: {
     seoTitle: "Snake Dream Meaning: What Snakes in Dreams Really Symbolize",
     seoDescription:
