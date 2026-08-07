@@ -7,6 +7,11 @@ import type { DreamCategory } from "@/lib/dream-categories";
 import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 import { openQuickSymbol } from "./quickSymbolEvents";
 import { trackEvent } from "@/lib/analytics";
+import {
+  containsWholePhrase,
+  normalizeMatchText,
+  startsWithSearchText,
+} from "@/lib/searchMatching";
 
 export type DreamSearchItem = {
   slug: string;
@@ -17,15 +22,11 @@ export type DreamSearchItem = {
   parentSlug?: string;
 };
 
-function normalize(value: string) {
-  return value.toLowerCase().trim().replace(/[-_]+/g, " ");
-}
-
 export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   const [query, setQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const lastLoggedQuery = useRef("");
-  const normalizedQuery = normalize(query);
+  const normalizedQuery = normalizeMatchText(query);
 
   // Support /dreams?q=... deep links (used by the WebSite SearchAction schema).
   useEffect(() => {
@@ -48,12 +49,18 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
 
     return items
       .map((item) => {
-        const title = normalize(item.title);
-        const slug = normalize(item.slug);
-        const aliases = item.aliases.map(normalize);
-        const exact = title.startsWith(normalizedQuery) || slug.startsWith(normalizedQuery);
-        const aliasMatch = aliases.some((alias) => alias.includes(normalizedQuery));
-        const broadMatch = title.includes(normalizedQuery) || slug.includes(normalizedQuery);
+        const title = normalizeMatchText(item.title);
+        const slug = normalizeMatchText(item.slug);
+        const aliases = item.aliases.map(normalizeMatchText);
+        const exact =
+          startsWithSearchText(title, normalizedQuery) ||
+          startsWithSearchText(slug, normalizedQuery);
+        const aliasMatch = aliases.some((alias) =>
+          containsWholePhrase(alias, normalizedQuery)
+        );
+        const broadMatch =
+          containsWholePhrase(title, normalizedQuery) ||
+          containsWholePhrase(slug, normalizedQuery);
         return { item, score: exact ? 3 : aliasMatch ? 2 : broadMatch ? 1 : 0 };
       })
       .filter(({ score }) => score > 0)
@@ -64,7 +71,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
 
   const logDictionarySearch = useCallback(
     (rawQuery: string, matches: DreamSearchItem[]) => {
-      const normalized = normalize(rawQuery);
+      const normalized = normalizeMatchText(rawQuery);
       if (normalized.length < 2 || lastLoggedQuery.current === normalized) return;
 
       lastLoggedQuery.current = normalized;
