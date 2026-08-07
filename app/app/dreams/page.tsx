@@ -10,10 +10,11 @@ import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.e
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, getAdditionalUserInfo, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
+import { trackAuth, trackEvent } from "@/lib/analytics";
 import {
   addDoc,
   collection,
@@ -858,6 +859,7 @@ export default function DreamsPage() {
       provider.setCustomParameters({ prompt: "select_account" });
       const cred = await signInWithPopup(auth, provider);
       await ensureUserProfileOnSignIn(cred.user);
+      trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
       // uid will update via onAuthStateChanged
     } catch (e: any) {
       console.error("Google sign-in failed:", e);
@@ -1076,6 +1078,11 @@ export default function DreamsPage() {
       let docRef: any;
       try {
         docRef = await addDoc(collection(firestore, "users", u.uid, getCollectionNameByType(composerType)), payload);
+        trackEvent("journal_entry_saved", {
+          content_type: composerType,
+          input_method: payload.source,
+          word_count: payload.wordCount,
+        });
       } catch (e) {
         await runTransaction(firestore, async (tx) => {
           const userSnap = await tx.get(userRef);
@@ -1179,6 +1186,11 @@ export default function DreamsPage() {
         reactions: { heart: 0, like: 0, star: 0 },
       });
 
+      trackEvent("share", {
+        method: "dreamly_feed",
+        content_type: type,
+      });
+
       setTab("SHARED");
     } catch (e: any) {
       const rollback = (d: Dream) => (d.id === itemId ? { ...d, shared: false } : d);
@@ -1208,6 +1220,7 @@ export default function DreamsPage() {
     }
 
    if (credits < 2) {
+  trackEvent("upgrade_prompt", { source: "dream_analysis" });
   setError("Not enough credits to analyze. Requires 2 credits.");
   router.push("/app/upgrade");
   return;
@@ -1263,6 +1276,11 @@ export default function DreamsPage() {
         )
       );
 
+      trackEvent("dream_analysis_completed", {
+        input_language: (dream as any)?.langGuess ?? guessLang(t),
+        word_count: countWords(t),
+        credits_used: 2,
+      });
       openAnalysis(dreamId);
     } catch (e: any) {
     if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {

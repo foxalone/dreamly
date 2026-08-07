@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   GoogleAuthProvider,
+  getAdditionalUserInfo,
   onAuthStateChanged,
   signInWithPopup,
   type User,
@@ -13,6 +14,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { createOrGetDirectChat } from "@/lib/chat/chatDb";
+import { trackAuth } from "@/lib/analytics";
 
 type InviterInfo = {
   uid: string;
@@ -169,6 +171,7 @@ export default function InvitePage() {
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
       await ensureUserProfileOnSignIn(cred.user);
+      trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
     } catch (e) {
       console.error("Sign in failed", e);
       setError("Sign in failed.");

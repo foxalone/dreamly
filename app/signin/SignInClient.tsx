@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   GoogleAuthProvider,
+  getAdditionalUserInfo,
   onAuthStateChanged,
   signInWithPopup,
 } from "firebase/auth";
@@ -12,6 +13,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
 import BottomNav from "@/app/app/BottomNav";
+import { trackAuth } from "@/lib/analytics";
 
 export default function SignInClient() {
   const router = useRouter();
@@ -64,6 +66,7 @@ export default function SignInClient() {
 
       const cred = await signInWithPopup(auth, provider);
       await ensureUserProfileOnSignIn(cred.user);
+      trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
 
       router.replace(next);
     } catch (e: any) {

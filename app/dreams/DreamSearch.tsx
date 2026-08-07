@@ -6,6 +6,7 @@ import { ArrowRight, MoonStar, Search, X } from "lucide-react";
 import type { DreamCategory } from "@/lib/dream-categories";
 import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 import { openQuickSymbol } from "./quickSymbolEvents";
+import { trackEvent } from "@/lib/analytics";
 
 export type DreamSearchItem = {
   slug: string;
@@ -67,6 +68,10 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
       if (normalized.length < 2 || lastLoggedQuery.current === normalized) return;
 
       lastLoggedQuery.current = normalized;
+      trackEvent("dictionary_search", {
+        result_count: matches.length,
+        has_results: matches.length > 0,
+      });
       void fetch("/api/dreams/search-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,6 +105,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     event.preventDefault();
     const nextQuery = aiQuery.trim();
     if (!nextQuery) return;
+    trackEvent("quick_symbol_opened", { source: "dictionary_search" });
     openQuickSymbol(nextQuery);
   }
 

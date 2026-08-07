@@ -11,6 +11,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
+import { trackEvent } from "@/lib/analytics";
 import { QUICK_SYMBOL_OPEN_EVENT, type QuickSymbolOpenDetail } from "./quickSymbolEvents";
 
 const PENDING_KEY = "dreamly:quickSymbolPending";
@@ -205,6 +206,7 @@ export default function QuickSymbolFab() {
           return;
         }
         if (data?.code === "INSUFFICIENT_CREDITS") {
+          trackEvent("upgrade_prompt", { source: "quick_symbol" });
           setError("Not enough credits.");
           router.push("/app/upgrade");
           return;
@@ -220,6 +222,11 @@ export default function QuickSymbolFab() {
         match: data.match ?? null,
       };
       setResult(next);
+      trackEvent("quick_symbol_completed", {
+        matched_dictionary: next.matched,
+        word_count: countWords(q),
+        credits_used: next.cost,
+      });
 
       try {
         await saveToDiary({
@@ -287,6 +294,7 @@ export default function QuickSymbolFab() {
       <button
         type="button"
         onClick={() => {
+          trackEvent("quick_symbol_opened", { source: "floating_button" });
           setOpen(true);
           setError(null);
         }}

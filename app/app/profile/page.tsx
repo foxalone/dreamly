@@ -8,6 +8,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { creditPackItem, trackEvent } from "@/lib/analytics";
 
 import { loadScript } from "@paypal/paypal-js";
 
@@ -29,11 +30,11 @@ function shortUid(uid?: string | null) {
 
 type PackId = "pack_20" | "pack_50" | "pack_120" | "pack_300";
 
-const PACK_LABELS: Record<PackId, { title: string; price: string; currency: string }> = {
-  pack_20: { title: "20 credits", price: "3.99", currency: "USD" },
-  pack_50: { title: "50 credits", price: "7.99", currency: "USD" },
-  pack_120: { title: "120 credits", price: "14.99", currency: "USD" },
-  pack_300: { title: "300 credits", price: "29.99", currency: "USD" },
+const PACK_LABELS: Record<PackId, { title: string; credits: number; price: string; currency: string }> = {
+  pack_20: { title: "20 credits", credits: 20, price: "3.99", currency: "USD" },
+  pack_50: { title: "50 credits", credits: 50, price: "7.99", currency: "USD" },
+  pack_120: { title: "120 credits", credits: 120, price: "14.99", currency: "USD" },
+  pack_300: { title: "300 credits", credits: 300, price: "29.99", currency: "USD" },
 };
 
 export default function ProfilePage() {
@@ -205,6 +206,19 @@ export default function ProfilePage() {
               setPayBusy(true);
 setPayMsg("Creating order…");
 
+              const checkoutPack = PACK_LABELS[selectedPack];
+              trackEvent("begin_checkout", {
+                currency: checkoutPack.currency,
+                value: Number(checkoutPack.price),
+                items: [
+                  creditPackItem(
+                    selectedPack,
+                    checkoutPack.credits,
+                    checkoutPack.price,
+                  ),
+                ],
+              });
+
               const r = await fetch("/api/paypal/create-order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -239,6 +253,20 @@ setPayMsg("Capturing payment…");
 
               const j = await r.json();
               if (!r.ok) throw new Error(j?.error || "capture-order failed");
+
+              const purchasedPack = PACK_LABELS[selectedPack];
+              trackEvent("purchase", {
+                transaction_id: String(data?.orderID ?? ""),
+                currency: purchasedPack.currency,
+                value: Number(purchasedPack.price),
+                items: [
+                  creditPackItem(
+                    selectedPack,
+                    purchasedPack.credits,
+                    purchasedPack.price,
+                  ),
+                ],
+              });
 
 setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
             } catch (e: any) {
@@ -382,7 +410,14 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
                 return (
                   <button
                     key={packId}
-                    onClick={() => setSelectedPack(packId)}
+                    onClick={() => {
+                      setSelectedPack(packId);
+                      trackEvent("select_item", {
+                        item_list_id: "credit_packs",
+                        item_list_name: "Credit packs",
+                        items: [creditPackItem(packId, p.credits, p.price)],
+                      });
+                    }}
                     className={[
                       "text-left rounded-2xl border bg-[var(--card)] p-4 transition hover:opacity-95",
                       active ? "border-emerald-500/50" : "border-[var(--border)]",

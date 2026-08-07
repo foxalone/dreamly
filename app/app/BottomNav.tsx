@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import {
   GoogleAuthProvider,
   User,
+  getAdditionalUserInfo,
   onAuthStateChanged,
   signInWithPopup,
 } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
+import { trackAuth } from "@/lib/analytics";
 
 type Item = {
   href: string;
@@ -263,6 +265,7 @@ export default function BottomNav({ hidden }: BottomNavProps) {
       // provider.setCustomParameters({ prompt: "select_account" });
       const cred = await signInWithPopup(auth, provider);
       await ensureUserProfileOnSignIn(cred.user);
+      trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
     } finally {
       setBusy(false);
     }

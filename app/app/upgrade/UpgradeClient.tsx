@@ -22,6 +22,7 @@ import {
 } from "firebase/database";
 
 import { CREDIT_PACKS, type PackId } from "@/lib/credits/packs";
+import { creditPackItem, trackEvent } from "@/lib/analytics";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 type UIStatus = "idle" | "creating" | "paying" | "success" | "error";
@@ -287,6 +288,12 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                   setError(null);
                   setLastAdded(null);
 
+                  trackEvent("select_item", {
+                    item_list_id: "credit_packs",
+                    item_list_name: "Credit packs",
+                    items: [creditPackItem(c.id, p.credits, p.price)],
+                  });
+
                   if (!uid) return;
 
                   incRtdb(`analytics/dreamly_upgrade/${uid}/packClicks`, 1).catch(console.error);
@@ -356,6 +363,13 @@ forceReRender={[selected]}
                       setError(null);
                       setLastAdded(null);
 
+                      const checkoutPack = CREDIT_PACKS[selected];
+                      trackEvent("begin_checkout", {
+                        currency: checkoutPack.currency,
+                        value: Number(checkoutPack.price),
+                        items: [creditPackItem(selected, checkoutPack.credits, checkoutPack.price)],
+                      });
+
                       if (uid) {
                         incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStarts`, 1).catch(console.error);
                         incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStartsByPack/${selected}`, 1).catch(console.error);
@@ -385,6 +399,20 @@ forceReRender={[selected]}
                         const packAtCheckout = checkoutPackRef.current ?? selected;
 
                         await captureOrderOnServer(orderID);
+
+                        const purchasedPack = CREDIT_PACKS[packAtCheckout];
+                        trackEvent("purchase", {
+                          transaction_id: orderID,
+                          currency: purchasedPack.currency,
+                          value: Number(purchasedPack.price),
+                          items: [
+                            creditPackItem(
+                              packAtCheckout,
+                              purchasedPack.credits,
+                              purchasedPack.price,
+                            ),
+                          ],
+                        });
 
                         if (uid) {
                           incRtdb(`analytics/dreamly_upgrade/${uid}/purchases`, 1).catch(console.error);
