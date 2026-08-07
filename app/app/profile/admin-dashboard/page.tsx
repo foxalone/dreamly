@@ -34,7 +34,6 @@ import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
-import QueriesCsvDownload from "./QueriesCsvDownload";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -1435,9 +1434,6 @@ async function loadUsers() {
 
       {tab === "QUERIES" && (
         <>
-          <div className="mt-6 flex justify-end">
-            <QueriesCsvDownload />
-          </div>
           <DictionarySearchQueries />
           <QuickSymbolQueries />
         </>

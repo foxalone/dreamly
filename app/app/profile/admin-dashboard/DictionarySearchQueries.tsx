@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { auth } from "@/lib/firebase";
+import QueriesCsvDownload from "./QueriesCsvDownload";
 
 type QueryRow = {
   id: string;
@@ -68,14 +69,17 @@ export default function DictionarySearchQueries() {
             Regular search field. Searches without results are content candidates.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          disabled={loading}
-          className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_8%,transparent)] disabled:opacity-50"
-        >
-          {loading ? "Loading…" : "Refresh"}
-        </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <QueriesCsvDownload />
+          <button
+            type="button"
+            onClick={load}
+            disabled={loading}
+            className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_8%,transparent)] disabled:opacity-50"
+          >
+            {loading ? "Loading…" : "Refresh"}
+          </button>
+        </div>
       </div>
 
       <div className="text-xs text-[var(--muted)]">
