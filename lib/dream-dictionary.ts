@@ -1711,7 +1711,7 @@ const CLUSTERS: ClusterSeed[] = [
     variations: [
       {
         slug: "plane-crash",
-        name: "a plane crash",
+        name: "plane crash",
         focus: "fear that a high-ambition plan fails catastrophically, or loss of trust in a path you cannot pilot alone",
         aliases: ["plane crash dream meaning", "airplane crash dream", "dreaming of a plane crash"],
       },
@@ -2174,7 +2174,55 @@ const GSC_ENHANCED_SLUGS = new Set([
 ]);
 const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
+const UPDATED_AT_OVERRIDES: Record<string, string> = {
+  "plane-crash": "2026-08-08",
+};
+
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  "plane-crash": {
+    introduction: [
+      "A plane crash dream can be intensely vivid, but it is not a prediction of a real accident. Air travel places passengers inside a large system they cannot personally steer, so a crash often gives dramatic form to a fear about trust, control, ambition, or a plan that feels too important to fail. The dream may appear before a major decision, during an uncertain transition, after stressful travel news, or whenever events seem to be moving faster and higher than your confidence can comfortably support.",
+      "Start with your position in the scene. Piloting the aircraft points toward responsibility and performance pressure; being a passenger emphasizes dependence on another person, institution, or process. Watching from the ground can reflect fear for somebody else or distance from a failing plan. Also notice whether the plane crashed during takeoff, in mid-flight, or while landing, because each stage maps to a different part of a waking-life journey: beginning, maintaining momentum, or bringing something safely to completion.",
+    ],
+    general: [
+      "The central theme is usually a hard loss of confidence in something that had risen quickly or carried high expectations. The plane can represent a career move, relationship, relocation, public goal, financial commitment, or any undertaking whose success depends on many moving parts. A crash turns the question from ‘How high can this go?’ to ‘What happens if the structure cannot hold?’ That does not mean failure is coming; it means the cost of failure currently feels emotionally large.",
+      "The ending matters. Surviving the crash often shifts the dream toward resilience: even if a plan changes, you believe some essential part of you can continue. Helping other passengers may show a caretaker role during instability. Waking before impact can mirror unresolved anticipatory anxiety, while calmly leaving the wreckage may suggest readiness to abandon an unrealistic expectation and rebuild at ground level. Recent flying, aviation films, news coverage, turbulence, or an existing fear of flying can also supply the imagery directly.",
+    ],
+    psychological: [
+      "Psychologically, a plane crash is a compact image for catastrophic thinking. The mind takes an uncertain outcome and stages its most dramatic version, especially when you have invested status, identity, money, or hope in a goal. Perfectionism can intensify this pattern: if anything short of a flawless landing feels like disaster, the dream may be exposing an all-or-nothing standard rather than forecasting the result of the project itself.",
+      "Ask what currently feels airborne but not fully under your control. Are you relying on a manager, partner, institution, technology, timetable, or version of yourself that you do not completely trust? Then separate useful preparation from repeated mental rehearsal of disaster. A practical response might be to check assumptions, create a fallback plan, share responsibility, or reduce an unsustainable commitment. If recurring crash dreams accompany severe anxiety, panic, or disrupted sleep, address those waking symptoms directly instead of searching for an omen.",
+    ],
+    spiritual: [
+      "Spiritually, the contrast between flight and impact can invite a review of ambition, humility, and grounded purpose. The dream may ask whether a goal still serves your values or has become a test of worth, control, or appearance. Coming back to earth is not always punishment; sometimes it represents returning from an inflated expectation to a scale at which care, patience, and honest limits are possible.",
+      "A grounded spiritual response is to examine what needs trust and what needs correction. Trust does not require ignoring warning signs, and surrender does not mean passivity. If the dream leaves a clear moral concern, translate it into an ordinary action—tell the truth, slow the pace, seek counsel, repair a neglected responsibility, or release a goal that demands more than it gives. The value of the dream lies in clearer conduct, not certainty about future events.",
+    ],
+    islamic: [
+      "In an Islamic reflection, a frightening plane crash dream should not be treated as knowledge of an actual disaster or as evidence against another person. Modern aircraft do not have a fixed classical symbol, so the scene is better considered through broader themes such as journey, dependence, fear, responsibility, and a hoped-for destination that suddenly feels uncertain. Ordinary thoughts, travel anxiety, recent news, and distress can all shape such a dream.",
+      "If the dream was disturbing, seek refuge in Allah, avoid spreading a fearful prediction, and do not base travel or major decisions on the dream alone. Review real-world safety and obligations through evidence, prayer, and trustworthy counsel. A survival scene may encourage gratitude and perseverance, but it still does not guarantee a particular outcome. Humility about what the dream can and cannot establish is part of a responsible reading.",
+    ],
+    biblical: [
+      "Because airplanes are modern, the Bible offers no fixed code for a plane crash dream. A biblical reflection can instead consider recurring themes of journey, human plans, humility, fear, wise preparation, and refuge during danger. The crash may dramatize the limits of control or the fragility of a plan, but it should not automatically be labeled a warning from God or used to predict harm.",
+      "A useful question is whether the dream exposes fear that needs reassurance, pride that needs perspective, or a real responsibility that needs better preparation. Test the interpretation by its fruit: does it lead toward truth, courage, patience, prudent action, and care for other people, or only toward panic and speculation? Serious choices should remain anchored in reality, sound counsel, prayer, and ethical responsibility rather than the intensity of one night image.",
+    ],
+    commonScenarios: [
+      { title: "Surviving a Plane Crash", meaning: "Survival emphasizes resilience and adaptation. A valued plan may change or fail without destroying your ability to recover, learn, and choose a new route." },
+      { title: "Watching a Plane Crash", meaning: "Watching from outside can reflect concern about another person's path, helplessness around a large event, or emotional distance from a plan you expect to fail." },
+      { title: "A Crash During Takeoff", meaning: "A takeoff crash focuses on beginnings: fear that a new job, relationship, move, or ambitious project will fail before it gains stable momentum." },
+      { title: "A Crash While Landing", meaning: "A landing crash often concerns completion pressure—the fear that strong progress will be undone at the final stage or that you cannot bring a transition safely to rest." },
+      { title: "Piloting the Crashing Plane", meaning: "Being the pilot concentrates the theme on responsibility, performance, and guilt. You may feel accountable for an outcome that actually depends on more than one person." },
+      { title: "Family on the Plane", meaning: "When family members are aboard, the dream can connect personal ambition with responsibility for people you love, including fear that your decisions will affect their security." },
+      { title: "Waking Before Impact", meaning: "Waking before the crash completes often mirrors anticipatory anxiety. Your mind reaches the feared threshold without learning what recovery or an alternative ending might look like." },
+    ],
+    faq: [
+      { question: "What does a plane crash dream mean?", answer: "It usually reflects fear of catastrophic failure, lost control, or broken trust in an ambitious plan or major transition. Your role, the stage of flight, and whether anyone survived make the meaning more specific." },
+      { question: "Does dreaming of a plane crash predict a real accident?", answer: "No. A vivid dream is not reliable evidence that an accident will happen. Recent travel, aviation news, films, turbulence, stress, and fear of flying can all create the image without predictive meaning." },
+      { question: "What does surviving a plane crash in a dream mean?", answer: "Surviving often points to resilience: you may fear that a plan will collapse while also recognizing that you can adapt, preserve what matters, and rebuild after disappointment or change." },
+      { question: "Why did I watch the plane crash from the ground?", answer: "Watching from the ground may show helpless concern about another person's direction, distance from a risky project, or the feeling that you can see a problem developing but cannot control it." },
+      { question: "Why do I keep dreaming about plane crashes?", answer: "Recurring crash dreams may track ongoing anxiety, perfectionism, travel fear, or a high-stakes situation that feels dependent on forces outside your control. Compare the repeated details and address the waking stress directly." },
+      { question: "What is the spiritual meaning of a plane crash dream?", answer: "Spiritually, it can invite reflection on ambition, humility, trust, and whether a goal remains grounded in your values. It is more useful as a prompt for honest action than as a prophecy." },
+      { question: "What does a plane crash during landing mean?", answer: "A crash during landing often represents fear of failing near completion—losing progress at the final step, mishandling an arrival, or struggling to bring a demanding transition safely to an end." },
+    ],
+  },
   eating: {
     introduction: [
       "Eating in a dream usually brings attention to nourishment: what you need, what you are receiving, and whether it truly satisfies you. The food may represent literal appetite, but it can also stand for affection, information, opportunity, comfort, attention, or any experience you are trying to take into yourself. A generous meal can express pleasure and enoughness; spoiled food, forced eating, or an empty plate can reveal mistrust, pressure, or unmet need.",
@@ -4383,9 +4431,9 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What dreaming of a train means — missing it, the wrong train, stations, and momentum you did or did not choose. Direction and timing decoded.",
   },
   plane: {
-    seoTitle: "Plane Dream Meaning: Ambition, Travel & Plane Crash Dreams",
+    seoTitle: "Plane Dream Meaning: Flights, Turbulence & Travel",
     seoDescription:
-      "Airplane dreams and plane crash symbolism — high-stakes plans, turbulence mid-journey, and fear that ambition fails. Grounded interpretations.",
+      "What airplane dreams mean — flying as a passenger, turbulence, missed flights, piloting, and landing. Grounded psychological and spiritual readings.",
   },
   "plane-crash": {
     seoTitle: "Plane Crash Dream Meaning: High Ambition, Hard Landing",
@@ -4707,7 +4755,12 @@ function buildDictionary() {
     });
   }
 
-  for (const slug of [...Object.keys(SECTION_OVERRIDES), ...Object.keys(META_OVERRIDES), ...GSC_ENHANCED_SLUGS]) {
+  for (const slug of [
+    ...Object.keys(SECTION_OVERRIDES),
+    ...Object.keys(META_OVERRIDES),
+    ...Object.keys(UPDATED_AT_OVERRIDES),
+    ...GSC_ENHANCED_SLUGS,
+  ]) {
     if (!entries.some((entry) => entry.slug === slug)) {
       throw new Error(`Override references missing entry: ${slug}`);
     }
@@ -4718,7 +4771,9 @@ function buildDictionary() {
     const metaOverride = META_OVERRIDES[entry.slug];
     if (metaOverride?.seoTitle) entry.seoTitle = metaOverride.seoTitle;
     if (metaOverride?.seoDescription) entry.seoDescription = metaOverride.seoDescription;
-    if (GSC_ENHANCED_SLUGS.has(entry.slug)) entry.updatedAt = GSC_ENHANCEMENT_UPDATED_AT;
+    const updatedAtOverride = UPDATED_AT_OVERRIDES[entry.slug];
+    if (updatedAtOverride) entry.updatedAt = updatedAtOverride;
+    else if (GSC_ENHANCED_SLUGS.has(entry.slug)) entry.updatedAt = GSC_ENHANCEMENT_UPDATED_AT;
   }
 
   return entries;

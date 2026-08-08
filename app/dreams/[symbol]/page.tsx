@@ -132,6 +132,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
     "@type": "Article",
     headline: entry.title,
     description: entry.seoDescription,
+    dateModified: entry.updatedAt,
     mainEntityOfPage: `https://dreamly.art/dreams/${entry.canonicalSlug}`,
     image: {
       "@type": "ImageObject",

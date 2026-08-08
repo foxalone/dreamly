@@ -26,17 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
-    // Client-rendered app shells: kept discoverable but demoted, no fake lastmod.
-    {
-      url: `${SITE}/app/shared`,
-      changeFrequency: "weekly",
-      priority: 0.4,
-    },
-    {
-      url: `${SITE}/app/map`,
-      changeFrequency: "weekly",
-      priority: 0.4,
-    },
+    // Interactive /app routes are explicitly noindex and do not belong here.
     {
       url: `${SITE}/invite`,
       changeFrequency: "monthly",
