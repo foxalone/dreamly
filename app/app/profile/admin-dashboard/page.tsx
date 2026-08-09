@@ -34,6 +34,7 @@ import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
+import VideoAdminPanel from "./VideoAdminPanel";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -68,7 +69,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "VIDEOS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -886,6 +887,8 @@ async function loadUsers() {
               </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
+            ) : tab === "VIDEOS" ? (
+              <>English Shorts · 45 sec · YouTube package · Telegram</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -916,7 +919,7 @@ async function loadUsers() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-5 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
+      <div className="mt-5 flex w-fit flex-wrap rounded-3xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
         <button
           onClick={() => setTab("DREAMS")}
           className={[
@@ -987,6 +990,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Docs
+        </button>
+
+        <button
+          onClick={() => setTab("VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Videos
         </button>
       </div>
 
@@ -1441,6 +1456,8 @@ async function loadUsers() {
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
+
+      {tab === "VIDEOS" && user && <VideoAdminPanel user={user} />}
     </main>
   );
 }
