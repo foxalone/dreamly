@@ -108,7 +108,7 @@ export default function VideoAdminPanel({ user }: { user: User }) {
           </div>
           <label className="flex cursor-pointer gap-3 rounded-xl border border-[var(--border)] p-4">
             <input type="checkbox" checked={sendToTelegram} onChange={(event) => setSendToTelegram(event.target.checked)} className="mt-1 h-4 w-4 accent-violet-500" />
-            <span><span className="block text-sm font-semibold text-[var(--text)]">Отправить в Telegram</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">После генерации ролик будет отправлен в сохранённый приватный канал myVote!.</span></span>
+            <span><span className="block text-sm font-semibold text-[var(--text)]">Отправить в Telegram</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">После генерации ролик будет отправлен в настроенный приватный Telegram-чат.</span></span>
           </label>
           <button type="submit" disabled={submitting || topic.trim().length < 5} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50">
             {submitting ? "Добавляем в очередь…" : "Создать видео"}

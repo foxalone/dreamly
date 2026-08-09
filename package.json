@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "video-worker": "node --env-file=../myvote-web/.env --env-file=.env.local scripts/video-worker.mjs"
+    "video-worker": "node --env-file=.env.local scripts/video-worker.mjs"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
