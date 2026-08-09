@@ -14,6 +14,35 @@ const POLL_INTERVAL_MS = 4_000;
 const JOBS_COLLECTION = "adminVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/videoWorker";
 const ENGLISH_VOICE = "en-US-AriaNeural-Female";
+const SCRIPT_GENERATION_ATTEMPTS = 3;
+
+const VIDEO_PACKAGE_SCHEMA = {
+  name: "oneiro_video_package",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      script: { type: "string" },
+      searchTerms: { type: "array", items: { type: "string" } },
+      youtube: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          hashtags: { type: "array", items: { type: "string" } },
+          thumbnailText: { type: "string" },
+          pinnedComment: { type: "string" },
+          category: { type: "string" },
+        },
+        required: ["title", "description", "tags", "hashtags", "thumbnailText", "pinnedComment", "category"],
+      },
+    },
+    required: ["script", "searchTerms", "youtube"],
+  },
+};
 
 function env(name) {
   const value = process.env[name]?.trim() ?? "";
@@ -146,9 +175,13 @@ function parseJsonContent(content) {
     pinnedComment: String(youtube.pinnedComment ?? "").trim().slice(0, 1_000),
     category: String(youtube.category ?? "Education").trim().slice(0, 80),
   };
-  if (!script || searchTerms.length < 3 || !youtubeMetadata.title || !youtubeMetadata.description || youtubeMetadata.tags.length < 5) {
-    throw new Error("The model returned incomplete video or YouTube metadata");
-  }
+  const missing = [];
+  if (!script) missing.push("script");
+  if (searchTerms.length < 3) missing.push("at least 3 search terms");
+  if (!youtubeMetadata.title) missing.push("YouTube title");
+  if (!youtubeMetadata.description) missing.push("YouTube description");
+  if (youtubeMetadata.tags.length < 5) missing.push("at least 5 YouTube tags");
+  if (missing.length) throw new Error(`Incomplete model response: missing ${missing.join(", ")}`);
   return { script, searchTerms, youtubeMetadata };
 }
 
@@ -156,48 +189,64 @@ async function createScript(topic) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. " +
-            "Return JSON only with keys script, searchTerms, and youtube. youtube must contain title, description, tags, " +
-            "hashtags, thumbnailText, pinnedComment, and category. The narration must be natural, engaging, and accurate, " +
-            "with no markdown, scene labels, unsupported certainty, or misleading clickbait. searchTerms must contain 5 to 8 " +
-            "short English Pexels queries. The title must be accurate and at most 70 characters. The description must summarize " +
-            "the value, include natural search phrases, and end with 3 hashtags. Provide 10 to 15 comma-free tags, 3 to 5 " +
-            "hashtags without #, thumbnail text of 2 to 4 words, a short pinned question, and the best YouTube category.",
-        },
-        {
-          role: "user",
-          content:
-            `Topic: ${topic}\nLanguage: English only.\n` +
-            "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail.",
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
-  const payload = await response.json();
-  if (!response.ok) throw new Error(`OpenAI ${response.status}: ${payload?.error?.message ?? "generation failed"}`);
-  const result = parseJsonContent(payload?.choices?.[0]?.message?.content);
-  const prompt = Number(payload?.usage?.prompt_tokens ?? 0);
-  const completion = Number(payload?.usage?.completion_tokens ?? 0);
-  return {
-    ...result,
-    usage: {
-      prompt,
-      completion,
-      total: Number(payload?.usage?.total_tokens ?? prompt + completion),
-      model: String(payload?.model ?? model),
-    },
-  };
+  const usage = { prompt: 0, completion: 0, total: 0, model };
+  let validationError = "The model did not return a usable response";
+
+  for (let attempt = 1; attempt <= SCRIPT_GENERATION_ATTEMPTS; attempt += 1) {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        response_format: { type: "json_schema", json_schema: VIDEO_PACKAGE_SCHEMA },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. " +
+              "The narration must be natural, engaging, and accurate, with no markdown, scene labels, unsupported certainty, " +
+              "or misleading clickbait. searchTerms must contain 5 to 8 short English Pexels queries. The title must be accurate " +
+              "and at most 70 characters. The description must summarize the value, include natural search phrases, and end " +
+              "with 3 hashtags. Provide 10 to 15 comma-free tags, 3 to 5 hashtags without #, thumbnail text of 2 to 4 words, " +
+              "a short pinned question, and the best YouTube category.",
+          },
+          {
+            role: "user",
+            content:
+              `Topic: ${topic}\nLanguage: English only.\n` +
+              "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail.",
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(`OpenAI ${response.status}: ${payload?.error?.message ?? "generation failed"}`);
+
+    const prompt = Number(payload?.usage?.prompt_tokens ?? 0);
+    const completion = Number(payload?.usage?.completion_tokens ?? 0);
+    usage.prompt += prompt;
+    usage.completion += completion;
+    usage.total += Number(payload?.usage?.total_tokens ?? prompt + completion);
+    usage.model = String(payload?.model ?? model);
+
+    const choice = payload?.choices?.[0];
+    const refusal = choice?.message?.refusal;
+    try {
+      if (refusal) throw new Error(`The model refused the request: ${refusal}`);
+      if (choice?.finish_reason && choice.finish_reason !== "stop") {
+        throw new Error(`The model stopped with finish reason: ${choice.finish_reason}`);
+      }
+      return { ...parseJsonContent(choice?.message?.content), usage };
+    } catch (error) {
+      validationError = cleanError(error);
+      if (attempt < SCRIPT_GENERATION_ATTEMPTS) {
+        console.warn(`[oneiro-video-worker] incomplete script package; retrying (${attempt}/${SCRIPT_GENERATION_ATTEMPTS})`);
+      }
+    }
+  }
+
+  throw new Error(`${validationError} after ${SCRIPT_GENERATION_ATTEMPTS} attempts`);
 }
 
 function runProcess(command, args, options = {}) {
