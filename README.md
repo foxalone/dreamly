@@ -16,11 +16,11 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Admin AI Video · Sora
+## Admin video studios
 
-The admin dashboard includes a private Sora studio backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
+The admin dashboard contains three separate studios: Free Video, Sora 2 Slow, and Combined. Sora 2 Slow submits every Sora render through the OpenAI Batch API. Combined generates one 8-second Sora scene through Batch and downloads three free Pexels scenes before using the same narration, subtitle, editing, storage, and Telegram pipeline. Paid jobs are backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
 
-Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. The worker also needs the app's existing Firebase Admin credentials and Storage bucket, plus `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
+Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. Combined also needs `PEXELS_API_KEY`; when it is omitted, the worker safely reuses the existing key from `MONEYPRINTERTURBO_ROOT/config.toml`. The worker also needs the app's existing Firebase Admin credentials and Storage bucket, plus `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
 
 Start the web app and worker in separate terminals:
 
@@ -41,7 +41,7 @@ npm run ai-video-check
 npm run ai-video-synthetic-test
 ```
 
-Preview reserves 4 Sora seconds and Standard reserves 32 Sora seconds. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction.
+At the default Batch price of $0.05/second, Preview reserves $0.20, Standard reserves $1.60, and Combined reserves $0.40. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction. The worker saves the OpenAI Batch ID before polling so a restart resumes the same paid submission.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

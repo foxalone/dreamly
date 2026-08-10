@@ -70,7 +70,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -891,7 +891,9 @@ async function loadUsers() {
             ) : tab === "FREE_VIDEOS" ? (
               <>Free Video · English Shorts · stock footage · YouTube package · Telegram</>
             ) : tab === "VIDEOS" ? (
-              <>AI Video · Sora · English Shorts · private admin studio</>
+              <>Sora 2 Slow · Batch API · English Shorts · private admin studio</>
+            ) : tab === "COMBINED_VIDEOS" ? (
+              <>Combined · one Sora scene + three free stock scenes · English Shorts</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1016,7 +1018,19 @@ async function loadUsers() {
               : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
           ].join(" ")}
         >
-          AI Video · Sora
+          Sora 2 · Slow
+        </button>
+
+        <button
+          onClick={() => setTab("COMBINED_VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "COMBINED_VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Combined
         </button>
       </div>
 
@@ -1474,7 +1488,9 @@ async function loadUsers() {
 
       {tab === "FREE_VIDEOS" && user && <VideoAdminPanel user={user} />}
 
-      {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} />}
+      {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} studio="sora" />}
+
+      {tab === "COMBINED_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="combined" />}
     </main>
   );
 }

@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Topic must contain 5–500 characters" }, { status: 400 });
     }
     if (!isAiVideoMode(payload.mode)) {
-      return NextResponse.json({ error: "Mode must be preview or standard" }, { status: 400 });
+      return NextResponse.json({ error: "Mode must be preview, standard, or combined" }, { status: 400 });
     }
     if (payload.costConfirmed !== true) {
       return NextResponse.json({ error: "Paid generation must be explicitly confirmed" }, { status: 400 });
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     const db = adminDb();
     const jobRef = db.collection(AI_VIDEO_COLLECTION).doc();
     const budgetRef = db.collection("adminAiVideoBudgets").doc(budgetDate);
-    const sceneStates = Array.from({ length: modeConfig.sceneCount }, (_, index) => ({
+    const sceneStates = Array.from({ length: modeConfig.soraSceneCount }, (_, index) => ({
       index,
       status: "pending",
       taskId: null,
@@ -124,6 +124,8 @@ export async function POST(request: Request) {
         stage: "queued",
         progress: 0,
         sceneCount: modeConfig.sceneCount,
+        soraSceneCount: modeConfig.soraSceneCount,
+        stockSceneCount: modeConfig.stockSceneCount,
         sceneSeconds: modeConfig.sceneSeconds,
         maxDurationSeconds: AI_VIDEO_MAX_DURATION_SECONDS,
         sendToTelegram: payload.sendToTelegram !== false,
@@ -133,8 +135,15 @@ export async function POST(request: Request) {
         budgetReservationStatus: "reserved",
         script: "",
         scenePrompts: [],
-        providerTaskIds: Array(modeConfig.sceneCount).fill(null),
+        stockSearchTerms: [],
+        stockAssets: [],
+        providerTaskIds: Array(modeConfig.soraSceneCount).fill(null),
         sceneStates,
+        batchId: "",
+        batchInputFileId: "",
+        batchOutputFileId: "",
+        batchErrorFileId: "",
+        batchStatus: "",
         tokenUsage: null,
         providerUsage: {
           model: config.model,

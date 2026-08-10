@@ -8,6 +8,7 @@ import {
   type AiVideoProviderUsage,
   type AiVideoPublicConfig,
   type AiVideoSceneState,
+  type AiVideoStockAsset,
   type AiVideoTokenUsage,
   type AiVideoYouTubeMetadata,
   roundUsd,
@@ -24,6 +25,7 @@ type StoredAiVideoJob = Partial<Omit<AdminAiVideoJob, "id" | "createdAt" | "star
   providerUsage?: AiVideoProviderUsage;
   youtubeMetadata?: AiVideoYouTubeMetadata | null;
   sceneStates?: AiVideoSceneState[];
+  stockAssets?: AiVideoStockAsset[];
 };
 
 export function finiteEnv(name: string, fallback: number, minimum = 0) {
@@ -32,7 +34,7 @@ export function finiteEnv(name: string, fallback: number, minimum = 0) {
 }
 
 export function aiVideoConfig(): AiVideoPublicConfig {
-  const pricePerSecondUsd = finiteEnv("SORA_PRICE_PER_SECOND_USD", 0.1);
+  const pricePerSecondUsd = finiteEnv("SORA_BATCH_PRICE_PER_SECOND_USD", 0.05);
   return {
     paidGenerationEnabled: process.env.AI_VIDEO_PAID_GENERATION_ENABLED?.trim().toLowerCase() === "true",
     pricePerSecondUsd,
@@ -42,6 +44,7 @@ export function aiVideoConfig(): AiVideoPublicConfig {
     prices: {
       preview: roundUsd(AI_VIDEO_MODES.preview.generatedSeconds * pricePerSecondUsd),
       standard: roundUsd(AI_VIDEO_MODES.standard.generatedSeconds * pricePerSecondUsd),
+      combined: roundUsd(AI_VIDEO_MODES.combined.generatedSeconds * pricePerSecondUsd),
     },
   };
 }
@@ -57,7 +60,7 @@ function iso(value: TimestampLike | undefined) {
 export function serializeAiVideoJob(snapshot: DocumentSnapshot): AdminAiVideoJob | null {
   const data = snapshot.data() as StoredAiVideoJob | undefined;
   if (!data) return null;
-  const mode = data.mode === "preview" ? "preview" : "standard";
+  const mode = data.mode === "preview" || data.mode === "combined" ? data.mode : "standard";
   const modeConfig = AI_VIDEO_MODES[mode];
   return {
     id: snapshot.id,
@@ -68,6 +71,8 @@ export function serializeAiVideoJob(snapshot: DocumentSnapshot): AdminAiVideoJob
     stage: data.stage ?? "queued",
     progress: Math.max(0, Math.min(100, Number(data.progress ?? 0))),
     sceneCount: data.sceneCount ?? modeConfig.sceneCount,
+    soraSceneCount: data.soraSceneCount ?? modeConfig.soraSceneCount,
+    stockSceneCount: data.stockSceneCount ?? modeConfig.stockSceneCount,
     sceneSeconds: data.sceneSeconds ?? modeConfig.sceneSeconds,
     generatedSeconds: data.generatedSeconds ?? data.providerUsage?.generatedSeconds ?? 0,
     maxDurationSeconds: data.maxDurationSeconds ?? AI_VIDEO_MAX_DURATION_SECONDS,
@@ -77,8 +82,12 @@ export function serializeAiVideoJob(snapshot: DocumentSnapshot): AdminAiVideoJob
     budgetDate: data.budgetDate ?? "",
     script: data.script ?? "",
     scenePrompts: Array.isArray(data.scenePrompts) ? data.scenePrompts : [],
+    stockSearchTerms: Array.isArray(data.stockSearchTerms) ? data.stockSearchTerms : [],
+    stockAssets: Array.isArray(data.stockAssets) ? data.stockAssets : [],
     providerTaskIds: Array.isArray(data.providerTaskIds) ? data.providerTaskIds : [],
     sceneStates: Array.isArray(data.sceneStates) ? data.sceneStates : [],
+    batchId: data.batchId ?? "",
+    batchStatus: data.batchStatus ?? "",
     tokenUsage: data.tokenUsage ?? null,
     providerUsage: data.providerUsage ?? {
       model: "sora-2",

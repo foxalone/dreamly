@@ -4,8 +4,9 @@ export const AI_VIDEO_MAX_DURATION_SECONDS = 45;
 export const AI_VIDEO_SIZE = "720x1280" as const;
 
 export const AI_VIDEO_MODES = {
-  preview: { sceneCount: 1, sceneSeconds: 4, generatedSeconds: 4 },
-  standard: { sceneCount: 4, sceneSeconds: 8, generatedSeconds: 32 },
+  preview: { sceneCount: 1, soraSceneCount: 1, stockSceneCount: 0, sceneSeconds: 4, generatedSeconds: 4 },
+  standard: { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8, generatedSeconds: 32 },
+  combined: { sceneCount: 4, soraSceneCount: 1, stockSceneCount: 3, sceneSeconds: 8, generatedSeconds: 8 },
 } as const;
 
 export type AiVideoMode = keyof typeof AI_VIDEO_MODES;
@@ -44,6 +45,15 @@ export type AiVideoSceneState = {
   safePromptRetryCount: number;
 };
 
+export type AiVideoStockAsset = {
+  index: number;
+  searchTerm: string;
+  provider: "pexels";
+  providerId: number | null;
+  photographer: string;
+  sourceUrl: string;
+};
+
 export type AdminAiVideoJob = {
   id: string;
   topic: string;
@@ -53,6 +63,8 @@ export type AdminAiVideoJob = {
   stage: string;
   progress: number;
   sceneCount: number;
+  soraSceneCount: number;
+  stockSceneCount: number;
   sceneSeconds: number;
   generatedSeconds: number;
   maxDurationSeconds: number;
@@ -62,8 +74,12 @@ export type AdminAiVideoJob = {
   budgetDate: string;
   script: string;
   scenePrompts: string[];
+  stockSearchTerms: string[];
+  stockAssets: AiVideoStockAsset[];
   providerTaskIds: Array<string | null>;
   sceneStates: AiVideoSceneState[];
+  batchId: string;
+  batchStatus: string;
   tokenUsage: AiVideoTokenUsage | null;
   providerUsage: AiVideoProviderUsage;
   youtubeMetadata: AiVideoYouTubeMetadata | null;
@@ -89,7 +105,7 @@ export type AiVideoPublicConfig = {
 };
 
 export function isAiVideoMode(value: unknown): value is AiVideoMode {
-  return value === "preview" || value === "standard";
+  return value === "preview" || value === "standard" || value === "combined";
 }
 
 export function roundUsd(value: number) {

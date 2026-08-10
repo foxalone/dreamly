@@ -15,6 +15,7 @@ const WORKER_DOCUMENT = "adminSystem/aiVideoWorker";
 const VIDEO_SIZE = "720x1280";
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 12_000;
+const BATCH_POLL_INTERVAL_MS = 60_000;
 const IDLE_INTERVAL_MS = 4_000;
 const LEASE_MS = 90_000;
 const TRANSITION_SECONDS = 0.35;
@@ -96,6 +97,18 @@ function openAiKey() {
   return env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
 }
 
+function pexelsApiKey() {
+  const configured = env("PEXELS_API_KEY") || env("VIDEO_PEXELS_API_KEY");
+  if (configured) return configured;
+  const moneyPrinterRoot = env("MONEYPRINTERTURBO_ROOT") || path.join(homedir(), "MoneyPrinterTurbo");
+  const configPath = path.join(moneyPrinterRoot, "config.toml");
+  if (existsSync(configPath)) {
+    const match = readFileSync(configPath, "utf8").match(/^pexels_api_keys\s*=\s*\[\s*["']([^"']+)["']/m);
+    if (match?.[1]) return match[1].trim();
+  }
+  throw new Error("Combined mode needs PEXELS_API_KEY or a configured MoneyPrinterTurbo Pexels key");
+}
+
 function workRoot() {
   const configured = env("AI_VIDEO_WORK_DIR");
   return path.resolve(configured || path.join(process.cwd(), ".ai-video-work"));
@@ -124,7 +137,7 @@ function delay(milliseconds) {
 
 function cleanError(error) {
   const message = error instanceof Error ? error.message : String(error);
-  const secrets = [env("OPENAI_API_KEY"), env("ONEIRO_OPENAI_API_KEY"), env("TELEGRAM_BOT_TOKEN")].filter(Boolean);
+  const secrets = [env("OPENAI_API_KEY"), env("ONEIRO_OPENAI_API_KEY"), env("TELEGRAM_BOT_TOKEN"), env("PEXELS_API_KEY"), env("VIDEO_PEXELS_API_KEY")].filter(Boolean);
   let clean = message
     .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
     .replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]")
@@ -235,7 +248,7 @@ async function claimNextJob() {
   return null;
 }
 
-function videoPackageSchema(sceneCount) {
+function videoPackageSchema(soraSceneCount, stockSceneCount) {
   return {
     name: "oneiro_sora_video_package",
     strict: true,
@@ -244,7 +257,8 @@ function videoPackageSchema(sceneCount) {
       additionalProperties: false,
       properties: {
         script: { type: "string" },
-        scenePrompts: { type: "array", minItems: sceneCount, maxItems: sceneCount, items: { type: "string" } },
+        scenePrompts: { type: "array", minItems: soraSceneCount, maxItems: soraSceneCount, items: { type: "string" } },
+        stockSearchTerms: { type: "array", minItems: stockSceneCount, maxItems: stockSceneCount, items: { type: "string" } },
         youtube: {
           type: "object",
           additionalProperties: false,
@@ -257,7 +271,7 @@ function videoPackageSchema(sceneCount) {
           required: ["title", "description", "tags", "hashtags", "thumbnailText", "pinnedComment", "category"],
         },
       },
-      required: ["script", "scenePrompts", "youtube"],
+      required: ["script", "scenePrompts", "stockSearchTerms", "youtube"],
     },
   };
 }
@@ -270,10 +284,11 @@ function uniqueStrings(values, maximum) {
   return [...new Set(values.map((value) => String(value).trim()).filter(Boolean))].slice(0, maximum);
 }
 
-function parsePackage(content, sceneCount) {
+function parsePackage(content, soraSceneCount, stockSceneCount) {
   const parsed = JSON.parse(String(content ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
   const script = String(parsed.script ?? "").trim();
   const scenePrompts = Array.isArray(parsed.scenePrompts) ? parsed.scenePrompts.map((value) => String(value).trim()) : [];
+  const stockSearchTerms = Array.isArray(parsed.stockSearchTerms) ? parsed.stockSearchTerms.map((value) => String(value).trim()) : [];
   const youtube = parsed.youtube && typeof parsed.youtube === "object" ? parsed.youtube : {};
   const youtubeMetadata = {
     title: String(youtube.title ?? "").trim(),
@@ -287,7 +302,8 @@ function parsePackage(content, sceneCount) {
   const errors = [];
   const words = wordCount(script);
   if (words < 65 || words > 75) errors.push(`narration has ${words} words, expected 65–75`);
-  if (scenePrompts.length !== sceneCount || scenePrompts.some((prompt) => prompt.length < 80)) errors.push(`expected ${sceneCount} detailed scene prompts`);
+  if (scenePrompts.length !== soraSceneCount || scenePrompts.some((prompt) => prompt.length < 80)) errors.push(`expected ${soraSceneCount} detailed Sora scene prompts`);
+  if (stockSearchTerms.length !== stockSceneCount || stockSearchTerms.some((term) => term.length < 3 || term.length > 80)) errors.push(`expected ${stockSceneCount} concise Pexels search terms`);
   if (!youtubeMetadata.title || youtubeMetadata.title.length > 70) errors.push("YouTube title must be 1–70 characters");
   if (!youtubeMetadata.description) errors.push("description is missing");
   if (youtubeMetadata.tags.length < 10) errors.push("expected 10–15 unique tags");
@@ -296,12 +312,12 @@ function parsePackage(content, sceneCount) {
   if (thumbnailWords < 2 || thumbnailWords > 4) errors.push("thumbnail text must have 2–4 words");
   if (!youtubeMetadata.pinnedComment) errors.push("pinned comment is missing");
   if (errors.length) throw new Error(errors.join("; "));
-  return { script, scenePrompts, youtubeMetadata };
+  return { script, scenePrompts, stockSearchTerms, youtubeMetadata };
 }
 
 async function generatePackage(job, reference) {
-  if (job.script && Array.isArray(job.scenePrompts) && job.scenePrompts.length === job.sceneCount && job.youtubeMetadata) {
-    return { script: job.script, scenePrompts: job.scenePrompts, youtubeMetadata: job.youtubeMetadata, tokenUsage: job.tokenUsage };
+  if (job.script && Array.isArray(job.scenePrompts) && job.scenePrompts.length === job.soraSceneCount && Array.isArray(job.stockSearchTerms) && job.stockSearchTerms.length === job.stockSceneCount && job.youtubeMetadata) {
+    return { script: job.script, scenePrompts: job.scenePrompts, stockSearchTerms: job.stockSearchTerms, youtubeMetadata: job.youtubeMetadata, tokenUsage: job.tokenUsage };
   }
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -313,11 +329,11 @@ async function generatePackage(job, reference) {
       headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         model,
-        response_format: { type: "json_schema", json_schema: videoPackageSchema(job.sceneCount) },
+        response_format: { type: "json_schema", json_schema: videoPackageSchema(job.soraSceneCount, job.stockSceneCount) },
         messages: [
           {
             role: "system",
-            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over and exactly ${job.sceneCount} independent Sora scene prompts. Every scene prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not use markdown.`,
+            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent Sora scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every Sora prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every Sora prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not use markdown.`,
           },
           { role: "user", content: `Topic: ${job.topic}\nMode: ${job.mode}.\nAll generated content must be English only.` },
         ],
@@ -332,7 +348,7 @@ async function generatePackage(job, reference) {
     usage.model = String(payload?.model ?? model);
     try {
       if (payload?.choices?.[0]?.message?.refusal) throw new Error(String(payload.choices[0].message.refusal));
-      const generated = parsePackage(payload?.choices?.[0]?.message?.content, job.sceneCount);
+      const generated = parsePackage(payload?.choices?.[0]?.message?.content, job.soraSceneCount, job.stockSceneCount);
       await updateJob(reference, { ...generated, tokenUsage: usage, stage: "script-ready", progress: 10 });
       return { ...generated, tokenUsage: usage };
     } catch (error) {
@@ -403,11 +419,17 @@ function sceneState(job, index) {
 }
 
 async function saveSceneState(reference, job, state) {
-  const states = Array.from({ length: job.sceneCount }, (_, index) => index === state.index ? state : sceneState(job, index));
-  const ids = Array.from({ length: job.sceneCount }, (_, index) => states[index]?.taskId ?? null);
+  const states = Array.from({ length: job.soraSceneCount }, (_, index) => index === state.index ? state : sceneState(job, index));
+  const ids = Array.from({ length: job.soraSceneCount }, (_, index) => states[index]?.taskId ?? null);
   job.sceneStates = states;
   job.providerTaskIds = ids;
   await updateJob(reference, { sceneStates: states, providerTaskIds: ids });
+}
+
+async function saveAllSceneStates(reference, job, states) {
+  job.sceneStates = states;
+  job.providerTaskIds = states.map((state) => state.taskId ?? null);
+  await updateJob(reference, { sceneStates: states, providerTaskIds: job.providerTaskIds });
 }
 
 async function resolveTaskIdFromJournal(directory, index) {
@@ -423,37 +445,102 @@ function safeRetryPrompt(prompt, retryCount) {
   return `${prompt}\nSafety revision ${retryCount}: use only fictional, non-human or non-identifiable subjects; avoid faces, brands, copyrighted designs, violence, suggestive content, or hazardous behavior. Keep the core environment and camera concept.`;
 }
 
-async function createSoraTask(job, reference, directory, index, prompt, state) {
-  const journalTaskId = await resolveTaskIdFromJournal(directory, index);
-  if (state.taskId || journalTaskId) {
-    state.taskId = state.taskId || journalTaskId;
-    state.status = state.status === "completed" ? "completed" : "submitted";
-    await saveSceneState(reference, job, state);
-    return state.taskId;
+async function resolveBatchIdFromJournal(directory) {
+  try {
+    const batchId = (await readFile(path.join(directory, "sora-batch-id.txt"), "utf8")).trim();
+    return /^batch_[A-Za-z0-9_-]+$/.test(batchId) ? batchId : "";
+  } catch { return ""; }
+}
+
+async function findExistingBatchForJob(job) {
+  const generation = String(Number(job.retryCount ?? 0));
+  const payload = await requestWithRetries("https://api.openai.com/v1/batches?limit=100", { headers: authHeaders(), timeoutMs: 60_000 });
+  return (Array.isArray(payload?.data) ? payload.data : [])
+    .filter((batch) => batch?.endpoint === "/v1/videos" && batch?.metadata?.job_id === job.id && String(batch?.metadata?.generation ?? "0") === generation && batch?.status !== "cancelled")
+    .sort((left, right) => Number(right.created_at ?? 0) - Number(left.created_at ?? 0))[0] ?? null;
+}
+
+async function createSoraBatch(job, reference, directory, prompts) {
+  const states = Array.from({ length: job.soraSceneCount }, (_, index) => sceneState(job, index));
+  for (const state of states) {
+    const journalTaskId = await resolveTaskIdFromJournal(directory, state.index);
+    if (!state.taskId && journalTaskId) state.taskId = journalTaskId;
+  }
+  const pending = states.filter((state) => !state.taskId && state.status !== "completed");
+  if (!pending.length) {
+    await saveAllSceneStates(reference, job, states);
+    return "";
+  }
+  const journalBatchId = await resolveBatchIdFromJournal(directory);
+  if (job.batchId || journalBatchId) {
+    job.batchId = job.batchId || journalBatchId;
+    await updateJob(reference, { batchId: job.batchId, batchStatus: job.batchStatus || "submitted" });
+    return job.batchId;
+  }
+  const existingBatch = await findExistingBatchForJob(job);
+  if (existingBatch?.id) {
+    job.batchId = String(existingBatch.id);
+    job.batchStatus = String(existingBatch.status || "submitted");
+    await writeFile(path.join(directory, "sora-batch-id.txt"), `${job.batchId}\n`, { mode: 0o600 });
+    await updateJob(reference, {
+      batchId: job.batchId,
+      batchInputFileId: String(existingBatch.input_file_id || ""),
+      batchOutputFileId: String(existingBatch.output_file_id || ""),
+      batchErrorFileId: String(existingBatch.error_file_id || ""),
+      batchStatus: job.batchStatus,
+    });
+    return job.batchId;
   }
   if (!boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED", false)) {
     throw new Error("Paid Sora generation is disabled in this worker");
   }
   const model = env("SORA_VIDEO_MODEL") || "sora-2";
   const seconds = String(job.sceneSeconds);
-  const idempotencyKey = `oneiro-${job.id}-scene-${index + 1}-retry-${state.safePromptRetryCount || 0}`;
-  const task = await requestWithRetries("https://api.openai.com/v1/videos", {
+  const jsonl = pending.map((state) => JSON.stringify({
+    custom_id: `scene-${state.index + 1}`,
     method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }),
-    body: JSON.stringify({ model, prompt: safeRetryPrompt(prompt, state.safePromptRetryCount), size: VIDEO_SIZE, seconds }),
+    url: "/v1/videos",
+    body: {
+      model,
+      prompt: safeRetryPrompt(prompts[state.index], state.safePromptRetryCount),
+      size: VIDEO_SIZE,
+      seconds,
+    },
+  })).join("\n") + "\n";
+  const form = new FormData();
+  form.append("purpose", "batch");
+  form.append("file", new Blob([jsonl], { type: "application/jsonl" }), `oneiro-${job.id}-sora.jsonl`);
+  const inputFile = await requestWithRetries("https://api.openai.com/v1/files", {
+    method: "POST",
+    headers: authHeaders(),
+    body: form,
     timeoutMs: 120_000,
   });
-  if (!task?.id) throw new Error("Sora create response did not include a task id");
-  state.taskId = String(task.id);
-  state.status = task.status === "in_progress" ? "rendering" : "submitted";
-  state.progress = Number(task.progress ?? 0);
-  await writeFile(path.join(directory, `scene-${index + 1}-task-id.txt`), `${state.taskId}\n`, { mode: 0o600 });
-  const requestedSeconds = job.sceneStates.reduce((sum, scene) => sum + (scene.taskId ? job.sceneSeconds : 0), 0);
-  await saveSceneState(reference, job, state);
-  await updateJob(reference, {
-    providerUsage: { model, size: VIDEO_SIZE, requestedSeconds, generatedSeconds: Number(job.generatedSeconds ?? 0) },
+  if (!inputFile?.id) throw new Error("OpenAI batch input upload did not return a file id");
+  const batch = await requestWithRetries("https://api.openai.com/v1/batches", {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json", "Idempotency-Key": `oneiro-${job.id}-sora-batch-${Number(job.retryCount ?? 0)}` }),
+    body: JSON.stringify({ input_file_id: inputFile.id, endpoint: "/v1/videos", completion_window: "24h", metadata: { job_id: job.id, generation: String(Number(job.retryCount ?? 0)) } }),
+    timeoutMs: 120_000,
   });
-  return state.taskId;
+  if (!batch?.id) throw new Error("OpenAI batch create response did not return a batch id");
+  job.batchId = String(batch.id);
+  job.batchStatus = String(batch.status || "validating");
+  for (const state of pending) {
+    state.status = "submitted";
+    state.progress = 0;
+    state.error = "";
+  }
+  await writeFile(path.join(directory, "sora-batch-id.txt"), `${job.batchId}\n`, { mode: 0o600 });
+  await saveAllSceneStates(reference, job, states);
+  await updateJob(reference, {
+    batchId: job.batchId,
+    batchInputFileId: String(inputFile.id),
+    batchStatus: job.batchStatus,
+    stage: "sora-batch-submitted",
+    providerUsage: { model, size: VIDEO_SIZE, requestedSeconds: pending.length * job.sceneSeconds, generatedSeconds: Number(job.generatedSeconds ?? 0) },
+  });
+  return job.batchId;
 }
 
 async function pollSoraTask(job, reference, state) {
@@ -480,7 +567,89 @@ async function pollSoraTask(job, reference, state) {
   throw new Error(`Polling timed out for scene ${state.index + 1}; retry will resume task ${state.taskId}`);
 }
 
-async function ensureScene(job, reference, directory, index, prompt) {
+function parseJsonLines(buffer) {
+  return buffer.toString("utf8").split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => JSON.parse(line));
+}
+
+async function applyBatchResults(job, reference, directory, batch) {
+  const records = [];
+  if (batch.output_file_id) {
+    records.push(...parseJsonLines(await requestWithRetries(`https://api.openai.com/v1/files/${encodeURIComponent(batch.output_file_id)}/content`, { headers: authHeaders(), timeoutMs: 180_000 }, "buffer")));
+  }
+  if (batch.error_file_id) {
+    records.push(...parseJsonLines(await requestWithRetries(`https://api.openai.com/v1/files/${encodeURIComponent(batch.error_file_id)}/content`, { headers: authHeaders(), timeoutMs: 180_000 }, "buffer")));
+  }
+  const states = Array.from({ length: job.soraSceneCount }, (_, index) => sceneState(job, index));
+  for (const record of records) {
+    const match = String(record?.custom_id ?? "").match(/^scene-(\d+)$/);
+    if (!match) continue;
+    const index = Number(match[1]) - 1;
+    if (index < 0 || index >= states.length) continue;
+    const state = states[index];
+    const body = record?.response?.body;
+    const statusCode = Number(record?.response?.status_code ?? 0);
+    if (statusCode >= 200 && statusCode < 300 && body?.id) {
+      state.taskId = String(body.id);
+      state.status = body.status === "completed" ? "completed" : body.status === "failed" || body.status === "expired" ? "failed" : "submitted";
+      state.progress = state.status === "completed" ? 100 : Number(body.progress ?? 0);
+      state.error = state.status === "failed" ? cleanError(body?.error?.message || `Sora video ${body.status}`) : "";
+      await writeFile(path.join(directory, `scene-${index + 1}-task-id.txt`), `${state.taskId}\n`, { mode: 0o600 });
+    } else {
+      state.status = "failed";
+      state.error = cleanError(record?.error?.message || body?.error?.message || `Batch request failed with HTTP ${statusCode || "unknown"}`);
+    }
+  }
+  for (const state of states) {
+    if (!state.taskId && state.status !== "completed") {
+      state.status = "failed";
+      state.error ||= "Sora Batch completed without a result for this scene";
+    }
+  }
+  await saveAllSceneStates(reference, job, states);
+  await updateJob(reference, {
+    batchStatus: batch.status,
+    batchOutputFileId: batch.output_file_id || "",
+    batchErrorFileId: batch.error_file_id || "",
+  });
+  const failed = states.find((state) => state.status === "failed");
+  if (failed) {
+    await updateJob(reference, { failedSceneIndex: failed.index, error: failed.error });
+    throw new Error(`Sora scene ${failed.index + 1} failed in Batch: ${failed.error}`);
+  }
+}
+
+async function pollSoraBatch(job, reference, directory) {
+  const deadline = Date.now() + 25 * 60 * 60_000;
+  while (!stopping && Date.now() < deadline) {
+    const batch = await requestWithRetries(`https://api.openai.com/v1/batches/${encodeURIComponent(job.batchId)}`, { headers: authHeaders(), timeoutMs: 60_000 });
+    job.batchStatus = String(batch?.status || "unknown");
+    const total = Math.max(1, Number(batch?.request_counts?.total ?? job.soraSceneCount));
+    const finished = Number(batch?.request_counts?.completed ?? 0) + Number(batch?.request_counts?.failed ?? 0);
+    const progress = Math.min(99, Math.round((finished / total) * 100));
+    const states = Array.from({ length: job.soraSceneCount }, (_, index) => {
+      const state = sceneState(job, index);
+      if (state.status !== "completed" && state.status !== "failed") {
+        state.status = batch?.status === "validating" ? "submitted" : "rendering";
+        state.progress = progress;
+      }
+      return state;
+    });
+    await saveAllSceneStates(reference, job, states);
+    await updateJob(reference, { batchStatus: job.batchStatus, stage: `sora-batch-${job.batchStatus}`, progress: 18 + Math.round(progress * 0.5) });
+    if (batch?.status === "completed") {
+      await applyBatchResults(job, reference, directory, batch);
+      return;
+    }
+    if (["failed", "expired", "cancelled"].includes(batch?.status)) {
+      throw new Error(`Sora Batch ${batch.status}: ${batch?.errors?.data?.[0]?.message || "no output was produced"}`);
+    }
+    await heartbeat("processing", job.id);
+    await delay(BATCH_POLL_INTERVAL_MS);
+  }
+  throw new Error(`Sora Batch polling stopped or timed out; retry will resume batch ${job.batchId}`);
+}
+
+async function downloadSoraScene(job, reference, directory, index) {
   const output = path.join(directory, `scene-${index + 1}.mp4`);
   const state = sceneState(job, index);
   if (await fileIsUsable(output, 20_000)) {
@@ -494,7 +663,7 @@ async function ensureScene(job, reference, directory, index, prompt) {
       }
     } catch {}
   }
-  await createSoraTask(job, reference, directory, index, prompt, state);
+  if (!state.taskId) throw new Error(`Sora scene ${index + 1} has no video id after Batch completion`);
   if (state.status !== "completed") await pollSoraTask(job, reference, state);
   const video = await requestWithRetries(`https://api.openai.com/v1/videos/${encodeURIComponent(state.taskId)}/content`, {
     headers: authHeaders(), timeoutMs: 180_000,
@@ -504,7 +673,7 @@ async function ensureScene(job, reference, directory, index, prompt) {
   state.status = "completed";
   state.progress = 100;
   state.error = "";
-  const generatedSeconds = Array.from({ length: job.sceneCount }, (_, sceneIndex) =>
+  const generatedSeconds = Array.from({ length: job.soraSceneCount }, (_, sceneIndex) =>
     sceneIndex === index ? state : sceneState(job, sceneIndex)).filter((scene) => scene.status === "completed").length * job.sceneSeconds;
   job.generatedSeconds = generatedSeconds;
   await saveSceneState(reference, job, state);
@@ -518,6 +687,83 @@ async function ensureScene(job, reference, directory, index, prompt) {
     },
   });
   return output;
+}
+
+async function ensureSoraScenes(job, reference, directory, prompts) {
+  const states = Array.from({ length: job.soraSceneCount }, (_, index) => sceneState(job, index));
+  let needsBatch = false;
+  for (const state of states) {
+    const output = path.join(directory, `scene-${state.index + 1}.mp4`);
+    if (await fileIsUsable(output, 20_000)) {
+      state.status = "completed";
+      state.progress = 100;
+    } else {
+      const journalTaskId = await resolveTaskIdFromJournal(directory, state.index);
+      if (!state.taskId && journalTaskId) state.taskId = journalTaskId;
+      if (!state.taskId) needsBatch = true;
+    }
+  }
+  await saveAllSceneStates(reference, job, states);
+  if (needsBatch) {
+    await createSoraBatch(job, reference, directory, prompts);
+    if (job.batchId) await pollSoraBatch(job, reference, directory);
+  }
+  const clips = [];
+  for (let index = 0; index < job.soraSceneCount; index += 1) clips.push(await downloadSoraScene(job, reference, directory, index));
+  return clips;
+}
+
+function bestPexelsFile(video) {
+  return (Array.isArray(video?.video_files) ? video.video_files : [])
+    .filter((file) => file?.link && String(file.file_type || "video/mp4").includes("mp4"))
+    .map((file) => ({ file, score: (file.height > file.width ? 10_000 : 0) + (file.width >= 720 && file.height >= 1280 ? 5_000 : 0) - Math.abs(Number(file.width || 0) - 720) - Math.abs(Number(file.height || 0) - 1280) / 2 }))
+    .sort((left, right) => right.score - left.score)[0]?.file ?? null;
+}
+
+async function searchPexelsVideo(searchTerm, usedIds) {
+  const params = new URLSearchParams({ query: searchTerm, orientation: "portrait", size: "medium", per_page: "20" });
+  const payload = await requestWithRetries(`https://api.pexels.com/videos/search?${params}`, {
+    headers: { Authorization: pexelsApiKey() }, timeoutMs: 90_000,
+  });
+  for (const video of Array.isArray(payload?.videos) ? payload.videos : []) {
+    if (usedIds.has(Number(video.id))) continue;
+    const file = bestPexelsFile(video);
+    if (file) return { video, file };
+  }
+  return null;
+}
+
+async function ensureStockScenes(job, reference, directory, searchTerms) {
+  const clips = [];
+  const assets = Array.isArray(job.stockAssets) ? [...job.stockAssets] : [];
+  const usedIds = new Set(assets.map((asset) => Number(asset?.providerId)).filter(Boolean));
+  for (let index = 0; index < job.stockSceneCount; index += 1) {
+    const output = path.join(directory, `stock-scene-${index + 1}.mp4`);
+    if (await fileIsUsable(output, 20_000)) {
+      clips.push(output);
+      continue;
+    }
+    await updateJob(reference, { stage: `stock-scene-${index + 1}-of-${job.stockSceneCount}`, progress: 70 + Math.round((index / Math.max(1, job.stockSceneCount)) * 7) });
+    const searchTerm = String(searchTerms[index] || job.topic).trim();
+    const result = await searchPexelsVideo(searchTerm, usedIds) || await searchPexelsVideo(job.topic, usedIds);
+    if (!result) throw new Error(`Pexels returned no usable portrait video for stock scene ${index + 1}: ${searchTerm}`);
+    usedIds.add(Number(result.video.id));
+    const video = await requestWithRetries(result.file.link, { timeoutMs: 180_000 }, "buffer");
+    await writeFile(output, video, { mode: 0o600 });
+    if (!(await fileIsUsable(output, 20_000))) throw new Error(`Downloaded Pexels scene ${index + 1} is empty`);
+    assets[index] = {
+      index,
+      searchTerm,
+      provider: "pexels",
+      providerId: Number(result.video.id) || null,
+      photographer: String(result.video.user?.name || ""),
+      sourceUrl: String(result.video.url || "https://www.pexels.com"),
+    };
+    job.stockAssets = assets;
+    await updateJob(reference, { stockAssets: assets });
+    clips.push(output);
+  }
+  return clips;
 }
 
 function assTime(seconds) {
@@ -595,7 +841,7 @@ async function composeVideo(job, clips, narrationPath, script, thumbnailText, di
   for (let index = 0; index < clips.length; index += 1) {
     const output = path.join(directory, `normalized-${index + 1}.mp4`);
     await runProcess(ffmpegBin(), [
-      "-y", "-i", clips[index], "-t", String(job.sceneSeconds), "-an",
+      "-y", "-stream_loop", "-1", "-i", clips[index], "-t", String(job.sceneSeconds), "-an",
       "-vf", "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30,format=yuv420p",
       "-c:v", "libx264", "-profile:v", "high", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", output,
     ]);
@@ -732,30 +978,41 @@ async function processJob(job) {
     }
     if (job.costConfirmed !== true) throw new Error("Job is missing server-validated paid-generation confirmation");
     if (job.budgetReservationStatus !== "reserved") throw new Error("Job is missing a transactional budget reservation");
-    if (job.mode !== "preview" && job.mode !== "standard") throw new Error("Invalid job mode");
+    if (job.mode !== "preview" && job.mode !== "standard" && job.mode !== "combined") throw new Error("Invalid job mode");
     if (typeof job.topic !== "string" || job.topic.trim().length < 5 || job.topic.trim().length > 500) throw new Error("Invalid job topic");
     const trustedMode = job.mode === "preview"
-      ? { sceneCount: 1, sceneSeconds: 4 }
-      : { sceneCount: 4, sceneSeconds: 8 };
+      ? { sceneCount: 1, soraSceneCount: 1, stockSceneCount: 0, sceneSeconds: 4 }
+      : job.mode === "combined"
+        ? { sceneCount: 4, soraSceneCount: 1, stockSceneCount: 3, sceneSeconds: 8 }
+        : { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8 };
     job.sceneCount = trustedMode.sceneCount;
+    job.soraSceneCount = trustedMode.soraSceneCount;
+    job.stockSceneCount = trustedMode.stockSceneCount;
     job.sceneSeconds = trustedMode.sceneSeconds;
     job.language = "en-US";
     const current = (await reference.get()).data();
     job = { ...job, ...current, id: job.id };
     job.sceneCount = trustedMode.sceneCount;
+    job.soraSceneCount = trustedMode.soraSceneCount;
+    job.stockSceneCount = trustedMode.stockSceneCount;
     job.sceneSeconds = trustedMode.sceneSeconds;
+    job.stockSearchTerms = Array.isArray(job.stockSearchTerms) ? job.stockSearchTerms : [];
+    job.stockAssets = Array.isArray(job.stockAssets) ? job.stockAssets : [];
     job.language = "en-US";
     await updateJob(reference, { stage: "writing-script", progress: Math.max(2, Number(job.progress ?? 0)) });
     const generated = await generatePackage(job, reference);
+    if (job.mode === "combined" && !generated.youtubeMetadata.description.includes("pexels.com")) {
+      generated.youtubeMetadata = {
+        ...generated.youtubeMetadata,
+        description: `${generated.youtubeMetadata.description}\n\nStock footage provided by Pexels: https://www.pexels.com`,
+      };
+      await updateJob(reference, { youtubeMetadata: generated.youtubeMetadata });
+    }
     Object.assign(job, generated);
     const narrationPath = await ensureNarration(job, reference, directory, generated.script);
     await updateJob(reference, { stage: "generating-scenes", progress: 18 });
-    const clips = [];
-    for (let index = 0; index < job.sceneCount; index += 1) {
-      const progress = 18 + Math.round((index / job.sceneCount) * 55);
-      await updateJob(reference, { stage: `scene-${index + 1}-of-${job.sceneCount}`, progress });
-      clips.push(await ensureScene(job, reference, directory, index, generated.scenePrompts[index]));
-    }
+    const clips = await ensureSoraScenes(job, reference, directory, generated.scenePrompts);
+    if (job.stockSceneCount > 0) clips.push(...await ensureStockScenes(job, reference, directory, generated.stockSearchTerms));
     await updateJob(reference, { stage: "editing-video", progress: 78 });
     const rendered = await composeVideo(job, clips, narrationPath, generated.script, generated.youtubeMetadata.thumbnailText, directory);
     await updateJob(reference, { stage: "validating-video", progress: 90 });
@@ -769,7 +1026,7 @@ async function processJob(job) {
     let telegramError = "";
     if (job.sendToTelegram !== false) {
       await updateJob(reference, { stage: "sending-telegram", progress: 98, telegramStatus: "sending" });
-      try { telegramMessageId = await sendTelegram(rendered.finalPath, `${job.topic}\nEnglish · Sora ${job.mode}`); }
+      try { telegramMessageId = await sendTelegram(rendered.finalPath, `${job.topic}\nEnglish · ${job.mode === "combined" ? "Sora + Pexels" : `Sora Batch ${job.mode}`}`); }
       catch (error) { telegramError = cleanError(error); }
     }
     await updateJob(reference, {
@@ -801,11 +1058,13 @@ async function runCheck() {
     storageBucket: Boolean(env("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET")),
     telegramBotToken: Boolean(env("TELEGRAM_BOT_TOKEN")),
     telegramChatId: Boolean(env("TELEGRAM_PERSONAL_CHAT_ID")),
+    pexelsApiKey: false,
     ffmpeg: false,
     ffprobe: false,
     mediaProbe: false,
   };
   try { const account = serviceAccount(); checks.firebaseCredentials = Boolean(account?.project_id && account?.private_key && account?.client_email); } catch {}
+  try { checks.pexelsApiKey = Boolean(pexelsApiKey()); } catch {}
   try { await runProcess(ffmpegBin(), ["-version"]); checks.ffmpeg = true; } catch {}
   try { await runProcess(ffprobeBin(), ["-version"]); checks.ffprobe = true; } catch {}
   checks.mediaProbe = checks.ffprobe || checks.ffmpeg;
@@ -817,7 +1076,9 @@ async function runCheck() {
     checks,
     paidGenerationEnabled: boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED", false),
     soraModel: env("SORA_VIDEO_MODEL") || "sora-2",
-    pricePerSecondUsd: Number(env("SORA_PRICE_PER_SECOND_USD") || 0.1),
+    soraSubmission: "batch",
+    batchCompletionWindow: "24h",
+    pricePerSecondUsd: Number(env("SORA_BATCH_PRICE_PER_SECOND_USD") || 0.05),
     dailyBudgetUsd: Number(env("AI_VIDEO_DAILY_BUDGET_USD") || 5),
     maxJobsPerDay: Number(env("AI_VIDEO_MAX_JOBS_PER_DAY") || 2),
     videoSize: VIDEO_SIZE,
@@ -853,7 +1114,7 @@ async function main() {
   if (process.argv.includes("--synthetic-test")) return runSyntheticTest();
   initializeFirebase();
   await mkdir(workRoot(), { recursive: true, mode: 0o700 });
-  console.log(`[ai-video-worker] ready on ${hostname()} · Sora · English only · paid calls ${boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED") ? "enabled" : "disabled"}`);
+  console.log(`[ai-video-worker] ready on ${hostname()} · Sora Batch + Combined · English only · paid calls ${boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED") ? "enabled" : "disabled"}`);
   await heartbeat();
   while (!stopping) {
     const job = await claimNextJob();
