@@ -16,6 +16,33 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Admin AI Video · Sora
+
+The admin dashboard includes a private Sora studio backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
+
+Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. The worker also needs the app's existing Firebase Admin credentials and Storage bucket, plus `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
+
+Start the web app and worker in separate terminals:
+
+```bash
+cd /Users/dimab/Documents/oneiro-web
+npm run dev
+```
+
+```bash
+cd /Users/dimab/Documents/oneiro-web
+npm run ai-video-worker
+```
+
+Safe validation commands never call the paid Videos endpoint:
+
+```bash
+npm run ai-video-check
+npm run ai-video-synthetic-test
+```
+
+Preview reserves 4 Sora seconds and Standard reserves 32 Sora seconds. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

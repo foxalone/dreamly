@@ -34,7 +34,7 @@ import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
-import VideoAdminPanel from "./VideoAdminPanel";
+import AiVideoAdminPanel from "./AiVideoAdminPanel";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -888,7 +888,7 @@ async function loadUsers() {
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
             ) : tab === "VIDEOS" ? (
-              <>English Shorts · 45 sec · YouTube package · Telegram</>
+              <>AI Video · Sora · English Shorts · private admin studio</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1001,7 +1001,7 @@ async function loadUsers() {
               : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
           ].join(" ")}
         >
-          Videos
+          AI Video · Sora
         </button>
       </div>
 
@@ -1457,7 +1457,7 @@ async function loadUsers() {
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
 
-      {tab === "VIDEOS" && user && <VideoAdminPanel user={user} />}
+      {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} />}
     </main>
   );
 }
