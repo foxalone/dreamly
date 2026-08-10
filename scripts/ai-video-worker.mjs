@@ -1321,7 +1321,7 @@ async function runCheck() {
     veoPricePerSecondUsd: Number(env("VEO_LITE_PRICE_PER_SECOND_USD") || 0.03),
     batchCompletionWindow: "24h",
     pricePerSecondUsd: Number(env("SORA_BATCH_PRICE_PER_SECOND_USD") || 0.05),
-    dailyBudgetUsd: Number(env("AI_VIDEO_DAILY_BUDGET_USD") || 5),
+    dailyBudgetUsd: Number(env("AI_VIDEO_DAILY_BUDGET_USD") || 50),
     maxJobsPerDay: Number(env("AI_VIDEO_MAX_JOBS_PER_DAY") || 20),
     videoSize: VIDEO_SIZE,
     maxDurationSeconds: MAX_DURATION_SECONDS,

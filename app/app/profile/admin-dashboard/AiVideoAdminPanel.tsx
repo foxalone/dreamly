@@ -26,7 +26,7 @@ const DEFAULT_CONFIG: AiVideoPublicConfig = {
   paidGenerationEnabled: false,
   pricePerSecondUsd: 0.05,
   veoPricePerSecondUsd: 0.03,
-  dailyBudgetUsd: 5,
+  dailyBudgetUsd: 50,
   maxJobsPerDay: 20,
   model: "sora-2",
   veoModel: "veo-3.1-lite-generate-001",
