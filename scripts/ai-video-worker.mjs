@@ -476,14 +476,31 @@ async function resolveTaskIdFromJournal(directory, index) {
 
 function safeRetryPrompt(prompt, retryCount) {
   if (!retryCount) return prompt;
-  return `${prompt}\nSafety revision ${retryCount}: use only fictional, non-human or non-identifiable subjects; avoid faces, brands, copyrighted designs, violence, suggestive content, or hazardous behavior. Keep the core environment and camera concept.`;
+  const revisions = [
+    "Safety revision 1: use only fictional, non-human or non-identifiable subjects; avoid faces, brands, copyrighted designs, violence, suggestive content, or hazardous behavior. Keep the core environment and camera concept.",
+    "Safety revision 2: reinterpret as calm symbolic dream imagery only — abstract light, nature, empty rooms, soft metaphors. Do not depict death, corpses, injury, graves, blood, weapons, fear faces, or distressing events.",
+    "Safety revision 3: fully abstract atmospheric B-roll only — slow camera, soft lighting, nature or architecture, zero narrative of harm or mortality. No people, no symbols of death.",
+  ];
+  return `${prompt}\n${revisions[Math.min(Number(retryCount), revisions.length) - 1]}`;
 }
 
-async function resolveBatchIdFromJournal(directory) {
-  try {
-    const batchId = (await readFile(path.join(directory, "sora-batch-id.txt"), "utf8")).trim();
-    return /^batch_[A-Za-z0-9_-]+$/.test(batchId) ? batchId : "";
-  } catch { return ""; }
+function soraBatchJournal(directory, job) {
+  return path.join(directory, `sora-batch-id-${Number(job.retryCount ?? 0)}.txt`);
+}
+
+async function resolveBatchIdFromJournal(directory, job) {
+  const generation = Number(job.retryCount ?? 0);
+  // Versioned journal matches Veo + batch metadata.generation. Legacy unversioned
+  // file is only valid for generation 0 so resume never reuses a failed batch.
+  const candidates = [soraBatchJournal(directory, job)];
+  if (generation === 0) candidates.push(path.join(directory, "sora-batch-id.txt"));
+  for (const file of candidates) {
+    try {
+      const batchId = (await readFile(file, "utf8")).trim();
+      if (/^batch_[A-Za-z0-9_-]+$/.test(batchId)) return batchId;
+    } catch { /* missing journal is fine */ }
+  }
+  return "";
 }
 
 async function findExistingBatchForJob(job) {
@@ -505,7 +522,7 @@ async function createSoraBatch(job, reference, directory, prompts) {
     await saveAllSceneStates(reference, job, states);
     return "";
   }
-  const journalBatchId = await resolveBatchIdFromJournal(directory);
+  const journalBatchId = await resolveBatchIdFromJournal(directory, job);
   if (job.batchId || journalBatchId) {
     job.batchId = job.batchId || journalBatchId;
     await updateJob(reference, { batchId: job.batchId, batchStatus: job.batchStatus || "submitted" });
@@ -515,7 +532,7 @@ async function createSoraBatch(job, reference, directory, prompts) {
   if (existingBatch?.id) {
     job.batchId = String(existingBatch.id);
     job.batchStatus = String(existingBatch.status || "submitted");
-    await writeFile(path.join(directory, "sora-batch-id.txt"), `${job.batchId}\n`, { mode: 0o600 });
+    await writeFile(soraBatchJournal(directory, job), `${job.batchId}\n`, { mode: 0o600 });
     await updateJob(reference, {
       batchId: job.batchId,
       batchInputFileId: String(existingBatch.input_file_id || ""),
@@ -565,7 +582,7 @@ async function createSoraBatch(job, reference, directory, prompts) {
     state.progress = 0;
     state.error = "";
   }
-  await writeFile(path.join(directory, "sora-batch-id.txt"), `${job.batchId}\n`, { mode: 0o600 });
+  await writeFile(soraBatchJournal(directory, job), `${job.batchId}\n`, { mode: 0o600 });
   await saveAllSceneStates(reference, job, states);
   await updateJob(reference, {
     batchId: job.batchId,
