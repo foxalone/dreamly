@@ -41,7 +41,7 @@ export function aiVideoConfig(): AiVideoPublicConfig {
     pricePerSecondUsd,
     veoPricePerSecondUsd,
     dailyBudgetUsd: finiteEnv("AI_VIDEO_DAILY_BUDGET_USD", 5),
-    maxJobsPerDay: Math.floor(finiteEnv("AI_VIDEO_MAX_JOBS_PER_DAY", 2, 1)),
+    maxJobsPerDay: Math.floor(finiteEnv("AI_VIDEO_MAX_JOBS_PER_DAY", 20, 1)),
     model: process.env.SORA_VIDEO_MODEL?.trim() || "sora-2",
     veoModel: process.env.VEO_VIDEO_MODEL?.trim() || "veo-3.1-lite-generate-001",
     prices: {

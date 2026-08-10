@@ -1322,7 +1322,7 @@ async function runCheck() {
     batchCompletionWindow: "24h",
     pricePerSecondUsd: Number(env("SORA_BATCH_PRICE_PER_SECOND_USD") || 0.05),
     dailyBudgetUsd: Number(env("AI_VIDEO_DAILY_BUDGET_USD") || 5),
-    maxJobsPerDay: Number(env("AI_VIDEO_MAX_JOBS_PER_DAY") || 2),
+    maxJobsPerDay: Number(env("AI_VIDEO_MAX_JOBS_PER_DAY") || 20),
     videoSize: VIDEO_SIZE,
     maxDurationSeconds: MAX_DURATION_SECONDS,
   }, null, 2));
