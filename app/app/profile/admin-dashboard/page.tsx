@@ -36,6 +36,7 @@ import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
 import VideoAdminPanel from "./VideoAdminPanel";
 import AiVideoAdminPanel from "./AiVideoAdminPanel";
+import VideoLibraryPanel from "./VideoLibraryPanel";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -70,7 +71,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -863,7 +864,7 @@ async function loadUsers() {
   }
 
   return (
-    <main className="px-6 py-10 max-w-5xl mx-auto">
+    <main className={`px-6 py-10 mx-auto ${tab === "VIDEO_LIBRARY" ? "max-w-6xl" : "max-w-5xl"}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className={`text-3xl font-semibold ${titleText}`}>Admin dashboard</h1>
@@ -896,6 +897,8 @@ async function loadUsers() {
               <>Combined · one Sora scene + three free stock scenes · English Shorts</>
             ) : tab === "VEO_VIDEOS" ? (
               <>Video · Veo 3.1 Lite · four vertical Vertex AI scenes · English Shorts</>
+            ) : tab === "VIDEO_LIBRARY" ? (
+              <>All Videos · Instagram grid · Free · Sora · Combined · Veo</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1045,6 +1048,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Video · Veo
+        </button>
+
+        <button
+          onClick={() => setTab("VIDEO_LIBRARY")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "VIDEO_LIBRARY"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          All Videos
         </button>
       </div>
 
@@ -1507,6 +1522,8 @@ async function loadUsers() {
       {tab === "COMBINED_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="combined" />}
 
       {tab === "VEO_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="veo" />}
+
+      {tab === "VIDEO_LIBRARY" && user && <VideoLibraryPanel user={user} />}
     </main>
   );
 }

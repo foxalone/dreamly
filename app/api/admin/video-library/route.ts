@@ -1,0 +1,98 @@
+import { NextResponse } from "next/server";
+import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
+import {
+  sourceLabelFor,
+  type AdminVideoLibraryItem,
+  type AdminVideoLibrarySource,
+} from "@/lib/adminVideoLibrary";
+import { requireAdmin } from "@/app/api/admin/_lib/auth";
+import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const LIBRARY_LIMIT = 120;
+
+function iso(value: { toDate?: () => Date } | undefined) {
+  return value?.toDate?.()?.toISOString() ?? null;
+}
+
+function titleFrom(topic: string, youtubeTitle?: string) {
+  const titled = String(youtubeTitle || "").trim();
+  return titled || String(topic || "").trim() || "Untitled video";
+}
+
+function aiSource(mode: string): AdminVideoLibrarySource {
+  if (mode === "preview") return "sora-preview";
+  if (mode === "combined") return "combined";
+  if (mode === "veo") return "veo";
+  return "sora-standard";
+}
+
+export async function GET(request: Request) {
+  try {
+    await requireAdmin(request);
+    const db = adminDb();
+    const [freeSnapshot, aiSnapshot] = await Promise.all([
+      db.collection("adminVideoJobs").orderBy("createdAt", "desc").limit(LIBRARY_LIMIT).get(),
+      db.collection(AI_VIDEO_COLLECTION).orderBy("createdAt", "desc").limit(LIBRARY_LIMIT).get(),
+    ]);
+
+    const items: AdminVideoLibraryItem[] = [];
+
+    for (const doc of freeSnapshot.docs) {
+      const data = doc.data() as {
+        status?: string;
+        topic?: string;
+        videoUrl?: string;
+        youtubeMetadata?: { title?: string };
+        createdAt?: { toDate?: () => Date };
+      };
+      const videoUrl = String(data.videoUrl || "");
+      if (data.status !== "completed" || !videoUrl) continue;
+      items.push({
+        id: `free:${doc.id}`,
+        title: titleFrom(String(data.topic || ""), data.youtubeMetadata?.title),
+        topic: String(data.topic || ""),
+        source: "free",
+        sourceLabel: sourceLabelFor("free"),
+        videoUrl,
+        thumbnailUrl: "",
+        createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
+      });
+    }
+
+    for (const doc of aiSnapshot.docs) {
+      const data = doc.data() as {
+        status?: string;
+        topic?: string;
+        mode?: string;
+        videoUrl?: string;
+        thumbnailUrl?: string;
+        youtubeMetadata?: { title?: string };
+        createdAt?: { toDate?: () => Date };
+      };
+      const videoUrl = String(data.videoUrl || "");
+      if (data.status !== "completed" || !videoUrl) continue;
+      const source = aiSource(String(data.mode || "standard"));
+      items.push({
+        id: `ai:${doc.id}`,
+        title: titleFrom(String(data.topic || ""), data.youtubeMetadata?.title),
+        topic: String(data.topic || ""),
+        source,
+        sourceLabel: sourceLabelFor(source),
+        videoUrl,
+        thumbnailUrl: String(data.thumbnailUrl || ""),
+        createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
+      });
+    }
+
+    items.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+    return NextResponse.json({ items });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    const status = message === "UNAUTHENTICATED" ? 401 : message === "FORBIDDEN" ? 403 : 500;
+    if (status === 500) console.error("[admin/video-library]", error);
+    return NextResponse.json({ error: status === 500 ? "Unable to load video library" : message }, { status });
+  }
+}
