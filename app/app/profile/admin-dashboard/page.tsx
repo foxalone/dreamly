@@ -70,7 +70,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -894,6 +894,8 @@ async function loadUsers() {
               <>Sora 2 Slow · Batch API · English Shorts · private admin studio</>
             ) : tab === "COMBINED_VIDEOS" ? (
               <>Combined · one Sora scene + three free stock scenes · English Shorts</>
+            ) : tab === "VEO_VIDEOS" ? (
+              <>Video · Veo 3.1 Lite · four vertical Vertex AI scenes · English Shorts</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1031,6 +1033,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Combined
+        </button>
+
+        <button
+          onClick={() => setTab("VEO_VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "VEO_VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Video · Veo
         </button>
       </div>
 
@@ -1491,6 +1505,8 @@ async function loadUsers() {
       {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} studio="sora" />}
 
       {tab === "COMBINED_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="combined" />}
+
+      {tab === "VEO_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="veo" />}
     </main>
   );
 }

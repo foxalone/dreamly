@@ -7,6 +7,7 @@ export const AI_VIDEO_MODES = {
   preview: { sceneCount: 1, soraSceneCount: 1, stockSceneCount: 0, sceneSeconds: 4, generatedSeconds: 4 },
   standard: { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8, generatedSeconds: 32 },
   combined: { sceneCount: 4, soraSceneCount: 1, stockSceneCount: 3, sceneSeconds: 8, generatedSeconds: 8 },
+  veo: { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8, generatedSeconds: 32 },
 } as const;
 
 export type AiVideoMode = keyof typeof AI_VIDEO_MODES;
@@ -58,6 +59,7 @@ export type AdminAiVideoJob = {
   id: string;
   topic: string;
   mode: AiVideoMode;
+  provider: "sora" | "veo";
   language: "en-US";
   status: AiVideoJobStatus;
   stage: string;
@@ -98,14 +100,16 @@ export type AdminAiVideoJob = {
 export type AiVideoPublicConfig = {
   paidGenerationEnabled: boolean;
   pricePerSecondUsd: number;
+  veoPricePerSecondUsd: number;
   dailyBudgetUsd: number;
   maxJobsPerDay: number;
   model: string;
+  veoModel: string;
   prices: Record<AiVideoMode, number>;
 };
 
 export function isAiVideoMode(value: unknown): value is AiVideoMode {
-  return value === "preview" || value === "standard" || value === "combined";
+  return value === "preview" || value === "standard" || value === "combined" || value === "veo";
 }
 
 export function roundUsd(value: number) {

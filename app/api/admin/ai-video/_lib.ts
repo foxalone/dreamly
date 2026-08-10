@@ -35,16 +35,20 @@ export function finiteEnv(name: string, fallback: number, minimum = 0) {
 
 export function aiVideoConfig(): AiVideoPublicConfig {
   const pricePerSecondUsd = finiteEnv("SORA_BATCH_PRICE_PER_SECOND_USD", 0.05);
+  const veoPricePerSecondUsd = finiteEnv("VEO_LITE_PRICE_PER_SECOND_USD", 0.03);
   return {
     paidGenerationEnabled: process.env.AI_VIDEO_PAID_GENERATION_ENABLED?.trim().toLowerCase() === "true",
     pricePerSecondUsd,
+    veoPricePerSecondUsd,
     dailyBudgetUsd: finiteEnv("AI_VIDEO_DAILY_BUDGET_USD", 5),
     maxJobsPerDay: Math.floor(finiteEnv("AI_VIDEO_MAX_JOBS_PER_DAY", 2, 1)),
     model: process.env.SORA_VIDEO_MODEL?.trim() || "sora-2",
+    veoModel: process.env.VEO_VIDEO_MODEL?.trim() || "veo-3.1-lite-generate-001",
     prices: {
       preview: roundUsd(AI_VIDEO_MODES.preview.generatedSeconds * pricePerSecondUsd),
       standard: roundUsd(AI_VIDEO_MODES.standard.generatedSeconds * pricePerSecondUsd),
       combined: roundUsd(AI_VIDEO_MODES.combined.generatedSeconds * pricePerSecondUsd),
+      veo: roundUsd(AI_VIDEO_MODES.veo.generatedSeconds * veoPricePerSecondUsd),
     },
   };
 }
@@ -60,12 +64,13 @@ function iso(value: TimestampLike | undefined) {
 export function serializeAiVideoJob(snapshot: DocumentSnapshot): AdminAiVideoJob | null {
   const data = snapshot.data() as StoredAiVideoJob | undefined;
   if (!data) return null;
-  const mode = data.mode === "preview" || data.mode === "combined" ? data.mode : "standard";
+  const mode = data.mode === "preview" || data.mode === "combined" || data.mode === "veo" ? data.mode : "standard";
   const modeConfig = AI_VIDEO_MODES[mode];
   return {
     id: snapshot.id,
     topic: data.topic ?? "",
     mode,
+    provider: mode === "veo" ? "veo" : "sora",
     language: "en-US",
     status: data.status ?? "queued",
     stage: data.stage ?? "queued",
@@ -90,7 +95,7 @@ export function serializeAiVideoJob(snapshot: DocumentSnapshot): AdminAiVideoJob
     batchStatus: data.batchStatus ?? "",
     tokenUsage: data.tokenUsage ?? null,
     providerUsage: data.providerUsage ?? {
-      model: "sora-2",
+      model: mode === "veo" ? "veo-3.1-lite-generate-001" : "sora-2",
       size: AI_VIDEO_SIZE,
       requestedSeconds: 0,
       generatedSeconds: 0,

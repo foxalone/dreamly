@@ -24,6 +24,8 @@ const workerId = `${hostname()}:${process.pid}:${randomUUID()}`;
 
 let db;
 let bucket;
+let googleCredential;
+let firebaseServiceAccount;
 let stopping = false;
 let cachedFfmpeg = "";
 
@@ -72,23 +74,25 @@ function jsonFromEnvFile(name) {
 }
 
 function serviceAccount() {
+  if (firebaseServiceAccount) return firebaseServiceAccount;
   const inline = env("FIREBASE_SERVICE_ACCOUNT_JSON");
   if (inline) {
-    try { return JSON.parse(inline); }
+    try { return (firebaseServiceAccount = JSON.parse(inline)); }
     catch {
       const multiline = jsonFromEnvFile("FIREBASE_SERVICE_ACCOUNT_JSON");
-      if (multiline) return multiline;
+      if (multiline) return (firebaseServiceAccount = multiline);
     }
   }
   const configuredPath = env("FIREBASE_SERVICE_ACCOUNT_PATH");
   if (!configuredPath) throw new Error("Missing FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH");
   const absolute = path.isAbsolute(configuredPath) ? configuredPath : path.join(process.cwd(), configuredPath);
-  return JSON.parse(readFileSync(absolute, "utf8"));
+  return (firebaseServiceAccount = JSON.parse(readFileSync(absolute, "utf8")));
 }
 
 function initializeFirebase() {
   const storageBucket = requiredEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET");
-  if (!getApps().length) initializeApp({ credential: cert(serviceAccount()), storageBucket });
+  googleCredential = cert(serviceAccount());
+  if (!getApps().length) initializeApp({ credential: googleCredential, storageBucket });
   db = getFirestore();
   bucket = getStorage().bucket(storageBucket);
 }
@@ -196,6 +200,36 @@ function authHeaders(extra = {}) {
   return { Authorization: `Bearer ${openAiKey()}`, ...extra };
 }
 
+function veoConfig() {
+  const account = serviceAccount();
+  return {
+    projectId: env("VEO_PROJECT_ID") || env("GOOGLE_CLOUD_PROJECT") || String(account.project_id || ""),
+    location: env("VEO_LOCATION") || "us-central1",
+    model: env("VEO_VIDEO_MODEL") || "veo-3.1-lite-generate-001",
+  };
+}
+
+async function vertexHeaders(extra = {}) {
+  if (!googleCredential) googleCredential = cert(serviceAccount());
+  const token = await googleCredential.getAccessToken();
+  if (!token?.access_token) throw new Error("Unable to obtain a Google Cloud access token for Vertex AI");
+  return { Authorization: `Bearer ${token.access_token}`, ...extra };
+}
+
+function veoEndpoint(action) {
+  const { projectId, location, model } = veoConfig();
+  if (!projectId) throw new Error("Veo needs VEO_PROJECT_ID, GOOGLE_CLOUD_PROJECT, or project_id in the service account");
+  return `https://${location}-aiplatform.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/locations/${encodeURIComponent(location)}/publishers/google/models/${encodeURIComponent(model)}:${action}`;
+}
+
+async function paidSubmission(url, options) {
+  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(options.timeoutMs ?? 120_000) });
+  const body = await response.text();
+  const payload = (() => { try { return JSON.parse(body); } catch { return null; } })();
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${payload?.error?.message || body.slice(0, 500) || "paid submission failed"}`);
+  return payload;
+}
+
 async function heartbeat(state = "idle", currentJobId = "") {
   await db.doc(WORKER_DOCUMENT).set({
     state,
@@ -250,7 +284,7 @@ async function claimNextJob() {
 
 function videoPackageSchema(soraSceneCount, stockSceneCount) {
   return {
-    name: "oneiro_sora_video_package",
+    name: "oneiro_ai_video_package",
     strict: true,
     schema: {
       type: "object",
@@ -302,7 +336,7 @@ function parsePackage(content, soraSceneCount, stockSceneCount) {
   const errors = [];
   const words = wordCount(script);
   if (words < 65 || words > 75) errors.push(`narration has ${words} words, expected 65–75`);
-  if (scenePrompts.length !== soraSceneCount || scenePrompts.some((prompt) => prompt.length < 80)) errors.push(`expected ${soraSceneCount} detailed Sora scene prompts`);
+  if (scenePrompts.length !== soraSceneCount || scenePrompts.some((prompt) => prompt.length < 80)) errors.push(`expected ${soraSceneCount} detailed AI video scene prompts`);
   if (stockSearchTerms.length !== stockSceneCount || stockSearchTerms.some((term) => term.length < 3 || term.length > 80)) errors.push(`expected ${stockSceneCount} concise Pexels search terms`);
   if (!youtubeMetadata.title || youtubeMetadata.title.length > 70) errors.push("YouTube title must be 1–70 characters");
   if (!youtubeMetadata.description) errors.push("description is missing");
@@ -333,7 +367,7 @@ async function generatePackage(job, reference) {
         messages: [
           {
             role: "system",
-            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent Sora scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every Sora prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every Sora prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not use markdown.`,
+            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent AI video scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every video prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every video prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not use markdown.`,
           },
           { role: "user", content: `Topic: ${job.topic}\nMode: ${job.mode}.\nAll generated content must be English only.` },
         ],
@@ -713,6 +747,145 @@ async function ensureSoraScenes(job, reference, directory, prompts) {
   return clips;
 }
 
+function veoOperationJournal(directory, job, index) {
+  return path.join(directory, `veo-scene-${index + 1}-operation-${Number(job.retryCount ?? 0)}.txt`);
+}
+
+async function resolveVeoOperationFromJournal(directory, job, index) {
+  try {
+    const operationName = (await readFile(veoOperationJournal(directory, job, index), "utf8")).trim();
+    return /^projects\/[A-Za-z0-9_.-]+\/locations\/[A-Za-z0-9_-]+\/publishers\/google\/models\/[A-Za-z0-9_.-]+\/operations\/[A-Za-z0-9_-]+$/.test(operationName) ? operationName : "";
+  } catch { return ""; }
+}
+
+async function submitVeoScene(job, reference, directory, prompt, state) {
+  if (!boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED", false)) {
+    throw new Error("Paid Veo generation is disabled in this worker");
+  }
+  const operation = await paidSubmission(veoEndpoint("predictLongRunning"), {
+    method: "POST",
+    headers: await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" }),
+    body: JSON.stringify({
+      instances: [{ prompt: safeRetryPrompt(prompt, state.safePromptRetryCount) }],
+      parameters: {
+        storageUri: `gs://${bucket.name}/admin-ai-videos/${job.id}/veo-scenes/scene-${state.index + 1}/`,
+        sampleCount: 1,
+        durationSeconds: job.sceneSeconds,
+        aspectRatio: "9:16",
+        resolution: "720p",
+        personGeneration: "allow_adult",
+        enhancePrompt: true,
+        generateAudio: false,
+      },
+    }),
+    timeoutMs: 120_000,
+  });
+  if (!operation?.name) throw new Error(`Veo scene ${state.index + 1} submission did not return an operation name`);
+  state.taskId = String(operation.name);
+  state.status = "submitted";
+  state.progress = 0;
+  state.error = "";
+  await writeFile(veoOperationJournal(directory, job, state.index), `${state.taskId}\n`, { mode: 0o600 });
+  await saveSceneState(reference, job, state);
+  await updateJob(reference, {
+    stage: `veo-scene-${state.index + 1}-submitted`,
+    providerUsage: {
+      model: veoConfig().model,
+      size: VIDEO_SIZE,
+      requestedSeconds: job.sceneStates.filter((scene) => scene.taskId).length * job.sceneSeconds,
+      generatedSeconds: Number(job.generatedSeconds ?? 0),
+    },
+  });
+}
+
+async function pollVeoScene(job, reference, state) {
+  const deadline = Date.now() + 90 * 60_000;
+  while (!stopping && Date.now() < deadline) {
+    const operation = await requestWithRetries(veoEndpoint("fetchPredictOperation"), {
+      method: "POST",
+      headers: await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" }),
+      body: JSON.stringify({ operationName: state.taskId }),
+      timeoutMs: 60_000,
+    });
+    if (operation?.error) {
+      state.status = "failed";
+      state.error = cleanError(operation.error.message || `Vertex AI error ${operation.error.code ?? "unknown"}`);
+      await saveSceneState(reference, job, state);
+      await updateJob(reference, { failedSceneIndex: state.index, error: state.error });
+      throw new Error(`Veo scene ${state.index + 1} failed: ${state.error}`);
+    }
+    if (operation?.done) {
+      const gcsUri = operation?.response?.videos?.[0]?.gcsUri;
+      if (!gcsUri) {
+        const reason = operation?.response?.raiMediaFilteredReasons?.join?.("; ") || "operation completed without a video";
+        state.status = "failed";
+        state.error = cleanError(reason);
+        await saveSceneState(reference, job, state);
+        await updateJob(reference, { failedSceneIndex: state.index, error: state.error });
+        throw new Error(`Veo scene ${state.index + 1} failed: ${state.error}`);
+      }
+      state.status = "rendering";
+      state.progress = 95;
+      await saveSceneState(reference, job, state);
+      return String(gcsUri);
+    }
+    state.status = "rendering";
+    state.progress = Math.min(90, Math.max(10, Number(state.progress ?? 0) + 5));
+    await saveSceneState(reference, job, state);
+    await updateJob(reference, { stage: `veo-scene-${state.index + 1}-rendering`, progress: 18 + Math.round(((state.index + state.progress / 100) / job.soraSceneCount) * 56) });
+    await heartbeat("processing", job.id);
+    await delay(POLL_INTERVAL_MS);
+  }
+  throw new Error(`Polling timed out for Veo scene ${state.index + 1}; retry will resume operation ${state.taskId}`);
+}
+
+async function downloadVeoScene(job, reference, directory, state, gcsUri) {
+  const match = String(gcsUri).match(/^gs:\/\/([^/]+)\/(.+)$/);
+  if (!match || match[1] !== bucket.name) throw new Error(`Veo returned an unexpected Cloud Storage URI for scene ${state.index + 1}`);
+  const output = path.join(directory, `scene-${state.index + 1}.mp4`);
+  await bucket.file(match[2]).download({ destination: output });
+  if (!(await fileIsUsable(output, 20_000))) throw new Error(`Downloaded Veo scene ${state.index + 1} is empty`);
+  const info = await mediaInfo(output);
+  if (!info.streams?.some((stream) => stream.codec_type === "video")) throw new Error(`Downloaded Veo scene ${state.index + 1} has no video stream`);
+  state.status = "completed";
+  state.progress = 100;
+  state.error = "";
+  const states = Array.from({ length: job.soraSceneCount }, (_, index) => index === state.index ? state : sceneState(job, index));
+  const generatedSeconds = states.filter((scene) => scene.status === "completed").length * job.sceneSeconds;
+  job.generatedSeconds = generatedSeconds;
+  await saveSceneState(reference, job, state);
+  await updateJob(reference, {
+    generatedSeconds,
+    providerUsage: {
+      model: veoConfig().model,
+      size: VIDEO_SIZE,
+      requestedSeconds: states.filter((scene) => scene.taskId).length * job.sceneSeconds,
+      generatedSeconds,
+    },
+  });
+  return output;
+}
+
+async function ensureVeoScenes(job, reference, directory, prompts) {
+  const clips = [];
+  for (let index = 0; index < job.soraSceneCount; index += 1) {
+    const output = path.join(directory, `scene-${index + 1}.mp4`);
+    const state = sceneState(job, index);
+    if (await fileIsUsable(output, 20_000)) {
+      state.status = "completed";
+      state.progress = 100;
+      await saveSceneState(reference, job, state);
+      clips.push(output);
+      continue;
+    }
+    if (!state.taskId) state.taskId = await resolveVeoOperationFromJournal(directory, job, index);
+    if (!state.taskId) await submitVeoScene(job, reference, directory, prompts[index], state);
+    const gcsUri = await pollVeoScene(job, reference, state);
+    clips.push(await downloadVeoScene(job, reference, directory, state, gcsUri));
+  }
+  return clips;
+}
+
 function bestPexelsFile(video) {
   return (Array.isArray(video?.video_files) ? video.video_files : [])
     .filter((file) => file?.link && String(file.file_type || "video/mp4").includes("mp4"))
@@ -954,7 +1127,7 @@ async function retryTelegram(job, reference, directory) {
   let telegramError = "";
   try {
     const finalPath = await ensureLocalFinal(job, directory);
-    telegramMessageId = await sendTelegram(finalPath, `${job.topic}\nEnglish · Sora ${job.mode}`);
+    telegramMessageId = await sendTelegram(finalPath, `${job.topic}\nEnglish · ${job.mode === "veo" ? "Veo 3.1 Lite" : `Sora ${job.mode}`}`);
   } catch (error) {
     telegramError = cleanError(error);
   }
@@ -978,12 +1151,14 @@ async function processJob(job) {
     }
     if (job.costConfirmed !== true) throw new Error("Job is missing server-validated paid-generation confirmation");
     if (job.budgetReservationStatus !== "reserved") throw new Error("Job is missing a transactional budget reservation");
-    if (job.mode !== "preview" && job.mode !== "standard" && job.mode !== "combined") throw new Error("Invalid job mode");
+    if (job.mode !== "preview" && job.mode !== "standard" && job.mode !== "combined" && job.mode !== "veo") throw new Error("Invalid job mode");
     if (typeof job.topic !== "string" || job.topic.trim().length < 5 || job.topic.trim().length > 500) throw new Error("Invalid job topic");
     const trustedMode = job.mode === "preview"
       ? { sceneCount: 1, soraSceneCount: 1, stockSceneCount: 0, sceneSeconds: 4 }
       : job.mode === "combined"
         ? { sceneCount: 4, soraSceneCount: 1, stockSceneCount: 3, sceneSeconds: 8 }
+        : job.mode === "veo"
+          ? { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8 }
         : { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8 };
     job.sceneCount = trustedMode.sceneCount;
     job.soraSceneCount = trustedMode.soraSceneCount;
@@ -1011,7 +1186,9 @@ async function processJob(job) {
     Object.assign(job, generated);
     const narrationPath = await ensureNarration(job, reference, directory, generated.script);
     await updateJob(reference, { stage: "generating-scenes", progress: 18 });
-    const clips = await ensureSoraScenes(job, reference, directory, generated.scenePrompts);
+    const clips = job.mode === "veo"
+      ? await ensureVeoScenes(job, reference, directory, generated.scenePrompts)
+      : await ensureSoraScenes(job, reference, directory, generated.scenePrompts);
     if (job.stockSceneCount > 0) clips.push(...await ensureStockScenes(job, reference, directory, generated.stockSearchTerms));
     await updateJob(reference, { stage: "editing-video", progress: 78 });
     const rendered = await composeVideo(job, clips, narrationPath, generated.script, generated.youtubeMetadata.thumbnailText, directory);
@@ -1026,7 +1203,7 @@ async function processJob(job) {
     let telegramError = "";
     if (job.sendToTelegram !== false) {
       await updateJob(reference, { stage: "sending-telegram", progress: 98, telegramStatus: "sending" });
-      try { telegramMessageId = await sendTelegram(rendered.finalPath, `${job.topic}\nEnglish · ${job.mode === "combined" ? "Sora + Pexels" : `Sora Batch ${job.mode}`}`); }
+      try { telegramMessageId = await sendTelegram(rendered.finalPath, `${job.topic}\nEnglish · ${job.mode === "combined" ? "Sora + Pexels" : job.mode === "veo" ? "Veo 3.1 Lite" : `Sora Batch ${job.mode}`}`); }
       catch (error) { telegramError = cleanError(error); }
     }
     await updateJob(reference, {
@@ -1059,16 +1236,21 @@ async function runCheck() {
     telegramBotToken: Boolean(env("TELEGRAM_BOT_TOKEN")),
     telegramChatId: Boolean(env("TELEGRAM_PERSONAL_CHAT_ID")),
     pexelsApiKey: false,
+    vertexAiProject: false,
     ffmpeg: false,
     ffprobe: false,
     mediaProbe: false,
   };
-  try { const account = serviceAccount(); checks.firebaseCredentials = Boolean(account?.project_id && account?.private_key && account?.client_email); } catch {}
+  try {
+    const account = serviceAccount();
+    checks.firebaseCredentials = Boolean(account?.project_id && account?.private_key && account?.client_email);
+    checks.vertexAiProject = Boolean(veoConfig().projectId);
+  } catch {}
   try { checks.pexelsApiKey = Boolean(pexelsApiKey()); } catch {}
   try { await runProcess(ffmpegBin(), ["-version"]); checks.ffmpeg = true; } catch {}
   try { await runProcess(ffprobeBin(), ["-version"]); checks.ffprobe = true; } catch {}
   checks.mediaProbe = checks.ffprobe || checks.ffmpeg;
-  const required = ["openAiKey", "firebaseCredentials", "storageBucket", "ffmpeg", "mediaProbe"];
+  const required = ["openAiKey", "firebaseCredentials", "storageBucket", "vertexAiProject", "ffmpeg", "mediaProbe"];
   const ok = required.every((key) => checks[key]);
   console.log(JSON.stringify({
     ok,
@@ -1077,6 +1259,9 @@ async function runCheck() {
     paidGenerationEnabled: boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED", false),
     soraModel: env("SORA_VIDEO_MODEL") || "sora-2",
     soraSubmission: "batch",
+    veoModel: veoConfig().model,
+    veoLocation: veoConfig().location,
+    veoPricePerSecondUsd: Number(env("VEO_LITE_PRICE_PER_SECOND_USD") || 0.03),
     batchCompletionWindow: "24h",
     pricePerSecondUsd: Number(env("SORA_BATCH_PRICE_PER_SECOND_USD") || 0.05),
     dailyBudgetUsd: Number(env("AI_VIDEO_DAILY_BUDGET_USD") || 5),
@@ -1114,7 +1299,7 @@ async function main() {
   if (process.argv.includes("--synthetic-test")) return runSyntheticTest();
   initializeFirebase();
   await mkdir(workRoot(), { recursive: true, mode: 0o700 });
-  console.log(`[ai-video-worker] ready on ${hostname()} · Sora Batch + Combined · English only · paid calls ${boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED") ? "enabled" : "disabled"}`);
+  console.log(`[ai-video-worker] ready on ${hostname()} · Sora Batch + Combined + Veo Lite · English only · paid calls ${boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED") ? "enabled" : "disabled"}`);
   await heartbeat();
   while (!stopping) {
     const job = await claimNextJob();

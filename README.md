@@ -18,9 +18,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Admin video studios
 
-The admin dashboard contains three separate studios: Free Video, Sora 2 Slow, and Combined. Sora 2 Slow submits every Sora render through the OpenAI Batch API. Combined generates one 8-second Sora scene through Batch and downloads three free Pexels scenes before using the same narration, subtitle, editing, storage, and Telegram pipeline. Paid jobs are backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
+The admin dashboard contains four separate studios: Free Video, Sora 2 Slow, Combined, and Video · Veo. Sora 2 Slow submits every Sora render through the OpenAI Batch API. Combined generates one 8-second Sora scene through Batch and downloads three free Pexels scenes. Video · Veo generates four 8-second portrait clips with `veo-3.1-lite-generate-001` on Vertex AI, with native audio disabled so the clips use the same narration, subtitle, editing, storage, and Telegram pipeline. Paid jobs are backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
 
-Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. Combined also needs `PEXELS_API_KEY`; when it is omitted, the worker safely reuses the existing key from `MONEYPRINTERTURBO_ROOT/config.toml`. The worker also needs the app's existing Firebase Admin credentials and Storage bucket, plus `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
+Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. Combined also needs `PEXELS_API_KEY`; when it is omitted, the worker safely reuses the existing key from `MONEYPRINTERTURBO_ROOT/config.toml`. Video · Veo uses the Firebase service account by default and its project ID unless `VEO_PROJECT_ID` is set; that account must be allowed to call Vertex AI and write to the configured Storage bucket, and the Vertex AI API must be enabled. The worker also needs `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
 
 Start the web app and worker in separate terminals:
 
@@ -41,7 +41,7 @@ npm run ai-video-check
 npm run ai-video-synthetic-test
 ```
 
-At the default Batch price of $0.05/second, Preview reserves $0.20, Standard reserves $1.60, and Combined reserves $0.40. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction. The worker saves the OpenAI Batch ID before polling so a restart resumes the same paid submission.
+At the default Sora Batch price of $0.05/second, Preview reserves $0.20, Standard reserves $1.60, and Combined reserves $0.40. At the default Veo 3.1 Lite video-only 720p price of $0.03/second, Video · Veo reserves $0.96. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction. The worker saves OpenAI Batch IDs and Vertex AI operation names before polling so a restart resumes the same paid submission.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
