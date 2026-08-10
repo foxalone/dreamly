@@ -149,6 +149,39 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
     }
   }
 
+  async function downloadMp4(job: AdminAiVideoJob) {
+    if (!job.videoUrl) return;
+    setBusyJob(`${job.id}:download`);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/admin/ai-video/${encodeURIComponent(job.id)}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Не удалось скачать MP4");
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const disposition = response.headers.get("Content-Disposition") || "";
+      const matched = /filename="([^"]+)"/i.exec(disposition);
+      const filename = matched?.[1] || `${job.id}.mp4`;
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка скачивания" });
+    } finally {
+      setBusyJob("");
+    }
+  }
+
   const card = "rounded-2xl bg-[var(--card)] border border-[var(--border)]";
   const input = "w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)] outline-none focus:ring-2 focus:ring-violet-500/25";
   const copyButton = (key: string, value: string) => (
@@ -262,7 +295,20 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
                 <article key={job.id} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
                   <div className="flex flex-col justify-between gap-4 sm:flex-row">
                     <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-3 py-1 text-xs font-bold ${statusColor(job.status)}`}>{statusLabel(job.status)}</span><span className="text-xs text-[var(--muted)]">{job.mode} · {job.sceneCount}×{job.sceneSeconds} сек. · {usd.format(job.estimatedCostUsd)}</span></div><h3 className="mt-3 text-lg font-bold text-[var(--text)]">{job.topic}</h3><p className="mt-1 text-xs text-[var(--muted)]">{dateFormatter.format(new Date(job.createdAt))} · {job.stage}</p></div>
-                    <div className="flex h-fit flex-wrap gap-2">{job.videoUrl && <a href={job.videoUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)]">Открыть MP4</a>}{job.thumbnailUrl && <a href={job.thumbnailUrl} target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)]">Обложка</a>}</div>
+                    <div className="flex h-fit flex-wrap gap-2">
+                      {job.videoUrl && <a href={job.videoUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)]">Открыть MP4</a>}
+                      {job.videoUrl && (
+                        <button
+                          type="button"
+                          disabled={busyJob === `${job.id}:download`}
+                          onClick={() => void downloadMp4(job)}
+                          className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+                        >
+                          {busyJob === `${job.id}:download` ? "Скачиваем…" : "Скачать"}
+                        </button>
+                      )}
+                      {job.thumbnailUrl && <a href={job.thumbnailUrl} target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)]">Обложка</a>}
+                    </div>
                   </div>
 
                   <div className="mt-4"><div className="mb-1 flex justify-between text-xs text-[var(--muted)]"><span>{job.stage}</span><span>{Math.round(job.progress)}%</span></div><div className="h-2 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_8%,transparent)]"><div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${job.progress}%` }} /></div></div>
