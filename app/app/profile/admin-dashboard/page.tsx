@@ -34,6 +34,7 @@ import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import QuickSymbolQueries from "./QuickSymbolQueries";
+import VideoAdminPanel from "./VideoAdminPanel";
 import AiVideoAdminPanel from "./AiVideoAdminPanel";
 
 import data from "@emoji-mart/data";
@@ -69,7 +70,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "VIDEOS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -887,6 +888,8 @@ async function loadUsers() {
               </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
+            ) : tab === "FREE_VIDEOS" ? (
+              <>Free Video · English Shorts · stock footage · YouTube package · Telegram</>
             ) : tab === "VIDEOS" ? (
               <>AI Video · Sora · English Shorts · private admin studio</>
             ) : (
@@ -990,6 +993,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Docs
+        </button>
+
+        <button
+          onClick={() => setTab("FREE_VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "FREE_VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Free Video
         </button>
 
         <button
@@ -1456,6 +1471,8 @@ async function loadUsers() {
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
+
+      {tab === "FREE_VIDEOS" && user && <VideoAdminPanel user={user} />}
 
       {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} />}
     </main>
