@@ -48,11 +48,14 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
       const providerTaskIds = Array.isArray(data.providerTaskIds) ? [...data.providerTaskIds] : [];
       for (const scene of sceneStates) {
         if (scene.status !== "failed") continue;
+        const previousError = String(scene.error || "");
+        const safetyRelated = /safety|rai|policy|blocked|filtered|person.?generation|sensitive/i.test(previousError);
         scene.status = "pending";
         scene.taskId = null;
         scene.progress = 0;
         scene.error = "";
-        scene.safePromptRetryCount = Number(scene.safePromptRetryCount ?? 0) + 1;
+        // Only rewrite the prompt for content/safety failures — infrastructure errors must retry as-is.
+        if (safetyRelated) scene.safePromptRetryCount = Number(scene.safePromptRetryCount ?? 0) + 1;
         providerTaskIds[scene.index] = null;
       }
       transaction.update(reference, {

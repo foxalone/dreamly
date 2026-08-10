@@ -758,28 +758,61 @@ async function resolveVeoOperationFromJournal(directory, job, index) {
   } catch { return ""; }
 }
 
+function isVeoServiceAgentProvisioningError(message) {
+  return /service agents are being provisioned/i.test(String(message || ""));
+}
+
+function isVeoTransientInfrastructureError(message) {
+  const text = String(message || "");
+  return isVeoServiceAgentProvisioningError(text)
+    || (/try again in a few minutes/i.test(text) && /service agent|cloud storage|provision/i.test(text));
+}
+
+async function clearFailedVeoScene(job, reference, directory, state, errorMessage) {
+  state.status = "pending";
+  state.taskId = null;
+  state.progress = 0;
+  state.error = cleanError(errorMessage);
+  try { await writeFile(veoOperationJournal(directory, job, state.index), "", { mode: 0o600 }); } catch {}
+  await saveSceneState(reference, job, state);
+  await updateJob(reference, { failedSceneIndex: null, error: state.error, stage: `veo-scene-${state.index + 1}-waiting-retry` });
+}
+
 async function submitVeoScene(job, reference, directory, prompt, state) {
   if (!boolEnv("AI_VIDEO_PAID_GENERATION_ENABLED", false)) {
     throw new Error("Paid Veo generation is disabled in this worker");
   }
-  const operation = await paidSubmission(veoEndpoint("predictLongRunning"), {
-    method: "POST",
-    headers: await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" }),
-    body: JSON.stringify({
-      instances: [{ prompt: safeRetryPrompt(prompt, state.safePromptRetryCount) }],
-      parameters: {
-        storageUri: `gs://${bucket.name}/admin-ai-videos/${job.id}/veo-scenes/scene-${state.index + 1}/`,
-        sampleCount: 1,
-        durationSeconds: job.sceneSeconds,
-        aspectRatio: "9:16",
-        resolution: "720p",
-        personGeneration: "allow_adult",
-        enhancePrompt: true,
-        generateAudio: false,
-      },
-    }),
-    timeoutMs: 120_000,
-  });
+  // Omit storageUri so Vertex returns bytesBase64Encoded instead of writing into our
+  // Firebase bucket. That path needs Vertex service-agent IAM/propagation and fails with
+  // "Service agents are being provisioned" on first-time / lagging GCP projects.
+  let operation;
+  try {
+    operation = await paidSubmission(veoEndpoint("predictLongRunning"), {
+      method: "POST",
+      headers: await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" }),
+      body: JSON.stringify({
+        instances: [{ prompt: safeRetryPrompt(prompt, state.safePromptRetryCount) }],
+        parameters: {
+          sampleCount: 1,
+          durationSeconds: job.sceneSeconds,
+          aspectRatio: "9:16",
+          resolution: "720p",
+          personGeneration: "allow_adult",
+          enhancePrompt: true,
+          generateAudio: false,
+        },
+      }),
+      timeoutMs: 120_000,
+    });
+  } catch (error) {
+    const message = cleanError(error);
+    if (isVeoTransientInfrastructureError(message)) {
+      const wrapped = new Error(`Veo scene ${state.index + 1} failed: ${message}`);
+      wrapped.veoTransient = true;
+      throw wrapped;
+    }
+    throw error;
+  }
   if (!operation?.name) throw new Error(`Veo scene ${state.index + 1} submission did not return an operation name`);
   state.taskId = String(operation.name);
   state.status = "submitted";
@@ -808,15 +841,20 @@ async function pollVeoScene(job, reference, state) {
       timeoutMs: 60_000,
     });
     if (operation?.error) {
+      const message = cleanError(operation.error.message || `Vertex AI error ${operation.error.code ?? "unknown"}`);
       state.status = "failed";
-      state.error = cleanError(operation.error.message || `Vertex AI error ${operation.error.code ?? "unknown"}`);
+      state.error = message;
       await saveSceneState(reference, job, state);
       await updateJob(reference, { failedSceneIndex: state.index, error: state.error });
-      throw new Error(`Veo scene ${state.index + 1} failed: ${state.error}`);
+      const error = new Error(`Veo scene ${state.index + 1} failed: ${state.error}`);
+      error.veoTransient = isVeoTransientInfrastructureError(message);
+      throw error;
     }
     if (operation?.done) {
-      const gcsUri = operation?.response?.videos?.[0]?.gcsUri;
-      if (!gcsUri) {
+      const video = operation?.response?.videos?.[0];
+      const gcsUri = video?.gcsUri ? String(video.gcsUri) : "";
+      const bytesBase64Encoded = video?.bytesBase64Encoded ? String(video.bytesBase64Encoded) : "";
+      if (!gcsUri && !bytesBase64Encoded) {
         const reason = operation?.response?.raiMediaFilteredReasons?.join?.("; ") || "operation completed without a video";
         state.status = "failed";
         state.error = cleanError(reason);
@@ -827,7 +865,7 @@ async function pollVeoScene(job, reference, state) {
       state.status = "rendering";
       state.progress = 95;
       await saveSceneState(reference, job, state);
-      return String(gcsUri);
+      return gcsUri ? { kind: "gcs", value: gcsUri } : { kind: "bytes", value: bytesBase64Encoded };
     }
     state.status = "rendering";
     state.progress = Math.min(90, Math.max(10, Number(state.progress ?? 0) + 5));
@@ -839,11 +877,15 @@ async function pollVeoScene(job, reference, state) {
   throw new Error(`Polling timed out for Veo scene ${state.index + 1}; retry will resume operation ${state.taskId}`);
 }
 
-async function downloadVeoScene(job, reference, directory, state, gcsUri) {
-  const match = String(gcsUri).match(/^gs:\/\/([^/]+)\/(.+)$/);
-  if (!match || match[1] !== bucket.name) throw new Error(`Veo returned an unexpected Cloud Storage URI for scene ${state.index + 1}`);
+async function materializeVeoScene(job, reference, directory, state, artifact) {
   const output = path.join(directory, `scene-${state.index + 1}.mp4`);
-  await bucket.file(match[2]).download({ destination: output });
+  if (artifact.kind === "bytes") {
+    await writeFile(output, Buffer.from(artifact.value, "base64"), { mode: 0o600 });
+  } else {
+    const match = String(artifact.value).match(/^gs:\/\/([^/]+)\/(.+)$/);
+    if (!match || match[1] !== bucket.name) throw new Error(`Veo returned an unexpected Cloud Storage URI for scene ${state.index + 1}`);
+    await bucket.file(match[2]).download({ destination: output });
+  }
   if (!(await fileIsUsable(output, 20_000))) throw new Error(`Downloaded Veo scene ${state.index + 1} is empty`);
   const info = await mediaInfo(output);
   if (!info.streams?.some((stream) => stream.codec_type === "video")) throw new Error(`Downloaded Veo scene ${state.index + 1} has no video stream`);
@@ -878,10 +920,25 @@ async function ensureVeoScenes(job, reference, directory, prompts) {
       clips.push(output);
       continue;
     }
-    if (!state.taskId) state.taskId = await resolveVeoOperationFromJournal(directory, job, index);
-    if (!state.taskId) await submitVeoScene(job, reference, directory, prompts[index], state);
-    const gcsUri = await pollVeoScene(job, reference, state);
-    clips.push(await downloadVeoScene(job, reference, directory, state, gcsUri));
+    let lastError;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      try {
+        if (!state.taskId) state.taskId = await resolveVeoOperationFromJournal(directory, job, index);
+        if (!state.taskId) await submitVeoScene(job, reference, directory, prompts[index], state);
+        const artifact = await pollVeoScene(job, reference, state);
+        clips.push(await materializeVeoScene(job, reference, directory, state, artifact));
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (!error?.veoTransient || attempt >= 3 || stopping) throw error;
+        console.warn(`[ai-video-worker] Veo scene ${index + 1}: transient Vertex error, waiting before resubmit (${attempt + 1}/3): ${cleanError(error)}`);
+        await clearFailedVeoScene(job, reference, directory, state, error.message);
+        await heartbeat("processing", job.id);
+        await delay(90_000 * (attempt + 1));
+      }
+    }
+    if (lastError) throw lastError;
   }
   return clips;
 }
