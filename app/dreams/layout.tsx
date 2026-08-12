@@ -64,6 +64,21 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
               ))}
             </ul>
           </nav>
+          <nav aria-label="Legal">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Legal</p>
+            <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+              <li>
+                <Link href="/privacy" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
+                  Terms of Service
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
       </footer>
       <BottomNav />
