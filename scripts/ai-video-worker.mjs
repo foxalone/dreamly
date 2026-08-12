@@ -21,15 +21,15 @@ const LEASE_MS = 90_000;
 const TRANSITION_SECONDS = 0.35;
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
 const workerId = `${hostname()}:${process.pid}:${randomUUID()}`;
-const YOUTUBE_SITE_URL = "https://dreamly.art/?utm_source=youtube&utm_medium=description&utm_campaign=shorts";
-const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning free → ${YOUTUBE_SITE_URL}`;
+const YOUTUBE_SITE_URL = "https://dreamly.art/";
+const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning → ${YOUTUBE_SITE_URL}`;
 
 function withYoutubeSiteLink(description) {
   const body = String(description ?? "")
     .trim()
     .replace(/^Get your dream meaning[^\n]*\n+/i, "")
     .replace(/^https?:\/\/(?:www\.)?dreamly\.art\/?\S*\s*/i, "")
-    .replace(/\n*Get your dream meaning free → https:\/\/dreamly\.art\/?\S*/gi, "")
+    .replace(/\n*Get your dream meaning(?: free)? → https:\/\/dreamly\.art\/?\S*/gi, "")
     .trim();
   const combined = body ? `${YOUTUBE_SITE_LINK_LINE}\n\n${body}` : YOUTUBE_SITE_LINK_LINE;
   return combined.slice(0, 5_000);
