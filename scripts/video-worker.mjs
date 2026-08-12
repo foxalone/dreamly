@@ -15,6 +15,19 @@ const JOBS_COLLECTION = "adminVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/videoWorker";
 const ENGLISH_VOICE = "en-US-AriaNeural-Female";
 const SCRIPT_GENERATION_ATTEMPTS = 3;
+const YOUTUBE_SITE_URL = "https://dreamly.art/?utm_source=youtube&utm_medium=description&utm_campaign=shorts";
+const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning free → ${YOUTUBE_SITE_URL}`;
+
+function withYoutubeSiteLink(description) {
+  const body = String(description ?? "")
+    .trim()
+    .replace(/^Get your dream meaning[^\n]*\n+/i, "")
+    .replace(/^https?:\/\/(?:www\.)?dreamly\.art\/?\S*\s*/i, "")
+    .replace(/\n*Get your dream meaning free → https:\/\/dreamly\.art\/?\S*/gi, "")
+    .trim();
+  const combined = body ? `${YOUTUBE_SITE_LINK_LINE}\n\n${body}` : YOUTUBE_SITE_LINK_LINE;
+  return combined.slice(0, 5_000);
+}
 
 const VIDEO_PACKAGE_SCHEMA = {
   name: "oneiro_video_package",
@@ -166,7 +179,7 @@ function parseJsonContent(content) {
   const youtube = parsed.youtube && typeof parsed.youtube === "object" ? parsed.youtube : {};
   const youtubeMetadata = {
     title: String(youtube.title ?? "").trim().slice(0, 100),
-    description: String(youtube.description ?? "").trim().slice(0, 5_000),
+    description: withYoutubeSiteLink(youtube.description),
     tags: Array.isArray(youtube.tags) ? youtube.tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 20) : [],
     hashtags: Array.isArray(youtube.hashtags)
       ? youtube.hashtags.map((tag) => String(tag).trim().replace(/^#/, "")).filter(Boolean).slice(0, 5)
@@ -207,7 +220,8 @@ async function createScript(topic) {
               "The narration must be natural, engaging, and accurate, with no markdown, scene labels, unsupported certainty, " +
               "or misleading clickbait. searchTerms must contain 5 to 8 short English Pexels queries. The title must be accurate " +
               "and at most 70 characters. The description must summarize the value, include natural search phrases, and end " +
-              "with 3 hashtags. Provide 10 to 15 comma-free tags, 3 to 5 hashtags without #, thumbnail text of 2 to 4 words, " +
+              "with 3 hashtags. Do not include any website URLs in the description or pinned comment — the publishing system adds the site link. " +
+              "Provide 10 to 15 comma-free tags, 3 to 5 hashtags without #, thumbnail text of 2 to 4 words, " +
               "a short pinned question, and the best YouTube category.",
           },
           {

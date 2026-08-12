@@ -21,6 +21,19 @@ const LEASE_MS = 90_000;
 const TRANSITION_SECONDS = 0.35;
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
 const workerId = `${hostname()}:${process.pid}:${randomUUID()}`;
+const YOUTUBE_SITE_URL = "https://dreamly.art/?utm_source=youtube&utm_medium=description&utm_campaign=shorts";
+const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning free → ${YOUTUBE_SITE_URL}`;
+
+function withYoutubeSiteLink(description) {
+  const body = String(description ?? "")
+    .trim()
+    .replace(/^Get your dream meaning[^\n]*\n+/i, "")
+    .replace(/^https?:\/\/(?:www\.)?dreamly\.art\/?\S*\s*/i, "")
+    .replace(/\n*Get your dream meaning free → https:\/\/dreamly\.art\/?\S*/gi, "")
+    .trim();
+  const combined = body ? `${YOUTUBE_SITE_LINK_LINE}\n\n${body}` : YOUTUBE_SITE_LINK_LINE;
+  return combined.slice(0, 5_000);
+}
 
 let db;
 let bucket;
@@ -326,7 +339,7 @@ function parsePackage(content, soraSceneCount, stockSceneCount) {
   const youtube = parsed.youtube && typeof parsed.youtube === "object" ? parsed.youtube : {};
   const youtubeMetadata = {
     title: String(youtube.title ?? "").trim(),
-    description: String(youtube.description ?? "").trim().slice(0, 5_000),
+    description: withYoutubeSiteLink(youtube.description),
     tags: uniqueStrings(Array.isArray(youtube.tags) ? youtube.tags : [], 15),
     hashtags: uniqueStrings(Array.isArray(youtube.hashtags) ? youtube.hashtags : [], 5).map((tag) => tag.replace(/^#/, "")),
     thumbnailText: String(youtube.thumbnailText ?? "").trim(),
@@ -351,7 +364,11 @@ function parsePackage(content, soraSceneCount, stockSceneCount) {
 
 async function generatePackage(job, reference) {
   if (job.script && Array.isArray(job.scenePrompts) && job.scenePrompts.length === job.soraSceneCount && Array.isArray(job.stockSearchTerms) && job.stockSearchTerms.length === job.stockSceneCount && job.youtubeMetadata) {
-    return { script: job.script, scenePrompts: job.scenePrompts, stockSearchTerms: job.stockSearchTerms, youtubeMetadata: job.youtubeMetadata, tokenUsage: job.tokenUsage };
+    const youtubeMetadata = {
+      ...job.youtubeMetadata,
+      description: withYoutubeSiteLink(job.youtubeMetadata.description),
+    };
+    return { script: job.script, scenePrompts: job.scenePrompts, stockSearchTerms: job.stockSearchTerms, youtubeMetadata, tokenUsage: job.tokenUsage };
   }
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -367,7 +384,7 @@ async function generatePackage(job, reference) {
         messages: [
           {
             role: "system",
-            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent AI video scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every video prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every video prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not use markdown.`,
+            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent AI video scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every video prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every video prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not include any website URLs in the description or pinned comment — the publishing system adds the site link. Do not use markdown.`,
           },
           { role: "user", content: `Topic: ${job.topic}\nMode: ${job.mode}.\nAll generated content must be English only.` },
         ],
