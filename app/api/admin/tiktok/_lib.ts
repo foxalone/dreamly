@@ -252,6 +252,9 @@ async function queryCreatorInfo(accessToken: string) {
       privacy_level_options?: string[];
       creator_nickname?: string;
       max_video_post_duration_sec?: number;
+      comment_disabled?: boolean;
+      duet_disabled?: boolean;
+      stitch_disabled?: boolean;
     };
     error?: { code?: string; message?: string };
   };
@@ -263,8 +266,10 @@ async function queryCreatorInfo(accessToken: string) {
 
 function pickPrivacyLevel(options: string[] | undefined) {
   const list = options || [];
-  if (list.includes("PUBLIC_TO_EVERYONE")) return "PUBLIC_TO_EVERYONE";
+  // Unaudited / sandbox clients can only publish SELF_ONLY. Prefer it whenever available.
+  if (list.includes("SELF_ONLY")) return "SELF_ONLY";
   if (list.includes("MUTUAL_FOLLOW_FRIENDS")) return "MUTUAL_FOLLOW_FRIENDS";
+  if (list.includes("PUBLIC_TO_EVERYONE")) return "PUBLIC_TO_EVERYONE";
   return "SELF_ONLY";
 }
 
@@ -328,6 +333,12 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
   const accessToken = await getValidAccessToken();
   const creator = await queryCreatorInfo(accessToken);
   const privacyLevel = pickPrivacyLevel(creator.privacy_level_options);
+  const privacyOptions = creator.privacy_level_options || [];
+  if (privacyOptions.length > 0 && !privacyOptions.includes(privacyLevel)) {
+    throw new Error(
+      `TikTok does not allow privacy=${privacyLevel}. Available: ${privacyOptions.join(", ")}. For sandbox/unaudited apps use a private TikTok account and SELF_ONLY.`,
+    );
+  }
 
   const mediaResponse = await fetch(video.videoUrl, { cache: "no-store" });
   if (!mediaResponse.ok) throw new Error("Failed to download video for TikTok upload");
@@ -344,9 +355,10 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
       post_info: {
         title: video.caption,
         privacy_level: privacyLevel,
-        disable_duet: false,
-        disable_comment: false,
-        disable_stitch: false,
+        // Defaults match TikTok integration guidelines: interactions off unless user enables them.
+        disable_duet: true,
+        disable_comment: true,
+        disable_stitch: true,
         video_cover_timestamp_ms: 1000,
       },
       source_info: {
@@ -363,7 +375,13 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
     error?: { code?: string; message?: string };
   };
   if (!initResponse.ok || initPayload.error?.code !== "ok" || !initPayload.data?.publish_id || !initPayload.data?.upload_url) {
-    throw new Error(apiError(initPayload));
+    const message = apiError(initPayload);
+    if (/integration guidelines/i.test(message)) {
+      throw new Error(
+        `${message} Tip: for sandbox/unaudited posting set @dreamly.art to Private account and retry Publish (SELF_ONLY only).`,
+      );
+    }
+    throw new Error(message);
   }
 
   await uploadVideoChunks(initPayload.data.upload_url, bytes, chunkSize);
