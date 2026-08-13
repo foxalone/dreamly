@@ -105,6 +105,14 @@ export async function getTikTokStatus(): Promise<TikTokConnectionStatus> {
   };
 }
 
+export async function resetTikTokConnection() {
+  const db = adminDb();
+  await authRef().delete().catch(() => undefined);
+  const states = await db.collection(TIKTOK_OAUTH_STATES_COLLECTION).listDocuments();
+  await Promise.all(states.map((doc) => doc.delete().catch(() => undefined)));
+  return { ok: true as const };
+}
+
 export async function createOAuthStart(adminUid: string) {
   const { clientKey, redirectUri } = getTikTokConfig();
   const state = randomBytes(24).toString("hex");

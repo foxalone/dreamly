@@ -46,6 +46,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [notice, setNotice] = useState<{ type: "ok" | "error"; text: string } | null>(null);
   const [tiktok, setTiktok] = useState<TikTokConnectionStatus & { redirectUri?: string } | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [publishingId, setPublishingId] = useState("");
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }), []);
 
@@ -113,6 +114,28 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  async function resetTikTok() {
+    setResetting(true);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/tiktok/disconnect", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось сбросить TikTok");
+      }
+      setNotice({ type: "ok", text: "TikTok сброшен. Можно подключить аккаунт заново." });
+      await load(true);
+    } catch (resetError) {
+      setNotice({ type: "error", text: resetError instanceof Error ? resetError.message : "Ошибка сброса" });
+    } finally {
+      setResetting(false);
+    }
+  }
+
   async function publishToTikTok(item: AdminVideoLibraryItem) {
     setPublishingId(item.id);
     setNotice(null);
@@ -165,6 +188,14 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
             Обновить
+          </button>
+          <button
+            type="button"
+            disabled={resetting}
+            onClick={() => void resetTikTok()}
+            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+          >
+            {resetting ? "Сбрасываем…" : "Reset TikTok"}
           </button>
           <button
             type="button"
