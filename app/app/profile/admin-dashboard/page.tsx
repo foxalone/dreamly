@@ -228,6 +228,28 @@ export default function AdminDashboardPage() {
 
   const [tab, setTab] = useState<AdminTab>("DREAMS");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("tab");
+    if (
+      requested === "DREAMS" ||
+      requested === "EMOJIS" ||
+      requested === "CONFIG" ||
+      requested === "USERS" ||
+      requested === "QUERIES" ||
+      requested === "DOCS" ||
+      requested === "FREE_VIDEOS" ||
+      requested === "VIDEOS" ||
+      requested === "COMBINED_VIDEOS" ||
+      requested === "VEO_VIDEOS" ||
+      requested === "VIDEO_LIBRARY"
+    ) {
+      setTab(requested);
+    } else if (params.get("tiktok")) {
+      setTab("VIDEO_LIBRARY");
+    }
+  }, []);
+
   // DREAMS
   const [items, setItems] = useState<DreamAdmin[]>([]);
   const [err, setErr] = useState<string | null>(null);
