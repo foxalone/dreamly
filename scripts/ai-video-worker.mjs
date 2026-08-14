@@ -303,7 +303,7 @@ function videoPackageSchema(soraSceneCount, stockSceneCount) {
       type: "object",
       additionalProperties: false,
       properties: {
-        script: { type: "string" },
+        script: { type: "string", description: "English voice-over containing 65 to 75 whitespace-separated words." },
         scenePrompts: { type: "array", minItems: soraSceneCount, maxItems: soraSceneCount, items: { type: "string" } },
         stockSearchTerms: { type: "array", minItems: stockSceneCount, maxItems: stockSceneCount, items: { type: "string" } },
         youtube: {
@@ -313,7 +313,7 @@ function videoPackageSchema(soraSceneCount, stockSceneCount) {
             title: { type: "string" }, description: { type: "string" },
             tags: { type: "array", minItems: 10, maxItems: 15, items: { type: "string" } },
             hashtags: { type: "array", minItems: 3, maxItems: 5, items: { type: "string" } },
-            thumbnailText: { type: "string" }, pinnedComment: { type: "string" }, category: { type: "string" },
+            thumbnailText: { type: "string", description: "Short English thumbnail text containing 2 to 4 whitespace-separated words." }, pinnedComment: { type: "string" }, category: { type: "string" },
           },
           required: ["title", "description", "tags", "hashtags", "thumbnailText", "pinnedComment", "category"],
         },
@@ -374,20 +374,31 @@ async function generatePackage(job, reference) {
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0, model };
   let validationError = "Invalid structured response";
+  let previousContent = "";
   for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const messages = [
+      {
+        role: "system",
+        content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent AI video scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every video prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every video prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Count hyphenated terms as one word. Do not include any website URLs in the description or pinned comment — the publishing system adds the site link. Do not use markdown.`,
+      },
+      { role: "user", content: `Topic: ${job.topic}\nMode: ${job.mode}.\nAll generated content must be English only.` },
+    ];
+    if (previousContent) {
+      messages.push(
+        { role: "assistant", content: previousContent },
+        {
+          role: "user",
+          content: `The previous JSON failed validation: ${validationError}. Return the complete corrected JSON package. Fix every listed issue, preserve the valid fields, and count the script and thumbnail words before responding. The script must have 65–75 whitespace-separated words and thumbnailText must have 2–4 whitespace-separated words.`,
+        },
+      );
+    }
     const payload = await requestWithRetries(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         model,
         response_format: { type: "json_schema", json_schema: videoPackageSchema(job.soraSceneCount, job.stockSceneCount) },
-        messages: [
-          {
-            role: "system",
-            content: `Create an English-only YouTube Short production package. Write a natural 65–75-word voice-over, exactly ${job.soraSceneCount} independent AI video scene prompts, and exactly ${job.stockSceneCount} concise Pexels stock-video search terms. Every video prompt must independently specify the subject, location and environment, natural motion, camera movement, lighting, mood, photorealistic detail, and stable geometry. Every video prompt must explicitly prohibit dialogue, captions, visible text, logos, watermarks, recognizable public figures, copyrighted characters, and copyrighted music. Do not depict real people in generated footage. Stock search terms must be concrete, visual, varied, safe, and likely to return vertical footage relevant to successive parts of the narration. The YouTube title must be accurate and at most 70 characters. Return 10–15 tags, 3–5 hashtags without #, 2–4 words of thumbnail text, a pinned comment, and category. Do not include any website URLs in the description or pinned comment — the publishing system adds the site link. Do not use markdown.`,
-          },
-          { role: "user", content: `Topic: ${job.topic}\nMode: ${job.mode}.\nAll generated content must be English only.` },
-        ],
+        messages,
       }),
       timeoutMs: 120_000,
     });
@@ -397,9 +408,10 @@ async function generatePackage(job, reference) {
     usage.completion += completion;
     usage.total += Number(payload?.usage?.total_tokens ?? prompt + completion);
     usage.model = String(payload?.model ?? model);
+    previousContent = String(payload?.choices?.[0]?.message?.content ?? "").trim();
     try {
       if (payload?.choices?.[0]?.message?.refusal) throw new Error(String(payload.choices[0].message.refusal));
-      const generated = parsePackage(payload?.choices?.[0]?.message?.content, job.soraSceneCount, job.stockSceneCount);
+      const generated = parsePackage(previousContent, job.soraSceneCount, job.stockSceneCount);
       await updateJob(reference, { ...generated, tokenUsage: usage, stage: "script-ready", progress: 10 });
       return { ...generated, tokenUsage: usage };
     } catch (error) {
