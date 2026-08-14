@@ -691,10 +691,21 @@ async function applyBatchResults(job, reference, directory, batch) {
     batchOutputFileId: batch.output_file_id || "",
     batchErrorFileId: batch.error_file_id || "",
   });
+  const preservationErrors = [];
+  for (const state of states) {
+    if (!state.taskId || state.status !== "completed") continue;
+    try { await downloadSoraScene(job, reference, directory, state.index); }
+    catch (error) { preservationErrors.push(`scene ${state.index + 1}: ${cleanError(error)}`); }
+  }
   const failed = states.find((state) => state.status === "failed");
   if (failed) {
-    await updateJob(reference, { failedSceneIndex: failed.index, error: failed.error });
-    throw new Error(`Sora scene ${failed.index + 1} failed in Batch: ${failed.error}`);
+    const preservationSuffix = preservationErrors.length ? `; successful scene download also failed (${preservationErrors.join("; ")})` : "";
+    const failure = `Sora scene ${failed.index + 1} failed in Batch: ${failed.error}${preservationSuffix}`;
+    await updateJob(reference, { failedSceneIndex: failed.index, error: failure });
+    throw new Error(failure);
+  }
+  if (preservationErrors.length) {
+    throw new Error(`Sora Batch completed, but successful scene download failed (${preservationErrors.join("; ")})`);
   }
 }
 
@@ -762,7 +773,7 @@ async function downloadSoraScene(job, reference, directory, index) {
     providerUsage: {
       model: env("SORA_VIDEO_MODEL") || "sora-2",
       size: VIDEO_SIZE,
-      requestedSeconds: job.sceneStates.filter((scene) => scene.taskId).length * job.sceneSeconds,
+      requestedSeconds: Math.max(Number(job.providerUsage?.requestedSeconds ?? 0), job.sceneStates.filter((scene) => scene.taskId).length * job.sceneSeconds),
       generatedSeconds,
     },
   });
@@ -784,12 +795,18 @@ async function ensureSoraScenes(job, reference, directory, prompts) {
     }
   }
   await saveAllSceneStates(reference, job, states);
+  const clips = Array(job.soraSceneCount).fill("");
+  for (const state of states) {
+    if (!state.taskId || state.status !== "completed") continue;
+    clips[state.index] = await downloadSoraScene(job, reference, directory, state.index);
+  }
   if (needsBatch) {
     await createSoraBatch(job, reference, directory, prompts);
     if (job.batchId) await pollSoraBatch(job, reference, directory);
   }
-  const clips = [];
-  for (let index = 0; index < job.soraSceneCount; index += 1) clips.push(await downloadSoraScene(job, reference, directory, index));
+  for (let index = 0; index < job.soraSceneCount; index += 1) {
+    if (!clips[index]) clips[index] = await downloadSoraScene(job, reference, directory, index);
+  }
   return clips;
 }
 
