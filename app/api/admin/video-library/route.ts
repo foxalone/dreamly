@@ -22,6 +22,18 @@ function titleFrom(topic: string, youtubeTitle?: string) {
   return titled || String(topic || "").trim() || "Untitled video";
 }
 
+function publishedFrom(data: {
+  tiktokPublishedAt?: string;
+  instagramPublishedAt?: string;
+  facebookPublishedAt?: string;
+}) {
+  return {
+    tiktok: Boolean(data.tiktokPublishedAt),
+    instagram: Boolean(data.instagramPublishedAt),
+    facebook: Boolean(data.facebookPublishedAt),
+  };
+}
+
 function aiSource(mode: string): AdminVideoLibrarySource {
   if (mode === "preview") return "sora-preview";
   if (mode === "combined") return "combined";
@@ -47,6 +59,9 @@ export async function GET(request: Request) {
         videoUrl?: string;
         youtubeMetadata?: { title?: string };
         createdAt?: { toDate?: () => Date };
+        tiktokPublishedAt?: string;
+        instagramPublishedAt?: string;
+        facebookPublishedAt?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -59,6 +74,7 @@ export async function GET(request: Request) {
         videoUrl,
         thumbnailUrl: "",
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
+        published: publishedFrom(data),
       });
     }
 
@@ -71,6 +87,9 @@ export async function GET(request: Request) {
         thumbnailUrl?: string;
         youtubeMetadata?: { title?: string };
         createdAt?: { toDate?: () => Date };
+        tiktokPublishedAt?: string;
+        instagramPublishedAt?: string;
+        facebookPublishedAt?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -84,6 +103,7 @@ export async function GET(request: Request) {
         videoUrl,
         thumbnailUrl: String(data.thumbnailUrl || ""),
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
+        published: publishedFrom(data),
       });
     }
 

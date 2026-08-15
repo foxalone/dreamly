@@ -9,7 +9,6 @@ import {
   TIKTOK_PUBLISH_STATUS_URL,
   TIKTOK_SCOPES,
   TIKTOK_TOKEN_URL,
-  buildTikTokCaption,
   chunkPlan,
   tiktokClientKey,
   tiktokClientSecret,
@@ -18,8 +17,8 @@ import {
   type TikTokAuthRecord,
   type TikTokConnectionStatus,
 } from "@/lib/adminTikTok";
-import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
 
 type TokenResponse = {
   access_token?: string;
@@ -204,37 +203,6 @@ export async function getValidAccessToken() {
   };
   await authRef().set(next, { merge: true });
   return String(token.access_token);
-}
-
-async function loadLibraryVideo(libraryId: string) {
-  const [kind, rawId] = libraryId.split(":");
-  if (!rawId || (kind !== "free" && kind !== "ai")) {
-    throw new Error("Invalid video id");
-  }
-  const collection = kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION;
-  const snapshot = await adminDb().collection(collection).doc(rawId).get();
-  if (!snapshot.exists) throw new Error("Video not found");
-  const data = snapshot.data() as {
-    status?: string;
-    videoUrl?: string;
-    topic?: string;
-    youtubeMetadata?: { title?: string; hashtags?: string[] };
-  };
-  const videoUrl = String(data.videoUrl || "");
-  if (data.status !== "completed" || !videoUrl) throw new Error("Video is not ready");
-  const title = String(data.youtubeMetadata?.title || data.topic || "Dreamly Short").trim();
-  const hashtags = Array.isArray(data.youtubeMetadata?.hashtags)
-    ? data.youtubeMetadata!.hashtags.map((tag) => `#${String(tag).replace(/^#/, "")}`).join(" ")
-    : "";
-  const captionBase = hashtags ? `${title}\n\n${hashtags}\n\nGet your dream meaning → link in bio` : buildTikTokCaption(title, String(data.topic || ""));
-  return {
-    kind,
-    jobId: rawId,
-    collection,
-    videoUrl,
-    title,
-    caption: captionBase.slice(0, 2200),
-  };
 }
 
 async function queryCreatorInfo(accessToken: string) {

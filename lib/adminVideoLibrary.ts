@@ -1,5 +1,11 @@
 export type AdminVideoLibrarySource = "free" | "sora-preview" | "sora-standard" | "combined" | "veo";
 
+export type AdminVideoLibraryPublished = {
+  tiktok: boolean;
+  instagram: boolean;
+  facebook: boolean;
+};
+
 export type AdminVideoLibraryItem = {
   id: string;
   title: string;
@@ -9,6 +15,7 @@ export type AdminVideoLibraryItem = {
   videoUrl: string;
   thumbnailUrl: string;
   createdAt: string;
+  published: AdminVideoLibraryPublished;
 };
 
 export function sourceLabelFor(source: AdminVideoLibrarySource) {
