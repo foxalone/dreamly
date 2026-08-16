@@ -10,12 +10,14 @@ import {
 import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
+import { youtubeWatchUrl, type YouTubeConnectionStatus } from "@/lib/adminYouTube";
 
-type Platform = "tiktok" | "instagram" | "facebook" | "threads";
-type Connection = "tiktok" | "meta" | "threads";
+type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube";
+type Connection = "tiktok" | "meta" | "threads" | "youtube";
 type TikTokStatus = TikTokConnectionStatus & { redirectUri?: string };
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
 type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
+type YouTubeStatus = YouTubeConnectionStatus & { redirectUri?: string };
 
 const PINTEREST_AUTO = PINTEREST_DELIVERY === "auto-via-instagram";
 const PINTEREST_HINT = PINTEREST_AUTO
@@ -59,6 +61,14 @@ function ThreadsGlyph() {
   );
 }
 
+function YouTubeGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15.1V8.9l5.2 3.1L10 15.1Z" />
+    </svg>
+  );
+}
+
 function PinterestGlyph() {
   return (
     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
@@ -71,6 +81,7 @@ function platformLabel(platform: Platform) {
   if (platform === "tiktok") return "TikTok";
   if (platform === "instagram") return "Instagram Reels";
   if (platform === "threads") return "Threads";
+  if (platform === "youtube") return "YouTube";
   return "Facebook Reels";
 }
 
@@ -97,6 +108,7 @@ function PublishIconButton({
   published,
   failed = false,
   failureNote = "",
+  openHint = "",
   disabled,
   busy,
   onClick,
@@ -105,12 +117,13 @@ function PublishIconButton({
   published: boolean;
   failed?: boolean;
   failureNote?: string;
+  openHint?: string;
   disabled: boolean;
   busy: boolean;
   onClick: () => void;
 }) {
   const label = published
-    ? `Уже в ${platformLabel(platform)}`
+    ? `Уже в ${platformLabel(platform)}${openHint ? ` · ${openHint}` : ""}`
     : failed
       ? `Ошибка публикации в ${platformLabel(platform)}${failureNote ? `: ${failureNote}` : ""} · нажмите, чтобы повторить`
       : `Опубликовать в ${platformLabel(platform)}`;
@@ -121,7 +134,9 @@ function PublishIconButton({
         ? "text-pink-600 hover:bg-gradient-to-br hover:from-yellow-400 hover:via-pink-500 hover:to-purple-600 hover:text-white"
         : platform === "threads"
           ? "text-[var(--text)] hover:bg-black hover:text-white"
-          : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
+          : platform === "youtube"
+            ? "text-[#FF0000] hover:bg-[#FF0000] hover:text-white"
+            : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
   return (
     <button
       type="button"
@@ -145,6 +160,8 @@ function PublishIconButton({
         <InstagramGlyph />
       ) : platform === "threads" ? (
         <ThreadsGlyph />
+      ) : platform === "youtube" ? (
+        <YouTubeGlyph />
       ) : (
         <FacebookGlyph />
       )}
@@ -197,6 +214,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [tiktok, setTiktok] = useState<TikTokStatus | null>(null);
   const [meta, setMeta] = useState<MetaStatus | null>(null);
   const [threads, setThreads] = useState<ThreadsStatus | null>(null);
+  const [youtube, setYoutube] = useState<YouTubeStatus | null>(null);
   const [connecting, setConnecting] = useState<"" | Connection>("");
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
@@ -207,11 +225,12 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [libraryResponse, statusResponse, metaResponse, threadsResponse] = await Promise.all([
+      const [libraryResponse, statusResponse, metaResponse, threadsResponse, youtubeResponse] = await Promise.all([
         fetch("/api/admin/video-library", { headers, cache: "no-store" }),
         fetch("/api/admin/tiktok/status", { headers, cache: "no-store" }),
         fetch("/api/admin/meta/status", { headers, cache: "no-store" }),
         fetch("/api/admin/threads/status", { headers, cache: "no-store" }),
+        fetch("/api/admin/youtube/status", { headers, cache: "no-store" }),
       ]);
       const libraryPayload = (await libraryResponse.json()) as { items?: AdminVideoLibraryItem[]; error?: string };
       if (!libraryResponse.ok) throw new Error(libraryPayload.error || "Не удалось загрузить библиотеку");
@@ -223,6 +242,8 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       if (metaResponse.ok) setMeta(metaPayload);
       const threadsPayload = (await threadsResponse.json()) as ThreadsStatus & { error?: string };
       if (threadsResponse.ok) setThreads(threadsPayload);
+      const youtubePayload = (await youtubeResponse.json()) as YouTubeStatus & { error?: string };
+      if (youtubeResponse.ok) setYoutube(youtubePayload);
       setError("");
     } catch (loadError) {
       if (!quiet) setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
@@ -242,6 +263,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     const tiktokResult = params.get("tiktok");
     const metaResult = params.get("meta");
     const threadsResult = params.get("threads");
+    const youtubeResult = params.get("youtube");
     if (tiktokResult === "connected") {
       setNotice({ type: "ok", text: "TikTok подключён. Можно публиковать видео." });
     } else if (tiktokResult === "error") {
@@ -254,6 +276,10 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       setNotice({ type: "ok", text: "Threads подключён. Можно публиковать видео." });
     } else if (threadsResult === "error") {
       setNotice({ type: "error", text: params.get("threads_error") || "Не удалось подключить Threads" });
+    } else if (youtubeResult === "connected") {
+      setNotice({ type: "ok", text: "YouTube подключён. Можно загружать видео на канал." });
+    } else if (youtubeResult === "error") {
+      setNotice({ type: "error", text: params.get("youtube_error") || "Не удалось подключить YouTube" });
     }
   }, []);
 
@@ -317,6 +343,26 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  async function connectYouTube() {
+    setConnecting("youtube");
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/youtube/oauth/start", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await response.json()) as { authorizeUrl?: string; error?: string };
+      if (!response.ok || !payload.authorizeUrl) {
+        throw new Error(payload.error || "Не удалось начать OAuth YouTube");
+      }
+      window.location.href = payload.authorizeUrl;
+    } catch (connectError) {
+      setNotice({ type: "error", text: connectError instanceof Error ? connectError.message : "Ошибка подключения" });
+      setConnecting("");
+    }
+  }
+
   async function resetConnection(kind: Connection) {
     setResetting(kind);
     setNotice(null);
@@ -327,8 +373,11 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
           ? "/api/admin/tiktok/disconnect"
           : kind === "meta"
             ? "/api/admin/meta/disconnect"
-            : "/api/admin/threads/disconnect";
-      const connectionLabel = kind === "tiktok" ? "TikTok" : kind === "meta" ? "Meta" : "Threads";
+            : kind === "threads"
+              ? "/api/admin/threads/disconnect"
+              : "/api/admin/youtube/disconnect";
+      const connectionLabel =
+        kind === "tiktok" ? "TikTok" : kind === "meta" ? "Meta" : kind === "threads" ? "Threads" : "YouTube";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -344,7 +393,9 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             ? "TikTok сброшен. Можно подключить аккаунт заново."
             : kind === "meta"
               ? "Meta сброшена. Можно подключить Facebook/Instagram заново."
-              : "Threads сброшен. Можно подключить аккаунт заново.",
+              : kind === "threads"
+                ? "Threads сброшен. Можно подключить аккаунт заново."
+                : "YouTube сброшен. Можно подключить канал заново.",
       });
       await load(true);
     } catch (resetError) {
@@ -365,9 +416,11 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                 instagram: Boolean(item.published?.instagram),
                 facebook: Boolean(item.published?.facebook),
                 threads: Boolean(item.published?.threads),
+                youtube: Boolean(item.published?.youtube),
                 [platform]: true,
               },
               ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
+              ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
             }
           : item,
       ),
@@ -474,6 +527,47 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  async function publishToYouTube(item: AdminVideoLibraryItem) {
+    // Already published: use the stored video id to open the upload instead.
+    if (item.published?.youtube) {
+      if (item.youtubeVideoId) window.open(youtubeWatchUrl(item.youtubeVideoId), "_blank", "noopener,noreferrer");
+      return;
+    }
+    setPublishingKey(`youtube:${item.id}`);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/youtube/publish", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        videoId?: string;
+        privacyStatus?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось загрузить на YouTube");
+      }
+      markPublished(item.id, "youtube");
+      setNotice({
+        type: "ok",
+        text: `Загружено на YouTube · ${payload.privacyStatus || "public"}${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
+      });
+      await load(true);
+    } catch (publishError) {
+      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -535,6 +629,22 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
           >
             {connecting === "threads" ? "Открываем Threads…" : threads?.connected ? "Reconnect Threads" : "Connect Threads"}
+          </button>
+          <button
+            type="button"
+            disabled={resetting === "youtube"}
+            onClick={() => void resetConnection("youtube")}
+            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+          >
+            {resetting === "youtube" ? "Сбрасываем…" : "Reset YouTube"}
+          </button>
+          <button
+            type="button"
+            disabled={connecting === "youtube"}
+            onClick={() => void connectYouTube()}
+            className="rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {connecting === "youtube" ? "Открываем YouTube…" : youtube?.connected ? "Reconnect YouTube" : "Connect YouTube"}
           </button>
         </div>
       </div>
@@ -602,6 +712,27 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             </span>
           ) : (
             <span>Threads ещё не подключён. Нажмите Connect Threads и авторизуйте @get.dreamly.</span>
+          )}
+        </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+          {youtube?.configured === false ? (
+            <span>
+              YouTube env: <code className="text-[var(--text)]">YOUTUBE_CLIENT_ID</code>,{" "}
+              <code className="text-[var(--text)]">YOUTUBE_CLIENT_SECRET</code>
+              {youtube.redirectUri ? (
+                <>
+                  {" "}
+                  · Redirect URI: <code className="text-[var(--text)]">{youtube.redirectUri}</code>
+                </>
+              ) : null}
+            </span>
+          ) : youtube?.connected ? (
+            <span>
+              YouTube подключён{youtube.channelTitle ? ` · ${youtube.channelTitle}` : youtube.channelId ? ` · ${youtube.channelId}` : ""}
+              {youtube.privacyStatus ? ` · загрузка как ${youtube.privacyStatus}` : ""}
+            </span>
+          ) : (
+            <span>YouTube ещё не подключён. Нажмите Connect YouTube и выберите канал Dreamly.</span>
           )}
         </div>
         <div className="rounded-xl border border-dashed border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
@@ -672,6 +803,20 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                     disabled={!threads?.connected || Boolean(item.published?.threads) || item.threadsState === "publishing"}
                     busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
                     onClick={() => void publishToThreads(item)}
+                  />
+                  <PublishIconButton
+                    platform="youtube"
+                    published={Boolean(item.published?.youtube)}
+                    failed={item.youtubeState === "failed"}
+                    failureNote={item.youtubeError}
+                    openHint={item.published?.youtube && item.youtubeVideoId ? "открыть видео" : ""}
+                    disabled={
+                      item.youtubeState === "publishing" ||
+                      (!youtube?.connected && !item.published?.youtube) ||
+                      (Boolean(item.published?.youtube) && !item.youtubeVideoId)
+                    }
+                    busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "publishing"}
+                    onClick={() => void publishToYouTube(item)}
                   />
                   <PinterestBadge expected={Boolean(item.published?.instagram)} />
                 </div>

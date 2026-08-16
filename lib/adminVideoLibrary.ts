@@ -5,6 +5,7 @@ export type AdminVideoLibraryPublished = {
   instagram: boolean;
   facebook: boolean;
   threads: boolean;
+  youtube: boolean;
 };
 
 export type AdminVideoPublishState = "idle" | "publishing" | "published" | "failed";
@@ -28,6 +29,9 @@ export type AdminVideoLibraryItem = {
   published: AdminVideoLibraryPublished;
   threadsState: AdminVideoPublishState;
   threadsError: string;
+  youtubeState: AdminVideoPublishState;
+  youtubeError: string;
+  youtubeVideoId: string;
 };
 
 export function sourceLabelFor(source: AdminVideoLibrarySource) {

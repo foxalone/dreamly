@@ -30,6 +30,10 @@ type PublishFields = {
   threadsPublishedAt?: string;
   threadsStatus?: string;
   threadsError?: string;
+  youtubePublishedAt?: string;
+  youtubeStatus?: string;
+  youtubeError?: string;
+  youtubeVideoId?: string;
 };
 
 function publishedFrom(data: PublishFields) {
@@ -38,12 +42,20 @@ function publishedFrom(data: PublishFields) {
     instagram: Boolean(data.instagramPublishedAt),
     facebook: Boolean(data.facebookPublishedAt),
     threads: Boolean(data.threadsPublishedAt),
+    youtube: Boolean(data.youtubePublishedAt),
   };
 }
 
 function threadsStateFrom(data: PublishFields): AdminVideoPublishState {
   if (data.threadsPublishedAt) return "published";
   const status = String(data.threadsStatus || "");
+  if (status === "publishing" || status === "failed" || status === "published") return status;
+  return "idle";
+}
+
+function youtubeStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.youtubePublishedAt) return "published";
+  const status = String(data.youtubeStatus || "");
   if (status === "publishing" || status === "failed" || status === "published") return status;
   return "idle";
 }
@@ -79,6 +91,10 @@ export async function GET(request: Request) {
         threadsPublishedAt?: string;
         threadsStatus?: string;
         threadsError?: string;
+        youtubePublishedAt?: string;
+        youtubeStatus?: string;
+        youtubeError?: string;
+        youtubeVideoId?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -94,6 +110,9 @@ export async function GET(request: Request) {
         published: publishedFrom(data),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
+        youtubeState: youtubeStateFrom(data),
+        youtubeError: String(data.youtubeError || ""),
+        youtubeVideoId: String(data.youtubeVideoId || ""),
       });
     }
 
@@ -112,6 +131,10 @@ export async function GET(request: Request) {
         threadsPublishedAt?: string;
         threadsStatus?: string;
         threadsError?: string;
+        youtubePublishedAt?: string;
+        youtubeStatus?: string;
+        youtubeError?: string;
+        youtubeVideoId?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -128,6 +151,9 @@ export async function GET(request: Request) {
         published: publishedFrom(data),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
+        youtubeState: youtubeStateFrom(data),
+        youtubeError: String(data.youtubeError || ""),
+        youtubeVideoId: String(data.youtubeVideoId || ""),
       });
     }
 
