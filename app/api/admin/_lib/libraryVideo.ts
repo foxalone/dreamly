@@ -11,6 +11,9 @@ export type LibraryVideo = {
   title: string;
   topic: string;
   hashtags: string;
+  // The description written by the video generation pipeline
+  // (youtubeMetadata.description). Empty for jobs generated before it existed.
+  description: string;
   caption: string;
 };
 
@@ -33,7 +36,7 @@ export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200):
     videoUrl?: string;
     thumbnailUrl?: string;
     topic?: string;
-    youtubeMetadata?: { title?: string; hashtags?: string[] };
+    youtubeMetadata?: { title?: string; hashtags?: string[]; description?: string };
   };
   const videoUrl = String(data.videoUrl || "");
   if (data.status !== "completed" || !videoUrl) throw new Error("Video is not ready");
@@ -50,6 +53,7 @@ export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200):
     title,
     topic: String(data.topic || ""),
     hashtags,
+    description: String(data.youtubeMetadata?.description || "").trim(),
     caption: buildDreamCaption(title, String(data.topic || ""), hashtags, captionMaxLen),
   };
 }

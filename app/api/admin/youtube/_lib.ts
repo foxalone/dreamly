@@ -21,6 +21,7 @@ import {
 } from "@/lib/adminYouTube";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import { appendDreamlySocialCta } from "@/lib/socialCta";
 
 const YOUTUBE_PUBLISH_LOCK_MS = 30 * 60 * 1000;
 
@@ -263,10 +264,17 @@ export function buildYouTubeTitle(title: string, topic: string) {
   return headline.length > YOUTUBE_TITLE_LIMIT ? `${headline.slice(0, YOUTUBE_TITLE_LIMIT - 1).trimEnd()}…` : headline;
 }
 
-// Reuses the shared caption (headline + hashtags + Dreamly CTA) and only
-// strips what does not belong in a YouTube description.
-export function buildYouTubeDescription(caption: string) {
-  return sanitize(caption).slice(0, YOUTUBE_DESCRIPTION_LIMIT);
+// Uses the description the video generation pipeline already wrote
+// (youtubeMetadata.description), followed by the stored hashtags and the shared
+// Dreamly CTA. appendDreamlySocialCta drops the generator's own
+// "Get your dream meaning -> https://dreamly.art" line so the link is not
+// duplicated. Falls back to the shared caption (title + hashtags + CTA) only
+// for older jobs that never had a generated description.
+export function buildYouTubeDescription(generatedDescription: string, hashtags: string, fallbackCaption: string) {
+  const body = sanitize(generatedDescription);
+  if (!body) return appendDreamlySocialCta(sanitize(fallbackCaption), YOUTUBE_DESCRIPTION_LIMIT);
+  const tags = sanitize(hashtags);
+  return appendDreamlySocialCta(tags ? `${body}\n\n${tags}` : body, YOUTUBE_DESCRIPTION_LIMIT);
 }
 
 export function buildYouTubeTags(hashtags: string) {
@@ -391,7 +399,7 @@ export async function publishLibraryVideoToYouTube(
     const metadata = {
       snippet: {
         title: buildYouTubeTitle(video.title, video.topic),
-        description: buildYouTubeDescription(video.caption),
+        description: buildYouTubeDescription(video.description, video.hashtags, video.caption),
         categoryId: youtubeCategoryId(),
         ...(tags.length > 0 ? { tags } : {}),
       },
