@@ -1,4 +1,5 @@
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
+import { appendDreamlySocialCta } from "@/lib/socialCta";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
 export type LibraryVideo = {
@@ -15,10 +16,8 @@ export type LibraryVideo = {
 
 export function buildDreamCaption(title: string, topic: string, hashtags: string, maxLen = 2200) {
   const headline = String(title || topic || "Dream meaning").trim().slice(0, 120);
-  const caption = hashtags
-    ? `${headline}\n\n${hashtags}\n\nGet your dream meaning → link in bio`
-    : `${headline}\n\nGet your dream meaning → link in bio\n#dreams #dreammeaning #dreamly`;
-  return caption.slice(0, maxLen);
+  const body = hashtags ? `${headline}\n\n${hashtags}` : `${headline}\n\n#dreams #dreammeaning #dreamly`;
+  return appendDreamlySocialCta(body, maxLen);
 }
 
 export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200): Promise<LibraryVideo> {

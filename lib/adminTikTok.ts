@@ -1,3 +1,5 @@
+import { appendDreamlySocialCta } from "@/lib/socialCta";
+
 export const TIKTOK_AUTH_DOCUMENT = "adminSystem/tiktokAuth";
 export const TIKTOK_OAUTH_STATES_COLLECTION = "adminTikTokOAuthStates";
 export const TIKTOK_SCOPES = "user.info.basic,video.publish";
@@ -52,8 +54,7 @@ export function tiktokConfigured() {
 
 export function buildTikTokCaption(title: string, topic: string) {
   const headline = String(title || topic || "Dream meaning").trim().slice(0, 120);
-  const caption = `${headline}\n\nGet your dream meaning → link in bio\n#dreams #dreammeaning #dreamly`;
-  return caption.slice(0, 2200);
+  return appendDreamlySocialCta(`${headline}\n\n#dreams #dreammeaning #dreamly`, 2200);
 }
 
 export function chunkPlan(videoSize: number) {
