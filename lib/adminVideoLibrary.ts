@@ -8,7 +8,16 @@ export type AdminVideoLibraryPublished = {
   youtube: boolean;
 };
 
-export type AdminVideoPublishState = "idle" | "publishing" | "published" | "failed";
+// "publishing" is the in-flight state used by Threads; YouTube reports
+// "uploading" while the file transfers and "scheduled" once YouTube holds it
+// for a native status.publishAt release.
+export type AdminVideoPublishState =
+  | "idle"
+  | "publishing"
+  | "uploading"
+  | "scheduled"
+  | "published"
+  | "failed";
 
 // Pinterest is not published by Dreamly. The board below is fed automatically by
 // the external Instagram -> Pinterest connection, so the admin UI only reports
@@ -32,6 +41,7 @@ export type AdminVideoLibraryItem = {
   youtubeState: AdminVideoPublishState;
   youtubeError: string;
   youtubeVideoId: string;
+  youtubeScheduledAt: string;
 };
 
 export function sourceLabelFor(source: AdminVideoLibrarySource) {

@@ -326,7 +326,33 @@ async function resumableUpload(accessToken: string, metadata: unknown, bytes: Ui
   return payload;
 }
 
-export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: string) {
+// YouTube only honours status.publishAt while the video is private and has
+// never been published, so a scheduled upload is always uploaded as private
+// and YouTube itself flips it public at the requested moment. We never run our
+// own scheduler.
+export function normalizePublishAt(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const when = new Date(raw);
+  const millis = when.getTime();
+  if (!Number.isFinite(millis)) throw new Error("Invalid publish date");
+  // A past publishAt makes YouTube release the video immediately, which is not
+  // what "schedule" means to the admin.
+  if (millis <= Date.now() + 60 * 1000) {
+    throw new Error("Scheduled time must be at least a minute in the future");
+  }
+  if (millis > Date.now() + 365 * 24 * 60 * 60 * 1000) {
+    throw new Error("Scheduled time must be within a year from now");
+  }
+  return when.toISOString();
+}
+
+export async function publishLibraryVideoToYouTube(
+  libraryId: string,
+  adminUid: string,
+  publishAtInput = "",
+) {
+  const publishAt = normalizePublishAt(publishAtInput);
   const video = await loadLibraryVideo(libraryId, YOUTUBE_DESCRIPTION_LIMIT);
   const auth = await getValidYouTubeAuth();
   const jobRef = adminDb().collection(video.collection).doc(video.jobId);
@@ -344,7 +370,10 @@ export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: 
     if (data.youtubePublishedAt || data.youtubeStatus === "published") {
       throw new Error("This video is already published to YouTube");
     }
-    if (data.youtubeStatus === "publishing") {
+    if (data.youtubeStatus === "scheduled") {
+      throw new Error("This video is already scheduled on YouTube");
+    }
+    if (data.youtubeStatus === "uploading" || data.youtubeStatus === "publishing") {
       const lockedAt = Date.parse(data.youtubePublishStartedAt || "") || 0;
       if (Date.now() - lockedAt < YOUTUBE_PUBLISH_LOCK_MS) {
         throw new Error("A YouTube upload is already running for this video");
@@ -352,7 +381,7 @@ export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: 
     }
     transaction.set(
       jobRef,
-      { youtubeStatus: "publishing", youtubePublishStartedAt: startedAt, youtubePublishedBy: adminUid, youtubeError: "" },
+      { youtubeStatus: "uploading", youtubePublishStartedAt: startedAt, youtubePublishedBy: adminUid, youtubeError: "" },
       { merge: true },
     );
   });
@@ -367,8 +396,10 @@ export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: 
         ...(tags.length > 0 ? { tags } : {}),
       },
       status: {
-        privacyStatus: youtubePrivacyStatus(),
+        // A scheduled upload must go up private; publishAt is what releases it.
+        privacyStatus: publishAt ? "private" : youtubePrivacyStatus(),
         selfDeclaredMadeForKids: false,
+        ...(publishAt ? { publishAt } : {}),
       },
     };
 
@@ -376,12 +407,17 @@ export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: 
     const uploaded = await resumableUpload(auth.accessToken, metadata, bytes);
     const videoId = String(uploaded.id);
 
+    const privacyStatus = String(uploaded.status?.privacyStatus || metadata.status.privacyStatus);
     await jobRef.set(
       {
-        youtubeStatus: "published",
+        youtubeStatus: publishAt ? "scheduled" : "published",
         youtubeVideoId: videoId,
-        youtubePrivacyStatus: String(uploaded.status?.privacyStatus || youtubePrivacyStatus()),
-        youtubePublishedAt: new Date().toISOString(),
+        youtubePrivacyStatus: privacyStatus,
+        youtubeScheduledAt: publishAt,
+        // Only a real, live publish stamps youtubePublishedAt. A scheduled
+        // upload gets it when YouTube releases it, not now.
+        ...(publishAt ? {} : { youtubePublishedAt: new Date().toISOString() }),
+        youtubeUploadedAt: new Date().toISOString(),
         youtubePublishedBy: adminUid,
         youtubeError: "",
       },
@@ -390,9 +426,10 @@ export async function publishLibraryVideoToYouTube(libraryId: string, adminUid: 
 
     return {
       target: "youtube" as const,
-      status: "PUBLISHED",
+      status: publishAt ? "SCHEDULED" : "PUBLISHED",
       videoId,
-      privacyStatus: String(uploaded.status?.privacyStatus || youtubePrivacyStatus()),
+      privacyStatus,
+      scheduledAt: publishAt,
       title: metadata.snippet.title,
       channelTitle: auth.channelTitle,
     };

@@ -77,6 +77,20 @@ function PinterestGlyph() {
   );
 }
 
+// datetime-local gives a wall-clock string with no zone; new Date() reads it in
+// the admin's local zone and toISOString() hands YouTube the correct UTC value.
+function localInputToIso(value: string) {
+  const when = new Date(value);
+  return Number.isFinite(when.getTime()) ? when.toISOString() : "";
+}
+
+function defaultScheduleValue() {
+  const when = new Date(Date.now() + 60 * 60 * 1000);
+  when.setSeconds(0, 0);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${when.getFullYear()}-${pad(when.getMonth() + 1)}-${pad(when.getDate())}T${pad(when.getHours())}:${pad(when.getMinutes())}`;
+}
+
 function platformLabel(platform: Platform) {
   if (platform === "tiktok") return "TikTok";
   if (platform === "instagram") return "Instagram Reels";
@@ -109,6 +123,8 @@ function PublishIconButton({
   failed = false,
   failureNote = "",
   openHint = "",
+  scheduled = false,
+  scheduledNote = "",
   disabled,
   busy,
   onClick,
@@ -118,13 +134,17 @@ function PublishIconButton({
   failed?: boolean;
   failureNote?: string;
   openHint?: string;
+  scheduled?: boolean;
+  scheduledNote?: string;
   disabled: boolean;
   busy: boolean;
   onClick: () => void;
 }) {
   const label = published
     ? `Уже в ${platformLabel(platform)}${openHint ? ` · ${openHint}` : ""}`
-    : failed
+    : scheduled
+      ? `Запланировано в ${platformLabel(platform)}${scheduledNote ? ` на ${scheduledNote}` : ""}${openHint ? ` · ${openHint}` : ""}`
+      : failed
       ? `Ошибка публикации в ${platformLabel(platform)}${failureNote ? `: ${failureNote}` : ""} · нажмите, чтобы повторить`
       : `Опубликовать в ${platformLabel(platform)}`;
   const color =
@@ -147,7 +167,9 @@ function PublishIconButton({
       className={`relative flex h-7 w-7 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-35 ${
         published
           ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-600"
-          : failed
+          : scheduled
+            ? "border-amber-500/70 bg-amber-500/10 text-amber-600"
+            : failed
             ? "border-red-500/70 bg-red-500/10 text-red-500"
             : `border-[var(--border)] bg-[var(--card)] ${color}`
       }`}
@@ -167,6 +189,8 @@ function PublishIconButton({
       )}
       {published && !busy ? (
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />
+      ) : scheduled && !busy ? (
+        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
       ) : null}
     </button>
   );
@@ -218,7 +242,13 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [connecting, setConnecting] = useState<"" | Connection>("");
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
+  const [scheduleFor, setScheduleFor] = useState("");
+  const [scheduleAt, setScheduleAt] = useState("");
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }), []);
+  const scheduleFormatter = useMemo(
+    () => new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
+    [],
+  );
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -527,12 +557,24 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
-  async function publishToYouTube(item: AdminVideoLibraryItem) {
-    // Already published: use the stored video id to open the upload instead.
-    if (item.published?.youtube) {
-      if (item.youtubeVideoId) window.open(youtubeWatchUrl(item.youtubeVideoId), "_blank", "noopener,noreferrer");
+  function openYouTubeVideo(item: AdminVideoLibraryItem) {
+    if (item.youtubeVideoId) window.open(youtubeWatchUrl(item.youtubeVideoId), "_blank", "noopener,noreferrer");
+  }
+
+  // Clicking YouTube opens the choice: publish now, or hand YouTube a
+  // status.publishAt so it releases the video itself.
+  function openYouTubeMenu(item: AdminVideoLibraryItem) {
+    if (item.published?.youtube || item.youtubeState === "scheduled") {
+      openYouTubeVideo(item);
       return;
     }
+    setScheduleFor((current) => (current === item.id ? "" : item.id));
+    setScheduleAt(defaultScheduleValue());
+  }
+
+  async function publishToYouTube(item: AdminVideoLibraryItem, publishAt = "") {
+    if (item.published?.youtube || item.youtubeState === "scheduled") return;
+    setScheduleFor("");
     setPublishingKey(`youtube:${item.id}`);
     setNotice(null);
     try {
@@ -543,22 +585,33 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ libraryId: item.id }),
+        body: JSON.stringify(publishAt ? { libraryId: item.id, publishAt } : { libraryId: item.id }),
       });
       const payload = (await response.json()) as {
         ok?: boolean;
         videoId?: string;
         privacyStatus?: string;
+        status?: string;
+        scheduledAt?: string;
         error?: string;
       };
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Не удалось загрузить на YouTube");
       }
-      markPublished(item.id, "youtube");
-      setNotice({
-        type: "ok",
-        text: `Загружено на YouTube · ${payload.privacyStatus || "public"}${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
-      });
+      if (payload.status === "SCHEDULED") {
+        setNotice({
+          type: "ok",
+          text: `Запланировано на YouTube · ${
+            payload.scheduledAt ? scheduleFormatter.format(new Date(payload.scheduledAt)) : ""
+          }${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
+        });
+      } else {
+        markPublished(item.id, "youtube");
+        setNotice({
+          type: "ok",
+          text: `Загружено на YouTube · ${payload.privacyStatus || "public"}${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
+        });
+      }
       await load(true);
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
@@ -807,20 +860,70 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                   <PublishIconButton
                     platform="youtube"
                     published={Boolean(item.published?.youtube)}
+                    scheduled={item.youtubeState === "scheduled"}
+                    scheduledNote={
+                      item.youtubeScheduledAt ? scheduleFormatter.format(new Date(item.youtubeScheduledAt)) : ""
+                    }
                     failed={item.youtubeState === "failed"}
                     failureNote={item.youtubeError}
-                    openHint={item.published?.youtube && item.youtubeVideoId ? "открыть видео" : ""}
-                    disabled={
-                      item.youtubeState === "publishing" ||
-                      (!youtube?.connected && !item.published?.youtube) ||
-                      (Boolean(item.published?.youtube) && !item.youtubeVideoId)
+                    openHint={
+                      (item.published?.youtube || item.youtubeState === "scheduled") && item.youtubeVideoId
+                        ? "открыть видео"
+                        : ""
                     }
-                    busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "publishing"}
-                    onClick={() => void publishToYouTube(item)}
+                    disabled={
+                      item.youtubeState === "uploading" ||
+                      (!youtube?.connected && !item.published?.youtube && item.youtubeState !== "scheduled") ||
+                      ((Boolean(item.published?.youtube) || item.youtubeState === "scheduled") && !item.youtubeVideoId)
+                    }
+                    busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "uploading"}
+                    onClick={() => openYouTubeMenu(item)}
                   />
                   <PinterestBadge expected={Boolean(item.published?.instagram)} />
                 </div>
               </div>
+              {item.youtubeState === "scheduled" && item.youtubeScheduledAt ? (
+                <p className="mt-1 truncate px-0.5 text-[10px] font-semibold text-amber-600">
+                  YouTube ⏱ {scheduleFormatter.format(new Date(item.youtubeScheduledAt))}
+                </p>
+              ) : null}
+              {scheduleFor === item.id ? (
+                <div className="mt-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]">YouTube</p>
+                  <button
+                    type="button"
+                    onClick={() => void publishToYouTube(item)}
+                    className="mt-1.5 w-full rounded-lg bg-[#FF0000] px-2 py-1.5 text-[11px] font-bold text-white"
+                  >
+                    Опубликовать сейчас
+                  </button>
+                  <input
+                    type="datetime-local"
+                    value={scheduleAt}
+                    min={defaultScheduleValue()}
+                    onChange={(event) => setScheduleAt(event.target.value)}
+                    className="mt-1.5 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-[11px] text-[var(--text)]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!scheduleAt}
+                    onClick={() => void publishToYouTube(item, localInputToIso(scheduleAt))}
+                    className="mt-1.5 w-full rounded-lg border border-amber-500/70 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-amber-600 disabled:opacity-40"
+                  >
+                    Запланировать
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScheduleFor("")}
+                    className="mt-1 w-full text-[10px] font-semibold text-[var(--muted)] underline"
+                  >
+                    Отмена
+                  </button>
+                  <p className="mt-1 text-[9px] leading-3 text-[var(--muted)]">
+                    Запланированное видео уходит как private, публикацию делает сам YouTube.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

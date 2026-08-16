@@ -34,6 +34,7 @@ type PublishFields = {
   youtubeStatus?: string;
   youtubeError?: string;
   youtubeVideoId?: string;
+  youtubeScheduledAt?: string;
 };
 
 function publishedFrom(data: PublishFields) {
@@ -54,9 +55,11 @@ function threadsStateFrom(data: PublishFields): AdminVideoPublishState {
 }
 
 function youtubeStateFrom(data: PublishFields): AdminVideoPublishState {
-  if (data.youtubePublishedAt) return "published";
   const status = String(data.youtubeStatus || "");
-  if (status === "publishing" || status === "failed" || status === "published") return status;
+  if (status === "scheduled") return "scheduled";
+  if (data.youtubePublishedAt) return "published";
+  if (status === "uploading" || status === "publishing") return "uploading";
+  if (status === "failed" || status === "published") return status;
   return "idle";
 }
 
@@ -95,6 +98,7 @@ export async function GET(request: Request) {
         youtubeStatus?: string;
         youtubeError?: string;
         youtubeVideoId?: string;
+        youtubeScheduledAt?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -113,6 +117,7 @@ export async function GET(request: Request) {
         youtubeState: youtubeStateFrom(data),
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
+        youtubeScheduledAt: String(data.youtubeScheduledAt || ""),
       });
     }
 
@@ -135,6 +140,7 @@ export async function GET(request: Request) {
         youtubeStatus?: string;
         youtubeError?: string;
         youtubeVideoId?: string;
+        youtubeScheduledAt?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -154,6 +160,7 @@ export async function GET(request: Request) {
         youtubeState: youtubeStateFrom(data),
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
+        youtubeScheduledAt: String(data.youtubeScheduledAt || ""),
       });
     }
 
