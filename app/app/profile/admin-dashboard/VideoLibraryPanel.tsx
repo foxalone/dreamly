@@ -251,6 +251,10 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [scheduleFor, setScheduleFor] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }), []);
+  const scheduleItem = useMemo(
+    () => (scheduleFor ? items.find((entry) => entry.id === scheduleFor) || null : null),
+    [items, scheduleFor],
+  );
   const scheduleFormatter = useMemo(
     () => new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
     [],
@@ -892,47 +896,65 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                   YouTube ⏱ {scheduleFormatter.format(new Date(item.youtubeScheduledAt))}
                 </p>
               ) : null}
-              {scheduleFor === item.id ? (
-                <div className="mt-1.5 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]">YouTube</p>
-                  <button
-                    type="button"
-                    onClick={() => void publishToYouTube(item)}
-                    className="mt-1.5 w-full rounded-lg bg-[#FF0000] px-2 py-1.5 text-[11px] font-bold text-white"
-                  >
-                    Опубликовать сейчас
-                  </button>
-                  <input
-                    type="datetime-local"
-                    value={scheduleAt}
-                    min={defaultScheduleValue()}
-                    onChange={(event) => setScheduleAt(event.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-[11px] text-[var(--text)]"
-                  />
-                  <button
-                    type="button"
-                    disabled={!scheduleAt}
-                    onClick={() => void publishToYouTube(item, localInputToIso(scheduleAt))}
-                    className="mt-1.5 w-full rounded-lg border border-amber-500/70 bg-amber-500/10 px-2 py-1.5 text-[11px] font-bold text-amber-600 disabled:opacity-40"
-                  >
-                    Запланировать
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScheduleFor("")}
-                    className="mt-1 w-full text-[10px] font-semibold text-[var(--muted)] underline"
-                  >
-                    Отмена
-                  </button>
-                  <p className="mt-1 text-[9px] leading-3 text-[var(--muted)]">
-                    Запланированное видео уходит как private, публикацию делает сам YouTube.
-                  </p>
-                </div>
-              ) : null}
             </div>
           ))}
         </div>
       )}
+
+      {scheduleItem ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setScheduleFor("")}
+        >
+          <div
+            className="w-[min(92vw,26rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#FF0000]">YouTube</p>
+            <p className="mt-1 line-clamp-2 text-sm font-bold text-[var(--text)]">{scheduleItem.title}</p>
+
+            <button
+              type="button"
+              onClick={() => void publishToYouTube(scheduleItem)}
+              className="mt-4 w-full rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white"
+            >
+              Опубликовать сейчас
+            </button>
+
+            <div className="mt-4 rounded-xl border border-[var(--border)] p-3">
+              <p className="text-xs font-semibold text-[var(--muted)]">Или выбрать дату и время</p>
+              <input
+                type="datetime-local"
+                value={scheduleAt}
+                min={defaultScheduleValue()}
+                onChange={(event) => setScheduleAt(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)]"
+              />
+              <button
+                type="button"
+                disabled={!scheduleAt}
+                onClick={() => void publishToYouTube(scheduleItem, localInputToIso(scheduleAt))}
+                className="mt-2 w-full rounded-full border border-amber-500/70 bg-amber-500/10 px-4 py-2.5 text-sm font-bold text-amber-600 disabled:opacity-40"
+              >
+                Запланировать
+              </button>
+              <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
+                Запланированное видео загружается как private, публикацию в назначенное время делает сам YouTube.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setScheduleFor("")}
+              className="mt-3 w-full text-xs font-semibold text-[var(--muted)] underline"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
