@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
   },
+  other: {
+    "p:domain_verify": "9742dd8c951e12bbbb912951e1f057b9",
+  },
 };
 
 export const viewport: Viewport = {
