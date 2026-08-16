@@ -4,6 +4,7 @@ import {
   sourceLabelFor,
   type AdminVideoLibraryItem,
   type AdminVideoLibrarySource,
+  type AdminVideoPublishState,
 } from "@/lib/adminVideoLibrary";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -22,16 +23,29 @@ function titleFrom(topic: string, youtubeTitle?: string) {
   return titled || String(topic || "").trim() || "Untitled video";
 }
 
-function publishedFrom(data: {
+type PublishFields = {
   tiktokPublishedAt?: string;
   instagramPublishedAt?: string;
   facebookPublishedAt?: string;
-}) {
+  threadsPublishedAt?: string;
+  threadsStatus?: string;
+  threadsError?: string;
+};
+
+function publishedFrom(data: PublishFields) {
   return {
     tiktok: Boolean(data.tiktokPublishedAt),
     instagram: Boolean(data.instagramPublishedAt),
     facebook: Boolean(data.facebookPublishedAt),
+    threads: Boolean(data.threadsPublishedAt),
   };
+}
+
+function threadsStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.threadsPublishedAt) return "published";
+  const status = String(data.threadsStatus || "");
+  if (status === "publishing" || status === "failed" || status === "published") return status;
+  return "idle";
 }
 
 function aiSource(mode: string): AdminVideoLibrarySource {
@@ -62,6 +76,9 @@ export async function GET(request: Request) {
         tiktokPublishedAt?: string;
         instagramPublishedAt?: string;
         facebookPublishedAt?: string;
+        threadsPublishedAt?: string;
+        threadsStatus?: string;
+        threadsError?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -75,6 +92,8 @@ export async function GET(request: Request) {
         thumbnailUrl: "",
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
         published: publishedFrom(data),
+        threadsState: threadsStateFrom(data),
+        threadsError: String(data.threadsError || ""),
       });
     }
 
@@ -90,6 +109,9 @@ export async function GET(request: Request) {
         tiktokPublishedAt?: string;
         instagramPublishedAt?: string;
         facebookPublishedAt?: string;
+        threadsPublishedAt?: string;
+        threadsStatus?: string;
+        threadsError?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -104,6 +126,8 @@ export async function GET(request: Request) {
         thumbnailUrl: String(data.thumbnailUrl || ""),
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
         published: publishedFrom(data),
+        threadsState: threadsStateFrom(data),
+        threadsError: String(data.threadsError || ""),
       });
     }
 

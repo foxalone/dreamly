@@ -7,6 +7,7 @@ import {
   THREADS_LONG_LIVED_TOKEN_URL,
   THREADS_OAUTH_STATES_COLLECTION,
   THREADS_PRIVACY_REQUESTS_COLLECTION,
+  THREADS_REFRESH_TOKEN_URL,
   THREADS_SCOPES,
   THREADS_TOKEN_URL,
   threadsAppId,
@@ -19,6 +20,11 @@ import {
   type ThreadsPrivacyRequestRecord,
 } from "@/lib/adminThreads";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+
+// Threads posts are capped at 500 characters, shorter than the other networks.
+const THREADS_TEXT_LIMIT = 500;
+const THREADS_PUBLISH_LOCK_MS = 15 * 60 * 1000;
 
 type TokenPayload = {
   access_token?: string;
@@ -273,4 +279,169 @@ export async function readThreadsPrivacyRequest(confirmationCode: string) {
     .doc(confirmationCode)
     .get();
   return snapshot.exists ? (snapshot.data() as ThreadsPrivacyRequestRecord) : null;
+}
+
+async function readThreadsAuth(): Promise<ThreadsAuthRecord> {
+  const snapshot = await authRef().get();
+  if (!snapshot.exists) throw new Error("Threads is not connected");
+  const data = snapshot.data() as ThreadsAuthRecord;
+  if (!data.accessToken || !data.userId) throw new Error("Threads is not connected");
+  return data;
+}
+
+async function refreshLongLived(accessToken: string) {
+  const url = new URL(THREADS_REFRESH_TOKEN_URL);
+  url.searchParams.set("grant_type", "th_refresh_token");
+  url.searchParams.set("access_token", accessToken);
+  const response = await fetch(url, { cache: "no-store" });
+  const payload = (await response.json().catch(() => ({}))) as TokenPayload;
+  if (!response.ok || !payload.access_token) {
+    throw new Error(threadsError(payload, "Failed to refresh the Threads token"));
+  }
+  return payload;
+}
+
+async function getValidThreadsAuth(): Promise<ThreadsAuthRecord> {
+  const current = await readThreadsAuth();
+  const expiresAt = Date.parse(current.accessTokenExpiresAt || "") || 0;
+  if (expiresAt - 7 * 24 * 60 * 60 * 1000 > Date.now()) return current;
+  try {
+    const refreshed = await refreshLongLived(current.accessToken);
+    const seconds = Number(refreshed.expires_in || 60 * 24 * 60 * 60);
+    const record: ThreadsAuthRecord = {
+      ...current,
+      accessToken: String(refreshed.access_token),
+      accessTokenExpiresAt: new Date(Date.now() + seconds * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await authRef().set(record);
+    return record;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Threads token expired";
+    throw new Error(`${message}. Reconnect Threads.`);
+  }
+}
+
+async function threadsGraph<T>(path: string, accessToken: string, params: Record<string, string>, method: "GET" | "POST") {
+  const url = new URL(`${THREADS_GRAPH_URL}${path.startsWith("/") ? path : `/${path}`}`);
+  const search = new URLSearchParams({ access_token: accessToken, ...params });
+  const response = await fetch(method === "GET" ? `${url.toString()}?${search.toString()}` : url, {
+    method,
+    headers: method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded" } : undefined,
+    body: method === "POST" ? search : undefined,
+    cache: "no-store",
+  });
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: { message?: string; type?: string } };
+  if (!response.ok || payload.error) {
+    throw new Error(threadsError(payload, "Threads request failed"));
+  }
+  return payload;
+}
+
+// The container status endpoint is best-effort: if it is unavailable we fall
+// back to Meta's recommended fixed wait rather than failing the publish.
+async function waitForThreadsContainer(accessToken: string, containerId: string) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 10_000 : 5_000));
+    let status = "";
+    let errorMessage = "";
+    try {
+      const payload = await threadsGraph<{ status?: string; error_message?: string }>(
+        `/${containerId}`,
+        accessToken,
+        { fields: "status,error_message" },
+        "GET",
+      );
+      status = String(payload.status || "").toUpperCase();
+      errorMessage = String(payload.error_message || "");
+    } catch {
+      continue;
+    }
+    if (status === "FINISHED" || status === "PUBLISHED") return status;
+    if (status === "ERROR" || status === "EXPIRED") {
+      throw new Error(errorMessage || `Threads container ${status.toLowerCase()}`);
+    }
+  }
+  return "IN_PROGRESS";
+}
+
+export async function publishLibraryVideoToThreads(libraryId: string, adminUid: string) {
+  const video = await loadLibraryVideo(libraryId, THREADS_TEXT_LIMIT);
+  const auth = await getValidThreadsAuth();
+  const jobRef = adminDb().collection(video.collection).doc(video.jobId);
+  const startedAt = new Date().toISOString();
+
+  // Transactional guard: an already-published video, or one whose publish is
+  // still in flight, can never be posted twice by a double click or a retry.
+  await adminDb().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(jobRef);
+    const data = (snapshot.data() || {}) as {
+      threadsStatus?: string;
+      threadsPublishedAt?: string;
+      threadsPublishStartedAt?: string;
+    };
+    if (data.threadsPublishedAt || data.threadsStatus === "published") {
+      throw new Error("This video is already published to Threads");
+    }
+    if (data.threadsStatus === "publishing") {
+      const lockedAt = Date.parse(data.threadsPublishStartedAt || "") || 0;
+      if (Date.now() - lockedAt < THREADS_PUBLISH_LOCK_MS) {
+        throw new Error("A Threads publish is already running for this video");
+      }
+    }
+    transaction.set(
+      jobRef,
+      { threadsStatus: "publishing", threadsPublishStartedAt: startedAt, threadsPublishedBy: adminUid, threadsError: "" },
+      { merge: true },
+    );
+  });
+
+  try {
+    const created = await threadsGraph<{ id?: string }>(
+      `/${auth.userId}/threads`,
+      auth.accessToken,
+      { media_type: "VIDEO", video_url: video.videoUrl, text: video.caption },
+      "POST",
+    );
+    const containerId = String(created.id || "");
+    if (!containerId) throw new Error("Threads did not return a media container");
+
+    await waitForThreadsContainer(auth.accessToken, containerId);
+
+    const published = await threadsGraph<{ id?: string }>(
+      `/${auth.userId}/threads_publish`,
+      auth.accessToken,
+      { creation_id: containerId },
+      "POST",
+    );
+    const postId = String(published.id || "");
+
+    await jobRef.set(
+      {
+        threadsStatus: "published",
+        threadsMediaId: containerId,
+        threadsPostId: postId,
+        threadsPublishedAt: new Date().toISOString(),
+        threadsPublishedBy: adminUid,
+        threadsError: "",
+      },
+      { merge: true },
+    );
+
+    return {
+      target: "threads" as const,
+      status: "PUBLISHED",
+      mediaId: containerId,
+      postId,
+      title: video.title,
+      caption: video.caption,
+      username: auth.username,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Threads publish failed";
+    await jobRef
+      .set({ threadsStatus: "failed", threadsError: message.slice(0, 300) }, { merge: true })
+      .catch(() => undefined);
+    throw error;
+  }
 }

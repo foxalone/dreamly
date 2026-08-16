@@ -2,13 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
-import type { AdminVideoLibraryItem } from "@/lib/adminVideoLibrary";
+import {
+  PINTEREST_BOARD_NAME,
+  PINTEREST_DELIVERY,
+  type AdminVideoLibraryItem,
+} from "@/lib/adminVideoLibrary";
 import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
+import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
 
-type Platform = "tiktok" | "instagram" | "facebook";
+type Platform = "tiktok" | "instagram" | "facebook" | "threads";
+type Connection = "tiktok" | "meta" | "threads";
 type TikTokStatus = TikTokConnectionStatus & { redirectUri?: string };
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
+type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
+
+const PINTEREST_AUTO = PINTEREST_DELIVERY === "auto-via-instagram";
+const PINTEREST_HINT = PINTEREST_AUTO
+  ? `Pinterest: авто через Instagram · доска «${PINTEREST_BOARD_NAME}». Отдельная публикация из Dreamly не нужна.`
+  : `Pinterest: прямая публикация · доска «${PINTEREST_BOARD_NAME}».`;
 
 function TikTokGlyph() {
   return (
@@ -36,32 +48,80 @@ function FacebookGlyph() {
   );
 }
 
+function ThreadsGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+      <path
+        d="M12.2 21c-3 0-5.2-1-6.6-2.9C4.3 16.4 3.6 14.1 3.6 11.3v-.1c0-2.8.7-5.1 2-6.8C7 2.5 9.2 1.5 12.2 1.5c2.2 0 4 .5 5.4 1.6 1.2 1 2.1 2.3 2.6 4l-2 .6c-.8-2.7-2.7-4-5.9-4-2.3 0-4 .8-5 2.3-.9 1.4-1.4 3.2-1.4 5.4 0 2.2.5 4 1.4 5.4 1 1.5 2.7 2.3 5 2.3 2 0 3.4-.5 4.3-1.4.8-.8 1.2-1.7 1.2-2.7 0-.9-.3-1.6-1-2.2-.3-.3-.7-.5-1.1-.7-.2 1.4-.7 2.5-1.4 3.2-.8.9-2 1.3-3.4 1.3-1.1 0-2-.3-2.7-.9-.8-.6-1.2-1.5-1.2-2.5 0-1.1.5-2 1.4-2.6.9-.6 2.1-.9 3.6-.9.6 0 1.2 0 1.8.1 0-.7-.2-1.3-.6-1.7-.4-.4-1-.6-1.8-.6-1.1 0-1.9.4-2.4 1.3l-1.8-1c.9-1.5 2.3-2.2 4.2-2.2 1.4 0 2.5.4 3.3 1.2.7.8 1.1 1.8 1.2 3.2 2.1.9 3.2 2.5 3.2 4.7 0 1.6-.6 3-1.8 4.2C16.9 20.3 14.9 21 12.2 21Zm.4-9.1c-1 0-1.8.2-2.3.5-.5.3-.7.7-.7 1.2 0 .4.2.8.5 1 .3.3.8.4 1.3.4.8 0 1.4-.2 1.8-.7.4-.5.7-1.2.8-2.2-.5-.1-1-.2-1.4-.2Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function PinterestGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <path d="M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.5 1.8-2.5.9 0 1.3.6 1.3 1.4 0 .9-.5 2.2-.8 3.4-.3 1 .5 1.9 1.5 1.9 1.8 0 3.2-1.9 3.2-4.7 0-2.4-1.8-4.1-4.3-4.1a4.5 4.5 0 0 0-4.7 4.5c0 .9.3 1.8.8 2.3.1.1.1.2.1.3l-.3 1.1c0 .2-.1.2-.3.1-1.3-.6-2-2.4-2-3.9 0-3.2 2.3-6.1 6.7-6.1 3.5 0 6.2 2.5 6.2 5.8 0 3.5-2.2 6.3-5.2 6.3-1 0-2-.5-2.3-1.2l-.6 2.4c-.2.9-.8 2-1.2 2.6A10 10 0 1 0 12 2Z" />
+    </svg>
+  );
+}
+
 function platformLabel(platform: Platform) {
   if (platform === "tiktok") return "TikTok";
   if (platform === "instagram") return "Instagram Reels";
+  if (platform === "threads") return "Threads";
   return "Facebook Reels";
+}
+
+// Pinterest is fed by the external Instagram -> Pinterest connection, so this is
+// a read-only indicator: a clickable publish action would double post.
+function PinterestBadge({ expected }: { expected: boolean }) {
+  return (
+    <span
+      title={`${PINTEREST_HINT}${expected ? " Это видео уже ушло в Instagram, значит попадёт и на Pinterest." : " Опубликуйте в Instagram, чтобы видео попало на Pinterest."}`}
+      aria-label="Pinterest"
+      className={`flex h-7 w-7 items-center justify-center rounded-full border border-dashed ${
+        expected
+          ? "border-[#E60023]/60 bg-[#E60023]/10 text-[#E60023]"
+          : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)] opacity-60"
+      }`}
+    >
+      <PinterestGlyph />
+    </span>
+  );
 }
 
 function PublishIconButton({
   platform,
   published,
+  failed = false,
+  failureNote = "",
   disabled,
   busy,
   onClick,
 }: {
   platform: Platform;
   published: boolean;
+  failed?: boolean;
+  failureNote?: string;
   disabled: boolean;
   busy: boolean;
   onClick: () => void;
 }) {
-  const label = published ? `Уже в ${platformLabel(platform)}` : `Опубликовать в ${platformLabel(platform)}`;
+  const label = published
+    ? `Уже в ${platformLabel(platform)}`
+    : failed
+      ? `Ошибка публикации в ${platformLabel(platform)}${failureNote ? `: ${failureNote}` : ""} · нажмите, чтобы повторить`
+      : `Опубликовать в ${platformLabel(platform)}`;
   const color =
     platform === "tiktok"
       ? "text-[var(--text)] hover:bg-black hover:text-white"
       : platform === "instagram"
         ? "text-pink-600 hover:bg-gradient-to-br hover:from-yellow-400 hover:via-pink-500 hover:to-purple-600 hover:text-white"
-        : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
+        : platform === "threads"
+          ? "text-[var(--text)] hover:bg-black hover:text-white"
+          : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
   return (
     <button
       type="button"
@@ -70,10 +130,24 @@ function PublishIconButton({
       disabled={disabled || busy}
       onClick={onClick}
       className={`relative flex h-7 w-7 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-35 ${
-        published ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-600" : `border-[var(--border)] bg-[var(--card)] ${color}`
+        published
+          ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-600"
+          : failed
+            ? "border-red-500/70 bg-red-500/10 text-red-500"
+            : `border-[var(--border)] bg-[var(--card)] ${color}`
       }`}
     >
-      {busy ? <span className="text-[10px] font-bold">…</span> : platform === "tiktok" ? <TikTokGlyph /> : platform === "instagram" ? <InstagramGlyph /> : <FacebookGlyph />}
+      {busy ? (
+        <span className="text-[10px] font-bold">…</span>
+      ) : platform === "tiktok" ? (
+        <TikTokGlyph />
+      ) : platform === "instagram" ? (
+        <InstagramGlyph />
+      ) : platform === "threads" ? (
+        <ThreadsGlyph />
+      ) : (
+        <FacebookGlyph />
+      )}
       {published && !busy ? (
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />
       ) : null}
@@ -122,8 +196,9 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [notice, setNotice] = useState<{ type: "ok" | "error"; text: string } | null>(null);
   const [tiktok, setTiktok] = useState<TikTokStatus | null>(null);
   const [meta, setMeta] = useState<MetaStatus | null>(null);
-  const [connecting, setConnecting] = useState<"" | "tiktok" | "meta">("");
-  const [resetting, setResetting] = useState<"" | "tiktok" | "meta">("");
+  const [threads, setThreads] = useState<ThreadsStatus | null>(null);
+  const [connecting, setConnecting] = useState<"" | Connection>("");
+  const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }), []);
 
@@ -132,10 +207,11 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [libraryResponse, statusResponse, metaResponse] = await Promise.all([
+      const [libraryResponse, statusResponse, metaResponse, threadsResponse] = await Promise.all([
         fetch("/api/admin/video-library", { headers, cache: "no-store" }),
         fetch("/api/admin/tiktok/status", { headers, cache: "no-store" }),
         fetch("/api/admin/meta/status", { headers, cache: "no-store" }),
+        fetch("/api/admin/threads/status", { headers, cache: "no-store" }),
       ]);
       const libraryPayload = (await libraryResponse.json()) as { items?: AdminVideoLibraryItem[]; error?: string };
       if (!libraryResponse.ok) throw new Error(libraryPayload.error || "Не удалось загрузить библиотеку");
@@ -145,6 +221,8 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       if (statusResponse.ok) setTiktok(statusPayload);
       const metaPayload = (await metaResponse.json()) as MetaStatus & { error?: string };
       if (metaResponse.ok) setMeta(metaPayload);
+      const threadsPayload = (await threadsResponse.json()) as ThreadsStatus & { error?: string };
+      if (threadsResponse.ok) setThreads(threadsPayload);
       setError("");
     } catch (loadError) {
       if (!quiet) setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
@@ -163,6 +241,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     const params = new URLSearchParams(window.location.search);
     const tiktokResult = params.get("tiktok");
     const metaResult = params.get("meta");
+    const threadsResult = params.get("threads");
     if (tiktokResult === "connected") {
       setNotice({ type: "ok", text: "TikTok подключён. Можно публиковать видео." });
     } else if (tiktokResult === "error") {
@@ -171,6 +250,10 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       setNotice({ type: "ok", text: "Meta подключена. Можно публиковать Reels в Instagram и Facebook." });
     } else if (metaResult === "error") {
       setNotice({ type: "error", text: params.get("meta_error") || "Не удалось подключить Meta" });
+    } else if (threadsResult === "connected") {
+      setNotice({ type: "ok", text: "Threads подключён. Можно публиковать видео." });
+    } else if (threadsResult === "error") {
+      setNotice({ type: "error", text: params.get("threads_error") || "Не удалось подключить Threads" });
     }
   }, []);
 
@@ -214,22 +297,54 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
-  async function resetConnection(kind: "tiktok" | "meta") {
+  async function connectThreads() {
+    setConnecting("threads");
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/threads/oauth/start", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await response.json()) as { authorizeUrl?: string; error?: string };
+      if (!response.ok || !payload.authorizeUrl) {
+        throw new Error(payload.error || "Не удалось начать OAuth Threads");
+      }
+      window.location.href = payload.authorizeUrl;
+    } catch (connectError) {
+      setNotice({ type: "error", text: connectError instanceof Error ? connectError.message : "Ошибка подключения" });
+      setConnecting("");
+    }
+  }
+
+  async function resetConnection(kind: Connection) {
     setResetting(kind);
     setNotice(null);
     try {
       const token = await user.getIdToken();
-      const response = await fetch(kind === "tiktok" ? "/api/admin/tiktok/disconnect" : "/api/admin/meta/disconnect", {
+      const endpoint =
+        kind === "tiktok"
+          ? "/api/admin/tiktok/disconnect"
+          : kind === "meta"
+            ? "/api/admin/meta/disconnect"
+            : "/api/admin/threads/disconnect";
+      const connectionLabel = kind === "tiktok" ? "TikTok" : kind === "meta" ? "Meta" : "Threads";
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || `Не удалось сбросить ${kind === "tiktok" ? "TikTok" : "Meta"}`);
+        throw new Error(payload.error || `Не удалось сбросить ${connectionLabel}`);
       }
       setNotice({
         type: "ok",
-        text: kind === "tiktok" ? "TikTok сброшен. Можно подключить аккаунт заново." : "Meta сброшена. Можно подключить Facebook/Instagram заново.",
+        text:
+          kind === "tiktok"
+            ? "TikTok сброшен. Можно подключить аккаунт заново."
+            : kind === "meta"
+              ? "Meta сброшена. Можно подключить Facebook/Instagram заново."
+              : "Threads сброшен. Можно подключить аккаунт заново.",
       });
       await load(true);
     } catch (resetError) {
@@ -249,8 +364,10 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                 tiktok: Boolean(item.published?.tiktok),
                 instagram: Boolean(item.published?.instagram),
                 facebook: Boolean(item.published?.facebook),
+                threads: Boolean(item.published?.threads),
                 [platform]: true,
               },
+              ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
             }
           : item,
       ),
@@ -326,6 +443,37 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  async function publishToThreads(item: AdminVideoLibraryItem) {
+    if (item.published?.threads) return;
+    setPublishingKey(`threads:${item.id}`);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/threads/publish", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; status?: string; postId?: string; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Threads");
+      }
+      markPublished(item.id, "threads");
+      setNotice({
+        type: "ok",
+        text: `Опубликовано в Threads · ${payload.status || "PUBLISHED"}${payload.postId ? ` · id ${payload.postId}` : ""}`,
+      });
+    } catch (publishError) {
+      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -371,6 +519,22 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
           >
             {connecting === "meta" ? "Открываем Meta…" : meta?.connected ? "Reconnect Meta" : "Connect Meta"}
+          </button>
+          <button
+            type="button"
+            disabled={resetting === "threads"}
+            onClick={() => void resetConnection("threads")}
+            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+          >
+            {resetting === "threads" ? "Сбрасываем…" : "Reset Threads"}
+          </button>
+          <button
+            type="button"
+            disabled={connecting === "threads"}
+            onClick={() => void connectThreads()}
+            className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {connecting === "threads" ? "Открываем Threads…" : threads?.connected ? "Reconnect Threads" : "Connect Threads"}
           </button>
         </div>
       </div>
@@ -418,6 +582,34 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
           ) : (
             <span>Meta ещё не подключена. Один OAuth открывает Instagram Reels и Facebook Reels.</span>
           )}
+        </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+          {threads?.configured === false ? (
+            <span>
+              Threads env: <code className="text-[var(--text)]">THREADS_APP_ID</code>,{" "}
+              <code className="text-[var(--text)]">THREADS_APP_SECRET</code>
+              {threads.redirectUri ? (
+                <>
+                  {" "}
+                  · Redirect URI: <code className="text-[var(--text)]">{threads.redirectUri}</code>
+                </>
+              ) : null}
+            </span>
+          ) : threads?.connected ? (
+            <span>
+              Threads подключён{threads.username ? ` · @${threads.username}` : ""}
+              {threads.scope ? ` · scopes: ${threads.scope}` : ""}
+            </span>
+          ) : (
+            <span>Threads ещё не подключён. Нажмите Connect Threads и авторизуйте @get.dreamly.</span>
+          )}
+        </div>
+        <div className="rounded-xl border border-dashed border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+          <span className="font-semibold text-[var(--text)]">Pinterest: {PINTEREST_AUTO ? "авто через Instagram" : "прямая публикация"}</span>
+          {" · "}
+          {PINTEREST_AUTO
+            ? `доска «${PINTEREST_BOARD_NAME}» наполняется внешней связкой Instagram → Pinterest. Отдельной кнопки нет, чтобы не было дублей.`
+            : `доска «${PINTEREST_BOARD_NAME}».`}
         </div>
       </div>
 
@@ -472,6 +664,16 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                     busy={publishingKey === `facebook:${item.id}`}
                     onClick={() => void publishToMeta(item, "facebook")}
                   />
+                  <PublishIconButton
+                    platform="threads"
+                    published={Boolean(item.published?.threads)}
+                    failed={item.threadsState === "failed"}
+                    failureNote={item.threadsError}
+                    disabled={!threads?.connected || Boolean(item.published?.threads) || item.threadsState === "publishing"}
+                    busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
+                    onClick={() => void publishToThreads(item)}
+                  />
+                  <PinterestBadge expected={Boolean(item.published?.instagram)} />
                 </div>
               </div>
             </div>
