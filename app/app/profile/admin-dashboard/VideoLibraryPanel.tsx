@@ -196,7 +196,7 @@ function PublishIconButton({
   );
 }
 
-function VideoTile({ item }: { item: AdminVideoLibraryItem }) {
+function VideoTile({ item, dateLabel }: { item: AdminVideoLibraryItem; dateLabel: string }) {
   return (
     <a
       href={item.videoUrl}
@@ -220,7 +220,13 @@ function VideoTile({ item }: { item: AdminVideoLibraryItem }) {
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-transparent opacity-90" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-90" />
+        {dateLabel ? (
+          <p className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-[2px]">
+            {dateLabel}
+          </p>
+        ) : null}
         <div className="absolute inset-x-0 bottom-0 p-2.5">
           <p className="line-clamp-2 text-[11px] font-bold leading-4 text-white">{item.title}</p>
           <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-white/75">{item.sourceLabel}</p>
@@ -823,10 +829,9 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
         <div className="mt-6 grid grid-cols-5 gap-2">
           {items.map((item) => (
             <div key={item.id} className="min-w-0">
-              <VideoTile item={item} />
-              <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5">
-                <p className="truncate text-[10px] text-[var(--muted)]">{dateFormatter.format(new Date(item.createdAt))}</p>
-                <div className="flex shrink-0 items-center gap-0.5">
+              <VideoTile item={item} dateLabel={dateFormatter.format(new Date(item.createdAt))} />
+              <div className="mt-1.5 px-0.5">
+                <div className="flex items-center justify-between gap-0.5">
                   <PublishIconButton
                     platform="tiktok"
                     published={Boolean(item.published?.tiktok)}
