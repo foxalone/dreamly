@@ -84,11 +84,56 @@ function localInputToIso(value: string) {
   return Number.isFinite(when.getTime()) ? when.toISOString() : "";
 }
 
-function defaultScheduleValue() {
-  const when = new Date(Date.now() + 60 * 60 * 1000);
-  when.setSeconds(0, 0);
+// Publishing runs on Jerusalem time, so the picker opens on tomorrow 15:00
+// there. The value is rendered in the browser's own zone, so an admin sitting
+// elsewhere still sees the moment that equals 15:00 in Jerusalem.
+const SCHEDULE_TIME_ZONE = "Asia/Jerusalem";
+const SCHEDULE_DEFAULT_HOUR = 15;
+
+function toLocalInputValue(when: Date) {
   const pad = (part: number) => String(part).padStart(2, "0");
   return `${when.getFullYear()}-${pad(when.getMonth() + 1)}-${pad(when.getDate())}T${pad(when.getHours())}:${pad(when.getMinutes())}`;
+}
+
+// How far the Jerusalem wall clock sits from UTC at that instant (DST aware).
+function scheduleZoneOffsetMs(instant: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SCHEDULE_TIME_ZONE,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+    .formatToParts(instant)
+    .reduce<Record<string, number>>((accumulator, part) => {
+      if (part.type !== "literal") accumulator[part.type] = Number(part.value);
+      return accumulator;
+    }, {});
+  const asUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  return asUtc - instant.getTime();
+}
+
+function defaultScheduleValue() {
+  const now = new Date();
+  const jerusalemNow = new Date(now.getTime() + scheduleZoneOffsetMs(now));
+  const wallClock = Date.UTC(
+    jerusalemNow.getUTCFullYear(),
+    jerusalemNow.getUTCMonth(),
+    jerusalemNow.getUTCDate() + 1,
+    SCHEDULE_DEFAULT_HOUR,
+    0,
+    0,
+  );
+  // Resolve twice so a DST change between now and the target is applied.
+  const firstPass = wallClock - scheduleZoneOffsetMs(now);
+  return toLocalInputValue(new Date(wallClock - scheduleZoneOffsetMs(new Date(firstPass))));
+}
+
+function minScheduleValue() {
+  return toLocalInputValue(new Date(Date.now() + 60 * 1000));
 }
 
 function platformLabel(platform: Platform) {
@@ -928,7 +973,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
               <input
                 type="datetime-local"
                 value={scheduleAt}
-                min={defaultScheduleValue()}
+                min={minScheduleValue()}
                 onChange={(event) => setScheduleAt(event.target.value)}
                 className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)]"
               />
