@@ -25,11 +25,12 @@ export function buildDreamCaption(title: string, topic: string, hashtags: string
 
 export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube";
 
-function parseLibraryId(libraryId: string) {
-  const [kind, rawId] = libraryId.split(":");
-  if (!rawId || (kind !== "free" && kind !== "ai")) {
+function parseLibraryId(libraryId: string): { kind: LibraryVideo["kind"]; rawId: string; collection: string } {
+  const [rawKind, rawId] = libraryId.split(":");
+  if (!rawId || (rawKind !== "free" && rawKind !== "ai")) {
     throw new Error("Invalid video id");
   }
+  const kind: LibraryVideo["kind"] = rawKind;
   return { kind, rawId, collection: kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION };
 }
 
