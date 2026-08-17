@@ -23,12 +23,53 @@ export function buildDreamCaption(title: string, topic: string, hashtags: string
   return appendDreamlySocialCta(body, maxLen);
 }
 
-export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200): Promise<LibraryVideo> {
+export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube";
+
+function parseLibraryId(libraryId: string) {
   const [kind, rawId] = libraryId.split(":");
   if (!rawId || (kind !== "free" && kind !== "ai")) {
     throw new Error("Invalid video id");
   }
-  const collection = kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION;
+  return { kind, rawId, collection: kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION };
+}
+
+export async function markLibraryVideoPublishedManually(
+  libraryId: string,
+  platform: LibraryPublishPlatform,
+  adminUid: string,
+) {
+  const { rawId, collection } = parseLibraryId(libraryId);
+  const ref = adminDb().collection(collection).doc(rawId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) throw new Error("Video not found");
+
+  const data = snapshot.data() as Record<string, unknown>;
+  const publishedAtField = `${platform}PublishedAt`;
+  if (data[publishedAtField]) throw new Error(`This video is already marked as published to ${platform}`);
+
+  const now = new Date().toISOString();
+  const patch: Record<string, string | boolean> = {
+    [publishedAtField]: now,
+    [`${platform}PublishedBy`]: adminUid,
+    [`${platform}PublishedManually`]: true,
+  };
+
+  if (platform === "threads") {
+    patch.threadsStatus = "published";
+    patch.threadsError = "";
+  }
+  if (platform === "youtube") {
+    patch.youtubeStatus = "published";
+    patch.youtubeError = "";
+    patch.youtubeScheduledAt = "";
+  }
+
+  await ref.set(patch, { merge: true });
+  return { ok: true as const, platform, publishedAt: now };
+}
+
+export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200): Promise<LibraryVideo> {
+  const { kind, rawId, collection } = parseLibraryId(libraryId);
   const snapshot = await adminDb().collection(collection).doc(rawId).get();
   if (!snapshot.exists) throw new Error("Video not found");
   const data = snapshot.data() as {

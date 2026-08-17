@@ -627,6 +627,37 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     setScheduleAt(defaultScheduleValue());
   }
 
+  async function markPublishedManually(item: AdminVideoLibraryItem, platform: Platform) {
+    setPublishingKey(`manual:${platform}:${item.id}`);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/video-library/mark-published", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ libraryId: item.id, platform }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || `Не удалось отметить ${platformLabel(platform)}`);
+      }
+      markPublished(item.id, platform);
+      setScheduleFor("");
+      setNotice({
+        type: "ok",
+        text: `${platformLabel(platform)} отмечено как добавлено вручную.`,
+      });
+      await load(true);
+    } catch (markError) {
+      setNotice({ type: "error", text: markError instanceof Error ? markError.message : "Ошибка" });
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
   async function publishToYouTube(item: AdminVideoLibraryItem, publishAt = "") {
     if (item.published?.youtube || item.youtubeState === "scheduled") return;
     setScheduleFor("");
@@ -989,6 +1020,15 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                 Запланированное видео загружается как private, публикацию в назначенное время делает сам YouTube.
               </p>
             </div>
+
+            <button
+              type="button"
+              disabled={publishingKey === `manual:youtube:${scheduleItem.id}`}
+              onClick={() => void markPublishedManually(scheduleItem, "youtube")}
+              className="mt-3 w-full rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {publishingKey === `manual:youtube:${scheduleItem.id}` ? "Сохраняем…" : "Added manually"}
+            </button>
 
             <button
               type="button"
