@@ -907,7 +907,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                     published={Boolean(item.published?.threads)}
                     failed={item.threadsState === "failed"}
                     failureNote={item.threadsError}
-                    disabled={!threads?.connected || Boolean(item.published?.threads) || item.threadsState === "publishing"}
+                    disabled={!threads?.connected || item.threadsState === "publishing"}
                     busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
                     onClick={() => void publishToThreads(item)}
                   />
