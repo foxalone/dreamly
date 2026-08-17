@@ -4,7 +4,8 @@ export const THREADS_PRIVACY_REQUESTS_COLLECTION = "adminThreadsPrivacyRequests"
 
 export const THREADS_SCOPES = ["threads_basic", "threads_content_publish"].join(",");
 
-export const THREADS_AUTHORIZE_URL = "https://threads.net/oauth/authorize";
+// Meta moved the Authorization Window off threads.net; the old URL 404s after login.
+export const THREADS_AUTHORIZE_URL = "https://www.threads.com/oauth/authorize";
 export const THREADS_TOKEN_URL = "https://graph.threads.net/oauth/access_token";
 export const THREADS_LONG_LIVED_TOKEN_URL = "https://graph.threads.net/access_token";
 export const THREADS_REFRESH_TOKEN_URL = "https://graph.threads.net/refresh_access_token";
