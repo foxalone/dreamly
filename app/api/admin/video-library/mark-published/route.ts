@@ -8,7 +8,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PLATFORMS = new Set<LibraryPublishPlatform>(["tiktok", "instagram", "facebook", "threads", "youtube"]);
+const PLATFORMS = new Set<LibraryPublishPlatform>(["tiktok", "instagram", "facebook", "threads", "youtube", "pinterest"]);
 
 export async function POST(request: Request) {
   try {

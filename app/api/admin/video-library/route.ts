@@ -35,6 +35,10 @@ type PublishFields = {
   youtubeError?: string;
   youtubeVideoId?: string;
   youtubeScheduledAt?: string;
+  pinterestPublishedAt?: string;
+  pinterestStatus?: string;
+  pinterestError?: string;
+  pinterestPinId?: string;
 };
 
 function publishedFrom(data: PublishFields) {
@@ -44,6 +48,7 @@ function publishedFrom(data: PublishFields) {
     facebook: Boolean(data.facebookPublishedAt),
     threads: Boolean(data.threadsPublishedAt),
     youtube: Boolean(data.youtubePublishedAt),
+    pinterest: Boolean(data.pinterestPublishedAt),
   };
 }
 
@@ -60,6 +65,13 @@ function youtubeStateFrom(data: PublishFields): AdminVideoPublishState {
   if (data.youtubePublishedAt) return "published";
   if (status === "uploading" || status === "publishing") return "uploading";
   if (status === "failed" || status === "published") return status;
+  return "idle";
+}
+
+function pinterestStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.pinterestPublishedAt) return "published";
+  const status = String(data.pinterestStatus || "");
+  if (status === "publishing" || status === "failed" || status === "published") return status;
   return "idle";
 }
 
@@ -99,6 +111,10 @@ export async function GET(request: Request) {
         youtubeError?: string;
         youtubeVideoId?: string;
         youtubeScheduledAt?: string;
+        pinterestPublishedAt?: string;
+        pinterestStatus?: string;
+        pinterestError?: string;
+        pinterestPinId?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -118,6 +134,9 @@ export async function GET(request: Request) {
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
         youtubeScheduledAt: String(data.youtubeScheduledAt || ""),
+        pinterestState: pinterestStateFrom(data),
+        pinterestError: String(data.pinterestError || ""),
+        pinterestPinId: String(data.pinterestPinId || ""),
       });
     }
 
@@ -141,6 +160,10 @@ export async function GET(request: Request) {
         youtubeError?: string;
         youtubeVideoId?: string;
         youtubeScheduledAt?: string;
+        pinterestPublishedAt?: string;
+        pinterestStatus?: string;
+        pinterestError?: string;
+        pinterestPinId?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -161,6 +184,9 @@ export async function GET(request: Request) {
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
         youtubeScheduledAt: String(data.youtubeScheduledAt || ""),
+        pinterestState: pinterestStateFrom(data),
+        pinterestError: String(data.pinterestError || ""),
+        pinterestPinId: String(data.pinterestPinId || ""),
       });
     }
 

@@ -4,25 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   PINTEREST_BOARD_NAME,
-  PINTEREST_DELIVERY,
   type AdminVideoLibraryItem,
 } from "@/lib/adminVideoLibrary";
 import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
 import { youtubeWatchUrl, type YouTubeConnectionStatus } from "@/lib/adminYouTube";
+import { pinterestPinUrl, type PinterestConnectionStatus } from "@/lib/adminPinterest";
 
-type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube";
-type Connection = "tiktok" | "meta" | "threads" | "youtube";
+type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+type Connection = "tiktok" | "meta" | "threads" | "youtube" | "pinterest";
 type TikTokStatus = TikTokConnectionStatus & { redirectUri?: string };
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
 type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
 type YouTubeStatus = YouTubeConnectionStatus & { redirectUri?: string };
-
-const PINTEREST_AUTO = PINTEREST_DELIVERY === "auto-via-instagram";
-const PINTEREST_HINT = PINTEREST_AUTO
-  ? `Pinterest: авто через Instagram · доска «${PINTEREST_BOARD_NAME}». Отдельная публикация из Dreamly не нужна.`
-  : `Pinterest: прямая публикация · доска «${PINTEREST_BOARD_NAME}».`;
+type PinterestStatus = PinterestConnectionStatus & { redirectUri?: string };
 
 function TikTokGlyph() {
   return (
@@ -141,25 +137,8 @@ function platformLabel(platform: Platform) {
   if (platform === "instagram") return "Instagram Reels";
   if (platform === "threads") return "Threads";
   if (platform === "youtube") return "YouTube";
+  if (platform === "pinterest") return "Pinterest";
   return "Facebook Reels";
-}
-
-// Pinterest is fed by the external Instagram -> Pinterest connection, so this is
-// a read-only indicator: a clickable publish action would double post.
-function PinterestBadge({ expected }: { expected: boolean }) {
-  return (
-    <span
-      title={`${PINTEREST_HINT}${expected ? " Это видео уже ушло в Instagram, значит попадёт и на Pinterest." : " Опубликуйте в Instagram, чтобы видео попало на Pinterest."}`}
-      aria-label="Pinterest"
-      className={`flex h-7 w-7 items-center justify-center rounded-full border border-dashed ${
-        expected
-          ? "border-[#E60023]/60 bg-[#E60023]/10 text-[#E60023]"
-          : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)] opacity-60"
-      }`}
-    >
-      <PinterestGlyph />
-    </span>
-  );
 }
 
 function PublishIconButton({
@@ -201,7 +180,9 @@ function PublishIconButton({
           ? "text-[var(--text)] hover:bg-black hover:text-white"
           : platform === "youtube"
             ? "text-[#FF0000] hover:bg-[#FF0000] hover:text-white"
-            : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
+            : platform === "pinterest"
+              ? "text-[#E60023] hover:bg-[#E60023] hover:text-white"
+              : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
   return (
     <button
       type="button"
@@ -229,6 +210,8 @@ function PublishIconButton({
         <ThreadsGlyph />
       ) : platform === "youtube" ? (
         <YouTubeGlyph />
+      ) : platform === "pinterest" ? (
+        <PinterestGlyph />
       ) : (
         <FacebookGlyph />
       )}
@@ -290,6 +273,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   const [meta, setMeta] = useState<MetaStatus | null>(null);
   const [threads, setThreads] = useState<ThreadsStatus | null>(null);
   const [youtube, setYoutube] = useState<YouTubeStatus | null>(null);
+  const [pinterest, setPinterest] = useState<PinterestStatus | null>(null);
   const [connecting, setConnecting] = useState<"" | Connection>("");
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
@@ -310,12 +294,13 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [libraryResponse, statusResponse, metaResponse, threadsResponse, youtubeResponse] = await Promise.all([
+      const [libraryResponse, statusResponse, metaResponse, threadsResponse, youtubeResponse, pinterestResponse] = await Promise.all([
         fetch("/api/admin/video-library", { headers, cache: "no-store" }),
         fetch("/api/admin/tiktok/status", { headers, cache: "no-store" }),
         fetch("/api/admin/meta/status", { headers, cache: "no-store" }),
         fetch("/api/admin/threads/status", { headers, cache: "no-store" }),
         fetch("/api/admin/youtube/status", { headers, cache: "no-store" }),
+        fetch("/api/admin/pinterest/status", { headers, cache: "no-store" }),
       ]);
       const libraryPayload = (await libraryResponse.json()) as { items?: AdminVideoLibraryItem[]; error?: string };
       if (!libraryResponse.ok) throw new Error(libraryPayload.error || "Не удалось загрузить библиотеку");
@@ -329,6 +314,8 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       if (threadsResponse.ok) setThreads(threadsPayload);
       const youtubePayload = (await youtubeResponse.json()) as YouTubeStatus & { error?: string };
       if (youtubeResponse.ok) setYoutube(youtubePayload);
+      const pinterestPayload = (await pinterestResponse.json()) as PinterestStatus & { error?: string };
+      if (pinterestResponse.ok) setPinterest(pinterestPayload);
       setError("");
     } catch (loadError) {
       if (!quiet) setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
@@ -349,6 +336,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     const metaResult = params.get("meta");
     const threadsResult = params.get("threads");
     const youtubeResult = params.get("youtube");
+    const pinterestResult = params.get("pinterest");
     if (tiktokResult === "connected") {
       setNotice({ type: "ok", text: "TikTok подключён. Можно публиковать видео." });
     } else if (tiktokResult === "error") {
@@ -365,6 +353,10 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       setNotice({ type: "ok", text: "YouTube подключён. Можно загружать видео на канал." });
     } else if (youtubeResult === "error") {
       setNotice({ type: "error", text: params.get("youtube_error") || "Не удалось подключить YouTube" });
+    } else if (pinterestResult === "connected") {
+      setNotice({ type: "ok", text: "Pinterest подключён. Можно публиковать видеопины напрямую." });
+    } else if (pinterestResult === "error") {
+      setNotice({ type: "error", text: params.get("pinterest_error") || "Не удалось подключить Pinterest" });
     }
   }, []);
 
@@ -448,6 +440,26 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  async function connectPinterest() {
+    setConnecting("pinterest");
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/pinterest/oauth/start", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await response.json()) as { authorizeUrl?: string; error?: string };
+      if (!response.ok || !payload.authorizeUrl) {
+        throw new Error(payload.error || "Не удалось начать OAuth Pinterest");
+      }
+      window.location.href = payload.authorizeUrl;
+    } catch (connectError) {
+      setNotice({ type: "error", text: connectError instanceof Error ? connectError.message : "Ошибка подключения" });
+      setConnecting("");
+    }
+  }
+
   async function resetConnection(kind: Connection) {
     setResetting(kind);
     setNotice(null);
@@ -460,9 +472,19 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             ? "/api/admin/meta/disconnect"
             : kind === "threads"
               ? "/api/admin/threads/disconnect"
-              : "/api/admin/youtube/disconnect";
+              : kind === "pinterest"
+                ? "/api/admin/pinterest/disconnect"
+                : "/api/admin/youtube/disconnect";
       const connectionLabel =
-        kind === "tiktok" ? "TikTok" : kind === "meta" ? "Meta" : kind === "threads" ? "Threads" : "YouTube";
+        kind === "tiktok"
+          ? "TikTok"
+          : kind === "meta"
+            ? "Meta"
+            : kind === "threads"
+              ? "Threads"
+              : kind === "pinterest"
+                ? "Pinterest"
+                : "YouTube";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -480,7 +502,9 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
               ? "Meta сброшена. Можно подключить Facebook/Instagram заново."
               : kind === "threads"
                 ? "Threads сброшен. Можно подключить аккаунт заново."
-                : "YouTube сброшен. Можно подключить канал заново.",
+                : kind === "pinterest"
+                  ? "Pinterest сброшен. Можно подключить аккаунт заново."
+                  : "YouTube сброшен. Можно подключить канал заново.",
       });
       await load(true);
     } catch (resetError) {
@@ -502,10 +526,12 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                 facebook: Boolean(item.published?.facebook),
                 threads: Boolean(item.published?.threads),
                 youtube: Boolean(item.published?.youtube),
+                pinterest: Boolean(item.published?.pinterest),
                 [platform]: true,
               },
               ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
               ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
+              ...(platform === "pinterest" ? { pinterestState: "published" as const, pinterestError: "" } : {}),
             }
           : item,
       ),
@@ -614,6 +640,53 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
 
   function openYouTubeVideo(item: AdminVideoLibraryItem) {
     if (item.youtubeVideoId) window.open(youtubeWatchUrl(item.youtubeVideoId), "_blank", "noopener,noreferrer");
+  }
+
+  function openPinterestPin(item: AdminVideoLibraryItem) {
+    if (item.pinterestPinId) window.open(pinterestPinUrl(item.pinterestPinId), "_blank", "noopener,noreferrer");
+  }
+
+  async function publishToPinterest(item: AdminVideoLibraryItem) {
+    if (item.published?.pinterest) {
+      openPinterestPin(item);
+      return;
+    }
+    setPublishingKey(`pinterest:${item.id}`);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/pinterest/publish", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        status?: string;
+        pinId?: string;
+        boardName?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Pinterest");
+      }
+      markPublished(item.id, "pinterest");
+      setNotice({
+        type: "ok",
+        text: `Опубликовано в Pinterest · ${payload.status || "PUBLISHED"}${
+          payload.boardName ? ` · доска «${payload.boardName}»` : ""
+        }${payload.pinId ? ` · ${pinterestPinUrl(payload.pinId)}` : ""}`,
+      });
+      await load(true);
+    } catch (publishError) {
+      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
   }
 
   // Clicking YouTube opens the choice: publish now, or hand YouTube a
@@ -785,6 +858,22 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
           >
             {connecting === "youtube" ? "Открываем YouTube…" : youtube?.connected ? "Reconnect YouTube" : "Connect YouTube"}
           </button>
+          <button
+            type="button"
+            disabled={resetting === "pinterest"}
+            onClick={() => void resetConnection("pinterest")}
+            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+          >
+            {resetting === "pinterest" ? "Сбрасываем…" : "Reset Pinterest"}
+          </button>
+          <button
+            type="button"
+            disabled={connecting === "pinterest"}
+            onClick={() => void connectPinterest()}
+            className="rounded-full bg-[#E60023] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {connecting === "pinterest" ? "Открываем Pinterest…" : pinterest?.connected ? "Reconnect Pinterest" : "Connect Pinterest"}
+          </button>
         </div>
       </div>
 
@@ -874,12 +963,29 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             <span>YouTube ещё не подключён. Нажмите Connect YouTube и выберите канал Dreamly.</span>
           )}
         </div>
-        <div className="rounded-xl border border-dashed border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          <span className="font-semibold text-[var(--text)]">Pinterest: {PINTEREST_AUTO ? "авто через Instagram" : "прямая публикация"}</span>
-          {" · "}
-          {PINTEREST_AUTO
-            ? `доска «${PINTEREST_BOARD_NAME}» наполняется внешней связкой Instagram → Pinterest. Отдельной кнопки нет, чтобы не было дублей.`
-            : `доска «${PINTEREST_BOARD_NAME}».`}
+        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+          {pinterest?.configured === false ? (
+            <span>
+              Pinterest env: <code className="text-[var(--text)]">PINTEREST_APP_ID</code>,{" "}
+              <code className="text-[var(--text)]">PINTEREST_APP_SECRET</code>
+              {pinterest.redirectUri ? (
+                <>
+                  {" "}
+                  · Redirect URI: <code className="text-[var(--text)]">{pinterest.redirectUri}</code>
+                </>
+              ) : null}
+            </span>
+          ) : pinterest?.connected ? (
+            <span>
+              Pinterest подключён{pinterest.username ? ` · @${pinterest.username}` : ""}
+              {` · прямая публикация · доска «${pinterest.boardName || PINTEREST_BOARD_NAME}»`}
+            </span>
+          ) : (
+            <span>
+              Pinterest ещё не подключён. Нажмите Connect Pinterest и авторизуйте @getdreamly — пины уходят напрямую на доску «
+              {PINTEREST_BOARD_NAME}», без Instagram.
+            </span>
+          )}
         </div>
       </div>
 
@@ -964,7 +1070,20 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
                     busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "uploading"}
                     onClick={() => openYouTubeMenu(item)}
                   />
-                  <PinterestBadge expected={Boolean(item.published?.instagram)} />
+                  <PublishIconButton
+                    platform="pinterest"
+                    published={Boolean(item.published?.pinterest)}
+                    failed={item.pinterestState === "failed"}
+                    failureNote={item.pinterestError}
+                    openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
+                    disabled={
+                      item.pinterestState === "publishing" ||
+                      (!pinterest?.connected && !item.published?.pinterest) ||
+                      (Boolean(item.published?.pinterest) && !item.pinterestPinId)
+                    }
+                    busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
+                    onClick={() => void publishToPinterest(item)}
+                  />
                 </div>
               </div>
               {item.youtubeState === "scheduled" && item.youtubeScheduledAt ? (

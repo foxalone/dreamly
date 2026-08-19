@@ -6,6 +6,7 @@ export type AdminVideoLibraryPublished = {
   facebook: boolean;
   threads: boolean;
   youtube: boolean;
+  pinterest: boolean;
 };
 
 // "publishing" is the in-flight state used by Threads; YouTube reports
@@ -19,11 +20,9 @@ export type AdminVideoPublishState =
   | "published"
   | "failed";
 
-// Pinterest is not published by Dreamly. The board below is fed automatically by
-// the external Instagram -> Pinterest connection, so the admin UI only reports
-// the expected reach and never offers a direct publish action (that would double
-// post). Flip to "direct" only if a real Pinterest API integration is added.
-export const PINTEREST_DELIVERY: "auto-via-instagram" | "direct" = "auto-via-instagram";
+// Direct Pinterest API publish. The old Instagram → Pinterest auto-sync never
+// delivered pins, so Dreamly posts video pins itself to this board.
+export const PINTEREST_DELIVERY: "auto-via-instagram" | "direct" = "direct";
 export const PINTEREST_BOARD_NAME = "Dream Meanings & Interpretation";
 
 export type AdminVideoLibraryItem = {
@@ -42,6 +41,9 @@ export type AdminVideoLibraryItem = {
   youtubeError: string;
   youtubeVideoId: string;
   youtubeScheduledAt: string;
+  pinterestState: AdminVideoPublishState;
+  pinterestError: string;
+  pinterestPinId: string;
 };
 
 export function sourceLabelFor(source: AdminVideoLibrarySource) {

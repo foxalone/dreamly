@@ -23,7 +23,7 @@ export function buildDreamCaption(title: string, topic: string, hashtags: string
   return appendDreamlySocialCta(body, maxLen);
 }
 
-export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube";
+export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
 
 function parseLibraryId(libraryId: string): { kind: LibraryVideo["kind"]; rawId: string; collection: string } {
   const [rawKind, rawId] = libraryId.split(":");
@@ -63,6 +63,10 @@ export async function markLibraryVideoPublishedManually(
     patch.youtubeStatus = "published";
     patch.youtubeError = "";
     patch.youtubeScheduledAt = "";
+  }
+  if (platform === "pinterest") {
+    patch.pinterestStatus = "published";
+    patch.pinterestError = "";
   }
 
   await ref.set(patch, { merge: true });
