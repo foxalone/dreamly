@@ -1,6 +1,7 @@
 export const MAX_SHORT_DURATION_SECONDS = 45;
 
 export type AdminVideoJobStatus = "queued" | "processing" | "completed" | "failed";
+export type AdminVideoMode = "free" | "mixed";
 
 export type AdminVideoTokenUsage = {
   prompt: number;
@@ -21,6 +22,7 @@ export type AdminVideoYouTubeMetadata = {
 
 export type AdminVideoJob = {
   id: string;
+  mode: AdminVideoMode;
   topic: string;
   language: "en-US";
   status: AdminVideoJobStatus;

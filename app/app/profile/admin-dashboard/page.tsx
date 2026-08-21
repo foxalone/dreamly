@@ -71,7 +71,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -239,6 +239,7 @@ export default function AdminDashboardPage() {
       requested === "QUERIES" ||
       requested === "DOCS" ||
       requested === "FREE_VIDEOS" ||
+      requested === "FREE_MIX_VIDEOS" ||
       requested === "VIDEOS" ||
       requested === "COMBINED_VIDEOS" ||
       requested === "VEO_VIDEOS" ||
@@ -913,6 +914,8 @@ async function loadUsers() {
               <>Внутренняя документация (Confluence-style)</>
             ) : tab === "FREE_VIDEOS" ? (
               <>Free Video · English Shorts · stock footage · YouTube package · Telegram</>
+            ) : tab === "FREE_MIX_VIDEOS" ? (
+              <>Free Mix · alternating Pexels + Pixabay footage · recent-repeat protection</>
             ) : tab === "VIDEOS" ? (
               <>Sora 2 Slow · Batch API · English Shorts · private admin studio</>
             ) : tab === "COMBINED_VIDEOS" ? (
@@ -1034,6 +1037,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Free Video
+        </button>
+
+        <button
+          onClick={() => setTab("FREE_MIX_VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "FREE_MIX_VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Free Mix
         </button>
 
         <button
@@ -1538,6 +1553,8 @@ async function loadUsers() {
       {tab === "DOCS" && <ProDocs />}
 
       {tab === "FREE_VIDEOS" && user && <VideoAdminPanel user={user} />}
+
+      {tab === "FREE_MIX_VIDEOS" && user && <VideoAdminPanel user={user} studio="mixed" />}
 
       {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} studio="sora" />}
 

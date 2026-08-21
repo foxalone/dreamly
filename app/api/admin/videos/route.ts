@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   MAX_SHORT_DURATION_SECONDS,
   type AdminVideoJob,
+  type AdminVideoMode,
   type AdminVideoTokenUsage,
   type AdminVideoYouTubeMetadata,
 } from "@/lib/adminVideo";
@@ -12,6 +13,7 @@ import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 export const runtime = "nodejs";
 
 type StoredVideoJob = {
+  mode?: AdminVideoMode;
   topic?: string;
   language?: "en-US";
   status?: AdminVideoJob["status"];
@@ -39,6 +41,7 @@ function serializeJob(snapshot: DocumentSnapshot): AdminVideoJob | null {
   if (!data) return null;
   return {
     id: snapshot.id,
+    mode: data.mode === "mixed" ? "mixed" : "free",
     topic: data.topic ?? "",
     language: "en-US",
     status: data.status ?? "queued",
@@ -70,7 +73,7 @@ export async function GET(request: Request) {
     await requireAdmin(request);
     const db = adminDb();
     const [snapshot, workerSnapshot] = await Promise.all([
-      db.collection("adminVideoJobs").orderBy("createdAt", "desc").limit(25).get(),
+      db.collection("adminVideoJobs").orderBy("createdAt", "desc").limit(50).get(),
       db.collection("adminSystem").doc("videoWorker").get(),
     ]);
     const jobs = snapshot.docs
@@ -93,14 +96,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const uid = await requireAdmin(request);
-    const payload = (await request.json()) as { topic?: unknown; sendToTelegram?: unknown };
+    const payload = (await request.json()) as { topic?: unknown; mode?: unknown; sendToTelegram?: unknown };
     const topic = typeof payload.topic === "string" ? payload.topic.trim().slice(0, 300) : "";
     if (topic.length < 5) {
       return NextResponse.json({ error: "Enter a video topic" }, { status: 400 });
     }
     const sendToTelegram = payload.sendToTelegram !== false;
+    const mode: AdminVideoMode = payload.mode === "mixed" ? "mixed" : "free";
     const createdAt = new Date();
     const reference = await adminDb().collection("adminVideoJobs").add({
+      mode,
       topic,
       language: "en-US",
       status: "queued",
@@ -120,6 +125,7 @@ export async function POST(request: Request) {
     });
     const job: AdminVideoJob = {
       id: reference.id,
+      mode,
       topic,
       language: "en-US",
       status: "queued",

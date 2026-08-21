@@ -787,7 +787,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Video library</p>
           <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Все сгенерированные видео</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Free Video · Sora · Combined · Veo · {items.length} готовых
+            Free Video · Free Mix · Sora · Combined · Veo · {items.length} готовых
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

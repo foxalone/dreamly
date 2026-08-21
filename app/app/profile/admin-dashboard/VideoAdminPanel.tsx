@@ -12,7 +12,8 @@ function statusLabel(status: AdminVideoJob["status"]) {
   return { queued: "В очереди", processing: "Обработка", completed: "Готово", failed: "Ошибка" }[status];
 }
 
-export default function VideoAdminPanel({ user }: { user: User }) {
+export default function VideoAdminPanel({ user, studio = "free" }: { user: User; studio?: "free" | "mixed" }) {
+  const isMixed = studio === "mixed";
   const [topic, setTopic] = useState("");
   const [sendToTelegram, setSendToTelegram] = useState(true);
   const [jobs, setJobs] = useState<AdminVideoJob[]>([]);
@@ -35,14 +36,14 @@ export default function VideoAdminPanel({ user }: { user: User }) {
       });
       const payload = (await response.json()) as { jobs?: AdminVideoJob[]; worker?: WorkerStatus; error?: string };
       if (!response.ok) throw new Error(payload.error || "Не удалось загрузить задания");
-      setJobs(payload.jobs ?? []);
+      setJobs((payload.jobs ?? []).filter((job) => (isMixed ? job.mode === "mixed" : job.mode !== "mixed")));
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "" });
     } catch (error) {
       if (!quiet) setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
     } finally {
       if (!quiet) setLoading(false);
     }
-  }, [user]);
+  }, [isMixed, user]);
 
   useEffect(() => {
     void loadJobs();
@@ -67,13 +68,13 @@ export default function VideoAdminPanel({ user }: { user: User }) {
       const response = await fetch("/api/admin/videos", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, sendToTelegram }),
+        body: JSON.stringify({ topic, mode: studio, sendToTelegram }),
       });
       const payload = (await response.json()) as { job?: AdminVideoJob; error?: string };
       if (!response.ok || !payload.job) throw new Error(payload.error || "Не удалось добавить видео в очередь");
       setJobs((current) => [payload.job!, ...current]);
       setTopic("");
-      setNotice({ type: "ok", text: "Видео добавлено в очередь генерации." });
+      setNotice({ type: "ok", text: isMixed ? "Pexels + Pixabay видео добавлено в очередь." : "Видео добавлено в очередь генерации." });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
     } finally {
@@ -122,9 +123,9 @@ export default function VideoAdminPanel({ user }: { user: User }) {
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <form onSubmit={submit} className={`${card} p-6 space-y-5`}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">Video Studio</p>
-            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">Создать английский Short</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isMixed ? "Free Mix Studio" : "Video Studio"}</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[var(--text)]">Тема видео</span>
@@ -136,8 +137,8 @@ export default function VideoAdminPanel({ user }: { user: User }) {
               <p className="mt-1 font-bold text-[var(--text)]">English · en-US</p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">Формат</p>
-              <p className="mt-1 font-bold text-[var(--text)]">9:16 · до {MAX_SHORT_DURATION_SECONDS} секунд</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{isMixed ? "Источники" : "Формат"}</p>
+              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
             </div>
           </div>
           <label className="flex cursor-pointer gap-3 rounded-xl border border-[var(--border)] p-4">
@@ -145,7 +146,7 @@ export default function VideoAdminPanel({ user }: { user: User }) {
             <span><span className="block text-sm font-semibold text-[var(--text)]">Отправить в Telegram</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">После генерации ролик будет отправлен в настроенный приватный Telegram-чат.</span></span>
           </label>
           <button type="submit" disabled={submitting || topic.trim().length < 5} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50">
-            {submitting ? "Добавляем в очередь…" : "Создать видео"}
+            {submitting ? "Добавляем в очередь…" : isMixed ? "Создать Free Mix" : "Создать видео"}
           </button>
         </form>
 
@@ -186,7 +187,7 @@ export default function VideoAdminPanel({ user }: { user: User }) {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-bold text-violet-500">{statusLabel(job.status)}</span>
-                        <span className="text-xs text-[var(--muted)]">English · до {job.maxDurationSeconds} сек.</span>
+                        <span className="text-xs text-[var(--muted)]">{job.mode === "mixed" ? "Pexels + Pixabay" : "English"} · до {job.maxDurationSeconds} сек.</span>
                       </div>
                       <h3 className="mt-3 text-lg font-bold text-[var(--text)]">{job.topic}</h3>
                       <p className="mt-1 text-xs text-[var(--muted)]">{dateFormatter.format(new Date(job.createdAt))}{job.status === "processing" ? ` · ${job.stage}` : ""}</p>

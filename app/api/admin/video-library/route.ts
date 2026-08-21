@@ -96,6 +96,7 @@ export async function GET(request: Request) {
     for (const doc of freeSnapshot.docs) {
       const data = doc.data() as {
         status?: string;
+        mode?: string;
         topic?: string;
         videoUrl?: string;
         youtubeMetadata?: { title?: string };
@@ -118,12 +119,13 @@ export async function GET(request: Request) {
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
+      const source: AdminVideoLibrarySource = data.mode === "mixed" ? "free-mix" : "free";
       items.push({
         id: `free:${doc.id}`,
         title: titleFrom(String(data.topic || ""), data.youtubeMetadata?.title),
         topic: String(data.topic || ""),
-        source: "free",
-        sourceLabel: sourceLabelFor("free"),
+        source,
+        sourceLabel: sourceLabelFor(source),
         videoUrl,
         thumbnailUrl: "",
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),

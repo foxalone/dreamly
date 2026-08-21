@@ -315,11 +315,31 @@ function parseCliResult(stdout) {
   throw new Error("MoneyPrinterTurbo completed without returning a video path");
 }
 
-async function renderVideo(job, script, searchTerms) {
+function parseMixedMaterialsResult(stdout) {
+  const lines = stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    try {
+      const payload = JSON.parse(lines[index]);
+      const materials = payload?.result?.materials;
+      const sources = payload?.result?.sources;
+      if (Array.isArray(materials) && materials.length >= 2 && Array.isArray(sources)) {
+        return { materials, sources };
+      }
+    } catch {}
+  }
+  throw new Error("Free Mix completed without returning stock materials");
+}
+
+function moneyPrinterRuntime() {
   const root = env("MONEYPRINTERTURBO_ROOT") || path.join(homedir(), "MoneyPrinterTurbo");
   const uv = env("UV_BIN") || path.join(homedir(), ".local", "bin", "uv");
   if (!existsSync(path.join(root, "cli.py"))) throw new Error(`MoneyPrinterTurbo is not installed at ${root}`);
   if (!existsSync(uv)) throw new Error(`uv is not installed at ${uv}`);
+  return { root, uv };
+}
+
+async function renderVideo(job, script, searchTerms) {
+  const { root, uv } = moneyPrinterRuntime();
   const taskId = randomUUID();
   const logPath = path.join(root, ".agent-logs", "moneyprinterturbo-video", `oneiro-${job.id}.log`);
   const args = [
@@ -341,6 +361,49 @@ async function renderVideo(job, script, searchTerms) {
     env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
   });
   return { ...parseCliResult(result.stdout), root, logPath };
+}
+
+async function renderMixedVideo(job, script, searchTerms) {
+  const { root, uv } = moneyPrinterRuntime();
+  const logPath = path.join(root, ".agent-logs", "moneyprinterturbo-video", `oneiro-${job.id}.log`);
+  const materialsTaskId = randomUUID();
+  const helperPath = path.join(process.cwd(), "scripts", "mixed-stock-materials.py");
+  if (!existsSync(helperPath)) throw new Error(`Free Mix helper was not found at ${helperPath}`);
+
+  const downloaded = await runProcess(uv, [
+    "run", "python", helperPath,
+    "--task-id", materialsTaskId,
+    "--terms-json", JSON.stringify(searchTerms),
+    "--target-seconds", "50",
+    "--clip-duration", "5",
+  ], {
+    cwd: root,
+    logPath,
+    env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
+  });
+  const mixed = parseMixedMaterialsResult(downloaded.stdout);
+
+  const taskId = randomUUID();
+  const rendered = await runProcess(uv, [
+    "run", "python", "cli.py",
+    "--video-script", script,
+    "--video-language", "en-US",
+    "--voice-name", ENGLISH_VOICE,
+    "--video-source", "local",
+    "--video-materials", mixed.materials.join(","),
+    "--video-aspect", "9:16",
+    "--video-count", "1",
+    "--video-clip-duration", "5",
+    "--video-concat-mode", "sequential",
+    "--bgm-type", "random",
+    "--subtitle-enabled",
+    "--task-id", taskId,
+  ], {
+    cwd: root,
+    logPath,
+    env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
+  });
+  return { ...parseCliResult(rendered.stdout), root, logPath, materialSources: mixed.sources };
 }
 
 async function enforceDuration(jobId, rendered) {
@@ -396,13 +459,22 @@ async function processJob(job) {
     const generated = await createScript(job.topic);
     usage = generated.usage;
     await reference.update({
-      stage: "rendering",
+      stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : "rendering",
       tokenUsage: usage,
       script: generated.script,
       searchTerms: generated.searchTerms,
       youtubeMetadata: generated.youtubeMetadata,
     });
-    const rendered = await renderVideo(job, generated.script, generated.searchTerms);
+    const rendered = job.mode === "mixed"
+      ? await renderMixedVideo(job, generated.script, generated.searchTerms)
+      : await renderVideo(job, generated.script, generated.searchTerms);
+    if (job.mode === "mixed") {
+      await reference.update({
+        stage: "rendering-mixed-stock",
+        stockProviders: ["pexels", "pixabay"],
+        materialSources: rendered.materialSources,
+      });
+    }
     await reference.update({ stage: "enforcing-45-second-limit", localTaskId: rendered.taskId });
     const finalPath = await enforceDuration(job.id, rendered);
     await reference.update({ stage: "uploading" });
