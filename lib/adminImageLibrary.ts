@@ -3,6 +3,7 @@ import { sourceLabelForImage } from "@/lib/adminAiImage";
 
 export type AdminImageLibraryItem = {
   id: string;
+  subject: string;
   prompt: string;
   source: AiImageProvider;
   sourceLabel: string;

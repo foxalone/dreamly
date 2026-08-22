@@ -28,7 +28,7 @@ export async function GET(request: Request, context: { params: Promise<{ jobId: 
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const data = snapshot.data() as { imageUrl?: string; prompt?: string; status?: string; mimeType?: string };
+    const data = snapshot.data() as { imageUrl?: string; subject?: string; prompt?: string; status?: string; mimeType?: string };
     const imageUrl = String(data.imageUrl || "");
     if (!imageUrl || data.status !== "completed") {
       return NextResponse.json({ error: "Image is not ready for download" }, { status: 409 });
@@ -40,7 +40,7 @@ export async function GET(request: Request, context: { params: Promise<{ jobId: 
     }
 
     const mimeType = String(data.mimeType || upstream.headers.get("Content-Type") || "image/png");
-    const filename = downloadFilename(String(data.prompt || ""), jobId, mimeType);
+    const filename = downloadFilename(String(data.subject || data.prompt || ""), jobId, mimeType);
     return new NextResponse(upstream.body, {
       headers: {
         "Content-Type": mimeType,

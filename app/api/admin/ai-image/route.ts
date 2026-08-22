@@ -8,6 +8,8 @@ import {
   AI_IMAGE_SIZE,
   AI_IMAGE_WORKER_DOCUMENT,
   isAiImageProvider,
+  resolveImageGenerationPrompt,
+  AI_IMAGE_SUBJECT_MAX_LENGTH,
 } from "@/lib/adminAiImage";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -64,9 +66,14 @@ export async function POST(request: Request) {
   try {
     const uid = await requireAdmin(request);
     const payload = (await request.json()) as Record<string, unknown>;
-    const prompt = typeof payload.prompt === "string" ? payload.prompt.trim() : "";
-    if (prompt.length < 5 || prompt.length > 2_000) {
-      return NextResponse.json({ error: "Prompt must contain 5–2000 characters" }, { status: 400 });
+    const rawSubject = typeof payload.subject === "string"
+      ? payload.subject
+      : typeof payload.prompt === "string"
+        ? payload.prompt
+        : "";
+    const { subject, prompt } = resolveImageGenerationPrompt(rawSubject);
+    if (subject.length < 2 || subject.length > AI_IMAGE_SUBJECT_MAX_LENGTH) {
+      return NextResponse.json({ error: `Subject must contain 2–${AI_IMAGE_SUBJECT_MAX_LENGTH} characters` }, { status: 400 });
     }
     if (!isAiImageProvider(payload.provider)) {
       return NextResponse.json({ error: "Provider must be sora or veo" }, { status: 400 });
@@ -109,6 +116,7 @@ export async function POST(request: Request) {
         { merge: true },
       );
       transaction.create(jobRef, {
+        subject,
         prompt,
         provider,
         language: "en-US",

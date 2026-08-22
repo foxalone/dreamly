@@ -4,6 +4,29 @@ export const AI_IMAGE_SIZE = "1024x1536" as const;
 export const AI_IMAGE_QUALITY = "medium" as const;
 export const AI_IMAGE_ASPECT_RATIO = "9:16" as const;
 export const AI_IMAGE_GEMINI_SIZE = "1K" as const;
+export const AI_IMAGE_SUBJECT_MAX_LENGTH = 300;
+
+export const AI_IMAGE_GOTHIC_PROMPT_TEMPLATE = `Create a visually striking image of **[SUBJECT]** in a consistent **dark gothic dreamlike aesthetic**.
+
+The image should feel mysterious, elegant, emotional, and slightly surreal, as if seen inside a vivid dream.
+
+**Visual style:** semi-realistic cinematic digital art, highly detailed, refined, sophisticated, gothic romanticism, subtle dark fantasy influence, realistic textures and lighting, beautiful rather than frightening.
+
+**Atmosphere:** mysterious, melancholic, hypnotic, magical, quiet, otherworldly, emotionally evocative.
+
+**Lighting:** dramatic soft cinematic lighting, subtle moonlight, gentle glow, deep shadows, soft mist, volumetric light, strong separation between the subject and background.
+
+**Color palette:** deep black, charcoal, midnight blue, muted violet, dark burgundy, cold silver, with subtle warm golden highlights when appropriate.
+
+**Composition:** one clear central subject, visually dominant and immediately recognizable, elegant framing, cinematic depth, uncluttered background, strong silhouette, balanced composition.
+
+**Environment:** dark atmospheric dreamscape, subtle fog or haze, softly blurred background elements, mysterious depth, tasteful gothic details where appropriate.
+
+**Rendering:** premium cinematic quality, semi-photorealistic, detailed textures, realistic materials, soft depth of field, subtle film grain, polished editorial artwork, high visual impact.
+
+Avoid cartoon style, anime, childish fantasy, excessive horror, gore, monsters unless specifically required by the subject, overly saturated colors, cheap fantasy-art appearance, busy compositions, text, captions, logos, frames, or watermarks.
+
+The final image should look like part of a **luxurious unified gothic dream dictionary collection**, instantly recognizable as belonging to the same visual world.`;
 
 export type AiImageProvider = "sora" | "veo";
 export type AiImageJobStatus = "queued" | "processing" | "completed" | "failed";
@@ -26,6 +49,7 @@ export type AiImageProviderUsage = {
 
 export type AdminAiImageJob = {
   id: string;
+  subject: string;
   prompt: string;
   provider: AiImageProvider;
   language: "en-US";
@@ -73,4 +97,25 @@ export function roundUsd(value: number) {
 
 export function sourceLabelForImage(provider: AiImageProvider) {
   return provider === "veo" ? "Image · Veo" : "Image · Sora";
+}
+
+export function buildGothicImagePrompt(subject: string) {
+  const cleaned = subject.trim().replace(/\s+/g, " ");
+  if (!cleaned) return AI_IMAGE_GOTHIC_PROMPT_TEMPLATE;
+  return AI_IMAGE_GOTHIC_PROMPT_TEMPLATE.replaceAll("[SUBJECT]", cleaned);
+}
+
+export function resolveImageGenerationPrompt(input: string) {
+  const trimmed = input.trim();
+  if (trimmed.includes("dark gothic dreamlike aesthetic")) {
+    const matched = /\*\*(.+?)\*\* in a consistent/.exec(trimmed);
+    return {
+      subject: (matched?.[1] || trimmed).trim().slice(0, AI_IMAGE_SUBJECT_MAX_LENGTH),
+      prompt: trimmed,
+    };
+  }
+  return {
+    subject: trimmed.slice(0, AI_IMAGE_SUBJECT_MAX_LENGTH),
+    prompt: buildGothicImagePrompt(trimmed),
+  };
 }

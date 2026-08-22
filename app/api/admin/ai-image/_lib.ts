@@ -69,6 +69,7 @@ export function serializeAiImageJob(snapshot: DocumentSnapshot): AdminAiImageJob
   const provider: AiImageProvider = data.provider === "veo" ? "veo" : "sora";
   return {
     id: snapshot.id,
+    subject: data.subject ?? data.prompt ?? "",
     prompt: data.prompt ?? "",
     provider,
     language: "en-US",

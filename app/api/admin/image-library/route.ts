@@ -22,6 +22,7 @@ export async function GET(request: Request) {
     for (const doc of snapshot.docs) {
       const data = doc.data() as {
         status?: string;
+        subject?: string;
         prompt?: string;
         provider?: string;
         imageUrl?: string;
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
       const source: AiImageProvider = data.provider === "veo" ? "veo" : "sora";
       items.push({
         id: doc.id,
+        subject: String(data.subject || data.prompt || ""),
         prompt: String(data.prompt || ""),
         source,
         sourceLabel: sourceLabelForImage(source),

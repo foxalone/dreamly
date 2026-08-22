@@ -7,6 +7,8 @@ import {
   AI_IMAGE_GEMINI_SIZE,
   AI_IMAGE_QUALITY,
   AI_IMAGE_SIZE,
+  AI_IMAGE_SUBJECT_MAX_LENGTH,
+  buildGothicImagePrompt,
   type AdminAiImageJob,
   type AiImagePublicConfig,
 } from "@/lib/adminAiImage";
@@ -51,7 +53,9 @@ function costLabel(job: AdminAiImageJob, usd: Intl.NumberFormat) {
 
 export default function AiImageAdminPanel({ user, studio }: { user: User; studio: "sora" | "veo" }) {
   const isVeo = studio === "veo";
-  const [prompt, setPrompt] = useState("");
+  const [subject, setSubject] = useState("");
+  const [promptPreviewOpen, setPromptPreviewOpen] = useState(false);
+  const [jobPromptId, setJobPromptId] = useState("");
   const [sendToTelegram, setSendToTelegram] = useState(true);
   const [costConfirmed, setCostConfirmed] = useState(false);
   const [jobs, setJobs] = useState<AdminAiImageJob[]>([]);
@@ -67,6 +71,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
   const numberFormatter = useMemo(() => new Intl.NumberFormat("ru-RU"), []);
   const usd = useMemo(() => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 }), []);
   const estimatedPrice = isVeo ? config.prices.veo : config.prices.sora;
+  const fullPrompt = useMemo(() => buildGothicImagePrompt(subject), [subject]);
 
   const loadJobs = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -107,7 +112,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (prompt.trim().length < 5 || !costConfirmed || !config.paidGenerationEnabled) return;
+    if (subject.trim().length < 2 || !costConfirmed || !config.paidGenerationEnabled) return;
     setSubmitting(true);
     setNotice(null);
     try {
@@ -115,14 +120,15 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       const response = await fetch("/api/admin/ai-image", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, provider: studio, sendToTelegram, costConfirmed: true }),
+        body: JSON.stringify({ subject, provider: studio, sendToTelegram, costConfirmed: true }),
       });
       const payload = (await response.json()) as { job?: AdminAiImageJob; error?: string };
       if (!response.ok || !payload.job) throw new Error(payload.error || "Не удалось поставить задание в очередь");
       setJobs((current) => [payload.job!, ...current]);
       setBudget((current) => ({ ...current, reservedUsd: current.reservedUsd + payload.job!.estimatedCostUsd, jobsCount: current.jobsCount + 1 }));
-      setPrompt("");
+      setSubject("");
       setCostConfirmed(false);
+      setPromptPreviewOpen(false);
       setNotice({ type: "ok", text: `${isVeo ? "Veo" : "Sora"}-картинка поставлена в очередь. После генерации появится приблизительная стоимость.` });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
@@ -204,11 +210,43 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
             </div>
           )}
 
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-[var(--text)]">Промпт картинки</span>
-            <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} className={`${input} min-h-28 resize-y`} placeholder="Например: Vertical 9:16 photo of a person falling through clouds in a dream, cinematic lighting, no text" minLength={5} maxLength={2000} required />
-            <span className="mt-1 block text-right text-xs text-[var(--muted)]">{prompt.length}/2000</span>
-          </label>
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <label htmlFor="ai-image-subject" className="text-sm font-semibold text-[var(--text)]">Сюжет [SUBJECT]</label>
+              <button
+                type="button"
+                onClick={() => setPromptPreviewOpen((open) => !open)}
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] text-[11px] font-bold text-[var(--muted)] hover:border-violet-500 hover:text-violet-500"
+                title="Показать полный промпт"
+                aria-label="Показать полный промпт"
+              >
+                i
+              </button>
+            </div>
+            <textarea
+              id="ai-image-subject"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              className={`${input} min-h-28 resize-y`}
+              placeholder="Например: a person falling through clouds in a dream"
+              minLength={2}
+              maxLength={AI_IMAGE_SUBJECT_MAX_LENGTH}
+              required
+            />
+            <span className="mt-1 block text-right text-xs text-[var(--muted)]">{subject.length}/{AI_IMAGE_SUBJECT_MAX_LENGTH}</span>
+          </div>
+
+          {promptPreviewOpen && (
+            <div className="rounded-xl border border-violet-500/25 bg-violet-500/[.05] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Полный промпт</p>
+                <button type="button" onClick={() => copy("full-prompt", fullPrompt)} className="rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--muted)]">
+                  {copied === "full-prompt" ? "Скопировано" : "Копировать"}
+                </button>
+              </div>
+              <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap text-xs leading-5 text-[var(--text)]">{fullPrompt}</pre>
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
@@ -245,7 +283,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
             <span className="text-sm font-semibold leading-6 text-[var(--text)]">Я подтверждаю платную генерацию {isVeo ? "Veo/Gemini" : "Sora/GPT Image"} с оценочной стоимостью {usd.format(estimatedPrice)}. Подтверждение будет повторно проверено сервером.</span>
           </label>
 
-          <button type="submit" disabled={submitting || prompt.trim().length < 5 || !costConfirmed || !config.paidGenerationEnabled} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-45">
+          <button type="submit" disabled={submitting || subject.trim().length < 2 || !costConfirmed || !config.paidGenerationEnabled} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-45">
             {submitting ? "Резервируем и ставим в очередь…" : `Создать за ${usd.format(estimatedPrice)}`}
           </button>
         </form>
@@ -297,8 +335,22 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
                       <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusColor(job.status)}`}>{statusLabel(job.status)}</span>
                       <span className="text-xs text-[var(--muted)]">{job.provider} · {costLabel(job, usd)}</span>
                     </div>
-                    <h3 className="mt-3 text-lg font-bold text-[var(--text)]">{job.prompt}</h3>
+                    <h3 className="mt-3 flex items-start gap-2 text-lg font-bold text-[var(--text)]">
+                      <span className="min-w-0">{job.subject || job.prompt}</span>
+                      <button
+                        type="button"
+                        onClick={() => setJobPromptId((current) => (current === job.id ? "" : job.id))}
+                        className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[11px] font-bold text-[var(--muted)] hover:border-violet-500 hover:text-violet-500"
+                        title="Показать полный промпт"
+                        aria-label="Показать полный промпт"
+                      >
+                        i
+                      </button>
+                    </h3>
                     <p className="mt-1 text-xs text-[var(--muted)]">{dateFormatter.format(new Date(job.createdAt))} · {job.stage}</p>
+                    {jobPromptId === job.id && job.prompt && (
+                      <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-xl border border-violet-500/20 bg-violet-500/[.04] p-3 text-xs leading-5 text-[var(--muted)]">{job.prompt}</pre>
+                    )}
                   </div>
                   <div className="flex h-fit flex-wrap gap-2">
                     {job.imageUrl && <a href={job.imageUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)]">Открыть</a>}
@@ -319,7 +371,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
 
                 {job.imageUrl && (
                   <a href={job.imageUrl} target="_blank" rel="noreferrer" className="mt-4 block overflow-hidden rounded-2xl border border-[var(--border)]">
-                    <img src={job.imageUrl} alt={job.prompt} className="max-h-96 w-full object-cover" />
+                    <img src={job.imageUrl} alt={job.subject || job.prompt} className="max-h-96 w-full object-cover" />
                   </a>
                 )}
 

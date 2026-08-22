@@ -20,8 +20,8 @@ function ImageTile({
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
       <div className="relative aspect-square overflow-hidden bg-[color-mix(in_srgb,var(--text)_8%,transparent)]">
-        <a href={item.imageUrl} target="_blank" rel="noreferrer" title={item.prompt} className="group absolute inset-0 block">
-          <img src={item.imageUrl} alt={item.prompt} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
+        <a href={item.imageUrl} target="_blank" rel="noreferrer" title={item.subject || item.prompt} className="group absolute inset-0 block">
+          <img src={item.imageUrl} alt={item.subject || item.prompt} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
         </a>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/70" />
         {dateLabel ? (

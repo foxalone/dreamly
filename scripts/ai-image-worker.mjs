@@ -438,7 +438,8 @@ async function ensureLocalImage(job, directory) {
 function costCaption(job, actualCostUsd) {
   const usd = Number.isFinite(actualCostUsd) ? actualCostUsd : Number(job.estimatedCostUsd ?? 0);
   const provider = job.provider === "veo" ? "Veo / Gemini Flash Image" : "Sora / GPT Image mini";
-  return `${job.prompt}\n${provider} · approx ${usd.toFixed(4)} USD`;
+  const title = String(job.subject || job.prompt || "").split("\n")[0].slice(0, 200);
+  return `${title}\n${provider} · approx ${usd.toFixed(4)} USD`;
 }
 
 async function processJob(job) {
