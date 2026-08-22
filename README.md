@@ -61,3 +61,11 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Admin image studios
+
+The admin dashboard also has Image · Sora, Image · Veo, and All Images. These reuse the same OpenAI key and Vertex service account as the video studios, but they call cheaper still-image models (`gpt-image-1-mini` and `gemini-3.1-flash-image`) instead of Sora/Veo video. After each job finishes, the card and Telegram caption show the approximate cost from provider usage. Start the image worker in a separate terminal:
+
+```bash
+npm run ai-image-worker
+```
