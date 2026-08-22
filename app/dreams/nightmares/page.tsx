@@ -31,13 +31,14 @@ const SCARY_SYMBOL_SLUGS = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "Nightmare Interpretation: Common Bad Dreams Explained | Dreamly",
+  title: "Nightmare Meaning: Why Bad Dreams Happen & How to Read Them",
   description:
-    "Nightmare meanings and interpretation — why horrible dreams happen and what being chased, falling, drowning, demons, and disasters usually reflect.",
+    "Dreams about being chased, falling, drowning, demons, and disasters — nightmare interpretation that stays grounded, without treating a bad dream as a prophecy.",
   alternates: { canonical: "/dreams/nightmares" },
   openGraph: {
-    title: "Nightmare Interpretation: Common Bad Dreams Explained",
-    description: "Nightmare meanings for the most common bad dreams — grounded, non-alarmist readings.",
+    title: "Nightmare Meaning: Why Bad Dreams Happen & How to Read Them",
+    description:
+      "Dreams about being chased, falling, drowning, demons, and disasters — grounded nightmare interpretation, not prophecy.",
     url: "/dreams/nightmares",
     type: "website",
   },

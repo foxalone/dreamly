@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isDreamCategory(category)) return {};
   const info = DREAM_CATEGORIES[category];
   const count = getAllEntriesByCategory(category).length;
-  const title = `${info.label}: ${count} Meanings & Interpretations | Dreamly`;
-  const description = `${info.label} explained — ${info.description} Explore ${count} symbols and variations with psychological, spiritual, Islamic, and biblical meanings.`;
+  const title = `${info.label}: ${count} Meanings, Symbols & Interpretations`;
+  const description = `${info.label} usually track ${info.description.replace(/\.$/, "").toLowerCase()}. ${count} symbols with psychological, spiritual, Islamic, and biblical readings.`;
   return {
     title,
     description,

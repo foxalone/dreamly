@@ -3,9 +3,9 @@ import FaithHub from "../FaithHub";
 import { PARENT_DREAMS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: `Biblical Dream Meanings: ${PARENT_DREAMS.length} Symbols Explained | Dreamly`,
+  title: `Biblical Dream Meanings: ${PARENT_DREAMS.length} Symbols, Scripture & Hope`,
   description:
-    "Biblical dream interpretation for snakes, water, death, fire, babies, weddings, and more — symbols weighed against scriptural themes of wisdom, stewardship, testing, and hope.",
+    "Dreams about snakes, water, death, fire, babies, and weddings through scripture — wisdom, stewardship, testing, and hope rather than a fixed code for every image.",
   alternates: { canonical: "/dreams/biblical" },
   openGraph: {
     title: "Biblical Dream Meanings",

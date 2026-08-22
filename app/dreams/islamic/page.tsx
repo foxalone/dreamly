@@ -3,9 +3,9 @@ import FaithHub from "../FaithHub";
 import { PARENT_DREAMS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: `Islamic Dream Meanings: ${PARENT_DREAMS.length} Symbols Explained | Dreamly`,
+  title: `Islamic Dream Meanings: ${PARENT_DREAMS.length} Symbols, Scenarios & Readings`,
   description:
-    "Islamic dream interpretation for snakes, water, teeth, fire, marriage, and more — approached with the tradition's distinction between true dreams, ordinary dreams, and distressing ones.",
+    "Dreams about snakes, water, teeth, fire, and marriage in Islamic interpretation — true dreams, ordinary dreams, and distressing ones, without treating the image as a verdict.",
   alternates: { canonical: "/dreams/islamic" },
   openGraph: {
     title: "Islamic Dream Meanings",

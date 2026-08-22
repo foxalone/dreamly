@@ -11,9 +11,9 @@ import {
 import { DREAM_DICTIONARY, POPULAR_DREAM_SLUGS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
+  title: "What Does My Dream Mean? AI Interpreter, Journal & Dictionary",
   description:
-    "Ask what your dream means with AI dream interpretation — instant personal readings, a private dream journal, and a free dream dictionary with psychological, spiritual, Islamic, and biblical meanings.",
+    "What does my dream mean? Get an AI interpretation in seconds, keep a private dream journal, and search a free dream dictionary — psychological, spiritual, Islamic, and biblical readings.",
   keywords: [
     "dream meaning ai",
     "what does my dream mean ai",
@@ -25,17 +25,17 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/" },
   openGraph: {
-    title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
+    title: "What Does My Dream Mean? AI Interpreter, Journal & Dictionary",
     description:
-      "AI dream meaning in seconds — interpret any dream, keep a private journal, and explore a free dream dictionary.",
+      "What does my dream mean? AI interpretation in seconds, a private journal, and a free dream dictionary.",
     url: "/",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "What Does My Dream Mean? AI Dream Interpreter | Dreamly",
+    title: "What Does My Dream Mean? AI Interpreter, Journal & Dictionary",
     description:
-      "AI dream meaning in seconds — interpret any dream, keep a private journal, and explore a free dream dictionary.",
+      "What does my dream mean? AI interpretation in seconds, a private journal, and a free dream dictionary.",
   },
 };
 

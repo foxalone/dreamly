@@ -13,13 +13,14 @@ import {
 } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: `Dream Dictionary: ${ALL_DREAM_ENTRIES.length} Symbols and Meanings | Dreamly`,
+  title: `Dream Dictionary: ${ALL_DREAM_ENTRIES.length} Symbols, Meanings & Interpretations`,
   description:
-    "Search Dreamly's dream dictionary for psychological, spiritual, Islamic, and biblical meanings across popular symbols and long-tail dream variations.",
+    "Dreams about snakes, weddings, teeth, death, and hundreds more — search psychological, spiritual, Islamic, and biblical meanings across connected symbols and variations.",
   alternates: { canonical: "/dreams" },
   openGraph: {
-    title: "Dream Dictionary: Symbols, Variations and Meanings",
-    description: "Explore connected dream symbol clusters, common variations, interpretations, and FAQs.",
+    title: "Dream Dictionary: Symbols, Meanings & Interpretations",
+    description:
+      "Dreams about snakes, weddings, teeth, death, and hundreds more — search meanings across connected symbols and variations.",
     url: "/dreams",
     type: "website",
   },

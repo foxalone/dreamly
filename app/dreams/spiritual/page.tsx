@@ -3,9 +3,9 @@ import FaithHub from "../FaithHub";
 import { PARENT_DREAMS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: `Spiritual Dream Meanings: ${PARENT_DREAMS.length} Symbols Explained | Dreamly`,
+  title: `Spiritual Dream Meanings: ${PARENT_DREAMS.length} Symbols, Growth & Attention`,
   description:
-    "Spiritual dream interpretation for snakes, water, angels, fire, death, and more — dreams read as invitations to reflection, growth, and honest attention rather than predictions.",
+    "Dreams about snakes, water, angels, fire, and death as spiritual invitations to reflection and growth — not predictions of what will happen next.",
   alternates: { canonical: "/dreams/spiritual" },
   openGraph: {
     title: "Spiritual Dream Meanings",

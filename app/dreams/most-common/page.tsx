@@ -4,9 +4,9 @@ import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { DREAM_CATEGORIES, DREAM_DICTIONARY, MOST_COMMON_DREAM_SLUGS } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: "Most Common Dreams and What They Mean | Dreamly",
+  title: "Most Common Dreams: Meanings of Snakes, Falling, Exes & More",
   description:
-    "The most common dreams people search for — snakes, teeth falling out, being chased, falling, flying, an ex, pregnancy — with psychological, spiritual, Islamic, and biblical meanings.",
+    "Dreams about snakes, teeth falling out, being chased, falling, flying, an ex, and pregnancy — the most common dreams, with psychological, spiritual, Islamic, and biblical meanings.",
   alternates: { canonical: "/dreams/most-common" },
   openGraph: {
     title: "Most Common Dreams and What They Mean",

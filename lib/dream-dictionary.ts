@@ -68,7 +68,7 @@ type ClusterSeed = {
 
 // Last date the shared dictionary templates/content changed. Bump this when editing
 // makeSections/makeTitle etc.; bump a cluster's own updatedAt when editing just that cluster.
-const DICTIONARY_UPDATED_AT = "2026-07-21";
+const DICTIONARY_UPDATED_AT = "2026-08-22";
 
 const CLUSTERS: ClusterSeed[] = [
   {
@@ -525,6 +525,8 @@ const CLUSTERS: ClusterSeed[] = [
           "car crash dream symbolism",
           "dream interpretation car crash",
           "car crash dream interpretation",
+          "car wreck dream meaning",
+          "car wreck",
         ],
       },
       { slug: "brake-failure", name: "brake failure", focus: "inability to slow down, weak boundaries, accelerating pressure, or fear that consequences cannot be stopped" },
@@ -1085,6 +1087,9 @@ const CLUSTERS: ClusterSeed[] = [
     summary: "trust, insecurity, guilt, betrayal, and fears about loyalty within a close relationship",
     aliases: [
       "infidelity",
+      "affair",
+      "having an affair",
+      "dream about having an affair",
       "being cheated on",
       "dream about cheating",
       "cheating in a dream",
@@ -1680,6 +1685,8 @@ const CLUSTERS: ClusterSeed[] = [
       "train dream meaning",
       "dreaming of a train",
       "train in a dream",
+      "dreams about trains",
+      "trains in dreams meaning",
     ],
     relatedSymbols: ["car", "tunnel", "airport", "plane", "being-lost"],
     updatedAt: "2026-07-21",
@@ -2046,6 +2053,73 @@ function titleCase(value: string) {
 
 function makeTitle(name: string) {
   return `${titleCase(name)} Dream Meaning`;
+}
+
+function clipMeta(value: string, max: number) {
+  if (value.length <= max) return value;
+  const cut = value.slice(0, max - 1);
+  const at = cut.lastIndexOf(" ");
+  return `${(at > max / 2 ? cut.slice(0, at) : cut).trimEnd()}…`;
+}
+
+function themeHook(source: string, maxItems: number) {
+  const parts = source
+    .replace(/[.—]/g, ",")
+    .replace(/\s+and\s+/gi, ", ")
+    .split(",")
+    .map((part) => part.trim().replace(/^(a|an|the)\s+/i, ""))
+    .filter((part) => part.length >= 3 && part.length <= 42);
+  const items = parts.slice(0, maxItems).map((part) => titleCase(part));
+  if (items.length === 0) return "Meaning, Symbolism & Interpretation";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} & ${items[1]}`;
+  return `${items[0]}, ${items[1]} & ${items[2]}`;
+}
+
+/** Query first, then a unique meaning — not a tautology and not a generic 4-lens suffix. */
+function makeSeoTitle(name: string, hookSource: string) {
+  const head = `${titleCase(name)} Dream Meaning`;
+  for (let count = 3; count >= 1; count -= 1) {
+    const title = `${head}: ${themeHook(hookSource, count)}`;
+    if (title.length <= 65) return title;
+  }
+  return head.length <= 60 ? head : clipMeta(head, 60);
+}
+
+function makeSeoDescription(name: string, meaning: string) {
+  const clean = meaning.replace(/\.+$/, "").trim();
+  const full = `Dreams about ${name} often point to ${clean} — not a prediction. Psychological, spiritual, Islamic, and biblical readings.`;
+  if (full.length <= 160) return full;
+  return clipMeta(`Dreams about ${name} often point to ${clean}.`, 160);
+}
+
+function polishSeoTitle(name: string, title: string, hookSource: string) {
+  if (
+    /^(Biblical|Spiritual|Islamic) Meaning/i.test(title) ||
+    /\| Dream Dictionary/i.test(title) ||
+    /:\s*What .+ Means/i.test(title) ||
+    /\(And More\)/i.test(title) ||
+    /\(Including Islamic Views\)/i.test(title)
+  ) {
+    return makeSeoTitle(name, hookSource);
+  }
+  if (/:\s*Meaning$/i.test(title)) {
+    const head = title.replace(/:\s*Meaning$/i, "").trim();
+    for (let count = 2; count >= 1; count -= 1) {
+      const next = `${head}: ${themeHook(hookSource, count)}`;
+      if (next.length <= 65) return next;
+    }
+    return clipMeta(head, 60);
+  }
+  return title;
+}
+
+function polishSeoDescription(name: string, description: string) {
+  const trimmed = description.trim();
+  if (/^(Dreams about|Dreams of|Dreaming of|Dream of|Dream about)\b/i.test(trimmed)) {
+    return clipMeta(trimmed, 160);
+  }
+  return clipMeta(`Dreams about ${name}: ${trimmed}`, 160);
 }
 
 function makeAliases(name: string, aliases: string[] = []) {
@@ -4196,7 +4270,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What eating in a dream means, from hunger and comfort to emotional nourishment, family meals, spoiled food, overeating, and spiritual interpretations.",
   },
   snake: {
-    seoTitle: "Snake Dream Meaning: What Snakes in Dreams Really Symbolize",
+    seoTitle: "Snake Dream Meaning: Transformation, Hidden Fear & Instinct",
     seoDescription:
       "Bitten, chased, or just watched? What snake dreams mean in psychology, Islam, and the Bible — plus six scenarios and why the snake's color changes the reading.",
   },
@@ -4211,7 +4285,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "Chase dreams are the most common nightmare on earth — and who's chasing you matters. What they mean, plus the rehearsal technique that changes how they end.",
   },
   ex: {
-    seoTitle: "Dreaming About Your Ex? What It Means (It's Rarely Love)",
+    seoTitle: "Dreaming About Your Ex: Memory, Closure & Why It's Rarely Love",
     seoDescription:
       "Dreaming of an ex years later is normal — and usually not about wanting them back. What reunion, argument, and apology dreams mean, and why they start now.",
   },
@@ -4281,9 +4355,9 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "Dream dictionary baby meanings — new potential, caregiving anxiety, and why the dream-baby is rarely a literal child. Psychological and spiritual angles.",
   },
   wedding: {
-    seoTitle: "Wedding Dream Meaning: What a Wedding in a Dream Means",
+    seoTitle: "Wedding Dream Meaning: Commitment, Cold Feet & Life Change",
     seoDescription:
-      "Wedding dream meaning — disasters, strangers, cold feet, and commitment anxiety. Why wedding dreams go wrong so often, and what they say about vows in waking life.",
+      "Dreams about weddings usually point to unification, commitment, and a life transition — not a literal marriage prediction. Disaster ceremonies, marrying a stranger, and running from the altar are the most common (and anxious) versions.",
   },
   fire: {
     seoTitle: "Fire Dream Meaning: Destruction, Passion or Purification?",
@@ -4301,7 +4375,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What dreaming of crawling — including on hands and knees — means: vulnerability, regression, and slow progress when standing feels impossible.",
   },
   "crawling-through-small-spaces": {
-    seoTitle: "Dream About Crawling Through Small Spaces: Meaning",
+    seoTitle: "Dream About Crawling Through Small Spaces: Constraint",
     seoDescription:
       "What dreaming of crawling through small or tight spaces means — claustrophobic progress, constraint, and advancing only by making yourself smaller.",
   },
@@ -4341,7 +4415,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What a tunnel dream means biblically and psychologically — narrow passages, light at the end, and faithful next steps through a hard season.",
   },
   "fear-of-heights": {
-    seoTitle: "Fear of Heights Dream Meaning | Dreaming of Heights & Fear",
+    seoTitle: "Fear of Heights Dream Meaning: Exposure, Vertigo & The Edge",
     seoDescription:
       "Dreaming about heights and being scared — höhenangst, exposure after progress, and freezing at the edge. Psychological and spiritual readings.",
   },
@@ -4351,7 +4425,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
       "What walking with your mother in a dream means — guidance, closeness, family patterns, independence, grief, and the path you are navigating together.",
   },
   "ex-family": {
-    seoTitle: "Dreaming of an Ex and Their Family: What It Means",
+    seoTitle: "Dreaming of an Ex and Their Family: Lingering Bonds",
     seoDescription:
       "What it means when your ex and his family appear in your dreams — lingering bonds, grief for a shared world, and why these dreams often return after closure.",
   },
@@ -4671,8 +4745,8 @@ function buildDictionary() {
       variationSlugs,
       relatedSymbols: cluster.relatedSymbols.filter((slug) => slug !== cluster.slug),
       shortMeaning: titleCase(cluster.summary) + ".",
-      seoTitle: `${title} - Psychological, Spiritual, Islamic & Biblical Meaning`,
-      seoDescription: `Discover what ${cluster.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+      seoTitle: makeSeoTitle(cluster.name, cluster.summary),
+      seoDescription: makeSeoDescription(cluster.name, cluster.summary),
       updatedAt,
       sections: makeSections({
         title,
@@ -4701,8 +4775,8 @@ function buildDictionary() {
           .map((candidate) => candidate.slug),
         relatedSymbols: cluster.relatedSymbols.filter((slug) => slug !== variation.slug),
         shortMeaning: `${titleCase(variation.focus)}.`,
-        seoTitle: `${variationTitle} - Psychological, Spiritual, Islamic & Biblical Meaning`,
-        seoDescription: `Discover what ${variation.name} means in dreams, including psychological, spiritual, Islamic, biblical interpretations, common scenarios, and FAQs.`,
+        seoTitle: makeSeoTitle(variation.name, variation.focus),
+        seoDescription: makeSeoDescription(variation.name, variation.focus),
         updatedAt,
         sections: makeSections({
           title: variationTitle,
@@ -4741,8 +4815,8 @@ function buildDictionary() {
       variationSlugs: [],
       relatedSymbols: [b.slug, ...b.variationSlugs.slice(0, 3)],
       shortMeaning: `${titleCase(combo.focus)}.`,
-      seoTitle: `${title}: Combined Meaning & Interpretation`,
-      seoDescription: `What it means to dream about ${a.name} and ${b.name} together, with psychological, spiritual, Islamic, and biblical interpretations plus FAQs.`,
+      seoTitle: makeSeoTitle(name, combo.focus),
+      seoDescription: makeSeoDescription(name, combo.focus),
       updatedAt: DICTIONARY_UPDATED_AT,
       sections: makeSections({
         title,
@@ -4769,8 +4843,12 @@ function buildDictionary() {
     const sectionOverride = SECTION_OVERRIDES[entry.slug];
     if (sectionOverride) entry.sections = { ...entry.sections, ...sectionOverride };
     const metaOverride = META_OVERRIDES[entry.slug];
-    if (metaOverride?.seoTitle) entry.seoTitle = metaOverride.seoTitle;
-    if (metaOverride?.seoDescription) entry.seoDescription = metaOverride.seoDescription;
+    if (metaOverride?.seoTitle) {
+      entry.seoTitle = polishSeoTitle(entry.name, metaOverride.seoTitle, entry.shortMeaning);
+    }
+    if (metaOverride?.seoDescription) {
+      entry.seoDescription = polishSeoDescription(entry.name, metaOverride.seoDescription);
+    }
     const updatedAtOverride = UPDATED_AT_OVERRIDES[entry.slug];
     if (updatedAtOverride) entry.updatedAt = updatedAtOverride;
     else if (GSC_ENHANCED_SLUGS.has(entry.slug)) entry.updatedAt = GSC_ENHANCEMENT_UPDATED_AT;

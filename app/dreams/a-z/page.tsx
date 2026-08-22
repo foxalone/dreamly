@@ -4,9 +4,9 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { ALL_DREAM_ENTRIES } from "@/lib/dream-dictionary";
 
 export const metadata: Metadata = {
-  title: `Dream Dictionary A–Z: All ${ALL_DREAM_ENTRIES.length} Dream Meanings | Dreamly`,
+  title: `Dream Dictionary A–Z: All ${ALL_DREAM_ENTRIES.length} Symbols & Meanings`,
   description:
-    "Browse every dream meaning on Dreamly alphabetically — parent symbols, long-tail variations, and combination dreams with psychological, spiritual, Islamic, and biblical interpretations.",
+    `Browse every dream meaning alphabetically — ${ALL_DREAM_ENTRIES.length} symbols, variations, and combinations with psychological, spiritual, Islamic, and biblical interpretations.`,
   alternates: { canonical: "/dreams/a-z" },
   openGraph: {
     title: "Dream Dictionary A–Z: Every Dream Meaning",
