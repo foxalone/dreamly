@@ -71,7 +71,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "CONNECTIONS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -243,11 +243,12 @@ export default function AdminDashboardPage() {
       requested === "VIDEOS" ||
       requested === "COMBINED_VIDEOS" ||
       requested === "VEO_VIDEOS" ||
-      requested === "VIDEO_LIBRARY"
+      requested === "VIDEO_LIBRARY" ||
+      requested === "CONNECTIONS"
     ) {
       setTab(requested);
-    } else if (params.get("tiktok")) {
-      setTab("VIDEO_LIBRARY");
+    } else if (params.get("tiktok") || params.get("meta") || params.get("threads") || params.get("youtube") || params.get("pinterest")) {
+      setTab("CONNECTIONS");
     }
   }, []);
 
@@ -924,6 +925,8 @@ async function loadUsers() {
               <>Video · Veo 3.1 Lite · four vertical Vertex AI scenes · English Shorts</>
             ) : tab === "VIDEO_LIBRARY" ? (
               <>All Videos · Instagram grid · Free · Sora · Combined · Veo</>
+            ) : tab === "CONNECTIONS" ? (
+              <>Social connections · TikTok · Meta · Threads · YouTube · Pinterest</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1097,6 +1100,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           All Videos
+        </button>
+
+        <button
+          onClick={() => setTab("CONNECTIONS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "CONNECTIONS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Connections
         </button>
       </div>
 
@@ -1563,6 +1578,8 @@ async function loadUsers() {
       {tab === "VEO_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="veo" />}
 
       {tab === "VIDEO_LIBRARY" && user && <VideoLibraryPanel user={user} />}
+
+      {tab === "CONNECTIONS" && user && <VideoLibraryPanel user={user} view="connections" />}
     </main>
   );
 }

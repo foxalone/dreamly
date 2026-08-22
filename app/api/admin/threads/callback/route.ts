@@ -8,7 +8,7 @@ function redirectWith(request: Request, status: "connected" | "error", detail = 
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "dreamly.art";
   const proto = request.headers.get("x-forwarded-proto") || "https";
   const url = new URL("/app/profile/admin-dashboard", `${proto}://${host}`);
-  url.searchParams.set("tab", "VIDEO_LIBRARY");
+  url.searchParams.set("tab", "CONNECTIONS");
   url.searchParams.set("threads", status);
   if (detail) url.searchParams.set("threads_error", detail.slice(0, 180));
   return NextResponse.redirect(url);

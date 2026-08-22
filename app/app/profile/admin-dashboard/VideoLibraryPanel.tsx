@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
 import {
   PINTEREST_BOARD_NAME,
@@ -224,47 +224,69 @@ function PublishIconButton({
   );
 }
 
-function VideoTile({ item, dateLabel }: { item: AdminVideoLibraryItem; dateLabel: string }) {
+function VideoTile({
+  item,
+  dateLabel,
+  scheduledNote = "",
+  actions,
+}: {
+  item: AdminVideoLibraryItem;
+  dateLabel: string;
+  scheduledNote?: string;
+  actions: ReactNode;
+}) {
   return (
-    <a
-      href={item.videoUrl}
-      target="_blank"
-      rel="noreferrer"
-      className="group block overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)] transition hover:border-[color-mix(in_srgb,var(--text)_35%,transparent)]"
-    >
+    <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
       <div className="relative aspect-square overflow-hidden bg-[color-mix(in_srgb,var(--text)_8%,transparent)]">
-        {item.thumbnailUrl ? (
-          <img
-            src={item.thumbnailUrl}
-            alt={item.title}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <video
-            src={item.videoUrl}
-            muted
-            playsInline
-            preload="metadata"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-        )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-transparent opacity-90" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-90" />
+        <a
+          href={item.videoUrl}
+          target="_blank"
+          rel="noreferrer"
+          title={item.title}
+          className="group absolute inset-0 block"
+        >
+          {item.thumbnailUrl ? (
+            <img
+              src={item.thumbnailUrl}
+              alt={item.title}
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <video
+              src={item.videoUrl}
+              muted
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            />
+          )}
+        </a>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/70" />
         {dateLabel ? (
-          <p className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-[2px]">
+          <p className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-[2px]">
             {dateLabel}
           </p>
         ) : null}
-        <div className="absolute inset-x-0 bottom-0 p-2.5">
-          <p className="line-clamp-2 text-[11px] font-bold leading-4 text-white">{item.title}</p>
-          <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-white/75">{item.sourceLabel}</p>
+        {scheduledNote ? (
+          <p className="pointer-events-none absolute right-2 top-2 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-semibold text-white">
+            {scheduledNote}
+          </p>
+        ) : null}
+        <div className="absolute inset-x-0 bottom-0 z-10 px-1 pb-1.5 pt-6">
+          <div className="flex items-center justify-between gap-0.5 rounded-lg bg-black/35 px-0.5 py-0.5 backdrop-blur-[2px]">{actions}</div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
-export default function VideoLibraryPanel({ user }: { user: User }) {
+export default function VideoLibraryPanel({
+  user,
+  view = "library",
+}: {
+  user: User;
+  view?: "library" | "connections";
+}) {
   const [items, setItems] = useState<AdminVideoLibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -331,6 +353,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
   }, [load]);
 
   useEffect(() => {
+    if (view !== "connections") return;
     const params = new URLSearchParams(window.location.search);
     const tiktokResult = params.get("tiktok");
     const metaResult = params.get("meta");
@@ -358,7 +381,7 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     } else if (pinterestResult === "error") {
       setNotice({ type: "error", text: params.get("pinterest_error") || "Не удалось подключить Pinterest" });
     }
-  }, []);
+  }, [view]);
 
   async function connectTikTok() {
     setConnecting("tiktok");
@@ -780,9 +803,301 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
     }
   }
 
+  const publishActions = (item: AdminVideoLibraryItem) => (
+    <>
+      <PublishIconButton
+        platform="tiktok"
+        published={Boolean(item.published?.tiktok)}
+        disabled={!tiktok?.connected}
+        busy={publishingKey === `tiktok:${item.id}`}
+        onClick={() => void publishToTikTok(item)}
+      />
+      <PublishIconButton
+        platform="instagram"
+        published={Boolean(item.published?.instagram)}
+        disabled={!meta?.instagramReady}
+        busy={publishingKey === `instagram:${item.id}`}
+        onClick={() => void publishToMeta(item, "instagram")}
+      />
+      <PublishIconButton
+        platform="facebook"
+        published={Boolean(item.published?.facebook)}
+        disabled={!meta?.facebookReady}
+        busy={publishingKey === `facebook:${item.id}`}
+        onClick={() => void publishToMeta(item, "facebook")}
+      />
+      <PublishIconButton
+        platform="threads"
+        published={Boolean(item.published?.threads)}
+        failed={item.threadsState === "failed"}
+        failureNote={item.threadsError}
+        disabled={!threads?.connected || item.threadsState === "publishing"}
+        busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
+        onClick={() => void publishToThreads(item)}
+      />
+      <PublishIconButton
+        platform="youtube"
+        published={Boolean(item.published?.youtube)}
+        scheduled={item.youtubeState === "scheduled"}
+        scheduledNote={
+          item.youtubeScheduledAt ? scheduleFormatter.format(new Date(item.youtubeScheduledAt)) : ""
+        }
+        failed={item.youtubeState === "failed"}
+        failureNote={item.youtubeError}
+        openHint={
+          (item.published?.youtube || item.youtubeState === "scheduled") && item.youtubeVideoId
+            ? "открыть видео"
+            : ""
+        }
+        disabled={
+          item.youtubeState === "uploading" ||
+          (!youtube?.connected && !item.published?.youtube && item.youtubeState !== "scheduled") ||
+          ((Boolean(item.published?.youtube) || item.youtubeState === "scheduled") && !item.youtubeVideoId)
+        }
+        busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "uploading"}
+        onClick={() => openYouTubeMenu(item)}
+      />
+      <PublishIconButton
+        platform="pinterest"
+        published={Boolean(item.published?.pinterest)}
+        failed={item.pinterestState === "failed"}
+        failureNote={item.pinterestError}
+        openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
+        disabled={
+          item.pinterestState === "publishing" ||
+          (!pinterest?.connected && !item.published?.pinterest) ||
+          (Boolean(item.published?.pinterest) && !item.pinterestPinId)
+        }
+        busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
+        onClick={() => void publishToPinterest(item)}
+      />
+    </>
+  );
+
+  if (view === "connections") {
+    return (
+      <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Connections</p>
+            <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Подключения соцсетей</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">TikTok · Meta · Threads · YouTube · Pinterest</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
+              Обновить
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "tiktok"}
+              onClick={() => void resetConnection("tiktok")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "tiktok" ? "Сбрасываем…" : "Reset TikTok"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "tiktok"}
+              onClick={() => void connectTikTok()}
+              className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)] disabled:opacity-50"
+            >
+              {connecting === "tiktok" ? "Открываем TikTok…" : tiktok?.connected ? "Reconnect TikTok" : "Connect TikTok"}
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "meta"}
+              onClick={() => void resetConnection("meta")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "meta" ? "Сбрасываем…" : "Reset Meta"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "meta"}
+              onClick={() => void connectMeta()}
+              className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {connecting === "meta" ? "Открываем Meta…" : meta?.connected ? "Reconnect Meta" : "Connect Meta"}
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "threads"}
+              onClick={() => void resetConnection("threads")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "threads" ? "Сбрасываем…" : "Reset Threads"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "threads"}
+              onClick={() => void connectThreads()}
+              className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {connecting === "threads" ? "Открываем Threads…" : threads?.connected ? "Reconnect Threads" : "Connect Threads"}
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "youtube"}
+              onClick={() => void resetConnection("youtube")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "youtube" ? "Сбрасываем…" : "Reset YouTube"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "youtube"}
+              onClick={() => void connectYouTube()}
+              className="rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {connecting === "youtube" ? "Открываем YouTube…" : youtube?.connected ? "Reconnect YouTube" : "Connect YouTube"}
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "pinterest"}
+              onClick={() => void resetConnection("pinterest")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "pinterest" ? "Сбрасываем…" : "Reset Pinterest"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "pinterest"}
+              onClick={() => void connectPinterest()}
+              className="rounded-full bg-[#E60023] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {connecting === "pinterest" ? "Открываем Pinterest…" : pinterest?.connected ? "Reconnect Pinterest" : "Connect Pinterest"}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {tiktok?.configured === false ? (
+              <span>
+                TikTok env: <code className="text-[var(--text)]">TIKTOK_CLIENT_KEY</code>,{" "}
+                <code className="text-[var(--text)]">TIKTOK_CLIENT_SECRET</code>
+                {tiktok.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{tiktok.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : tiktok?.connected ? (
+              <span>
+                TikTok подключён{tiktok.displayName ? ` · @${tiktok.displayName}` : ""}
+                {tiktok.scope ? ` · scopes: ${tiktok.scope}` : ""}
+              </span>
+            ) : (
+              <span>TikTok ещё не подключён. Нажмите Connect TikTok и авторизуйте аккаунт для публикации.</span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {meta?.configured === false ? (
+              <span>
+                Meta env: <code className="text-[var(--text)]">META_APP_ID</code>,{" "}
+                <code className="text-[var(--text)]">META_APP_SECRET</code>
+                {meta.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{meta.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : meta?.connected ? (
+              <span>
+                Meta подключена
+                {meta.instagramReady ? ` · IG @${meta.igUsername || meta.igUserId}` : " · Instagram не привязан к Page"}
+                {meta.facebookReady ? ` · FB ${meta.pageName || meta.pageId}` : ""}
+              </span>
+            ) : (
+              <span>Meta ещё не подключена. Один OAuth открывает Instagram Reels и Facebook Reels.</span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {threads?.configured === false ? (
+              <span>
+                Threads env: <code className="text-[var(--text)]">THREADS_APP_ID</code>,{" "}
+                <code className="text-[var(--text)]">THREADS_APP_SECRET</code>
+                {threads.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{threads.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : threads?.connected ? (
+              <span>
+                Threads подключён{threads.username ? ` · @${threads.username}` : ""}
+                {threads.scope ? ` · scopes: ${threads.scope}` : ""}
+              </span>
+            ) : (
+              <span>Threads ещё не подключён. Нажмите Connect Threads и авторизуйте @get.dreamly.</span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {youtube?.configured === false ? (
+              <span>
+                YouTube env: <code className="text-[var(--text)]">YOUTUBE_CLIENT_ID</code>,{" "}
+                <code className="text-[var(--text)]">YOUTUBE_CLIENT_SECRET</code>
+                {youtube.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{youtube.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : youtube?.connected ? (
+              <span>
+                YouTube подключён{youtube.channelTitle ? ` · ${youtube.channelTitle}` : youtube.channelId ? ` · ${youtube.channelId}` : ""}
+                {youtube.privacyStatus ? ` · загрузка как ${youtube.privacyStatus}` : ""}
+              </span>
+            ) : (
+              <span>YouTube ещё не подключён. Нажмите Connect YouTube и выберите канал Dreamly.</span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {pinterest?.configured === false ? (
+              <span>
+                Pinterest env: <code className="text-[var(--text)]">PINTEREST_APP_ID</code>,{" "}
+                <code className="text-[var(--text)]">PINTEREST_APP_SECRET</code>
+                {pinterest.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{pinterest.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : pinterest?.connected ? (
+              <span>
+                Pinterest подключён{pinterest.username ? ` · @${pinterest.username}` : ""}
+                {` · прямая публикация · доска «${pinterest.boardName || PINTEREST_BOARD_NAME}»`}
+              </span>
+            ) : (
+              <span>
+                Pinterest ещё не подключён. Нажмите Connect Pinterest и авторизуйте @getdreamly — пины уходят напрямую на доску «
+                {PINTEREST_BOARD_NAME}», без Instagram.
+              </span>
+            )}
+          </div>
+        </div>
+
+        {notice && (
+          <p
+            className={`mt-4 rounded-xl px-4 py-3 text-sm font-semibold ${
+              notice.type === "ok" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+            }`}
+          >
+            {notice.text}
+          </p>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Video library</p>
           <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Все сгенерированные видео</h2>
@@ -790,203 +1105,9 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
             Free Video · Free Mix · Sora · Combined · Veo · {items.length} готовых
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
-            Обновить
-          </button>
-          <button
-            type="button"
-            disabled={resetting === "tiktok"}
-            onClick={() => void resetConnection("tiktok")}
-            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-          >
-            {resetting === "tiktok" ? "Сбрасываем…" : "Reset TikTok"}
-          </button>
-          <button
-            type="button"
-            disabled={connecting === "tiktok"}
-            onClick={() => void connectTikTok()}
-            className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)] disabled:opacity-50"
-          >
-            {connecting === "tiktok" ? "Открываем TikTok…" : tiktok?.connected ? "Reconnect TikTok" : "Connect TikTok"}
-          </button>
-          <button
-            type="button"
-            disabled={resetting === "meta"}
-            onClick={() => void resetConnection("meta")}
-            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-          >
-            {resetting === "meta" ? "Сбрасываем…" : "Reset Meta"}
-          </button>
-          <button
-            type="button"
-            disabled={connecting === "meta"}
-            onClick={() => void connectMeta()}
-            className="rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {connecting === "meta" ? "Открываем Meta…" : meta?.connected ? "Reconnect Meta" : "Connect Meta"}
-          </button>
-          <button
-            type="button"
-            disabled={resetting === "threads"}
-            onClick={() => void resetConnection("threads")}
-            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-          >
-            {resetting === "threads" ? "Сбрасываем…" : "Reset Threads"}
-          </button>
-          <button
-            type="button"
-            disabled={connecting === "threads"}
-            onClick={() => void connectThreads()}
-            className="rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {connecting === "threads" ? "Открываем Threads…" : threads?.connected ? "Reconnect Threads" : "Connect Threads"}
-          </button>
-          <button
-            type="button"
-            disabled={resetting === "youtube"}
-            onClick={() => void resetConnection("youtube")}
-            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-          >
-            {resetting === "youtube" ? "Сбрасываем…" : "Reset YouTube"}
-          </button>
-          <button
-            type="button"
-            disabled={connecting === "youtube"}
-            onClick={() => void connectYouTube()}
-            className="rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {connecting === "youtube" ? "Открываем YouTube…" : youtube?.connected ? "Reconnect YouTube" : "Connect YouTube"}
-          </button>
-          <button
-            type="button"
-            disabled={resetting === "pinterest"}
-            onClick={() => void resetConnection("pinterest")}
-            className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-          >
-            {resetting === "pinterest" ? "Сбрасываем…" : "Reset Pinterest"}
-          </button>
-          <button
-            type="button"
-            disabled={connecting === "pinterest"}
-            onClick={() => void connectPinterest()}
-            className="rounded-full bg-[#E60023] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {connecting === "pinterest" ? "Открываем Pinterest…" : pinterest?.connected ? "Reconnect Pinterest" : "Connect Pinterest"}
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 space-y-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          {tiktok?.configured === false ? (
-            <span>
-              TikTok env: <code className="text-[var(--text)]">TIKTOK_CLIENT_KEY</code>,{" "}
-              <code className="text-[var(--text)]">TIKTOK_CLIENT_SECRET</code>
-              {tiktok.redirectUri ? (
-                <>
-                  {" "}
-                  · Redirect URI: <code className="text-[var(--text)]">{tiktok.redirectUri}</code>
-                </>
-              ) : null}
-            </span>
-          ) : tiktok?.connected ? (
-            <span>
-              TikTok подключён{tiktok.displayName ? ` · @${tiktok.displayName}` : ""}
-              {tiktok.scope ? ` · scopes: ${tiktok.scope}` : ""}
-            </span>
-          ) : (
-            <span>TikTok ещё не подключён. Нажмите Connect TikTok и авторизуйте аккаунт для публикации.</span>
-          )}
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          {meta?.configured === false ? (
-            <span>
-              Meta env: <code className="text-[var(--text)]">META_APP_ID</code>,{" "}
-              <code className="text-[var(--text)]">META_APP_SECRET</code>
-              {meta.redirectUri ? (
-                <>
-                  {" "}
-                  · Redirect URI: <code className="text-[var(--text)]">{meta.redirectUri}</code>
-                </>
-              ) : null}
-            </span>
-          ) : meta?.connected ? (
-            <span>
-              Meta подключена
-              {meta.instagramReady ? ` · IG @${meta.igUsername || meta.igUserId}` : " · Instagram не привязан к Page"}
-              {meta.facebookReady ? ` · FB ${meta.pageName || meta.pageId}` : ""}
-            </span>
-          ) : (
-            <span>Meta ещё не подключена. Один OAuth открывает Instagram Reels и Facebook Reels.</span>
-          )}
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          {threads?.configured === false ? (
-            <span>
-              Threads env: <code className="text-[var(--text)]">THREADS_APP_ID</code>,{" "}
-              <code className="text-[var(--text)]">THREADS_APP_SECRET</code>
-              {threads.redirectUri ? (
-                <>
-                  {" "}
-                  · Redirect URI: <code className="text-[var(--text)]">{threads.redirectUri}</code>
-                </>
-              ) : null}
-            </span>
-          ) : threads?.connected ? (
-            <span>
-              Threads подключён{threads.username ? ` · @${threads.username}` : ""}
-              {threads.scope ? ` · scopes: ${threads.scope}` : ""}
-            </span>
-          ) : (
-            <span>Threads ещё не подключён. Нажмите Connect Threads и авторизуйте @get.dreamly.</span>
-          )}
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          {youtube?.configured === false ? (
-            <span>
-              YouTube env: <code className="text-[var(--text)]">YOUTUBE_CLIENT_ID</code>,{" "}
-              <code className="text-[var(--text)]">YOUTUBE_CLIENT_SECRET</code>
-              {youtube.redirectUri ? (
-                <>
-                  {" "}
-                  · Redirect URI: <code className="text-[var(--text)]">{youtube.redirectUri}</code>
-                </>
-              ) : null}
-            </span>
-          ) : youtube?.connected ? (
-            <span>
-              YouTube подключён{youtube.channelTitle ? ` · ${youtube.channelTitle}` : youtube.channelId ? ` · ${youtube.channelId}` : ""}
-              {youtube.privacyStatus ? ` · загрузка как ${youtube.privacyStatus}` : ""}
-            </span>
-          ) : (
-            <span>YouTube ещё не подключён. Нажмите Connect YouTube и выберите канал Dreamly.</span>
-          )}
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
-          {pinterest?.configured === false ? (
-            <span>
-              Pinterest env: <code className="text-[var(--text)]">PINTEREST_APP_ID</code>,{" "}
-              <code className="text-[var(--text)]">PINTEREST_APP_SECRET</code>
-              {pinterest.redirectUri ? (
-                <>
-                  {" "}
-                  · Redirect URI: <code className="text-[var(--text)]">{pinterest.redirectUri}</code>
-                </>
-              ) : null}
-            </span>
-          ) : pinterest?.connected ? (
-            <span>
-              Pinterest подключён{pinterest.username ? ` · @${pinterest.username}` : ""}
-              {` · прямая публикация · доска «${pinterest.boardName || PINTEREST_BOARD_NAME}»`}
-            </span>
-          ) : (
-            <span>
-              Pinterest ещё не подключён. Нажмите Connect Pinterest и авторизуйте @getdreamly — пины уходят напрямую на доску «
-              {PINTEREST_BOARD_NAME}», без Instagram.
-            </span>
-          )}
-        </div>
+        <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
+          Обновить
+        </button>
       </div>
 
       {notice && (
@@ -1014,88 +1135,20 @@ export default function VideoLibraryPanel({ user }: { user: User }) {
       ) : (
         <div className="mt-6 grid grid-cols-5 gap-2">
           {items.map((item) => (
-            <div key={item.id} className="min-w-0">
-              <VideoTile item={item} dateLabel={dateFormatter.format(new Date(item.createdAt))} />
-              <div className="mt-1.5 px-0.5">
-                <div className="flex items-center justify-between gap-0.5">
-                  <PublishIconButton
-                    platform="tiktok"
-                    published={Boolean(item.published?.tiktok)}
-                    disabled={!tiktok?.connected}
-                    busy={publishingKey === `tiktok:${item.id}`}
-                    onClick={() => void publishToTikTok(item)}
-                  />
-                  <PublishIconButton
-                    platform="instagram"
-                    published={Boolean(item.published?.instagram)}
-                    disabled={!meta?.instagramReady}
-                    busy={publishingKey === `instagram:${item.id}`}
-                    onClick={() => void publishToMeta(item, "instagram")}
-                  />
-                  <PublishIconButton
-                    platform="facebook"
-                    published={Boolean(item.published?.facebook)}
-                    disabled={!meta?.facebookReady}
-                    busy={publishingKey === `facebook:${item.id}`}
-                    onClick={() => void publishToMeta(item, "facebook")}
-                  />
-                  <PublishIconButton
-                    platform="threads"
-                    published={Boolean(item.published?.threads)}
-                    failed={item.threadsState === "failed"}
-                    failureNote={item.threadsError}
-                    disabled={!threads?.connected || item.threadsState === "publishing"}
-                    busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
-                    onClick={() => void publishToThreads(item)}
-                  />
-                  <PublishIconButton
-                    platform="youtube"
-                    published={Boolean(item.published?.youtube)}
-                    scheduled={item.youtubeState === "scheduled"}
-                    scheduledNote={
-                      item.youtubeScheduledAt ? scheduleFormatter.format(new Date(item.youtubeScheduledAt)) : ""
-                    }
-                    failed={item.youtubeState === "failed"}
-                    failureNote={item.youtubeError}
-                    openHint={
-                      (item.published?.youtube || item.youtubeState === "scheduled") && item.youtubeVideoId
-                        ? "открыть видео"
-                        : ""
-                    }
-                    disabled={
-                      item.youtubeState === "uploading" ||
-                      (!youtube?.connected && !item.published?.youtube && item.youtubeState !== "scheduled") ||
-                      ((Boolean(item.published?.youtube) || item.youtubeState === "scheduled") && !item.youtubeVideoId)
-                    }
-                    busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "uploading"}
-                    onClick={() => openYouTubeMenu(item)}
-                  />
-                  <PublishIconButton
-                    platform="pinterest"
-                    published={Boolean(item.published?.pinterest)}
-                    failed={item.pinterestState === "failed"}
-                    failureNote={item.pinterestError}
-                    openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
-                    disabled={
-                      item.pinterestState === "publishing" ||
-                      (!pinterest?.connected && !item.published?.pinterest) ||
-                      (Boolean(item.published?.pinterest) && !item.pinterestPinId)
-                    }
-                    busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
-                    onClick={() => void publishToPinterest(item)}
-                  />
-                </div>
-              </div>
-              {item.youtubeState === "scheduled" && item.youtubeScheduledAt ? (
-                <p className="mt-1 truncate px-0.5 text-[10px] font-semibold text-amber-600">
-                  YouTube ⏱ {scheduleFormatter.format(new Date(item.youtubeScheduledAt))}
-                </p>
-              ) : null}
-            </div>
+            <VideoTile
+              key={item.id}
+              item={item}
+              dateLabel={dateFormatter.format(new Date(item.createdAt))}
+              scheduledNote={
+                item.youtubeState === "scheduled" && item.youtubeScheduledAt
+                  ? `YT ${scheduleFormatter.format(new Date(item.youtubeScheduledAt))}`
+                  : ""
+              }
+              actions={publishActions(item)}
+            />
           ))}
         </div>
       )}
-
       {scheduleItem ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
