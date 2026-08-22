@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SectionJumpNav from "../SectionJumpNav";
+import { DreamPageImageFrame, DreamPageImagePickerButton, DreamPageImageProvider } from "../DreamPageImage";
 import {
   DREAM_CATEGORIES,
   DREAM_SLUGS,
@@ -243,18 +244,23 @@ export default async function DreamSymbolPage({ params }: PageProps) {
         ) : null}
 
         <section id="meaning" className="scroll-mt-24 py-12 sm:py-16">
-          <div className="grid gap-6 md:grid-cols-[190px_1fr] md:gap-12">
-            <div>
-              <span className="grid size-11 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
-                <BookOpenText size={21} strokeWidth={1.8} aria-hidden="true" />
-              </span>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Core symbol</p>
-              <h2 className="mt-1.5 text-xl font-semibold tracking-tight">General meaning</h2>
-            </div>
-            <div>
-              <div className="space-y-5 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
-                {[...entry.sections.introduction, ...entry.sections.general].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          <DreamPageImageProvider slug={entry.slug} accent={entry.accent}>
+            <div className="grid gap-6 md:grid-cols-[190px_1fr] md:gap-12">
+              <div>
+                <span className="grid size-11 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
+                  <BookOpenText size={21} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Core symbol</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <h2 className="text-xl font-semibold tracking-tight">General meaning</h2>
+                  <DreamPageImagePickerButton />
+                </div>
               </div>
+              <div>
+                <DreamPageImageFrame />
+                <div className="space-y-5 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
+                  {[...entry.sections.introduction, ...entry.sections.general].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                </div>
               <h3 className="mt-9 text-sm font-semibold uppercase tracking-[0.15em] text-[var(--dd-subtle)]">Common scenarios</h3>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {entry.sections.commonScenarios.map((scenario) => (
@@ -266,6 +272,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
               </div>
             </div>
           </div>
+          </DreamPageImageProvider>
         </section>
 
         <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="variations-title">
