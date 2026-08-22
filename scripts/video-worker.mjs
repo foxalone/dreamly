@@ -218,7 +218,9 @@ async function createScript(topic) {
             content:
               "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. " +
               "The narration must be natural, engaging, and accurate, with no markdown, scene labels, unsupported certainty, " +
-              "or misleading clickbait. searchTerms must contain 5 to 8 short English Pexels queries. The title must be accurate " +
+              "or misleading clickbait. searchTerms must contain 5 to 8 short English stock-footage queries of 1 to 3 visual words, " +
+              "such as \"sleeping dog\", \"puppy close up\", or \"person sleeping\". Never use abstract phrases like " +
+              "\"dream meaning\", \"interpretation\", \"symbolism\", or \"analysis\". The title must be accurate " +
               "and at most 70 characters. The description must summarize the value, include natural search phrases, and end " +
               "with 3 hashtags. Do not include any website URLs in the description or pinned comment — the publishing system adds the site link. " +
               "Provide 10 to 15 comma-free tags, 3 to 5 hashtags without #, thumbnail text of 2 to 4 words, " +
@@ -374,6 +376,7 @@ async function renderMixedVideo(job, script, searchTerms) {
     "run", "python", helperPath,
     "--task-id", materialsTaskId,
     "--terms-json", JSON.stringify(searchTerms),
+    "--topic", job.topic || "",
     "--target-seconds", "50",
     "--clip-duration", "5",
   ], {

@@ -28,6 +28,66 @@ from app.utils import utils  # noqa: E402
 PROVIDERS = ("pexels", "pixabay")
 RECENT_DAYS = 60
 MAX_HISTORY_ITEMS = 5_000
+ABSTRACT_WORDS = {
+    "analysis",
+    "dream",
+    "dreamed",
+    "dreaming",
+    "dreams",
+    "dreamt",
+    "interpretation",
+    "interpretations",
+    "meaning",
+    "meanings",
+    "significance",
+    "spiritual",
+    "symbol",
+    "symbolism",
+    "symbolisms",
+    "symbols",
+}
+STOPWORDS = {
+    "a",
+    "about",
+    "an",
+    "and",
+    "does",
+    "ever",
+    "for",
+    "from",
+    "have",
+    "happened",
+    "how",
+    "in",
+    "into",
+    "it",
+    "mean",
+    "of",
+    "on",
+    "or",
+    "the",
+    "this",
+    "to",
+    "what",
+    "when",
+    "which",
+    "who",
+    "why",
+    "with",
+    "you",
+    "your",
+}
+GENERIC_VISUAL_TERMS = (
+    "person sleeping",
+    "close up eyes",
+    "night sky",
+    "bedroom at night",
+    "thinking",
+)
+
+
+def log(message: str) -> None:
+    print(message, file=sys.stderr, flush=True)
 
 
 def apply_environment_keys() -> None:
@@ -43,9 +103,47 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task-id", required=True)
     parser.add_argument("--terms-json", required=True)
+    parser.add_argument("--topic", default="")
     parser.add_argument("--target-seconds", type=int, default=50)
     parser.add_argument("--clip-duration", type=int, default=5)
     return parser.parse_args()
+
+
+def _clean_term(term: str) -> str:
+    return " ".join(str(term).lower().replace("?", " ").replace("!", " ").split())
+
+
+def expand_search_terms(terms: list[str], topic: str = "") -> list[str]:
+    """Turn abstract GPT queries into visual stock-footage searches."""
+    expanded: list[str] = []
+    seen: set[str] = set()
+
+    def add(term: str) -> None:
+        cleaned = _clean_term(term)
+        if cleaned and cleaned not in seen:
+            seen.add(cleaned)
+            expanded.append(cleaned)
+
+    for term in terms:
+        add(term)
+        words = [word.strip(".,'\"") for word in _clean_term(term).split()]
+        visual = [word for word in words if word not in STOPWORDS and word not in ABSTRACT_WORDS]
+        if visual:
+            add(" ".join(visual))
+            add(visual[-1])
+            if len(visual) > 1:
+                add(visual[0])
+
+    for word in _clean_term(topic).split():
+        token = word.strip(".,'\"")
+        if token and token not in STOPWORDS and token not in ABSTRACT_WORDS and len(token) > 2:
+            add(token)
+
+    if len(expanded) < 4:
+        for fallback in GENERIC_VISUAL_TERMS:
+            add(fallback)
+
+    return expanded
 
 
 def item_key(item: MaterialInfo) -> str:
@@ -102,13 +200,15 @@ def save_history(history: dict[str, float]) -> None:
 
 def search(provider: str, term: str, clip_duration: int) -> list[MaterialInfo]:
     search_function = material.search_videos_pexels if provider == "pexels" else material.search_videos_pixabay
-    return material._search_videos_with_cache(
+    items = material._search_videos_with_cache(
         provider=provider,
         search_videos=search_function,
         search_term=term,
         minimum_duration=clip_duration,
         video_aspect=VideoAspect.portrait,
     )
+    log(f"free mix {provider} term={term!r} candidates={len(items)}")
+    return items
 
 
 def public_source(item: MaterialInfo, term: str, local_path: str) -> dict[str, Any]:
@@ -145,6 +245,8 @@ def main() -> int:
         terms = []
     if not terms:
         raise SystemExit("Free Mix requires at least one stock search term")
+    terms = expand_search_terms(terms, args.topic)
+    log(f"free mix visual search terms: {terms}")
 
     target_seconds = max(args.clip_duration * 2, args.target_seconds)
     task_directory = Path(utils.task_dir(args.task_id))
@@ -157,41 +259,63 @@ def main() -> int:
     duration = 0
     search_cache: dict[tuple[str, str], list[MaterialInfo]] = {}
 
-    max_attempts = max(len(terms) * 4, 16)
-    for index in range(max_attempts):
-        if duration >= target_seconds:
+    def providers_used() -> set[str]:
+        return {source["provider"] for source in sources}
+
+    def has_required_mix() -> bool:
+        return len(paths) >= 2 and providers_used() == set(PROVIDERS)
+
+    max_attempts = max(len(terms) * 4, 24)
+    for allow_recent in (False, True):
+        if has_required_mix() and duration >= target_seconds:
             break
-        term = terms[index % len(terms)]
-        preferred = PROVIDERS[index % len(PROVIDERS)]
-        candidate = None
-        for provider in (preferred, PROVIDERS[1 - PROVIDERS.index(preferred)]):
-            cache_key = (provider, term)
-            if cache_key not in search_cache:
-                search_cache[cache_key] = search(provider, term, args.clip_duration)
-            candidate = choose_candidate(search_cache[cache_key], history, selected_keys)
-            if candidate is not None:
+        if allow_recent:
+            log("free mix retrying with recent-clip reuse after visual-term search")
+        for index in range(max_attempts):
+            if has_required_mix() and duration >= target_seconds:
                 break
-        if candidate is None:
-            continue
+            term = terms[index % len(terms)]
+            preferred = PROVIDERS[index % len(PROVIDERS)]
+            candidate = None
+            for provider in (preferred, PROVIDERS[1 - PROVIDERS.index(preferred)]):
+                missing_provider = PROVIDERS[1 - PROVIDERS.index(provider)]
+                if provider in providers_used() and missing_provider not in providers_used():
+                    continue
+                cache_key = (provider, term)
+                if cache_key not in search_cache:
+                    search_cache[cache_key] = search(provider, term, args.clip_duration)
+                candidate = choose_candidate(search_cache[cache_key], history, selected_keys)
+                if candidate is not None:
+                    break
+            if candidate is None:
+                continue
 
-        selected_keys.add(item_key(candidate))
-        saved_path = material.save_video(str(candidate.url), save_dir=str(task_directory))
-        if not saved_path:
-            continue
-        downloaded_content_key = content_key(str(saved_path))
-        if downloaded_content_key in history or downloaded_content_key in selected_content_keys:
-            Path(saved_path).unlink(missing_ok=True)
-            continue
-        selected_content_keys.add(downloaded_content_key)
-        paths.append(str(saved_path))
-        sources.append(public_source(candidate, term, str(saved_path)))
-        duration += min(args.clip_duration, int(candidate.duration))
-        history[item_key(candidate)] = time.time()
-        history[downloaded_content_key] = time.time()
+            selected_key = item_key(candidate)
+            selected_keys.add(selected_key)
+            saved_path = material.save_video(str(candidate.url), save_dir=str(task_directory))
+            if not saved_path:
+                continue
+            downloaded_content_key = content_key(str(saved_path))
+            if downloaded_content_key in selected_content_keys:
+                Path(saved_path).unlink(missing_ok=True)
+                continue
+            if downloaded_content_key in history and not allow_recent:
+                Path(saved_path).unlink(missing_ok=True)
+                selected_keys.discard(selected_key)
+                continue
+            selected_content_keys.add(downloaded_content_key)
+            paths.append(str(saved_path))
+            sources.append(public_source(candidate, term, str(saved_path)))
+            duration += min(args.clip_duration, int(candidate.duration))
+            history[item_key(candidate)] = time.time()
+            history[downloaded_content_key] = time.time()
 
-    providers_used = {source["provider"] for source in sources}
-    if len(paths) < 2 or providers_used != set(PROVIDERS):
-        raise SystemExit("Free Mix could not download usable clips from both Pexels and Pixabay")
+    if not has_required_mix():
+        used = ", ".join(sorted(providers_used())) or "none"
+        raise SystemExit(
+            "Free Mix could not download usable clips from both Pexels and Pixabay "
+            f"(got {len(paths)} clips from {used})"
+        )
 
     save_history(history)
     print(json.dumps({"result": {"materials": paths, "sources": sources}}, ensure_ascii=False))
