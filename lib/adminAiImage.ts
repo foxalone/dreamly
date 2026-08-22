@@ -1,10 +1,12 @@
 export const AI_IMAGE_COLLECTION = "adminAiImageJobs";
 export const AI_IMAGE_WORKER_DOCUMENT = "adminSystem/aiImageWorker";
+export const AI_IMAGE_PROMPT_DOCUMENT = "adminSystem/aiImagePrompt";
 export const AI_IMAGE_SIZE = "1024x1536" as const;
 export const AI_IMAGE_QUALITY = "medium" as const;
 export const AI_IMAGE_ASPECT_RATIO = "9:16" as const;
 export const AI_IMAGE_GEMINI_SIZE = "1K" as const;
 export const AI_IMAGE_SUBJECT_MAX_LENGTH = 300;
+export const AI_IMAGE_TEMPLATE_MAX_LENGTH = 8_000;
 
 export const AI_IMAGE_GOTHIC_PROMPT_TEMPLATE = `Create a visually striking image of **[SUBJECT]** in a consistent **dark gothic dreamlike aesthetic**.
 
@@ -85,6 +87,7 @@ export type AiImagePublicConfig = {
   veoSize: typeof AI_IMAGE_GEMINI_SIZE;
   veoAspectRatio: typeof AI_IMAGE_ASPECT_RATIO;
   prices: Record<AiImageProvider, number>;
+  promptTemplate: string;
 };
 
 export function isAiImageProvider(value: unknown): value is AiImageProvider {
@@ -99,23 +102,25 @@ export function sourceLabelForImage(provider: AiImageProvider) {
   return provider === "veo" ? "Image · Veo" : "Image · Sora";
 }
 
-export function buildGothicImagePrompt(subject: string) {
-  const cleaned = subject.trim().replace(/\s+/g, " ");
-  if (!cleaned) return AI_IMAGE_GOTHIC_PROMPT_TEMPLATE;
-  return AI_IMAGE_GOTHIC_PROMPT_TEMPLATE.replaceAll("[SUBJECT]", cleaned);
+export function normalizePromptTemplate(value: unknown) {
+  const template = typeof value === "string" ? value.trim() : "";
+  if (!template || template.length > AI_IMAGE_TEMPLATE_MAX_LENGTH || !template.includes("[SUBJECT]")) {
+    return AI_IMAGE_GOTHIC_PROMPT_TEMPLATE;
+  }
+  return template;
 }
 
-export function resolveImageGenerationPrompt(input: string) {
+export function buildGothicImagePrompt(subject: string, template = AI_IMAGE_GOTHIC_PROMPT_TEMPLATE) {
+  const cleaned = subject.trim().replace(/\s+/g, " ");
+  const source = normalizePromptTemplate(template);
+  if (!cleaned) return source;
+  return source.replaceAll("[SUBJECT]", cleaned);
+}
+
+export function resolveImageGenerationPrompt(input: string, template = AI_IMAGE_GOTHIC_PROMPT_TEMPLATE) {
   const trimmed = input.trim();
-  if (trimmed.includes("dark gothic dreamlike aesthetic")) {
-    const matched = /\*\*(.+?)\*\* in a consistent/.exec(trimmed);
-    return {
-      subject: (matched?.[1] || trimmed).trim().slice(0, AI_IMAGE_SUBJECT_MAX_LENGTH),
-      prompt: trimmed,
-    };
-  }
   return {
     subject: trimmed.slice(0, AI_IMAGE_SUBJECT_MAX_LENGTH),
-    prompt: buildGothicImagePrompt(trimmed),
+    prompt: buildGothicImagePrompt(trimmed, template),
   };
 }

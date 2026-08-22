@@ -4,12 +4,16 @@ import {
   AI_IMAGE_ASPECT_RATIO,
   AI_IMAGE_COLLECTION,
   AI_IMAGE_GEMINI_SIZE,
+  AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
   AI_IMAGE_QUALITY,
   AI_IMAGE_SIZE,
+  AI_IMAGE_PROMPT_DOCUMENT,
+  AI_IMAGE_SUBJECT_MAX_LENGTH,
+  AI_IMAGE_TEMPLATE_MAX_LENGTH,
   AI_IMAGE_WORKER_DOCUMENT,
   isAiImageProvider,
+  normalizePromptTemplate,
   resolveImageGenerationPrompt,
-  AI_IMAGE_SUBJECT_MAX_LENGTH,
 } from "@/lib/adminAiImage";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -30,10 +34,11 @@ export async function GET(request: Request) {
     await requireAdmin(request);
     const db = adminDb();
     const budgetDate = utcBudgetDate();
-    const [jobsSnapshot, workerSnapshot, budgetSnapshot] = await Promise.all([
+    const [jobsSnapshot, workerSnapshot, budgetSnapshot, promptSnapshot] = await Promise.all([
       db.collection(AI_IMAGE_COLLECTION).orderBy("createdAt", "desc").limit(40).get(),
       db.doc(AI_IMAGE_WORKER_DOCUMENT).get(),
       db.collection("adminAiImageBudgets").doc(budgetDate).get(),
+      db.doc(AI_IMAGE_PROMPT_DOCUMENT).get(),
     ]);
     const jobs = jobsSnapshot.docs.map(serializeAiImageJob).filter((job): job is NonNullable<typeof job> => job !== null);
     const worker = workerSnapshot.data() as
@@ -43,7 +48,7 @@ export async function GET(request: Request) {
     const budget = budgetSnapshot.data() as { reservedUsd?: number; jobsCount?: number } | undefined;
     return NextResponse.json({
       jobs,
-      config: aiImageConfig(),
+      config: aiImageConfig(promptSnapshot.data()?.template),
       budget: {
         date: budgetDate,
         reservedUsd: Number(budget?.reservedUsd ?? 0),
@@ -66,12 +71,15 @@ export async function POST(request: Request) {
   try {
     const uid = await requireAdmin(request);
     const payload = (await request.json()) as Record<string, unknown>;
+    const db = adminDb();
     const rawSubject = typeof payload.subject === "string"
       ? payload.subject
       : typeof payload.prompt === "string"
         ? payload.prompt
         : "";
-    const { subject, prompt } = resolveImageGenerationPrompt(rawSubject);
+    const promptSnapshot = await db.doc(AI_IMAGE_PROMPT_DOCUMENT).get();
+    const promptTemplate = normalizePromptTemplate(promptSnapshot.data()?.template);
+    const { subject, prompt } = resolveImageGenerationPrompt(rawSubject, promptTemplate);
     if (subject.length < 2 || subject.length > AI_IMAGE_SUBJECT_MAX_LENGTH) {
       return NextResponse.json({ error: `Subject must contain 2–${AI_IMAGE_SUBJECT_MAX_LENGTH} characters` }, { status: 400 });
     }
@@ -82,7 +90,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paid generation must be explicitly confirmed" }, { status: 400 });
     }
 
-    const config = aiImageConfig();
+    const config = aiImageConfig(promptTemplate);
     if (!config.paidGenerationEnabled) {
       return NextResponse.json(
         { error: "Paid AI image generation is disabled on the server (AI_IMAGE_PAID_GENERATION_ENABLED / AI_VIDEO_PAID_GENERATION_ENABLED)" },
@@ -93,7 +101,6 @@ export async function POST(request: Request) {
     const provider = payload.provider;
     const estimatedCostUsd = config.prices[provider];
     const budgetDate = utcBudgetDate();
-    const db = adminDb();
     const jobRef = db.collection(AI_IMAGE_COLLECTION).doc();
     const budgetRef = db.collection("adminAiImageBudgets").doc(budgetDate);
 
@@ -162,6 +169,37 @@ export async function POST(request: Request) {
     if (message === "DAILY_BUDGET_LIMIT") {
       return NextResponse.json({ error: "Daily AI image budget would be exceeded" }, { status: 429 });
     }
+    return apiError(error);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const uid = await requireAdmin(request);
+    const payload = (await request.json()) as Record<string, unknown>;
+    const reset = payload.reset === true;
+    const template = reset
+      ? AI_IMAGE_GOTHIC_PROMPT_TEMPLATE
+      : typeof payload.promptTemplate === "string"
+        ? payload.promptTemplate.trim()
+        : "";
+    if (!template || template.length > AI_IMAGE_TEMPLATE_MAX_LENGTH) {
+      return NextResponse.json({ error: `Prompt template must contain 1–${AI_IMAGE_TEMPLATE_MAX_LENGTH} characters` }, { status: 400 });
+    }
+    if (!template.includes("[SUBJECT]")) {
+      return NextResponse.json({ error: "Prompt template must include [SUBJECT]" }, { status: 400 });
+    }
+
+    await adminDb().doc(AI_IMAGE_PROMPT_DOCUMENT).set(
+      {
+        template,
+        updatedBy: uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    return NextResponse.json({ config: aiImageConfig(template) });
+  } catch (error) {
     return apiError(error);
   }
 }

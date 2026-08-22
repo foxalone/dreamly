@@ -10,6 +10,8 @@ import {
   type AiImageProviderUsage,
   type AiImagePublicConfig,
   type AiImageTokenUsage,
+  AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
+  normalizePromptTemplate,
   roundUsd,
 } from "@/lib/adminAiImage";
 
@@ -35,7 +37,7 @@ function paidGenerationEnabled() {
   return process.env.AI_VIDEO_PAID_GENERATION_ENABLED?.trim().toLowerCase() === "true";
 }
 
-export function aiImageConfig(): AiImagePublicConfig {
+export function aiImageConfig(promptTemplate = AI_IMAGE_GOTHIC_PROMPT_TEMPLATE): AiImagePublicConfig {
   const soraPriceUsd = finiteEnv("SORA_IMAGE_PRICE_USD", 0.015);
   const veoPriceUsd = finiteEnv("VEO_IMAGE_PRICE_USD", 0.07);
   return {
@@ -52,6 +54,7 @@ export function aiImageConfig(): AiImagePublicConfig {
       sora: roundUsd(soraPriceUsd),
       veo: roundUsd(veoPriceUsd),
     },
+    promptTemplate: normalizePromptTemplate(promptTemplate),
   };
 }
 

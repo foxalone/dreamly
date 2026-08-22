@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   AI_IMAGE_ASPECT_RATIO,
   AI_IMAGE_GEMINI_SIZE,
+  AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
   AI_IMAGE_QUALITY,
   AI_IMAGE_SIZE,
   AI_IMAGE_SUBJECT_MAX_LENGTH,
+  AI_IMAGE_TEMPLATE_MAX_LENGTH,
   buildGothicImagePrompt,
   type AdminAiImageJob,
   type AiImagePublicConfig,
@@ -36,6 +38,7 @@ const DEFAULT_CONFIG: AiImagePublicConfig = {
   veoSize: AI_IMAGE_GEMINI_SIZE,
   veoAspectRatio: AI_IMAGE_ASPECT_RATIO,
   prices: { sora: 0.015, veo: 0.07 },
+  promptTemplate: AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
 };
 
 function statusLabel(status: AdminAiImageJob["status"]) {
@@ -55,6 +58,10 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
   const isVeo = studio === "veo";
   const [subject, setSubject] = useState("");
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false);
+  const [promptTemplate, setPromptTemplate] = useState(AI_IMAGE_GOTHIC_PROMPT_TEMPLATE);
+  const [templateDirty, setTemplateDirty] = useState(false);
+  const templateDirtyRef = useRef(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
   const [jobPromptId, setJobPromptId] = useState("");
   const [sendToTelegram, setSendToTelegram] = useState(true);
   const [costConfirmed, setCostConfirmed] = useState(false);
@@ -71,7 +78,8 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
   const numberFormatter = useMemo(() => new Intl.NumberFormat("ru-RU"), []);
   const usd = useMemo(() => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 }), []);
   const estimatedPrice = isVeo ? config.prices.veo : config.prices.sora;
-  const fullPrompt = useMemo(() => buildGothicImagePrompt(subject), [subject]);
+  const fullPrompt = useMemo(() => buildGothicImagePrompt(subject, promptTemplate), [promptTemplate, subject]);
+  const templateHasSubject = promptTemplate.includes("[SUBJECT]");
 
   const loadJobs = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -88,6 +96,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       if (!response.ok) throw new Error(payload.error || "Не удалось загрузить задания");
       setJobs((payload.jobs ?? []).filter((job) => (isVeo ? job.provider === "veo" : job.provider === "sora")));
       setConfig(payload.config ?? DEFAULT_CONFIG);
+      if (!templateDirtyRef.current) setPromptTemplate(payload.config?.promptTemplate ?? AI_IMAGE_GOTHIC_PROMPT_TEMPLATE);
       setBudget(payload.budget ?? { date: "", reservedUsd: 0, jobsCount: 0 });
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "", state: "offline", currentJobId: "" });
     } catch (error) {
@@ -108,6 +117,31 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       setCopied(key);
       window.setTimeout(() => setCopied(""), 2_000);
     });
+  }
+
+  async function saveTemplate(nextTemplate = promptTemplate, reset = false) {
+    if (!reset && (!nextTemplate.trim() || !nextTemplate.includes("[SUBJECT]"))) return;
+    setSavingTemplate(true);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/ai-image", {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(reset ? { reset: true } : { promptTemplate: nextTemplate }),
+      });
+      const payload = (await response.json()) as { config?: AiImagePublicConfig; error?: string };
+      if (!response.ok || !payload.config) throw new Error(payload.error || "Не удалось сохранить промпт");
+      setConfig(payload.config);
+      setPromptTemplate(payload.config.promptTemplate);
+      templateDirtyRef.current = false;
+      setTemplateDirty(false);
+      setNotice({ type: "ok", text: reset ? "Шаблон промпта сброшен к готическому дефолту." : "Шаблон промпта сохранён. Новые картинки будут использовать его." });
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка сохранения промпта" });
+    } finally {
+      setSavingTemplate(false);
+    }
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -217,8 +251,8 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
                 type="button"
                 onClick={() => setPromptPreviewOpen((open) => !open)}
                 className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] text-[11px] font-bold text-[var(--muted)] hover:border-violet-500 hover:text-violet-500"
-                title="Показать полный промпт"
-                aria-label="Показать полный промпт"
+                title="Показать и изменить полный промпт"
+                aria-label="Показать и изменить полный промпт"
               >
                 i
               </button>
@@ -238,13 +272,51 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
 
           {promptPreviewOpen && (
             <div className="rounded-xl border border-violet-500/25 bg-violet-500/[.05] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Полный промпт</p>
-                <button type="button" onClick={() => copy("full-prompt", fullPrompt)} className="rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--muted)]">
-                  {copied === "full-prompt" ? "Скопировано" : "Копировать"}
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Шаблон промпта</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => copy("full-prompt", fullPrompt)} className="rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--muted)]">
+                    {copied === "full-prompt" ? "Скопировано" : "Копировать итог"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingTemplate}
+                    onClick={() => void saveTemplate(AI_IMAGE_GOTHIC_PROMPT_TEMPLATE, true)}
+                    className="rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--muted)] disabled:opacity-50"
+                  >
+                    Сбросить
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingTemplate || !templateHasSubject || promptTemplate.trim().length < 1}
+                    onClick={() => void saveTemplate()}
+                    className="rounded-lg bg-violet-600 px-2.5 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                  >
+                    {savingTemplate ? "Сохраняем…" : "Сохранить"}
+                  </button>
+                </div>
               </div>
-              <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap text-xs leading-5 text-[var(--text)]">{fullPrompt}</pre>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Оставь плейсхолдер <code>[SUBJECT]</code> — туда подставится сюжет из поля выше. Шаблон общий для Sora и Veo.</p>
+              <textarea
+                value={promptTemplate}
+                onChange={(event) => {
+                  setPromptTemplate(event.target.value);
+                  templateDirtyRef.current = true;
+                  setTemplateDirty(true);
+                }}
+                className={`${input} mt-3 min-h-56 resize-y font-mono text-xs leading-5`}
+                maxLength={AI_IMAGE_TEMPLATE_MAX_LENGTH}
+              />
+              <span className="mt-1 block text-right text-xs text-[var(--muted)]">{promptTemplate.length}/{AI_IMAGE_TEMPLATE_MAX_LENGTH}</span>
+              {!templateHasSubject && (
+                <p className="mt-2 text-xs font-semibold text-red-500">В шаблоне должен быть [SUBJECT], иначе сюжет некуда подставить.</p>
+              )}
+              {subject.trim() && (
+                <div className="mt-3 rounded-xl bg-[var(--card)] p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Итог для модели</p>
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-xs leading-5 text-[var(--text)]">{fullPrompt}</pre>
+                </div>
+              )}
             </div>
           )}
 
