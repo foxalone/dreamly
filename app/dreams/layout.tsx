@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { MoonStar } from "lucide-react";
 import BottomNav from "@/app/app/BottomNav";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 import QuickSymbolFab from "./QuickSymbolFab";
+
+export const metadata: Metadata = {
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+  },
+};
 
 const HUB_LINKS: { href: string; label: string }[] = [
   { href: "/dreams", label: "Dream Dictionary" },

@@ -29,10 +29,15 @@ import {
   getRingLinks,
   type DreamEntry,
 } from "@/lib/dream-dictionary";
+import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, dreamPageImageAlt } from "@/lib/dreamPageImage";
+import { getDreamPageImage } from "@/lib/getDreamPageImage";
 
 type PageProps = { params: Promise<{ symbol: string }> };
 
 export const dynamicParams = false;
+
+/** Refresh assigned images without turning dictionary pages into full SSR. */
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return DREAM_SLUGS.map((symbol) => ({ symbol }));
@@ -44,6 +49,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!entry) return {};
 
   const url = `/dreams/${entry.canonicalSlug}`;
+  const pageImage = await getDreamPageImage(entry.slug);
+  const assignedImage = pageImage?.imageUrl
+    ? {
+        url: pageImage.imageUrl,
+        width: DREAM_PAGE_IMAGE_WIDTH,
+        height: DREAM_PAGE_IMAGE_HEIGHT,
+        alt: pageImage.alt || dreamPageImageAlt(entry.name),
+      }
+    : null;
+
   return {
     title: entry.seoTitle,
     description: entry.seoDescription,
@@ -53,11 +68,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: entry.seoDescription,
       url,
       type: "article",
+      ...(assignedImage ? { images: [assignedImage] } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: entry.seoTitle,
       description: entry.seoDescription,
+      ...(assignedImage ? { images: [assignedImage] } : {}),
     },
   };
 }
@@ -127,6 +144,22 @@ export default async function DreamSymbolPage({ params }: PageProps) {
   const categorySiblings = getCategorySiblings(entry);
   const ringLinks = getRingLinks(entry);
   const combos = getCombosForSymbol(entry.parentSlug ?? entry.slug).filter((combo) => combo.slug !== entry.slug);
+  const pageImage = await getDreamPageImage(entry.slug);
+  const articleImage = pageImage?.imageUrl
+    ? {
+        "@type": "ImageObject",
+        url: pageImage.imageUrl,
+        width: DREAM_PAGE_IMAGE_WIDTH,
+        height: DREAM_PAGE_IMAGE_HEIGHT,
+        caption: pageImage.alt || dreamPageImageAlt(entry.name),
+      }
+    : {
+        "@type": "ImageObject",
+        url: `https://dreamly.art/dreams/${entry.canonicalSlug}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        caption: `${entry.title} — illustrated card for the ${entry.name} dream symbol`,
+      };
 
   const articleJsonLd = {
     "@context": "https://schema.org",
@@ -135,13 +168,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
     description: entry.seoDescription,
     dateModified: entry.updatedAt,
     mainEntityOfPage: `https://dreamly.art/dreams/${entry.canonicalSlug}`,
-    image: {
-      "@type": "ImageObject",
-      url: `https://dreamly.art/dreams/${entry.canonicalSlug}/opengraph-image`,
-      width: 1200,
-      height: 630,
-      caption: `${entry.title} — illustrated card for the ${entry.name} dream symbol`,
-    },
+    image: articleImage,
     articleSection: category.label,
     keywords: entry.aliases.join(", "),
     isPartOf: entry.parentSlug
@@ -244,7 +271,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
         ) : null}
 
         <section id="meaning" className="scroll-mt-24 py-12 sm:py-16">
-          <DreamPageImageProvider slug={entry.slug} accent={entry.accent}>
+          <DreamPageImageProvider slug={entry.slug} accent={entry.accent} initialImage={pageImage}>
             <div className="grid gap-6 md:grid-cols-[190px_1fr] md:gap-12">
               <div>
                 <span className="grid size-11 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>

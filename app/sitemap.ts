@@ -1,17 +1,21 @@
 import type { MetadataRoute } from "next";
 import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
+import { listDreamPageImageUrls } from "@/lib/getDreamPageImage";
 
 const SITE = "https://dreamly.art";
 
 // Bump when the homepage content materially changes.
 const HOME_UPDATED_AT = "2026-07-02";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // The dictionary hub changes whenever any entry does.
   const dictionaryUpdatedAt = ALL_DREAM_ENTRIES.reduce(
     (latest, entry) => (entry.updatedAt > latest ? entry.updatedAt : latest),
     "",
   );
+  const imageBySlug = await listDreamPageImageUrls();
 
   const core: MetadataRoute.Sitemap = [
     {
@@ -61,12 +65,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const dictionary: MetadataRoute.Sitemap = ALL_DREAM_ENTRIES.map((entry) => ({
-    url: `${SITE}/dreams/${entry.canonicalSlug}`,
-    lastModified: entry.updatedAt,
-    changeFrequency: "monthly",
-    priority: entry.parentSlug ? 0.7 : 0.8,
-  }));
+  const dictionary: MetadataRoute.Sitemap = ALL_DREAM_ENTRIES.map((entry) => {
+    const imageUrl = imageBySlug.get(entry.slug) || imageBySlug.get(entry.canonicalSlug);
+    return {
+      url: `${SITE}/dreams/${entry.canonicalSlug}`,
+      lastModified: entry.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: entry.parentSlug ? 0.7 : 0.8,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
+    };
+  });
 
   return [...core, ...hubs, ...dictionary];
 }

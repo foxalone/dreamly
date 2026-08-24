@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { AdminImageLibraryItem } from "@/lib/adminImageLibrary";
-import type { DreamPageImageAssignment } from "@/lib/dreamPageImage";
+import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, type DreamPageImageAssignment } from "@/lib/dreamPageImage";
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
@@ -29,14 +29,16 @@ function usePageImage() {
 export function DreamPageImageProvider({
   slug,
   accent,
+  initialImage = null,
   children,
 }: {
   slug: string;
   accent: string;
+  initialImage?: DreamPageImageAssignment | null;
   children: ReactNode;
 }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [image, setImage] = useState<DreamPageImageAssignment | null>(null);
+  const [image, setImage] = useState<DreamPageImageAssignment | null>(initialImage);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [items, setItems] = useState<AdminImageLibraryItem[]>([]);
   const [loadingLibrary, setLoadingLibrary] = useState(false);
@@ -225,7 +227,13 @@ export function DreamPageImageFrame() {
   if (!image?.imageUrl) return null;
   return (
     <figure className="relative mb-8 max-w-lg overflow-hidden rounded-[1.6rem] border border-[var(--dd-border)] bg-[var(--dd-surface-soft)]">
-      <img src={image.imageUrl} alt={image.subject || "Dream symbol illustration"} className="aspect-[3/4] w-full object-cover" />
+      <img
+        src={image.imageUrl}
+        alt={image.alt || "Dream symbol illustration"}
+        width={DREAM_PAGE_IMAGE_WIDTH}
+        height={DREAM_PAGE_IMAGE_HEIGHT}
+        className="aspect-[3/4] w-full object-cover"
+      />
       {isAdmin ? (
         <button
           type="button"

@@ -1,7 +1,8 @@
 import { FieldValue } from "firebase-admin/firestore";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
-import { DREAM_PAGE_IMAGE_COLLECTION } from "@/lib/dreamPageImage";
+import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -22,6 +23,11 @@ function readSlug(value: unknown) {
   return slug;
 }
 
+function revalidateDreamPage(slug: string) {
+  revalidatePath(`/dreams/${slug}`);
+  revalidatePath("/sitemap.xml");
+}
+
 export async function PUT(request: Request) {
   try {
     const uid = await requireAdmin(request);
@@ -40,21 +46,24 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Image is not ready" }, { status: 409 });
     }
 
+    const subject = String(job.subject || "");
     await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).set({
       slug,
       imageJobId,
       imageUrl,
-      subject: String(job.subject || ""),
+      subject,
       assignedBy: uid,
       assignedAt: FieldValue.serverTimestamp(),
     });
+    revalidateDreamPage(slug);
 
     return NextResponse.json({
       image: {
         slug,
         imageJobId,
         imageUrl,
-        subject: String(job.subject || ""),
+        subject,
+        alt: dreamPageImageAlt(getDreamEntry(slug)?.name || subject),
       },
     });
   } catch (error) {
@@ -68,6 +77,7 @@ export async function DELETE(request: Request) {
     const slug = readSlug(new URL(request.url).searchParams.get("slug"));
     if (!slug) return NextResponse.json({ error: "Unknown symbol" }, { status: 400 });
     await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).delete();
+    revalidateDreamPage(slug);
     return NextResponse.json({ image: null });
   } catch (error) {
     return apiError(error);

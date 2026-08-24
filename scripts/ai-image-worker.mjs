@@ -146,6 +146,24 @@ function extensionFor(mimeType) {
   return "png";
 }
 
+function detectImageMime(buffer) {
+  const bytes = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "image/png";
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes.toString("ascii", 0, 4) === "RIFF" &&
+    bytes.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  return "";
+}
+
 function veoImageConfig() {
   const account = serviceAccount();
   return {
@@ -470,18 +488,19 @@ async function processJob(job) {
     const generated = job.provider === "veo"
       ? await generateVeoImage(job.prompt)
       : await generateSoraImage(job.prompt);
-    const filePath = path.join(directory, `image.${extensionFor(generated.mimeType)}`);
+    const mimeType = detectImageMime(generated.buffer) || generated.mimeType;
+    const filePath = path.join(directory, `image.${extensionFor(mimeType)}`);
     await writeFile(filePath, generated.buffer);
 
     await updateJob(reference, { stage: "uploading", progress: 80 });
-    const uploaded = await uploadImage(job.id, filePath, generated.mimeType);
+    const uploaded = await uploadImage(job.id, filePath, mimeType);
 
     let telegramMessageId = null;
     let telegramError = "";
     let telegramStatus = job.sendToTelegram === false ? "disabled" : "pending";
     if (job.sendToTelegram !== false) {
       try {
-        telegramMessageId = await sendTelegram(filePath, generated.mimeType, costCaption(job, generated.actualCostUsd));
+        telegramMessageId = await sendTelegram(filePath, mimeType, costCaption(job, generated.actualCostUsd));
         telegramStatus = "delivered";
       } catch (error) {
         telegramError = cleanError(error);
@@ -503,7 +522,7 @@ async function processJob(job) {
       },
       imageUrl: uploaded.url,
       imageStoragePath: uploaded.path,
-      mimeType: generated.mimeType,
+      mimeType,
       telegramMessageId,
       telegramError,
       telegramStatus,
