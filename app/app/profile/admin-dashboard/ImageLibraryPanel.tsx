@@ -168,7 +168,7 @@ function ImageTile({
                 {busyDownload ? "…" : "Скачать"}
               </button>
             </div>
-            <div className="mt-1 flex items-center justify-between gap-0.5">{actions}</div>
+            <div className="mt-1 flex items-center gap-0.5">{actions}</div>
           </div>
         </div>
       </div>
@@ -223,9 +223,11 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
 
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => void load(true), 15_000);
+    const timer = window.setInterval(() => {
+      if (!publishingKey) void load(true);
+    }, 15_000);
     return () => window.clearInterval(timer);
-  }, [load]);
+  }, [load, publishingKey]);
 
   function markPublished(itemId: string, platform: ImagePlatform, extra: Partial<AdminImageLibraryItem> = {}) {
     setItems((current) =>
@@ -281,28 +283,80 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
     }
   }
 
-  async function publishToMeta(item: AdminImageLibraryItem, target: "instagram" | "facebook") {
-    if (item.published?.[target]) return;
-    setPublishingKey(`${target}:${item.id}`);
-    setNotice(null);
-    try {
-      const token = await user.getIdToken();
+  function cardBusy(itemId: string) {
+    return publishingKey.endsWith(`:${itemId}`);
+  }
+
+  function pendingPlatforms(item: AdminImageLibraryItem): ImagePlatform[] {
+    const pending: ImagePlatform[] = [];
+    if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
+    if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
+    if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
+    if (pinterest?.connected && !item.published?.pinterest && item.pinterestState !== "publishing") pending.push("pinterest");
+    return pending;
+  }
+
+  async function publishImageTo(item: AdminImageLibraryItem, platform: ImagePlatform) {
+    const token = await user.getIdToken();
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    if (platform === "instagram" || platform === "facebook") {
       const response = await fetch("/api/admin/meta/publish-image", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id, target }),
+        headers,
+        body: JSON.stringify({ libraryId: item.id, target: platform }),
       });
       const payload = (await response.json()) as { ok?: boolean; status?: string; pageUrl?: string; error?: string };
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || `Не удалось опубликовать в ${platformLabel(target)}`);
+        throw new Error(payload.error || `Не удалось опубликовать в ${platformLabel(platform)}`);
       }
-      markPublished(item.id, target);
+      markPublished(item.id, platform);
+      return { pageUrl: payload.pageUrl || "", detail: payload.status || "PUBLISHED" };
+    }
+    if (platform === "threads") {
+      const response = await fetch("/api/admin/threads/publish-image", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; status?: string; pageUrl?: string; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Threads");
+      }
+      markPublished(item.id, "threads");
+      return { pageUrl: payload.pageUrl || "", detail: payload.status || "PUBLISHED" };
+    }
+    const response = await fetch("/api/admin/pinterest/publish-image", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ libraryId: item.id }),
+    });
+    const payload = (await response.json()) as {
+      ok?: boolean;
+      status?: string;
+      pinId?: string;
+      boardName?: string;
+      pageUrl?: string;
+      error?: string;
+    };
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || "Не удалось опубликовать в Pinterest");
+    }
+    markPublished(item.id, "pinterest", { pinterestPinId: payload.pinId || "" });
+    return {
+      pageUrl: payload.pageUrl || "",
+      detail: `${payload.status || "PUBLISHED"}${payload.boardName ? ` · доска «${payload.boardName}»` : ""}`,
+    };
+  }
+
+  async function publishToMeta(item: AdminImageLibraryItem, target: "instagram" | "facebook") {
+    if (item.published?.[target] || cardBusy(item.id)) return;
+    setPublishingKey(`${target}:${item.id}`);
+    setNotice(null);
+    try {
+      const result = await publishImageTo(item, target);
       setNotice({
         type: "ok",
-        text: `Опубликовано в ${platformLabel(target)} · ${payload.status || "PUBLISHED"}${payload.pageUrl ? ` · ${payload.pageUrl}` : ""}`,
+        text: `Опубликовано в ${platformLabel(target)} · ${result.detail}${result.pageUrl ? ` · ${result.pageUrl}` : ""}`,
       });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
@@ -313,27 +367,14 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
   }
 
   async function publishToThreads(item: AdminImageLibraryItem) {
-    if (item.published?.threads) return;
+    if (item.published?.threads || cardBusy(item.id)) return;
     setPublishingKey(`threads:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/threads/publish-image", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id }),
-      });
-      const payload = (await response.json()) as { ok?: boolean; status?: string; pageUrl?: string; error?: string };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Не удалось опубликовать в Threads");
-      }
-      markPublished(item.id, "threads");
+      const result = await publishImageTo(item, "threads");
       setNotice({
         type: "ok",
-        text: `Опубликовано в Threads · ${payload.status || "PUBLISHED"}${payload.pageUrl ? ` · ${payload.pageUrl}` : ""}`,
+        text: `Опубликовано в Threads · ${result.detail}${result.pageUrl ? ` · ${result.pageUrl}` : ""}`,
       });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
@@ -348,35 +389,14 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
       if (item.pinterestPinId) window.open(pinterestPinUrl(item.pinterestPinId), "_blank", "noopener,noreferrer");
       return;
     }
+    if (cardBusy(item.id)) return;
     setPublishingKey(`pinterest:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/pinterest/publish-image", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id }),
-      });
-      const payload = (await response.json()) as {
-        ok?: boolean;
-        status?: string;
-        pinId?: string;
-        boardName?: string;
-        pageUrl?: string;
-        error?: string;
-      };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Не удалось опубликовать в Pinterest");
-      }
-      markPublished(item.id, "pinterest", { pinterestPinId: payload.pinId || "" });
+      const result = await publishImageTo(item, "pinterest");
       setNotice({
         type: "ok",
-        text: `Опубликовано в Pinterest · ${payload.status || "PUBLISHED"}${
-          payload.boardName ? ` · доска «${payload.boardName}»` : ""
-        }${payload.pageUrl ? ` · ${payload.pageUrl}` : ""}`,
+        text: `Опубликовано в Pinterest · ${result.detail}${result.pageUrl ? ` · ${result.pageUrl}` : ""}`,
       });
       await load(true);
     } catch (publishError) {
@@ -387,47 +407,106 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
     }
   }
 
-  const publishActions = (item: AdminImageLibraryItem) => (
-    <>
-      <PublishIconButton
-        platform="instagram"
-        published={Boolean(item.published?.instagram)}
-        disabled={!meta?.instagramReady}
-        busy={publishingKey === `instagram:${item.id}`}
-        onClick={() => void publishToMeta(item, "instagram")}
-      />
-      <PublishIconButton
-        platform="facebook"
-        published={Boolean(item.published?.facebook)}
-        disabled={!meta?.facebookReady}
-        busy={publishingKey === `facebook:${item.id}`}
-        onClick={() => void publishToMeta(item, "facebook")}
-      />
-      <PublishIconButton
-        platform="threads"
-        published={Boolean(item.published?.threads)}
-        failed={item.threadsState === "failed"}
-        failureNote={item.threadsError}
-        disabled={!threads?.connected || item.threadsState === "publishing"}
-        busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
-        onClick={() => void publishToThreads(item)}
-      />
-      <PublishIconButton
-        platform="pinterest"
-        published={Boolean(item.published?.pinterest)}
-        failed={item.pinterestState === "failed"}
-        failureNote={item.pinterestError}
-        openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
-        disabled={
-          item.pinterestState === "publishing" ||
-          (!pinterest?.connected && !item.published?.pinterest) ||
-          (Boolean(item.published?.pinterest) && !item.pinterestPinId)
-        }
-        busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
-        onClick={() => void publishToPinterest(item)}
-      />
-    </>
-  );
+  async function publishToAll(item: AdminImageLibraryItem) {
+    const targets = pendingPlatforms(item);
+    if (!targets.length || cardBusy(item.id)) return;
+    setNotice(null);
+    const ok: string[] = [];
+    const failed: string[] = [];
+    let pageUrl = item.pageUrl || "";
+    for (const platform of targets) {
+      setPublishingKey(`${platform}:${item.id}`);
+      try {
+        const result = await publishImageTo(item, platform);
+        ok.push(platformLabel(platform));
+        if (result.pageUrl) pageUrl = result.pageUrl;
+      } catch (publishError) {
+        failed.push(
+          `${platformLabel(platform)}: ${publishError instanceof Error ? publishError.message : "ошибка"}`,
+        );
+      }
+    }
+    setPublishingKey("");
+    await load(true);
+    if (!failed.length) {
+      setNotice({
+        type: "ok",
+        text: `Опубликовано: ${ok.join(", ")}${pageUrl ? ` · ${pageUrl}` : ""}`,
+      });
+      return;
+    }
+    setNotice({
+      type: "error",
+      text: ok.length
+        ? `Опубликовано: ${ok.join(", ")}. Ошибки — ${failed.join("; ")}`
+        : failed.join("; "),
+    });
+  }
+
+  const publishActions = (item: AdminImageLibraryItem) => {
+    const busy = cardBusy(item.id);
+    const remaining = pendingPlatforms(item);
+    return (
+      <>
+        <PublishIconButton
+          platform="instagram"
+          published={Boolean(item.published?.instagram)}
+          disabled={!meta?.instagramReady || busy}
+          busy={publishingKey === `instagram:${item.id}`}
+          onClick={() => void publishToMeta(item, "instagram")}
+        />
+        <PublishIconButton
+          platform="facebook"
+          published={Boolean(item.published?.facebook)}
+          disabled={!meta?.facebookReady || busy}
+          busy={publishingKey === `facebook:${item.id}`}
+          onClick={() => void publishToMeta(item, "facebook")}
+        />
+        <PublishIconButton
+          platform="threads"
+          published={Boolean(item.published?.threads)}
+          failed={item.threadsState === "failed"}
+          failureNote={item.threadsError}
+          disabled={!threads?.connected || item.threadsState === "publishing" || busy}
+          busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
+          onClick={() => void publishToThreads(item)}
+        />
+        <PublishIconButton
+          platform="pinterest"
+          published={Boolean(item.published?.pinterest)}
+          failed={item.pinterestState === "failed"}
+          failureNote={item.pinterestError}
+          openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
+          disabled={
+            busy ||
+            item.pinterestState === "publishing" ||
+            (!pinterest?.connected && !item.published?.pinterest) ||
+            (Boolean(item.published?.pinterest) && !item.pinterestPinId)
+          }
+          busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
+          onClick={() => void publishToPinterest(item)}
+        />
+        <button
+          type="button"
+          title={
+            remaining.length
+              ? `Опубликовать во все доступные: ${remaining.map(platformLabel).join(", ")}`
+              : "Уже опубликовано во все доступные сети"
+          }
+          aria-label="Опубликовать во все доступные сети"
+          disabled={!remaining.length || busy}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void publishToAll(item);
+          }}
+          className="ml-auto shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          {busy ? "…" : "All"}
+        </button>
+      </>
+    );
+  };
 
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
