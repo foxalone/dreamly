@@ -22,6 +22,11 @@ import {
 } from "@/lib/adminPinterest";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import {
+  loadLibraryImage,
+  markLibraryImageFailed,
+  markLibraryImagePublished,
+} from "@/app/api/admin/_lib/libraryImage";
 import { DREAMLY_SOCIAL_URL } from "@/lib/socialCta";
 
 const PINTEREST_PUBLISH_LOCK_MS = 15 * 60 * 1000;
@@ -506,6 +511,86 @@ export async function publishLibraryVideoToPinterest(libraryId: string, adminUid
     await jobRef
       .set({ pinterestStatus: "failed", pinterestError: message.slice(0, 300) }, { merge: true })
       .catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function publishLibraryImageToPinterest(jobId: string, adminUid: string) {
+  const image = await loadLibraryImage(jobId, PINTEREST_DESCRIPTION_LIMIT);
+  const auth = await getValidPinterestAuth();
+  const board = await resolveBoard(auth.accessToken, { boardId: auth.boardId, boardName: auth.boardName });
+  if (board.id !== auth.boardId || board.name !== auth.boardName) {
+    await authRef().set({ boardId: board.id, boardName: board.name, updatedAt: new Date().toISOString() }, { merge: true });
+  }
+
+  const jobRef = adminDb().collection(image.collection).doc(image.jobId);
+  const startedAt = new Date().toISOString();
+
+  await adminDb().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(jobRef);
+    const data = (snapshot.data() || {}) as {
+      pinterestStatus?: string;
+      pinterestPublishedAt?: string;
+      pinterestPublishStartedAt?: string;
+    };
+    if (data.pinterestPublishedAt || data.pinterestStatus === "published") {
+      throw new Error("This image is already published to Pinterest");
+    }
+    if (data.pinterestStatus === "publishing") {
+      const lockedAt = Date.parse(data.pinterestPublishStartedAt || "") || 0;
+      if (Date.now() - lockedAt < PINTEREST_PUBLISH_LOCK_MS) {
+        throw new Error("A Pinterest publish is already running for this image");
+      }
+    }
+    transaction.set(
+      jobRef,
+      {
+        pinterestStatus: "publishing",
+        pinterestPublishStartedAt: startedAt,
+        pinterestPublishedBy: adminUid,
+        pinterestError: "",
+      },
+      { merge: true },
+    );
+  });
+
+  try {
+    const title = clip(image.title || image.subject || "Dream meaning", PINTEREST_TITLE_LIMIT);
+    const created = await pinterestFetch<{ id?: string }>("/pins", auth.accessToken, {
+      method: "POST",
+      body: {
+        board_id: board.id,
+        title,
+        description: clip(image.caption, PINTEREST_DESCRIPTION_LIMIT),
+        alt_text: clip(image.title || image.subject, PINTEREST_ALT_TEXT_LIMIT),
+        link: image.pageUrl || DREAMLY_SOCIAL_URL,
+        media_source: {
+          source_type: "image_url",
+          url: image.imageUrl,
+        },
+      },
+    });
+    const pinId = String(created.id || "");
+    if (!pinId) throw new Error("Pinterest did not return a pin id");
+
+    await markLibraryImagePublished(image.jobId, "pinterest", adminUid, {
+      pinterestPinId: pinId,
+      pinterestBoardId: board.id,
+    });
+
+    return {
+      target: "pinterest" as const,
+      status: "PUBLISHED" as const,
+      pinId,
+      boardId: board.id,
+      boardName: board.name,
+      title,
+      pageUrl: image.pageUrl,
+      username: auth.username,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Pinterest image publish failed";
+    await markLibraryImageFailed(image.jobId, "pinterest", message);
     throw error;
   }
 }

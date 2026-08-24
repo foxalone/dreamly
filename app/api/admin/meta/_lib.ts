@@ -17,6 +17,12 @@ import {
   type MetaConnectionStatus,
 } from "@/lib/adminMeta";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import {
+  instagramFeedImageUrl,
+  loadLibraryImage,
+  markLibraryImageFailed,
+  markLibraryImagePublished,
+} from "@/app/api/admin/_lib/libraryImage";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
 type GraphErrorPayload = {
@@ -520,4 +526,105 @@ export async function publishLibraryVideoToMeta(
   if (target === "instagram") return publishInstagram(libraryId, adminUid);
   if (target === "facebook") return publishFacebook(libraryId, adminUid);
   throw new Error("Unknown Meta publish target");
+}
+
+async function publishInstagramImage(jobId: string, adminUid: string) {
+  const image = await loadLibraryImage(jobId);
+  const auth = await getValidAuth();
+  if (!auth.igUserId) {
+    throw new Error(
+      "Instagram is not linked. Convert the account to Professional, attach it to the Facebook Page, then reconnect Meta.",
+    );
+  }
+  const existing = await adminDb().collection(image.collection).doc(image.jobId).get();
+  if ((existing.data() as { instagramPublishedAt?: string } | undefined)?.instagramPublishedAt) {
+    throw new Error("This image is already published to Instagram");
+  }
+
+  const imageUrl = await instagramFeedImageUrl(image);
+  const created = await graphFetch<{ id?: string }>(`/${auth.igUserId}/media`, auth.userAccessToken, {
+    method: "POST",
+    params: {
+      image_url: imageUrl,
+      caption: image.caption,
+    },
+  });
+  const containerId = String(created.id || "");
+  if (!containerId) throw new Error("Instagram did not return a media container");
+
+  await waitForInstagramContainer(auth.userAccessToken, containerId);
+  const published = await graphFetch<{ id?: string }>(`/${auth.igUserId}/media_publish`, auth.userAccessToken, {
+    method: "POST",
+    params: { creation_id: containerId },
+  });
+  const mediaId = String(published.id || containerId);
+  await markLibraryImagePublished(image.jobId, "instagram", adminUid, {
+    instagramMediaId: mediaId,
+    instagramContainerId: containerId,
+  });
+  return {
+    target: "instagram" as const,
+    mediaId,
+    status: "PUBLISHED" as const,
+    title: image.title,
+    caption: image.caption,
+    pageUrl: image.pageUrl,
+    igUsername: auth.igUsername,
+  };
+}
+
+async function publishFacebookImage(jobId: string, adminUid: string) {
+  const image = await loadLibraryImage(jobId);
+  const auth = await getValidAuth();
+  if (!auth.pageId || !auth.pageAccessToken) {
+    throw new Error("Facebook Page is not connected. Reconnect Meta and grant Page permissions.");
+  }
+  const existing = await adminDb().collection(image.collection).doc(image.jobId).get();
+  if ((existing.data() as { facebookPublishedAt?: string } | undefined)?.facebookPublishedAt) {
+    throw new Error("This image is already published to Facebook");
+  }
+
+  const posted = await graphFetch<{ id?: string; post_id?: string }>(`/${auth.pageId}/photos`, auth.pageAccessToken, {
+    method: "POST",
+    params: {
+      url: image.imageUrl,
+      caption: image.caption,
+      published: "true",
+    },
+  });
+  const photoId = String(posted.id || "");
+  const postId = String(posted.post_id || photoId);
+  if (!photoId && !postId) throw new Error("Facebook did not return a photo id");
+  await markLibraryImagePublished(image.jobId, "facebook", adminUid, {
+    facebookPhotoId: photoId,
+    facebookPostId: postId,
+  });
+  return {
+    target: "facebook" as const,
+    photoId,
+    postId,
+    status: "PUBLISHED" as const,
+    title: image.title,
+    caption: image.caption,
+    pageUrl: image.pageUrl,
+    pageName: auth.pageName,
+  };
+}
+
+export async function publishLibraryImageToMeta(
+  jobId: string,
+  adminUid: string,
+  target: MetaPublishTarget,
+) {
+  try {
+    if (target === "instagram") return await publishInstagramImage(jobId, adminUid);
+    if (target === "facebook") return await publishFacebookImage(jobId, adminUid);
+    throw new Error("Unknown Meta publish target");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Meta image publish failed";
+    if (!/already published/i.test(message)) {
+      await markLibraryImageFailed(jobId, target, message);
+    }
+    throw error;
+  }
 }

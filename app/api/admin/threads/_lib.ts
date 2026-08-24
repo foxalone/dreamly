@@ -21,6 +21,12 @@ import {
 } from "@/lib/adminThreads";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import {
+  loadLibraryImage,
+  markLibraryImageFailed,
+  markLibraryImagePublished,
+} from "@/app/api/admin/_lib/libraryImage";
+import { THREADS_IMAGE_CAPTION_LIMIT } from "@/lib/socialImageCaption";
 
 // Threads posts are capped at 500 characters, shorter than the other networks.
 const THREADS_TEXT_LIMIT = 500;
@@ -442,6 +448,76 @@ export async function publishLibraryVideoToThreads(libraryId: string, adminUid: 
     await jobRef
       .set({ threadsStatus: "failed", threadsError: message.slice(0, 300) }, { merge: true })
       .catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function publishLibraryImageToThreads(jobId: string, adminUid: string) {
+  const image = await loadLibraryImage(jobId, THREADS_IMAGE_CAPTION_LIMIT);
+  const auth = await getValidThreadsAuth();
+  const jobRef = adminDb().collection(image.collection).doc(image.jobId);
+  const startedAt = new Date().toISOString();
+
+  await adminDb().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(jobRef);
+    const data = (snapshot.data() || {}) as {
+      threadsStatus?: string;
+      threadsPublishedAt?: string;
+      threadsPublishStartedAt?: string;
+    };
+    if (data.threadsPublishedAt || data.threadsStatus === "published") {
+      throw new Error("This image is already published to Threads");
+    }
+    if (data.threadsStatus === "publishing") {
+      const lockedAt = Date.parse(data.threadsPublishStartedAt || "") || 0;
+      if (Date.now() - lockedAt < THREADS_PUBLISH_LOCK_MS) {
+        throw new Error("A Threads publish is already running for this image");
+      }
+    }
+    transaction.set(
+      jobRef,
+      { threadsStatus: "publishing", threadsPublishStartedAt: startedAt, threadsPublishedBy: adminUid, threadsError: "" },
+      { merge: true },
+    );
+  });
+
+  try {
+    const created = await threadsGraph<{ id?: string }>(
+      `/${auth.userId}/threads`,
+      auth.accessToken,
+      { media_type: "IMAGE", image_url: image.imageUrl, text: image.caption },
+      "POST",
+    );
+    const containerId = String(created.id || "");
+    if (!containerId) throw new Error("Threads did not return a media container");
+
+    await waitForThreadsContainer(auth.accessToken, containerId);
+
+    const published = await threadsGraph<{ id?: string }>(
+      `/${auth.userId}/threads_publish`,
+      auth.accessToken,
+      { creation_id: containerId },
+      "POST",
+    );
+    const postId = String(published.id || "");
+    await markLibraryImagePublished(image.jobId, "threads", adminUid, {
+      threadsMediaId: containerId,
+      threadsPostId: postId,
+    });
+
+    return {
+      target: "threads" as const,
+      status: "PUBLISHED" as const,
+      mediaId: containerId,
+      postId,
+      title: image.title,
+      caption: image.caption,
+      pageUrl: image.pageUrl,
+      username: auth.username,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Threads image publish failed";
+    await markLibraryImageFailed(image.jobId, "threads", message);
     throw error;
   }
 }
