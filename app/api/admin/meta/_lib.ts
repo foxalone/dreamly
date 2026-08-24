@@ -318,7 +318,7 @@ async function createInstagramContainer(auth: MetaAuthRecord, video: Awaited<Ret
     media_type: "REELS",
     video_url: video.videoUrl,
     caption: video.caption,
-    share_to_feed: "true",
+    share_to_feed: "false",
     thumb_offset: "1000",
   };
   if (video.thumbnailUrl) params.cover_url = video.thumbnailUrl;
@@ -337,7 +337,7 @@ async function createInstagramResumableContainer(
     media_type: "REELS",
     upload_type: "resumable",
     caption: video.caption,
-    share_to_feed: "true",
+    share_to_feed: "false",
     thumb_offset: "1000",
   };
   if (video.thumbnailUrl) params.cover_url = video.thumbnailUrl;
