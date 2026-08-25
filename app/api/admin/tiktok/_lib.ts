@@ -3,7 +3,10 @@ import {
   BUFFER_TIKTOK_CHANNEL_DOCUMENT,
   bufferApiKey,
   bufferConfigured,
+  bufferRateLimitMessage,
+  bufferTikTokReadiness,
   bufferTikTokUsername,
+  isBufferRateLimitMessage,
   type TikTokConnectionStatus,
 } from "@/lib/adminTikTok";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -56,19 +59,30 @@ async function bufferGraphql<T>(query: string, variables?: Record<string, unknow
     cache: "no-store",
   });
 
+  if (response.status === 429) {
+    throw new Error(bufferRateLimitMessage(response.headers.get("Retry-After")));
+  }
+
   if (response.status === 401 || response.status === 403) {
     throw new Error(
       "Buffer API key is invalid or expired. Create a new Personal Access Key and update BUFFER_API_KEY.",
     );
   }
 
-  const payload = (await response.json()) as BufferGraphqlResponse<T>;
+  const payload = (await response.json().catch(() => ({}))) as BufferGraphqlResponse<T>;
   if (!response.ok) {
-    const message = payload.errors?.map((entry) => entry.message).filter(Boolean).join("; ") || `Buffer HTTP ${response.status}`;
+    const message =
+      payload.errors?.map((entry) => entry.message).filter(Boolean).join("; ") || `Buffer HTTP ${response.status}`;
+    if (response.status === 429 || isBufferRateLimitMessage(message)) {
+      throw new Error(bufferRateLimitMessage(response.headers.get("Retry-After")));
+    }
     throw new Error(message);
   }
   if (payload.errors?.length) {
     const message = payload.errors.map((entry) => entry.message).filter(Boolean).join("; ") || "Buffer GraphQL error";
+    if (isBufferRateLimitMessage(message)) {
+      throw new Error(bufferRateLimitMessage());
+    }
     if (/unauthorized|invalid.?token|expired|api.?key/i.test(message)) {
       throw new Error(
         "Buffer API key is invalid or expired. Create a new Personal Access Key and update BUFFER_API_KEY.",
@@ -167,40 +181,8 @@ export async function resolveTikTokBufferChannel(options?: { forceRefresh?: bool
   return { channelId: matched.id, channelName };
 }
 
-export async function getTikTokStatus(): Promise<TikTokConnectionStatus> {
-  const configured = bufferConfigured();
-  if (!configured) {
-    return {
-      configured: false,
-      connected: false,
-      platform: "tiktok",
-      channel: "",
-      channelId: "",
-      error: "BUFFER_API_KEY is not configured",
-    };
-  }
-
-  try {
-    const channel = await resolveTikTokBufferChannel({ forceRefresh: true });
-    return {
-      configured: true,
-      connected: true,
-      platform: "tiktok",
-      channel: channel.channelName,
-      channelId: channel.channelId,
-      error: "",
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Buffer status check failed";
-    return {
-      configured: true,
-      connected: false,
-      platform: "tiktok",
-      channel: "",
-      channelId: "",
-      error: message,
-    };
-  }
+export function getTikTokStatus(): TikTokConnectionStatus {
+  return bufferTikTokReadiness();
 }
 
 function mapBufferStatus(status: string | undefined): "publishing" | "published" | "failed" {
@@ -297,8 +279,8 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
     createResult = await bufferGraphql(mutation, { input });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Buffer publish failed";
-    if (/rate.?limit|too many/i.test(message)) {
-      throw new Error(`Buffer rate limit reached. Try again later. (${message})`);
+    if (isBufferRateLimitMessage(message)) {
+      throw new Error(message.includes("rate-limited TikTok publishing") ? message : bufferRateLimitMessage());
     }
     throw error;
   }

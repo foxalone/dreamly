@@ -923,7 +923,9 @@ export default function VideoLibraryPanel({
                 TikTok: нужен серверный <code className="text-[var(--text)]">BUFFER_API_KEY</code>
               </span>
             ) : tiktok?.connected ? (
-              <span>TikTok — Ready</span>
+              <span>
+                TikTok — Ready{tiktok.channel ? ` · @${tiktok.channel}` : ""}. Buffer вызывается только при публикации.
+              </span>
             ) : (
               <span>TikTok недоступен{tiktok?.error ? `: ${tiktok.error}` : ""}</span>
             )}

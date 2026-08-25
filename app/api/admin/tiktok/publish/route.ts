@@ -24,9 +24,11 @@ export async function POST(request: Request) {
         ? 401
         : message === "FORBIDDEN"
           ? 403
-          : /not configured|not connected|invalid or expired/i.test(message)
-            ? 409
-            : 500;
+          : /rate-limited TikTok publishing|rate.?limit|too many requests/i.test(message)
+            ? 429
+            : /not configured|not connected|invalid or expired/i.test(message)
+              ? 409
+              : 500;
     if (status === 500) console.error("[admin/tiktok/publish]", message);
     return NextResponse.json({ error: message }, { status });
   }
