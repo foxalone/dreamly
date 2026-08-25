@@ -13,8 +13,8 @@ import { youtubeWatchUrl, type YouTubeConnectionStatus } from "@/lib/adminYouTub
 import { pinterestPinUrl, type PinterestConnectionStatus } from "@/lib/adminPinterest";
 
 type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
-type Connection = "tiktok" | "meta" | "threads" | "youtube" | "pinterest";
-type TikTokStatus = TikTokConnectionStatus & { redirectUri?: string };
+type Connection = "meta" | "threads" | "youtube" | "pinterest";
+type TikTokStatus = TikTokConnectionStatus;
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
 type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
 type YouTubeStatus = YouTubeConnectionStatus & { redirectUri?: string };
@@ -355,16 +355,11 @@ export default function VideoLibraryPanel({
   useEffect(() => {
     if (view !== "connections") return;
     const params = new URLSearchParams(window.location.search);
-    const tiktokResult = params.get("tiktok");
     const metaResult = params.get("meta");
     const threadsResult = params.get("threads");
     const youtubeResult = params.get("youtube");
     const pinterestResult = params.get("pinterest");
-    if (tiktokResult === "connected") {
-      setNotice({ type: "ok", text: "TikTok подключён. Можно публиковать видео." });
-    } else if (tiktokResult === "error") {
-      setNotice({ type: "error", text: params.get("tiktok_error") || "Не удалось подключить TikTok" });
-    } else if (metaResult === "connected") {
+    if (metaResult === "connected") {
       setNotice({ type: "ok", text: "Meta подключена. Можно публиковать Reels в Instagram и Facebook." });
     } else if (metaResult === "error") {
       setNotice({ type: "error", text: params.get("meta_error") || "Не удалось подключить Meta" });
@@ -382,26 +377,6 @@ export default function VideoLibraryPanel({
       setNotice({ type: "error", text: params.get("pinterest_error") || "Не удалось подключить Pinterest" });
     }
   }, [view]);
-
-  async function connectTikTok() {
-    setConnecting("tiktok");
-    setNotice(null);
-    try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/tiktok/oauth/start", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const payload = (await response.json()) as { authorizeUrl?: string; error?: string };
-      if (!response.ok || !payload.authorizeUrl) {
-        throw new Error(payload.error || "Не удалось начать OAuth TikTok");
-      }
-      window.location.href = payload.authorizeUrl;
-    } catch (connectError) {
-      setNotice({ type: "error", text: connectError instanceof Error ? connectError.message : "Ошибка подключения" });
-      setConnecting("");
-    }
-  }
 
   async function connectMeta() {
     setConnecting("meta");
@@ -489,25 +464,21 @@ export default function VideoLibraryPanel({
     try {
       const token = await user.getIdToken();
       const endpoint =
-        kind === "tiktok"
-          ? "/api/admin/tiktok/disconnect"
-          : kind === "meta"
-            ? "/api/admin/meta/disconnect"
-            : kind === "threads"
-              ? "/api/admin/threads/disconnect"
-              : kind === "pinterest"
-                ? "/api/admin/pinterest/disconnect"
-                : "/api/admin/youtube/disconnect";
+        kind === "meta"
+          ? "/api/admin/meta/disconnect"
+          : kind === "threads"
+            ? "/api/admin/threads/disconnect"
+            : kind === "pinterest"
+              ? "/api/admin/pinterest/disconnect"
+              : "/api/admin/youtube/disconnect";
       const connectionLabel =
-        kind === "tiktok"
-          ? "TikTok"
-          : kind === "meta"
-            ? "Meta"
-            : kind === "threads"
-              ? "Threads"
-              : kind === "pinterest"
-                ? "Pinterest"
-                : "YouTube";
+        kind === "meta"
+          ? "Meta"
+          : kind === "threads"
+            ? "Threads"
+            : kind === "pinterest"
+              ? "Pinterest"
+              : "YouTube";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -519,15 +490,13 @@ export default function VideoLibraryPanel({
       setNotice({
         type: "ok",
         text:
-          kind === "tiktok"
-            ? "TikTok сброшен. Можно подключить аккаунт заново."
-            : kind === "meta"
-              ? "Meta сброшена. Можно подключить Facebook/Instagram заново."
-              : kind === "threads"
-                ? "Threads сброшен. Можно подключить аккаунт заново."
-                : kind === "pinterest"
-                  ? "Pinterest сброшен. Можно подключить аккаунт заново."
-                  : "YouTube сброшен. Можно подключить канал заново.",
+          kind === "meta"
+            ? "Meta сброшена. Можно подключить Facebook/Instagram заново."
+            : kind === "threads"
+              ? "Threads сброшен. Можно подключить аккаунт заново."
+              : kind === "pinterest"
+                ? "Pinterest сброшен. Можно подключить аккаунт заново."
+                : "YouTube сброшен. Можно подключить канал заново.",
       });
       await load(true);
     } catch (resetError) {
@@ -577,22 +546,15 @@ export default function VideoLibraryPanel({
       const payload = (await response.json()) as {
         ok?: boolean;
         status?: string;
-        privacyLevel?: string;
         error?: string;
       };
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Не удалось опубликовать в TikTok");
       }
-      const privacyNote =
-        payload.privacyLevel === "PUBLIC_TO_EVERYONE"
-          ? "публично"
-          : payload.privacyLevel === "SELF_ONLY"
-            ? "только для вас (нужен TikTok audit для public)"
-            : payload.privacyLevel || "ok";
       markPublished(item.id, "tiktok");
       setNotice({
         type: "ok",
-        text: `Опубликовано в TikTok · ${payload.status || "done"} · ${privacyNote}`,
+        text: `Опубликовано в TikTok · ${payload.status || "done"}`,
       });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
@@ -889,22 +851,6 @@ export default function VideoLibraryPanel({
             </button>
             <button
               type="button"
-              disabled={resetting === "tiktok"}
-              onClick={() => void resetConnection("tiktok")}
-              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-            >
-              {resetting === "tiktok" ? "Сбрасываем…" : "Reset TikTok"}
-            </button>
-            <button
-              type="button"
-              disabled={connecting === "tiktok"}
-              onClick={() => void connectTikTok()}
-              className="rounded-full bg-[var(--text)] px-4 py-2.5 text-sm font-bold text-[var(--bg)] disabled:opacity-50"
-            >
-              {connecting === "tiktok" ? "Открываем TikTok…" : tiktok?.connected ? "Reconnect TikTok" : "Connect TikTok"}
-            </button>
-            <button
-              type="button"
               disabled={resetting === "meta"}
               onClick={() => void resetConnection("meta")}
               className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
@@ -974,22 +920,12 @@ export default function VideoLibraryPanel({
           <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
             {tiktok?.configured === false ? (
               <span>
-                TikTok env: <code className="text-[var(--text)]">TIKTOK_CLIENT_KEY</code>,{" "}
-                <code className="text-[var(--text)]">TIKTOK_CLIENT_SECRET</code>
-                {tiktok.redirectUri ? (
-                  <>
-                    {" "}
-                    · Redirect URI: <code className="text-[var(--text)]">{tiktok.redirectUri}</code>
-                  </>
-                ) : null}
+                TikTok: нужен серверный <code className="text-[var(--text)]">BUFFER_API_KEY</code>
               </span>
             ) : tiktok?.connected ? (
-              <span>
-                TikTok подключён{tiktok.displayName ? ` · @${tiktok.displayName}` : ""}
-                {tiktok.scope ? ` · scopes: ${tiktok.scope}` : ""}
-              </span>
+              <span>TikTok — Ready</span>
             ) : (
-              <span>TikTok ещё не подключён. Нажмите Connect TikTok и авторизуйте аккаунт для публикации.</span>
+              <span>TikTok недоступен{tiktok?.error ? `: ${tiktok.error}` : ""}</span>
             )}
           </div>
           <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">

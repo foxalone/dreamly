@@ -24,10 +24,10 @@ export async function POST(request: Request) {
         ? 401
         : message === "FORBIDDEN"
           ? 403
-          : message.includes("not connected") || message.includes("not configured")
+          : /not configured|not connected|invalid or expired/i.test(message)
             ? 409
             : 500;
-    if (status === 500) console.error("[admin/tiktok/publish]", error);
+    if (status === 500) console.error("[admin/tiktok/publish]", message);
     return NextResponse.json({ error: message }, { status });
   }
 }

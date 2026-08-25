@@ -1,380 +1,353 @@
-import { createHash, randomBytes } from "node:crypto";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
-  TIKTOK_AUTH_DOCUMENT,
-  TIKTOK_AUTHORIZE_URL,
-  TIKTOK_CREATOR_INFO_URL,
-  TIKTOK_OAUTH_STATES_COLLECTION,
-  TIKTOK_PUBLISH_INIT_URL,
-  TIKTOK_PUBLISH_STATUS_URL,
-  TIKTOK_SCOPES,
-  TIKTOK_TOKEN_URL,
-  chunkPlan,
-  tiktokClientKey,
-  tiktokClientSecret,
-  tiktokConfigured,
-  tiktokRedirectUri,
-  type TikTokAuthRecord,
+  BUFFER_API_URL,
+  BUFFER_TIKTOK_CHANNEL_DOCUMENT,
+  bufferApiKey,
+  bufferConfigured,
+  bufferTikTokUsername,
   type TikTokConnectionStatus,
 } from "@/lib/adminTikTok";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
 
-type TokenResponse = {
-  access_token?: string;
-  refresh_token?: string;
-  open_id?: string;
-  scope?: string;
-  expires_in?: number;
-  refresh_expires_in?: number;
-  error?: string;
-  error_description?: string;
+type BufferGraphqlResponse<T> = {
+  data?: T;
+  errors?: Array<{ message?: string }>;
 };
 
-function authRef() {
-  return adminDb().doc(TIKTOK_AUTH_DOCUMENT);
+type BufferChannel = {
+  id?: string;
+  name?: string;
+  displayName?: string;
+  service?: string;
+};
+
+type BufferPost = {
+  id?: string;
+  status?: string;
+  text?: string;
+  sharedNow?: boolean;
+  error?: { message?: string } | null;
+};
+
+function channelCacheRef() {
+  return adminDb().doc(BUFFER_TIKTOK_CHANNEL_DOCUMENT);
 }
 
-function apiError(payload: unknown) {
-  if (!payload || typeof payload !== "object") return "TikTok request failed";
-  const record = payload as {
-    error?: string | { code?: string; message?: string };
-    error_description?: string;
-  };
-  if (typeof record.error === "string") {
-    return record.error_description || record.error;
-  }
-  if (record.error && typeof record.error === "object") {
-    return record.error.message || record.error.code || "TikTok request failed";
-  }
-  return "TikTok request failed";
+function normalizeHandle(value: string) {
+  return String(value || "")
+    .trim()
+    .replace(/^@/, "")
+    .toLowerCase();
 }
 
-async function exchangeToken(body: Record<string, string>) {
-  const response = await fetch(TIKTOK_TOKEN_URL, {
+async function bufferGraphql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  const apiKey = bufferApiKey();
+  if (!apiKey) {
+    throw new Error("BUFFER_API_KEY is not configured");
+  }
+
+  const response = await fetch(BUFFER_API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Cache-Control": "no-cache",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
-    body: new URLSearchParams(body),
+    body: JSON.stringify(variables ? { query, variables } : { query }),
     cache: "no-store",
   });
-  const payload = (await response.json()) as TokenResponse;
-  if (!response.ok || !payload.access_token || !payload.refresh_token || !payload.open_id) {
-    throw new Error(apiError(payload));
-  }
-  return payload;
-}
 
-export function getTikTokConfig() {
-  if (!tiktokConfigured()) {
-    throw new Error("TikTok is not configured. Set TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET.");
-  }
-  return {
-    clientKey: tiktokClientKey(),
-    clientSecret: tiktokClientSecret(),
-    redirectUri: tiktokRedirectUri(),
-  };
-}
-
-export async function getTikTokStatus(): Promise<TikTokConnectionStatus> {
-  const configured = tiktokConfigured();
-  const snapshot = await authRef().get();
-  if (!snapshot.exists) {
-    return {
-      connected: false,
-      configured,
-      openId: "",
-      scope: "",
-      accessTokenExpiresAt: null,
-      connectedAt: null,
-      displayName: "",
-    };
-  }
-  const data = snapshot.data() as TikTokAuthRecord;
-  return {
-    connected: Boolean(data.accessToken && data.refreshToken),
-    configured,
-    openId: data.openId || "",
-    scope: data.scope || "",
-    accessTokenExpiresAt: data.accessTokenExpiresAt || null,
-    connectedAt: data.connectedAt || null,
-    displayName: data.displayName || "",
-  };
-}
-
-export async function resetTikTokConnection() {
-  const db = adminDb();
-  await authRef().delete().catch(() => undefined);
-  const states = await db.collection(TIKTOK_OAUTH_STATES_COLLECTION).listDocuments();
-  await Promise.all(states.map((doc) => doc.delete().catch(() => undefined)));
-  return { ok: true as const };
-}
-
-export async function createOAuthStart(adminUid: string) {
-  const { clientKey, redirectUri } = getTikTokConfig();
-  const state = randomBytes(24).toString("hex");
-  const expiresAt = Timestamp.fromMillis(Date.now() + 10 * 60 * 1000);
-  await adminDb().collection(TIKTOK_OAUTH_STATES_COLLECTION).doc(state).set({
-    adminUid,
-    createdAt: FieldValue.serverTimestamp(),
-    expiresAt,
-  });
-
-  const url = new URL(TIKTOK_AUTHORIZE_URL);
-  url.searchParams.set("client_key", clientKey);
-  url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", TIKTOK_SCOPES);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("disable_auto_auth", "1");
-  return { authorizeUrl: url.toString(), state };
-}
-
-export async function completeOAuthCallback(code: string, state: string) {
-  const { clientKey, clientSecret, redirectUri } = getTikTokConfig();
-  const stateRef = adminDb().collection(TIKTOK_OAUTH_STATES_COLLECTION).doc(state);
-  const stateSnap = await stateRef.get();
-  if (!stateSnap.exists) throw new Error("Invalid OAuth state");
-  const stateData = stateSnap.data() as { adminUid?: string; expiresAt?: Timestamp };
-  const expiresAt = stateData.expiresAt?.toMillis?.() ?? 0;
-  if (!expiresAt || expiresAt < Date.now()) {
-    await stateRef.delete().catch(() => undefined);
-    throw new Error("OAuth state expired");
-  }
-  const adminUid = String(stateData.adminUid || "");
-  if (!adminUid) throw new Error("Invalid OAuth state");
-
-  const token = await exchangeToken({
-    client_key: clientKey,
-    client_secret: clientSecret,
-    code,
-    grant_type: "authorization_code",
-    redirect_uri: redirectUri,
-  });
-
-  const now = Date.now();
-  const record: TikTokAuthRecord = {
-    openId: String(token.open_id),
-    accessToken: String(token.access_token),
-    refreshToken: String(token.refresh_token),
-    scope: String(token.scope || ""),
-    accessTokenExpiresAt: new Date(now + Number(token.expires_in || 86400) * 1000).toISOString(),
-    refreshTokenExpiresAt: new Date(now + Number(token.refresh_expires_in || 31536000) * 1000).toISOString(),
-    connectedBy: adminUid,
-    connectedAt: new Date(now).toISOString(),
-    updatedAt: new Date(now).toISOString(),
-  };
-  await authRef().set(record, { merge: true });
-  await stateRef.delete().catch(() => undefined);
-  return record;
-}
-
-async function readAuth(): Promise<TikTokAuthRecord> {
-  const snapshot = await authRef().get();
-  if (!snapshot.exists) throw new Error("TikTok is not connected");
-  return snapshot.data() as TikTokAuthRecord;
-}
-
-export async function getValidAccessToken() {
-  const { clientKey, clientSecret } = getTikTokConfig();
-  const current = await readAuth();
-  const expiresAt = Date.parse(current.accessTokenExpiresAt || "") || 0;
-  if (expiresAt - 60_000 > Date.now() && current.accessToken) {
-    return current.accessToken;
-  }
-
-  const token = await exchangeToken({
-    client_key: clientKey,
-    client_secret: clientSecret,
-    grant_type: "refresh_token",
-    refresh_token: current.refreshToken,
-  });
-  const now = Date.now();
-  const next: Partial<TikTokAuthRecord> = {
-    openId: String(token.open_id || current.openId),
-    accessToken: String(token.access_token),
-    refreshToken: String(token.refresh_token || current.refreshToken),
-    scope: String(token.scope || current.scope || ""),
-    accessTokenExpiresAt: new Date(now + Number(token.expires_in || 86400) * 1000).toISOString(),
-    refreshTokenExpiresAt: new Date(now + Number(token.refresh_expires_in || 31536000) * 1000).toISOString(),
-    updatedAt: new Date(now).toISOString(),
-  };
-  await authRef().set(next, { merge: true });
-  return String(token.access_token);
-}
-
-async function queryCreatorInfo(accessToken: string) {
-  const response = await fetch(TIKTOK_CREATOR_INFO_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json; charset=UTF-8",
-    },
-    body: "{}",
-    cache: "no-store",
-  });
-  const payload = (await response.json()) as {
-    data?: {
-      privacy_level_options?: string[];
-      creator_nickname?: string;
-      max_video_post_duration_sec?: number;
-      comment_disabled?: boolean;
-      duet_disabled?: boolean;
-      stitch_disabled?: boolean;
-    };
-    error?: { code?: string; message?: string };
-  };
-  if (!response.ok || payload.error?.code !== "ok") {
-    throw new Error(apiError(payload));
-  }
-  return payload.data || {};
-}
-
-function pickPrivacyLevel(options: string[] | undefined) {
-  const list = options || [];
-  // Unaudited / sandbox clients can only publish SELF_ONLY. Prefer it whenever available.
-  if (list.includes("SELF_ONLY")) return "SELF_ONLY";
-  if (list.includes("MUTUAL_FOLLOW_FRIENDS")) return "MUTUAL_FOLLOW_FRIENDS";
-  if (list.includes("PUBLIC_TO_EVERYONE")) return "PUBLIC_TO_EVERYONE";
-  return "SELF_ONLY";
-}
-
-async function uploadVideoChunks(uploadUrl: string, bytes: Uint8Array, chunkSize: number) {
-  const total = bytes.byteLength;
-  let offset = 0;
-  while (offset < total) {
-    const end = Math.min(offset + chunkSize, total);
-    const chunk = bytes.subarray(offset, end);
-    const body = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength) as ArrayBuffer;
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "video/mp4",
-        "Content-Length": String(chunk.byteLength),
-        "Content-Range": `bytes ${offset}-${end - 1}/${total}`,
-      },
-      body,
-      cache: "no-store",
-    });
-    if (!response.ok && response.status !== 201 && response.status !== 206) {
-      const text = await response.text().catch(() => "");
-      throw new Error(`TikTok upload failed (${response.status}): ${text.slice(0, 300)}`);
-    }
-    offset = end;
-  }
-}
-
-async function waitForPublish(accessToken: string, publishId: string) {
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 2_000 : 3_000));
-    const response = await fetch(TIKTOK_PUBLISH_STATUS_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json; charset=UTF-8",
-      },
-      body: JSON.stringify({ publish_id: publishId }),
-      cache: "no-store",
-    });
-    const payload = (await response.json()) as {
-      data?: { status?: string; fail_reason?: string };
-      error?: { code?: string; message?: string };
-    };
-    if (!response.ok || (payload.error && payload.error.code !== "ok")) {
-      throw new Error(apiError(payload));
-    }
-    const status = String(payload.data?.status || "");
-    if (status === "PUBLISH_COMPLETE" || status === "SEND_TO_USER_INBOX") {
-      return { status, failReason: "" };
-    }
-    if (status === "FAILED") {
-      throw new Error(payload.data?.fail_reason || "TikTok publish failed");
-    }
-  }
-  return { status: "PROCESSING_DOWNLOAD", failReason: "" };
-}
-
-export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: string) {
-  const video = await loadLibraryVideo(libraryId);
-  const accessToken = await getValidAccessToken();
-  const creator = await queryCreatorInfo(accessToken);
-  const privacyLevel = pickPrivacyLevel(creator.privacy_level_options);
-  const privacyOptions = creator.privacy_level_options || [];
-  if (privacyOptions.length > 0 && !privacyOptions.includes(privacyLevel)) {
+  if (response.status === 401 || response.status === 403) {
     throw new Error(
-      `TikTok does not allow privacy=${privacyLevel}. Available: ${privacyOptions.join(", ")}. For sandbox/unaudited apps use a private TikTok account and SELF_ONLY.`,
+      "Buffer API key is invalid or expired. Create a new Personal Access Key and update BUFFER_API_KEY.",
     );
   }
 
-  const mediaResponse = await fetch(video.videoUrl, { cache: "no-store" });
-  if (!mediaResponse.ok) throw new Error("Failed to download video for TikTok upload");
-  const bytes = new Uint8Array(await mediaResponse.arrayBuffer());
-  const { chunkSize, totalChunkCount } = chunkPlan(bytes.byteLength);
-
-  const initResponse = await fetch(TIKTOK_PUBLISH_INIT_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json; charset=UTF-8",
-    },
-    body: JSON.stringify({
-      post_info: {
-        title: video.caption,
-        privacy_level: privacyLevel,
-        // Defaults match TikTok integration guidelines: interactions off unless user enables them.
-        disable_duet: true,
-        disable_comment: true,
-        disable_stitch: true,
-        video_cover_timestamp_ms: 1000,
-      },
-      source_info: {
-        source: "FILE_UPLOAD",
-        video_size: bytes.byteLength,
-        chunk_size: chunkSize,
-        total_chunk_count: totalChunkCount,
-      },
-    }),
-    cache: "no-store",
-  });
-  const initPayload = (await initResponse.json()) as {
-    data?: { publish_id?: string; upload_url?: string };
-    error?: { code?: string; message?: string };
-  };
-  if (!initResponse.ok || initPayload.error?.code !== "ok" || !initPayload.data?.publish_id || !initPayload.data?.upload_url) {
-    const message = apiError(initPayload);
-    if (/integration guidelines/i.test(message)) {
+  const payload = (await response.json()) as BufferGraphqlResponse<T>;
+  if (!response.ok) {
+    const message = payload.errors?.map((entry) => entry.message).filter(Boolean).join("; ") || `Buffer HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  if (payload.errors?.length) {
+    const message = payload.errors.map((entry) => entry.message).filter(Boolean).join("; ") || "Buffer GraphQL error";
+    if (/unauthorized|invalid.?token|expired|api.?key/i.test(message)) {
       throw new Error(
-        `${message} Tip: for sandbox/unaudited posting set @dreamly.art to Private account and retry Publish (SELF_ONLY only).`,
+        "Buffer API key is invalid or expired. Create a new Personal Access Key and update BUFFER_API_KEY.",
       );
     }
     throw new Error(message);
   }
+  if (!payload.data) throw new Error("Buffer returned an empty response");
+  return payload.data;
+}
 
-  await uploadVideoChunks(initPayload.data.upload_url, bytes, chunkSize);
-  const result = await waitForPublish(accessToken, initPayload.data.publish_id);
+async function listOrganizations() {
+  const data = await bufferGraphql<{
+    account?: { organizations?: Array<{ id?: string; name?: string }> };
+  }>(`query GetOrganizations {
+    account {
+      organizations {
+        id
+        name
+      }
+    }
+  }`);
+  return (data.account?.organizations || []).filter((org) => org.id);
+}
+
+async function listChannels(organizationId: string) {
+  const data = await bufferGraphql<{ channels?: BufferChannel[] }>(
+    `query GetChannels($organizationId: OrganizationId!) {
+      channels(input: { organizationId: $organizationId }) {
+        id
+        name
+        displayName
+        service
+      }
+    }`,
+    { organizationId },
+  );
+  return data.channels || [];
+}
+
+function pickTikTokChannel(channels: BufferChannel[], preferred: string) {
+  const tiktokChannels = channels.filter((channel) => String(channel.service || "").toLowerCase() === "tiktok");
+  if (tiktokChannels.length === 0) return null;
+
+  const exact =
+    tiktokChannels.find((channel) => normalizeHandle(channel.name || "") === preferred) ||
+    tiktokChannels.find((channel) => normalizeHandle(channel.displayName || "") === preferred) ||
+    tiktokChannels.find((channel) => normalizeHandle(channel.name || "").includes(preferred)) ||
+    tiktokChannels.find((channel) => normalizeHandle(channel.displayName || "").includes(preferred));
+
+  return exact || (tiktokChannels.length === 1 ? tiktokChannels[0] : null);
+}
+
+export async function resolveTikTokBufferChannel(options?: { forceRefresh?: boolean }) {
+  const preferred = bufferTikTokUsername();
+  if (!options?.forceRefresh) {
+    const cached = await channelCacheRef().get();
+    if (cached.exists) {
+      const data = cached.data() as { channelId?: string; channelName?: string };
+      if (data.channelId) {
+        return {
+          channelId: String(data.channelId),
+          channelName: String(data.channelName || preferred),
+        };
+      }
+    }
+  }
+
+  const organizations = await listOrganizations();
+  if (organizations.length === 0) {
+    throw new Error("No Buffer organization found for this API key");
+  }
+
+  let matched: BufferChannel | null = null;
+  for (const org of organizations) {
+    const channels = await listChannels(String(org.id));
+    matched = pickTikTokChannel(channels, preferred);
+    if (matched?.id) break;
+  }
+
+  if (!matched?.id) {
+    throw new Error("TikTok channel is not connected in Buffer.");
+  }
+
+  const channelName = normalizeHandle(matched.name || matched.displayName || preferred) || preferred;
+  await channelCacheRef().set(
+    {
+      channelId: matched.id,
+      channelName,
+      service: "tiktok",
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
+
+  return { channelId: matched.id, channelName };
+}
+
+export async function getTikTokStatus(): Promise<TikTokConnectionStatus> {
+  const configured = bufferConfigured();
+  if (!configured) {
+    return {
+      configured: false,
+      connected: false,
+      platform: "tiktok",
+      channel: "",
+      channelId: "",
+      error: "BUFFER_API_KEY is not configured",
+    };
+  }
+
+  try {
+    const channel = await resolveTikTokBufferChannel({ forceRefresh: true });
+    return {
+      configured: true,
+      connected: true,
+      platform: "tiktok",
+      channel: channel.channelName,
+      channelId: channel.channelId,
+      error: "",
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Buffer status check failed";
+    return {
+      configured: true,
+      connected: false,
+      platform: "tiktok",
+      channel: "",
+      channelId: "",
+      error: message,
+    };
+  }
+}
+
+function mapBufferStatus(status: string | undefined): "publishing" | "published" | "failed" {
+  const value = String(status || "").toLowerCase();
+  if (value === "sent") return "published";
+  if (value === "error") return "failed";
+  // draft / needs_approval / scheduled / sending
+  return "publishing";
+}
+
+async function waitForBufferPost(postId: string) {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 1_500 : 3_000));
+    const data = await bufferGraphql<{ post?: BufferPost }>(
+      `query GetPost($id: PostId!) {
+        post(input: { id: $id }) {
+          id
+          status
+          sharedNow
+          error { message }
+        }
+      }`,
+      { id: postId },
+    );
+    const post = data.post;
+    const mapped = mapBufferStatus(post?.status);
+    if (mapped === "published") {
+      return { status: "published" as const, bufferStatus: String(post?.status || "sent"), error: "" };
+    }
+    if (mapped === "failed") {
+      throw new Error(post?.error?.message || "TikTok publish failed via Buffer");
+    }
+  }
+  return { status: "publishing" as const, bufferStatus: "sending", error: "" };
+}
+
+export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: string) {
+  if (!bufferConfigured()) {
+    throw new Error("BUFFER_API_KEY is not configured");
+  }
+
+  const video = await loadLibraryVideo(libraryId);
+  if (!/^https:\/\//i.test(video.videoUrl)) {
+    throw new Error("Library video is missing a public HTTPS URL");
+  }
+
+  const channel = await resolveTikTokBufferChannel();
+
+  const mutation = `mutation CreateTikTokPost($input: CreatePostInput!) {
+    createPost(input: $input) {
+      ... on PostActionSuccess {
+        post {
+          id
+          status
+          sharedNow
+          error { message }
+        }
+      }
+      ... on MutationError {
+        message
+      }
+    }
+  }`;
+
+  const input = {
+    text: video.caption,
+    channelId: channel.channelId,
+    schedulingType: "automatic",
+    mode: "shareNow",
+    assets: [
+      {
+        video: {
+          url: video.videoUrl,
+          metadata: { thumbnailOffset: 1000 },
+        },
+      },
+    ],
+    metadata: {
+      tiktok: {
+        isAiGenerated: true,
+      },
+    },
+    aiAssisted: true,
+  };
+
+  let createResult: {
+    createPost?: {
+      post?: BufferPost;
+      message?: string;
+    };
+  };
+
+  try {
+    createResult = await bufferGraphql(mutation, { input });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Buffer publish failed";
+    if (/rate.?limit|too many/i.test(message)) {
+      throw new Error(`Buffer rate limit reached. Try again later. (${message})`);
+    }
+    throw error;
+  }
+
+  const payload = createResult.createPost;
+  if (payload?.message) {
+    if (/channel|tiktok|disconnected|not found/i.test(payload.message)) {
+      await channelCacheRef().delete().catch(() => undefined);
+      throw new Error(`TikTok channel is not connected in Buffer. (${payload.message})`);
+    }
+    throw new Error(payload.message);
+  }
+
+  const post = payload?.post;
+  const postId = String(post?.id || "");
+  if (!postId) throw new Error("Buffer did not return a post id");
+
+  let final = {
+    status: mapBufferStatus(post?.status),
+    bufferStatus: String(post?.status || ""),
+    error: post?.error?.message || "",
+  };
+
+  if (final.status === "failed") {
+    throw new Error(final.error || "TikTok publish failed via Buffer");
+  }
+
+  if (final.status !== "published") {
+    final = await waitForBufferPost(postId);
+  }
 
   const publishMeta = {
-    tiktokPublishId: initPayload.data.publish_id,
-    tiktokStatus: result.status,
-    tiktokPrivacyLevel: privacyLevel,
     tiktokPublishedAt: new Date().toISOString(),
     tiktokPublishedBy: adminUid,
-    tiktokError: "",
+    tiktokStatus: final.status,
+    tiktokError: final.error || "",
+    tiktokProvider: "buffer",
+    bufferPostId: postId,
+    bufferChannelId: channel.channelId,
+    bufferStatus: final.bufferStatus,
   };
   await adminDb().collection(video.collection).doc(video.jobId).set(publishMeta, { merge: true });
 
-  if (creator.creator_nickname) {
-    await authRef().set({ displayName: creator.creator_nickname, updatedAt: new Date().toISOString() }, { merge: true });
-  }
-
   return {
-    publishId: initPayload.data.publish_id,
-    status: result.status,
-    privacyLevel,
+    publishId: postId,
+    status: final.status === "published" ? "PUBLISH_COMPLETE" : "PROCESSING",
+    bufferStatus: final.bufferStatus,
     title: video.title,
     caption: video.caption,
-    videoFingerprint: createHash("sha1").update(bytes.subarray(0, Math.min(bytes.byteLength, 1024 * 1024))).digest("hex").slice(0, 12),
+    channel: channel.channelName,
   };
 }
