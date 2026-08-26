@@ -1,6 +1,7 @@
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import { appendDreamlySocialCta } from "@/lib/socialCta";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 
 export type LibraryVideo = {
   kind: "free" | "ai";
@@ -70,6 +71,17 @@ export async function markLibraryVideoPublishedManually(
   }
 
   await ref.set(patch, { merge: true });
+  const title = String(
+    (data.youtubeMetadata as { title?: string } | undefined)?.title || data.topic || "Untitled video",
+  ).trim();
+  await trackDreamlyPublish({
+    kind: "video",
+    assetId: libraryId,
+    platform,
+    title,
+    publishedAt: now,
+    notes: `video ${libraryId} manual`,
+  });
   return { ok: true as const, platform, publishedAt: now };
 }
 

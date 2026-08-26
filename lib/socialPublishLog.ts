@@ -1,0 +1,190 @@
+export const NOTION_PROJECT_DREAMLY = "Dreamly";
+
+export type SocialPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+export type SocialAssetKind = "video" | "image";
+export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Pinterest";
+export type NotionFormat = "Shorts" | "Reels" | "Video" | "Pin" | "Post";
+export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Пропущено";
+
+export type SocialPublishLogEntry = {
+  key: string;
+  title: string;
+  platform: NotionPlatform;
+  format: NotionFormat;
+  status: NotionStatus;
+  publishedAt: string;
+  url: string;
+  notes: string;
+};
+
+export const NOTION_PLATFORM: Record<SocialPlatform, NotionPlatform> = {
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  threads: "Threads",
+  youtube: "YouTube",
+  pinterest: "Pinterest",
+};
+
+const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "youtube", "pinterest"];
+const IMAGE_PLATFORMS: SocialPlatform[] = ["instagram", "facebook", "threads", "pinterest"];
+
+export function publishLogKey(kind: SocialAssetKind, assetId: string, platform: SocialPlatform) {
+  return `dreamly:${kind}:${assetId}:${platform}`;
+}
+
+export function notionFormat(kind: SocialAssetKind, platform: SocialPlatform): NotionFormat {
+  if (platform === "pinterest") return "Pin";
+  if (platform === "threads") return "Post";
+  if (platform === "youtube") return "Shorts";
+  if (platform === "tiktok") return "Video";
+  if (platform === "instagram" || platform === "facebook") {
+    return kind === "video" ? "Reels" : "Post";
+  }
+  return "Post";
+}
+
+export function publicPublishUrl(
+  platform: SocialPlatform,
+  ids: {
+    youtubeVideoId?: string;
+    pinterestPinId?: string;
+    facebookPostId?: string;
+  } = {},
+) {
+  const youtubeId = String(ids.youtubeVideoId || "").trim();
+  if (platform === "youtube" && youtubeId) return `https://www.youtube.com/watch?v=${youtubeId}`;
+
+  const pinId = String(ids.pinterestPinId || "").trim();
+  if (platform === "pinterest" && pinId) return `https://www.pinterest.com/pin/${pinId}/`;
+
+  const facebookId = String(ids.facebookPostId || "").trim();
+  if (platform === "facebook" && facebookId) {
+    const split = facebookId.split("_");
+    if (split.length === 2 && split[0] && split[1]) {
+      return `https://www.facebook.com/${split[0]}/posts/${split[1]}`;
+    }
+    return `https://www.facebook.com/${facebookId}`;
+  }
+
+  return "";
+}
+
+function asText(value: unknown) {
+  return String(value || "").trim();
+}
+
+function videoTitle(data: Record<string, unknown>) {
+  const meta = data.youtubeMetadata as { title?: string } | undefined;
+  return asText(meta?.title) || asText(data.topic) || "Untitled video";
+}
+
+function imageTitle(data: Record<string, unknown>) {
+  return asText(data.subject) || asText(data.prompt) || "Untitled image";
+}
+
+function entry(
+  kind: SocialAssetKind,
+  assetId: string,
+  platform: SocialPlatform,
+  title: string,
+  publishedAt: string,
+  status: NotionStatus,
+  url: string,
+  notes: string,
+): SocialPublishLogEntry | null {
+  if (!publishedAt) return null;
+  return {
+    key: publishLogKey(kind, assetId, platform),
+    title,
+    platform: NOTION_PLATFORM[platform],
+    format: notionFormat(kind, platform),
+    status,
+    publishedAt,
+    url,
+    notes,
+  };
+}
+
+export function entriesFromVideoDoc(libraryId: string, data: Record<string, unknown>): SocialPublishLogEntry[] {
+  const title = videoTitle(data);
+  const notes = `video ${libraryId}`;
+  const found: SocialPublishLogEntry[] = [];
+
+  for (const platform of VIDEO_PLATFORMS) {
+    const publishedAt = asText(data[`${platform}PublishedAt`]);
+    const youtubeScheduled = platform === "youtube" ? asText(data.youtubeScheduledAt) : "";
+    const youtubeStatus = asText(data.youtubeStatus);
+    const when = publishedAt || (platform === "youtube" && youtubeStatus === "scheduled" ? youtubeScheduled : "");
+    if (!when) continue;
+
+    const status: NotionStatus =
+      platform === "youtube" && !publishedAt && youtubeStatus === "scheduled" ? "Запланировано" : "Опубликовано";
+
+    const row = entry(
+      "video",
+      libraryId,
+      platform,
+      title,
+      when,
+      status,
+      publicPublishUrl(platform, {
+        youtubeVideoId: asText(data.youtubeVideoId),
+        pinterestPinId: asText(data.pinterestPinId),
+        facebookPostId: asText(data.facebookPostId),
+      }),
+      notes,
+    );
+    if (row) found.push(row);
+  }
+
+  return found;
+}
+
+export function entriesFromImageDoc(jobId: string, data: Record<string, unknown>): SocialPublishLogEntry[] {
+  const title = imageTitle(data);
+  const notes = `image ${jobId}`;
+  const found: SocialPublishLogEntry[] = [];
+
+  for (const platform of IMAGE_PLATFORMS) {
+    const publishedAt = asText(data[`${platform}PublishedAt`]);
+    const row = entry(
+      "image",
+      jobId,
+      platform,
+      title,
+      publishedAt,
+      "Опубликовано",
+      publicPublishUrl(platform, {
+        pinterestPinId: asText(data.pinterestPinId),
+        facebookPostId: asText(data.facebookPostId),
+      }),
+      notes,
+    );
+    if (row) found.push(row);
+  }
+
+  return found;
+}
+
+export function buildPublishLogEntry(input: {
+  kind: SocialAssetKind;
+  assetId: string;
+  platform: SocialPlatform;
+  title: string;
+  publishedAt: string;
+  status?: NotionStatus;
+  url?: string;
+  notes?: string;
+}): SocialPublishLogEntry {
+  return {
+    key: publishLogKey(input.kind, input.assetId, input.platform),
+    title: asText(input.title) || input.assetId,
+    platform: NOTION_PLATFORM[input.platform],
+    format: notionFormat(input.kind, input.platform),
+    status: input.status || "Опубликовано",
+    publishedAt: input.publishedAt,
+    url: asText(input.url),
+    notes: asText(input.notes),
+  };
+}

@@ -24,6 +24,8 @@ import {
   markLibraryImagePublished,
 } from "@/app/api/admin/_lib/libraryImage";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
+import { publicPublishUrl } from "@/lib/socialPublishLog";
 
 type GraphErrorPayload = {
   error?: { message?: string; type?: string; code?: number; error_user_msg?: string };
@@ -421,6 +423,14 @@ async function publishInstagram(libraryId: string, adminUid: string) {
     },
     { merge: true },
   );
+  await trackDreamlyPublish({
+    kind: "video",
+    assetId: libraryId,
+    platform: "instagram",
+    title: video.title,
+    publishedAt: new Date().toISOString(),
+    notes: `video ${libraryId}`,
+  });
   return {
     target: "instagram" as const,
     mediaId,
@@ -507,6 +517,15 @@ async function publishFacebook(libraryId: string, adminUid: string) {
     },
     { merge: true },
   );
+  await trackDreamlyPublish({
+    kind: "video",
+    assetId: libraryId,
+    platform: "facebook",
+    title: video.title,
+    publishedAt: new Date().toISOString(),
+    url: publicPublishUrl("facebook", { facebookPostId: postId }),
+    notes: `video ${libraryId}`,
+  });
   return {
     target: "facebook" as const,
     videoId,
@@ -561,7 +580,7 @@ async function publishInstagramImage(jobId: string, adminUid: string) {
   await markLibraryImagePublished(image.jobId, "instagram", adminUid, {
     instagramMediaId: mediaId,
     instagramContainerId: containerId,
-  });
+  }, { title: image.title });
   return {
     target: "instagram" as const,
     mediaId,
@@ -598,7 +617,7 @@ async function publishFacebookImage(jobId: string, adminUid: string) {
   await markLibraryImagePublished(image.jobId, "facebook", adminUid, {
     facebookPhotoId: photoId,
     facebookPostId: postId,
-  });
+  }, { title: image.title, url: publicPublishUrl("facebook", { facebookPostId: postId }) });
   return {
     target: "facebook" as const,
     photoId,

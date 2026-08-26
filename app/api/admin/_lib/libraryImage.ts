@@ -10,6 +10,8 @@ import {
   IMAGE_CAPTION_LIMIT,
 } from "@/lib/socialImageCaption";
 import { adminDb, ensureAdmin } from "@/app/api/admin/_lib/firebaseAdmin";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
+import { publicPublishUrl } from "@/lib/socialPublishLog";
 
 export type LibraryImagePublishPlatform = "instagram" | "facebook" | "threads" | "pinterest";
 
@@ -111,6 +113,7 @@ export async function markLibraryImagePublished(
   platform: LibraryImagePublishPlatform,
   adminUid: string,
   extra: Record<string, string> = {},
+  log?: { title?: string; url?: string },
 ) {
   const now = new Date().toISOString();
   const patch: Record<string, string> = {
@@ -121,6 +124,20 @@ export async function markLibraryImagePublished(
     ...extra,
   };
   await adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId).set(patch, { merge: true });
+  await trackDreamlyPublish({
+    kind: "image",
+    assetId: jobId,
+    platform,
+    title: log?.title || jobId,
+    publishedAt: now,
+    url:
+      log?.url ||
+      publicPublishUrl(platform, {
+        pinterestPinId: extra.pinterestPinId,
+        facebookPostId: extra.facebookPostId,
+      }),
+    notes: `image ${jobId}`,
+  });
   return now;
 }
 

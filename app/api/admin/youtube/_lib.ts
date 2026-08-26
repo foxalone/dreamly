@@ -16,11 +16,13 @@ import {
   youtubePrivacyStatus,
   youtubeRedirectUri,
   youtubeScopes,
+  youtubeWatchUrl,
   type YouTubeAuthRecord,
   type YouTubeConnectionStatus,
 } from "@/lib/adminYouTube";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 import { appendDreamlySocialCta } from "@/lib/socialCta";
 
 const YOUTUBE_PUBLISH_LOCK_MS = 30 * 60 * 1000;
@@ -431,6 +433,16 @@ export async function publishLibraryVideoToYouTube(
       },
       { merge: true },
     );
+    await trackDreamlyPublish({
+      kind: "video",
+      assetId: libraryId,
+      platform: "youtube",
+      title: metadata.snippet.title,
+      publishedAt: publishAt || new Date().toISOString(),
+      status: publishAt ? "Запланировано" : "Опубликовано",
+      url: youtubeWatchUrl(videoId),
+      notes: `video ${libraryId}`,
+    });
 
     return {
       target: "youtube" as const,

@@ -21,6 +21,7 @@ import {
 } from "@/lib/adminThreads";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 import {
   loadLibraryImage,
   markLibraryImageFailed,
@@ -433,6 +434,14 @@ export async function publishLibraryVideoToThreads(libraryId: string, adminUid: 
       },
       { merge: true },
     );
+    await trackDreamlyPublish({
+      kind: "video",
+      assetId: libraryId,
+      platform: "threads",
+      title: video.title,
+      publishedAt: new Date().toISOString(),
+      notes: `video ${libraryId}`,
+    });
 
     return {
       target: "threads" as const,
@@ -503,7 +512,7 @@ export async function publishLibraryImageToThreads(jobId: string, adminUid: stri
     await markLibraryImagePublished(image.jobId, "threads", adminUid, {
       threadsMediaId: containerId,
       threadsPostId: postId,
-    });
+    }, { title: image.title });
 
     return {
       target: "threads" as const,

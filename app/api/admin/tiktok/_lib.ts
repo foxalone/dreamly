@@ -11,6 +11,7 @@ import {
 } from "@/lib/adminTikTok";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 
 type BufferGraphqlResponse<T> = {
   data?: T;
@@ -323,6 +324,15 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
     bufferStatus: final.bufferStatus,
   };
   await adminDb().collection(video.collection).doc(video.jobId).set(publishMeta, { merge: true });
+  await trackDreamlyPublish({
+    kind: "video",
+    assetId: libraryId,
+    platform: "tiktok",
+    title: video.title,
+    publishedAt: publishMeta.tiktokPublishedAt,
+    status: final.status === "published" ? "Опубликовано" : "Запланировано",
+    notes: `video ${libraryId}`,
+  });
 
   return {
     publishId: postId,

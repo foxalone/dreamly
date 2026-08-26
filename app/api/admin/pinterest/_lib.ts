@@ -22,12 +22,14 @@ import {
 } from "@/lib/adminPinterest";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
+import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 import {
   loadLibraryImage,
   markLibraryImageFailed,
   markLibraryImagePublished,
 } from "@/app/api/admin/_lib/libraryImage";
 import { DREAMLY_SOCIAL_URL } from "@/lib/socialCta";
+import { publicPublishUrl } from "@/lib/socialPublishLog";
 
 const PINTEREST_PUBLISH_LOCK_MS = 15 * 60 * 1000;
 
@@ -496,6 +498,15 @@ export async function publishLibraryVideoToPinterest(libraryId: string, adminUid
       },
       { merge: true },
     );
+    await trackDreamlyPublish({
+      kind: "video",
+      assetId: libraryId,
+      platform: "pinterest",
+      title,
+      publishedAt: new Date().toISOString(),
+      url: publicPublishUrl("pinterest", { pinterestPinId: pinId }),
+      notes: `video ${libraryId}`,
+    });
 
     return {
       target: "pinterest" as const,
@@ -576,6 +587,9 @@ export async function publishLibraryImageToPinterest(jobId: string, adminUid: st
     await markLibraryImagePublished(image.jobId, "pinterest", adminUid, {
       pinterestPinId: pinId,
       pinterestBoardId: board.id,
+    }, {
+      title,
+      url: publicPublishUrl("pinterest", { pinterestPinId: pinId }),
     });
 
     return {
