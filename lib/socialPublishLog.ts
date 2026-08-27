@@ -8,6 +8,7 @@ export type NotionStatus = "Черновик" | "Запланировано" | "
 
 export type SocialPublishLogEntry = {
   key: string;
+  kind: SocialAssetKind;
   title: string;
   project: string;
   platform: NotionPlatform;
@@ -45,6 +46,11 @@ export const NOTION_PLATFORM_CODE: Record<NotionPlatform, string> = {
   Pinterest: "P",
 };
 
+export const CALENDAR_KIND_ICON: Record<SocialAssetKind, string> = {
+  video: "🎬",
+  image: "📝",
+};
+
 const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|youtube|pinterest)$/i;
 
 const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "youtube", "pinterest"];
@@ -58,8 +64,8 @@ export function isStaleGroupedKey(key: string) {
   return /^dreamly:(video|image):/.test(key) && !PLATFORM_KEY_SUFFIX.test(key);
 }
 
-export function calendarCardTitle(project: string, platform: NotionPlatform) {
-  return `${NOTION_PLATFORM_CODE[platform]} ${project}`.trim();
+export function calendarCardTitle(project: string, platform: NotionPlatform, kind: SocialAssetKind) {
+  return `${NOTION_PLATFORM_CODE[platform]} ${CALENDAR_KIND_ICON[kind]} ${project}`.trim();
 }
 
 export function notionFormat(kind: SocialAssetKind, platform: SocialPlatform): NotionFormat {
@@ -126,6 +132,7 @@ function entry(
   if (!publishedAt) return null;
   return {
     key: publishLogKey(kind, assetId, platform),
+    kind,
     title: asText(title) || assetId,
     project,
     platform: NOTION_PLATFORM[platform],
@@ -208,6 +215,7 @@ export function buildPublishLogEntry(input: {
 }): SocialPublishLogEntry {
   return {
     key: publishLogKey(input.kind, input.assetId, input.platform),
+    kind: input.kind,
     title: asText(input.title) || input.assetId,
     project: asText(input.project) || NOTION_PROJECT_DREAMLY,
     platform: NOTION_PLATFORM[input.platform],

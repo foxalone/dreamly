@@ -69,7 +69,12 @@ function pageProperties(entry: SocialPublishLogEntry) {
   const project = entry.project || NOTION_PROJECT_DREAMLY;
   return {
     Название: {
-      title: [{ type: "text" as const, text: { content: clip(calendarCardTitle(project, entry.platform), 200) } }],
+      title: [
+        {
+          type: "text" as const,
+          text: { content: clip(calendarCardTitle(project, entry.platform, entry.kind), 200) },
+        },
+      ],
     },
     Проект: { select: { name: project } },
     Площадка: { multi_select: [{ name: entry.platform }] },

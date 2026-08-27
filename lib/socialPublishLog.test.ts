@@ -19,13 +19,13 @@ test("builds a stable dreamly key per asset and platform", () => {
   assert.equal(isStaleGroupedKey("dreamly:video:ai:abc:tiktok"), false);
 });
 
-test("maps calendar cards to a short channel code and project", () => {
-  assert.equal(calendarCardTitle("Dreamly", "YouTube"), "Y Dreamly");
-  assert.equal(calendarCardTitle("Dreamly", "TikTok"), "Ti Dreamly");
-  assert.equal(calendarCardTitle("Dreamly", "Instagram"), "I Dreamly");
-  assert.equal(calendarCardTitle("Dreamly", "Threads"), "Tr Dreamly");
-  assert.equal(calendarCardTitle("Dreamly", "Facebook"), "Fb Dreamly");
-  assert.equal(calendarCardTitle("Currency", "Pinterest"), "P Currency");
+test("maps calendar cards to a short channel code, kind icon and project", () => {
+  assert.equal(calendarCardTitle("Dreamly", "YouTube", "video"), "Y 🎬 Dreamly");
+  assert.equal(calendarCardTitle("Dreamly", "TikTok", "video"), "Ti 🎬 Dreamly");
+  assert.equal(calendarCardTitle("Dreamly", "Instagram", "image"), "I 📝 Dreamly");
+  assert.equal(calendarCardTitle("Dreamly", "Threads", "video"), "Tr 🎬 Dreamly");
+  assert.equal(calendarCardTitle("Dreamly", "Facebook", "image"), "Fb 📝 Dreamly");
+  assert.equal(calendarCardTitle("Currency", "Pinterest", "image"), "P 📝 Currency");
 });
 
 test("maps formats by asset and platform", () => {
@@ -57,7 +57,9 @@ test("emits one calendar row per published platform", () => {
   });
   assert.equal(rows.length, 2);
   assert.equal(rows.find((row) => row.platform === "TikTok")?.key, "dreamly:video:ai:job1:tiktok");
-  assert.equal(calendarCardTitle("Dreamly", rows.find((row) => row.platform === "YouTube")!.platform), "Y Dreamly");
+  const youtube = rows.find((row) => row.platform === "YouTube")!;
+  assert.equal(youtube.kind, "video");
+  assert.equal(calendarCardTitle("Dreamly", youtube.platform, youtube.kind), "Y 🎬 Dreamly");
 });
 
 test("emits one image row per published platform", () => {
@@ -69,6 +71,8 @@ test("emits one image row per published platform", () => {
   });
   assert.equal(rows.length, 2);
   assert.equal(rows[0].platform, "Instagram");
+  assert.equal(rows[0].kind, "image");
+  assert.equal(calendarCardTitle("Dreamly", rows[0].platform, rows[0].kind), "I 📝 Dreamly");
   assert.equal(rows[1].url, "https://www.pinterest.com/pin/pin1/");
 });
 
@@ -84,5 +88,5 @@ test("buildPublishLogEntry fills Notion labels", () => {
   assert.equal(row.format, "Reels");
   assert.equal(row.project, "Dreamly");
   assert.equal(row.key, "dreamly:video:free:1:facebook");
-  assert.equal(calendarCardTitle(row.project, row.platform), "Fb Dreamly");
+  assert.equal(calendarCardTitle(row.project, row.platform, row.kind), "Fb 🎬 Dreamly");
 });
