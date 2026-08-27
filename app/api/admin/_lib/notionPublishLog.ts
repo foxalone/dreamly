@@ -58,7 +58,7 @@ function clip(value: string, max: number) {
 function dateStart(iso: string) {
   const parsed = Date.parse(iso);
   if (!Number.isFinite(parsed)) return iso.slice(0, 10);
-  return new Date(parsed).toISOString();
+  return new Date(parsed).toISOString().slice(0, 10);
 }
 
 function earlierIso(left: string, right: string) {
@@ -84,7 +84,7 @@ function pageProperties(entry: SocialPublishLogEntry) {
       title: [
         {
           type: "text" as const,
-          text: { content: clip(titledWithPlatformIcons(entry.title, platforms), 200) || entry.key },
+          text: { content: clip(titledWithPlatformIcons(entry.title, []), 200) || entry.key },
         },
       ],
     },
@@ -162,6 +162,40 @@ async function findPageByKey(key: string): Promise<NotionPage | null> {
     }),
   });
   return payload.results?.[0] || null;
+}
+
+async function ensureListView() {
+  const source = await notionFetch<{
+    parent?: { database_id?: string };
+    properties?: Record<string, { id?: string; name?: string }>;
+  }>(`/data_sources/${notionDataSourceId()}`, { method: "GET" });
+  const databaseId = String(source.parent?.database_id || "");
+  if (!databaseId) return;
+
+  const listed = await notionFetch<{ results?: { id?: string; name?: string; type?: string }[] }>(
+    `/views?database_id=${databaseId}`,
+    { method: "GET" },
+  );
+  if ((listed.results || []).some((view) => view.type === "list" || view.name === "Список")) return;
+
+  const propertyIds = Object.values(source.properties || {})
+    .filter((property) => property.id && property.name !== "Ключ")
+    .map((property) => ({ property_id: property.id, visible: property.name !== "Заметки" }));
+
+  await notionFetch("/views", {
+    method: "POST",
+    body: JSON.stringify({
+      database_id: databaseId,
+      data_source_id: notionDataSourceId(),
+      name: "Список",
+      type: "list",
+      sorts: [{ property: "Дата", direction: "descending" }],
+      configuration: {
+        type: "list",
+        properties: propertyIds,
+      },
+    }),
+  });
 }
 
 async function ensurePlatformProperty() {
@@ -278,6 +312,11 @@ export async function backfillNotionPublishes() {
     await ensurePlatformProperty();
   } catch (error) {
     console.error("[notion-backfill] could not convert Площадка to multi_select", error);
+  }
+  try {
+    await ensureListView();
+  } catch (error) {
+    console.error("[notion-backfill] could not create Список view", error);
   }
   created.trashed = await trashLegacyPages();
 
