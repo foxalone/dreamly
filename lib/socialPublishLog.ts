@@ -4,6 +4,7 @@ export type SocialPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "
 export type SocialAssetKind = "video" | "image";
 export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Pinterest";
 export type NotionFormat = "Shorts" | "Reels" | "Video" | "Pin" | "Post";
+export type NotionKindLabel = "Видео" | "Пост";
 export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Пропущено";
 
 export type SocialPublishLogEntry = {
@@ -51,6 +52,11 @@ export const CALENDAR_KIND_ICON: Record<SocialAssetKind, string> = {
   image: "📝",
 };
 
+export const NOTION_KIND_LABEL: Record<SocialAssetKind, NotionKindLabel> = {
+  video: "Видео",
+  image: "Пост",
+};
+
 const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|youtube|pinterest)$/i;
 
 const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "youtube", "pinterest"];
@@ -66,6 +72,10 @@ export function isStaleGroupedKey(key: string) {
 
 export function calendarCardTitle(project: string, platform: NotionPlatform, kind: SocialAssetKind) {
   return `${NOTION_PLATFORM_CODE[platform]} ${CALENDAR_KIND_ICON[kind]} ${project}`.trim();
+}
+
+export function notionKindLabel(kind: SocialAssetKind): NotionKindLabel {
+  return NOTION_KIND_LABEL[kind];
 }
 
 export function notionFormat(kind: SocialAssetKind, platform: SocialPlatform): NotionFormat {

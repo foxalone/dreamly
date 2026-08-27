@@ -13,7 +13,8 @@
     "ai-video-synthetic-test": "node --env-file=.env.local scripts/ai-video-worker.mjs --synthetic-test",
     "ai-image-worker": "node --env-file=.env.local scripts/ai-image-worker.mjs",
     "ai-image-check": "node --env-file=.env.local scripts/ai-image-worker.mjs --check",
-    "notion-backfill": "npx --yes tsx scripts/backfill-notion-publishes.ts"
+    "notion-backfill": "npx --yes tsx scripts/backfill-notion-publishes.ts",
+    "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",

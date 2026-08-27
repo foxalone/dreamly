@@ -8,6 +8,7 @@ import {
   entriesFromVideoDoc,
   isStaleGroupedKey,
   notionFormat,
+  notionKindLabel,
   publicPublishUrl,
   publishLogKey,
 } from "./socialPublishLog";
@@ -26,6 +27,11 @@ test("maps calendar cards to a short channel code, kind icon and project", () =>
   assert.equal(calendarCardTitle("Dreamly", "Threads", "video"), "Tr 🎬 Dreamly");
   assert.equal(calendarCardTitle("Dreamly", "Facebook", "image"), "Fb 📝 Dreamly");
   assert.equal(calendarCardTitle("Currency", "Pinterest", "image"), "P 📝 Currency");
+});
+
+test("maps kind to a Notion type label for Videos/Posts views", () => {
+  assert.equal(notionKindLabel("video"), "Видео");
+  assert.equal(notionKindLabel("image"), "Пост");
 });
 
 test("maps formats by asset and platform", () => {

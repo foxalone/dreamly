@@ -1,6 +1,7 @@
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import {
+  NOTION_KIND_LABEL,
   NOTION_PLATFORM_ORDER,
   NOTION_PROJECT_DREAMLY,
   buildPublishLogEntry,
@@ -8,6 +9,7 @@ import {
   entriesFromImageDoc,
   entriesFromVideoDoc,
   isStaleGroupedKey,
+  notionKindLabel,
   type NotionStatus,
   type SocialAssetKind,
   type SocialPlatform,
@@ -77,6 +79,7 @@ function pageProperties(entry: SocialPublishLogEntry) {
       ],
     },
     Проект: { select: { name: project } },
+    Тип: { select: { name: notionKindLabel(entry.kind) } },
     Площадка: { multi_select: [{ name: entry.platform }] },
     Формат: { select: { name: entry.format } },
     Статус: { select: { name: entry.status } },
@@ -94,7 +97,8 @@ async function notionFetch<T>(path: string, init: RequestInit): Promise<T> {
     headers: { ...notionHeaders(), ...(init.headers || {}) },
     cache: "no-store",
   });
-  const payload = (await response.json().catch(() => ({}))) as T & { message?: string };
+  const text = await response.text();
+  const payload = (text ? JSON.parse(text) : {}) as T & { message?: string };
   if (!response.ok) {
     throw new Error(payload.message || `Notion ${response.status}`);
   }
@@ -129,13 +133,102 @@ async function ensureSchema() {
     body: JSON.stringify({
       properties: {
         Площадка: { multi_select: { options: PLATFORM_OPTIONS } },
+        Тип: {
+          select: {
+            options: [
+              { name: NOTION_KIND_LABEL.video, color: "purple" },
+              { name: NOTION_KIND_LABEL.image, color: "green" },
+            ],
+          },
+        },
         Ролик: { rich_text: {} },
       },
     }),
   });
 }
 
-async function ensureListView() {
+type NotionView = {
+  id?: string;
+  name?: string;
+  type?: string;
+};
+
+type PublishViewSpec = {
+  name: string;
+  aliases?: string[];
+  type: "calendar" | "table";
+  filter?: Record<string, unknown> | null;
+  sorts?: { property: string; direction: "ascending" | "descending" }[];
+};
+
+const PUBLISH_VIEWS: PublishViewSpec[] = [
+  { name: "📅 All Content", aliases: ["Календарь", "All Content"], type: "calendar" },
+  {
+    name: "🌙 Dreamly",
+    aliases: ["Dreamly"],
+    type: "calendar",
+    filter: { property: "Проект", select: { equals: "Dreamly" } },
+  },
+  {
+    name: "💰 CurrencyHub",
+    aliases: ["CurrencyHub"],
+    type: "calendar",
+    filter: { property: "Проект", select: { equals: "CurrencyHub" } },
+  },
+  {
+    name: "📊 Skarim",
+    aliases: ["Skarim"],
+    type: "calendar",
+    filter: { property: "Проект", select: { equals: "Skarim" } },
+  },
+  {
+    name: "🎬 Videos",
+    aliases: ["Videos"],
+    type: "calendar",
+    filter: { property: "Тип", select: { equals: NOTION_KIND_LABEL.video } },
+  },
+  {
+    name: "📝 Posts",
+    aliases: ["Posts"],
+    type: "calendar",
+    filter: { property: "Тип", select: { equals: NOTION_KIND_LABEL.image } },
+  },
+  {
+    name: "✅ Published",
+    aliases: ["Published"],
+    type: "table",
+    filter: { property: "Статус", select: { equals: "Опубликовано" } },
+    sorts: [{ property: "Дата", direction: "descending" }],
+  },
+];
+
+function normalizeViewName(name: string) {
+  return name.replace(/^[^\p{L}\p{N}]+/u, "").trim().toLowerCase();
+}
+
+function viewMatchesSpec(view: NotionView, spec: PublishViewSpec) {
+  const names = [spec.name, ...(spec.aliases || [])].map(normalizeViewName);
+  return names.includes(normalizeViewName(view.name || ""));
+}
+
+function propertyId(properties: Record<string, { id?: string }> | undefined, name: string) {
+  const raw = String(properties?.[name]?.id || "");
+  return raw ? decodeURIComponent(raw) : "";
+}
+
+async function listDatabaseViews(databaseId: string): Promise<NotionView[]> {
+  const listed = await notionFetch<{ results?: { id?: string }[] }>(`/views?database_id=${databaseId}`, {
+    method: "GET",
+  });
+  const views: NotionView[] = [];
+  for (const row of listed.results || []) {
+    if (!row.id) continue;
+    views.push(await notionFetch<NotionView>(`/views/${row.id}`, { method: "GET" }));
+  }
+  return views;
+}
+
+async function ensurePublishViews() {
   const source = await notionFetch<{
     parent?: { database_id?: string };
     properties?: Record<string, { id?: string; name?: string }>;
@@ -143,30 +236,57 @@ async function ensureListView() {
   const databaseId = String(source.parent?.database_id || "");
   if (!databaseId) return;
 
-  const listed = await notionFetch<{ results?: { id?: string; name?: string; type?: string }[] }>(
-    `/views?database_id=${databaseId}`,
-    { method: "GET" },
-  );
-  if ((listed.results || []).some((view) => view.type === "list" || view.name === "Список")) return;
+  const datePropertyId = propertyId(source.properties, "Дата");
+  const views = await listDatabaseViews(databaseId);
+  const claimed = new Set<string>();
 
-  const propertyIds = Object.values(source.properties || {})
-    .filter((property) => property.id && property.name !== "Ключ")
-    .map((property) => ({ property_id: property.id, visible: property.name !== "Заметки" }));
+  for (const spec of PUBLISH_VIEWS) {
+    const existing = views.find((view) => view.id && !claimed.has(view.id) && viewMatchesSpec(view, spec));
+    if (existing?.id) {
+      claimed.add(existing.id);
+      const patch: Record<string, unknown> = {};
+      if (existing.name !== spec.name) patch.name = spec.name;
+      if (spec.filter) patch.filter = spec.filter;
+      if (spec.sorts) patch.sorts = spec.sorts;
+      if (Object.keys(patch).length === 0) continue;
+      await notionFetch(`/views/${existing.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      continue;
+    }
 
-  await notionFetch("/views", {
-    method: "POST",
-    body: JSON.stringify({
+    const body: Record<string, unknown> = {
       database_id: databaseId,
       data_source_id: notionDataSourceId(),
-      name: "Список",
-      type: "list",
-      sorts: [{ property: "Дата", direction: "descending" }],
-      configuration: {
-        type: "list",
-        properties: propertyIds,
-      },
-    }),
-  });
+      name: spec.name,
+      type: spec.type,
+    };
+    if (spec.filter) body.filter = spec.filter;
+    if (spec.sorts) body.sorts = spec.sorts;
+    if (spec.type === "calendar") {
+      body.configuration = {
+        type: "calendar",
+        date_property_id: datePropertyId,
+        view_range: "month",
+        show_weekends: true,
+      };
+    } else {
+      body.configuration = { type: "table" };
+    }
+    await notionFetch("/views", { method: "POST", body: JSON.stringify(body) });
+  }
+
+  const lists = views.filter((view) => view.type === "list" && normalizeViewName(view.name || "") === "список");
+  for (const extra of lists.slice(1)) {
+    if (!extra.id) continue;
+    await notionFetch(`/views/${extra.id}`, { method: "DELETE" });
+  }
+}
+
+export async function ensureNotionPublishWorkspace() {
+  await ensureSchema();
+  await ensurePublishViews();
 }
 
 async function trashStaleGroupedPages() {
@@ -266,14 +386,9 @@ export async function backfillNotionPublishes() {
   }
 
   try {
-    await ensureSchema();
+    await ensureNotionPublishWorkspace();
   } catch (error) {
-    console.error("[notion-backfill] could not update Notion schema", error);
-  }
-  try {
-    await ensureListView();
-  } catch (error) {
-    console.error("[notion-backfill] could not create Список view", error);
+    console.error("[notion-backfill] could not update Notion schema or views", error);
   }
   created.trashed = await trashStaleGroupedPages();
 
