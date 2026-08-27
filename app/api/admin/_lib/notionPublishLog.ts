@@ -1,20 +1,43 @@
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import {
+  NOTION_PLATFORM_EMOJI,
+  NOTION_PLATFORM_ORDER,
   NOTION_PROJECT_DREAMLY,
   buildPublishLogEntry,
   entriesFromImageDoc,
   entriesFromVideoDoc,
+  isLegacyPlatformKey,
+  sortNotionPlatforms,
+  titledWithPlatformIcons,
+  type NotionFormat,
+  type NotionPlatform,
+  type NotionStatus,
   type SocialAssetKind,
   type SocialPlatform,
   type SocialPublishLogEntry,
-  type NotionStatus,
 } from "@/lib/socialPublishLog";
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
 const NOTION_VERSION = "2026-03-11";
 const NOTION_API = "https://api.notion.com/v1";
+
+const PLATFORM_OPTIONS = NOTION_PLATFORM_ORDER.map((name) => ({
+  name,
+  color:
+    name === "YouTube"
+      ? "red"
+      : name === "TikTok"
+        ? "pink"
+        : name === "Instagram"
+          ? "orange"
+          : name === "Facebook"
+            ? "blue"
+            : name === "Threads"
+              ? "gray"
+              : "red",
+}));
 
 function notionToken() {
   return (process.env.NOTION_API_KEY || "").trim();
@@ -38,6 +61,14 @@ function dateStart(iso: string) {
   return new Date(parsed).toISOString();
 }
 
+function earlierIso(left: string, right: string) {
+  const leftMs = Date.parse(left);
+  const rightMs = Date.parse(right);
+  if (!Number.isFinite(leftMs)) return right;
+  if (!Number.isFinite(rightMs)) return left;
+  return leftMs <= rightMs ? left : right;
+}
+
 function notionHeaders() {
   return {
     Authorization: `Bearer ${notionToken()}`,
@@ -47,17 +78,30 @@ function notionHeaders() {
 }
 
 function pageProperties(entry: SocialPublishLogEntry) {
+  const platforms = sortNotionPlatforms(entry.platforms);
   return {
-    Название: { title: [{ type: "text" as const, text: { content: clip(entry.title, 200) || entry.key } }] },
+    Название: {
+      title: [
+        {
+          type: "text" as const,
+          text: { content: clip(titledWithPlatformIcons(entry.title, platforms), 200) || entry.key },
+        },
+      ],
+    },
     Проект: { select: { name: NOTION_PROJECT_DREAMLY } },
-    Площадка: { select: { name: entry.platform } },
-    Формат: { select: { name: entry.format } },
+    Площадка: { multi_select: platforms.map((name) => ({ name })) },
+    ...(entry.formats[0] ? { Формат: { select: { name: entry.formats[0] } } } : {}),
     Статус: { select: { name: entry.status } },
     Дата: { date: { start: dateStart(entry.publishedAt) } },
     Ссылка: { url: entry.url || null },
     Заметки: { rich_text: entry.notes ? [{ type: "text" as const, text: { content: clip(entry.notes, 1900) } }] : [] },
     Ключ: { rich_text: [{ type: "text" as const, text: { content: clip(entry.key, 200) } }] },
   };
+}
+
+function pageIcon(platforms: NotionPlatform[]) {
+  const [first] = sortNotionPlatforms(platforms);
+  return { type: "emoji" as const, emoji: first ? NOTION_PLATFORM_EMOJI[first] : "📅" };
 }
 
 async function notionFetch<T>(path: string, init: RequestInit): Promise<T> {
@@ -73,26 +117,103 @@ async function notionFetch<T>(path: string, init: RequestInit): Promise<T> {
   return payload;
 }
 
-async function findPageIdByKey(key: string) {
-  const payload = await notionFetch<{ results?: { id?: string }[] }>(`/data_sources/${notionDataSourceId()}/query`, {
+type NotionPage = {
+  id?: string;
+  properties?: {
+    Название?: { title?: { plain_text?: string }[] };
+    Площадка?: { type?: string; select?: { name?: string } | null; multi_select?: { name?: string }[] };
+    Формат?: { select?: { name?: string } | null };
+    Статус?: { select?: { name?: string } | null };
+    Дата?: { date?: { start?: string } | null };
+    Ссылка?: { url?: string | null };
+    Ключ?: { rich_text?: { plain_text?: string }[] };
+  };
+};
+
+function plainText(items: { plain_text?: string }[] | undefined) {
+  return (items || []).map((item) => String(item.plain_text || "")).join("").trim();
+}
+
+function platformsFromPage(page: NotionPage): NotionPlatform[] {
+  const property = page.properties?.Площадка;
+  const names = property?.multi_select?.map((item) => item.name) || (property?.select?.name ? [property.select.name] : []);
+  return sortNotionPlatforms(names.filter((name): name is NotionPlatform => NOTION_PLATFORM_ORDER.includes(name as NotionPlatform)));
+}
+
+function entryFromPage(page: NotionPage, fallback: SocialPublishLogEntry): SocialPublishLogEntry {
+  const title = titledWithPlatformIcons(plainText(page.properties?.Название?.title) || fallback.title, []);
+  return {
+    ...fallback,
+    title: title || fallback.title,
+    platforms: sortNotionPlatforms([...platformsFromPage(page), ...fallback.platforms]),
+    formats: [...new Set([...(page.properties?.Формат?.select?.name ? [page.properties.Формат.select.name as NotionFormat] : []), ...fallback.formats])],
+    status: (page.properties?.Статус?.select?.name as NotionStatus) || fallback.status,
+    publishedAt: earlierIso(page.properties?.Дата?.date?.start || fallback.publishedAt, fallback.publishedAt),
+    url: fallback.url || page.properties?.Ссылка?.url || "",
+  };
+}
+
+async function findPageByKey(key: string): Promise<NotionPage | null> {
+  const payload = await notionFetch<{ results?: NotionPage[] }>(`/data_sources/${notionDataSourceId()}/query`, {
     method: "POST",
     body: JSON.stringify({
       page_size: 1,
       filter: { property: "Ключ", rich_text: { equals: key } },
     }),
   });
-  return String(payload.results?.[0]?.id || "");
+  return payload.results?.[0] || null;
+}
+
+async function ensurePlatformProperty() {
+  await notionFetch(`/data_sources/${notionDataSourceId()}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      properties: {
+        Площадка: { multi_select: { options: PLATFORM_OPTIONS } },
+      },
+    }),
+  });
+}
+
+async function trashLegacyPages() {
+  let cursor: string | undefined;
+  let trashed = 0;
+  for (;;) {
+    const payload = await notionFetch<{ results?: NotionPage[]; has_more?: boolean; next_cursor?: string | null }>(
+      `/data_sources/${notionDataSourceId()}/query`,
+      {
+        method: "POST",
+        body: JSON.stringify({ page_size: 100, start_cursor: cursor }),
+      },
+    );
+    for (const page of payload.results || []) {
+      const key = plainText(page.properties?.Ключ?.rich_text);
+      if (!page.id || !isLegacyPlatformKey(key)) continue;
+      await notionFetch(`/pages/${page.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ in_trash: true }),
+      });
+      trashed += 1;
+    }
+    if (!payload.has_more || !payload.next_cursor) break;
+    cursor = payload.next_cursor;
+  }
+  return trashed;
 }
 
 export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise<"created" | "updated" | "skipped"> {
   if (!notionPublishLogConfigured()) return "skipped";
+  if (!entry.platforms.length) return "skipped";
 
-  const properties = pageProperties(entry);
-  const existingId = await findPageIdByKey(entry.key);
-  if (existingId) {
-    await notionFetch(`/pages/${existingId}`, {
+  const existing = await findPageByKey(entry.key);
+  const merged = existing ? entryFromPage(existing, entry) : entry;
+  const properties = pageProperties(merged);
+  const icon = pageIcon(merged.platforms);
+
+  if (existing?.id) {
+    await notionFetch(`/pages/${existing.id}`, {
       method: "PATCH",
-      body: JSON.stringify({ properties }),
+      body: JSON.stringify({ properties, icon }),
     });
     return "updated";
   }
@@ -101,6 +222,7 @@ export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise
     method: "POST",
     body: JSON.stringify({
       parent: { type: "data_source_id", data_source_id: notionDataSourceId() },
+      icon,
       properties,
     }),
   });
@@ -147,10 +269,17 @@ async function loadAllDocs(collection: string) {
 }
 
 export async function backfillNotionPublishes() {
-  const created = { videos: 0, images: 0, updated: 0, skipped: 0, failed: 0 };
+  const created = { videos: 0, images: 0, updated: 0, skipped: 0, failed: 0, trashed: 0 };
   if (!notionPublishLogConfigured()) {
     throw new Error("NOTION_API_KEY or NOTION_PUBLISH_DATA_SOURCE_ID is missing");
   }
+
+  try {
+    await ensurePlatformProperty();
+  } catch (error) {
+    console.error("[notion-backfill] could not convert Площадка to multi_select", error);
+  }
+  created.trashed = await trashLegacyPages();
 
   const [freeJobs, aiJobs, images] = await Promise.all([
     loadAllDocs("adminVideoJobs"),

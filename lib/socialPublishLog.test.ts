@@ -5,14 +5,18 @@ import {
   buildPublishLogEntry,
   entriesFromImageDoc,
   entriesFromVideoDoc,
+  isLegacyPlatformKey,
   notionFormat,
   publicPublishUrl,
   publishLogKey,
+  titledWithPlatformIcons,
 } from "./socialPublishLog";
 
-test("builds a stable dreamly key per asset and platform", () => {
-  assert.equal(publishLogKey("video", "ai:abc", "tiktok"), "dreamly:video:ai:abc:tiktok");
-  assert.equal(publishLogKey("image", "img1", "pinterest"), "dreamly:image:img1:pinterest");
+test("builds a stable dreamly key per asset", () => {
+  assert.equal(publishLogKey("video", "ai:abc"), "dreamly:video:ai:abc");
+  assert.equal(publishLogKey("image", "img1"), "dreamly:image:img1");
+  assert.equal(isLegacyPlatformKey("dreamly:video:ai:abc:tiktok"), true);
+  assert.equal(isLegacyPlatformKey("dreamly:video:ai:abc"), false);
 });
 
 test("maps formats by asset and platform", () => {
@@ -33,7 +37,7 @@ test("builds public urls only when the id is known", () => {
   assert.equal(publicPublishUrl("tiktok", {}), "");
 });
 
-test("collects published video platforms and scheduled YouTube", () => {
+test("groups a video's published platforms onto one row", () => {
   const rows = entriesFromVideoDoc("ai:job1", {
     topic: "Snake dream",
     youtubeMetadata: { title: "Snake meaning" },
@@ -42,27 +46,34 @@ test("collects published video platforms and scheduled YouTube", () => {
     youtubeScheduledAt: "2026-09-01T12:00:00.000Z",
     youtubeVideoId: "yt1",
   });
-  assert.equal(rows.length, 2);
-  const tiktok = rows.find((row) => row.platform === "TikTok");
-  const youtube = rows.find((row) => row.platform === "YouTube");
-  assert.equal(tiktok?.status, "Опубликовано");
-  assert.equal(tiktok?.title, "Snake meaning");
-  assert.equal(youtube?.status, "Запланировано");
-  assert.equal(youtube?.url, "https://www.youtube.com/watch?v=yt1");
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].platforms, ["YouTube", "TikTok"]);
+  assert.equal(rows[0].title, "Snake meaning");
+  assert.equal(rows[0].status, "Опубликовано");
+  assert.equal(rows[0].publishedAt, "2026-08-01T10:00:00.000Z");
+  assert.equal(rows[0].url, "https://www.youtube.com/watch?v=yt1");
+  assert.equal(rows[0].key, "dreamly:video:ai:job1");
 });
 
-test("collects published image platforms", () => {
+test("groups published image platforms onto one row", () => {
   const rows = entriesFromImageDoc("img9", {
     subject: "Owl",
     instagramPublishedAt: "2026-08-02T10:00:00.000Z",
     pinterestPublishedAt: "2026-08-03T10:00:00.000Z",
     pinterestPinId: "pin1",
   });
-  assert.equal(rows.length, 2);
-  assert.equal(rows[1].url, "https://www.pinterest.com/pin/pin1/");
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].platforms, ["Instagram", "Pinterest"]);
+  assert.equal(titledWithPlatformIcons(rows[0].title, rows[0].platforms), "📸📌 Owl");
 });
 
-test("buildPublishLogEntry fills Notion labels", () => {
+test("prefixes the Notion title with every published platform emoji", () => {
+  assert.equal(titledWithPlatformIcons("Snake meaning", ["TikTok"]), "🎵 Snake meaning");
+  assert.equal(titledWithPlatformIcons("🎵 Snake meaning", ["YouTube", "TikTok"]), "▶️🎵 Snake meaning");
+  assert.equal(titledWithPlatformIcons("▶️🎵 Old title", ["Instagram", "Pinterest"]), "📸📌 Old title");
+});
+
+test("buildPublishLogEntry fills Notion labels for one new platform", () => {
   const row = buildPublishLogEntry({
     kind: "video",
     assetId: "free:1",
@@ -70,7 +81,7 @@ test("buildPublishLogEntry fills Notion labels", () => {
     title: "Falling",
     publishedAt: "2026-08-26T00:00:00.000Z",
   });
-  assert.equal(row.platform, "Facebook");
-  assert.equal(row.format, "Reels");
-  assert.equal(row.key, "dreamly:video:free:1:facebook");
+  assert.deepEqual(row.platforms, ["Facebook"]);
+  assert.deepEqual(row.formats, ["Reels"]);
+  assert.equal(row.key, "dreamly:video:free:1");
 });
