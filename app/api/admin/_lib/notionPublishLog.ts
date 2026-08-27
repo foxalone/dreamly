@@ -1,17 +1,13 @@
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import {
-  NOTION_PLATFORM_EMOJI,
   NOTION_PLATFORM_ORDER,
   NOTION_PROJECT_DREAMLY,
   buildPublishLogEntry,
+  calendarCardTitle,
   entriesFromImageDoc,
   entriesFromVideoDoc,
-  isLegacyPlatformKey,
-  sortNotionPlatforms,
-  titledWithPlatformIcons,
-  type NotionFormat,
-  type NotionPlatform,
+  isStaleGroupedKey,
   type NotionStatus,
   type SocialAssetKind,
   type SocialPlatform,
@@ -61,14 +57,6 @@ function dateStart(iso: string) {
   return new Date(parsed).toISOString().slice(0, 10);
 }
 
-function earlierIso(left: string, right: string) {
-  const leftMs = Date.parse(left);
-  const rightMs = Date.parse(right);
-  if (!Number.isFinite(leftMs)) return right;
-  if (!Number.isFinite(rightMs)) return left;
-  return leftMs <= rightMs ? left : right;
-}
-
 function notionHeaders() {
   return {
     Authorization: `Bearer ${notionToken()}`,
@@ -78,30 +66,21 @@ function notionHeaders() {
 }
 
 function pageProperties(entry: SocialPublishLogEntry) {
-  const platforms = sortNotionPlatforms(entry.platforms);
+  const project = entry.project || NOTION_PROJECT_DREAMLY;
   return {
     Название: {
-      title: [
-        {
-          type: "text" as const,
-          text: { content: clip(titledWithPlatformIcons(entry.title, []), 200) || entry.key },
-        },
-      ],
+      title: [{ type: "text" as const, text: { content: clip(calendarCardTitle(project, entry.platform), 200) } }],
     },
-    Проект: { select: { name: NOTION_PROJECT_DREAMLY } },
-    Площадка: { multi_select: platforms.map((name) => ({ name })) },
-    ...(entry.formats[0] ? { Формат: { select: { name: entry.formats[0] } } } : {}),
+    Проект: { select: { name: project } },
+    Площадка: { multi_select: [{ name: entry.platform }] },
+    Формат: { select: { name: entry.format } },
     Статус: { select: { name: entry.status } },
     Дата: { date: { start: dateStart(entry.publishedAt) } },
     Ссылка: { url: entry.url || null },
+    Ролик: { rich_text: entry.title ? [{ type: "text" as const, text: { content: clip(entry.title, 1900) } }] : [] },
     Заметки: { rich_text: entry.notes ? [{ type: "text" as const, text: { content: clip(entry.notes, 1900) } }] : [] },
     Ключ: { rich_text: [{ type: "text" as const, text: { content: clip(entry.key, 200) } }] },
   };
-}
-
-function pageIcon(platforms: NotionPlatform[]) {
-  const [first] = sortNotionPlatforms(platforms);
-  return { type: "emoji" as const, emoji: first ? NOTION_PLATFORM_EMOJI[first] : "📅" };
 }
 
 async function notionFetch<T>(path: string, init: RequestInit): Promise<T> {
@@ -120,37 +99,12 @@ async function notionFetch<T>(path: string, init: RequestInit): Promise<T> {
 type NotionPage = {
   id?: string;
   properties?: {
-    Название?: { title?: { plain_text?: string }[] };
-    Площадка?: { type?: string; select?: { name?: string } | null; multi_select?: { name?: string }[] };
-    Формат?: { select?: { name?: string } | null };
-    Статус?: { select?: { name?: string } | null };
-    Дата?: { date?: { start?: string } | null };
-    Ссылка?: { url?: string | null };
     Ключ?: { rich_text?: { plain_text?: string }[] };
   };
 };
 
 function plainText(items: { plain_text?: string }[] | undefined) {
   return (items || []).map((item) => String(item.plain_text || "")).join("").trim();
-}
-
-function platformsFromPage(page: NotionPage): NotionPlatform[] {
-  const property = page.properties?.Площадка;
-  const names = property?.multi_select?.map((item) => item.name) || (property?.select?.name ? [property.select.name] : []);
-  return sortNotionPlatforms(names.filter((name): name is NotionPlatform => NOTION_PLATFORM_ORDER.includes(name as NotionPlatform)));
-}
-
-function entryFromPage(page: NotionPage, fallback: SocialPublishLogEntry): SocialPublishLogEntry {
-  const title = titledWithPlatformIcons(plainText(page.properties?.Название?.title) || fallback.title, []);
-  return {
-    ...fallback,
-    title: title || fallback.title,
-    platforms: sortNotionPlatforms([...platformsFromPage(page), ...fallback.platforms]),
-    formats: [...new Set([...(page.properties?.Формат?.select?.name ? [page.properties.Формат.select.name as NotionFormat] : []), ...fallback.formats])],
-    status: (page.properties?.Статус?.select?.name as NotionStatus) || fallback.status,
-    publishedAt: earlierIso(page.properties?.Дата?.date?.start || fallback.publishedAt, fallback.publishedAt),
-    url: fallback.url || page.properties?.Ссылка?.url || "",
-  };
 }
 
 async function findPageByKey(key: string): Promise<NotionPage | null> {
@@ -162,6 +116,18 @@ async function findPageByKey(key: string): Promise<NotionPage | null> {
     }),
   });
   return payload.results?.[0] || null;
+}
+
+async function ensureSchema() {
+  await notionFetch(`/data_sources/${notionDataSourceId()}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      properties: {
+        Площадка: { multi_select: { options: PLATFORM_OPTIONS } },
+        Ролик: { rich_text: {} },
+      },
+    }),
+  });
 }
 
 async function ensureListView() {
@@ -198,18 +164,7 @@ async function ensureListView() {
   });
 }
 
-async function ensurePlatformProperty() {
-  await notionFetch(`/data_sources/${notionDataSourceId()}`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      properties: {
-        Площадка: { multi_select: { options: PLATFORM_OPTIONS } },
-      },
-    }),
-  });
-}
-
-async function trashLegacyPages() {
+async function trashStaleGroupedPages() {
   let cursor: string | undefined;
   let trashed = 0;
   for (;;) {
@@ -222,7 +177,7 @@ async function trashLegacyPages() {
     );
     for (const page of payload.results || []) {
       const key = plainText(page.properties?.Ключ?.rich_text);
-      if (!page.id || !isLegacyPlatformKey(key)) continue;
+      if (!page.id || !isStaleGroupedKey(key)) continue;
       await notionFetch(`/pages/${page.id}`, {
         method: "PATCH",
         body: JSON.stringify({ in_trash: true }),
@@ -237,17 +192,15 @@ async function trashLegacyPages() {
 
 export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise<"created" | "updated" | "skipped"> {
   if (!notionPublishLogConfigured()) return "skipped";
-  if (!entry.platforms.length) return "skipped";
 
+  const properties = pageProperties(entry);
   const existing = await findPageByKey(entry.key);
-  const merged = existing ? entryFromPage(existing, entry) : entry;
-  const properties = pageProperties(merged);
-  const icon = pageIcon(merged.platforms);
+  const body = { properties, icon: null };
 
   if (existing?.id) {
     await notionFetch(`/pages/${existing.id}`, {
       method: "PATCH",
-      body: JSON.stringify({ properties, icon }),
+      body: JSON.stringify(body),
     });
     return "updated";
   }
@@ -256,8 +209,7 @@ export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise
     method: "POST",
     body: JSON.stringify({
       parent: { type: "data_source_id", data_source_id: notionDataSourceId() },
-      icon,
-      properties,
+      ...body,
     }),
   });
   return "created";
@@ -309,16 +261,16 @@ export async function backfillNotionPublishes() {
   }
 
   try {
-    await ensurePlatformProperty();
+    await ensureSchema();
   } catch (error) {
-    console.error("[notion-backfill] could not convert Площадка to multi_select", error);
+    console.error("[notion-backfill] could not update Notion schema", error);
   }
   try {
     await ensureListView();
   } catch (error) {
     console.error("[notion-backfill] could not create Список view", error);
   }
-  created.trashed = await trashLegacyPages();
+  created.trashed = await trashStaleGroupedPages();
 
   const [freeJobs, aiJobs, images] = await Promise.all([
     loadAllDocs("adminVideoJobs"),
