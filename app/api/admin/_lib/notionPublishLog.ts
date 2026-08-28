@@ -340,21 +340,85 @@ export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise
   return "created";
 }
 
-export async function trackSocialPublish(entry: SocialPublishLogEntry) {
-  try {
-    const url = (process.env.POSITIONER_PUBLISH_URL || "http://127.0.0.1:43147/api/publishes").trim();
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-      signal: AbortSignal.timeout(4000),
-    });
-    if (!response.ok) throw new Error(`positioner ${response.status}`);
-    return "created" as const;
-  } catch (error) {
-    console.error("[positioner-publish]", entry.key, error);
-    return "skipped" as const;
+const POSITIONER_ORIGIN = "https://positioner-web.vercel.app";
+const POSITIONER_RETRY_ATTEMPTS = 3;
+const POSITIONER_RETRY_BASE_MS = 400;
+
+function resolvePositionerPublishUrl() {
+  const publishUrl = (process.env.POSITIONER_PUBLISH_URL || "").trim();
+  if (publishUrl) return publishUrl;
+  const origin = (process.env.POSITIONER_URL || POSITIONER_ORIGIN).trim().replace(/\/+$/, "");
+  return `${origin}/api/publishes`;
+}
+
+function positionerAuthHeaders() {
+  const secret = (process.env.POSITIONER_INGEST_SECRET || "").trim();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (secret) {
+    headers.Authorization = `Bearer ${secret}`;
+    headers["X-Positioner-Key"] = secret;
   }
+  return headers;
+}
+
+function positionerPublishPayload(entry: SocialPublishLogEntry) {
+  return {
+    key: entry.key,
+    date: dateStart(entry.publishedAt),
+    publishedAt: entry.publishedAt,
+    project: entry.project,
+    platform: entry.platform,
+    platforms: [entry.platform],
+    format: entry.format,
+    status: entry.status,
+    title: entry.title,
+    ...(entry.url ? { url: entry.url } : {}),
+    ...(entry.notes ? { notes: entry.notes } : {}),
+    kind: entry.kind,
+  };
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableNetworkError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  return error.name === "AbortError" || error.name === "TimeoutError" || error.name === "TypeError";
+}
+
+export async function trackSocialPublish(entry: SocialPublishLogEntry) {
+  if (entry.status === "Черновик") return "skipped" as const;
+
+  const url = resolvePositionerPublishUrl();
+  const headers = positionerAuthHeaders();
+  const body = JSON.stringify(positionerPublishPayload(entry));
+
+  for (let attempt = 1; attempt <= POSITIONER_RETRY_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        signal: AbortSignal.timeout(8000),
+      });
+      if (response.ok) return "created" as const;
+      if (response.status >= 500 && attempt < POSITIONER_RETRY_ATTEMPTS) {
+        await sleep(POSITIONER_RETRY_BASE_MS * 2 ** (attempt - 1));
+        continue;
+      }
+      throw new Error(`positioner ${response.status}`);
+    } catch (error) {
+      if (isRetryableNetworkError(error) && attempt < POSITIONER_RETRY_ATTEMPTS) {
+        await sleep(POSITIONER_RETRY_BASE_MS * 2 ** (attempt - 1));
+        continue;
+      }
+      console.error("[positioner-publish]", entry.key, error);
+      return "skipped" as const;
+    }
+  }
+
+  return "skipped" as const;
 }
 
 export async function trackDreamlyPublish(input: {
