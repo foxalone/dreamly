@@ -342,9 +342,17 @@ export async function upsertNotionPublish(entry: SocialPublishLogEntry): Promise
 
 export async function trackSocialPublish(entry: SocialPublishLogEntry) {
   try {
-    return await upsertNotionPublish(entry);
+    const url = (process.env.POSITIONER_PUBLISH_URL || "http://127.0.0.1:43147/api/publishes").trim();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!response.ok) throw new Error(`positioner ${response.status}`);
+    return "created" as const;
   } catch (error) {
-    console.error("[notion-publish]", entry.key, error);
+    console.error("[positioner-publish]", entry.key, error);
     return "skipped" as const;
   }
 }
