@@ -26,6 +26,11 @@ import {
   type GscRangeKey,
 } from "@/lib/adminGsc";
 
+import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
+import {
+  attachVideosToGscQueries,
+  type GscVideoCandidate,
+} from "@/lib/gscVideoMatch";
 import { adminDb, loadServiceAccount, tryLoadServiceAccount } from "./firebaseAdmin";
 
 type GscSiteEntry = {
@@ -482,6 +487,52 @@ export async function syncGscQueries(): Promise<GscSyncResult> {
   }
 }
 
+function videoTitleFrom(topic: string, youtubeTitle?: string) {
+  return String(youtubeTitle || "").trim() || String(topic || "").trim() || "Untitled video";
+}
+
+async function listCompletedVideoTopics(): Promise<GscVideoCandidate[]> {
+  const db = adminDb();
+  const [freeSnapshot, aiSnapshot] = await Promise.all([
+    db.collection("adminVideoJobs").orderBy("createdAt", "desc").limit(250).get(),
+    db.collection(AI_VIDEO_COLLECTION).orderBy("createdAt", "desc").limit(250).get(),
+  ]);
+
+  const videos: GscVideoCandidate[] = [];
+
+  for (const doc of freeSnapshot.docs) {
+    const data = doc.data() as {
+      status?: string;
+      topic?: string;
+      videoUrl?: string;
+      youtubeMetadata?: { title?: string };
+    };
+    if (data.status !== "completed" || !String(data.videoUrl || "").trim()) continue;
+    videos.push({
+      id: `free:${doc.id}`,
+      topic: String(data.topic || ""),
+      title: videoTitleFrom(String(data.topic || ""), data.youtubeMetadata?.title),
+    });
+  }
+
+  for (const doc of aiSnapshot.docs) {
+    const data = doc.data() as {
+      status?: string;
+      topic?: string;
+      videoUrl?: string;
+      youtubeMetadata?: { title?: string };
+    };
+    if (data.status !== "completed" || !String(data.videoUrl || "").trim()) continue;
+    videos.push({
+      id: `ai:${doc.id}`,
+      topic: String(data.topic || ""),
+      title: videoTitleFrom(String(data.topic || ""), data.youtubeMetadata?.title),
+    });
+  }
+
+  return videos;
+}
+
 export async function listStoredGscQueries(
   limitN: number,
   sort: "clicks" | "impressions",
@@ -492,25 +543,34 @@ export async function listStoredGscQueries(
   const meta = metaSnap.data() || {};
   const snap = await snapshotRowsCollection(range).orderBy(sort, "desc").limit(limitN).get();
 
+  const rows = snap.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      query: String(data.query ?? ""),
+      clicks: Number(data.clicks ?? 0) || 0,
+      impressions: Number(data.impressions ?? 0) || 0,
+      ctr: Number(data.ctr ?? 0) || 0,
+      position: Number(data.position ?? 0) || 0,
+      startDate: typeof data.startDate === "string" ? data.startDate : null,
+      endDate: typeof data.endDate === "string" ? data.endDate : null,
+      syncedAtMs: data.syncedAt?.toMillis?.() ?? null,
+    };
+  });
+
+  let videos: GscVideoCandidate[] = [];
+  try {
+    videos = await listCompletedVideoTopics();
+  } catch (error) {
+    console.error("[gsc] failed to load videos for query matching", error);
+  }
+
   return {
     range,
     latestDataDate: typeof meta.latestDataDate === "string" ? meta.latestDataDate : null,
     startDate: typeof meta.startDate === "string" ? meta.startDate : null,
     endDate: typeof meta.endDate === "string" ? meta.endDate : null,
     rowCount: typeof meta.rowCount === "number" ? meta.rowCount : snap.size,
-    rows: snap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        query: String(data.query ?? ""),
-        clicks: Number(data.clicks ?? 0) || 0,
-        impressions: Number(data.impressions ?? 0) || 0,
-        ctr: Number(data.ctr ?? 0) || 0,
-        position: Number(data.position ?? 0) || 0,
-        startDate: typeof data.startDate === "string" ? data.startDate : null,
-        endDate: typeof data.endDate === "string" ? data.endDate : null,
-        syncedAtMs: data.syncedAt?.toMillis?.() ?? null,
-      };
-    }),
+    rows: attachVideosToGscQueries(rows, videos),
   };
 }

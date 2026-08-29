@@ -1,5 +1,6 @@
 "use client";
 
+import { Video } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { auth } from "@/lib/firebase";
@@ -39,6 +40,7 @@ type GscRow = {
   position: number;
   startDate: string | null;
   endDate: string | null;
+  video: { id: string; title: string; topic: string } | null;
 };
 
 type SortKey = "clicks" | "impressions";
@@ -153,6 +155,8 @@ export default function GscQueriesPanel() {
       setError("Не удалось скопировать email");
     }
   }
+
+  const filmedCount = rows.filter((row) => row.video).length;
 
   const rangeLabel = useMemo(() => {
     const start = windowStart || status?.ranges?.[range]?.startDate;
@@ -287,7 +291,7 @@ export default function GscQueriesPanel() {
       </div>
 
       <p className="text-xs text-[var(--muted)]">
-        {rows.length} запросов · Google Search, не поиск внутри сайта · {rangeLabel}
+        {rows.length} запросов · {filmedCount} уже со снятым видео · Google Search, не поиск внутри сайта · {rangeLabel}
       </p>
 
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
@@ -312,7 +316,22 @@ export default function GscQueriesPanel() {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-t border-[var(--border)]">
-                  <td className="p-3 font-medium text-[var(--text)]">{row.query}</td>
+                  <td className="p-3 text-[var(--text)]">
+                    <div className="flex items-center gap-2">
+                      {row.video ? (
+                        <span
+                          title={`Уже есть видео: ${row.video.title}`}
+                          className="inline-flex shrink-0 text-violet-400"
+                        >
+                          <Video size={16} aria-hidden="true" />
+                          <span className="sr-only">Уже есть видео: {row.video.title}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-block w-4 shrink-0" aria-hidden="true" />
+                      )}
+                      <span className="font-medium">{row.query}</span>
+                    </div>
+                  </td>
                   <td className="p-3 tabular-nums">{row.clicks}</td>
                   <td className="p-3 tabular-nums">{row.impressions}</td>
                   <td className="p-3 tabular-nums">{formatPct(row.ctr)}</td>
