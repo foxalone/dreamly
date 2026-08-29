@@ -2,12 +2,24 @@ import { createHash } from "crypto";
 
 export const GSC_SYNC_DOCUMENT = "adminSystem/gscSync";
 export const GSC_QUERIES_COLLECTION = "gsc_queries";
+export const GSC_SNAPSHOTS_COLLECTION = "gsc_snapshots";
 export const GSC_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 export const GSC_SITES_URL = "https://www.googleapis.com/webmasters/v3/sites";
 export const GSC_TOKEN_URL = "https://oauth2.googleapis.com/token";
 export const GSC_ROW_LIMIT = 25000;
 export const GSC_DEFAULT_LOOKBACK_DAYS = 90;
 export const GSC_DEFAULT_LAG_DAYS = 2;
+export const GSC_LATEST_DATE_PROBE_DAYS = 10;
+
+export const GSC_RANGE_KEYS = ["1d", "3d", "7d", "30d"] as const;
+export type GscRangeKey = (typeof GSC_RANGE_KEYS)[number];
+
+export const GSC_RANGE_DAYS: Record<GscRangeKey, number> = {
+  "1d": 1,
+  "3d": 3,
+  "7d": 7,
+  "30d": 30,
+};
 
 export const GSC_SITE_CANDIDATES = [
   "sc-domain:dreamly.art",
@@ -58,6 +70,37 @@ export function gscDateWindow(
   const start = new Date(end);
   start.setUTCDate(start.getUTCDate() - (lookbackDays - 1));
   return { startDate: toUtcDateKey(start), endDate: toUtcDateKey(end) };
+}
+
+export function parseGscRange(value: string | null | undefined): GscRangeKey {
+  const key = String(value || "").trim();
+  return GSC_RANGE_KEYS.includes(key as GscRangeKey) ? (key as GscRangeKey) : "1d";
+}
+
+export function addUtcDays(dateKey: string, days: number) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, (month || 1) - 1, day || 1));
+  date.setUTCDate(date.getUTCDate() + days);
+  return toUtcDateKey(date);
+}
+
+/** Inclusive window ending on the latest GSC data day, not the calendar today. */
+export function gscRangeWindow(latestDataDate: string, range: GscRangeKey): GscDateWindow {
+  const days = GSC_RANGE_DAYS[range];
+  return {
+    startDate: addUtcDays(latestDataDate, -(days - 1)),
+    endDate: latestDataDate,
+  };
+}
+
+export function latestDateFromGscDateRows(rows: Array<{ keys?: unknown }>) {
+  let latest: string | null = null;
+  for (const row of rows) {
+    const date = String(Array.isArray(row.keys) ? row.keys[0] ?? "" : "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (!latest || date > latest) latest = date;
+  }
+  return latest;
 }
 
 export function encodeGscSiteUrl(siteUrl: string) {

@@ -14,9 +14,8 @@ export async function GET(request: Request) {
     const limitN = Math.min(500, Math.max(1, Number(url.searchParams.get("limit") ?? 250) || 250));
     const sortParam = url.searchParams.get("sort");
     const sort = sortParam === "impressions" ? "impressions" : "clicks";
-
-    const rows = await listStoredGscQueries(limitN, sort);
-    return NextResponse.json({ ok: true, rows });
+    const result = await listStoredGscQueries(limitN, sort, url.searchParams.get("range"));
+    return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";
     const status = message === "UNAUTHENTICATED" ? 401 : message === "FORBIDDEN" ? 403 : 500;

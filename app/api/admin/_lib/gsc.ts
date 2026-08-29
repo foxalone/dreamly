@@ -2,19 +2,28 @@ import { createSign } from "crypto";
 import { FieldValue } from "firebase-admin/firestore";
 
 import {
-  GSC_QUERIES_COLLECTION,
+  GSC_DEFAULT_LAG_DAYS,
+  GSC_LATEST_DATE_PROBE_DAYS,
+  GSC_RANGE_KEYS,
   GSC_ROW_LIMIT,
   GSC_SCOPE,
   GSC_SITES_URL,
+  GSC_SNAPSHOTS_COLLECTION,
   GSC_SYNC_DOCUMENT,
   GSC_TOKEN_URL,
+  addUtcDays,
   gscDateWindow,
   gscQueryDocId,
+  gscRangeWindow,
   gscSearchAnalyticsUrl,
   gscSiteUrlOverride,
+  latestDateFromGscDateRows,
   normalizeGscQueryRow,
+  parseGscRange,
   pickGscSite,
+  toUtcDateKey,
   type GscQueryRow,
+  type GscRangeKey,
 } from "@/lib/adminGsc";
 
 import { adminDb, loadServiceAccount, tryLoadServiceAccount } from "./firebaseAdmin";
@@ -23,12 +32,20 @@ type GscSiteEntry = {
   siteUrl?: string;
 };
 
-export type GscSyncResult = {
-  ok: true;
-  siteUrl: string;
+export type GscRangeMeta = {
   startDate: string;
   endDate: string;
   rowCount: number;
+};
+
+export type GscSyncResult = {
+  ok: true;
+  siteUrl: string;
+  latestDataDate: string;
+  startDate: string;
+  endDate: string;
+  rowCount: number;
+  ranges: Record<GscRangeKey, GscRangeMeta>;
   runId: string;
 };
 
@@ -39,10 +56,12 @@ export type GscStatus = {
   projectId: string;
   siteUrl: string | null;
   availableSites: string[];
+  latestDataDate: string | null;
   lastSyncedAt: string | null;
   lastRowCount: number | null;
   lastStartDate: string | null;
   lastEndDate: string | null;
+  ranges: Partial<Record<GscRangeKey, GscRangeMeta>>;
   lastError: string | null;
   cronConfigured: boolean;
   setupHint: string | null;
@@ -144,47 +163,75 @@ async function listGscSites(accessToken: string) {
     .filter(Boolean);
 }
 
-async function queryGscRows(accessToken: string, siteUrl: string, startDate: string, endDate: string) {
-  const rows: GscQueryRow[] = [];
+type GscApiRow = {
+  keys?: unknown;
+  clicks?: unknown;
+  impressions?: unknown;
+  ctr?: unknown;
+  position?: unknown;
+};
+
+async function queryGscAnalytics(
+  accessToken: string,
+  siteUrl: string,
+  body: Record<string, unknown>,
+) {
+  const rows: GscApiRow[] = [];
   let startRow = 0;
+  const rowLimit = Number(body.rowLimit) || GSC_ROW_LIMIT;
 
   while (startRow < 100_000) {
-    const data = await googleJson<{ rows?: Array<Parameters<typeof normalizeGscQueryRow>[0]> }>(
-      gscSearchAnalyticsUrl(siteUrl),
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          startDate,
-          endDate,
-          dimensions: ["query"],
-          rowLimit: GSC_ROW_LIMIT,
-          startRow,
-          dataState: "all",
-        }),
+    const data = await googleJson<{ rows?: GscApiRow[] }>(gscSearchAnalyticsUrl(siteUrl), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ ...body, startRow, dataState: "all" }),
+    });
 
-    const chunk = (data.rows || [])
-      .map(normalizeGscQueryRow)
-      .filter((row): row is GscQueryRow => Boolean(row));
+    const chunk = data.rows || [];
     rows.push(...chunk);
-    if (chunk.length < GSC_ROW_LIMIT) break;
-    startRow += GSC_ROW_LIMIT;
+    if (chunk.length < rowLimit) break;
+    startRow += rowLimit;
   }
 
   return rows;
 }
 
-async function replaceQuerySnapshot(
+async function detectLatestDataDate(accessToken: string, siteUrl: string, now = new Date()) {
+  const fallback = gscDateWindow(now, 1, GSC_DEFAULT_LAG_DAYS).endDate;
+  const today = toUtcDateKey(now);
+  const rows = await queryGscAnalytics(accessToken, siteUrl, {
+    startDate: addUtcDays(today, -GSC_LATEST_DATE_PROBE_DAYS),
+    endDate: today,
+    dimensions: ["date"],
+    rowLimit: 16,
+  });
+  return latestDateFromGscDateRows(rows) || fallback;
+}
+
+async function queryGscRows(accessToken: string, siteUrl: string, startDate: string, endDate: string) {
+  const rows = await queryGscAnalytics(accessToken, siteUrl, {
+    startDate,
+    endDate,
+    dimensions: ["query"],
+    rowLimit: GSC_ROW_LIMIT,
+  });
+  return rows.map(normalizeGscQueryRow).filter((row): row is GscQueryRow => Boolean(row));
+}
+
+function snapshotRowsCollection(range: GscRangeKey) {
+  return adminDb().collection(GSC_SNAPSHOTS_COLLECTION).doc(range).collection("rows");
+}
+
+async function replaceRangeSnapshot(
+  range: GscRangeKey,
   rows: GscQueryRow[],
-  meta: { siteUrl: string; startDate: string; endDate: string; runId: string },
+  meta: { siteUrl: string; startDate: string; endDate: string; latestDataDate: string; runId: string },
 ) {
   const db = adminDb();
-  const col = db.collection(GSC_QUERIES_COLLECTION);
+  const col = snapshotRowsCollection(range);
   let batch = db.batch();
   let ops = 0;
 
@@ -202,9 +249,11 @@ async function replaceQuerySnapshot(
       impressions: row.impressions,
       ctr: row.ctr,
       position: row.position,
+      range,
       siteUrl: meta.siteUrl,
       startDate: meta.startDate,
       endDate: meta.endDate,
+      latestDataDate: meta.latestDataDate,
       runId: meta.runId,
       syncedAt: FieldValue.serverTimestamp(),
     });
@@ -223,19 +272,34 @@ async function replaceQuerySnapshot(
   }
   await flush();
 
-  await db.doc(GSC_SYNC_DOCUMENT).set(
+  await db.collection(GSC_SNAPSHOTS_COLLECTION).doc(range).set(
     {
+      range,
       siteUrl: meta.siteUrl,
       startDate: meta.startDate,
       endDate: meta.endDate,
+      latestDataDate: meta.latestDataDate,
       rowCount: rows.length,
       runId: meta.runId,
-      lastError: null,
       syncedAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true },
   );
+}
+
+function parseStoredRanges(value: unknown): Partial<Record<GscRangeKey, GscRangeMeta>> {
+  if (!value || typeof value !== "object") return {};
+  const ranges: Partial<Record<GscRangeKey, GscRangeMeta>> = {};
+  for (const key of GSC_RANGE_KEYS) {
+    const entry = (value as Record<string, unknown>)[key];
+    if (!entry || typeof entry !== "object") continue;
+    const startDate = String((entry as { startDate?: unknown }).startDate || "").trim();
+    const endDate = String((entry as { endDate?: unknown }).endDate || "").trim();
+    const rowCount = Number((entry as { rowCount?: unknown }).rowCount) || 0;
+    if (!startDate || !endDate) continue;
+    ranges[key] = { startDate, endDate, rowCount };
+  }
+  return ranges;
 }
 
 async function recordSyncError(message: string) {
@@ -289,10 +353,12 @@ export async function getGscStatus(): Promise<GscStatus> {
       projectId,
       siteUrl: gscSiteUrlOverride() || null,
       availableSites: [],
+      latestDataDate: null,
       lastSyncedAt: null,
       lastRowCount: null,
       lastStartDate: null,
       lastEndDate: null,
+      ranges: {},
       lastError: null,
       cronConfigured: Boolean(cronSecret()),
       setupHint: "Нет FIREBASE_SERVICE_ACCOUNT_JSON — без него нельзя ходить в Search Console API.",
@@ -302,6 +368,7 @@ export async function getGscStatus(): Promise<GscStatus> {
   const snap = await adminDb().doc(GSC_SYNC_DOCUMENT).get();
   const data = snap.data() || {};
 
+  const ranges = parseStoredRanges(data.ranges);
   const base: GscStatus = {
     configured: true,
     connected: false,
@@ -309,10 +376,12 @@ export async function getGscStatus(): Promise<GscStatus> {
     projectId,
     siteUrl: typeof data.siteUrl === "string" ? data.siteUrl : gscSiteUrlOverride() || null,
     availableSites: [],
+    latestDataDate: typeof data.latestDataDate === "string" ? data.latestDataDate : null,
     lastSyncedAt: timestampToIso(data.syncedAt),
-    lastRowCount: typeof data.rowCount === "number" ? data.rowCount : null,
-    lastStartDate: typeof data.startDate === "string" ? data.startDate : null,
-    lastEndDate: typeof data.endDate === "string" ? data.endDate : null,
+    lastRowCount: typeof data.rowCount === "number" ? data.rowCount : ranges["1d"]?.rowCount ?? null,
+    lastStartDate: typeof data.startDate === "string" ? data.startDate : ranges["1d"]?.startDate ?? null,
+    lastEndDate: typeof data.endDate === "string" ? data.endDate : ranges["1d"]?.endDate ?? null,
+    ranges,
     lastError: typeof data.lastError === "string" ? data.lastError : null,
     cronConfigured: Boolean(cronSecret()),
     setupHint: null,
@@ -358,17 +427,52 @@ export async function syncGscQueries(): Promise<GscSyncResult> {
       );
     }
 
-    const { startDate, endDate } = gscDateWindow();
-    const rows = await queryGscRows(token, siteUrl, startDate, endDate);
+    const latestDataDate = await detectLatestDataDate(token, siteUrl);
     const runId = new Date().toISOString();
-    await replaceQuerySnapshot(rows, { siteUrl, startDate, endDate, runId });
+    const ranges = {} as Record<GscRangeKey, GscRangeMeta>;
+
+    for (const range of GSC_RANGE_KEYS) {
+      const window = gscRangeWindow(latestDataDate, range);
+      const rows = await queryGscRows(token, siteUrl, window.startDate, window.endDate);
+      await replaceRangeSnapshot(range, rows, {
+        siteUrl,
+        startDate: window.startDate,
+        endDate: window.endDate,
+        latestDataDate,
+        runId,
+      });
+      ranges[range] = {
+        startDate: window.startDate,
+        endDate: window.endDate,
+        rowCount: rows.length,
+      };
+    }
+
+    const day = ranges["1d"];
+    await adminDb().doc(GSC_SYNC_DOCUMENT).set(
+      {
+        siteUrl,
+        latestDataDate,
+        startDate: day.startDate,
+        endDate: day.endDate,
+        rowCount: day.rowCount,
+        ranges,
+        runId,
+        lastError: null,
+        syncedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
 
     return {
       ok: true,
       siteUrl,
-      startDate,
-      endDate,
-      rowCount: rows.length,
+      latestDataDate,
+      startDate: day.startDate,
+      endDate: day.endDate,
+      rowCount: day.rowCount,
+      ranges,
       runId,
     };
   } catch (error) {
@@ -378,25 +482,35 @@ export async function syncGscQueries(): Promise<GscSyncResult> {
   }
 }
 
-export async function listStoredGscQueries(limitN: number, sort: "clicks" | "impressions") {
-  const snap = await adminDb()
-    .collection(GSC_QUERIES_COLLECTION)
-    .orderBy(sort, "desc")
-    .limit(limitN)
-    .get();
+export async function listStoredGscQueries(
+  limitN: number,
+  sort: "clicks" | "impressions",
+  rangeInput?: string | null,
+) {
+  const range = parseGscRange(rangeInput);
+  const metaSnap = await adminDb().collection(GSC_SNAPSHOTS_COLLECTION).doc(range).get();
+  const meta = metaSnap.data() || {};
+  const snap = await snapshotRowsCollection(range).orderBy(sort, "desc").limit(limitN).get();
 
-  return snap.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      query: String(data.query ?? ""),
-      clicks: Number(data.clicks ?? 0) || 0,
-      impressions: Number(data.impressions ?? 0) || 0,
-      ctr: Number(data.ctr ?? 0) || 0,
-      position: Number(data.position ?? 0) || 0,
-      startDate: typeof data.startDate === "string" ? data.startDate : null,
-      endDate: typeof data.endDate === "string" ? data.endDate : null,
-      syncedAtMs: data.syncedAt?.toMillis?.() ?? null,
-    };
-  });
+  return {
+    range,
+    latestDataDate: typeof meta.latestDataDate === "string" ? meta.latestDataDate : null,
+    startDate: typeof meta.startDate === "string" ? meta.startDate : null,
+    endDate: typeof meta.endDate === "string" ? meta.endDate : null,
+    rowCount: typeof meta.rowCount === "number" ? meta.rowCount : snap.size,
+    rows: snap.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        query: String(data.query ?? ""),
+        clicks: Number(data.clicks ?? 0) || 0,
+        impressions: Number(data.impressions ?? 0) || 0,
+        ctr: Number(data.ctr ?? 0) || 0,
+        position: Number(data.position ?? 0) || 0,
+        startDate: typeof data.startDate === "string" ? data.startDate : null,
+        endDate: typeof data.endDate === "string" ? data.endDate : null,
+        syncedAtMs: data.syncedAt?.toMillis?.() ?? null,
+      };
+    }),
+  };
 }

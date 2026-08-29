@@ -921,7 +921,8 @@ async function loadUsers() {
             ) : tab === "GSC" ? (
               <>
                 Google Search Console queries (Firestore:{" "}
-                <span className="font-mono">gsc_queries</span>)
+                <span className="font-mono">gsc_snapshots</span>
+                ) · last day of GSC data, not calendar
               </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
