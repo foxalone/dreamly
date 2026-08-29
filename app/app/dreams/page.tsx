@@ -812,14 +812,23 @@ export default function DreamsPage() {
         setCreditsLoading(false);
 
         if (data2?.credits === undefined) {
-          await setDoc(
-            userRef,
-            {
-              credits: 0,
-              creditsUpdatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          ).catch(() => {});
+          // Seed the field only if it is STILL missing at commit time. A plain
+          // merge here could land after grantWelcomeCredits' increment and wipe
+          // the welcome bonus for good, since welcomeBonusGranted is already set
+          // and the function never runs twice.
+          await runTransaction(firestore, async (tx) => {
+            const fresh = await tx.get(userRef);
+            if (!fresh.exists()) return;
+            if (fresh.data()?.credits !== undefined) return;
+            tx.set(
+              userRef,
+              {
+                credits: 0,
+                creditsUpdatedAt: serverTimestamp(),
+              },
+              { merge: true }
+            );
+          }).catch(() => {});
         }
       },
       (err) => {

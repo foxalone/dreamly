@@ -14,7 +14,8 @@
     "ai-image-worker": "node --env-file=.env.local scripts/ai-image-worker.mjs",
     "ai-image-check": "node --env-file=.env.local scripts/ai-image-worker.mjs --check",
     "notion-backfill": "npx --yes tsx scripts/backfill-notion-publishes.ts",
-    "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts"
+    "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts",
+    "repair-welcome-credits": "node --env-file=.env.local scripts/repair-welcome-credits.mjs"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
