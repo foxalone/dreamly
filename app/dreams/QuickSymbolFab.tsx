@@ -90,6 +90,7 @@ export default function QuickSymbolFab() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuickResult | null>(null);
+  const [resultIsGuest, setResultIsGuest] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const resumeStarted = useRef(false);
 
@@ -176,7 +177,7 @@ export default function QuickSymbolFab() {
     });
   }
 
-  async function runLookup(rawQuery: string, currentUser: User) {
+  async function runLookup(rawQuery: string, currentUser: User | null) {
     const q = rawQuery.trim();
     setError(null);
     setResult(null);
@@ -192,15 +193,21 @@ export default function QuickSymbolFab() {
 
     setBusy(true);
     try {
-      const idToken = await currentUser.getIdToken();
+      const idToken = currentUser ? await currentUser.getIdToken() : null;
       const res = await fetch("/api/dreams/quick-symbol", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, idToken }),
+        credentials: "same-origin",
+        body: JSON.stringify(idToken ? { query: q, idToken } : { query: q }),
       });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        if (data?.code === "GUEST_LIMIT_REACHED") {
+          trackEvent("guest_limit_reached", { source: "quick_symbol" });
+          goToSignIn(q);
+          return;
+        }
         if (data?.code === "AUTH_REQUIRED") {
           goToSignIn(q);
           return;
@@ -222,10 +229,12 @@ export default function QuickSymbolFab() {
         match: data.match ?? null,
       };
       setResult(next);
+      setResultIsGuest(!currentUser);
       trackEvent("quick_symbol_completed", {
         matched_dictionary: next.matched,
         word_count: countWords(q),
         credits_used: next.cost,
+        guest: !currentUser,
       });
 
       try {
@@ -263,11 +272,6 @@ export default function QuickSymbolFab() {
     }
     if (countWords(q) > QUICK_SYMBOL_MAX_WORDS) {
       setError(`Use up to ${QUICK_SYMBOL_MAX_WORDS} words.`);
-      return;
-    }
-
-    if (!user) {
-      goToSignIn(q);
       return;
     }
 
@@ -331,8 +335,10 @@ export default function QuickSymbolFab() {
                       Quick symbol
                     </h2>
                     <p className="mt-1 text-xs text-[var(--dd-muted)]">
-                      Up to {QUICK_SYMBOL_MAX_WORDS} words. Dictionary match is free; unknown
-                      symbols cost 1 credit. Sign in required.
+                      Up to {QUICK_SYMBOL_MAX_WORDS} words. Dictionary matches are always free.
+                      {user
+                        ? " Unknown symbols cost 1 credit."
+                        : " Your first AI answer is free — no sign-in."}
                     </p>
                   </div>
                   <button
@@ -363,7 +369,7 @@ export default function QuickSymbolFab() {
                     {user ? (
                       <span className="truncate max-w-[180px]">{user.email}</span>
                     ) : (
-                      <span>Sign in to continue</span>
+                      <span>1 free lookup</span>
                     )}
                   </div>
 
@@ -383,10 +389,8 @@ export default function QuickSymbolFab() {
                         <Loader2 className="animate-spin" size={16} />
                         Looking up…
                       </>
-                    ) : user ? (
-                      "Get meaning"
                     ) : (
-                      "Sign in & get meaning"
+                      "Get meaning"
                     )}
                   </button>
                 </form>
@@ -413,9 +417,29 @@ export default function QuickSymbolFab() {
                         Open full page →
                       </Link>
                     ) : null}
-                    <p className="mt-2 text-xs text-[var(--dd-subtle)]">
-                      Saved to your journal (Quick / dreamer).
-                    </p>
+                    {resultIsGuest ? (
+                      <div className="mt-3 border-t border-[var(--dd-border)] pt-3">
+                        <p className="text-xs text-[var(--dd-muted)]">
+                          {result.matched
+                            ? "Sign in to save this to your dream journal."
+                            : "That was your free AI answer. Sign in to save it and keep asking."}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            trackEvent("upgrade_prompt", { source: "quick_symbol_guest" });
+                            goToSignIn(query.trim() || "");
+                          }}
+                          className="mt-2 inline-flex items-center rounded-full bg-violet-500 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-violet-400"
+                        >
+                          Save it — sign in
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-xs text-[var(--dd-subtle)]">
+                        Saved to your journal (Quick / dreamer).
+                      </p>
+                    )}
                   </div>
                 ) : null}
               </div>

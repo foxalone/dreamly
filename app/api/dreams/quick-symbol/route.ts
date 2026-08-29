@@ -12,6 +12,14 @@ import {
   normalizeQuickQuery,
   QUICK_SYMBOL_MAX_WORDS,
 } from "@/lib/quickSymbol";
+import {
+  consumeGuestAsk,
+  newGuestId,
+  readClientIp,
+  readGuestId,
+  refundGuestAsk,
+  setGuestCookie,
+} from "../_lib/guestQuota";
 
 export const runtime = "nodejs";
 
@@ -114,12 +122,12 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!idToken || !uid) {
-      return NextResponse.json(
-        { error: "Sign in required.", code: "AUTH_REQUIRED" },
-        { status: 401 }
-      );
-    }
+    // Anonymous visitors get GUEST_FREE_ASKS model answers before signing in.
+    const isGuest = !uid;
+    const guestId = isGuest ? readGuestId(req) ?? newGuestId() : null;
+    const clientIp = isGuest ? readClientIp(req) : "";
+    const finish = <T extends NextResponse>(res: T): T =>
+      guestId ? setGuestCookie(res, guestId) : res;
 
     const match = findBestDreamMatch(query);
 
@@ -134,60 +142,92 @@ export async function POST(req: Request) {
         cost: 0,
       });
 
-      return NextResponse.json({
-        ok: true,
-        matched: true,
-        cost: 0,
-        match,
-        answer: match.snippet || match.shortMeaning,
-        href: `/dreams/${match.slug}`,
-      });
+      return finish(
+        NextResponse.json({
+          ok: true,
+          matched: true,
+          cost: 0,
+          match,
+          answer: match.snippet || match.shortMeaning,
+          href: `/dreams/${match.slug}`,
+          guest: isGuest,
+        })
+      );
     }
 
-    // Miss → GPT + 1 credit
-    const db = adminDb();
-    const userRef = db.collection("users").doc(uid);
+    // Miss → GPT. Signed in: 1 credit. Guest: one free lookup, then sign-in.
+    if (isGuest && guestId) {
+      const booked = await consumeGuestAsk(guestId, clientIp);
+      if (!booked.ok) {
+        return finish(
+          NextResponse.json(
+            {
+              error:
+                booked.reason === "ip_limit"
+                  ? "Too many free lookups from this network. Sign in to continue."
+                  : "That was your free lookup. Sign in to keep asking.",
+              code: "GUEST_LIMIT_REACHED",
+            },
+            { status: 401 }
+          )
+        );
+      }
+    }
 
-    try {
-      await db.runTransaction(async (tx) => {
-        const snap = await tx.get(userRef);
-        const credits = Number(snap.exists ? (snap.data() as any)?.credits ?? 0 : 0);
-        if (!Number.isFinite(credits) || credits < 1) {
-          throw new Error("INSUFFICIENT_CREDITS");
-        }
-        tx.set(
-          userRef,
+    const db = adminDb();
+    const userRef = uid ? db.collection("users").doc(uid) : null;
+
+    const refundOne = async () => {
+      if (userRef) {
+        await userRef.set(
           {
-            credits: credits - 1,
+            credits: FieldValue.increment(1),
             creditsUpdatedAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true }
         );
-      });
-    } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_CREDITS") {
-        return NextResponse.json(
-          { error: "Not enough credits.", code: "INSUFFICIENT_CREDITS" },
-          { status: 402 }
-        );
+        return;
       }
-      throw e;
+      if (guestId) await refundGuestAsk(guestId, clientIp);
+    };
+
+    if (userRef) {
+      try {
+        await db.runTransaction(async (tx) => {
+          const snap = await tx.get(userRef);
+          const credits = Number(snap.exists ? (snap.data() as any)?.credits ?? 0 : 0);
+          if (!Number.isFinite(credits) || credits < 1) {
+            throw new Error("INSUFFICIENT_CREDITS");
+          }
+          tx.set(
+            userRef,
+            {
+              credits: credits - 1,
+              creditsUpdatedAt: FieldValue.serverTimestamp(),
+              updatedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        });
+      } catch (e: any) {
+        if (e?.message === "INSUFFICIENT_CREDITS") {
+          return NextResponse.json(
+            { error: "Not enough credits.", code: "INSUFFICIENT_CREDITS" },
+            { status: 402 }
+          );
+        }
+        throw e;
+      }
     }
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
-      // refund
-      await userRef.set(
-        {
-          credits: FieldValue.increment(1),
-          creditsUpdatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      return NextResponse.json(
-        { error: getMissingOneiroOpenAiKeyMessage() },
-        { status: 500 }
+      await refundOne();
+      return finish(
+        NextResponse.json(
+          { error: getMissingOneiroOpenAiKeyMessage() },
+          { status: 500 }
+        )
       );
     }
 
@@ -205,28 +245,18 @@ export async function POST(req: Request) {
       });
       answer = extractOutputText(resp);
     } catch (e: any) {
-      await userRef.set(
-        {
-          credits: FieldValue.increment(1),
-          creditsUpdatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      return NextResponse.json(
-        { error: e?.message ?? "Quick symbol failed" },
-        { status: 500 }
+      await refundOne();
+      return finish(
+        NextResponse.json(
+          { error: e?.message ?? "Quick symbol failed" },
+          { status: 500 }
+        )
       );
     }
 
     if (!answer) {
-      await userRef.set(
-        {
-          credits: FieldValue.increment(1),
-          creditsUpdatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      return NextResponse.json({ error: "Empty answer" }, { status: 500 });
+      await refundOne();
+      return finish(NextResponse.json({ error: "Empty answer" }, { status: 500 }));
     }
 
     await logQuery({
@@ -235,18 +265,21 @@ export async function POST(req: Request) {
       matched: false,
       slug: null,
       uid,
-      cost: 1,
+      cost: isGuest ? 0 : 1,
     });
 
-    return NextResponse.json({
-      ok: true,
-      matched: false,
-      cost: 1,
-      match: null,
-      answer,
-      href: null,
-      model,
-    });
+    return finish(
+      NextResponse.json({
+        ok: true,
+        matched: false,
+        cost: isGuest ? 0 : 1,
+        match: null,
+        answer,
+        href: null,
+        model,
+        guest: isGuest,
+      })
+    );
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "Quick symbol failed" },
