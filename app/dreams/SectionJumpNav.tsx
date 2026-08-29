@@ -1,4 +1,9 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
+
+import { trackEvent } from "@/lib/analytics";
 import {
   BookOpenText,
   Brain,
@@ -20,6 +25,8 @@ const sections: Array<{ id: string; label: string; icon: LucideIcon }> = [
 ];
 
 export default function SectionJumpNav({ accent }: { accent: string }) {
+  const pathname = usePathname();
+
   return (
     <nav aria-label="On this page" className="mt-9">
       <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">Explore this symbol</p>
@@ -28,6 +35,7 @@ export default function SectionJumpNav({ accent }: { accent: string }) {
           <a
             key={id}
             href={`#${id}`}
+            onClick={() => trackEvent("section_jump", { section: id, page_path: pathname })}
             className="group flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface-soft)] px-1 py-3 text-center transition hover:-translate-y-0.5 hover:border-[var(--dd-border-strong)] hover:bg-[var(--dd-surface-hover)]"
           >
             <span

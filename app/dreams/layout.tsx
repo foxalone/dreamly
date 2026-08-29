@@ -5,6 +5,7 @@ import { MoonStar } from "lucide-react";
 import BottomNav from "@/app/app/BottomNav";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 import QuickSymbolFab from "./QuickSymbolFab";
+import ScrollDepthTracker from "./ScrollDepthTracker";
 
 export const metadata: Metadata = {
   robots: {
@@ -27,6 +28,7 @@ const HUB_LINKS: { href: string; label: string }[] = [
 export default function DreamDictionaryLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dream-dictionary min-h-screen bg-[var(--dd-bg)] text-[var(--dd-text)]">
+      <ScrollDepthTracker />
       <header className="sticky top-0 z-40 border-b border-[var(--dd-border)] bg-[var(--dd-header)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link href="/dreams" className="flex items-center gap-2.5 text-sm font-semibold tracking-wide text-[var(--dd-text)]">
