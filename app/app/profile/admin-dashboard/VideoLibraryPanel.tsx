@@ -190,7 +190,7 @@ function PublishIconButton({
       aria-label={label}
       disabled={disabled || busy}
       onClick={onClick}
-      className={`relative flex h-7 w-7 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-35 ${
+      className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-35 ${
         published
           ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-600"
           : scheduled
@@ -273,7 +273,7 @@ function VideoTile({
           </p>
         ) : null}
         <div className="absolute inset-x-0 bottom-0 z-10 px-1 pb-1.5 pt-6">
-          <div className="flex items-center justify-between gap-0.5 rounded-lg bg-black/35 px-0.5 py-0.5 backdrop-blur-[2px]">{actions}</div>
+          <div className="flex items-center gap-0.5 rounded-lg bg-black/35 px-0.5 py-0.5 backdrop-blur-[2px]">{actions}</div>
         </div>
       </div>
     </div>
@@ -348,9 +348,11 @@ export default function VideoLibraryPanel({
 
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => void load(true), 15_000);
+    const timer = window.setInterval(() => {
+      if (!publishingKey) void load(true);
+    }, 15_000);
     return () => window.clearInterval(timer);
-  }, [load]);
+  }, [load, publishingKey]);
 
   useEffect(() => {
     if (view !== "connections") return;
@@ -506,7 +508,7 @@ export default function VideoLibraryPanel({
     }
   }
 
-  function markPublished(itemId: string, platform: Platform) {
+  function markPublished(itemId: string, platform: Platform, extra: Partial<AdminVideoLibraryItem> = {}) {
     setItems((current) =>
       current.map((item) =>
         item.id === itemId
@@ -524,38 +526,133 @@ export default function VideoLibraryPanel({
               ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
               ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
               ...(platform === "pinterest" ? { pinterestState: "published" as const, pinterestError: "" } : {}),
+              ...extra,
             }
           : item,
       ),
     );
   }
 
-  async function publishToTikTok(item: AdminVideoLibraryItem) {
-    setPublishingKey(`tiktok:${item.id}`);
-    setNotice(null);
-    try {
-      const token = await user.getIdToken();
+  function cardBusy(itemId: string) {
+    return publishingKey.endsWith(`:${itemId}`);
+  }
+
+  function pendingPlatforms(item: AdminVideoLibraryItem): Platform[] {
+    const pending: Platform[] = [];
+    if (tiktok?.connected && !item.published?.tiktok) pending.push("tiktok");
+    if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
+    if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
+    if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
+    if (
+      youtube?.connected &&
+      !item.published?.youtube &&
+      item.youtubeState !== "scheduled" &&
+      item.youtubeState !== "uploading"
+    ) {
+      pending.push("youtube");
+    }
+    if (pinterest?.connected && !item.published?.pinterest && item.pinterestState !== "publishing") {
+      pending.push("pinterest");
+    }
+    return pending;
+  }
+
+  async function publishVideoTo(item: AdminVideoLibraryItem, platform: Platform, publishAt = "") {
+    const token = await user.getIdToken();
+    const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    if (platform === "tiktok") {
       const response = await fetch("/api/admin/tiktok/publish", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({ libraryId: item.id }),
       });
-      const payload = (await response.json()) as {
-        ok?: boolean;
-        status?: string;
-        error?: string;
-      };
+      const payload = (await response.json()) as { ok?: boolean; status?: string; error?: string };
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Не удалось опубликовать в TikTok");
       }
       markPublished(item.id, "tiktok");
-      setNotice({
-        type: "ok",
-        text: `Опубликовано в TikTok · ${payload.status || "done"}`,
+      return payload.status || "done";
+    }
+    if (platform === "instagram" || platform === "facebook") {
+      const response = await fetch("/api/admin/meta/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ libraryId: item.id, target: platform }),
       });
+      const payload = (await response.json()) as { ok?: boolean; status?: string; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || `Не удалось опубликовать в ${platformLabel(platform)}`);
+      }
+      markPublished(item.id, platform);
+      return payload.status || "PUBLISHED";
+    }
+    if (platform === "threads") {
+      const response = await fetch("/api/admin/threads/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; status?: string; postId?: string; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Threads");
+      }
+      markPublished(item.id, "threads");
+      return `${payload.status || "PUBLISHED"}${payload.postId ? ` · id ${payload.postId}` : ""}`;
+    }
+    if (platform === "youtube") {
+      const response = await fetch("/api/admin/youtube/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(publishAt ? { libraryId: item.id, publishAt } : { libraryId: item.id }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        videoId?: string;
+        privacyStatus?: string;
+        status?: string;
+        scheduledAt?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось загрузить на YouTube");
+      }
+      const watch = payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : "";
+      if (payload.status === "SCHEDULED") {
+        return `SCHEDULED · ${
+          payload.scheduledAt ? scheduleFormatter.format(new Date(payload.scheduledAt)) : ""
+        }${watch}`;
+      }
+      markPublished(item.id, "youtube", { youtubeVideoId: payload.videoId || "" });
+      return `${payload.privacyStatus || "public"}${watch}`;
+    }
+    const response = await fetch("/api/admin/pinterest/publish", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ libraryId: item.id }),
+    });
+    const payload = (await response.json()) as {
+      ok?: boolean;
+      status?: string;
+      pinId?: string;
+      boardName?: string;
+      error?: string;
+    };
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || "Не удалось опубликовать в Pinterest");
+    }
+    markPublished(item.id, "pinterest", { pinterestPinId: payload.pinId || "" });
+    return `${payload.status || "PUBLISHED"}${payload.boardName ? ` · доска «${payload.boardName}»` : ""}${
+      payload.pinId ? ` · ${pinterestPinUrl(payload.pinId)}` : ""
+    }`;
+  }
+
+  async function publishToTikTok(item: AdminVideoLibraryItem) {
+    if (item.published?.tiktok || cardBusy(item.id)) return;
+    setPublishingKey(`tiktok:${item.id}`);
+    setNotice(null);
+    try {
+      const detail = await publishVideoTo(item, "tiktok");
+      setNotice({ type: "ok", text: `Опубликовано в TikTok · ${detail}` });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
     } finally {
@@ -564,27 +661,12 @@ export default function VideoLibraryPanel({
   }
 
   async function publishToMeta(item: AdminVideoLibraryItem, target: "instagram" | "facebook") {
+    if (item.published?.[target] || cardBusy(item.id)) return;
     setPublishingKey(`${target}:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/meta/publish", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id, target }),
-      });
-      const payload = (await response.json()) as { ok?: boolean; status?: string; error?: string };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || `Не удалось опубликовать в ${platformLabel(target)}`);
-      }
-      markPublished(item.id, target);
-      setNotice({
-        type: "ok",
-        text: `Опубликовано в ${platformLabel(target)} · ${payload.status || "PUBLISHED"}`,
-      });
+      const detail = await publishVideoTo(item, target);
+      setNotice({ type: "ok", text: `Опубликовано в ${platformLabel(target)} · ${detail}` });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
     } finally {
@@ -593,28 +675,12 @@ export default function VideoLibraryPanel({
   }
 
   async function publishToThreads(item: AdminVideoLibraryItem) {
-    if (item.published?.threads) return;
+    if (item.published?.threads || cardBusy(item.id)) return;
     setPublishingKey(`threads:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/threads/publish", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id }),
-      });
-      const payload = (await response.json()) as { ok?: boolean; status?: string; postId?: string; error?: string };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Не удалось опубликовать в Threads");
-      }
-      markPublished(item.id, "threads");
-      setNotice({
-        type: "ok",
-        text: `Опубликовано в Threads · ${payload.status || "PUBLISHED"}${payload.postId ? ` · id ${payload.postId}` : ""}`,
-      });
+      const detail = await publishVideoTo(item, "threads");
+      setNotice({ type: "ok", text: `Опубликовано в Threads · ${detail}` });
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
       await load(true);
@@ -636,35 +702,12 @@ export default function VideoLibraryPanel({
       openPinterestPin(item);
       return;
     }
+    if (cardBusy(item.id)) return;
     setPublishingKey(`pinterest:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/pinterest/publish", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ libraryId: item.id }),
-      });
-      const payload = (await response.json()) as {
-        ok?: boolean;
-        status?: string;
-        pinId?: string;
-        boardName?: string;
-        error?: string;
-      };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Не удалось опубликовать в Pinterest");
-      }
-      markPublished(item.id, "pinterest");
-      setNotice({
-        type: "ok",
-        text: `Опубликовано в Pinterest · ${payload.status || "PUBLISHED"}${
-          payload.boardName ? ` · доска «${payload.boardName}»` : ""
-        }${payload.pinId ? ` · ${pinterestPinUrl(payload.pinId)}` : ""}`,
-      });
+      const detail = await publishVideoTo(item, "pinterest");
+      setNotice({ type: "ok", text: `Опубликовано в Pinterest · ${detail}` });
       await load(true);
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
@@ -717,44 +760,16 @@ export default function VideoLibraryPanel({
   }
 
   async function publishToYouTube(item: AdminVideoLibraryItem, publishAt = "") {
-    if (item.published?.youtube || item.youtubeState === "scheduled") return;
+    if (item.published?.youtube || item.youtubeState === "scheduled" || cardBusy(item.id)) return;
     setScheduleFor("");
     setPublishingKey(`youtube:${item.id}`);
     setNotice(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/admin/youtube/publish", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(publishAt ? { libraryId: item.id, publishAt } : { libraryId: item.id }),
-      });
-      const payload = (await response.json()) as {
-        ok?: boolean;
-        videoId?: string;
-        privacyStatus?: string;
-        status?: string;
-        scheduledAt?: string;
-        error?: string;
-      };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Не удалось загрузить на YouTube");
-      }
-      if (payload.status === "SCHEDULED") {
-        setNotice({
-          type: "ok",
-          text: `Запланировано на YouTube · ${
-            payload.scheduledAt ? scheduleFormatter.format(new Date(payload.scheduledAt)) : ""
-          }${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
-        });
+      const detail = await publishVideoTo(item, "youtube", publishAt);
+      if (detail.startsWith("SCHEDULED · ")) {
+        setNotice({ type: "ok", text: `Запланировано на YouTube · ${detail.slice("SCHEDULED · ".length)}` });
       } else {
-        markPublished(item.id, "youtube");
-        setNotice({
-          type: "ok",
-          text: `Загружено на YouTube · ${payload.privacyStatus || "public"}${payload.videoId ? ` · ${youtubeWatchUrl(payload.videoId)}` : ""}`,
-        });
+        setNotice({ type: "ok", text: `Загружено на YouTube · ${detail}` });
       }
       await load(true);
     } catch (publishError) {
@@ -765,27 +780,67 @@ export default function VideoLibraryPanel({
     }
   }
 
-  const publishActions = (item: AdminVideoLibraryItem) => (
-    <>
+  async function publishToAll(item: AdminVideoLibraryItem) {
+    const targets = pendingPlatforms(item);
+    if (!targets.length || cardBusy(item.id)) return;
+    setScheduleFor("");
+    setNotice(null);
+    setPublishingKey(`all:${item.id}`);
+    const settled = await Promise.all(
+      targets.map(async (platform) => {
+        try {
+          await publishVideoTo(item, platform);
+          return { platform, ok: true as const, detail: "" };
+        } catch (publishError) {
+          return {
+            platform,
+            ok: false as const,
+            detail: publishError instanceof Error ? publishError.message : "ошибка",
+          };
+        }
+      }),
+    );
+    setPublishingKey("");
+    await load(true);
+    const ok = settled.filter((entry) => entry.ok).map((entry) => platformLabel(entry.platform));
+    const failed = settled
+      .filter((entry) => !entry.ok)
+      .map((entry) => `${platformLabel(entry.platform)}: ${entry.detail}`);
+    if (!failed.length) {
+      setNotice({ type: "ok", text: `Опубликовано: ${ok.join(", ")}` });
+      return;
+    }
+    setNotice({
+      type: "error",
+      text: ok.length ? `Опубликовано: ${ok.join(", ")}. Ошибки — ${failed.join("; ")}` : failed.join("; "),
+    });
+  }
+
+  const publishActions = (item: AdminVideoLibraryItem) => {
+    const busy = cardBusy(item.id);
+    const remaining = pendingPlatforms(item);
+    const allBusy = publishingKey === `all:${item.id}`;
+    return (
+      <>
       <PublishIconButton
         platform="tiktok"
         published={Boolean(item.published?.tiktok)}
-        disabled={!tiktok?.connected}
-        busy={publishingKey === `tiktok:${item.id}`}
+        disabled={!tiktok?.connected || busy}
+        busy={publishingKey === `tiktok:${item.id}` || (allBusy && remaining.includes("tiktok"))}
         onClick={() => void publishToTikTok(item)}
       />
       <PublishIconButton
         platform="instagram"
         published={Boolean(item.published?.instagram)}
-        disabled={!meta?.instagramReady}
-        busy={publishingKey === `instagram:${item.id}`}
+        disabled={!meta?.instagramReady || busy}
+        busy={publishingKey === `instagram:${item.id}` || (allBusy && remaining.includes("instagram"))}
         onClick={() => void publishToMeta(item, "instagram")}
       />
       <PublishIconButton
         platform="facebook"
         published={Boolean(item.published?.facebook)}
-        disabled={!meta?.facebookReady}
-        busy={publishingKey === `facebook:${item.id}`}
+        disabled={!meta?.facebookReady || busy}
+        busy={publishingKey === `facebook:${item.id}` || (allBusy && remaining.includes("facebook"))}
         onClick={() => void publishToMeta(item, "facebook")}
       />
       <PublishIconButton
@@ -793,8 +848,12 @@ export default function VideoLibraryPanel({
         published={Boolean(item.published?.threads)}
         failed={item.threadsState === "failed"}
         failureNote={item.threadsError}
-        disabled={!threads?.connected || item.threadsState === "publishing"}
-        busy={publishingKey === `threads:${item.id}` || item.threadsState === "publishing"}
+        disabled={!threads?.connected || item.threadsState === "publishing" || busy}
+        busy={
+          publishingKey === `threads:${item.id}` ||
+          item.threadsState === "publishing" ||
+          (allBusy && remaining.includes("threads"))
+        }
         onClick={() => void publishToThreads(item)}
       />
       <PublishIconButton
@@ -812,11 +871,16 @@ export default function VideoLibraryPanel({
             : ""
         }
         disabled={
+          busy ||
           item.youtubeState === "uploading" ||
           (!youtube?.connected && !item.published?.youtube && item.youtubeState !== "scheduled") ||
           ((Boolean(item.published?.youtube) || item.youtubeState === "scheduled") && !item.youtubeVideoId)
         }
-        busy={publishingKey === `youtube:${item.id}` || item.youtubeState === "uploading"}
+        busy={
+          publishingKey === `youtube:${item.id}` ||
+          item.youtubeState === "uploading" ||
+          (allBusy && remaining.includes("youtube"))
+        }
         onClick={() => openYouTubeMenu(item)}
       />
       <PublishIconButton
@@ -826,15 +890,39 @@ export default function VideoLibraryPanel({
         failureNote={item.pinterestError}
         openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
         disabled={
+          busy ||
           item.pinterestState === "publishing" ||
           (!pinterest?.connected && !item.published?.pinterest) ||
           (Boolean(item.published?.pinterest) && !item.pinterestPinId)
         }
-        busy={publishingKey === `pinterest:${item.id}` || item.pinterestState === "publishing"}
+        busy={
+          publishingKey === `pinterest:${item.id}` ||
+          item.pinterestState === "publishing" ||
+          (allBusy && remaining.includes("pinterest"))
+        }
         onClick={() => void publishToPinterest(item)}
       />
+      <button
+        type="button"
+        title={
+          remaining.length
+            ? `Опубликовать сразу во все доступные: ${remaining.map(platformLabel).join(", ")}`
+            : "Уже опубликовано во все доступные сети"
+        }
+        aria-label="Опубликовать во все доступные сети"
+        disabled={!remaining.length || busy}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void publishToAll(item);
+        }}
+        className="ml-auto shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-35"
+      >
+        {busy ? "…" : "All"}
+      </button>
     </>
-  );
+    );
+  };
 
   if (view === "connections") {
     return (
