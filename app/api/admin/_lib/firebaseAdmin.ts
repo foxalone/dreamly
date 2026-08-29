@@ -47,16 +47,40 @@ function readServiceAccountFromEnvFile() {
   return null;
 }
 
-export function ensureAdmin() {
-  if (getApps().length) return;
+export type FirebaseServiceAccount = {
+  project_id?: string;
+  client_email?: string;
+  private_key?: string;
+  [key: string]: unknown;
+};
 
+export function loadServiceAccount(): FirebaseServiceAccount {
   const json = mustEnv("FIREBASE_SERVICE_ACCOUNT_JSON");
   const parsed = parseJson(json) ?? readServiceAccountFromEnvFile();
-  if (!parsed) {
+  if (!parsed || typeof parsed !== "object") {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON");
   }
+  return parsed as FirebaseServiceAccount;
+}
 
-  initializeApp({ credential: cert(parsed) });
+export function tryLoadServiceAccount(): FirebaseServiceAccount | null {
+  try {
+    return loadServiceAccount();
+  } catch {
+    return null;
+  }
+}
+
+export function ensureAdmin() {
+  if (getApps().length) return;
+  const account = loadServiceAccount();
+  initializeApp({
+    credential: cert({
+      projectId: account.project_id,
+      clientEmail: account.client_email,
+      privateKey: account.private_key,
+    }),
+  });
 }
 
 export function adminAuth() {

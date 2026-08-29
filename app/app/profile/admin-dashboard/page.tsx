@@ -33,6 +33,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
+import GscQueriesPanel from "./GscQueriesPanel";
 import QuickSymbolQueries from "./QuickSymbolQueries";
 import VideoAdminPanel from "./VideoAdminPanel";
 import AiVideoAdminPanel from "./AiVideoAdminPanel";
@@ -73,7 +74,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -239,6 +240,7 @@ export default function AdminDashboardPage() {
       requested === "CONFIG" ||
       requested === "USERS" ||
       requested === "QUERIES" ||
+      requested === "GSC" ||
       requested === "DOCS" ||
       requested === "FREE_VIDEOS" ||
       requested === "FREE_MIX_VIDEOS" ||
@@ -916,6 +918,11 @@ async function loadUsers() {
                 <span className="font-mono">dictionary_search_queries</span> +{" "}
                 <span className="font-mono">quick_symbol_queries</span>)
               </>
+            ) : tab === "GSC" ? (
+              <>
+                Google Search Console queries (Firestore:{" "}
+                <span className="font-mono">gsc_queries</span>)
+              </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
             ) : tab === "FREE_VIDEOS" ? (
@@ -1027,6 +1034,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Queries
+        </button>
+
+        <button
+          onClick={() => setTab("GSC")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "GSC"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Search Console
         </button>
 
         <button
@@ -1610,6 +1629,8 @@ async function loadUsers() {
           <QuickSymbolQueries />
         </>
       )}
+
+      {tab === "GSC" && <GscQueriesPanel />}
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
