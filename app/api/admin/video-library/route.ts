@@ -7,6 +7,7 @@ import {
   type AdminVideoPublishState,
 } from "@/lib/adminVideoLibrary";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
+import { scheduleStatusFrom, scheduledPlatformsFrom, type ScheduleJobData } from "@/app/api/admin/_lib/socialSchedule";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -39,6 +40,10 @@ type PublishFields = {
   pinterestStatus?: string;
   pinterestError?: string;
   pinterestPinId?: string;
+  socialScheduledAt?: string;
+  socialScheduledPlatforms?: string[];
+  socialScheduleStatus?: string;
+  socialScheduleError?: string;
 };
 
 function publishedFrom(data: PublishFields) {
@@ -73,6 +78,18 @@ function pinterestStateFrom(data: PublishFields): AdminVideoPublishState {
   const status = String(data.pinterestStatus || "");
   if (status === "publishing" || status === "failed" || status === "published") return status;
   return "idle";
+}
+
+// The "All" batch queued on a video: one moment shared by every platform that
+// has no native scheduling of its own.
+function scheduleFrom(data: PublishFields) {
+  const raw = data as ScheduleJobData;
+  return {
+    scheduledAt: String(data.socialScheduledAt || ""),
+    scheduledPlatforms: scheduledPlatformsFrom(raw),
+    scheduleStatus: scheduleStatusFrom(raw),
+    scheduleError: String(data.socialScheduleError || ""),
+  };
 }
 
 function aiSource(mode: string): AdminVideoLibrarySource {
@@ -116,6 +133,10 @@ export async function GET(request: Request) {
         pinterestStatus?: string;
         pinterestError?: string;
         pinterestPinId?: string;
+        socialScheduledAt?: string;
+        socialScheduledPlatforms?: string[];
+        socialScheduleStatus?: string;
+        socialScheduleError?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -139,6 +160,7 @@ export async function GET(request: Request) {
         pinterestState: pinterestStateFrom(data),
         pinterestError: String(data.pinterestError || ""),
         pinterestPinId: String(data.pinterestPinId || ""),
+        ...scheduleFrom(data),
       });
     }
 
@@ -166,6 +188,10 @@ export async function GET(request: Request) {
         pinterestStatus?: string;
         pinterestError?: string;
         pinterestPinId?: string;
+        socialScheduledAt?: string;
+        socialScheduledPlatforms?: string[];
+        socialScheduleStatus?: string;
+        socialScheduleError?: string;
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
@@ -189,6 +215,7 @@ export async function GET(request: Request) {
         pinterestState: pinterestStateFrom(data),
         pinterestError: String(data.pinterestError || ""),
         pinterestPinId: String(data.pinterestPinId || ""),
+        ...scheduleFrom(data),
       });
     }
 

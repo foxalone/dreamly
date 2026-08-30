@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+
+import { requireCronSecret } from "@/app/api/admin/_lib/gsc";
+import { runDueSocialPublishes } from "@/app/api/admin/_lib/socialSchedule";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
+// Publishes every "All" batch whose scheduled moment has passed. YouTube is not
+// handled here: it holds scheduled uploads itself.
+async function run(request: Request) {
+  try {
+    requireCronSecret(request);
+    const result = await runDueSocialPublishes();
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    const status = message === "UNAUTHENTICATED" ? 401 : message.includes("not configured") ? 503 : 500;
+    if (status === 500) console.error("[cron/social-publish]", error);
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function GET(request: Request) {
+  return run(request);
+}
+
+export async function POST(request: Request) {
+  return run(request);
+}

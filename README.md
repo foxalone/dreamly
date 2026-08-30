@@ -69,3 +69,24 @@ The admin dashboard also has Image · Sora, Image · Veo, and All Images. These 
 ```bash
 npm run ai-image-worker
 ```
+
+## Scheduled social publishing
+
+The `All` button on a video card opens a sheet with two ways out: publish to every
+connected network right away, or pick one moment for all of them. YouTube takes the
+scheduled moment natively — the file is uploaded private and YouTube flips it public
+at `status.publishAt`. TikTok, Instagram, Facebook, Threads and Pinterest have no
+native scheduling, so the batch is stored on the video document
+(`socialScheduledAt`, `socialScheduledPlatforms`, `socialScheduleStatus`) and
+published by `/api/cron/social-publish`.
+
+That endpoint is driven by the Firebase scheduled function `runSocialPublishQueue`
+(`every 5 minutes`, region `europe-west1`), which calls it with `CRON_SECRET` as a
+bearer token. Set the secret once with `firebase functions:secrets:set CRON_SECRET`
+(same value as the Vercel env var) and deploy with `npm --prefix functions run deploy`.
+`SOCIAL_PUBLISH_URL` overrides the target for a non-production deployment.
+
+Positioner is told about a schedule the moment it is made: every scheduled platform
+gets a row with the status `Запланировано` and the planned date. The real publish
+later reuses the same key and updates the row to `Опубликовано` with the actual time,
+and cancelling a schedule marks it `Пропущено`.

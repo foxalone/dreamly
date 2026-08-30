@@ -1,5 +1,23 @@
 export type AdminVideoLibrarySource = "free" | "free-mix" | "sora-preview" | "sora-standard" | "combined" | "veo";
 
+export type AdminVideoPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+
+// YouTube releases a scheduled upload itself (status.publishAt), so it never
+// enters this queue. Everything else has no native scheduling and is published
+// by our own cron worker at the requested moment.
+export const QUEUED_SCHEDULE_PLATFORMS: AdminVideoPlatform[] = [
+  "tiktok",
+  "instagram",
+  "facebook",
+  "threads",
+  "pinterest",
+];
+
+// State of the "All" batch queued on a video: pending waits for the worker,
+// running is a claim held while it publishes, failed keeps the reason on the
+// card so the admin can retry by hand.
+export type AdminVideoScheduleStatus = "idle" | "pending" | "running" | "done" | "failed";
+
 export type AdminVideoLibraryPublished = {
   tiktok: boolean;
   instagram: boolean;
@@ -44,6 +62,11 @@ export type AdminVideoLibraryItem = {
   pinterestState: AdminVideoPublishState;
   pinterestError: string;
   pinterestPinId: string;
+  // The moment the whole "All" batch is due, shared by every queued platform.
+  scheduledAt: string;
+  scheduledPlatforms: AdminVideoPlatform[];
+  scheduleStatus: AdminVideoScheduleStatus;
+  scheduleError: string;
 };
 
 export function sourceLabelFor(source: AdminVideoLibrarySource) {

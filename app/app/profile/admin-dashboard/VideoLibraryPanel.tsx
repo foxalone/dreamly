@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import type { User } from "firebase/auth";
 import {
   PINTEREST_BOARD_NAME,
+  QUEUED_SCHEDULE_PLATFORMS,
   type AdminVideoLibraryItem,
 } from "@/lib/adminVideoLibrary";
 import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
@@ -300,6 +301,7 @@ export default function VideoLibraryPanel({
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
   const [scheduleFor, setScheduleFor] = useState("");
+  const [scheduleMode, setScheduleMode] = useState<"youtube" | "all">("youtube");
   const [scheduleAt, setScheduleAt] = useState("");
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }), []);
   const scheduleItem = useMemo(
@@ -537,7 +539,10 @@ export default function VideoLibraryPanel({
     return publishingKey.endsWith(`:${itemId}`);
   }
 
+  // What "All" still has to do: connected, not published yet and not already
+  // sitting in the schedule queue.
   function pendingPlatforms(item: AdminVideoLibraryItem): Platform[] {
+    const queued = queuedPlatforms(item);
     const pending: Platform[] = [];
     if (tiktok?.connected && !item.published?.tiktok) pending.push("tiktok");
     if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
@@ -554,7 +559,31 @@ export default function VideoLibraryPanel({
     if (pinterest?.connected && !item.published?.pinterest && item.pinterestState !== "publishing") {
       pending.push("pinterest");
     }
-    return pending;
+    return pending.filter((platform) => !queued.includes(platform));
+  }
+
+  // Platforms currently sitting in the "All" queue for this video. YouTube is
+  // never in it — it holds its own scheduled uploads.
+  function queuedPlatforms(item: AdminVideoLibraryItem): Platform[] {
+    if (item.scheduleStatus !== "pending" && item.scheduleStatus !== "running") return [];
+    return (item.scheduledPlatforms || []).filter((platform): platform is Platform =>
+      QUEUED_SCHEDULE_PLATFORMS.includes(platform),
+    );
+  }
+
+  function batchScheduled(item: AdminVideoLibraryItem) {
+    return queuedPlatforms(item).length > 0 || item.youtubeState === "scheduled";
+  }
+
+  function batchScheduledAt(item: AdminVideoLibraryItem) {
+    return queuedPlatforms(item).length ? item.scheduledAt : item.youtubeScheduledAt;
+  }
+
+  function scheduleNoteFor(item: AdminVideoLibraryItem) {
+    const when = batchScheduledAt(item);
+    if (!when) return "";
+    const parsed = new Date(when);
+    return Number.isFinite(parsed.getTime()) ? scheduleFormatter.format(parsed) : "";
   }
 
   async function publishVideoTo(item: AdminVideoLibraryItem, platform: Platform, publishAt = "") {
@@ -724,7 +753,18 @@ export default function VideoLibraryPanel({
       openYouTubeVideo(item);
       return;
     }
-    setScheduleFor((current) => (current === item.id ? "" : item.id));
+    setScheduleMode("youtube");
+    setScheduleFor((current) => (current === item.id && scheduleMode === "youtube" ? "" : item.id));
+    setScheduleAt(defaultScheduleValue());
+  }
+
+  // "All" no longer publishes straight away: it opens the same sheet as
+  // YouTube, where the admin picks "now" or a moment for every network at once.
+  function openAllMenu(item: AdminVideoLibraryItem) {
+    if (cardBusy(item.id)) return;
+    if (!batchScheduled(item) && !pendingPlatforms(item).length) return;
+    setScheduleMode("all");
+    setScheduleFor((current) => (current === item.id && scheduleMode === "all" ? "" : item.id));
     setScheduleAt(defaultScheduleValue());
   }
 
@@ -816,39 +856,136 @@ export default function VideoLibraryPanel({
     });
   }
 
+  // One moment for every pending network: YouTube takes it natively, the rest
+  // go into the Firestore queue the cron worker drains.
+  async function scheduleAllPlatforms(item: AdminVideoLibraryItem, publishAt: string) {
+    const targets = pendingPlatforms(item);
+    if (!targets.length || !publishAt || cardBusy(item.id)) return;
+    setScheduleFor("");
+    setNotice(null);
+    setPublishingKey(`all:${item.id}`);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/video-library/schedule", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ libraryId: item.id, publishAt, platforms: targets }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        scheduledAt?: string;
+        queued?: Platform[];
+        youtubeScheduled?: boolean;
+        failed?: { platform: Platform; error: string }[];
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Не удалось запланировать");
+
+      const planned = [
+        ...(payload.youtubeScheduled ? [platformLabel("youtube")] : []),
+        ...(payload.queued || []).map(platformLabel),
+      ];
+      const failed = (payload.failed || []).map((entry) => `${platformLabel(entry.platform)}: ${entry.error}`);
+      const when = payload.scheduledAt ? scheduleFormatter.format(new Date(payload.scheduledAt)) : "";
+      if (failed.length) {
+        setNotice({
+          type: "error",
+          text: planned.length
+            ? `Запланировано на ${when}: ${planned.join(", ")}. Ошибки — ${failed.join("; ")}`
+            : failed.join("; "),
+        });
+      } else {
+        setNotice({ type: "ok", text: `Запланировано на ${when}: ${planned.join(", ")}` });
+      }
+      await load(true);
+    } catch (scheduleError) {
+      setNotice({
+        type: "error",
+        text: scheduleError instanceof Error ? scheduleError.message : "Ошибка планирования",
+      });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
+  async function cancelSchedule(item: AdminVideoLibraryItem) {
+    if (!queuedPlatforms(item).length || cardBusy(item.id)) return;
+    setScheduleFor("");
+    setNotice(null);
+    setPublishingKey(`all:${item.id}`);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/video-library/schedule", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ libraryId: item.id, cancel: true }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; cancelled?: Platform[]; error?: string };
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Не удалось отменить");
+      setNotice({
+        type: "ok",
+        text: `Планирование отменено: ${(payload.cancelled || []).map(platformLabel).join(", ")}`,
+      });
+      await load(true);
+    } catch (cancelError) {
+      setNotice({ type: "error", text: cancelError instanceof Error ? cancelError.message : "Ошибка отмены" });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
   const publishActions = (item: AdminVideoLibraryItem) => {
     const busy = cardBusy(item.id);
     const remaining = pendingPlatforms(item);
     const allBusy = publishingKey === `all:${item.id}`;
+    const queued = queuedPlatforms(item);
+    const queuedNote = item.scheduledAt ? scheduleFormatter.format(new Date(item.scheduledAt)) : "";
+    const scheduleFailed = item.scheduleStatus === "failed" && Boolean(item.scheduleError);
     return (
       <>
       <PublishIconButton
         platform="tiktok"
         published={Boolean(item.published?.tiktok)}
-        disabled={!tiktok?.connected || busy}
+        scheduled={queued.includes("tiktok")}
+        scheduledNote={queuedNote}
+        failed={scheduleFailed && item.scheduleError.includes("tiktok")}
+        failureNote={item.scheduleError}
+        disabled={!tiktok?.connected || busy || queued.includes("tiktok")}
         busy={publishingKey === `tiktok:${item.id}` || (allBusy && remaining.includes("tiktok"))}
         onClick={() => void publishToTikTok(item)}
       />
       <PublishIconButton
         platform="instagram"
         published={Boolean(item.published?.instagram)}
-        disabled={!meta?.instagramReady || busy}
+        scheduled={queued.includes("instagram")}
+        scheduledNote={queuedNote}
+        failed={scheduleFailed && item.scheduleError.includes("instagram")}
+        failureNote={item.scheduleError}
+        disabled={!meta?.instagramReady || busy || queued.includes("instagram")}
         busy={publishingKey === `instagram:${item.id}` || (allBusy && remaining.includes("instagram"))}
         onClick={() => void publishToMeta(item, "instagram")}
       />
       <PublishIconButton
         platform="facebook"
         published={Boolean(item.published?.facebook)}
-        disabled={!meta?.facebookReady || busy}
+        scheduled={queued.includes("facebook")}
+        scheduledNote={queuedNote}
+        failed={scheduleFailed && item.scheduleError.includes("facebook")}
+        failureNote={item.scheduleError}
+        disabled={!meta?.facebookReady || busy || queued.includes("facebook")}
         busy={publishingKey === `facebook:${item.id}` || (allBusy && remaining.includes("facebook"))}
         onClick={() => void publishToMeta(item, "facebook")}
       />
       <PublishIconButton
         platform="threads"
         published={Boolean(item.published?.threads)}
+        scheduled={queued.includes("threads")}
+        scheduledNote={queuedNote}
         failed={item.threadsState === "failed"}
         failureNote={item.threadsError}
-        disabled={!threads?.connected || item.threadsState === "publishing" || busy}
+        disabled={!threads?.connected || item.threadsState === "publishing" || busy || queued.includes("threads")}
         busy={
           publishingKey === `threads:${item.id}` ||
           item.threadsState === "publishing" ||
@@ -886,12 +1023,15 @@ export default function VideoLibraryPanel({
       <PublishIconButton
         platform="pinterest"
         published={Boolean(item.published?.pinterest)}
+        scheduled={queued.includes("pinterest")}
+        scheduledNote={queuedNote}
         failed={item.pinterestState === "failed"}
         failureNote={item.pinterestError}
         openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
         disabled={
           busy ||
           item.pinterestState === "publishing" ||
+          queued.includes("pinterest") ||
           (!pinterest?.connected && !item.published?.pinterest) ||
           (Boolean(item.published?.pinterest) && !item.pinterestPinId)
         }
@@ -905,20 +1045,26 @@ export default function VideoLibraryPanel({
       <button
         type="button"
         title={
-          remaining.length
-            ? `Опубликовать сразу во все доступные: ${remaining.map(platformLabel).join(", ")}`
-            : "Уже опубликовано во все доступные сети"
+          batchScheduled(item)
+            ? `Запланировано на ${scheduleNoteFor(item)}${
+                queued.length ? ` · ${queued.map(platformLabel).join(", ")}` : ""
+              } · нажмите, чтобы изменить`
+            : remaining.length
+              ? `Опубликовать сейчас или запланировать: ${remaining.map(platformLabel).join(", ")}`
+              : "Уже опубликовано во все доступные сети"
         }
-        aria-label="Опубликовать во все доступные сети"
-        disabled={!remaining.length || busy}
+        aria-label="Опубликовать во все доступные сети или запланировать"
+        disabled={busy || (!remaining.length && !batchScheduled(item))}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          void publishToAll(item);
+          openAllMenu(item);
         }}
-        className="ml-auto shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-35"
+        className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold disabled:cursor-not-allowed disabled:opacity-35 ${
+          batchScheduled(item) ? "bg-amber-500 text-white" : "bg-white/90 text-black"
+        }`}
       >
-        {busy ? "…" : "All"}
+        {busy ? "…" : batchScheduled(item) ? scheduleNoteFor(item) || "All" : "All"}
       </button>
     </>
     );
@@ -1166,9 +1312,11 @@ export default function VideoLibraryPanel({
               item={item}
               dateLabel={dateFormatter.format(new Date(item.createdAt))}
               scheduledNote={
-                item.youtubeState === "scheduled" && item.youtubeScheduledAt
-                  ? `YT ${scheduleFormatter.format(new Date(item.youtubeScheduledAt))}`
-                  : ""
+                queuedPlatforms(item).length && item.scheduledAt
+                  ? `ALL ${scheduleFormatter.format(new Date(item.scheduledAt))}`
+                  : item.youtubeState === "scheduled" && item.youtubeScheduledAt
+                    ? `YT ${scheduleFormatter.format(new Date(item.youtubeScheduledAt))}`
+                    : ""
               }
               actions={publishActions(item)}
             />
@@ -1186,47 +1334,130 @@ export default function VideoLibraryPanel({
             className="w-[min(92vw,26rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#FF0000]">YouTube</p>
+            <p
+              className={`text-xs font-bold uppercase tracking-[0.16em] ${
+                scheduleMode === "all" ? "text-violet-500" : "text-[#FF0000]"
+              }`}
+            >
+              {scheduleMode === "all" ? "Все сети" : "YouTube"}
+            </p>
             <p className="mt-1 line-clamp-2 text-sm font-bold text-[var(--text)]">{scheduleItem.title}</p>
 
-            <button
-              type="button"
-              onClick={() => void publishToYouTube(scheduleItem)}
-              className="mt-4 w-full rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white"
-            >
-              Опубликовать сейчас
-            </button>
+            {scheduleMode === "all" ? (
+              <>
+                {pendingPlatforms(scheduleItem).length ? (
+                  <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
+                    {pendingPlatforms(scheduleItem).map(platformLabel).join(" · ")}
+                  </p>
+                ) : null}
 
-            <div className="mt-4 rounded-xl border border-[var(--border)] p-3">
-              <p className="text-xs font-semibold text-[var(--muted)]">Или выбрать дату и время</p>
-              <input
-                type="datetime-local"
-                value={scheduleAt}
-                min={minScheduleValue()}
-                onChange={(event) => setScheduleAt(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)]"
-              />
-              <button
-                type="button"
-                disabled={!scheduleAt}
-                onClick={() => void publishToYouTube(scheduleItem, localInputToIso(scheduleAt))}
-                className="mt-2 w-full rounded-full border border-amber-500/70 bg-amber-500/10 px-4 py-2.5 text-sm font-bold text-amber-600 disabled:opacity-40"
-              >
-                Запланировать
-              </button>
-              <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
-                Запланированное видео загружается как private, публикацию в назначенное время делает сам YouTube.
-              </p>
-            </div>
+                {batchScheduled(scheduleItem) ? (
+                  <div className="mt-3 rounded-xl border border-amber-500/60 bg-amber-500/10 p-3">
+                    <p className="text-xs font-bold text-amber-600">
+                      Уже запланировано на {scheduleNoteFor(scheduleItem)}
+                    </p>
+                    {queuedPlatforms(scheduleItem).length ? (
+                      <p className="mt-1 text-[11px] leading-4 text-amber-600/90">
+                        {queuedPlatforms(scheduleItem).map(platformLabel).join(", ")}
+                      </p>
+                    ) : null}
+                    {queuedPlatforms(scheduleItem).length ? (
+                      <button
+                        type="button"
+                        onClick={() => void cancelSchedule(scheduleItem)}
+                        className="mt-2 w-full rounded-full border border-amber-500/70 px-4 py-2 text-xs font-bold text-amber-600"
+                      >
+                        Отменить планирование
+                      </button>
+                    ) : null}
+                    {scheduleItem.youtubeState === "scheduled" ? (
+                      <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
+                        YouTube отменяется только в YouTube Studio.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
-            <button
-              type="button"
-              disabled={publishingKey === `manual:youtube:${scheduleItem.id}`}
-              onClick={() => void markPublishedManually(scheduleItem, "youtube")}
-              className="mt-3 w-full rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
-            >
-              {publishingKey === `manual:youtube:${scheduleItem.id}` ? "Сохраняем…" : "Added manually"}
-            </button>
+                {scheduleItem.scheduleStatus === "failed" && scheduleItem.scheduleError ? (
+                  <p className="mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-red-500">
+                    Прошлое расписание не отработало — {scheduleItem.scheduleError}
+                  </p>
+                ) : null}
+
+                <button
+                  type="button"
+                  disabled={!pendingPlatforms(scheduleItem).length}
+                  onClick={() => void publishToAll(scheduleItem)}
+                  className="mt-4 w-full rounded-full bg-violet-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+                >
+                  Опубликовать сейчас
+                </button>
+
+                <div className="mt-4 rounded-xl border border-[var(--border)] p-3">
+                  <p className="text-xs font-semibold text-[var(--muted)]">Или выбрать дату и время</p>
+                  <input
+                    type="datetime-local"
+                    value={scheduleAt}
+                    min={minScheduleValue()}
+                    onChange={(event) => setScheduleAt(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!scheduleAt || !pendingPlatforms(scheduleItem).length}
+                    onClick={() => void scheduleAllPlatforms(scheduleItem, localInputToIso(scheduleAt))}
+                    className="mt-2 w-full rounded-full border border-amber-500/70 bg-amber-500/10 px-4 py-2.5 text-sm font-bold text-amber-600 disabled:opacity-40"
+                  >
+                    Запланировать все сети
+                  </button>
+                  <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
+                    YouTube планируется нативно, остальные сети публикует наш планировщик в это же время. Время уходит
+                    в Positioner сразу — со статусом «Запланировано».
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void publishToYouTube(scheduleItem)}
+                  className="mt-4 w-full rounded-full bg-[#FF0000] px-4 py-2.5 text-sm font-bold text-white"
+                >
+                  Опубликовать сейчас
+                </button>
+
+                <div className="mt-4 rounded-xl border border-[var(--border)] p-3">
+                  <p className="text-xs font-semibold text-[var(--muted)]">Или выбрать дату и время</p>
+                  <input
+                    type="datetime-local"
+                    value={scheduleAt}
+                    min={minScheduleValue()}
+                    onChange={(event) => setScheduleAt(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!scheduleAt}
+                    onClick={() => void publishToYouTube(scheduleItem, localInputToIso(scheduleAt))}
+                    className="mt-2 w-full rounded-full border border-amber-500/70 bg-amber-500/10 px-4 py-2.5 text-sm font-bold text-amber-600 disabled:opacity-40"
+                  >
+                    Запланировать
+                  </button>
+                  <p className="mt-2 text-[11px] leading-4 text-[var(--muted)]">
+                    Запланированное видео загружается как private, публикацию в назначенное время делает сам YouTube.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={publishingKey === `manual:youtube:${scheduleItem.id}`}
+                  onClick={() => void markPublishedManually(scheduleItem, "youtube")}
+                  className="mt-3 w-full rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+                >
+                  {publishingKey === `manual:youtube:${scheduleItem.id}` ? "Сохраняем…" : "Added manually"}
+                </button>
+              </>
+            )}
 
             <button
               type="button"
