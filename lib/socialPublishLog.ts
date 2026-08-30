@@ -5,7 +5,7 @@ export type SocialAssetKind = "video" | "image";
 export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Pinterest";
 export type NotionFormat = "Shorts" | "Reels" | "Video" | "Pin" | "Post";
 export type NotionKindLabel = "Видео" | "Пост";
-export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Пропущено";
+export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Отменено" | "Пропущено";
 
 export type SocialPublishLogEntry = {
   key: string;

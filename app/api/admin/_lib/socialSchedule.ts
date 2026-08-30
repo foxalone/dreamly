@@ -83,7 +83,7 @@ async function trackScheduled(
   platforms: AdminVideoPlatform[],
   title: string,
   publishAt: string,
-  status: "Запланировано" | "Пропущено",
+  status: "Запланировано" | "Отменено",
 ) {
   if (!platforms.length) return;
   const note = status === "Запланировано" ? "scheduled" : "schedule cancelled";
@@ -191,7 +191,7 @@ export async function cancelLibraryVideoSchedule(libraryId: string) {
     },
     { merge: true },
   );
-  await trackScheduled(libraryId, platforms, videoTitle(data), scheduledAt, "Пропущено");
+  await trackScheduled(libraryId, platforms, videoTitle(data), scheduledAt, "Отменено");
   return { ok: true as const, cancelled: platforms };
 }
 
