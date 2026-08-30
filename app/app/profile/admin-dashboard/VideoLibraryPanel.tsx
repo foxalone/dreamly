@@ -274,7 +274,9 @@ function VideoTile({
           </p>
         ) : null}
         <div className="absolute inset-x-0 bottom-0 z-10 px-1 pb-1.5 pt-6">
-          <div className="flex items-center gap-0.5 rounded-lg bg-black/35 px-0.5 py-0.5 backdrop-blur-[2px]">{actions}</div>
+          <div className="flex flex-wrap items-center gap-1 rounded-lg bg-black/35 px-1 py-1 backdrop-blur-[2px]">
+            {actions}
+          </div>
         </div>
       </div>
     </div>
@@ -1064,7 +1066,7 @@ export default function VideoLibraryPanel({
           batchScheduled(item) ? "bg-amber-500 text-white" : "bg-white/90 text-black"
         }`}
       >
-        {busy ? "…" : batchScheduled(item) ? scheduleNoteFor(item) || "All" : "All"}
+        {busy ? "…" : "All"}
       </button>
     </>
     );
@@ -1295,7 +1297,7 @@ export default function VideoLibraryPanel({
       {error && <p className="mt-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-500">{error}</p>}
 
       {loading ? (
-        <div className="mt-6 grid grid-cols-5 gap-2">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 10 }, (_, index) => (
             <div key={index} className="aspect-square animate-pulse rounded-xl bg-[color-mix(in_srgb,var(--text)_8%,transparent)]" />
           ))}
@@ -1305,7 +1307,7 @@ export default function VideoLibraryPanel({
           Готовых видео пока нет.
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-5 gap-2">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => (
             <VideoTile
               key={item.id}
