@@ -86,6 +86,11 @@ bearer token. Set the secret once with `firebase functions:secrets:set CRON_SECR
 (same value as the Vercel env var) and deploy with `npm --prefix functions run deploy`.
 `SOCIAL_PUBLISH_URL` overrides the target for a non-production deployment.
 
+If a scheduled batch fails at its moment, the worker sends a Telegram message naming
+the video, what did go out and what did not — `TELEGRAM_BOT_TOKEN` and
+`TELEGRAM_PERSONAL_CHAT_ID` have to be set on Vercel for that, and without them the
+failure is still visible on the video card. A successful batch stays silent.
+
 Positioner is told about a schedule the moment it is made: every scheduled platform
 gets a row with the status `Запланировано` and the planned date. The real publish
 later reuses the same key and updates the row to `Опубликовано` with the actual time,

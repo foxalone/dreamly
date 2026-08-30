@@ -9,6 +9,7 @@ import {
 import { buildPublishLogEntry } from "@/lib/socialPublishLog";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
+import { notifyTelegram } from "@/app/api/admin/_lib/telegram";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
 import { publishLibraryVideoToPinterest } from "@/app/api/admin/pinterest/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
@@ -267,6 +268,21 @@ async function runDueJob(collection: string, docId: string, nowMs: number) {
     },
     { merge: true },
   );
+
+  // A scheduled publish runs while nobody is watching the dashboard, so a
+  // failure has to come and find the admin instead of waiting on a card.
+  if (failed.length) {
+    const title = videoTitle(claim.data) || libraryId;
+    await notifyTelegram(
+      [
+        `❌ Отложенная публикация не удалась`,
+        title,
+        published.length ? `Вышло: ${published.join(", ")}` : "Не вышло ни на одной площадке",
+        ...failed.map((entry) => `• ${entry.platform}: ${entry.error}`),
+        `Повторить можно с карточки в админке: ${libraryId}`,
+      ].join("\n"),
+    );
+  }
 
   return { libraryId, published, failed };
 }
