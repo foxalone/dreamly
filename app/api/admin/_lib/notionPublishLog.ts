@@ -388,11 +388,23 @@ function isRetryableNetworkError(error: unknown) {
 }
 
 export async function trackSocialPublish(entry: SocialPublishLogEntry) {
-  if (entry.status === "Черновик") return "skipped" as const;
+  return trackSocialPublishes([entry]);
+}
+
+// Positioner rewrites its whole publishes file on every request, so parallel
+// single-entry posts used to overwrite each other and rows went missing. One
+// request per batch is written in a single pass.
+export async function trackSocialPublishes(entries: SocialPublishLogEntry[]) {
+  const wanted = entries.filter((entry) => entry.status !== "Черновик");
+  if (!wanted.length) return "skipped" as const;
 
   const url = resolvePositionerPublishUrl();
   const headers = positionerAuthHeaders();
-  const body = JSON.stringify(positionerPublishPayload(entry));
+  const body = JSON.stringify(
+    wanted.length === 1
+      ? positionerPublishPayload(wanted[0])
+      : { publishes: wanted.map(positionerPublishPayload) },
+  );
 
   for (let attempt = 1; attempt <= POSITIONER_RETRY_ATTEMPTS; attempt++) {
     try {
@@ -413,7 +425,7 @@ export async function trackSocialPublish(entry: SocialPublishLogEntry) {
         await sleep(POSITIONER_RETRY_BASE_MS * 2 ** (attempt - 1));
         continue;
       }
-      console.error("[positioner-publish]", entry.key, error);
+      console.error("[positioner-publish]", wanted.map((item) => item.key).join(","), error);
       return "skipped" as const;
     }
   }

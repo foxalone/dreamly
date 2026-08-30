@@ -6,8 +6,9 @@ import {
   type AdminVideoPlatform,
   type AdminVideoScheduleStatus,
 } from "@/lib/adminVideoLibrary";
+import { buildPublishLogEntry } from "@/lib/socialPublishLog";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
-import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
+import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
 import { publishLibraryVideoToPinterest } from "@/app/api/admin/pinterest/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
@@ -84,21 +85,25 @@ async function trackScheduled(
   publishAt: string,
   status: "Запланировано" | "Пропущено",
 ) {
-  await Promise.all(
+  if (!platforms.length) return;
+  const note = status === "Запланировано" ? "scheduled" : "schedule cancelled";
+  // One request for the whole batch: Positioner rewrites its file per request,
+  // so five parallel posts would drop most of the rows.
+  await trackSocialPublishes(
     platforms.map((platform) =>
-      trackDreamlyPublish({
+      buildPublishLogEntry({
         kind: "video",
         assetId: libraryId,
         platform,
         title,
         publishedAt: publishAt,
         status,
-        notes: `video ${libraryId} ${status === "Запланировано" ? "scheduled" : "schedule cancelled"}`,
-      }).catch((error) => {
-        console.error("[social-schedule] positioner", libraryId, platform, error);
+        notes: `video ${libraryId} ${note}`,
       }),
     ),
-  );
+  ).catch((error) => {
+    console.error("[social-schedule] positioner", libraryId, error);
+  });
 }
 
 export async function scheduleLibraryVideoPublish(
