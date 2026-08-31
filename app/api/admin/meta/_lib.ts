@@ -372,19 +372,28 @@ async function createInstagramResumableContainer(
 async function waitForInstagramContainer(accessToken: string, containerId: string) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 3_000 : 4_000));
-    const payload = await graphFetch<{ status_code?: string; status?: string }>(`/${containerId}`, accessToken, {
-      params: { fields: "status_code,status" },
-    });
-    const status = String(payload.status_code || payload.status || "").toUpperCase();
+    const status = await instagramContainerStatus(accessToken, containerId);
     if (status === "FINISHED" || status === "PUBLISHED") return status;
-    if (status === "ERROR" || status === "EXPIRED") {
-      throw new Error(`Instagram container ${status.toLowerCase()}`);
-    }
   }
   throw new Error("Instagram is still processing the video. Retry publish in a minute.");
 }
 
-async function publishInstagram(libraryId: string, adminUid: string) {
+async function instagramContainerStatus(accessToken: string, containerId: string) {
+  const payload = await graphFetch<{ status_code?: string; status?: string }>(`/${containerId}`, accessToken, {
+    params: { fields: "status_code,status" },
+  });
+  const status = String(payload.status_code || payload.status || "").toUpperCase();
+  if (status === "ERROR" || status === "EXPIRED") {
+    throw new Error(`Instagram container ${status.toLowerCase()}`);
+  }
+  return status;
+}
+
+async function publishInstagram(
+  libraryId: string,
+  adminUid: string,
+  options?: { deferProcessing?: boolean },
+) {
   const video = await loadLibraryVideo(libraryId);
   const auth = await getValidAuth();
   if (!auth.igUserId) {
@@ -393,26 +402,51 @@ async function publishInstagram(libraryId: string, adminUid: string) {
     );
   }
 
-  let containerId = "";
-  try {
-    const created = await createInstagramContainer(auth, video);
-    containerId = String(created.id || "");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "";
-    if (!isFetchableVideoError(message)) throw error;
-    const bytes = await downloadVideoBytes(video.videoUrl);
-    const created = await createInstagramResumableContainer(auth, video, bytes);
-    containerId = created.id;
-  }
-  if (!containerId) throw new Error("Instagram did not return a media container");
+  const jobRef = adminDb().collection(video.collection).doc(video.jobId);
+  const existing = (await jobRef.get()).data() as {
+    instagramContainerId?: string;
+    instagramPublishedAt?: string;
+  } | undefined;
+  if (existing?.instagramPublishedAt) throw new Error("This video is already published to Instagram");
 
-  await waitForInstagramContainer(auth.userAccessToken, containerId);
+  let containerId = String(existing?.instagramContainerId || "");
+  if (!containerId) {
+    try {
+      const created = await createInstagramContainer(auth, video);
+      containerId = String(created.id || "");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (!isFetchableVideoError(message)) throw error;
+      const bytes = await downloadVideoBytes(video.videoUrl);
+      const created = await createInstagramResumableContainer(auth, video, bytes);
+      containerId = created.id;
+    }
+    if (!containerId) throw new Error("Instagram did not return a media container");
+    await jobRef.set(
+      {
+        instagramContainerId: containerId,
+        instagramStatus: "PROCESSING",
+        instagramPublishedBy: adminUid,
+        instagramError: "",
+      },
+      { merge: true },
+    );
+  }
+
+  if (options?.deferProcessing) {
+    const status = await instagramContainerStatus(auth.userAccessToken, containerId);
+    if (status !== "FINISHED" && status !== "PUBLISHED") {
+      return { target: "instagram" as const, mediaId: containerId, status: "PROCESSING" as const };
+    }
+  } else {
+    await waitForInstagramContainer(auth.userAccessToken, containerId);
+  }
   const published = await graphFetch<{ id?: string }>(`/${auth.igUserId}/media_publish`, auth.userAccessToken, {
     method: "POST",
     params: { creation_id: containerId },
   });
   const mediaId = String(published.id || containerId);
-  await adminDb().collection(video.collection).doc(video.jobId).set(
+  await jobRef.set(
     {
       instagramMediaId: mediaId,
       instagramContainerId: containerId,
@@ -541,8 +575,9 @@ export async function publishLibraryVideoToMeta(
   libraryId: string,
   adminUid: string,
   target: MetaPublishTarget,
+  options?: { deferProcessing?: boolean },
 ) {
-  if (target === "instagram") return publishInstagram(libraryId, adminUid);
+  if (target === "instagram") return publishInstagram(libraryId, adminUid, options);
   if (target === "facebook") return publishFacebook(libraryId, adminUid);
   throw new Error("Unknown Meta publish target");
 }

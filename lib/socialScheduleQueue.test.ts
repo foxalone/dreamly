@@ -6,6 +6,7 @@ import {
   SOCIAL_SCHEDULE_MAX_ATTEMPTS,
   claimableSchedule,
   finishScheduleState,
+  isProcessingPublishStatus,
   normalizeSchedulePlatforms,
   schedulePublished,
 } from "./socialScheduleQueue";
@@ -111,4 +112,10 @@ test("бесконечный processing завершается контроли�
   assert.equal(finish.outcome, "failed");
   assert.equal(finish.clearScheduledAt, true);
   assert.deepEqual(finish.failed, { instagram: "SCHEDULE_ATTEMPTS_EXHAUSTED" });
+});
+
+test("асинхронный ответ провайдера остаётся pending, а не published", () => {
+  assert.equal(isProcessingPublishStatus("PROCESSING"), true);
+  assert.equal(isProcessingPublishStatus("in_progress"), true);
+  assert.equal(isProcessingPublishStatus("PUBLISHED"), false);
 });

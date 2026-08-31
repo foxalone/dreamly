@@ -10,6 +10,7 @@ import { buildPublishLogEntry } from "@/lib/socialPublishLog";
 import {
   claimableSchedule,
   finishScheduleState,
+  isProcessingPublishStatus,
   type SocialSchedulePlatform,
 } from "@/lib/socialScheduleQueue";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -75,13 +76,19 @@ function alreadyPublished(data: ScheduleJobData, platform: AdminVideoPlatform) {
 }
 
 async function publishOne(libraryId: string, platform: AdminVideoPlatform, adminUid: string) {
-  if (platform === "tiktok") return publishLibraryVideoToTikTok(libraryId, adminUid);
+  let result: { status?: string } | null = null;
+  if (platform === "tiktok") result = await publishLibraryVideoToTikTok(libraryId, adminUid);
   if (platform === "instagram" || platform === "facebook") {
-    return publishLibraryVideoToMeta(libraryId, adminUid, platform);
+    result = await publishLibraryVideoToMeta(libraryId, adminUid, platform, {
+      deferProcessing: platform === "instagram",
+    });
   }
-  if (platform === "threads") return publishLibraryVideoToThreads(libraryId, adminUid);
-  if (platform === "pinterest") return publishLibraryVideoToPinterest(libraryId, adminUid);
-  throw new Error(`Platform ${platform} is not queued`);
+  if (platform === "threads") {
+    result = await publishLibraryVideoToThreads(libraryId, adminUid, { deferProcessing: true });
+  }
+  if (platform === "pinterest") result = await publishLibraryVideoToPinterest(libraryId, adminUid);
+  if (!result) throw new Error(`Platform ${platform} is not queued`);
+  return isProcessingPublishStatus(result.status) ? "processing" as const : "published" as const;
 }
 
 // Every queued platform gets a Positioner row the moment it is scheduled, so
@@ -291,9 +298,16 @@ async function runDueJob(collection: string, docId: string, nowMs: number, deadl
       // not create a duplicate.
       const current = (await ref.get()).data() as ScheduleJobData | undefined;
       if (!current || !alreadyPublished(current, platform as AdminVideoPlatform)) {
-        await publishOne(libraryId, platform as AdminVideoPlatform, "scheduler");
+        const outcome = await publishOne(libraryId, platform as AdminVideoPlatform, "scheduler");
+        if (outcome === "processing") {
+          pending.push(platform);
+          delete failed[platform];
+        } else if (!published.includes(platform)) {
+          published.push(platform);
+        }
+      } else if (!published.includes(platform)) {
+        published.push(platform);
       }
-      if (!published.includes(platform)) published.push(platform);
       delete failed[platform];
     } catch (error) {
       failed[platform] = scheduleErrorText(error);

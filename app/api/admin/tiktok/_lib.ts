@@ -231,6 +231,44 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
   }
 
   const channel = await resolveTikTokBufferChannel();
+  const jobRef = adminDb().collection(video.collection).doc(video.jobId);
+  const existing = (await jobRef.get()).data() as {
+    bufferPostId?: string;
+    tiktokPublishedAt?: string;
+  } | undefined;
+  const existingPostId = String(existing?.bufferPostId || "");
+  if (existingPostId && !existing?.tiktokPublishedAt) {
+    const resumed = await waitForBufferPost(existingPostId);
+    const resumedAt = resumed.status === "published" ? new Date().toISOString() : "";
+    await jobRef.set(
+      {
+        ...(resumedAt ? { tiktokPublishedAt: resumedAt } : {}),
+        tiktokPublishedBy: adminUid,
+        tiktokStatus: resumed.status,
+        tiktokError: resumed.error,
+        bufferStatus: resumed.bufferStatus,
+      },
+      { merge: true },
+    );
+    if (resumedAt) {
+      await trackDreamlyPublish({
+        kind: "video",
+        assetId: libraryId,
+        platform: "tiktok",
+        title: video.title,
+        publishedAt: resumedAt,
+        notes: `video ${libraryId}`,
+      });
+    }
+    return {
+      publishId: existingPostId,
+      status: resumed.status === "published" ? "PUBLISH_COMPLETE" : "PROCESSING",
+      bufferStatus: resumed.bufferStatus,
+      title: video.title,
+      caption: video.caption,
+      channel: channel.channelName,
+    };
+  }
 
   const mutation = `mutation CreateTikTokPost($input: CreatePostInput!) {
     createPost(input: $input) {
@@ -299,6 +337,21 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
   const postId = String(post?.id || "");
   if (!postId) throw new Error("Buffer did not return a post id");
 
+  // Persist the provider id before polling. A timeout can then resume this
+  // exact Buffer post instead of creating another TikTok upload.
+  await jobRef.set(
+    {
+      tiktokPublishedBy: adminUid,
+      tiktokStatus: "publishing",
+      tiktokProvider: "buffer",
+      bufferPostId: postId,
+      bufferChannelId: channel.channelId,
+      bufferStatus: String(post?.status || "sending"),
+      tiktokError: "",
+    },
+    { merge: true },
+  );
+
   let final = {
     status: mapBufferStatus(post?.status),
     bufferStatus: String(post?.status || ""),
@@ -313,8 +366,9 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
     final = await waitForBufferPost(postId);
   }
 
+  const publishedAt = final.status === "published" ? new Date().toISOString() : "";
   const publishMeta = {
-    tiktokPublishedAt: new Date().toISOString(),
+    ...(publishedAt ? { tiktokPublishedAt: publishedAt } : {}),
     tiktokPublishedBy: adminUid,
     tiktokStatus: final.status,
     tiktokError: final.error || "",
@@ -323,16 +377,17 @@ export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: s
     bufferChannelId: channel.channelId,
     bufferStatus: final.bufferStatus,
   };
-  await adminDb().collection(video.collection).doc(video.jobId).set(publishMeta, { merge: true });
-  await trackDreamlyPublish({
-    kind: "video",
-    assetId: libraryId,
-    platform: "tiktok",
-    title: video.title,
-    publishedAt: publishMeta.tiktokPublishedAt,
-    status: final.status === "published" ? "Опубликовано" : "Запланировано",
-    notes: `video ${libraryId}`,
-  });
+  await jobRef.set(publishMeta, { merge: true });
+  if (publishedAt) {
+    await trackDreamlyPublish({
+      kind: "video",
+      assetId: libraryId,
+      platform: "tiktok",
+      title: video.title,
+      publishedAt,
+      notes: `video ${libraryId}`,
+    });
+  }
 
   return {
     publishId: postId,

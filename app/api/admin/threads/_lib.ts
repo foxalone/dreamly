@@ -350,20 +350,10 @@ async function threadsGraph<T>(path: string, accessToken: string, params: Record
 async function waitForThreadsContainer(accessToken: string, containerId: string) {
   for (let attempt = 0; attempt < 12; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 10_000 : 5_000));
-    let status = "";
-    let errorMessage = "";
-    try {
-      const payload = await threadsGraph<{ status?: string; error_message?: string }>(
-        `/${containerId}`,
-        accessToken,
-        { fields: "status,error_message" },
-        "GET",
-      );
-      status = String(payload.status || "").toUpperCase();
-      errorMessage = String(payload.error_message || "");
-    } catch {
-      continue;
-    }
+    const { status, errorMessage } = await threadsContainerStatus(accessToken, containerId).catch(() => ({
+      status: "",
+      errorMessage: "",
+    }));
     if (status === "FINISHED" || status === "PUBLISHED") return status;
     if (status === "ERROR" || status === "EXPIRED") {
       throw new Error(errorMessage || `Threads container ${status.toLowerCase()}`);
@@ -372,7 +362,24 @@ async function waitForThreadsContainer(accessToken: string, containerId: string)
   return "IN_PROGRESS";
 }
 
-export async function publishLibraryVideoToThreads(libraryId: string, adminUid: string) {
+async function threadsContainerStatus(accessToken: string, containerId: string) {
+  const payload = await threadsGraph<{ status?: string; error_message?: string }>(
+    `/${containerId}`,
+    accessToken,
+    { fields: "status,error_message" },
+    "GET",
+  );
+  return {
+    status: String(payload.status || "").toUpperCase(),
+    errorMessage: String(payload.error_message || ""),
+  };
+}
+
+export async function publishLibraryVideoToThreads(
+  libraryId: string,
+  adminUid: string,
+  options?: { deferProcessing?: boolean },
+) {
   const video = await loadLibraryVideo(libraryId, THREADS_TEXT_LIMIT);
   const auth = await getValidThreadsAuth();
   const jobRef = adminDb().collection(video.collection).doc(video.jobId);
@@ -386,11 +393,12 @@ export async function publishLibraryVideoToThreads(libraryId: string, adminUid: 
       threadsStatus?: string;
       threadsPublishedAt?: string;
       threadsPublishStartedAt?: string;
+      threadsMediaId?: string;
     };
     if (data.threadsPublishedAt || data.threadsStatus === "published") {
       throw new Error("This video is already published to Threads");
     }
-    if (data.threadsStatus === "publishing") {
+    if (data.threadsStatus === "publishing" && !data.threadsMediaId) {
       const lockedAt = Date.parse(data.threadsPublishStartedAt || "") || 0;
       if (Date.now() - lockedAt < THREADS_PUBLISH_LOCK_MS) {
         throw new Error("A Threads publish is already running for this video");
@@ -404,16 +412,34 @@ export async function publishLibraryVideoToThreads(libraryId: string, adminUid: 
   });
 
   try {
-    const created = await threadsGraph<{ id?: string }>(
-      `/${auth.userId}/threads`,
-      auth.accessToken,
-      { media_type: "VIDEO", video_url: video.videoUrl, text: video.caption },
-      "POST",
-    );
-    const containerId = String(created.id || "");
-    if (!containerId) throw new Error("Threads did not return a media container");
+    const current = (await jobRef.get()).data() as { threadsMediaId?: string } | undefined;
+    let containerId = String(current?.threadsMediaId || "");
+    if (!containerId) {
+      const created = await threadsGraph<{ id?: string }>(
+        `/${auth.userId}/threads`,
+        auth.accessToken,
+        { media_type: "VIDEO", video_url: video.videoUrl, text: video.caption },
+        "POST",
+      );
+      containerId = String(created.id || "");
+      if (!containerId) throw new Error("Threads did not return a media container");
+      await jobRef.set({ threadsMediaId: containerId, threadsStatus: "publishing" }, { merge: true });
+    }
 
-    await waitForThreadsContainer(auth.accessToken, containerId);
+    if (options?.deferProcessing) {
+      const { status, errorMessage } = await threadsContainerStatus(auth.accessToken, containerId);
+      if (status === "ERROR" || status === "EXPIRED") {
+        throw new Error(errorMessage || `Threads container ${status.toLowerCase()}`);
+      }
+      if (status !== "FINISHED" && status !== "PUBLISHED") {
+        return { target: "threads" as const, status: "PROCESSING" as const, mediaId: containerId };
+      }
+    } else {
+      const status = await waitForThreadsContainer(auth.accessToken, containerId);
+      if (status === "IN_PROGRESS") {
+        throw new Error("Threads is still processing the video. Retry publish in a minute.");
+      }
+    }
 
     const published = await threadsGraph<{ id?: string }>(
       `/${auth.userId}/threads_publish`,

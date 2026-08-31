@@ -29,6 +29,10 @@ export function isSocialSchedulePlatform(value: unknown): value is SocialSchedul
   );
 }
 
+export function isProcessingPublishStatus(value: unknown) {
+  return ["PROCESSING", "IN_PROGRESS", "PUBLISHING"].includes(String(value || "").toUpperCase());
+}
+
 export function normalizeSchedulePlatforms(value: unknown): SocialSchedulePlatform[] {
   const source = Array.isArray(value) ? value : [];
   const selected = new Set(source.filter(isSocialSchedulePlatform));
