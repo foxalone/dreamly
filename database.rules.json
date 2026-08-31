@@ -65,6 +65,11 @@
         }
       }
     },
+    "social_scheduled_assets": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": ["socialSchedule/scheduledAt"]
+    },
     ".read": false,
     ".write": false
   }

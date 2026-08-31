@@ -28,6 +28,7 @@ import {
   markLibraryImagePublished,
 } from "@/app/api/admin/_lib/libraryImage";
 import { THREADS_IMAGE_CAPTION_LIMIT } from "@/lib/socialImageCaption";
+import { SocialPublishPendingError, isSocialPublishPendingError } from "@/lib/socialPublishPending";
 
 // Threads posts are capped at 500 characters, shorter than the other networks.
 const THREADS_TEXT_LIMIT = 500;
@@ -347,8 +348,9 @@ async function threadsGraph<T>(path: string, accessToken: string, params: Record
 
 // The container status endpoint is best-effort: if it is unavailable we fall
 // back to Meta's recommended fixed wait rather than failing the publish.
-async function waitForThreadsContainer(accessToken: string, containerId: string) {
+async function waitForThreadsContainer(accessToken: string, containerId: string, deadlineMs?: number) {
   for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (deadlineMs && Date.now() + 5_000 >= deadlineMs) return "IN_PROGRESS";
     await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 10_000 : 5_000));
     const { status, errorMessage } = await threadsContainerStatus(accessToken, containerId).catch(() => ({
       status: "",
@@ -378,42 +380,59 @@ async function threadsContainerStatus(accessToken: string, containerId: string) 
 export async function publishLibraryVideoToThreads(
   libraryId: string,
   adminUid: string,
-  options?: { deferProcessing?: boolean },
+  options?: { deadlineMs?: number },
 ) {
   const video = await loadLibraryVideo(libraryId, THREADS_TEXT_LIMIT);
   const auth = await getValidThreadsAuth();
   const jobRef = adminDb().collection(video.collection).doc(video.jobId);
   const startedAt = new Date().toISOString();
+  const initial = (await jobRef.get()).data() as {
+    threadsStatus?: string;
+    threadsPublishedAt?: string;
+    threadsMediaId?: string;
+  } | undefined;
+  if (initial?.threadsPublishedAt || initial?.threadsStatus === "published") {
+    throw new Error("This video is already published to Threads");
+  }
 
-  // Transactional guard: an already-published video, or one whose publish is
-  // still in flight, can never be posted twice by a double click or a retry.
-  await adminDb().runTransaction(async (transaction) => {
-    const snapshot = await transaction.get(jobRef);
-    const data = (snapshot.data() || {}) as {
-      threadsStatus?: string;
-      threadsPublishedAt?: string;
-      threadsPublishStartedAt?: string;
-      threadsMediaId?: string;
-    };
-    if (data.threadsPublishedAt || data.threadsStatus === "published") {
-      throw new Error("This video is already published to Threads");
-    }
-    if (data.threadsStatus === "publishing" && !data.threadsMediaId) {
-      const lockedAt = Date.parse(data.threadsPublishStartedAt || "") || 0;
-      if (Date.now() - lockedAt < THREADS_PUBLISH_LOCK_MS) {
-        throw new Error("A Threads publish is already running for this video");
+  let containerId = String(initial?.threadsMediaId || "");
+
+  if (!containerId) {
+    await adminDb().runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(jobRef);
+      const data = (snapshot.data() || {}) as {
+        threadsStatus?: string;
+        threadsPublishedAt?: string;
+        threadsPublishStartedAt?: string;
+        threadsMediaId?: string;
+      };
+      if (data.threadsPublishedAt || data.threadsStatus === "published") {
+        throw new Error("This video is already published to Threads");
       }
-    }
-    transaction.set(
-      jobRef,
-      { threadsStatus: "publishing", threadsPublishStartedAt: startedAt, threadsPublishedBy: adminUid, threadsError: "" },
-      { merge: true },
-    );
-  });
+      if (data.threadsMediaId) {
+        containerId = data.threadsMediaId;
+        return;
+      }
+      if (data.threadsStatus === "publishing") {
+        const lockedAt = Date.parse(data.threadsPublishStartedAt || "") || 0;
+        if (Date.now() - lockedAt < THREADS_PUBLISH_LOCK_MS) {
+          throw new Error("A Threads publish is already running for this video");
+        }
+      }
+      transaction.set(
+        jobRef,
+        {
+          threadsStatus: "publishing",
+          threadsPublishStartedAt: startedAt,
+          threadsPublishedBy: adminUid,
+          threadsError: "",
+        },
+        { merge: true },
+      );
+    });
+  }
 
   try {
-    const current = (await jobRef.get()).data() as { threadsMediaId?: string } | undefined;
-    let containerId = String(current?.threadsMediaId || "");
     if (!containerId) {
       const created = await threadsGraph<{ id?: string }>(
         `/${auth.userId}/threads`,
@@ -422,23 +441,16 @@ export async function publishLibraryVideoToThreads(
         "POST",
       );
       containerId = String(created.id || "");
-      if (!containerId) throw new Error("Threads did not return a media container");
-      await jobRef.set({ threadsMediaId: containerId, threadsStatus: "publishing" }, { merge: true });
     }
+    if (!containerId) throw new Error("Threads did not return a media container");
+    await jobRef.set(
+      { threadsMediaId: containerId, threadsStatus: "publishing", threadsError: "" },
+      { merge: true },
+    );
 
-    if (options?.deferProcessing) {
-      const { status, errorMessage } = await threadsContainerStatus(auth.accessToken, containerId);
-      if (status === "ERROR" || status === "EXPIRED") {
-        throw new Error(errorMessage || `Threads container ${status.toLowerCase()}`);
-      }
-      if (status !== "FINISHED" && status !== "PUBLISHED") {
-        return { target: "threads" as const, status: "PROCESSING" as const, mediaId: containerId };
-      }
-    } else {
-      const status = await waitForThreadsContainer(auth.accessToken, containerId);
-      if (status === "IN_PROGRESS") {
-        throw new Error("Threads is still processing the video. Retry publish in a minute.");
-      }
+    const containerStatus = await waitForThreadsContainer(auth.accessToken, containerId, options?.deadlineMs);
+    if (containerStatus === "IN_PROGRESS") {
+      throw new SocialPublishPendingError("Threads is still processing the video");
     }
 
     const published = await threadsGraph<{ id?: string }>(
@@ -479,6 +491,7 @@ export async function publishLibraryVideoToThreads(
       username: auth.username,
     };
   } catch (error) {
+    if (isSocialPublishPendingError(error)) throw error;
     const message = error instanceof Error ? error.message : "Threads publish failed";
     await jobRef
       .set({ threadsStatus: "failed", threadsError: message.slice(0, 300) }, { merge: true })
@@ -526,7 +539,10 @@ export async function publishLibraryImageToThreads(jobId: string, adminUid: stri
     const containerId = String(created.id || "");
     if (!containerId) throw new Error("Threads did not return a media container");
 
-    await waitForThreadsContainer(auth.accessToken, containerId);
+    const containerStatus = await waitForThreadsContainer(auth.accessToken, containerId);
+    if (containerStatus === "IN_PROGRESS") {
+      throw new Error("Threads is still processing the image. Retry publish in a minute.");
+    }
 
     const published = await threadsGraph<{ id?: string }>(
       `/${auth.userId}/threads_publish`,

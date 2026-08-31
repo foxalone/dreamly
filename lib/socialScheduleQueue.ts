@@ -1,5 +1,10 @@
+export const SOCIAL_SCHEDULE_ASSETS_NODE = "social_scheduled_assets";
+export const SOCIAL_SCHEDULE_FIELD = "socialSchedule";
+export const SOCIAL_SCHEDULE_DUE_INDEX = `${SOCIAL_SCHEDULE_FIELD}/scheduledAt`;
+export const SOCIAL_SCHEDULE_MIN_SORT_KEY = "1";
 export const SOCIAL_SCHEDULE_LOCK_MS = 20 * 60 * 1000;
 export const SOCIAL_SCHEDULE_MAX_ATTEMPTS = 12;
+export const SOCIAL_SCHEDULE_BATCH_LIMIT = 4;
 
 export const SOCIAL_SCHEDULE_PLATFORMS = [
   "tiktok",
@@ -10,17 +15,32 @@ export const SOCIAL_SCHEDULE_PLATFORMS = [
 ] as const;
 
 export type SocialSchedulePlatform = (typeof SOCIAL_SCHEDULE_PLATFORMS)[number];
+export type SocialScheduleStatus = "pending" | "running" | "done" | "failed";
 export type SocialScheduleOutcome = "done" | "failed" | "retry";
 
-export type SocialScheduleRecord = {
-  socialScheduledAt?: unknown;
-  socialScheduledPlatforms?: unknown;
-  socialScheduleStatus?: unknown;
-  socialScheduleStartedAt?: unknown;
-  socialScheduleAttempts?: unknown;
-  socialSchedulePublished?: unknown;
-  socialScheduleFailures?: unknown;
-} & Record<string, unknown>;
+export type SocialScheduleContainer = {
+  containerId: string;
+};
+
+export type SocialScheduleNode = {
+  scheduledAt?: string;
+  platforms: SocialSchedulePlatform[];
+  status: SocialScheduleStatus;
+  startedAt?: string;
+  finishedAt?: string;
+  createdAt?: string;
+  createdBy?: string;
+  attempts?: number;
+  published?: SocialSchedulePlatform[];
+  error?: Partial<Record<SocialSchedulePlatform, string>>;
+  containers?: Partial<Record<SocialSchedulePlatform, SocialScheduleContainer>>;
+};
+
+export type SocialScheduledAsset = {
+  libraryId: string;
+  title: string;
+  socialSchedule: SocialScheduleNode;
+};
 
 export function isSocialSchedulePlatform(value: unknown): value is SocialSchedulePlatform {
   return (
@@ -39,102 +59,143 @@ export function normalizeSchedulePlatforms(value: unknown): SocialSchedulePlatfo
   return SOCIAL_SCHEDULE_PLATFORMS.filter((platform) => selected.has(platform));
 }
 
-export function scheduleAttempts(record: SocialScheduleRecord) {
-  const value = Number(record.socialScheduleAttempts || 0);
-  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+function normalizedText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-export function schedulePublished(record: SocialScheduleRecord) {
-  const progress = new Set(normalizeSchedulePlatforms(record.socialSchedulePublished));
-  for (const platform of SOCIAL_SCHEDULE_PLATFORMS) {
-    if (String(record[`${platform}PublishedAt`] || "")) progress.add(platform);
-  }
-  return SOCIAL_SCHEDULE_PLATFORMS.filter((platform) => progress.has(platform));
-}
+export function readScheduleNode(value: unknown): SocialScheduleNode | null {
+  if (!value || typeof value !== "object") return null;
+  const source = value as Record<string, unknown>;
+  const scheduledAt = normalizedText(source.scheduledAt);
+  const platforms = normalizeSchedulePlatforms(source.platforms);
+  const published = normalizeSchedulePlatforms(source.published);
+  const status: SocialScheduleStatus =
+    source.status === "running" || source.status === "done" || source.status === "failed"
+      ? source.status
+      : "pending";
 
-export function scheduleFailures(record: SocialScheduleRecord) {
-  const failures: Partial<Record<SocialSchedulePlatform, string>> = {};
-  if (!record.socialScheduleFailures || typeof record.socialScheduleFailures !== "object") return failures;
-  for (const [platform, message] of Object.entries(
-    record.socialScheduleFailures as Record<string, unknown>,
-  )) {
-    if (isSocialSchedulePlatform(platform) && String(message || "").trim()) {
-      failures[platform] = String(message).trim();
+  if (!scheduledAt && !platforms.length && !published.length && status === "pending") return null;
+
+  const error: Partial<Record<SocialSchedulePlatform, string>> = {};
+  if (source.error && typeof source.error === "object") {
+    for (const [platform, message] of Object.entries(source.error as Record<string, unknown>)) {
+      if (isSocialSchedulePlatform(platform) && normalizedText(message)) {
+        error[platform] = normalizedText(message);
+      }
     }
   }
-  return failures;
-}
 
-export function claimableSchedule(record: SocialScheduleRecord, nowMs: number) {
-  const scheduledAt = String(record.socialScheduledAt || "").trim();
-  const dueAt = Date.parse(scheduledAt);
-  if (!scheduledAt || !Number.isFinite(dueAt)) return { claimable: false as const, reason: "INVALID_DATE" };
-  if (dueAt > nowMs) return { claimable: false as const, reason: "NOT_DUE" };
-
-  const status = String(record.socialScheduleStatus || "");
-  if (status === "running") {
-    const startedAt = Date.parse(String(record.socialScheduleStartedAt || ""));
-    if (Number.isFinite(startedAt) && nowMs - startedAt < SOCIAL_SCHEDULE_LOCK_MS) {
-      return { claimable: false as const, reason: "LOCKED" };
+  const containers: Partial<Record<SocialSchedulePlatform, SocialScheduleContainer>> = {};
+  if (source.containers && typeof source.containers === "object") {
+    for (const [platform, raw] of Object.entries(source.containers as Record<string, unknown>)) {
+      if (!isSocialSchedulePlatform(platform) || !raw || typeof raw !== "object") continue;
+      const containerId = normalizedText((raw as Record<string, unknown>).containerId);
+      if (containerId) containers[platform] = { containerId };
     }
-  } else if (status !== "pending") {
-    return { claimable: false as const, reason: "NOT_PENDING" };
   }
 
-  const published = schedulePublished(record);
-  const publishedSet = new Set(published);
-  const platforms = normalizeSchedulePlatforms(record.socialScheduledPlatforms).filter(
-    (platform) => !publishedSet.has(platform),
-  );
-  if (!platforms.length) return { claimable: false as const, reason: "EMPTY", published };
-
+  const attempts = Number(source.attempts || 0);
   return {
-    claimable: true as const,
-    scheduledAt,
+    ...(scheduledAt ? { scheduledAt } : {}),
     platforms,
-    published,
-    failures: scheduleFailures(record),
-    attempts: scheduleAttempts(record),
+    status,
+    ...(normalizedText(source.startedAt) ? { startedAt: normalizedText(source.startedAt) } : {}),
+    ...(normalizedText(source.finishedAt) ? { finishedAt: normalizedText(source.finishedAt) } : {}),
+    ...(normalizedText(source.createdAt) ? { createdAt: normalizedText(source.createdAt) } : {}),
+    ...(normalizedText(source.createdBy) ? { createdBy: normalizedText(source.createdBy) } : {}),
+    ...(Number.isFinite(attempts) && attempts > 0 ? { attempts: Math.floor(attempts) } : {}),
+    ...(published.length ? { published } : {}),
+    ...(Object.keys(error).length ? { error } : {}),
+    ...(Object.keys(containers).length ? { containers } : {}),
   };
 }
 
-export function finishScheduleState(input: {
-  published: SocialSchedulePlatform[];
-  failed: Partial<Record<SocialSchedulePlatform, string>>;
-  pending: SocialSchedulePlatform[];
-  attempts: number;
-}) {
+export function isScheduleClaimable(
+  schedule: SocialScheduleNode | null,
+  nowMs: number,
+): schedule is SocialScheduleNode {
+  if (!schedule?.scheduledAt || !schedule.platforms.length) return false;
+  const dueAt = Date.parse(schedule.scheduledAt);
+  if (!Number.isFinite(dueAt) || dueAt > nowMs) return false;
+
+  if (schedule.status === "running") {
+    const startedAt = Date.parse(schedule.startedAt || "");
+    return !Number.isFinite(startedAt) || nowMs - startedAt > SOCIAL_SCHEDULE_LOCK_MS;
+  }
+  return schedule.status === "pending";
+}
+
+/**
+ * The exact callback used by RTDB transaction(). A cold Admin SDK process can
+ * invoke it with null before receiving the authoritative server value. Returning
+ * undefined in that first pass aborts forever; returning null allows the server
+ * compare-and-retry pass to call it again with the real schedule.
+ */
+export function buildClaimTransactionUpdate(nowMs: number) {
+  const startedAt = new Date(nowMs).toISOString();
+  return (current: unknown) => {
+    if (current === null) return null;
+    if (!isScheduleClaimable(readScheduleNode(current), nowMs)) return undefined;
+    return {
+      ...(current as Record<string, unknown>),
+      status: "running",
+      startedAt,
+    };
+  };
+}
+
+export function buildFinishUpdate(
+  input: {
+    published: SocialSchedulePlatform[];
+    failed: Partial<Record<SocialSchedulePlatform, string>>;
+    pending: SocialSchedulePlatform[];
+    containers?: Partial<Record<SocialSchedulePlatform, SocialScheduleContainer>>;
+    attempts: number;
+  },
+  nowIso: string,
+) {
   const published = normalizeSchedulePlatforms(input.published);
   const pending = normalizeSchedulePlatforms(input.pending);
   const failed = Object.fromEntries(
     Object.entries(input.failed).filter(
-      ([platform, message]) => isSocialSchedulePlatform(platform) && String(message || "").trim(),
+      ([platform, message]) => isSocialSchedulePlatform(platform) && normalizedText(message),
     ),
   ) as Partial<Record<SocialSchedulePlatform, string>>;
+  const containers = input.containers || {};
 
   if (pending.length && input.attempts < SOCIAL_SCHEDULE_MAX_ATTEMPTS) {
     return {
       outcome: "retry" as const,
-      clearScheduledAt: false,
-      status: "pending" as const,
-      platforms: pending,
-      published,
-      failed,
-      attempts: input.attempts + 1,
+      update: {
+        status: "pending",
+        startedAt: null,
+        platforms: pending,
+        published: published.length ? published : null,
+        error: Object.keys(failed).length ? failed : null,
+        containers: Object.keys(containers).length ? containers : null,
+        attempts: input.attempts + 1,
+      },
     };
   }
 
-  if (pending.length) {
-    for (const platform of pending) failed[platform] = "SCHEDULE_ATTEMPTS_EXHAUSTED";
-  }
+  for (const platform of pending) failed[platform] = "SCHEDULE_ATTEMPTS_EXHAUSTED";
   const hasFailures = Object.keys(failed).length > 0;
   return {
     outcome: (hasFailures ? "failed" : "done") as SocialScheduleOutcome,
-    clearScheduledAt: true,
-    status: (hasFailures ? "failed" : "done") as "failed" | "done",
-    platforms: [] as SocialSchedulePlatform[],
-    published,
-    failed,
-    attempts: input.attempts,
+    update: {
+      scheduledAt: null,
+      startedAt: null,
+      platforms: null,
+      containers: null,
+      status: hasFailures ? "failed" : "done",
+      finishedAt: nowIso,
+      attempts: input.attempts,
+      published: published.length ? published : null,
+      error: hasFailures ? failed : null,
+    },
   };
+}
+
+export function queueIdForLibraryId(libraryId: string) {
+  return libraryId.replace(":", "__");
 }

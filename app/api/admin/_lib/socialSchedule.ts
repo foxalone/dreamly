@@ -6,14 +6,25 @@ import {
   type AdminVideoPlatform,
   type AdminVideoScheduleStatus,
 } from "@/lib/adminVideoLibrary";
+import { isSocialPublishPendingError } from "@/lib/socialPublishPending";
 import { buildPublishLogEntry } from "@/lib/socialPublishLog";
 import {
-  claimableSchedule,
-  finishScheduleState,
-  isProcessingPublishStatus,
+  SOCIAL_SCHEDULE_ASSETS_NODE,
+  SOCIAL_SCHEDULE_BATCH_LIMIT,
+  SOCIAL_SCHEDULE_DUE_INDEX,
+  SOCIAL_SCHEDULE_FIELD,
+  SOCIAL_SCHEDULE_MIN_SORT_KEY,
+  buildClaimTransactionUpdate,
+  buildFinishUpdate,
+  isScheduleClaimable,
+  normalizeSchedulePlatforms,
+  queueIdForLibraryId,
+  readScheduleNode,
+  type SocialScheduleContainer,
+  type SocialScheduleNode,
   type SocialSchedulePlatform,
 } from "@/lib/socialScheduleQueue";
-import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { adminDb, adminRtdb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
 import { notifyTelegram } from "@/app/api/admin/_lib/telegram";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
@@ -22,14 +33,8 @@ import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
 import { publishLibraryVideoToTikTok } from "@/app/api/admin/tiktok/_lib";
 import { normalizePublishAt, publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
 
-const LIBRARY_COLLECTIONS = ["adminVideoJobs", AI_VIDEO_COLLECTION];
-
-// One cron tick never handles more than this, so a backlog drains over
-// several ticks instead of blowing the function timeout.
-const SCHEDULE_BATCH_LIMIT = 4;
-// Vercel and the scheduled function both allow 300 seconds. Leave enough time
-// to persist a retry state and return a useful response.
 const SCHEDULE_BUDGET_MS = 240 * 1000;
+const META_PLATFORM_BUDGET_MS = 35 * 1000;
 
 export type ScheduleJobData = {
   socialScheduledAt?: string;
@@ -44,14 +49,28 @@ export type ScheduleJobData = {
   topic?: string;
 } & Record<string, unknown>;
 
+type DueSchedule = {
+  id: string;
+  libraryId: string;
+  title: string;
+  schedule: SocialScheduleNode;
+};
+
+type RunItem = {
+  node: string;
+  id: string;
+  title: string;
+  scheduledAt: string;
+  published: SocialSchedulePlatform[];
+  failed: Array<{ platform: SocialSchedulePlatform; error: string }>;
+  pending: SocialSchedulePlatform[];
+  outcome: "done" | "failed" | "retry";
+};
+
 function parseLibraryId(libraryId: string) {
   const [rawKind, rawId] = libraryId.split(":");
   if (!rawId || (rawKind !== "free" && rawKind !== "ai")) throw new Error("Invalid video id");
   return { rawId, collection: rawKind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION };
-}
-
-function libraryIdFor(collection: string, docId: string) {
-  return `${collection === "adminVideoJobs" ? "free" : "ai"}:${docId}`;
 }
 
 function videoTitle(data: ScheduleJobData) {
@@ -71,30 +90,183 @@ export function scheduledPlatformsFrom(data: ScheduleJobData): AdminVideoPlatfor
     .filter((entry) => QUEUED_SCHEDULE_PLATFORMS.includes(entry));
 }
 
-function alreadyPublished(data: ScheduleJobData, platform: AdminVideoPlatform) {
+function alreadyPublished(data: ScheduleJobData, platform: SocialSchedulePlatform) {
   return Boolean(String(data[`${platform}PublishedAt`] || ""));
 }
 
-async function publishOne(libraryId: string, platform: AdminVideoPlatform, adminUid: string) {
-  let result: { status?: string } | null = null;
-  if (platform === "tiktok") result = await publishLibraryVideoToTikTok(libraryId, adminUid);
+async function publishOne(
+  libraryId: string,
+  platform: SocialSchedulePlatform,
+  deadlineMs: number,
+) {
+  if (platform === "tiktok") return publishLibraryVideoToTikTok(libraryId, "scheduler");
   if (platform === "instagram" || platform === "facebook") {
-    result = await publishLibraryVideoToMeta(libraryId, adminUid, platform, {
-      deferProcessing: platform === "instagram",
+    return publishLibraryVideoToMeta(libraryId, "scheduler", platform, {
+      deadlineMs: Math.min(deadlineMs, Date.now() + META_PLATFORM_BUDGET_MS),
     });
   }
   if (platform === "threads") {
-    result = await publishLibraryVideoToThreads(libraryId, adminUid, { deferProcessing: true });
+    return publishLibraryVideoToThreads(libraryId, "scheduler", {
+      deadlineMs: Math.min(deadlineMs, Date.now() + META_PLATFORM_BUDGET_MS),
+    });
   }
-  if (platform === "pinterest") result = await publishLibraryVideoToPinterest(libraryId, adminUid);
-  if (!result) throw new Error(`Platform ${platform} is not queued`);
-  return isProcessingPublishStatus(result.status) ? "processing" as const : "published" as const;
+  if (platform === "pinterest") return publishLibraryVideoToPinterest(libraryId, "scheduler");
+  throw new Error(`Platform ${platform} is not queued`);
 }
 
-// Every queued platform gets a Positioner row the moment it is scheduled, so
-// the journal shows the planned slot instead of nothing until the video goes
-// out. The real publish later reuses the same key and flips it to
-// "Опубликовано" with the actual timestamp.
+function assetRef(queueId: string) {
+  return adminRtdb().ref(`${SOCIAL_SCHEDULE_ASSETS_NODE}/${queueId}`);
+}
+
+function scheduleRef(queueId: string) {
+  return assetRef(queueId).child(SOCIAL_SCHEDULE_FIELD);
+}
+
+async function writeQueue(input: {
+  libraryId: string;
+  title: string;
+  scheduledAt: string;
+  platforms: SocialSchedulePlatform[];
+  createdBy: string;
+}) {
+  const queueId = queueIdForLibraryId(input.libraryId);
+  await assetRef(queueId).set({
+    libraryId: input.libraryId,
+    title: input.title,
+    socialSchedule: {
+      scheduledAt: input.scheduledAt,
+      platforms: input.platforms,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      createdBy: input.createdBy,
+      attempts: 0,
+    },
+  });
+  return queueId;
+}
+
+async function cancelQueue(queueId: string) {
+  let found = false;
+  const result = await scheduleRef(queueId).transaction((current) => {
+    if (current === null) return null;
+    const schedule = readScheduleNode(current);
+    if (!schedule || schedule.status === "running") return undefined;
+    found = true;
+    return null;
+  });
+  if (!result.committed || !found) return false;
+  await assetRef(queueId).remove();
+  return true;
+}
+
+async function listDue(nowIso: string, limit: number): Promise<DueSchedule[]> {
+  const snapshot = await adminRtdb()
+    .ref(SOCIAL_SCHEDULE_ASSETS_NODE)
+    .orderByChild(SOCIAL_SCHEDULE_DUE_INDEX)
+    .startAt(SOCIAL_SCHEDULE_MIN_SORT_KEY)
+    .endAt(nowIso)
+    .limitToFirst(Math.max(1, limit))
+    .get();
+  if (!snapshot.exists()) return [];
+
+  const due: DueSchedule[] = [];
+  const nowMs = Date.parse(nowIso);
+  snapshot.forEach((child) => {
+    const record = (child.val() as Record<string, unknown>) || {};
+    const schedule = readScheduleNode(record[SOCIAL_SCHEDULE_FIELD]);
+    const libraryId = String(record.libraryId || "").trim();
+    if (child.key && libraryId && isScheduleClaimable(schedule, nowMs)) {
+      due.push({
+        id: child.key,
+        libraryId,
+        title: String(record.title || libraryId).trim(),
+        schedule,
+      });
+    }
+    return false;
+  });
+  return due;
+}
+
+async function claim(queueId: string, nowMs: number) {
+  const result = await scheduleRef(queueId).transaction(buildClaimTransactionUpdate(nowMs));
+  return result.committed ? readScheduleNode(result.snapshot.val()) : null;
+}
+
+async function advance(
+  queueId: string,
+  input: {
+    platforms: SocialSchedulePlatform[];
+    published: SocialSchedulePlatform[];
+    failed: Partial<Record<SocialSchedulePlatform, string>>;
+    containers: Partial<Record<SocialSchedulePlatform, SocialScheduleContainer>>;
+  },
+) {
+  await scheduleRef(queueId).update({
+    platforms: input.platforms.length ? input.platforms : null,
+    published: input.published.length ? input.published : null,
+    error: Object.keys(input.failed).length ? input.failed : null,
+    containers: Object.keys(input.containers).length ? input.containers : null,
+  });
+}
+
+function errorText(failed: Partial<Record<SocialSchedulePlatform, string>>) {
+  return Object.entries(failed)
+    .map(([platform, message]) => `${platform}: ${message}`)
+    .join("; ")
+    .slice(0, 500);
+}
+
+async function mirrorProgress(
+  libraryId: string,
+  input: {
+    platforms: SocialSchedulePlatform[];
+    published: SocialSchedulePlatform[];
+    failed: Partial<Record<SocialSchedulePlatform, string>>;
+  },
+) {
+  const { rawId, collection } = parseLibraryId(libraryId);
+  await adminDb().collection(collection).doc(rawId).set(
+    {
+      socialScheduledPlatforms: input.platforms,
+      socialSchedulePublished: input.published,
+      socialScheduleFailures: input.failed,
+      socialScheduleError: errorText(input.failed),
+    },
+    { merge: true },
+  );
+}
+
+async function readContainer(libraryId: string, platform: SocialSchedulePlatform) {
+  if (platform !== "instagram" && platform !== "threads") return null;
+  const { rawId, collection } = parseLibraryId(libraryId);
+  const data = (await adminDb().collection(collection).doc(rawId).get()).data() as ScheduleJobData | undefined;
+  const field = platform === "instagram" ? "instagramContainerId" : "threadsMediaId";
+  const containerId = String(data?.[field] || "").trim();
+  return containerId ? { containerId } : null;
+}
+
+async function mirrorFinish(libraryId: string, finish: ReturnType<typeof buildFinishUpdate>) {
+  const { rawId, collection } = parseLibraryId(libraryId);
+  const update = finish.update;
+  const terminal = finish.outcome !== "retry";
+  const failed = (update.error || {}) as Partial<Record<SocialSchedulePlatform, string>>;
+  await adminDb().collection(collection).doc(rawId).set(
+    {
+      ...(terminal ? { socialScheduledAt: FieldValue.delete() } : {}),
+      socialScheduledPlatforms: (update.platforms || []) as SocialSchedulePlatform[],
+      socialScheduleStatus: update.status,
+      socialScheduleStartedAt: "",
+      ...(terminal ? { socialScheduleFinishedAt: update.finishedAt } : {}),
+      socialScheduleAttempts: Number(update.attempts || 0),
+      socialSchedulePublished: (update.published || []) as SocialSchedulePlatform[],
+      socialScheduleFailures: failed,
+      socialScheduleError: errorText(failed),
+    },
+    { merge: true },
+  );
+}
+
 async function trackScheduled(
   libraryId: string,
   platforms: AdminVideoPlatform[],
@@ -104,8 +276,6 @@ async function trackScheduled(
 ) {
   if (!platforms.length) return;
   const note = status === "Запланировано" ? "scheduled" : "schedule cancelled";
-  // One request for the whole batch: Positioner rewrites its file per request,
-  // so five parallel posts would drop most of the rows.
   await trackSocialPublishes(
     platforms.map((platform) =>
       buildPublishLogEntry({
@@ -118,9 +288,7 @@ async function trackScheduled(
         notes: `video ${libraryId} ${note}`,
       }),
     ),
-  ).catch((error) => {
-    console.error("[social-schedule] positioner", libraryId, error);
-  });
+  ).catch((error) => console.error("[social-schedule] positioner", libraryId, error));
 }
 
 export async function scheduleLibraryVideoPublish(
@@ -131,24 +299,22 @@ export async function scheduleLibraryVideoPublish(
 ) {
   const publishAt = normalizePublishAt(publishAtInput);
   if (!publishAt) throw new Error("Scheduled time is required");
-
   const { rawId, collection } = parseLibraryId(libraryId);
   const ref = adminDb().collection(collection).doc(rawId);
   const snapshot = await ref.get();
   if (!snapshot.exists) throw new Error("Video not found");
   const data = snapshot.data() as ScheduleJobData;
-
-  const queued = platforms.filter(
-    (platform) => QUEUED_SCHEDULE_PLATFORMS.includes(platform) && !alreadyPublished(data, platform),
+  const queued = normalizeSchedulePlatforms(
+    platforms.filter(
+      (platform) =>
+        QUEUED_SCHEDULE_PLATFORMS.includes(platform) &&
+        !alreadyPublished(data, platform as SocialSchedulePlatform),
+    ),
   );
-  const wantsYouTube = platforms.includes("youtube");
-
   const failed: { platform: AdminVideoPlatform; error: string }[] = [];
   let youtubeScheduled = false;
 
-  // YouTube schedules itself: the file goes up private now and YouTube flips it
-  // public at publishAt, so it never needs the worker.
-  if (wantsYouTube) {
+  if (platforms.includes("youtube")) {
     try {
       await publishLibraryVideoToYouTube(libraryId, adminUid, publishAt);
       youtubeScheduled = true;
@@ -158,34 +324,39 @@ export async function scheduleLibraryVideoPublish(
   }
 
   if (queued.length) {
-    await ref.set(
-      {
-        socialScheduledAt: publishAt,
-        socialScheduledPlatforms: queued,
-        socialScheduleStatus: "pending",
-        socialScheduleBy: adminUid,
-        socialScheduleError: "",
-        socialScheduleStartedAt: "",
-        socialScheduleAttempts: 0,
-        socialSchedulePublished: [],
-        socialScheduleFailures: {},
-      },
-      { merge: true },
-    );
-    await trackScheduled(libraryId, queued, videoTitle(data), publishAt, "Запланировано");
+    const queueId = await writeQueue({
+      libraryId,
+      title: videoTitle(data),
+      scheduledAt: publishAt,
+      platforms: queued,
+      createdBy: adminUid,
+    });
+    try {
+      await ref.set(
+        {
+          socialScheduledAt: publishAt,
+          socialScheduledPlatforms: queued,
+          socialScheduleStatus: "pending",
+          socialScheduleBy: adminUid,
+          socialScheduleError: "",
+          socialScheduleStartedAt: "",
+          socialScheduleAttempts: 0,
+          socialSchedulePublished: [],
+          socialScheduleFailures: {},
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      await assetRef(queueId).remove().catch(() => undefined);
+      throw error;
+    }
+    await trackScheduled(libraryId, queued as AdminVideoPlatform[], videoTitle(data), publishAt, "Запланировано");
   }
 
   if (!queued.length && !youtubeScheduled) {
     throw new Error(failed[0]?.error || "Нет площадок для планирования");
   }
-
-  return {
-    ok: true as const,
-    scheduledAt: publishAt,
-    queued,
-    youtubeScheduled,
-    failed,
-  };
+  return { ok: true as const, scheduledAt: publishAt, queued, youtubeScheduled, failed };
 }
 
 export async function cancelLibraryVideoSchedule(libraryId: string) {
@@ -194,10 +365,9 @@ export async function cancelLibraryVideoSchedule(libraryId: string) {
   const snapshot = await ref.get();
   if (!snapshot.exists) throw new Error("Video not found");
   const data = snapshot.data() as ScheduleJobData;
-
-  const scheduledAt = String(data.socialScheduledAt || "");
-  const platforms = scheduledPlatformsFrom(data);
-  if (!scheduledAt || scheduleStatusFrom(data) === "running") {
+  const queueId = queueIdForLibraryId(libraryId);
+  const schedule = readScheduleNode((await scheduleRef(queueId).get()).val());
+  if (!schedule?.scheduledAt || schedule.status === "running" || !(await cancelQueue(queueId))) {
     throw new Error("Нечего отменять");
   }
 
@@ -214,162 +384,76 @@ export async function cancelLibraryVideoSchedule(libraryId: string) {
     },
     { merge: true },
   );
-  await trackScheduled(libraryId, platforms, videoTitle(data), scheduledAt, "Отменено");
-  return { ok: true as const, cancelled: platforms };
+  await trackScheduled(
+    libraryId,
+    schedule.platforms as AdminVideoPlatform[],
+    videoTitle(data),
+    schedule.scheduledAt,
+    "Отменено",
+  );
+  return { ok: true as const, cancelled: schedule.platforms };
 }
 
-async function claimDueJob(collection: string, docId: string, nowMs: number) {
-  const ref = adminDb().collection(collection).doc(docId);
-  return adminDb().runTransaction(async (transaction) => {
-    const snapshot = await transaction.get(ref);
-    if (!snapshot.exists) return { claimed: false as const, reason: "NOT_FOUND" };
-    const data = snapshot.data() as ScheduleJobData;
-    const claim = claimableSchedule(data, nowMs);
-    if (!claim.claimable) {
-      if (claim.reason === "EMPTY") {
-        transaction.set(
-          ref,
-          {
-            socialScheduledAt: FieldValue.delete(),
-            socialScheduledPlatforms: [],
-            socialScheduleStatus: "done",
-            socialScheduleStartedAt: "",
-          },
-          { merge: true },
-        );
-      }
-      return { claimed: false as const, reason: claim.reason };
-    }
+async function runDueJob(item: DueSchedule, deadlineMs: number) {
+  const claimed = await claim(item.id, Date.now());
+  if (!claimed?.scheduledAt) return { claimed: false as const, reason: "CLAIM_REJECTED" };
 
-    if (!claim.platforms.length) {
-      transaction.set(
-        ref,
-        {
-          socialScheduledAt: FieldValue.delete(),
-          socialScheduledPlatforms: [],
-          socialScheduleStatus: "done",
-          socialScheduleStartedAt: "",
-        },
-        { merge: true },
-      );
-      return { claimed: false as const, reason: "EMPTY" };
-    }
-
-    transaction.set(
-      ref,
-      { socialScheduleStatus: "running", socialScheduleStartedAt: new Date(nowMs).toISOString() },
-      { merge: true },
-    );
-    return { claimed: true as const, ...claim, data };
-  });
-}
-
-function scheduleErrorText(error: unknown) {
-  return error instanceof Error ? error.message : String(error || "Ошибка публикации");
-}
-
-function asAdminPlatforms(platforms: SocialSchedulePlatform[]) {
-  return platforms as AdminVideoPlatform[];
-}
-
-async function runDueJob(collection: string, docId: string, nowMs: number, deadlineMs: number) {
-  const claim = await claimDueJob(collection, docId, nowMs);
-  if (!claim.claimed) return { claimed: false as const, reason: claim.reason };
-
-  const libraryId = libraryIdFor(collection, docId);
-  const ref = adminDb().collection(collection).doc(docId);
-  const published = [...claim.published];
-  const failed = { ...claim.failures };
+  const { rawId, collection } = parseLibraryId(item.libraryId);
+  const ref = adminDb().collection(collection).doc(rawId);
+  const published = [...(claimed.published || [])];
+  const failed = { ...(claimed.error || {}) };
   const pending: SocialSchedulePlatform[] = [];
-  const untouched = [...claim.platforms];
+  const containers = { ...(claimed.containers || {}) };
+  const untouched = [...claimed.platforms];
 
-  // Sequential on purpose: one video is downloaded and re-uploaded per
-  // platform, and the providers rate-limit bursts from the same account.
-  for (const platform of claim.platforms) {
+  for (const platform of claimed.platforms) {
     untouched.shift();
     if (Date.now() >= deadlineMs) {
       pending.push(platform, ...untouched);
       break;
     }
-
     try {
-      // A manual publish may have completed after the schedule was claimed.
-      // Re-read before calling the provider so that crossing those paths does
-      // not create a duplicate.
       const current = (await ref.get()).data() as ScheduleJobData | undefined;
-      if (!current || !alreadyPublished(current, platform as AdminVideoPlatform)) {
-        const outcome = await publishOne(libraryId, platform as AdminVideoPlatform, "scheduler");
-        if (outcome === "processing") {
-          pending.push(platform);
-          delete failed[platform];
-        } else if (!published.includes(platform)) {
-          published.push(platform);
-        }
-      } else if (!published.includes(platform)) {
-        published.push(platform);
-      }
+      if (!current || !alreadyPublished(current, platform)) await publishOne(item.libraryId, platform, deadlineMs);
+      if (!published.includes(platform)) published.push(platform);
       delete failed[platform];
+      delete containers[platform];
     } catch (error) {
-      failed[platform] = scheduleErrorText(error);
+      if (isSocialPublishPendingError(error)) {
+        pending.push(platform);
+        const container = await readContainer(item.libraryId, platform);
+        if (container) containers[platform] = container;
+      } else {
+        failed[platform] = error instanceof Error ? error.message : String(error || "Ошибка публикации");
+      }
     }
-
-    // Persist after every provider. If the process dies before the final
-    // write, a stale retry sees only untouched platforms and never sends a
-    // successful one twice.
-    await ref.set(
-      {
-        socialScheduledPlatforms: [...pending, ...untouched],
-        socialSchedulePublished: published,
-        socialScheduleFailures: failed,
-        socialScheduleError: Object.entries(failed)
-          .map(([failedPlatform, message]) => `${failedPlatform}: ${message}`)
-          .join("; ")
-          .slice(0, 500),
-      },
-      { merge: true },
-    );
+    const remaining = normalizeSchedulePlatforms([...pending, ...untouched]);
+    await advance(item.id, { platforms: remaining, published, failed, containers });
+    await mirrorProgress(item.libraryId, { platforms: remaining, published, failed });
   }
 
-  const finish = finishScheduleState({
-    published,
-    failed,
-    pending,
-    attempts: claim.attempts,
-  });
-  const finishedAt = new Date().toISOString();
-  await ref.set(
-    {
-      ...(finish.clearScheduledAt ? { socialScheduledAt: FieldValue.delete() } : {}),
-      socialScheduledPlatforms: finish.platforms,
-      socialScheduleStatus: finish.status,
-      socialScheduleStartedAt: "",
-      ...(finish.clearScheduledAt ? { socialScheduleFinishedAt: finishedAt } : {}),
-      socialScheduleAttempts: finish.attempts,
-      socialSchedulePublished: finish.published,
-      socialScheduleFailures: finish.failed,
-      socialScheduleError: Object.entries(finish.failed)
-        .map(([platform, message]) => `${platform}: ${message}`)
-        .join("; ")
-        .slice(0, 500),
-    },
-    { merge: true },
+  const finish = buildFinishUpdate(
+    { published, failed, pending, containers, attempts: claimed.attempts || 0 },
+    new Date().toISOString(),
   );
+  await mirrorFinish(item.libraryId, finish);
+  await scheduleRef(item.id).update(finish.update);
+  if (finish.outcome === "done") await assetRef(item.id).remove();
 
-  // A scheduled publish runs while nobody is watching the dashboard, so a
-  // failure has to come and find the admin instead of waiting on a card.
-  const failedList = Object.entries(finish.failed).map(([platform, error]) => ({
-    platform: platform as AdminVideoPlatform,
+  const finalFailed = (finish.update.error || {}) as Partial<Record<SocialSchedulePlatform, string>>;
+  const failedList = Object.entries(finalFailed).map(([platform, error]) => ({
+    platform: platform as SocialSchedulePlatform,
     error: String(error),
   }));
+  const finalPending = normalizeSchedulePlatforms(finish.update.platforms || []);
   if (finish.outcome === "failed") {
-    const title = videoTitle(claim.data) || libraryId;
     await notifyTelegram(
       [
-        `❌ Отложенная публикация не удалась`,
-        title,
+        "❌ Отложенная публикация не удалась",
+        item.title,
         published.length ? `Вышло: ${published.join(", ")}` : "Не вышло ни на одной площадке",
         ...failedList.map((entry) => `• ${entry.platform}: ${entry.error}`),
-        `Повторить можно с карточки в админке: ${libraryId}`,
+        `Повторить можно с карточки в админке: ${item.libraryId}`,
       ].join("\n"),
     );
   }
@@ -377,80 +461,43 @@ async function runDueJob(collection: string, docId: string, nowMs: number, deadl
   return {
     claimed: true as const,
     item: {
-      node: collection,
-      id: docId,
-      title: videoTitle(claim.data),
-      scheduledAt: claim.scheduledAt,
-      published: asAdminPlatforms(finish.published),
+      node: SOCIAL_SCHEDULE_ASSETS_NODE,
+      id: item.id,
+      title: item.title,
+      scheduledAt: claimed.scheduledAt,
+      published,
       failed: failedList,
-      pending: asAdminPlatforms(finish.platforms),
+      pending: finalPending,
       outcome: finish.outcome,
-    },
+    } satisfies RunItem,
   };
 }
 
-export async function runDueSocialPublishes(limit = SCHEDULE_BATCH_LIMIT) {
+export async function runDueSocialPublishes(limit = SOCIAL_SCHEDULE_BATCH_LIMIT) {
   const nowIso = new Date().toISOString();
-  const nowMs = Date.now();
-  const deadlineMs = nowMs + SCHEDULE_BUDGET_MS;
-  const found: { collection: string; docId: string; scheduledAt: string }[] = [];
-
-  // Single-field range filter only, so Firestore's automatic index covers it
-  // and no composite index has to be deployed.
-  for (const collection of LIBRARY_COLLECTIONS) {
-    const snapshot = await adminDb()
-      .collection(collection)
-      .where("socialScheduledAt", "<=", nowIso)
-      .orderBy("socialScheduledAt", "asc")
-      .limit(limit * 3)
-      .get();
-    for (const doc of snapshot.docs) {
-      found.push({
-        collection,
-        docId: doc.id,
-        scheduledAt: String((doc.data() as ScheduleJobData).socialScheduledAt || ""),
-      });
-    }
-  }
-
-  const due = found
-    .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt))
-    .slice(0, Math.max(1, limit));
-  const selectedByNode = Object.fromEntries(LIBRARY_COLLECTIONS.map((collection) => [collection, 0]));
-  for (const entry of due) selectedByNode[entry.collection] += 1;
-
-  const items: Array<{
-    node: string;
-    id: string;
-    title: string;
-    scheduledAt: string;
-    published: AdminVideoPlatform[];
-    failed: { platform: AdminVideoPlatform; error: string }[];
-    pending: AdminVideoPlatform[];
-    outcome: "done" | "failed" | "retry";
-  }> = [];
-  const skipped: Array<{ node: string; id: string; reason: string }> = [];
-  let claimed = 0;
-  for (const entry of due) {
-    if (Date.now() >= deadlineMs) {
-      skipped.push({ node: entry.collection, id: entry.docId, reason: "TICK_BUDGET_EXHAUSTED" });
-      continue;
-    }
-    const result = await runDueJob(entry.collection, entry.docId, nowMs, deadlineMs);
-    if (result.claimed) {
-      claimed += 1;
-      items.push(result.item);
-    } else {
-      skipped.push({ node: entry.collection, id: entry.docId, reason: result.reason });
-    }
-  }
-
-  return {
+  const deadlineMs = Date.now() + SCHEDULE_BUDGET_MS;
+  const due = await listDue(nowIso, Math.max(1, limit));
+  const summary = {
     ranAt: nowIso,
     selected: due.length,
-    selectedByNode,
-    claimed,
-    skipped,
-    items,
+    selectedByNode: { [SOCIAL_SCHEDULE_ASSETS_NODE]: due.length },
+    claimed: 0,
+    skipped: [] as Array<{ node: string; id: string; reason: string }>,
+    items: [] as RunItem[],
   };
+
+  for (const item of due) {
+    if (Date.now() >= deadlineMs) {
+      summary.skipped.push({ node: SOCIAL_SCHEDULE_ASSETS_NODE, id: item.id, reason: "TICK_BUDGET_EXHAUSTED" });
+      continue;
+    }
+    const result = await runDueJob(item, deadlineMs);
+    if (result.claimed) {
+      summary.claimed += 1;
+      summary.items.push(result.item);
+    } else {
+      summary.skipped.push({ node: SOCIAL_SCHEDULE_ASSETS_NODE, id: item.id, reason: result.reason });
+    }
+  }
+  return summary;
 }

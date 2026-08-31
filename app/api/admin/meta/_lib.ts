@@ -26,6 +26,7 @@ import {
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
 import { publicPublishUrl } from "@/lib/socialPublishLog";
+import { SocialPublishPendingError } from "@/lib/socialPublishPending";
 
 type GraphErrorPayload = {
   error?: { message?: string; type?: string; code?: number; error_user_msg?: string };
@@ -369,15 +370,6 @@ async function createInstagramResumableContainer(
   return { id: containerId };
 }
 
-async function waitForInstagramContainer(accessToken: string, containerId: string) {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 3_000 : 4_000));
-    const status = await instagramContainerStatus(accessToken, containerId);
-    if (status === "FINISHED" || status === "PUBLISHED") return status;
-  }
-  throw new Error("Instagram is still processing the video. Retry publish in a minute.");
-}
-
 async function instagramContainerStatus(accessToken: string, containerId: string) {
   const payload = await graphFetch<{ status_code?: string; status?: string }>(`/${containerId}`, accessToken, {
     params: { fields: "status_code,status" },
@@ -389,11 +381,19 @@ async function instagramContainerStatus(accessToken: string, containerId: string
   return status;
 }
 
-async function publishInstagram(
-  libraryId: string,
-  adminUid: string,
-  options?: { deferProcessing?: boolean },
-) {
+async function waitForInstagramContainer(accessToken: string, containerId: string, deadlineMs?: number) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    if (deadlineMs && Date.now() + 3_000 >= deadlineMs) {
+      throw new SocialPublishPendingError("Instagram is still processing the video");
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 3_000 : 4_000));
+    const status = await instagramContainerStatus(accessToken, containerId);
+    if (status === "FINISHED" || status === "PUBLISHED") return status;
+  }
+  throw new Error("Instagram is still processing the video. Retry publish in a minute.");
+}
+
+async function publishInstagram(libraryId: string, adminUid: string, deadlineMs?: number) {
   const video = await loadLibraryVideo(libraryId);
   const auth = await getValidAuth();
   if (!auth.igUserId) {
@@ -403,13 +403,47 @@ async function publishInstagram(
   }
 
   const jobRef = adminDb().collection(video.collection).doc(video.jobId);
-  const existing = (await jobRef.get()).data() as {
-    instagramContainerId?: string;
+  const initial = (await jobRef.get()).data() as {
     instagramPublishedAt?: string;
+    instagramContainerId?: string;
+    instagramStatus?: string;
   } | undefined;
-  if (existing?.instagramPublishedAt) throw new Error("This video is already published to Instagram");
+  if (initial?.instagramPublishedAt) throw new Error("This video is already published to Instagram");
 
-  let containerId = String(existing?.instagramContainerId || "");
+  let containerId = String(initial?.instagramContainerId || "");
+  if (!containerId) {
+    await adminDb().runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(jobRef);
+      const data = (snapshot.data() || {}) as {
+        instagramPublishedAt?: string;
+        instagramContainerId?: string;
+        instagramStatus?: string;
+        instagramPublishStartedAt?: string;
+      };
+      if (data.instagramPublishedAt) throw new Error("This video is already published to Instagram");
+      if (data.instagramContainerId) {
+        containerId = data.instagramContainerId;
+        return;
+      }
+      if (data.instagramStatus === "publishing") {
+        const lockedAt = Date.parse(data.instagramPublishStartedAt || "") || 0;
+        if (Date.now() - lockedAt < 15 * 60 * 1000) {
+          throw new Error("An Instagram publish is already running for this video");
+        }
+      }
+      transaction.set(
+        jobRef,
+        {
+          instagramStatus: "publishing",
+          instagramPublishStartedAt: new Date().toISOString(),
+          instagramPublishedBy: adminUid,
+          instagramError: "",
+        },
+        { merge: true },
+      );
+    });
+  }
+
   if (!containerId) {
     try {
       const created = await createInstagramContainer(auth, video);
@@ -421,26 +455,15 @@ async function publishInstagram(
       const created = await createInstagramResumableContainer(auth, video, bytes);
       containerId = created.id;
     }
-    if (!containerId) throw new Error("Instagram did not return a media container");
-    await jobRef.set(
-      {
-        instagramContainerId: containerId,
-        instagramStatus: "PROCESSING",
-        instagramPublishedBy: adminUid,
-        instagramError: "",
-      },
-      { merge: true },
-    );
   }
+  if (!containerId) throw new Error("Instagram did not return a media container");
 
-  if (options?.deferProcessing) {
-    const status = await instagramContainerStatus(auth.userAccessToken, containerId);
-    if (status !== "FINISHED" && status !== "PUBLISHED") {
-      return { target: "instagram" as const, mediaId: containerId, status: "PROCESSING" as const };
-    }
-  } else {
-    await waitForInstagramContainer(auth.userAccessToken, containerId);
-  }
+  await jobRef.set(
+    { instagramContainerId: containerId, instagramStatus: "processing", instagramError: "" },
+    { merge: true },
+  );
+
+  await waitForInstagramContainer(auth.userAccessToken, containerId, deadlineMs);
   const published = await graphFetch<{ id?: string }>(`/${auth.igUserId}/media_publish`, auth.userAccessToken, {
     method: "POST",
     params: { creation_id: containerId },
@@ -575,9 +598,9 @@ export async function publishLibraryVideoToMeta(
   libraryId: string,
   adminUid: string,
   target: MetaPublishTarget,
-  options?: { deferProcessing?: boolean },
+  options?: { deadlineMs?: number },
 ) {
-  if (target === "instagram") return publishInstagram(libraryId, adminUid, options);
+  if (target === "instagram") return publishInstagram(libraryId, adminUid, options?.deadlineMs);
   if (target === "facebook") return publishFacebook(libraryId, adminUid);
   throw new Error("Unknown Meta publish target");
 }

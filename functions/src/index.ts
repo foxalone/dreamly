@@ -83,11 +83,28 @@ export const grantWelcomeCredits = functions
 //
 // YouTube держит запланированную загрузку сам (status.publishAt), а у TikTok,
 // Instagram, Facebook, Threads и Pinterest нативного планирования нет. Их
-// очередь лежит в Firestore (socialScheduledAt на документе видео), а этот
+// каноническая очередь лежит в RTDB (social_scheduled_assets), а этот
 // планировщик каждые 5 минут дергает /api/cron/social-publish, который и
 // публикует всё, чьё время уже наступило.
 const socialPublishCronSecret = defineSecret("SOCIAL_PUBLISH_CRON_SECRET");
 const socialPublishEndpoint = defineSecret("SOCIAL_PUBLISH_ENDPOINT");
+
+async function reportSocialPublishOutage(message: string) {
+  // Optional by design. Keeping these out of the required secrets array means
+  // a project without scheduler-level Telegram alerts still deploys cleanly.
+  const token = String(process.env.SOCIAL_PUBLISH_ALERT_BOT_TOKEN || "").trim();
+  const chatId = String(process.env.SOCIAL_PUBLISH_ALERT_CHAT_ID || "").trim();
+  if (!token || !chatId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: message.slice(0, 3_500) }),
+    });
+  } catch (error) {
+    console.error("socialPublishTick alert failed", error);
+  }
+}
 
 export const socialPublishTick = onSchedule(
   {
@@ -108,13 +125,17 @@ export const socialPublishTick = onSchedule(
       response = await fetch(url, {
         method: "POST",
         headers: { Authorization: `Bearer ${secret}` },
+        signal: AbortSignal.timeout(280_000),
       });
     } catch (error) {
+      await reportSocialPublishOutage(`⚠️ socialPublishTick: endpoint недоступен — ${error}`);
       throw error;
     }
     const text = await response.text();
     if (!response.ok) {
-      // Бросаем, чтобы неудачный запуск был виден в логах функции.
+      await reportSocialPublishOutage(
+        `⚠️ socialPublishTick: endpoint ответил ${response.status}. ${text.slice(0, 300)}`,
+      );
       throw new Error(`social-publish ${response.status}: ${text.slice(0, 300)}`);
     }
     console.log("socialPublishTick complete", {

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "fs";
 import path from "path";
 import { getApps, initializeApp, cert, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getDatabase } from "firebase-admin/database";
 import { getFirestore } from "firebase-admin/firestore";
 
 function mustEnv(name: string) {
@@ -110,6 +111,10 @@ export function adminAuth() {
 
 export function adminDb() {
   return getFirestore(ensureAdmin());
+}
+
+export function adminRtdb() {
+  return getDatabase(ensureAdmin());
 }
 
 export function seedUid() {

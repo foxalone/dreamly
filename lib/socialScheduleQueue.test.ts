@@ -4,62 +4,54 @@ import test from "node:test";
 import {
   SOCIAL_SCHEDULE_LOCK_MS,
   SOCIAL_SCHEDULE_MAX_ATTEMPTS,
-  claimableSchedule,
-  finishScheduleState,
+  buildClaimTransactionUpdate,
+  buildFinishUpdate,
+  isScheduleClaimable,
   isProcessingPublishStatus,
   normalizeSchedulePlatforms,
-  schedulePublished,
+  readScheduleNode,
 } from "./socialScheduleQueue";
 
 const now = Date.parse("2026-08-31T10:00:00.000Z");
 const due = {
-  socialScheduledAt: "2026-08-31T09:55:00.000Z",
-  socialScheduledPlatforms: ["tiktok", "instagram", "facebook"],
-  socialScheduleStatus: "pending",
+  scheduledAt: "2026-08-31T09:55:00.000Z",
+  platforms: ["tiktok", "instagram", "facebook"],
+  status: "pending",
 };
 
 test("claim принимает только наступившее pending-задание", () => {
-  assert.equal(claimableSchedule(due, now).claimable, true);
-  assert.deepEqual(
-    claimableSchedule({ ...due, socialScheduledAt: "2026-08-31T10:05:00.000Z" }, now),
-    { claimable: false, reason: "NOT_DUE" },
+  assert.equal(isScheduleClaimable(readScheduleNode(due), now), true);
+  assert.equal(
+    isScheduleClaimable(
+      readScheduleNode({ ...due, scheduledAt: "2026-08-31T10:05:00.000Z" }),
+      now,
+    ),
+    false,
   );
-  assert.deepEqual(
-    claimableSchedule({ ...due, socialScheduleStatus: "done" }, now),
-    { claimable: false, reason: "NOT_PENDING" },
-  );
+  assert.equal(isScheduleClaimable(readScheduleNode({ ...due, status: "done" }), now), false);
 });
 
 test("свежий running не забирается, stale running можно продолжить", () => {
-  const fresh = claimableSchedule(
-    { ...due, socialScheduleStatus: "running", socialScheduleStartedAt: new Date(now - 60_000).toISOString() },
-    now,
-  );
-  const stale = claimableSchedule(
-    {
-      ...due,
-      socialScheduleStatus: "running",
-      socialScheduleStartedAt: new Date(now - SOCIAL_SCHEDULE_LOCK_MS - 1).toISOString(),
-    },
-    now,
-  );
-  assert.deepEqual(fresh, { claimable: false, reason: "LOCKED" });
-  assert.equal(stale.claimable, true);
+  const fresh = readScheduleNode({
+    ...due,
+    status: "running",
+    startedAt: new Date(now - 60_000).toISOString(),
+  });
+  const stale = readScheduleNode({
+    ...due,
+    status: "running",
+    startedAt: new Date(now - SOCIAL_SCHEDULE_LOCK_MS - 1).toISOString(),
+  });
+  assert.equal(isScheduleClaimable(fresh, now), false);
+  assert.equal(isScheduleClaimable(stale, now), true);
 });
 
-test("успешные площадки исключаются из повторного claim", () => {
-  const claim = claimableSchedule(
-    {
-      ...due,
-      socialSchedulePublished: ["tiktok"],
-      instagramPublishedAt: "2026-08-31T09:58:00.000Z",
-    },
-    now,
-  );
-  assert.equal(claim.claimable, true);
-  if (!claim.claimable) throw new Error("expected claim");
-  assert.deepEqual(claim.platforms, ["facebook"]);
-  assert.deepEqual(claim.published, ["tiktok", "instagram"]);
+test("холодный null не отменяет transaction до чтения серверного значения", () => {
+  const update = buildClaimTransactionUpdate(now);
+  assert.equal(update(null), null);
+  const claimed = update(due) as Record<string, unknown>;
+  assert.equal(claimed.status, "running");
+  assert.equal(claimed.startedAt, "2026-08-31T10:00:00.000Z");
 });
 
 test("нормализация удаляет дубли и неизвестные площадки", () => {
@@ -67,51 +59,49 @@ test("нормализация удаляет дубли и неизвестны
     "tiktok",
     "facebook",
   ]);
-  assert.deepEqual(schedulePublished({ tiktokPublishedAt: "now", socialSchedulePublished: ["threads"] }), [
-    "tiktok",
-    "threads",
-  ]);
 });
 
 test("остаток по бюджету возвращается в pending без удаления scheduledAt", () => {
-  const finish = finishScheduleState({
-    published: ["tiktok"],
-    failed: {},
-    pending: ["instagram", "facebook"],
-    attempts: 2,
-  });
+  const finish = buildFinishUpdate(
+    { published: ["tiktok"], failed: {}, pending: ["instagram", "facebook"], attempts: 2 },
+    "2026-08-31T10:00:01.000Z",
+  );
   assert.equal(finish.outcome, "retry");
-  assert.equal(finish.clearScheduledAt, false);
-  assert.equal(finish.status, "pending");
-  assert.equal(finish.attempts, 3);
-  assert.deepEqual(finish.platforms, ["instagram", "facebook"]);
+  assert.equal("scheduledAt" in finish.update, false);
+  assert.equal(finish.update.status, "pending");
+  assert.equal(finish.update.attempts, 3);
+  assert.deepEqual(finish.update.platforms, ["instagram", "facebook"]);
 });
 
 test("успех и окончательная ошибка удаляют due-поле", () => {
-  const done = finishScheduleState({ published: ["tiktok"], failed: {}, pending: [], attempts: 0 });
-  const failed = finishScheduleState({
-    published: ["tiktok"],
-    failed: { facebook: "API_ERROR" },
-    pending: [],
-    attempts: 0,
-  });
+  const done = buildFinishUpdate(
+    { published: ["tiktok"], failed: {}, pending: [], attempts: 0 },
+    "2026-08-31T10:00:01.000Z",
+  );
+  const failed = buildFinishUpdate(
+    { published: ["tiktok"], failed: { facebook: "API_ERROR" }, pending: [], attempts: 0 },
+    "2026-08-31T10:00:01.000Z",
+  );
   assert.equal(done.outcome, "done");
-  assert.equal(done.clearScheduledAt, true);
+  assert.equal(done.update.scheduledAt, null);
   assert.equal(failed.outcome, "failed");
-  assert.equal(failed.clearScheduledAt, true);
-  assert.deepEqual(failed.failed, { facebook: "API_ERROR" });
+  assert.equal(failed.update.scheduledAt, null);
+  assert.deepEqual(failed.update.error, { facebook: "API_ERROR" });
 });
 
 test("бесконечный processing завершается контролируемой ошибкой", () => {
-  const finish = finishScheduleState({
-    published: [],
-    failed: {},
-    pending: ["instagram"],
-    attempts: SOCIAL_SCHEDULE_MAX_ATTEMPTS,
-  });
+  const finish = buildFinishUpdate(
+    {
+      published: [],
+      failed: {},
+      pending: ["instagram"],
+      attempts: SOCIAL_SCHEDULE_MAX_ATTEMPTS,
+    },
+    "2026-08-31T10:00:01.000Z",
+  );
   assert.equal(finish.outcome, "failed");
-  assert.equal(finish.clearScheduledAt, true);
-  assert.deepEqual(finish.failed, { instagram: "SCHEDULE_ATTEMPTS_EXHAUSTED" });
+  assert.equal(finish.update.scheduledAt, null);
+  assert.deepEqual(finish.update.error, { instagram: "SCHEDULE_ATTEMPTS_EXHAUSTED" });
 });
 
 test("асинхронный ответ провайдера остаётся pending, а не published", () => {
