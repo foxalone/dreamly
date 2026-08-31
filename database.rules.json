@@ -44,7 +44,10 @@
           "senderUid": { ".validate": "newData.isString()" },
           "text": { ".validate": "newData.isString()" },
           "type": { ".validate": "newData.val() === 'text' || newData.val() === 'icons' || newData.val() === 'mixed'" },
-          "icons": { ".validate": "newData.isList()" },
+          "icons": {
+            ".validate": "newData.val() === null || newData.hasChildren()",
+            "$index": { ".validate": "newData.isString()" }
+          },
           "createdAt": { ".validate": "newData.isNumber()" },
           "editedAt": { ".validate": "newData.val() === null || newData.isNumber()" },
           "seenBy": {
