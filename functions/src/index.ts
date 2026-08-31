@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions/v1";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { defineSecret, defineString } from "firebase-functions/params";
+import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
@@ -86,31 +86,41 @@ export const grantWelcomeCredits = functions
 // очередь лежит в Firestore (socialScheduledAt на документе видео), а этот
 // планировщик каждые 5 минут дергает /api/cron/social-publish, который и
 // публикует всё, чьё время уже наступило.
-const socialPublishCronSecret = defineSecret("CRON_SECRET");
-const socialPublishUrl = defineString("SOCIAL_PUBLISH_URL", {
-  default: "https://dreamly.art/api/cron/social-publish",
-});
+const socialPublishCronSecret = defineSecret("SOCIAL_PUBLISH_CRON_SECRET");
+const socialPublishEndpoint = defineSecret("SOCIAL_PUBLISH_ENDPOINT");
 
-export const runSocialPublishQueue = onSchedule(
+export const socialPublishTick = onSchedule(
   {
     schedule: "every 5 minutes",
     timeZone: "Asia/Jerusalem",
     region: "europe-west1",
     timeoutSeconds: 300,
-    secrets: [socialPublishCronSecret],
+    secrets: [socialPublishCronSecret, socialPublishEndpoint],
     retryCount: 0,
   },
   async () => {
-    const url = socialPublishUrl.value();
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${socialPublishCronSecret.value()}` },
-    });
+    const secret = socialPublishCronSecret.value().trim();
+    const url = socialPublishEndpoint.value().trim() || "https://dreamly.art/api/cron/social-publish";
+    if (!secret) throw new Error("SOCIAL_PUBLISH_CRON_SECRET is empty");
+    const startedAt = Date.now();
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+    } catch (error) {
+      throw error;
+    }
     const text = await response.text();
     if (!response.ok) {
       // Бросаем, чтобы неудачный запуск был виден в логах функции.
       throw new Error(`social-publish ${response.status}: ${text.slice(0, 300)}`);
     }
-    console.log("[social-publish]", text.slice(0, 500));
+    console.log("socialPublishTick complete", {
+      status: response.status,
+      durationMs: Date.now() - startedAt,
+      body: text.slice(0, 1_000),
+    });
   },
 );

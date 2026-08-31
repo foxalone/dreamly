@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import path from "path";
-import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getApps, initializeApp, cert, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -54,6 +54,8 @@ export type FirebaseServiceAccount = {
   [key: string]: unknown;
 };
 
+const APP_NAME = "project-server";
+
 export function loadServiceAccount(): FirebaseServiceAccount {
   const json = mustEnv("FIREBASE_SERVICE_ACCOUNT_JSON");
   const parsed = parseJson(json) ?? readServiceAccountFromEnvFile();
@@ -71,26 +73,43 @@ export function tryLoadServiceAccount(): FirebaseServiceAccount | null {
   }
 }
 
-export function ensureAdmin() {
-  if (getApps().length) return;
+export function ensureAdmin(): App {
+  const existing = getApps().find((app) => app.name === APP_NAME);
+  if (existing) return existing;
   const account = loadServiceAccount();
-  initializeApp({
+  const projectId = (process.env.FIREBASE_ADMIN_PROJECT_ID || account.project_id || "").trim();
+  const databaseURL = (
+    process.env.FIREBASE_ADMIN_DATABASE_URL ||
+    process.env.FIREBASE_DATABASE_URL ||
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+    ""
+  ).trim();
+  const storageBucket = (
+    process.env.FIREBASE_ADMIN_STORAGE_BUCKET ||
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    ""
+  ).trim();
+  if (!projectId) throw new Error("Missing Firebase Admin project id");
+  if (!databaseURL) throw new Error("Missing Firebase Admin database URL");
+  if (!storageBucket) throw new Error("Missing Firebase Admin storage bucket");
+  return initializeApp({
     credential: cert({
-      projectId: account.project_id,
+      projectId,
       clientEmail: account.client_email,
       privateKey: account.private_key,
     }),
-  });
+    projectId,
+    databaseURL,
+    storageBucket,
+  }, APP_NAME);
 }
 
 export function adminAuth() {
-  ensureAdmin();
-  return getAuth();
+  return getAuth(ensureAdmin());
 }
 
 export function adminDb() {
-  ensureAdmin();
-  return getFirestore();
+  return getFirestore(ensureAdmin());
 }
 
 export function seedUid() {

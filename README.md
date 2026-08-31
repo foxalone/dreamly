@@ -80,11 +80,11 @@ native scheduling, so the batch is stored on the video document
 (`socialScheduledAt`, `socialScheduledPlatforms`, `socialScheduleStatus`) and
 published by `/api/cron/social-publish`.
 
-That endpoint is driven by the Firebase scheduled function `runSocialPublishQueue`
-(`every 5 minutes`, region `europe-west1`), which calls it with `CRON_SECRET` as a
-bearer token. Set the secret once with `firebase functions:secrets:set CRON_SECRET`
-(same value as the Vercel env var) and deploy with `npm --prefix functions run deploy`.
-`SOCIAL_PUBLISH_URL` overrides the target for a non-production deployment.
+That endpoint is driven by the Firebase scheduled function `socialPublishTick`
+(`every 5 minutes`, region `europe-west1`, time zone `Asia/Jerusalem`), which calls
+it with `SOCIAL_PUBLISH_CRON_SECRET` as a bearer token. Store the same value in
+Secret Manager and the Vercel production environment. `SOCIAL_PUBLISH_ENDPOINT`
+holds the protected production URL in Secret Manager.
 
 If a scheduled batch fails at its moment, the worker sends a Telegram message naming
 the video, what did go out and what did not — `TELEGRAM_BOT_TOKEN` and

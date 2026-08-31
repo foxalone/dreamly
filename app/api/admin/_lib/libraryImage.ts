@@ -30,10 +30,10 @@ export type LibraryImage = {
 export const IMAGE_JOB_ID_PATTERN = /^[A-Za-z0-9_-]{6,128}$/;
 
 function storageBucket() {
-  ensureAdmin();
+  const app = ensureAdmin();
   const name = (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "").trim();
   if (!name) throw new Error("Storage bucket is not configured");
-  return getStorage().bucket(name);
+  return getStorage(app).bucket(name);
 }
 
 export async function resolveAssignedDreamSlug(jobId: string) {
