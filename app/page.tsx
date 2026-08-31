@@ -194,7 +194,7 @@ export default function HomePage() {
                        transition-all duration-200
                        hover:scale-105 active:scale-95"
           >
-            Start Free
+            Explore Your Dream
           </Link>
         </div>
 
@@ -303,7 +303,7 @@ export default function HomePage() {
           href="/dreams"
           className="mt-8 inline-block bg-purple-600 hover:bg-purple-500 text-white text-lg font-semibold px-10 py-4 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95"
         >
-          Start Free
+          Explore Your Dream
         </Link>
       </section>
     </main>
