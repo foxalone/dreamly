@@ -5,7 +5,11 @@ import type { User } from "firebase/auth";
 import type { AdminImageLibraryItem, AdminImagePublishPlatform } from "@/lib/adminImageLibrary";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
-import { pinterestPinUrl, type PinterestConnectionStatus } from "@/lib/adminPinterest";
+import {
+  pinterestPinUrl,
+  SHOW_PINTEREST_PUBLISH_ERRORS,
+  type PinterestConnectionStatus,
+} from "@/lib/adminPinterest";
 
 type ImagePlatform = AdminImagePublishPlatform;
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
@@ -400,7 +404,9 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
       });
       await load(true);
     } catch (publishError) {
-      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      if (SHOW_PINTEREST_PUBLISH_ERRORS) {
+        setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      }
       await load(true);
     } finally {
       setPublishingKey("");
@@ -421,18 +427,24 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
         ok.push(platformLabel(platform));
         if (result.pageUrl) pageUrl = result.pageUrl;
       } catch (publishError) {
-        failed.push(
-          `${platformLabel(platform)}: ${publishError instanceof Error ? publishError.message : "ошибка"}`,
-        );
+        if (SHOW_PINTEREST_PUBLISH_ERRORS || platform !== "pinterest") {
+          failed.push(
+            `${platformLabel(platform)}: ${publishError instanceof Error ? publishError.message : "ошибка"}`,
+          );
+        }
       }
     }
     setPublishingKey("");
     await load(true);
     if (!failed.length) {
-      setNotice({
-        type: "ok",
-        text: `Опубликовано: ${ok.join(", ")}${pageUrl ? ` · ${pageUrl}` : ""}`,
-      });
+      setNotice(
+        ok.length
+          ? {
+              type: "ok",
+              text: `Опубликовано: ${ok.join(", ")}${pageUrl ? ` · ${pageUrl}` : ""}`,
+            }
+          : null,
+      );
       return;
     }
     setNotice({
@@ -474,8 +486,8 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
         <PublishIconButton
           platform="pinterest"
           published={Boolean(item.published?.pinterest)}
-          failed={item.pinterestState === "failed"}
-          failureNote={item.pinterestError}
+          failed={SHOW_PINTEREST_PUBLISH_ERRORS && item.pinterestState === "failed"}
+          failureNote={SHOW_PINTEREST_PUBLISH_ERRORS ? item.pinterestError : ""}
           openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
           disabled={
             busy ||

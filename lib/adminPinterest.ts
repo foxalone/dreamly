@@ -4,6 +4,11 @@ import { DREAMLY_SOCIAL_URL } from "@/lib/socialCta";
 export const PINTEREST_AUTH_DOCUMENT = "adminSystem/pinterestAuth";
 export const PINTEREST_OAUTH_STATES_COLLECTION = "adminPinterestOAuthStates";
 
+// Trial access cannot publish production Pins. Keep the real publish result in
+// storage, but do not surface the expected failure in the admin libraries until
+// permanent access is approved.
+export const SHOW_PINTEREST_PUBLISH_ERRORS = false;
+
 export const PINTEREST_SCOPES = [
   "user_accounts:read",
   "boards:read",

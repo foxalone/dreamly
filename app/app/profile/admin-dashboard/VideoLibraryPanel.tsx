@@ -11,7 +11,11 @@ import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
 import { youtubeWatchUrl, type YouTubeConnectionStatus } from "@/lib/adminYouTube";
-import { pinterestPinUrl, type PinterestConnectionStatus } from "@/lib/adminPinterest";
+import {
+  pinterestPinUrl,
+  SHOW_PINTEREST_PUBLISH_ERRORS,
+  type PinterestConnectionStatus,
+} from "@/lib/adminPinterest";
 
 type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
 type Connection = "meta" | "threads" | "youtube" | "pinterest";
@@ -140,6 +144,14 @@ function platformLabel(platform: Platform) {
   if (platform === "youtube") return "YouTube";
   if (platform === "pinterest") return "Pinterest";
   return "Facebook Reels";
+}
+
+function visibleScheduleError(error: string) {
+  if (SHOW_PINTEREST_PUBLISH_ERRORS) return error;
+  return error
+    .split("; ")
+    .filter((entry) => !entry.trimStart().toLowerCase().startsWith("pinterest:"))
+    .join("; ");
 }
 
 function PublishIconButton({
@@ -741,7 +753,9 @@ export default function VideoLibraryPanel({
       setNotice({ type: "ok", text: `Опубликовано в Pinterest · ${detail}` });
       await load(true);
     } catch (publishError) {
-      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      if (SHOW_PINTEREST_PUBLISH_ERRORS) {
+        setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      }
       await load(true);
     } finally {
       setPublishingKey("");
@@ -846,10 +860,10 @@ export default function VideoLibraryPanel({
     await load(true);
     const ok = settled.filter((entry) => entry.ok).map((entry) => platformLabel(entry.platform));
     const failed = settled
-      .filter((entry) => !entry.ok)
+      .filter((entry) => !entry.ok && (SHOW_PINTEREST_PUBLISH_ERRORS || entry.platform !== "pinterest"))
       .map((entry) => `${platformLabel(entry.platform)}: ${entry.detail}`);
     if (!failed.length) {
-      setNotice({ type: "ok", text: `Опубликовано: ${ok.join(", ")}` });
+      setNotice(ok.length ? { type: "ok", text: `Опубликовано: ${ok.join(", ")}` } : null);
       return;
     }
     setNotice({
@@ -887,7 +901,9 @@ export default function VideoLibraryPanel({
         ...(payload.youtubeScheduled ? [platformLabel("youtube")] : []),
         ...(payload.queued || []).map(platformLabel),
       ];
-      const failed = (payload.failed || []).map((entry) => `${platformLabel(entry.platform)}: ${entry.error}`);
+      const failed = (payload.failed || [])
+        .filter((entry) => SHOW_PINTEREST_PUBLISH_ERRORS || entry.platform !== "pinterest")
+        .map((entry) => `${platformLabel(entry.platform)}: ${entry.error}`);
       const when = payload.scheduledAt ? scheduleFormatter.format(new Date(payload.scheduledAt)) : "";
       if (failed.length) {
         setNotice({
@@ -897,7 +913,7 @@ export default function VideoLibraryPanel({
             : failed.join("; "),
         });
       } else {
-        setNotice({ type: "ok", text: `Запланировано на ${when}: ${planned.join(", ")}` });
+        setNotice(planned.length ? { type: "ok", text: `Запланировано на ${when}: ${planned.join(", ")}` } : null);
       }
       await load(true);
     } catch (scheduleError) {
@@ -944,7 +960,8 @@ export default function VideoLibraryPanel({
     const allBusy = publishingKey === `all:${item.id}`;
     const queued = queuedPlatforms(item);
     const queuedNote = item.scheduledAt ? scheduleFormatter.format(new Date(item.scheduledAt)) : "";
-    const scheduleFailed = item.scheduleStatus === "failed" && Boolean(item.scheduleError);
+    const scheduleError = visibleScheduleError(item.scheduleError);
+    const scheduleFailed = item.scheduleStatus === "failed" && Boolean(scheduleError);
     return (
       <>
       <PublishIconButton
@@ -953,7 +970,7 @@ export default function VideoLibraryPanel({
         scheduled={queued.includes("tiktok")}
         scheduledNote={queuedNote}
         failed={scheduleFailed && item.scheduleError.includes("tiktok")}
-        failureNote={item.scheduleError}
+        failureNote={scheduleError}
         disabled={!tiktok?.connected || busy || queued.includes("tiktok")}
         busy={publishingKey === `tiktok:${item.id}` || (allBusy && remaining.includes("tiktok"))}
         onClick={() => void publishToTikTok(item)}
@@ -964,7 +981,7 @@ export default function VideoLibraryPanel({
         scheduled={queued.includes("instagram")}
         scheduledNote={queuedNote}
         failed={scheduleFailed && item.scheduleError.includes("instagram")}
-        failureNote={item.scheduleError}
+        failureNote={scheduleError}
         disabled={!meta?.instagramReady || busy || queued.includes("instagram")}
         busy={publishingKey === `instagram:${item.id}` || (allBusy && remaining.includes("instagram"))}
         onClick={() => void publishToMeta(item, "instagram")}
@@ -975,7 +992,7 @@ export default function VideoLibraryPanel({
         scheduled={queued.includes("facebook")}
         scheduledNote={queuedNote}
         failed={scheduleFailed && item.scheduleError.includes("facebook")}
-        failureNote={item.scheduleError}
+        failureNote={scheduleError}
         disabled={!meta?.facebookReady || busy || queued.includes("facebook")}
         busy={publishingKey === `facebook:${item.id}` || (allBusy && remaining.includes("facebook"))}
         onClick={() => void publishToMeta(item, "facebook")}
@@ -1027,8 +1044,8 @@ export default function VideoLibraryPanel({
         published={Boolean(item.published?.pinterest)}
         scheduled={queued.includes("pinterest")}
         scheduledNote={queuedNote}
-        failed={item.pinterestState === "failed"}
-        failureNote={item.pinterestError}
+        failed={SHOW_PINTEREST_PUBLISH_ERRORS && item.pinterestState === "failed"}
+        failureNote={SHOW_PINTEREST_PUBLISH_ERRORS ? item.pinterestError : ""}
         openHint={item.published?.pinterest && item.pinterestPinId ? "открыть пин" : ""}
         disabled={
           busy ||
@@ -1380,9 +1397,9 @@ export default function VideoLibraryPanel({
                   </div>
                 ) : null}
 
-                {scheduleItem.scheduleStatus === "failed" && scheduleItem.scheduleError ? (
+                {scheduleItem.scheduleStatus === "failed" && visibleScheduleError(scheduleItem.scheduleError) ? (
                   <p className="mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-red-500">
-                    Прошлое расписание не отработало — {scheduleItem.scheduleError}
+                    Прошлое расписание не отработало — {visibleScheduleError(scheduleItem.scheduleError)}
                   </p>
                 ) : null}
 

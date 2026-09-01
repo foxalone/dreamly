@@ -39,12 +39,6 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
           </Link>
           <div className="flex items-center gap-2 sm:gap-2.5">
             <QuickSymbolFab />
-            <Link
-              href="/app/dreams"
-              className="rounded-full border border-[var(--dd-border)] px-3.5 py-2 text-xs font-medium text-[var(--dd-text-soft)] transition hover:border-violet-400/30 hover:bg-violet-400/10 hover:text-[var(--dd-text)]"
-            >
-              Open journal
-            </Link>
           </div>
         </div>
       </header>
