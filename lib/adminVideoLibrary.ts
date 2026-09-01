@@ -53,6 +53,8 @@ export type AdminVideoLibraryItem = {
   thumbnailUrl: string;
   createdAt: string;
   published: AdminVideoLibraryPublished;
+  tiktokState: AdminVideoPublishState;
+  tiktokError: string;
   threadsState: AdminVideoPublishState;
   threadsError: string;
   youtubeState: AdminVideoPublishState;

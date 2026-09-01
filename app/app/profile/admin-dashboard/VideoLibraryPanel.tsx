@@ -162,6 +162,7 @@ function PublishIconButton({
   openHint = "",
   scheduled = false,
   scheduledNote = "",
+  processing = false,
   disabled,
   busy,
   onClick,
@@ -173,6 +174,7 @@ function PublishIconButton({
   openHint?: string;
   scheduled?: boolean;
   scheduledNote?: string;
+  processing?: boolean;
   disabled: boolean;
   busy: boolean;
   onClick: () => void;
@@ -181,6 +183,8 @@ function PublishIconButton({
     ? `Уже в ${platformLabel(platform)}${openHint ? ` · ${openHint}` : ""}`
     : scheduled
       ? `Запланировано в ${platformLabel(platform)}${scheduledNote ? ` на ${scheduledNote}` : ""}${openHint ? ` · ${openHint}` : ""}`
+      : processing
+        ? `Публикуется в ${platformLabel(platform)}`
       : failed
       ? `Ошибка публикации в ${platformLabel(platform)}${failureNote ? `: ${failureNote}` : ""} · нажмите, чтобы повторить`
       : `Опубликовать в ${platformLabel(platform)}`;
@@ -206,7 +210,7 @@ function PublishIconButton({
       className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-35 ${
         published
           ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-600"
-          : scheduled
+          : scheduled || processing
             ? "border-amber-500/70 bg-amber-500/10 text-amber-600"
             : failed
             ? "border-red-500/70 bg-red-500/10 text-red-500"
@@ -230,7 +234,7 @@ function PublishIconButton({
       )}
       {published && !busy ? (
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500" />
-      ) : scheduled && !busy ? (
+      ) : (scheduled || processing) && !busy ? (
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
       ) : null}
     </button>
@@ -539,6 +543,7 @@ export default function VideoLibraryPanel({
                 pinterest: Boolean(item.published?.pinterest),
                 [platform]: true,
               },
+              ...(platform === "tiktok" ? { tiktokState: "published" as const, tiktokError: "" } : {}),
               ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
               ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
               ...(platform === "pinterest" ? { pinterestState: "published" as const, pinterestError: "" } : {}),
@@ -558,7 +563,7 @@ export default function VideoLibraryPanel({
   function pendingPlatforms(item: AdminVideoLibraryItem): Platform[] {
     const queued = queuedPlatforms(item);
     const pending: Platform[] = [];
-    if (tiktok?.connected && !item.published?.tiktok) pending.push("tiktok");
+    if (tiktok?.connected && !item.published?.tiktok && item.tiktokState !== "publishing") pending.push("tiktok");
     if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
     if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
     if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
@@ -613,7 +618,7 @@ export default function VideoLibraryPanel({
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Не удалось опубликовать в TikTok");
       }
-      markPublished(item.id, "tiktok");
+      if (payload.status === "PUBLISH_COMPLETE") markPublished(item.id, "tiktok");
       return payload.status || "done";
     }
     if (platform === "instagram" || platform === "facebook") {
@@ -695,7 +700,14 @@ export default function VideoLibraryPanel({
     setNotice(null);
     try {
       const detail = await publishVideoTo(item, "tiktok");
-      setNotice({ type: "ok", text: `Опубликовано в TikTok · ${detail}` });
+      setNotice({
+        type: "ok",
+        text:
+          detail === "PROCESSING"
+            ? "TikTok принял видео · публикация продолжается"
+            : `Опубликовано в TikTok · ${detail}`,
+      });
+      await load(true);
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
     } finally {
@@ -845,8 +857,8 @@ export default function VideoLibraryPanel({
     const settled = await Promise.all(
       targets.map(async (platform) => {
         try {
-          await publishVideoTo(item, platform);
-          return { platform, ok: true as const, detail: "" };
+          const detail = await publishVideoTo(item, platform);
+          return { platform, ok: true as const, detail };
         } catch (publishError) {
           return {
             platform,
@@ -858,17 +870,30 @@ export default function VideoLibraryPanel({
     );
     setPublishingKey("");
     await load(true);
-    const ok = settled.filter((entry) => entry.ok).map((entry) => platformLabel(entry.platform));
+    const processing = settled
+      .filter((entry) => entry.ok && entry.detail === "PROCESSING")
+      .map((entry) => platformLabel(entry.platform));
+    const ok = settled
+      .filter((entry) => entry.ok && entry.detail !== "PROCESSING")
+      .map((entry) => platformLabel(entry.platform));
     const failed = settled
       .filter((entry) => !entry.ok && (SHOW_PINTEREST_PUBLISH_ERRORS || entry.platform !== "pinterest"))
       .map((entry) => `${platformLabel(entry.platform)}: ${entry.detail}`);
     if (!failed.length) {
-      setNotice(ok.length ? { type: "ok", text: `Опубликовано: ${ok.join(", ")}` } : null);
+      const parts = [
+        ...(ok.length ? [`Опубликовано: ${ok.join(", ")}`] : []),
+        ...(processing.length ? [`Публикуется: ${processing.join(", ")}`] : []),
+      ];
+      setNotice(parts.length ? { type: "ok", text: parts.join(". ") } : null);
       return;
     }
+    const progress = [
+      ...(ok.length ? [`Опубликовано: ${ok.join(", ")}`] : []),
+      ...(processing.length ? [`Публикуется: ${processing.join(", ")}`] : []),
+    ];
     setNotice({
       type: "error",
-      text: ok.length ? `Опубликовано: ${ok.join(", ")}. Ошибки — ${failed.join("; ")}` : failed.join("; "),
+      text: progress.length ? `${progress.join(". ")}. Ошибки — ${failed.join("; ")}` : failed.join("; "),
     });
   }
 
@@ -969,9 +994,10 @@ export default function VideoLibraryPanel({
         published={Boolean(item.published?.tiktok)}
         scheduled={queued.includes("tiktok")}
         scheduledNote={queuedNote}
-        failed={scheduleFailed && item.scheduleError.includes("tiktok")}
-        failureNote={scheduleError}
-        disabled={!tiktok?.connected || busy || queued.includes("tiktok")}
+        processing={item.tiktokState === "publishing"}
+        failed={item.tiktokState === "failed" || (scheduleFailed && item.scheduleError.includes("tiktok"))}
+        failureNote={item.tiktokError || scheduleError}
+        disabled={!tiktok?.connected || busy || queued.includes("tiktok") || item.tiktokState === "publishing"}
         busy={publishingKey === `tiktok:${item.id}` || (allBusy && remaining.includes("tiktok"))}
         onClick={() => void publishToTikTok(item)}
       />

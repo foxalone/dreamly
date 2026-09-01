@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { runDueSocialPublishes } from "@/app/api/admin/_lib/socialSchedule";
+import { reconcileInFlightTikTokPublishes } from "@/app/api/admin/tiktok/_lib";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,8 @@ async function run(request: Request) {
   try {
     requireSocialPublishCronSecret(request);
     const result = await runDueSocialPublishes();
-    return NextResponse.json({ success: true, ...result });
+    const tiktok = await reconcileInFlightTikTokPublishes();
+    return NextResponse.json({ success: true, ...result, tiktok });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";
     const status = message === "UNAUTHENTICATED" ? 401 : message.includes("not configured") ? 503 : 500;

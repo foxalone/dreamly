@@ -9,6 +9,7 @@ import {
   isBufferRateLimitMessage,
   type TikTokConnectionStatus,
 } from "@/lib/adminTikTok";
+import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
 import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
@@ -194,11 +195,9 @@ function mapBufferStatus(status: string | undefined): "publishing" | "published"
   return "publishing";
 }
 
-async function waitForBufferPost(postId: string) {
-  for (let attempt = 0; attempt < 24; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 1_500 : 3_000));
-    const data = await bufferGraphql<{ post?: BufferPost }>(
-      `query GetPost($id: PostId!) {
+async function readBufferPost(postId: string) {
+  const data = await bufferGraphql<{ post?: BufferPost }>(
+    `query GetPost($id: PostId!) {
         post(input: { id: $id }) {
           id
           status
@@ -206,9 +205,15 @@ async function waitForBufferPost(postId: string) {
           error { message }
         }
       }`,
-      { id: postId },
-    );
-    const post = data.post;
+    { id: postId },
+  );
+  return data.post;
+}
+
+async function waitForBufferPost(postId: string) {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 1_500 : 3_000));
+    const post = await readBufferPost(postId);
     const mapped = mapBufferStatus(post?.status);
     if (mapped === "published") {
       return { status: "published" as const, bufferStatus: String(post?.status || "sent"), error: "" };
@@ -218,6 +223,89 @@ async function waitForBufferPost(postId: string) {
     }
   }
   return { status: "publishing" as const, bufferStatus: "sending", error: "" };
+}
+
+export async function reconcileInFlightTikTokPublishes(limit = 12) {
+  const collections = ["adminVideoJobs", AI_VIDEO_COLLECTION] as const;
+  const summary = { selected: 0, published: 0, processing: 0, failed: 0, errors: [] as string[] };
+
+  for (const collection of collections) {
+    const remaining = Math.max(0, limit - summary.selected);
+    if (!remaining) break;
+    const snapshot = await adminDb()
+      .collection(collection)
+      .where("tiktokStatus", "==", "publishing")
+      .limit(remaining)
+      .get();
+
+    for (const doc of snapshot.docs) {
+      summary.selected += 1;
+      const data = doc.data() as {
+        bufferPostId?: string;
+        bufferStatus?: string;
+        youtubeMetadata?: { title?: string };
+        topic?: string;
+      };
+      const postId = String(data.bufferPostId || "");
+      if (!postId) {
+        await doc.ref.set(
+          { tiktokStatus: "failed", tiktokError: "Buffer post id is missing" },
+          { merge: true },
+        );
+        summary.failed += 1;
+        continue;
+      }
+
+      try {
+        const post = await readBufferPost(postId);
+        const status = mapBufferStatus(post?.status);
+        const bufferStatus = String(post?.status || data.bufferStatus || "sending");
+        if (status === "publishing") {
+          await doc.ref.set({ bufferStatus }, { merge: true });
+          summary.processing += 1;
+          continue;
+        }
+        if (status === "failed") {
+          await doc.ref.set(
+            {
+              tiktokStatus: "failed",
+              tiktokError: post?.error?.message || "TikTok publish failed via Buffer",
+              bufferStatus,
+            },
+            { merge: true },
+          );
+          summary.failed += 1;
+          continue;
+        }
+
+        const publishedAt = new Date().toISOString();
+        const libraryId = `${collection === AI_VIDEO_COLLECTION ? "ai" : "free"}:${doc.id}`;
+        const title = String(data.youtubeMetadata?.title || data.topic || "Untitled video").trim();
+        await doc.ref.set(
+          {
+            tiktokPublishedAt: publishedAt,
+            tiktokStatus: "published",
+            tiktokError: "",
+            bufferStatus,
+          },
+          { merge: true },
+        );
+        await trackDreamlyPublish({
+          kind: "video",
+          assetId: libraryId,
+          platform: "tiktok",
+          title,
+          publishedAt,
+          notes: `video ${libraryId}`,
+        });
+        summary.published += 1;
+      } catch (error) {
+        summary.errors.push(`${collection}:${doc.id}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
+  return summary;
 }
 
 export async function publishLibraryVideoToTikTok(libraryId: string, adminUid: string) {

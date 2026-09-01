@@ -26,6 +26,8 @@ function titleFrom(topic: string, youtubeTitle?: string) {
 
 type PublishFields = {
   tiktokPublishedAt?: string;
+  tiktokStatus?: string;
+  tiktokError?: string;
   instagramPublishedAt?: string;
   facebookPublishedAt?: string;
   threadsPublishedAt?: string;
@@ -45,6 +47,13 @@ type PublishFields = {
   socialScheduleStatus?: string;
   socialScheduleError?: string;
 };
+
+function tiktokStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.tiktokPublishedAt) return "published";
+  const status = String(data.tiktokStatus || "");
+  if (status === "publishing" || status === "failed" || status === "published") return status;
+  return "idle";
+}
 
 function publishedFrom(data: PublishFields) {
   return {
@@ -119,6 +128,8 @@ export async function GET(request: Request) {
         youtubeMetadata?: { title?: string };
         createdAt?: { toDate?: () => Date };
         tiktokPublishedAt?: string;
+        tiktokStatus?: string;
+        tiktokError?: string;
         instagramPublishedAt?: string;
         facebookPublishedAt?: string;
         threadsPublishedAt?: string;
@@ -151,6 +162,8 @@ export async function GET(request: Request) {
         thumbnailUrl: "",
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
         published: publishedFrom(data),
+        tiktokState: tiktokStateFrom(data),
+        tiktokError: String(data.tiktokError || ""),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
         youtubeState: youtubeStateFrom(data),
@@ -174,6 +187,8 @@ export async function GET(request: Request) {
         youtubeMetadata?: { title?: string };
         createdAt?: { toDate?: () => Date };
         tiktokPublishedAt?: string;
+        tiktokStatus?: string;
+        tiktokError?: string;
         instagramPublishedAt?: string;
         facebookPublishedAt?: string;
         threadsPublishedAt?: string;
@@ -206,6 +221,8 @@ export async function GET(request: Request) {
         thumbnailUrl: String(data.thumbnailUrl || ""),
         createdAt: iso(data.createdAt) ?? new Date(0).toISOString(),
         published: publishedFrom(data),
+        tiktokState: tiktokStateFrom(data),
+        tiktokError: String(data.tiktokError || ""),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
         youtubeState: youtubeStateFrom(data),
