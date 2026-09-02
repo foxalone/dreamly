@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
+import { Trash2 } from "lucide-react";
 import {
   PINTEREST_BOARD_NAME,
   QUEUED_SCHEDULE_PLATFORMS,
@@ -299,6 +300,34 @@ function VideoTile({
   );
 }
 
+function DeleteVideoButton({
+  busy,
+  disabled,
+  onClick,
+}: {
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const label = busy ? "Удаляем видео…" : "Удалить видео";
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      disabled={disabled || busy}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+      }}
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-red-500/70 bg-black/45 text-red-400 transition hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+    >
+      {busy ? <span className="text-[10px] font-bold">…</span> : <Trash2 className="h-3.5 w-3.5" aria-hidden />}
+    </button>
+  );
+}
+
 export default function VideoLibraryPanel({
   user,
   view = "library",
@@ -318,6 +347,7 @@ export default function VideoLibraryPanel({
   const [connecting, setConnecting] = useState<"" | Connection>("");
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
+  const [deletingId, setDeletingId] = useState("");
   const [scheduleFor, setScheduleFor] = useState("");
   const [scheduleMode, setScheduleMode] = useState<"youtube" | "all">("youtube");
   const [scheduleAt, setScheduleAt] = useState("");
@@ -369,10 +399,10 @@ export default function VideoLibraryPanel({
   useEffect(() => {
     void load();
     const timer = window.setInterval(() => {
-      if (!publishingKey) void load(true);
+      if (!publishingKey && !deletingId) void load(true);
     }, 15_000);
     return () => window.clearInterval(timer);
-  }, [load, publishingKey]);
+  }, [deletingId, load, publishingKey]);
 
   useEffect(() => {
     if (view !== "connections") return;
@@ -555,7 +585,43 @@ export default function VideoLibraryPanel({
   }
 
   function cardBusy(itemId: string) {
-    return publishingKey.endsWith(`:${itemId}`);
+    return deletingId === itemId || publishingKey.endsWith(`:${itemId}`);
+  }
+
+  async function deleteVideo(item: AdminVideoLibraryItem) {
+    if (cardBusy(item.id)) return;
+    const confirmed = window.confirm(
+      `Удалить «${item.title}» навсегда?\n\nВидео и превью будут удалены из библиотеки. Копии, уже отправленные в соцсети, останутся там.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(item.id);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/video-library", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось удалить видео");
+      }
+      setItems((current) => current.filter((entry) => entry.id !== item.id));
+      setScheduleFor((current) => (current === item.id ? "" : current));
+      setNotice({ type: "ok", text: "Видео удалено из библиотеки." });
+    } catch (deleteError) {
+      setNotice({
+        type: "error",
+        text: deleteError instanceof Error ? deleteError.message : "Ошибка удаления",
+      });
+    } finally {
+      setDeletingId("");
+    }
   }
 
   // What "All" still has to do: connected, not published yet and not already
@@ -1108,6 +1174,11 @@ export default function VideoLibraryPanel({
       >
         {busy ? "…" : "All"}
       </button>
+      <DeleteVideoButton
+        busy={deletingId === item.id}
+        disabled={busy || item.scheduleStatus === "running"}
+        onClick={() => void deleteVideo(item)}
+      />
     </>
     );
   };

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getStorage } from "firebase-admin/storage";
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import {
   sourceLabelFor,
@@ -8,7 +9,14 @@ import {
 } from "@/lib/adminVideoLibrary";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { scheduleStatusFrom, scheduledPlatformsFrom, type ScheduleJobData } from "@/app/api/admin/_lib/socialSchedule";
-import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { adminDb, adminRtdb, ensureAdmin } from "@/app/api/admin/_lib/firebaseAdmin";
+import {
+  SOCIAL_SCHEDULE_ASSETS_NODE,
+  SOCIAL_SCHEDULE_FIELD,
+  isProcessingPublishStatus,
+  queueIdForLibraryId,
+  readScheduleNode,
+} from "@/lib/socialScheduleQueue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -243,5 +251,61 @@ export async function GET(request: Request) {
     const status = message === "UNAUTHENTICATED" ? 401 : message === "FORBIDDEN" ? 403 : 500;
     if (status === 500) console.error("[admin/video-library]", error);
     return NextResponse.json({ error: status === 500 ? "Unable to load video library" : message }, { status });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await requireAdmin(request);
+    const body = (await request.json().catch(() => ({}))) as { libraryId?: string };
+    const libraryId = String(body.libraryId || "").trim();
+    if (!/^(free|ai):[A-Za-z0-9_-]{6,128}$/.test(libraryId)) {
+      return NextResponse.json({ error: "Invalid libraryId" }, { status: 400 });
+    }
+
+    const [kind, jobId] = libraryId.split(":") as ["free" | "ai", string];
+    const collection = kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION;
+    const jobRef = adminDb().collection(collection).doc(jobId);
+    const queueRef = adminRtdb().ref(`${SOCIAL_SCHEDULE_ASSETS_NODE}/${queueIdForLibraryId(libraryId)}`);
+    const [snapshot, queueSnapshot] = await Promise.all([jobRef.get(), queueRef.get()]);
+    if (!snapshot.exists) {
+      return NextResponse.json({ error: "Видео уже удалено" }, { status: 404 });
+    }
+
+    const data = snapshot.data() as Record<string, unknown>;
+    const queuedSchedule = readScheduleNode(queueSnapshot.child(SOCIAL_SCHEDULE_FIELD).val());
+    const publicationRunning =
+      data.socialScheduleStatus === "running" ||
+      queuedSchedule?.status === "running" ||
+      data.youtubeStatus === "uploading" ||
+      isProcessingPublishStatus(data.tiktokStatus) ||
+      isProcessingPublishStatus(data.instagramStatus) ||
+      isProcessingPublishStatus(data.facebookStatus) ||
+      isProcessingPublishStatus(data.threadsStatus) ||
+      isProcessingPublishStatus(data.youtubeStatus);
+    if (publicationRunning) {
+      return NextResponse.json(
+        { error: "Сейчас видео публикуется. Дождитесь окончания публикации и повторите удаление." },
+        { status: 409 },
+      );
+    }
+
+    const storagePaths =
+      kind === "free"
+        ? [`admin-videos/${jobId}.mp4`]
+        : [`admin-ai-videos/${jobId}/video.mp4`, `admin-ai-videos/${jobId}/thumbnail.jpg`];
+    const bucket = getStorage(ensureAdmin()).bucket();
+    await Promise.all([
+      ...storagePaths.map((storagePath) => bucket.file(storagePath).delete({ ignoreNotFound: true })),
+      queueRef.remove(),
+    ]);
+    await jobRef.delete();
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    const status = message === "UNAUTHENTICATED" ? 401 : message === "FORBIDDEN" ? 403 : 500;
+    if (status === 500) console.error("[admin/video-library:delete]", error);
+    return NextResponse.json({ error: status === 500 ? "Не удалось удалить видео" : message }, { status });
   }
 }
