@@ -1067,7 +1067,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does it mean when you dream of your ex",
       "what do dreams about my ex mean",
     ],
-    relatedSymbols: ["cheating", "wedding", "kissing", "mother"],
+    relatedSymbols: ["cheating", "wedding", "kissing", "mother", "sex"],
     variations: [
       { slug: "ex-boyfriend", name: "an ex-boyfriend", focus: "unfinished emotion, a pattern from that relationship echoing in your current life" },
       { slug: "ex-girlfriend", name: "an ex-girlfriend", focus: "nostalgia, comparison with the present, or an unresolved question from a past bond" },
@@ -1096,7 +1096,7 @@ const CLUSTERS: ClusterSeed[] = [
       "cheating dream meaning",
       "meaning of dreams cheating",
     ],
-    relatedSymbols: ["ex", "wedding", "kissing"],
+    relatedSymbols: ["ex", "wedding", "kissing", "sex"],
     variations: [
       { slug: "partner-cheating", name: "your partner cheating", focus: "insecurity, fear of abandonment, or unmet needs in the relationship — not evidence of real betrayal" },
       { slug: "cheating-on-partner", name: "cheating on your partner", focus: "guilt, an unmet desire, a divided commitment, or attention pulled away from the relationship" },
@@ -1123,7 +1123,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does a wedding dream mean",
       "wedding dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating"],
+    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1150,7 +1150,7 @@ const CLUSTERS: ClusterSeed[] = [
       "biblical meaning of kiss in a dream",
       "kiss in a dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "wedding"],
+    relatedSymbols: ["ex", "cheating", "wedding", "sex"],
     variations: [
       { slug: "kissing-a-stranger", name: "kissing a stranger", focus: "attraction to something unfamiliar, a new possibility, or an unacknowledged desire" },
       { slug: "kissing-an-ex", name: "kissing an ex", focus: "nostalgia, unresolved attraction, or reconnecting with who you were in that relationship" },
@@ -1158,6 +1158,55 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "being-kissed-unexpectedly", name: "being kissed unexpectedly", focus: "surprise affection, crossed boundaries, or attention you had not anticipated" },
       { slug: "refusing-a-kiss", name: "refusing a kiss", focus: "boundaries, self-respect, or declining an intimacy that does not feel right" },
       { slug: "kissing-a-celebrity", name: "kissing a celebrity", focus: "aspiration, a desire for recognition, or attraction to qualities the person represents" },
+    ],
+  },
+  {
+    slug: "sex",
+    name: "sex",
+    category: "people",
+    icon: "🛏️",
+    accent: "#db2777",
+    summary: "desire, intimacy, power, vulnerability, and the parts of yourself or others you want to be closer to",
+    updatedAt: "2026-09-02",
+    aliases: [
+      "sexual dream",
+      "sex dreams",
+      "erotic dream",
+      "dream about having sex",
+      "having sex in a dream",
+      "sexual dreams meaning",
+      "what does it mean when you have a sex dream",
+      "meaning of sexual dreams",
+      "sex dream interpretation",
+    ],
+    relatedSymbols: ["cheating", "kissing", "ex", "wedding", "being-naked"],
+    variations: [
+      {
+        slug: "sex-with-a-coworker",
+        name: "sex with a coworker",
+        focus: "recognition, power, proximity, and admiration at work rather than literal attraction to the person",
+        aliases: [
+          "having sex with coworker in a dream",
+          "having sex with a coworker",
+          "dream about having sex with a coworker",
+          "sex dream about coworker",
+          "dreaming about sleeping with a coworker",
+          "dream about sleeping with a coworker",
+          "sex dream about a colleague",
+          "what does it mean when you dream about having sex with a coworker",
+          "sexual dream about coworker",
+          "sex with a colleague",
+          "sleeping with a coworker",
+          "sleeping with a colleague",
+          "dream about sleeping with a colleague",
+        ],
+      },
+      { slug: "sex-with-an-ex", name: "sex with an ex", focus: "unfinished attachment, nostalgia for who you were with them, or a need that relationship once met" },
+      { slug: "sex-with-a-stranger", name: "sex with a stranger", focus: "curiosity about an unfamiliar part of yourself, novelty, or a desire that does not yet have a name" },
+      { slug: "sex-with-a-friend", name: "sex with a friend", focus: "closeness deepening, blurred boundaries, or a quality in them you want nearer to your own life" },
+      { slug: "sex-with-your-boss", name: "sex with your boss", focus: "power, approval, and ambition — wanting authority's attention more than the person who holds it" },
+      { slug: "sex-with-someone-you-dislike", name: "sex with someone you dislike", focus: "a rejected trait demanding integration, or conflict that carries more charge than you admit" },
+      { slug: "sex-with-your-partner", name: "sex with your partner", focus: "reassurance, repair, or a wish for closeness that ordinary life has been crowding out" },
     ],
   },
   {
@@ -1421,7 +1470,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreams about being naked in public",
       "dream interpretation naked in public",
     ],
-    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror", "trapped"],
+    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror", "trapped", "sex"],
     variations: [
       { slug: "naked-at-school", name: "being naked at school", focus: "performance anxiety, fear of judgment, or old social insecurities resurfacing" },
       { slug: "naked-at-work", name: "being naked at work", focus: "professional vulnerability, imposter feelings, or fear of being exposed as unprepared" },
@@ -1449,7 +1498,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of working",
       "working dream meaning",
     ],
-    relatedSymbols: ["money", "school", "father", "lottery", "debt"],
+    relatedSymbols: ["money", "school", "father", "lottery", "debt", "sex-with-a-coworker"],
     variations: [
       { slug: "being-fired", name: "being fired", focus: "insecurity about your position, fear of rejection, or readiness to leave a role that no longer fits" },
       { slug: "being-late-for-work", name: "being late for work", focus: "fear of falling short, overload, or anxiety about meeting relentless expectations" },
@@ -2253,6 +2302,88 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  sex: {
+    introduction: [
+      "Sex dreams are among the most common dreams people never discuss. Content studies find explicitly sexual dreams in a small but steady share of everyone's dream life, in every age group and every relationship status, and the casting is frequently inconvenient: a coworker, a friend, an ex, a public figure, someone you actively dislike, someone whose gender is not who you are usually attracted to. The distress these dreams cause is almost never about the dream itself. It is about the assumption that the dream is a confession.",
+      "It is worth stating the correction plainly, because it does most of the interpretive work: desire inside a dream is not a reliable report of desire outside one. Dreams build scenes out of whoever is emotionally available in memory, and they use sex the way language uses it — as the strongest image available for merging, wanting, closeness, and power. The useful question is almost never 'do I want them?' It is 'what does joining with that person represent right now?'",
+    ],
+    general: [
+      "Read three things before the plot: who appeared, what you felt, and what is currently changing in your life. The emotion is the interpretation. Excitement points toward vitality, novelty, or something you want more of; guilt points toward a divided loyalty that may have nothing to do with sex; embarrassment points to exposure and how you fear being seen; sadness usually points to a closeness that is missing. A dream that felt neutral or transactional often reads as a merger you are considering — a job, a partnership, a commitment — rather than an attraction.",
+      "Then check the trigger radius, which is usually short. These dreams cluster after intense shared experience of any kind (a deadline, a crisis, a long trip), after a change in your own status or body, in the early phase of a new relationship, during long stretches without physical closeness, after watching something charged, and during pregnancy or hormonal shifts. Physiology contributes too: arousal occurs during REM sleep regardless of dream content, so the body can supply the sensation and the mind can supply a face to explain it.",
+    ],
+    psychological: [
+      "Freud made sex the hidden meaning behind other symbols; modern dream research largely runs the other direction, finding that sex in dreams is more often the symbol than the secret. The continuity hypothesis — the best-supported principle in dream-content research — holds that dreams reflect waking preoccupations and the people you actually spend time around, which explains why dream partners skew heavily toward current partners, recent acquaintances, and colleagues rather than idealized strangers. Proximity, not preference, does much of the casting.",
+      "Jung's reading remains the most practically useful: sexual union in a dream frequently dramatizes integration — an attempt to take in a quality the other figure carries, such as confidence, ease, authority, playfulness, or recklessness. That framework explains the dreams people find most disturbing, including sexual dreams about someone they dislike, someone unavailable, or someone of a gender they are not attracted to. Researchers are consistent on this point: dream content is not a diagnostic of sexual orientation, and a single dream tells you far less about your desires than an ordinary honest afternoon does.",
+    ],
+    spiritual: [
+      "Spiritual traditions have long used union as their central image for something other than sex: the soul and the divine, the self and its missing half, the joining of opposites into a whole. Read in that register, a sex dream asks what you are joining yourself to, and whether the union is one you would choose while awake. Dreamers who cannot connect such a dream to attraction very often connect it instantly to a merger of another kind — a partnership, a move, a commitment, a version of themselves they are being asked to accept.",
+      "The traditions also draw a firm line that spares a lot of unnecessary guilt: an involuntary dream is not a chosen act. What is spiritually meaningful is not the dream's plot but what you do with your waking attention afterward — whether the dream reveals a longing you have been neglecting, a boundary you have been quietly eroding, or simply a body and mind doing ordinary nocturnal work that deserves no verdict at all.",
+    ],
+    islamic: [
+      "Islamic tradition classes most such dreams as hadith an-nafs — the self's own talk, produced by preoccupation and physiology — or as the whisperings of shaytan when they cause distress. A dream carries no legal or moral weight: it is not evidence about another person, not permission for anything forbidden, and not a sin in itself, since the sleeper is not accountable for what is not chosen. The etiquette for a disturbing dream applies: seek refuge in Allah, do not narrate it, and give it no authority over your day.",
+      "The tradition treats the practical side matter-of-factly. Ihtilam, a wet dream, obliges ghusl before prayer and is treated as an ordinary bodily matter rather than a moral failing, for men and women alike. Where the dream does reflect a real inclination that has been nurtured while awake — a gaze not lowered, a conversation allowed to drift — the response is the familiar one: repentance, closing the door that fitnah entered through, and investing in what is lawful, rather than examining the dream for messages.",
+    ],
+    biblical: [
+      "Scripture is not squeamish about desire — the Song of Songs is an unembarrassed love poem inside the canon — and it locates moral weight in the will rather than in involuntary experience. The teaching that a man who 'looks with lust has already committed adultery in his heart' addresses deliberate waking attention, not the images a sleeping mind assembles without consent. Many believers carry unnecessary shame about sexual dreams because they apply a verse about intention to something intention never touched.",
+      "The constructive biblical question is directional: where is your heart actually oriented while awake, and does the dream point to anything you have been feeding? Sometimes it does — a friendship being allowed to blur, a marriage running on neglect, a hunger for admiration you have been seeking in the wrong rooms. Sometimes it points to nothing at all. Scripture's counsel, guard your heart, is about the daily direction of attention; the dream is at most a prompt to check it, never a verdict on it.",
+    ],
+    commonScenarios: [
+      { title: "A Coworker", meaning: "The most reported and most awkward version, because you have to see them at ten the next morning. Proximity and shared intensity make colleagues frequent dream characters, and the theme is usually recognition, rivalry, or power at work rather than attraction." },
+      { title: "An Ex", meaning: "Rarely a wish to return. More often the dream is reaching for something that relationship supplied — being wanted, feeling young, an intensity the present lacks — and using the most direct image available to say so." },
+      { title: "A Stranger With No Face", meaning: "An unnamed figure usually stands for a possibility rather than a person: something new you are drawn toward, or a part of yourself you have not met yet. These dreams cluster around transitions and periods of restlessness." },
+      { title: "Someone You Find Repellent", meaning: "Distressing and almost never literal. A rejected figure often carries a rejected quality — bluntness, selfishness, ambition — that your life is currently demanding you take on. The dream stages integration in the crudest way it knows." },
+      { title: "Someone of a Gender You Are Not Attracted To", meaning: "Common, and not a verdict on orientation. Dream researchers are clear that content is a poor diagnostic of waking preference; such dreams more often reflect admiration, envy, or a trait you want to absorb from that person." },
+      { title: "Your Own Partner", meaning: "Frequently overlooked, and the healthiest of the set. It usually tracks connection, reassurance after conflict, or a straightforward wish for closeness that a busy stretch has been squeezing out." },
+    ],
+    faq: [
+      { question: "Does a sex dream mean I actually want that person?", answer: "Usually not. Dreams cast whoever is emotionally available in recent memory, and they use sex as a general image for closeness, merging, and power. Ask what that person represents to you — competence, attention, danger, comfort — and the dream normally explains itself without implicating your desires." },
+      { question: "I had a sex dream about someone of the same sex. Does that mean I'm gay?", answer: "Dream content is not a reliable indicator of sexual orientation, and dreams that cross a dreamer's usual attractions are common. Orientation is about waking, sustained attraction, not one night's imagery. If the dream did surface a real question for you, that question is worth exploring honestly and in your own time — but the dream alone answers nothing." },
+      { question: "Should I tell my partner about a sex dream?", answer: "There is no rule, only tone. Shared lightly, these dreams are often funny and harmless; delivered as a confession, they can create an insecurity that did not exist. If the dream exposed a real need — attention, novelty, more closeness — raise the need, which is actionable, rather than the dream, which is not." },
+      { question: "Why do I have sex dreams about people I don't like?", answer: "Because the dream is rarely about attraction. Antagonists carry traits you have refused in yourself, and conflict generates emotional charge that the dreaming mind can recode as sexual. These versions often appear during exactly the period when you are being pushed to become more like the person you find difficult." },
+      { question: "Why do I keep having sex dreams?", answer: "Frequency tracks waking life more than psychology: new relationships, long periods without closeness, hormonal shifts, pregnancy, intense shared work, and disrupted sleep all raise the rate. If they recur with one specific person, look at what that person represents to you rather than assuming the dream is a message about them." },
+    ],
+  },
+  "sex-with-a-coworker": {
+    introduction: [
+      "Dreaming about having sex with a coworker is one of the most common — and most quietly panic-inducing — dreams adults report. You wake up embarrassed, replay it during the commute, and then have to sit across a table from that person at a 10 a.m. meeting behaving normally. The first thing to know is how ordinary it is: you spend more waking hours with colleagues than with almost anyone else, and dreams draw their cast from whoever occupies your attention.",
+      "The second thing is that the dream is usually about the workplace rather than the person. Offices concentrate exactly the ingredients dreams convert into intimacy: proximity, repetition, shared stress, hierarchy, competition, being evaluated, and the constant low-grade question of whether you are respected. A dream that stages all of that as sex is doing what dreams do — using the strongest available image for closeness and power to describe something that is not, in waking life, about either sex or that colleague.",
+    ],
+    general: [
+      "Start with which coworker, because the role usually carries the meaning. Someone senior tends to encode approval, authority, and being taken seriously. A peer you compete with turns rivalry into charge — the dream borrowing the vocabulary of desire for a contest of standing. A new hire often marks novelty or change arriving in your working life. Someone whose competence you admire commonly represents a quality you want to absorb rather than a person you want. And occasionally, of course, it is simple attraction you have not admitted to yourself; the dream does not rule that out, it just does not prove it either.",
+      "Then read the setting and your reaction. Whether the dream happened at the office or somewhere neutral usually tells you if the theme is professional or personal. Whether you were hiding it, and from whom, often names the real anxiety — being seen, being judged, losing standing. Excitement points to vitality or ambition that may have nothing to do with the person; guilt tends to point at a divided loyalty; embarrassment on waking is almost always about your professional image rather than your desires. And note the timing: these dreams cluster around promotions, reviews, new teams, long projects, and any stretch where work has been consuming most of your emotional bandwidth.",
+    ],
+    psychological: [
+      "Two well-established findings explain most of these dreams. The continuity hypothesis holds that dream content tracks waking preoccupation and waking contact — which places coworkers near the top of the dream-casting list for anyone employed full time. Alongside it sits the mere-exposure effect: repeated familiarity increases both liking and cognitive availability, so the people you see daily become the people your sleeping brain reaches for when it needs a character. Neither mechanism has anything to do with attraction.",
+      "The interpretive layer is Jung's: sexual union in a dream often depicts integration — taking in a quality the other figure carries. Coworkers are unusually rich for this, since we know them primarily through traits: the one who is unflappable in meetings, the one who says the blunt thing, the one everyone listens to. Ask what that colleague is good at, and whether your current work is demanding exactly that from you. There is also a plainer mechanism worth naming: intense shared experience produces physiological arousal, and misattributed arousal is a documented phenomenon in waking life too. A crisis project generates a charge; the dream simply gives it the wrong caption.",
+    ],
+    spiritual: [
+      "Read spiritually, the dream asks what you are joining yourself to. Work is where many people quietly merge with an identity — a title, a team, an ambition — and a dream that stages that merger as intimacy can be asking whether the union is one you would choose consciously. It is a fair question to sit with: how much of yourself has the job taken, and is the closeness you want actually available at your desk?",
+      "The other spiritual reading concerns boundaries, and it deserves honesty in both directions. If nothing in waking life is drifting, the dream is noise and should be treated as such rather than as evidence of a hidden failing. If something is drifting — a friendship at work that has become the most emotionally alive part of your week, attention you look forward to more than you admit — the dream is not condemning you, but it is naming something that is easier to address now than later. Involuntary imagery carries no guilt; waking choices do.",
+    ],
+    islamic: [
+      "In Islamic terms this dream would generally be classed as hadith an-nafs — the self's own talk, generated by the hours you spend with these people — or as a distressing whispering. It is not evidence about your colleague, not something to narrate to anyone (least of all at work), and not a sin, since a sleeper is not held accountable for what is unchosen. The etiquette is the standard one: seek refuge in Allah, do not dwell on it, and let it hold no authority over how you treat that person the next day.",
+      "The tradition's practical guidance fits the workplace well. Ihtilam obliges ghusl before prayer and is treated as an ordinary bodily matter, not a moral one. Where the dream reflects something real that has been nurtured awake — a gaze not lowered, a private closeness allowed to grow with a colleague — the response is repentance and re-establishing boundaries at work: keeping interactions professional, avoiding seclusion, and investing that attention in what is lawful. Where nothing of the kind exists, the dream requires nothing but being ignored.",
+    ],
+    biblical: [
+      "The Bible's paradigmatic workplace-attraction story is Joseph in Potiphar's household, and it is instructive precisely because it locates the moral weight in conduct: Joseph is not judged for being desired or for being in proximity, but is honored for what he does — he refuses and he leaves the room. Scripture's concern with lust addresses deliberate waking attention, not the scenes a sleeping mind assembles, which is why involuntary dreams are poor material for guilt.",
+      "That said, the biblical instinct to guard the heart translates well into a modern office. If the dream sits alongside a real and growing attachment, the wise response is structural rather than emotional: fewer private channels, fewer late nights alone with one person, more honesty with a spouse or a trusted friend. If the dream sits alongside nothing at all — which is the usual case — the biblical response is grace: receive it as noise, extend yourself the mercy scripture extends, and go to your meeting."
+    ],
+    commonScenarios: [
+      { title: "A Coworker You Are Not Even Attracted To", meaning: "The most common version and the most reassuring one. Attraction is not required for dream casting; availability is. This variant almost always points to a trait — competence, confidence, ease with authority — that your working life is currently asking you to develop." },
+      { title: "Your Boss", meaning: "Power rather than desire. Dreams about a superior typically stage the wish to be seen, valued, or judged favorably by authority, and they spike around reviews, promotions, and periods of feeling overlooked. The intimacy is a stand-in for access." },
+      { title: "A Coworker You Compete With", meaning: "Rivalry generates the same intensity as attraction, and dreams frequently confuse the two. This version often surfaces when you are measuring yourself against someone — for a role, for recognition, for the room's respect." },
+      { title: "Being Caught at the Office", meaning: "When the dream's emphasis is on discovery rather than the act, the theme is exposure: fear of being seen as unprofessional, or of some other thing about you at work becoming visible. It is a cousin of the classic naked-at-work dream." },
+      { title: "A Coworker You Genuinely Have Feelings For", meaning: "Here the dream may be reporting accurately, and pretending otherwise helps no one. The useful work is waking work: what you actually want, what it would cost, what boundaries your situation requires. The dream did not create the situation; it summarized it." },
+      { title: "The Same Colleague, Again and Again", meaning: "Recurrence means something is unresolved in the working relationship — unspoken tension, admiration you have not acknowledged, a power imbalance that grates, or attention you want from them and are not getting. The repetition is about the unfinished question, not about the person." },
+    ],
+    faq: [
+      { question: "Does dreaming about sex with a coworker mean I'm attracted to them?", answer: "Usually not. Dreams cast the people you spend the most hours around, and they use sex as an image for closeness, power, and merging. Test it against waking life: if you feel nothing for them during the day, the dream was about work — recognition, rivalry, or a quality of theirs you want — not about desire." },
+      { question: "How do I act normal around them now?", answer: "Assume the awkwardness is entirely yours; they have no idea, and nothing about your working relationship has changed. Do not overcorrect by becoming cold or by joking about it. Most people find the residue fades within a day or two, and treating the dream as information about your own week rather than about them speeds that up considerably." },
+      { question: "Should I tell my partner?", answer: "Only if it helps you rather than burdens them. A light mention is usually harmless; a confession-toned one can plant an insecurity where none belonged. If the dream pointed at a real need — feeling desired, feeling appreciated, more time together — bring the need, not the dream, into the conversation." },
+      { question: "Why did I dream this about someone I don't even like?", answer: "Because disliking someone is an intense relationship too, and intensity is what dreams recruit. Antagonists commonly carry traits you have refused in yourself; the dream stages absorbing them in the crudest available image. It is closer to an argument than to attraction." },
+      { question: "Should I be worried that it keeps happening?", answer: "Recurring dreams about one colleague point to an unresolved question in that relationship — admiration, competition, an imbalance of power, or attention you want and are not receiving. Naming it honestly, at least to yourself, tends to end the series. If there is a genuine attraction, the dream is not the problem to solve; the waking situation is." },
+    ],
+  },
   "plane-crash": {
     introduction: [
       "A plane crash dream can be intensely vivid, but it is not a prediction of a real accident. Air travel places passengers inside a large system they cannot personally steer, so a crash often gives dramatic form to a fear about trust, control, ambition, or a plan that feels too important to fail. The dream may appear before a major decision, during an uncertain transition, after stressful travel news, or whenever events seem to be moving faster and higher than your confidence can comfortably support.",
@@ -4264,6 +4395,16 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  sex: {
+    seoTitle: "Sex Dream Meaning: Desire, Power & Self-Integration",
+    seoDescription:
+      "Dreams about sex are rarely literal — what they reveal about closeness, power and integration, plus psychological, spiritual, Islamic and biblical readings.",
+  },
+  "sex-with-a-coworker": {
+    seoTitle: "Sex Dream About a Coworker: Why It Happens & What It Means",
+    seoDescription:
+      "Dreams about having sex with a coworker are rarely about attraction — recognition, power, proximity and rivalry at work, and how to feel normal again.",
+  },
   eating: {
     seoTitle: "Eating in a Dream Meaning: Hunger, Comfort & Receiving",
     seoDescription:
