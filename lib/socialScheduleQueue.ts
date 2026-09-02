@@ -11,7 +11,6 @@ export const SOCIAL_SCHEDULE_PLATFORMS = [
   "instagram",
   "facebook",
   "threads",
-  "pinterest",
 ] as const;
 
 export type SocialSchedulePlatform = (typeof SOCIAL_SCHEDULE_PLATFORMS)[number];
@@ -57,6 +56,35 @@ export function normalizeSchedulePlatforms(value: unknown): SocialSchedulePlatfo
   const source = Array.isArray(value) ? value : [];
   const selected = new Set(source.filter(isSocialSchedulePlatform));
   return SOCIAL_SCHEDULE_PLATFORMS.filter((platform) => selected.has(platform));
+}
+
+export function notificationPublishedPlatforms(
+  published: unknown,
+  video: {
+    youtubePublishedAt?: unknown;
+    youtubeScheduledAt?: unknown;
+    youtubeStatus?: unknown;
+  },
+  scheduledAt: string,
+) {
+  const result: string[] = normalizeSchedulePlatforms(published);
+  const youtubePublishedAt = normalizedText(video.youtubePublishedAt);
+  const youtubeScheduledAt = normalizedText(video.youtubeScheduledAt);
+  const youtubeStatus = normalizedText(video.youtubeStatus);
+  const scheduledAtMs = Date.parse(scheduledAt);
+  const youtubeScheduledAtMs = Date.parse(youtubeScheduledAt);
+  const belongsToThisSchedule =
+    Number.isFinite(scheduledAtMs) &&
+    Number.isFinite(youtubeScheduledAtMs) &&
+    scheduledAtMs === youtubeScheduledAtMs;
+
+  // YouTube never enters our cron queue: it releases a native scheduled upload
+  // itself. Still include it in the Telegram summary when it is already live,
+  // or when this exact batch was successfully handed to YouTube.
+  if (youtubePublishedAt || (youtubeStatus === "scheduled" && belongsToThisSchedule)) {
+    result.push("youtube");
+  }
+  return result;
 }
 
 function normalizedText(value: unknown) {

@@ -82,6 +82,21 @@ test("successful finish deletes scheduledAt with a real null", () => {
   assert.equal(finish.update.status, "done");
 });
 
+test("Pinterest is ignored and YouTube is included in the Telegram summary", () => {
+  assert.deepEqual(model.normalizeSchedulePlatforms(["tiktok", "pinterest"]), ["tiktok"]);
+  assert.deepEqual(
+    model.notificationPublishedPlatforms(
+      ["tiktok"],
+      {
+        youtubeStatus: "scheduled",
+        youtubeScheduledAt: "2026-08-31T09:55:00.000Z",
+      },
+      "2026-08-31T09:55:00.000Z",
+    ),
+    ["tiktok", "youtube"],
+  );
+});
+
 test("processing container is retained for the next tick", () => {
   const finish = model.buildFinishUpdate(
     {

@@ -8,6 +8,7 @@ import {
   buildFinishUpdate,
   isScheduleClaimable,
   isProcessingPublishStatus,
+  notificationPublishedPlatforms,
   normalizeSchedulePlatforms,
   readScheduleNode,
 } from "./socialScheduleQueue";
@@ -55,10 +56,38 @@ test("холодный null не отменяет transaction до чтения 
 });
 
 test("нормализация удаляет дубли и неизвестные площадки", () => {
-  assert.deepEqual(normalizeSchedulePlatforms(["facebook", "myspace", "tiktok", "facebook"]), [
+  assert.deepEqual(normalizeSchedulePlatforms(["facebook", "pinterest", "myspace", "tiktok", "facebook"]), [
     "tiktok",
     "facebook",
   ]);
+});
+
+test("Telegram-отчёт добавляет отдельно запланированный YouTube", () => {
+  assert.deepEqual(
+    notificationPublishedPlatforms(
+      ["tiktok", "instagram", "facebook", "threads"],
+      {
+        youtubeStatus: "scheduled",
+        youtubeScheduledAt: "2026-08-31T09:55:00.000Z",
+      },
+      "2026-08-31T09:55:00.000Z",
+    ),
+    ["tiktok", "instagram", "facebook", "threads", "youtube"],
+  );
+});
+
+test("Telegram-отчёт не добавляет YouTube из другого расписания", () => {
+  assert.deepEqual(
+    notificationPublishedPlatforms(
+      ["tiktok"],
+      {
+        youtubeStatus: "scheduled",
+        youtubeScheduledAt: "2026-08-31T10:55:00.000Z",
+      },
+      "2026-08-31T09:55:00.000Z",
+    ),
+    ["tiktok"],
+  );
 });
 
 test("остаток по бюджету возвращается в pending без удаления scheduledAt", () => {

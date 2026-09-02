@@ -17,6 +17,7 @@ import {
   buildClaimTransactionUpdate,
   buildFinishUpdate,
   isScheduleClaimable,
+  notificationPublishedPlatforms,
   normalizeSchedulePlatforms,
   queueIdForLibraryId,
   readScheduleNode,
@@ -28,7 +29,6 @@ import { adminDb, adminRtdb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
 import { notifyTelegram } from "@/app/api/admin/_lib/telegram";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
-import { publishLibraryVideoToPinterest } from "@/app/api/admin/pinterest/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
 import { publishLibraryVideoToTikTok } from "@/app/api/admin/tiktok/_lib";
 import { normalizePublishAt, publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
@@ -45,6 +45,9 @@ export type ScheduleJobData = {
   socialScheduleAttempts?: number;
   socialSchedulePublished?: string[];
   socialScheduleFailures?: Record<string, string>;
+  youtubePublishedAt?: string;
+  youtubeScheduledAt?: string;
+  youtubeStatus?: string;
   youtubeMetadata?: { title?: string };
   topic?: string;
 } & Record<string, unknown>;
@@ -110,7 +113,6 @@ async function publishOne(
       deadlineMs: Math.min(deadlineMs, Date.now() + META_PLATFORM_BUDGET_MS),
     });
   }
-  if (platform === "pinterest") return publishLibraryVideoToPinterest(libraryId, "scheduler");
   throw new Error(`Platform ${platform} is not queued`);
 }
 
@@ -447,11 +449,15 @@ async function runDueJob(item: DueSchedule, deadlineMs: number) {
   }));
   const finalPending = normalizeSchedulePlatforms(finish.update.platforms || []);
   if (finish.outcome === "failed") {
+    const current = ((await ref.get()).data() || {}) as ScheduleJobData;
+    const notificationPublished = notificationPublishedPlatforms(published, current, claimed.scheduledAt);
     await notifyTelegram(
       [
         "❌ Отложенная публикация не удалась",
         item.title,
-        published.length ? `Вышло: ${published.join(", ")}` : "Не вышло ни на одной площадке",
+        notificationPublished.length
+          ? `Вышло: ${notificationPublished.join(", ")}`
+          : "Не вышло ни на одной площадке",
         ...failedList.map((entry) => `• ${entry.platform}: ${entry.error}`),
         `Повторить можно с карточки в админке: ${item.libraryId}`,
       ].join("\n"),

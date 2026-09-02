@@ -75,11 +75,12 @@ npm run ai-image-worker
 The `All` button on a video card opens a sheet with two ways out: publish to every
 connected network right away, or pick one moment for all of them. YouTube takes the
 scheduled moment natively — the file is uploaded private and YouTube flips it public
-at `status.publishAt`. TikTok, Instagram, Facebook, Threads and Pinterest have no
-native scheduling, so the batch is stored on the video document
+at `status.publishAt`. TikTok, Instagram, Facebook and Threads have no native
+scheduling, so the batch is stored on the video document
 for the dashboard and canonically in RTDB under
 `social_scheduled_assets/<id>/socialSchedule`. The RTDB queue is indexed by
 `socialSchedule/scheduledAt` and published by `/api/cron/social-publish`.
+Pinterest is excluded from the batch while it has no production connection.
 
 That endpoint is driven by the Firebase scheduled function `socialPublishTick`
 (`every 5 minutes`, region `europe-west1`, time zone `Asia/Jerusalem`), which calls

@@ -82,7 +82,7 @@ export const grantWelcomeCredits = functions
 // Отложенная публикация в соцсети.
 //
 // YouTube держит запланированную загрузку сам (status.publishAt), а у TikTok,
-// Instagram, Facebook, Threads и Pinterest нативного планирования нет. Их
+// Instagram, Facebook и Threads нативного планирования нет. Их
 // каноническая очередь лежит в RTDB (social_scheduled_assets), а этот
 // планировщик каждые 5 минут дергает /api/cron/social-publish, который и
 // публикует всё, чьё время уже наступило.

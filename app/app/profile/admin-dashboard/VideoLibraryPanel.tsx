@@ -575,9 +575,6 @@ export default function VideoLibraryPanel({
     ) {
       pending.push("youtube");
     }
-    if (pinterest?.connected && !item.published?.pinterest && item.pinterestState !== "publishing") {
-      pending.push("pinterest");
-    }
     return pending.filter((platform) => !queued.includes(platform));
   }
 

@@ -34,8 +34,9 @@ it whenever it exists — it survives your own infrastructure being down, and it
 no worker. The catch is that you cannot cancel it from your side afterwards; say so in
 the UI rather than pretending the cancel button covers it.
 
-**Everything else** (TikTok, Instagram, Facebook, Threads, Pinterest…). No native
-scheduling, so you need a queue and a worker.
+**Everything else** (TikTok, Instagram, Facebook, Threads…). No native scheduling,
+so you need a queue and a worker. Pinterest stays outside the batch until its
+production connection is enabled.
 
 ### The queue
 
