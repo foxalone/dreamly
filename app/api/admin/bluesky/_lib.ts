@@ -8,10 +8,10 @@ import {
   blueskyPostUrl,
   buildBlueskyCaption,
   buildBlueskyPublishedPatch,
-  buildBlueskyRkey,
   createBlueskyVideoPost,
   downloadBlueskyVideo,
   getBlueskyUploadLimits,
+  resolveBlueskyRkey,
   sanitizeBlueskyError,
   uploadBlueskyVideo,
   waitForBlueskyVideoProcessing,
@@ -168,9 +168,16 @@ export async function publishLibraryVideoToBluesky(
 ) {
   const video = await loadLibraryVideo(libraryId, 300);
   const auth = await authenticateBluesky();
-  const rkey = buildBlueskyRkey(libraryId);
   const jobRef = adminDb().collection(video.collection).doc(video.jobId);
 
+  const initial = (await jobRef.get()).data() as {
+    blueskyPublishedAt?: string;
+    blueskyStatus?: string;
+    blueskyPublishStartedAt?: string;
+    blueskyVideoJobId?: string;
+    blueskyRkey?: string;
+  } | undefined;
+  let rkey = resolveBlueskyRkey(initial?.blueskyRkey);
   const existing = await existingBlueskyPost(auth, rkey);
   if (existing) {
     const patch = await persistPublished({
@@ -193,13 +200,6 @@ export async function publishLibraryVideoToBluesky(
       handle: auth.handle,
     };
   }
-
-  const initial = (await jobRef.get()).data() as {
-    blueskyPublishedAt?: string;
-    blueskyStatus?: string;
-    blueskyPublishStartedAt?: string;
-    blueskyVideoJobId?: string;
-  } | undefined;
   if (initial?.blueskyPublishedAt || initial?.blueskyStatus === "published") {
     throw new Error("This video is already published to Bluesky");
   }
@@ -213,11 +213,13 @@ export async function publishLibraryVideoToBluesky(
       blueskyStatus?: string;
       blueskyPublishStartedAt?: string;
       blueskyVideoJobId?: string;
+      blueskyRkey?: string;
     };
     if (data.blueskyPublishedAt || data.blueskyStatus === "published") {
       throw new Error("This video is already published to Bluesky");
     }
     jobId = String(data.blueskyVideoJobId || jobId);
+    rkey = resolveBlueskyRkey(data.blueskyRkey || rkey);
     if (["uploading", "processing", "publishing"].includes(String(data.blueskyStatus || ""))) {
       const lockedAt = Date.parse(data.blueskyPublishStartedAt || "") || 0;
       if (Date.now() - lockedAt < BLUESKY_PUBLISH_LOCK_MS) {
@@ -236,6 +238,31 @@ export async function publishLibraryVideoToBluesky(
       { merge: true },
     );
   });
+
+  // The transaction may have adopted an rkey written by another attempt. Recheck it
+  // before reusing/uploading media so a completed post is recovered without duplication.
+  const existingAfterLock = await existingBlueskyPost(auth, rkey);
+  if (existingAfterLock) {
+    const patch = await persistPublished({
+      jobRef,
+      libraryId,
+      title: video.title,
+      auth,
+      uri: existingAfterLock.uri,
+      cid: existingAfterLock.cid,
+      adminUid,
+    });
+    return {
+      target: "bluesky" as const,
+      status: "PUBLISHED" as const,
+      recovered: true,
+      uri: existingAfterLock.uri,
+      cid: existingAfterLock.cid,
+      rkey,
+      postUrl: patch.blueskyPostUrl,
+      handle: auth.handle,
+    };
+  }
 
   const caption = buildBlueskyCaption({
     title: video.title,

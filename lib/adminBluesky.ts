@@ -19,6 +19,10 @@ export const BLUESKY_VIDEO_ASPECT_RATIO = { width: 720, height: 1280 } as const;
 export const BLUESKY_PUBLISH_LOCK_MS = 15 * 60 * 1000;
 
 const RETRYABLE_HTTP_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+const TID_ALPHABET = "234567abcdefghijklmnopqrstuvwxyz";
+const TID_PATTERN = /^[234567abcdefghij][234567abcdefghijklmnopqrstuvwxyz]{12}$/;
+const BLUESKY_TID_CLOCK_ID = Math.floor(Math.random() * 1024);
+let lastBlueskyTidMicros = BigInt(0);
 
 export type BlueskyPublishPhase =
   | "authentication"
@@ -158,14 +162,33 @@ export function buildBlueskyCaption(input: { title?: string; topic?: string; des
   return clipBlueskyText(text, BLUESKY_POST_GRAPHEME_LIMIT);
 }
 
-export function buildBlueskyRkey(libraryId: string) {
-  const safe = String(libraryId || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9._~-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 480);
-  if (!safe) throw new Error("Invalid video id");
-  return `dreamly-${safe}`;
+function encodeSortableBase32(value: bigint) {
+  let remaining = value;
+  let result = "";
+  for (let index = 0; index < 13; index += 1) {
+    result = TID_ALPHABET[Number(remaining & BigInt(31))] + result;
+    remaining >>= BigInt(5);
+  }
+  return result;
+}
+
+export function isValidBlueskyRkey(value: unknown): value is string {
+  return TID_PATTERN.test(String(value || ""));
+}
+
+/** Creates the TID required by app.bsky.feed.post. Persist it before upload and reuse it on retries. */
+export function buildBlueskyRkey(nowMs = Date.now(), clockId = BLUESKY_TID_CLOCK_ID) {
+  const timestampMs = Math.max(0, Math.trunc(nowMs));
+  let timestampMicros = BigInt(timestampMs) * BigInt(1000);
+  if (timestampMicros <= lastBlueskyTidMicros) timestampMicros = lastBlueskyTidMicros + BigInt(1);
+  lastBlueskyTidMicros = timestampMicros;
+  const tid = encodeSortableBase32((timestampMicros << BigInt(10)) | BigInt(clockId & 1023));
+  if (!isValidBlueskyRkey(tid)) throw new Error("Could not generate a valid Bluesky TID");
+  return tid;
+}
+
+export function resolveBlueskyRkey(storedRkey?: string) {
+  return isValidBlueskyRkey(storedRkey) ? storedRkey : buildBlueskyRkey();
 }
 
 export function blueskyPostUrl(handle: string, uri: string) {
@@ -515,6 +538,9 @@ export async function createBlueskyVideoPost(input: {
   rkey: string;
   createdAt?: string;
 }) {
+  if (!isValidBlueskyRkey(input.rkey)) {
+    throw new BlueskyPublishError("publishing", "Invalid Bluesky TID record key");
+  }
   const richText = new RichText({ text: input.text });
   richText.detectFacetsWithoutResolution();
   if (richText.graphemeLength > BLUESKY_POST_GRAPHEME_LIMIT) {

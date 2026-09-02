@@ -14,7 +14,9 @@ import {
   buildBlueskyRkey,
   createBlueskyVideoPost,
   downloadBlueskyVideo,
+  isValidBlueskyRkey,
   normalizeBlueskyJobStatus,
+  resolveBlueskyRkey,
   sanitizeBlueskyError,
   uploadBlueskyVideo,
   waitForBlueskyVideoProcessing,
@@ -315,7 +317,7 @@ test("successful post creation embeds video, aspect ratio and clickable Unicode-
     agent: {
       app: { bsky: { feed: { post: { create: async (_params: unknown, input: Record<string, unknown>) => {
         record = input;
-        return { uri: "at://did:plc:dreamly/app.bsky.feed.post/dreamly-ai-1", cid: "cid-1" };
+        return { uri: "at://did:plc:dreamly/app.bsky.feed.post/3jzfcijpj2z2a", cid: "cid-1" };
       } } } } },
     } as unknown as Agent,
   });
@@ -324,7 +326,7 @@ test("successful post creation embeds video, aspect ratio and clickable Unicode-
     text: "Сон о полёте 🌙\n\nhttps://dreamly.art",
     blob: blobRef(),
     alt: "Flying dream meaning",
-    rkey: "dreamly-ai-1",
+    rkey: "3jzfcijpj2z2a",
     createdAt: "2026-09-02T10:00:00.000Z",
   });
   assert.equal(result.cid, "cid-1");
@@ -339,7 +341,7 @@ test("post creation failure is classified separately", async () => {
     agent: { app: { bsky: { feed: { post: { create: async () => { throw new Error("write denied"); } } } } } } as unknown as Agent,
   });
   await assert.rejects(
-    createBlueskyVideoPost({ auth, text: "Dream\n\nhttps://dreamly.art", blob: blobRef(), alt: "Dream", rkey: "dreamly-1" }),
+    createBlueskyVideoPost({ auth, text: "Dream\n\nhttps://dreamly.art", blob: blobRef(), alt: "Dream", rkey: "3jzfcijpj2z2a" }),
     (error: unknown) => error instanceof BlueskyPublishError && error.phase === "publishing" && /write denied/.test(error.message),
   );
 });
@@ -355,13 +357,16 @@ test("caption intelligently shortens text and always preserves dreamly.art", () 
   assert.match(caption, /https:\/\/dreamly\.art$/);
 });
 
-test("deterministic rkey protects retries from duplicate posts", () => {
-  assert.equal(buildBlueskyRkey("ai:Job_123"), buildBlueskyRkey("ai:Job_123"));
-  assert.equal(buildBlueskyRkey("ai:Job_123"), "dreamly-ai-job_123");
+test("post rkeys are valid TIDs and persisted TIDs protect retries from duplicate posts", () => {
+  const generated = buildBlueskyRkey();
+  assert.equal(isValidBlueskyRkey(generated), true);
+  assert.equal(generated.length, 13);
+  assert.equal(resolveBlueskyRkey(generated), generated);
+  assert.equal(isValidBlueskyRkey(resolveBlueskyRkey("dreamly-ai-job_123")), true);
 });
 
 test("successful result patch persists URI, CID, handle and public URL", () => {
-  const uri = "at://did:plc:dreamly/app.bsky.feed.post/dreamly-ai-job1";
+  const uri = "at://did:plc:dreamly/app.bsky.feed.post/3jzfcijpj2z2a";
   const patch = buildBlueskyPublishedPatch({
     uri,
     cid: "cid-success",
@@ -373,7 +378,7 @@ test("successful result patch persists URI, CID, handle and public URL", () => {
   assert.equal(patch.blueskyStatus, "published");
   assert.equal(patch.blueskyUri, uri);
   assert.equal(patch.blueskyCid, "cid-success");
-  assert.equal(patch.blueskyPostUrl, "https://bsky.app/profile/dreamly.art/post/dreamly-ai-job1");
+  assert.equal(patch.blueskyPostUrl, "https://bsky.app/profile/dreamly.art/post/3jzfcijpj2z2a");
   assert.equal(blueskyPostUrl("dreamly.art", uri), patch.blueskyPostUrl);
 });
 
