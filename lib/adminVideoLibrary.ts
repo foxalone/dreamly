@@ -1,6 +1,6 @@
 export type AdminVideoLibrarySource = "free" | "free-mix" | "sora-preview" | "sora-standard" | "combined" | "veo";
 
-export type AdminVideoPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+export type AdminVideoPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
 
 // YouTube releases a scheduled upload itself (status.publishAt), so it never
 // enters this queue. The remaining connected batch targets are published by
@@ -11,6 +11,7 @@ export const QUEUED_SCHEDULE_PLATFORMS: AdminVideoPlatform[] = [
   "instagram",
   "facebook",
   "threads",
+  "bluesky",
 ];
 
 // State of the "All" batch queued on a video: pending waits for the worker,
@@ -23,6 +24,7 @@ export type AdminVideoLibraryPublished = {
   instagram: boolean;
   facebook: boolean;
   threads: boolean;
+  bluesky: boolean;
   youtube: boolean;
   pinterest: boolean;
 };
@@ -57,6 +59,10 @@ export type AdminVideoLibraryItem = {
   tiktokError: string;
   threadsState: AdminVideoPublishState;
   threadsError: string;
+  blueskyState: AdminVideoPublishState;
+  blueskyError: string;
+  blueskyUri: string;
+  blueskyPostUrl: string;
   youtubeState: AdminVideoPublishState;
   youtubeError: string;
   youtubeVideoId: string;

@@ -11,6 +11,7 @@ import {
 import type { TikTokConnectionStatus } from "@/lib/adminTikTok";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
+import type { BlueskyConnectionStatus } from "@/lib/adminBluesky";
 import { youtubeWatchUrl, type YouTubeConnectionStatus } from "@/lib/adminYouTube";
 import {
   pinterestPinUrl,
@@ -18,11 +19,12 @@ import {
   type PinterestConnectionStatus,
 } from "@/lib/adminPinterest";
 
-type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
 type Connection = "meta" | "threads" | "youtube" | "pinterest";
 type TikTokStatus = TikTokConnectionStatus;
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
 type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
+type BlueskyStatus = BlueskyConnectionStatus;
 type YouTubeStatus = YouTubeConnectionStatus & { redirectUri?: string };
 type PinterestStatus = PinterestConnectionStatus & { redirectUri?: string };
 
@@ -59,6 +61,14 @@ function ThreadsGlyph() {
         d="M12.2 21c-3 0-5.2-1-6.6-2.9C4.3 16.4 3.6 14.1 3.6 11.3v-.1c0-2.8.7-5.1 2-6.8C7 2.5 9.2 1.5 12.2 1.5c2.2 0 4 .5 5.4 1.6 1.2 1 2.1 2.3 2.6 4l-2 .6c-.8-2.7-2.7-4-5.9-4-2.3 0-4 .8-5 2.3-.9 1.4-1.4 3.2-1.4 5.4 0 2.2.5 4 1.4 5.4 1 1.5 2.7 2.3 5 2.3 2 0 3.4-.5 4.3-1.4.8-.8 1.2-1.7 1.2-2.7 0-.9-.3-1.6-1-2.2-.3-.3-.7-.5-1.1-.7-.2 1.4-.7 2.5-1.4 3.2-.8.9-2 1.3-3.4 1.3-1.1 0-2-.3-2.7-.9-.8-.6-1.2-1.5-1.2-2.5 0-1.1.5-2 1.4-2.6.9-.6 2.1-.9 3.6-.9.6 0 1.2 0 1.8.1 0-.7-.2-1.3-.6-1.7-.4-.4-1-.6-1.8-.6-1.1 0-1.9.4-2.4 1.3l-1.8-1c.9-1.5 2.3-2.2 4.2-2.2 1.4 0 2.5.4 3.3 1.2.7.8 1.1 1.8 1.2 3.2 2.1.9 3.2 2.5 3.2 4.7 0 1.6-.6 3-1.8 4.2C16.9 20.3 14.9 21 12.2 21Zm.4-9.1c-1 0-1.8.2-2.3.5-.5.3-.7.7-.7 1.2 0 .4.2.8.5 1 .3.3.8.4 1.3.4.8 0 1.4-.2 1.8-.7.4-.5.7-1.2.8-2.2-.5-.1-1-.2-1.4-.2Z"
         fill="currentColor"
       />
+    </svg>
+  );
+}
+
+function BlueskyGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
     </svg>
   );
 }
@@ -142,6 +152,7 @@ function platformLabel(platform: Platform) {
   if (platform === "tiktok") return "TikTok";
   if (platform === "instagram") return "Instagram Reels";
   if (platform === "threads") return "Threads";
+  if (platform === "bluesky") return "Bluesky";
   if (platform === "youtube") return "YouTube";
   if (platform === "pinterest") return "Pinterest";
   return "Facebook Reels";
@@ -196,6 +207,8 @@ function PublishIconButton({
         ? "text-pink-600 hover:bg-gradient-to-br hover:from-yellow-400 hover:via-pink-500 hover:to-purple-600 hover:text-white"
         : platform === "threads"
           ? "text-[var(--text)] hover:bg-black hover:text-white"
+          : platform === "bluesky"
+            ? "text-[#1185FE] hover:bg-[#1185FE] hover:text-white"
           : platform === "youtube"
             ? "text-[#FF0000] hover:bg-[#FF0000] hover:text-white"
             : platform === "pinterest"
@@ -226,6 +239,8 @@ function PublishIconButton({
         <InstagramGlyph />
       ) : platform === "threads" ? (
         <ThreadsGlyph />
+      ) : platform === "bluesky" ? (
+        <BlueskyGlyph />
       ) : platform === "youtube" ? (
         <YouTubeGlyph />
       ) : platform === "pinterest" ? (
@@ -342,6 +357,7 @@ export default function VideoLibraryPanel({
   const [tiktok, setTiktok] = useState<TikTokStatus | null>(null);
   const [meta, setMeta] = useState<MetaStatus | null>(null);
   const [threads, setThreads] = useState<ThreadsStatus | null>(null);
+  const [bluesky, setBluesky] = useState<BlueskyStatus | null>(null);
   const [youtube, setYoutube] = useState<YouTubeStatus | null>(null);
   const [pinterest, setPinterest] = useState<PinterestStatus | null>(null);
   const [connecting, setConnecting] = useState<"" | Connection>("");
@@ -366,11 +382,12 @@ export default function VideoLibraryPanel({
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [libraryResponse, statusResponse, metaResponse, threadsResponse, youtubeResponse, pinterestResponse] = await Promise.all([
+      const [libraryResponse, statusResponse, metaResponse, threadsResponse, blueskyResponse, youtubeResponse, pinterestResponse] = await Promise.all([
         fetch("/api/admin/video-library", { headers, cache: "no-store" }),
         fetch("/api/admin/tiktok/status", { headers, cache: "no-store" }),
         fetch("/api/admin/meta/status", { headers, cache: "no-store" }),
         fetch("/api/admin/threads/status", { headers, cache: "no-store" }),
+        fetch("/api/admin/bluesky/status", { headers, cache: "no-store" }),
         fetch("/api/admin/youtube/status", { headers, cache: "no-store" }),
         fetch("/api/admin/pinterest/status", { headers, cache: "no-store" }),
       ]);
@@ -384,6 +401,8 @@ export default function VideoLibraryPanel({
       if (metaResponse.ok) setMeta(metaPayload);
       const threadsPayload = (await threadsResponse.json()) as ThreadsStatus & { error?: string };
       if (threadsResponse.ok) setThreads(threadsPayload);
+      const blueskyPayload = (await blueskyResponse.json()) as BlueskyStatus & { error?: string };
+      if (blueskyResponse.ok) setBluesky(blueskyPayload);
       const youtubePayload = (await youtubeResponse.json()) as YouTubeStatus & { error?: string };
       if (youtubeResponse.ok) setYoutube(youtubePayload);
       const pinterestPayload = (await pinterestResponse.json()) as PinterestStatus & { error?: string };
@@ -569,12 +588,14 @@ export default function VideoLibraryPanel({
                 instagram: Boolean(item.published?.instagram),
                 facebook: Boolean(item.published?.facebook),
                 threads: Boolean(item.published?.threads),
+                bluesky: Boolean(item.published?.bluesky),
                 youtube: Boolean(item.published?.youtube),
                 pinterest: Boolean(item.published?.pinterest),
                 [platform]: true,
               },
               ...(platform === "tiktok" ? { tiktokState: "published" as const, tiktokError: "" } : {}),
               ...(platform === "threads" ? { threadsState: "published" as const, threadsError: "" } : {}),
+              ...(platform === "bluesky" ? { blueskyState: "published" as const, blueskyError: "" } : {}),
               ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
               ...(platform === "pinterest" ? { pinterestState: "published" as const, pinterestError: "" } : {}),
               ...extra,
@@ -633,6 +654,7 @@ export default function VideoLibraryPanel({
     if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
     if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
     if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
+    if (bluesky?.ready && !item.published?.bluesky && item.blueskyState !== "publishing") pending.push("bluesky");
     if (
       youtube?.connected &&
       !item.published?.youtube &&
@@ -709,6 +731,28 @@ export default function VideoLibraryPanel({
       }
       markPublished(item.id, "threads");
       return `${payload.status || "PUBLISHED"}${payload.postId ? ` · id ${payload.postId}` : ""}`;
+    }
+    if (platform === "bluesky") {
+      const response = await fetch("/api/admin/bluesky/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        status?: string;
+        uri?: string;
+        postUrl?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Bluesky");
+      }
+      markPublished(item.id, "bluesky", {
+        blueskyUri: payload.uri || "",
+        blueskyPostUrl: payload.postUrl || "",
+      });
+      return `${payload.status || "PUBLISHED"}${payload.postUrl ? ` · ${payload.postUrl}` : ""}`;
     }
     if (platform === "youtube") {
       const response = await fetch("/api/admin/youtube/publish", {
@@ -799,6 +843,30 @@ export default function VideoLibraryPanel({
     try {
       const detail = await publishVideoTo(item, "threads");
       setNotice({ type: "ok", text: `Опубликовано в Threads · ${detail}` });
+    } catch (publishError) {
+      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
+  function openBlueskyPost(item: AdminVideoLibraryItem) {
+    if (item.blueskyPostUrl) window.open(item.blueskyPostUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function publishToBluesky(item: AdminVideoLibraryItem) {
+    if (item.published?.bluesky) {
+      openBlueskyPost(item);
+      return;
+    }
+    if (cardBusy(item.id)) return;
+    setPublishingKey(`bluesky:${item.id}`);
+    setNotice(null);
+    try {
+      const detail = await publishVideoTo(item, "bluesky");
+      setNotice({ type: "ok", text: `Опубликовано в Bluesky · ${detail}` });
+      await load(true);
     } catch (publishError) {
       setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
       await load(true);
@@ -1102,6 +1170,29 @@ export default function VideoLibraryPanel({
         onClick={() => void publishToThreads(item)}
       />
       <PublishIconButton
+        platform="bluesky"
+        published={Boolean(item.published?.bluesky)}
+        scheduled={queued.includes("bluesky")}
+        scheduledNote={queuedNote}
+        processing={item.blueskyState === "publishing"}
+        failed={item.blueskyState === "failed" || (scheduleFailed && item.scheduleError.includes("bluesky"))}
+        failureNote={item.blueskyError || scheduleError}
+        openHint={item.published?.bluesky && item.blueskyPostUrl ? "открыть пост" : ""}
+        disabled={
+          busy ||
+          item.blueskyState === "publishing" ||
+          queued.includes("bluesky") ||
+          (!bluesky?.ready && !item.published?.bluesky) ||
+          (Boolean(item.published?.bluesky) && !item.blueskyPostUrl)
+        }
+        busy={
+          publishingKey === `bluesky:${item.id}` ||
+          item.blueskyState === "publishing" ||
+          (allBusy && remaining.includes("bluesky"))
+        }
+        onClick={() => void publishToBluesky(item)}
+      />
+      <PublishIconButton
         platform="youtube"
         published={Boolean(item.published?.youtube)}
         scheduled={item.youtubeState === "scheduled"}
@@ -1190,7 +1281,7 @@ export default function VideoLibraryPanel({
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Connections</p>
             <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Подключения соцсетей</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">TikTok · Meta · Threads · YouTube · Pinterest</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">TikTok · Meta · Threads · Bluesky · YouTube · Pinterest</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
@@ -1339,6 +1430,23 @@ export default function VideoLibraryPanel({
               </span>
             ) : (
               <span>YouTube ещё не подключён. Нажмите Connect YouTube и выберите канал Dreamly.</span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {bluesky?.configured === false ? (
+              <span>
+                Bluesky env: <code className="text-[var(--text)]">BLUESKY_HANDLE</code>,{" "}
+                <code className="text-[var(--text)]">BLUESKY_APP_PASSWORD</code>
+              </span>
+            ) : bluesky?.ready ? (
+              <span>
+                Bluesky — Connected / Ready{bluesky.handle ? ` · @${bluesky.handle}` : ""}
+                {bluesky.remainingDailyVideos !== null ? ` · осталось видео сегодня: ${bluesky.remainingDailyVideos}` : ""}
+              </span>
+            ) : bluesky?.connected ? (
+              <span>Bluesky подключён, но не готов к видео{bluesky.error ? `: ${bluesky.error}` : ""}</span>
+            ) : (
+              <span>Bluesky недоступен{bluesky?.error ? `: ${bluesky.error}` : ""}</span>
             )}
           </div>
           <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">

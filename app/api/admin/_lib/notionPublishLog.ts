@@ -34,6 +34,8 @@ const PLATFORM_OPTIONS = NOTION_PLATFORM_ORDER.map((name) => ({
             ? "blue"
             : name === "Threads"
               ? "gray"
+              : name === "Bluesky"
+                ? "blue"
               : "red",
 }));
 

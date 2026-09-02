@@ -11,6 +11,7 @@ export const SOCIAL_SCHEDULE_PLATFORMS = [
   "instagram",
   "facebook",
   "threads",
+  "bluesky",
 ] as const;
 
 export type SocialSchedulePlatform = (typeof SOCIAL_SCHEDULE_PLATFORMS)[number];

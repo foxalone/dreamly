@@ -56,9 +56,10 @@ test("холодный null не отменяет transaction до чтения 
 });
 
 test("нормализация удаляет дубли и неизвестные площадки", () => {
-  assert.deepEqual(normalizeSchedulePlatforms(["facebook", "pinterest", "myspace", "tiktok", "facebook"]), [
+  assert.deepEqual(normalizeSchedulePlatforms(["facebook", "pinterest", "bluesky", "myspace", "tiktok", "facebook"]), [
     "tiktok",
     "facebook",
+    "bluesky",
   ]);
 });
 

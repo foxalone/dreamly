@@ -29,6 +29,7 @@ import { adminDb, adminRtdb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
 import { notifyTelegram } from "@/app/api/admin/_lib/telegram";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
+import { publishLibraryVideoToBluesky } from "@/app/api/admin/bluesky/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
 import { publishLibraryVideoToTikTok } from "@/app/api/admin/tiktok/_lib";
 import { normalizePublishAt, publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
@@ -112,6 +113,9 @@ async function publishOne(
     return publishLibraryVideoToThreads(libraryId, "scheduler", {
       deadlineMs: Math.min(deadlineMs, Date.now() + META_PLATFORM_BUDGET_MS),
     });
+  }
+  if (platform === "bluesky") {
+    return publishLibraryVideoToBluesky(libraryId, "scheduler", { deadlineMs });
   }
   throw new Error(`Platform ${platform} is not queued`);
 }

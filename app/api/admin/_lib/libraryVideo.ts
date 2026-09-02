@@ -24,7 +24,7 @@ export function buildDreamCaption(title: string, topic: string, hashtags: string
   return appendDreamlySocialCta(body, maxLen);
 }
 
-export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
 
 function parseLibraryId(libraryId: string): { kind: LibraryVideo["kind"]; rawId: string; collection: string } {
   const [rawKind, rawId] = libraryId.split(":");
@@ -59,6 +59,10 @@ export async function markLibraryVideoPublishedManually(
   if (platform === "threads") {
     patch.threadsStatus = "published";
     patch.threadsError = "";
+  }
+  if (platform === "bluesky") {
+    patch.blueskyStatus = "published";
+    patch.blueskyError = "";
   }
   if (platform === "youtube") {
     patch.youtubeStatus = "published";

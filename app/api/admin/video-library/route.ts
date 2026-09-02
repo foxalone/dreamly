@@ -41,6 +41,11 @@ type PublishFields = {
   threadsPublishedAt?: string;
   threadsStatus?: string;
   threadsError?: string;
+  blueskyPublishedAt?: string;
+  blueskyStatus?: string;
+  blueskyError?: string;
+  blueskyUri?: string;
+  blueskyPostUrl?: string;
   youtubePublishedAt?: string;
   youtubeStatus?: string;
   youtubeError?: string;
@@ -69,6 +74,7 @@ function publishedFrom(data: PublishFields) {
     instagram: Boolean(data.instagramPublishedAt),
     facebook: Boolean(data.facebookPublishedAt),
     threads: Boolean(data.threadsPublishedAt),
+    bluesky: Boolean(data.blueskyPublishedAt),
     youtube: Boolean(data.youtubePublishedAt),
     pinterest: Boolean(data.pinterestPublishedAt),
   };
@@ -78,6 +84,14 @@ function threadsStateFrom(data: PublishFields): AdminVideoPublishState {
   if (data.threadsPublishedAt) return "published";
   const status = String(data.threadsStatus || "");
   if (status === "publishing" || status === "failed" || status === "published") return status;
+  return "idle";
+}
+
+function blueskyStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.blueskyPublishedAt) return "published";
+  const status = String(data.blueskyStatus || "");
+  if (["uploading", "processing", "publishing"].includes(status)) return "publishing";
+  if (status === "failed" || status === "published") return status;
   return "idle";
 }
 
@@ -143,6 +157,11 @@ export async function GET(request: Request) {
         threadsPublishedAt?: string;
         threadsStatus?: string;
         threadsError?: string;
+        blueskyPublishedAt?: string;
+        blueskyStatus?: string;
+        blueskyError?: string;
+        blueskyUri?: string;
+        blueskyPostUrl?: string;
         youtubePublishedAt?: string;
         youtubeStatus?: string;
         youtubeError?: string;
@@ -174,6 +193,10 @@ export async function GET(request: Request) {
         tiktokError: String(data.tiktokError || ""),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
+        blueskyState: blueskyStateFrom(data),
+        blueskyError: String(data.blueskyError || ""),
+        blueskyUri: String(data.blueskyUri || ""),
+        blueskyPostUrl: String(data.blueskyPostUrl || ""),
         youtubeState: youtubeStateFrom(data),
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
@@ -202,6 +225,11 @@ export async function GET(request: Request) {
         threadsPublishedAt?: string;
         threadsStatus?: string;
         threadsError?: string;
+        blueskyPublishedAt?: string;
+        blueskyStatus?: string;
+        blueskyError?: string;
+        blueskyUri?: string;
+        blueskyPostUrl?: string;
         youtubePublishedAt?: string;
         youtubeStatus?: string;
         youtubeError?: string;
@@ -233,6 +261,10 @@ export async function GET(request: Request) {
         tiktokError: String(data.tiktokError || ""),
         threadsState: threadsStateFrom(data),
         threadsError: String(data.threadsError || ""),
+        blueskyState: blueskyStateFrom(data),
+        blueskyError: String(data.blueskyError || ""),
+        blueskyUri: String(data.blueskyUri || ""),
+        blueskyPostUrl: String(data.blueskyPostUrl || ""),
         youtubeState: youtubeStateFrom(data),
         youtubeError: String(data.youtubeError || ""),
         youtubeVideoId: String(data.youtubeVideoId || ""),
@@ -282,6 +314,7 @@ export async function DELETE(request: Request) {
       isProcessingPublishStatus(data.instagramStatus) ||
       isProcessingPublishStatus(data.facebookStatus) ||
       isProcessingPublishStatus(data.threadsStatus) ||
+      isProcessingPublishStatus(data.blueskyStatus) ||
       isProcessingPublishStatus(data.youtubeStatus);
     if (publicationRunning) {
       return NextResponse.json(

@@ -25,6 +25,7 @@ test("maps calendar cards to a short channel code, kind icon and project", () =>
   assert.equal(calendarCardTitle("Dreamly", "TikTok", "video"), "Ti 🎬 Dreamly");
   assert.equal(calendarCardTitle("Dreamly", "Instagram", "image"), "I 📝 Dreamly");
   assert.equal(calendarCardTitle("Dreamly", "Threads", "video"), "Tr 🎬 Dreamly");
+  assert.equal(calendarCardTitle("Dreamly", "Bluesky", "video"), "B 🎬 Dreamly");
   assert.equal(calendarCardTitle("Dreamly", "Facebook", "image"), "Fb 📝 Dreamly");
   assert.equal(calendarCardTitle("Currency", "Pinterest", "image"), "P 📝 Currency");
 });
@@ -40,6 +41,7 @@ test("maps formats by asset and platform", () => {
   assert.equal(notionFormat("image", "instagram"), "Post");
   assert.equal(notionFormat("video", "pinterest"), "Pin");
   assert.equal(notionFormat("video", "tiktok"), "Video");
+  assert.equal(notionFormat("video", "bluesky"), "Video");
 });
 
 test("builds public urls only when the id is known", () => {
@@ -50,6 +52,13 @@ test("builds public urls only when the id is known", () => {
     "https://www.facebook.com/111/posts/222",
   );
   assert.equal(publicPublishUrl("tiktok", {}), "");
+  assert.equal(
+    publicPublishUrl("bluesky", {
+      blueskyUri: "at://did:plc:dreamly/app.bsky.feed.post/dreamly-ai-1",
+      blueskyHandle: "dreamly.art",
+    }),
+    "https://bsky.app/profile/dreamly.art/post/dreamly-ai-1",
+  );
 });
 
 test("emits one calendar row per published platform", () => {
@@ -60,12 +69,19 @@ test("emits one calendar row per published platform", () => {
     youtubeStatus: "scheduled",
     youtubeScheduledAt: "2026-09-01T12:00:00.000Z",
     youtubeVideoId: "yt1",
+    blueskyPublishedAt: "2026-09-01T12:05:00.000Z",
+    blueskyUri: "at://did:plc:dreamly/app.bsky.feed.post/dreamly-ai-job1",
+    blueskyHandle: "dreamly.art",
   });
-  assert.equal(rows.length, 2);
+  assert.equal(rows.length, 3);
   assert.equal(rows.find((row) => row.platform === "TikTok")?.key, "dreamly:video:ai:job1:tiktok");
   const youtube = rows.find((row) => row.platform === "YouTube")!;
   assert.equal(youtube.kind, "video");
   assert.equal(calendarCardTitle("Dreamly", youtube.platform, youtube.kind), "Y 🎬 Dreamly");
+  assert.equal(
+    rows.find((row) => row.platform === "Bluesky")?.url,
+    "https://bsky.app/profile/dreamly.art/post/dreamly-ai-job1",
+  );
 });
 
 test("emits one image row per published platform", () => {

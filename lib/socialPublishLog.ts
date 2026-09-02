@@ -1,8 +1,8 @@
 export const NOTION_PROJECT_DREAMLY = "Dreamly";
 
-export type SocialPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "youtube" | "pinterest";
+export type SocialPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
 export type SocialAssetKind = "video" | "image";
-export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Pinterest";
+export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Bluesky" | "Pinterest";
 export type NotionFormat = "Shorts" | "Reels" | "Video" | "Pin" | "Post";
 export type NotionKindLabel = "Видео" | "Пост";
 export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Отменено" | "Пропущено";
@@ -25,6 +25,7 @@ export const NOTION_PLATFORM: Record<SocialPlatform, NotionPlatform> = {
   instagram: "Instagram",
   facebook: "Facebook",
   threads: "Threads",
+  bluesky: "Bluesky",
   youtube: "YouTube",
   pinterest: "Pinterest",
 };
@@ -35,6 +36,7 @@ export const NOTION_PLATFORM_ORDER: NotionPlatform[] = [
   "Instagram",
   "Facebook",
   "Threads",
+  "Bluesky",
   "Pinterest",
 ];
 
@@ -44,6 +46,7 @@ export const NOTION_PLATFORM_CODE: Record<NotionPlatform, string> = {
   Instagram: "I",
   Facebook: "Fb",
   Threads: "Tr",
+  Bluesky: "B",
   Pinterest: "P",
 };
 
@@ -57,9 +60,9 @@ export const NOTION_KIND_LABEL: Record<SocialAssetKind, NotionKindLabel> = {
   image: "Пост",
 };
 
-const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|youtube|pinterest)$/i;
+const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|bluesky|youtube|pinterest)$/i;
 
-const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "youtube", "pinterest"];
+const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "bluesky", "youtube", "pinterest"];
 const IMAGE_PLATFORMS: SocialPlatform[] = ["instagram", "facebook", "threads", "pinterest"];
 
 export function publishLogKey(kind: SocialAssetKind, assetId: string, platform: SocialPlatform) {
@@ -81,6 +84,7 @@ export function notionKindLabel(kind: SocialAssetKind): NotionKindLabel {
 export function notionFormat(kind: SocialAssetKind, platform: SocialPlatform): NotionFormat {
   if (platform === "pinterest") return "Pin";
   if (platform === "threads") return "Post";
+  if (platform === "bluesky") return "Video";
   if (platform === "youtube") return "Shorts";
   if (platform === "tiktok") return "Video";
   if (platform === "instagram" || platform === "facebook") {
@@ -95,6 +99,8 @@ export function publicPublishUrl(
     youtubeVideoId?: string;
     pinterestPinId?: string;
     facebookPostId?: string;
+    blueskyUri?: string;
+    blueskyHandle?: string;
   } = {},
 ) {
   const youtubeId = String(ids.youtubeVideoId || "").trim();
@@ -110,6 +116,13 @@ export function publicPublishUrl(
       return `https://www.facebook.com/${split[0]}/posts/${split[1]}`;
     }
     return `https://www.facebook.com/${facebookId}`;
+  }
+
+  const blueskyUri = String(ids.blueskyUri || "").trim();
+  const blueskyHandle = String(ids.blueskyHandle || "").trim().replace(/^@/, "");
+  const blueskyRkey = blueskyUri.match(/^at:\/\/[^/]+\/app\.bsky\.feed\.post\/([^/?#]+)$/)?.[1];
+  if (platform === "bluesky" && blueskyHandle && blueskyRkey) {
+    return `https://bsky.app/profile/${blueskyHandle}/post/${blueskyRkey}`;
   }
 
   return "";
@@ -177,6 +190,8 @@ export function entriesFromVideoDoc(libraryId: string, data: Record<string, unkn
         youtubeVideoId: asText(data.youtubeVideoId),
         pinterestPinId: asText(data.pinterestPinId),
         facebookPostId: asText(data.facebookPostId),
+        blueskyUri: asText(data.blueskyUri),
+        blueskyHandle: asText(data.blueskyHandle),
       }),
       notes,
     );
