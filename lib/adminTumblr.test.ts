@@ -154,15 +154,35 @@ test("the NPF body binds the video block to the multipart media field", () => {
   assert.equal(video.media.height, 1920);
   assert.equal(post.content[1].type, "text");
 
-  const form = buildTumblrMultipartBody(post, fakeMp4(1080, 1920));
-  // The multipart field name MUST equal the NPF identifier.
-  assert.ok(form.has(video.media.identifier));
-  assert.ok(form.has("json"));
-  const media = form.get(TUMBLR_MEDIA_IDENTIFIER) as File;
-  assert.equal(media.name, TUMBLR_MEDIA_FILENAME);
-  assert.equal(media.type, "video/mp4");
-  const json = form.get("json") as Blob;
-  assert.equal(json.type, "application/json");
+  const mp4 = fakeMp4(1080, 1920);
+  const boundary = "----DreamlyTumblrTestBoundary";
+  const multipart = buildTumblrMultipartBody(post, mp4, { boundary });
+  const body = Buffer.from(multipart.body);
+  const serialized = body.toString("latin1");
+
+  assert.equal(multipart.contentType, `multipart/form-data; boundary=${boundary}`);
+  assert.match(
+    serialized,
+    new RegExp(
+      `--${boundary}\\r\\n` +
+        `Content-Disposition: form-data; name="json"\\r\\n` +
+        `Content-Type: application/json\\r\\n\\r\\n`,
+    ),
+  );
+  // The JSON part is a regular field, not a file. Giving it a filename makes
+  // Tumblr validate the JSON itself as media and return error 400.8005.
+  assert.doesNotMatch(serialized, /name="json"; filename=/);
+  // The actual MP4 is the only file part, under the identifier referenced by
+  // the NPF video block.
+  const mediaHeader =
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="${TUMBLR_MEDIA_IDENTIFIER}"; filename="${TUMBLR_MEDIA_FILENAME}"\r\n` +
+    `Content-Type: video/mp4\r\n\r\n`;
+  const mediaOffset = body.indexOf(Buffer.from(mediaHeader, "utf8"));
+  assert.ok(mediaOffset >= 0);
+  const mediaStart = mediaOffset + Buffer.byteLength(mediaHeader);
+  assert.deepEqual(body.subarray(mediaStart, mediaStart + mp4.length), Buffer.from(mp4));
+  assert.ok(serialized.endsWith(`\r\n--${boundary}--\r\n`));
 });
 
 test("unknown dimensions are omitted instead of invented", () => {

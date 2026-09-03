@@ -334,26 +334,48 @@ export function buildTumblrNpfPost(input: {
   };
 }
 
+export function tumblrMultipartBoundary() {
+  const random = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(random);
+  return `----DreamlyTumblr${Array.from(random, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
 /**
  * The multipart body Tumblr's NPF endpoint expects: a `json` part carrying the
  * post, plus the MP4 under a field name identical to the media `identifier`
- * inside that JSON. Built here (and not inline at the call site) so the
- * identifier/field-name contract is covered by a unit test.
+ * inside that JSON.
+ *
+ * Written by hand rather than with FormData on purpose. `FormData.append(name,
+ * blob)` always stamps the part with `filename="blob"`, and Tumblr treats any
+ * part that has a filename as an uploaded media file — so the JSON body was
+ * being validated as media and rejected with "Sorry, we don't support this
+ * media format yet. (400)". The `json` part must carry
+ * `Content-Type: application/json` and NO filename; only the video part gets a
+ * filename.
  */
 export function buildTumblrMultipartBody(
   post: TumblrNpfPost,
   bytes: Uint8Array,
-  identifier = TUMBLR_MEDIA_IDENTIFIER,
+  options: { identifier?: string; boundary?: string } = {},
 ) {
-  const form = new FormData();
-  form.append("json", new Blob([JSON.stringify(post)], { type: "application/json" }));
-  form.append(
-    identifier,
-    // Uint8Array is a valid BlobPart at runtime; the DOM lib types predate it.
-    new Blob([bytes as unknown as BlobPart], { type: TUMBLR_MEDIA_CONTENT_TYPE }),
-    TUMBLR_MEDIA_FILENAME,
+  const identifier = options.identifier || TUMBLR_MEDIA_IDENTIFIER;
+  const boundary = options.boundary || tumblrMultipartBoundary();
+  const encoder = new TextEncoder();
+  const head = encoder.encode(
+    `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="json"\r\n` +
+      `Content-Type: application/json\r\n\r\n` +
+      `${JSON.stringify(post)}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="${identifier}"; filename="${TUMBLR_MEDIA_FILENAME}"\r\n` +
+      `Content-Type: ${TUMBLR_MEDIA_CONTENT_TYPE}\r\n\r\n`,
   );
-  return form;
+  const tail = encoder.encode(`\r\n--${boundary}--\r\n`);
+  const body = new Uint8Array(head.length + bytes.length + tail.length);
+  body.set(head, 0);
+  body.set(bytes, head.length);
+  body.set(tail, head.length + bytes.length);
+  return { boundary, contentType: `multipart/form-data; boundary=${boundary}`, body };
 }
 
 // Tumblr's create response carries no permalink, so this is the documented

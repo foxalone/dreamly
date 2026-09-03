@@ -112,6 +112,8 @@ type TumblrFetchInit = {
   query?: Record<string, string>;
   json?: unknown;
   body?: BodyInit;
+  // Set by the multipart upload, which builds its own boundary.
+  contentType?: string;
   timeoutMs?: number;
 };
 
@@ -128,6 +130,7 @@ async function tumblrFetch<T>(path: string, accessToken: string, init: TumblrFet
       headers: {
         ...tumblrHeaders(accessToken),
         ...(init.json !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(init.contentType ? { "Content-Type": init.contentType } : {}),
       },
       body: init.json !== undefined ? JSON.stringify(init.json) : init.body,
       cache: "no-store",
@@ -654,13 +657,13 @@ export async function publishLibraryVideoToTumblr(
 
     // multipart/form-data: a `json` part with the NPF body, plus the MP4 under
     // a field name identical to the NPF media identifier.
-    const buildForm = () => buildTumblrMultipartBody(npf, bytes);
+    const multipart = buildTumblrMultipartBody(npf, bytes);
 
     const created = await withFreshTumblrToken(auth, (token) =>
       tumblrFetch<{ id?: number | string; id_string?: string; state?: string }>(
         `/blog/${encodeURIComponent(blogIdentifier)}/posts`,
         token,
-        { method: "POST", body: buildForm(), timeoutMs },
+        { method: "POST", body: multipart.body, contentType: multipart.contentType, timeoutMs },
       ),
     );
     auth = created.auth;
