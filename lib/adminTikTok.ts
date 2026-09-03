@@ -8,6 +8,16 @@ export const BUFFER_TIKTOK_CHANNEL_DOCUMENT = "adminSystem/bufferTikTokChannel";
 
 export const BUFFER_API_URL = "https://api.buffer.com";
 
+/** Buffer's published TikTok cap: 25 posts per rolling 24 hours. */
+export const BUFFER_TIKTOK_DAILY_POST_LIMIT = 25;
+export const BUFFER_TIKTOK_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export type TikTokBufferQuota = {
+  dailyLimit: number;
+  usedLast24h: number | null;
+  remainingLast24h: number | null;
+};
+
 export type TikTokConnectionStatus = {
   configured: boolean;
   connected: boolean;
@@ -15,7 +25,7 @@ export type TikTokConnectionStatus = {
   channel: string;
   channelId: string;
   error: string;
-};
+} & TikTokBufferQuota;
 
 export function bufferEnv(name: string) {
   return (process.env[name] ?? "").trim();
@@ -33,6 +43,34 @@ export function bufferTikTokUsername() {
   return (bufferEnv("BUFFER_TIKTOK_USERNAME") || BUFFER_TIKTOK_USERNAME_DEFAULT).replace(/^@/, "").toLowerCase();
 }
 
+export function emptyTikTokBufferQuota(limit = BUFFER_TIKTOK_DAILY_POST_LIMIT): TikTokBufferQuota {
+  return {
+    dailyLimit: limit,
+    usedLast24h: null,
+    remainingLast24h: null,
+  };
+}
+
+export function tiktokBufferQuota(used: number, limit = BUFFER_TIKTOK_DAILY_POST_LIMIT): TikTokBufferQuota {
+  const usedLast24h = Math.max(0, Math.floor(used));
+  return {
+    dailyLimit: limit,
+    usedLast24h,
+    remainingLast24h: Math.max(0, limit - usedLast24h),
+  };
+}
+
+export function tiktokBufferWindowStart(now = Date.now()) {
+  return new Date(now - BUFFER_TIKTOK_WINDOW_MS).toISOString();
+}
+
+export function tiktokBufferQuotaRemainingLabel(quota: TikTokBufferQuota) {
+  if (quota.usedLast24h == null || quota.remainingLast24h == null) {
+    return `До ${quota.dailyLimit} видео / 24 ч (Buffer)`;
+  }
+  return `${quota.usedLast24h} / ${quota.dailyLimit} за 24 ч · осталось ${quota.remainingLast24h}`;
+}
+
 /** Env-only TikTok readiness. Never contacts Buffer — status polls must not burn the API quota. */
 export function bufferTikTokReadiness(): TikTokConnectionStatus {
   const configured = bufferConfigured();
@@ -45,6 +83,7 @@ export function bufferTikTokReadiness(): TikTokConnectionStatus {
       channel: "",
       channelId: "",
       error: "BUFFER_API_KEY is not configured",
+      ...emptyTikTokBufferQuota(),
     };
   }
   return {
@@ -54,6 +93,7 @@ export function bufferTikTokReadiness(): TikTokConnectionStatus {
     channel,
     channelId: "",
     error: "",
+    ...emptyTikTokBufferQuota(),
   };
 }
 

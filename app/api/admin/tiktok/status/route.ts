@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
-import { bufferTikTokReadiness } from "@/lib/adminTikTok";
+import { getTikTokStatus } from "@/app/api/admin/tiktok/_lib";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Env-only TikTok readiness. Does not call Buffer (status polls must not burn quota). */
+/** TikTok readiness plus our own 24h Buffer usage. Does not call Buffer. */
 export async function GET(request: Request) {
   try {
     await requireAdmin(request);
-    const status = bufferTikTokReadiness();
+    const status = await getTikTokStatus();
     return NextResponse.json(status);
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";

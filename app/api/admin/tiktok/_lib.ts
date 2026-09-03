@@ -7,6 +7,8 @@ import {
   bufferTikTokReadiness,
   bufferTikTokUsername,
   isBufferRateLimitMessage,
+  tiktokBufferQuota,
+  tiktokBufferWindowStart,
   type TikTokConnectionStatus,
 } from "@/lib/adminTikTok";
 import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
@@ -183,8 +185,33 @@ export async function resolveTikTokBufferChannel(options?: { forceRefresh?: bool
   return { channelId: matched.id, channelName };
 }
 
-export function getTikTokStatus(): TikTokConnectionStatus {
-  return bufferTikTokReadiness();
+const TIKTOK_JOB_COLLECTIONS = ["adminVideoJobs", AI_VIDEO_COLLECTION] as const;
+
+export async function countTikTokBufferPostsSince(sinceIso: string) {
+  const counted = new Set<string>();
+
+  for (const collection of TIKTOK_JOB_COLLECTIONS) {
+    const [published, publishing] = await Promise.all([
+      adminDb().collection(collection).where("tiktokPublishedAt", ">=", sinceIso).get(),
+      adminDb().collection(collection).where("tiktokStatus", "==", "publishing").get(),
+    ]);
+    for (const doc of published.docs) counted.add(`${collection}:${doc.id}`);
+    for (const doc of publishing.docs) counted.add(`${collection}:${doc.id}`);
+  }
+
+  return counted.size;
+}
+
+export async function getTikTokStatus(): Promise<TikTokConnectionStatus> {
+  const status = bufferTikTokReadiness();
+  if (!status.connected) return status;
+  try {
+    const used = await countTikTokBufferPostsSince(tiktokBufferWindowStart());
+    return { ...status, ...tiktokBufferQuota(used) };
+  } catch (error) {
+    console.error("[admin/tiktok/status] quota", error);
+    return status;
+  }
 }
 
 function mapBufferStatus(status: string | undefined): "publishing" | "published" | "failed" {
@@ -226,7 +253,7 @@ async function waitForBufferPost(postId: string) {
 }
 
 export async function reconcileInFlightTikTokPublishes(limit = 12) {
-  const collections = ["adminVideoJobs", AI_VIDEO_COLLECTION] as const;
+  const collections = TIKTOK_JOB_COLLECTIONS;
   const summary = { selected: 0, published: 0, processing: 0, failed: 0, errors: [] as string[] };
 
   for (const collection of collections) {

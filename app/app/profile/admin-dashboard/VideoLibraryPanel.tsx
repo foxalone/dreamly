@@ -1522,7 +1522,11 @@ export default function VideoLibraryPanel({
               </span>
             ) : tiktok?.connected ? (
               <span>
-                TikTok — Ready{tiktok.channel ? ` · @${tiktok.channel}` : ""}. Buffer вызывается только при публикации.
+                TikTok — Ready{tiktok.channel ? ` · @${tiktok.channel}` : ""}
+                {tiktok.usedLast24h != null && tiktok.remainingLast24h != null
+                  ? ` · Buffer ${tiktok.usedLast24h} / ${tiktok.dailyLimit} за 24 ч · осталось ${tiktok.remainingLast24h}`
+                  : ` · лимит Buffer: ${tiktok.dailyLimit} видео / 24 ч`}
+                . Buffer вызывается только при публикации.
               </span>
             ) : (
               <span>TikTok недоступен{tiktok?.error ? `: ${tiktok.error}` : ""}</span>

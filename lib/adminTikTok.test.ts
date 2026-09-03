@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  BUFFER_TIKTOK_DAILY_POST_LIMIT,
   bufferRateLimitMessage,
   bufferTikTokReadiness,
+  tiktokBufferQuota,
+  tiktokBufferQuotaRemainingLabel,
 } from "./adminTikTok";
 
 function withBufferEnv(values: { apiKey?: string; username?: string }, run: () => void) {
@@ -37,6 +40,9 @@ test("TikTok readiness from env does not call fetch", () => {
       assert.equal(status.connected, true);
       assert.equal(status.channel, "dreamly_art");
       assert.equal(status.error, "");
+      assert.equal(status.dailyLimit, BUFFER_TIKTOK_DAILY_POST_LIMIT);
+      assert.equal(status.usedLast24h, null);
+      assert.equal(status.remainingLast24h, null);
       assert.equal(fetchCalls, 0);
     } finally {
       globalThis.fetch = originalFetch;
@@ -65,4 +71,23 @@ test("HTTP 429 is explained as a Buffer quota wait, not a broken connection", ()
     withoutRetry,
     "Buffer rate-limited TikTok publishing. Wait, then click TikTok again.",
   );
+});
+
+test("Buffer TikTok quota uses Buffer's 25 posts / 24h cap", () => {
+  const mid = tiktokBufferQuota(7);
+  assert.equal(mid.dailyLimit, 25);
+  assert.equal(mid.usedLast24h, 7);
+  assert.equal(mid.remainingLast24h, 18);
+  assert.equal(tiktokBufferQuotaRemainingLabel(mid), "7 / 25 за 24 ч · осталось 18");
+
+  const empty = tiktokBufferQuotaRemainingLabel({
+    dailyLimit: 25,
+    usedLast24h: null,
+    remainingLast24h: null,
+  });
+  assert.equal(empty, "До 25 видео / 24 ч (Buffer)");
+
+  const full = tiktokBufferQuota(25);
+  assert.equal(full.remainingLast24h, 0);
+  assert.equal(tiktokBufferQuotaRemainingLabel(full), "25 / 25 за 24 ч · осталось 0");
 });

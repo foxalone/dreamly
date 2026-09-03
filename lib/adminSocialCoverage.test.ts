@@ -12,6 +12,9 @@ test("social coverage separates Buffer from direct integrations and keeps the re
       channel: "dreamly_art",
       channelId: "",
       error: "",
+      dailyLimit: 25,
+      usedLast24h: 7,
+      remainingLast24h: 18,
     },
     meta: {
       configured: true,
@@ -40,6 +43,8 @@ test("social coverage separates Buffer from direct integrations and keeps the re
   });
 
   assert.equal(rows.find((entry) => entry.id === "tiktok")?.connectionKind, "buffer");
+  assert.equal(rows.find((entry) => entry.id === "tiktok")?.remaining, "7 / 25 за 24 ч · осталось 18");
+  assert.equal(rows.find((entry) => entry.id === "tiktok")?.state, "ready");
   assert.equal(rows.find((entry) => entry.id === "instagram")?.connectionKind, "direct");
   assert.equal(rows.find((entry) => entry.id === "facebook")?.account, "Dreamly");
   assert.equal(rows.find((entry) => entry.id === "pinterest")?.state, "limited");
@@ -57,6 +62,9 @@ test("social coverage reports missing setup and Tumblr token health", () => {
       channel: "",
       channelId: "",
       error: "BUFFER_API_KEY is not configured",
+      dailyLimit: 25,
+      usedLast24h: null,
+      remainingLast24h: null,
     },
     tumblr: {
       connected: true,
@@ -79,5 +87,24 @@ test("social coverage reports missing setup and Tumblr token health", () => {
   assert.equal(rows.find((entry) => entry.id === "tiktok")?.remaining, "Добавить BUFFER_API_KEY");
   assert.equal(rows.find((entry) => entry.id === "tumblr")?.state, "limited");
   assert.match(rows.find((entry) => entry.id === "tumblr")?.remaining || "", /refresh token/);
+});
+
+test("social coverage still shows TikTok as ready when the Buffer 24h count is at the cap", () => {
+  const rows = buildSocialCoverageRows({
+    tiktok: {
+      configured: true,
+      connected: true,
+      platform: "tiktok",
+      channel: "dreamly_art",
+      channelId: "",
+      error: "",
+      dailyLimit: 25,
+      usedLast24h: 25,
+      remainingLast24h: 0,
+    },
+  });
+
+  assert.equal(rows.find((entry) => entry.id === "tiktok")?.state, "ready");
+  assert.equal(rows.find((entry) => entry.id === "tiktok")?.remaining, "25 / 25 за 24 ч · осталось 0");
 });
 

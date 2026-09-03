@@ -1,4 +1,4 @@
-import type { TikTokConnectionStatus } from "./adminTikTok";
+import { tiktokBufferQuotaRemainingLabel, type TikTokConnectionStatus } from "./adminTikTok";
 import type { MetaConnectionStatus } from "./adminMeta";
 import type { ThreadsConnectionStatus } from "./adminThreads";
 import type { BlueskyConnectionStatus } from "./adminBluesky";
@@ -65,7 +65,7 @@ export function buildSocialCoverageRows(status: SocialCoverageInput): SocialCove
       connection: "Через Buffer",
       account: account(status.tiktok?.channel || ""),
       remaining: status.tiktok?.connected
-        ? "Ничего"
+        ? tiktokBufferQuotaRemainingLabel(status.tiktok)
         : status.tiktok?.configured === false
           ? "Добавить BUFFER_API_KEY"
           : status.tiktok?.error || "Проверить канал TikTok в Buffer",
