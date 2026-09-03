@@ -40,6 +40,7 @@ import AiVideoAdminPanel from "./AiVideoAdminPanel";
 import VideoLibraryPanel from "./VideoLibraryPanel";
 import AiImageAdminPanel from "./AiImageAdminPanel";
 import ImageLibraryPanel from "./ImageLibraryPanel";
+import SocialMapPanel from "./SocialMapPanel";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -74,7 +75,7 @@ type DreamAdmin = {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -251,7 +252,8 @@ export default function AdminDashboardPage() {
       requested === "SORA_IMAGES" ||
       requested === "VEO_IMAGES" ||
       requested === "IMAGE_LIBRARY" ||
-      requested === "CONNECTIONS"
+      requested === "CONNECTIONS" ||
+      requested === "SOCIAL_MAP"
     ) {
       setTab(requested);
     } else if (
@@ -902,7 +904,7 @@ async function loadUsers() {
   }
 
   return (
-    <main className={`px-6 py-10 mx-auto ${tab === "VIDEO_LIBRARY" || tab === "IMAGE_LIBRARY" ? "max-w-6xl" : "max-w-5xl"}`}>
+    <main className={`px-6 py-10 mx-auto ${tab === "VIDEO_LIBRARY" || tab === "IMAGE_LIBRARY" || tab === "SOCIAL_MAP" ? "max-w-6xl" : "max-w-5xl"}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className={`text-3xl font-semibold ${titleText}`}>Admin dashboard</h1>
@@ -953,6 +955,8 @@ async function loadUsers() {
               <>All Images · Sora · Veo · approx cost after generation</>
             ) : tab === "CONNECTIONS" ? (
               <>Social connections · TikTok · Meta · Threads · YouTube · Pinterest · Tumblr</>
+            ) : tab === "SOCIAL_MAP" ? (
+              <>Social map · live connection status · publishing path · destination account · remaining work</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
@@ -1186,6 +1190,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Connections
+        </button>
+
+        <button
+          onClick={() => setTab("SOCIAL_MAP")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "SOCIAL_MAP"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Social Map
         </button>
       </div>
 
@@ -1662,6 +1678,8 @@ async function loadUsers() {
       {tab === "IMAGE_LIBRARY" && user && <ImageLibraryPanel user={user} />}
 
       {tab === "CONNECTIONS" && user && <VideoLibraryPanel user={user} view="connections" />}
+
+      {tab === "SOCIAL_MAP" && user && <SocialMapPanel user={user} />}
     </main>
   );
 }
