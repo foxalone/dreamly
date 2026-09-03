@@ -5,13 +5,14 @@ import UpgradeClient from "./UpgradeClient";
 
 type SP = Record<string, string | string[] | undefined>;
 
-// Next (в некоторых версиях) даёт searchParams как Promise — поддержим оба варианта
+// Next 16 всегда передаёт searchParams промисом (await undefined → undefined,
+// так что необязательность сохраняется).
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: SP | Promise<SP>;
+  searchParams?: Promise<SP>;
 }) {
-  const sp = searchParams ? await Promise.resolve(searchParams) : undefined;
+  const sp = await searchParams;
 
   const pkgRaw = sp?.pkg;
   const pkg = Array.isArray(pkgRaw) ? pkgRaw[0] : pkgRaw;

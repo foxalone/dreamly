@@ -32,6 +32,7 @@ import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
 import { publishLibraryVideoToBluesky } from "@/app/api/admin/bluesky/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
 import { publishLibraryVideoToTikTok } from "@/app/api/admin/tiktok/_lib";
+import { publishLibraryVideoToTumblr } from "@/app/api/admin/tumblr/_lib";
 import { normalizePublishAt, publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
 
 const SCHEDULE_BUDGET_MS = 240 * 1000;
@@ -116,6 +117,9 @@ async function publishOne(
   }
   if (platform === "bluesky") {
     return publishLibraryVideoToBluesky(libraryId, "scheduler", { deadlineMs });
+  }
+  if (platform === "tumblr") {
+    return publishLibraryVideoToTumblr(libraryId, "scheduler", { deadlineMs });
   }
   throw new Error(`Platform ${platform} is not queued`);
 }

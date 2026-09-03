@@ -55,6 +55,12 @@ type PublishFields = {
   pinterestStatus?: string;
   pinterestError?: string;
   pinterestPinId?: string;
+  tumblrPublishedAt?: string;
+  tumblrStatus?: string;
+  tumblrError?: string;
+  tumblrPostId?: string;
+  tumblrPostUrl?: string;
+  tumblrBlogIdentifier?: string;
   socialScheduledAt?: string;
   socialScheduledPlatforms?: string[];
   socialScheduleStatus?: string;
@@ -77,6 +83,7 @@ function publishedFrom(data: PublishFields) {
     bluesky: Boolean(data.blueskyPublishedAt),
     youtube: Boolean(data.youtubePublishedAt),
     pinterest: Boolean(data.pinterestPublishedAt),
+    tumblr: Boolean(data.tumblrPublishedAt),
   };
 }
 
@@ -108,6 +115,16 @@ function pinterestStateFrom(data: PublishFields): AdminVideoPublishState {
   if (data.pinterestPublishedAt) return "published";
   const status = String(data.pinterestStatus || "");
   if (status === "publishing" || status === "failed" || status === "published") return status;
+  return "idle";
+}
+
+// Tumblr's upload and post creation are one request, so the in-flight window is
+// short: "uploading" while the MP4 transfers, "publishing" while Tumblr answers.
+function tumblrStateFrom(data: PublishFields): AdminVideoPublishState {
+  if (data.tumblrPublishedAt) return "published";
+  const status = String(data.tumblrStatus || "");
+  if (["uploading", "processing", "publishing"].includes(status)) return "publishing";
+  if (status === "failed" || status === "published") return status;
   return "idle";
 }
 
@@ -171,6 +188,12 @@ export async function GET(request: Request) {
         pinterestStatus?: string;
         pinterestError?: string;
         pinterestPinId?: string;
+        tumblrPublishedAt?: string;
+        tumblrStatus?: string;
+        tumblrError?: string;
+        tumblrPostId?: string;
+        tumblrPostUrl?: string;
+        tumblrBlogIdentifier?: string;
         socialScheduledAt?: string;
         socialScheduledPlatforms?: string[];
         socialScheduleStatus?: string;
@@ -204,6 +227,11 @@ export async function GET(request: Request) {
         pinterestState: pinterestStateFrom(data),
         pinterestError: String(data.pinterestError || ""),
         pinterestPinId: String(data.pinterestPinId || ""),
+        tumblrState: tumblrStateFrom(data),
+        tumblrError: String(data.tumblrError || ""),
+        tumblrPostId: String(data.tumblrPostId || ""),
+        tumblrPostUrl: String(data.tumblrPostUrl || ""),
+        tumblrBlogUrl: String(data.tumblrBlogIdentifier || ""),
         ...scheduleFrom(data),
       });
     }
@@ -239,6 +267,12 @@ export async function GET(request: Request) {
         pinterestStatus?: string;
         pinterestError?: string;
         pinterestPinId?: string;
+        tumblrPublishedAt?: string;
+        tumblrStatus?: string;
+        tumblrError?: string;
+        tumblrPostId?: string;
+        tumblrPostUrl?: string;
+        tumblrBlogIdentifier?: string;
         socialScheduledAt?: string;
         socialScheduledPlatforms?: string[];
         socialScheduleStatus?: string;
@@ -272,6 +306,11 @@ export async function GET(request: Request) {
         pinterestState: pinterestStateFrom(data),
         pinterestError: String(data.pinterestError || ""),
         pinterestPinId: String(data.pinterestPinId || ""),
+        tumblrState: tumblrStateFrom(data),
+        tumblrError: String(data.tumblrError || ""),
+        tumblrPostId: String(data.tumblrPostId || ""),
+        tumblrPostUrl: String(data.tumblrPostUrl || ""),
+        tumblrBlogUrl: String(data.tumblrBlogIdentifier || ""),
         ...scheduleFrom(data),
       });
     }

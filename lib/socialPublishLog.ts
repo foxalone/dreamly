@@ -1,8 +1,24 @@
 export const NOTION_PROJECT_DREAMLY = "Dreamly";
 
-export type SocialPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
+export type SocialPlatform =
+  | "tiktok"
+  | "instagram"
+  | "facebook"
+  | "threads"
+  | "bluesky"
+  | "youtube"
+  | "pinterest"
+  | "tumblr";
 export type SocialAssetKind = "video" | "image";
-export type NotionPlatform = "YouTube" | "TikTok" | "Instagram" | "Facebook" | "Threads" | "Bluesky" | "Pinterest";
+export type NotionPlatform =
+  | "YouTube"
+  | "TikTok"
+  | "Instagram"
+  | "Facebook"
+  | "Threads"
+  | "Bluesky"
+  | "Pinterest"
+  | "Tumblr";
 export type NotionFormat = "Shorts" | "Reels" | "Video" | "Pin" | "Post";
 export type NotionKindLabel = "Видео" | "Пост";
 export type NotionStatus = "Черновик" | "Запланировано" | "Опубликовано" | "Отменено" | "Пропущено";
@@ -28,6 +44,7 @@ export const NOTION_PLATFORM: Record<SocialPlatform, NotionPlatform> = {
   bluesky: "Bluesky",
   youtube: "YouTube",
   pinterest: "Pinterest",
+  tumblr: "Tumblr",
 };
 
 export const NOTION_PLATFORM_ORDER: NotionPlatform[] = [
@@ -38,6 +55,7 @@ export const NOTION_PLATFORM_ORDER: NotionPlatform[] = [
   "Threads",
   "Bluesky",
   "Pinterest",
+  "Tumblr",
 ];
 
 export const NOTION_PLATFORM_CODE: Record<NotionPlatform, string> = {
@@ -48,6 +66,7 @@ export const NOTION_PLATFORM_CODE: Record<NotionPlatform, string> = {
   Threads: "Tr",
   Bluesky: "B",
   Pinterest: "P",
+  Tumblr: "Tu",
 };
 
 export const CALENDAR_KIND_ICON: Record<SocialAssetKind, string> = {
@@ -60,9 +79,18 @@ export const NOTION_KIND_LABEL: Record<SocialAssetKind, NotionKindLabel> = {
   image: "Пост",
 };
 
-const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|bluesky|youtube|pinterest)$/i;
+const PLATFORM_KEY_SUFFIX = /:(tiktok|instagram|facebook|threads|bluesky|youtube|pinterest|tumblr)$/i;
 
-const VIDEO_PLATFORMS: SocialPlatform[] = ["tiktok", "instagram", "facebook", "threads", "bluesky", "youtube", "pinterest"];
+const VIDEO_PLATFORMS: SocialPlatform[] = [
+  "tiktok",
+  "instagram",
+  "facebook",
+  "threads",
+  "bluesky",
+  "youtube",
+  "pinterest",
+  "tumblr",
+];
 const IMAGE_PLATFORMS: SocialPlatform[] = ["instagram", "facebook", "threads", "pinterest"];
 
 export function publishLogKey(kind: SocialAssetKind, assetId: string, platform: SocialPlatform) {
@@ -83,6 +111,7 @@ export function notionKindLabel(kind: SocialAssetKind): NotionKindLabel {
 
 export function notionFormat(kind: SocialAssetKind, platform: SocialPlatform): NotionFormat {
   if (platform === "pinterest") return "Pin";
+  if (platform === "tumblr") return kind === "video" ? "Video" : "Post";
   if (platform === "threads") return "Post";
   if (platform === "bluesky") return "Video";
   if (platform === "youtube") return "Shorts";
@@ -101,8 +130,14 @@ export function publicPublishUrl(
     facebookPostId?: string;
     blueskyUri?: string;
     blueskyHandle?: string;
+    tumblrPostUrl?: string;
   } = {},
 ) {
+  // Tumblr's canonical permalink is read back from the API and stored, so it
+  // is used verbatim rather than guessed from a URL pattern.
+  const tumblrUrl = String(ids.tumblrPostUrl || "").trim();
+  if (platform === "tumblr" && tumblrUrl) return tumblrUrl;
+
   const youtubeId = String(ids.youtubeVideoId || "").trim();
   if (platform === "youtube" && youtubeId) return `https://www.youtube.com/watch?v=${youtubeId}`;
 
@@ -192,6 +227,7 @@ export function entriesFromVideoDoc(libraryId: string, data: Record<string, unkn
         facebookPostId: asText(data.facebookPostId),
         blueskyUri: asText(data.blueskyUri),
         blueskyHandle: asText(data.blueskyHandle),
+        tumblrPostUrl: asText(data.tumblrPostUrl),
       }),
       notes,
     );

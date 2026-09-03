@@ -18,15 +18,17 @@ import {
   SHOW_PINTEREST_PUBLISH_ERRORS,
   type PinterestConnectionStatus,
 } from "@/lib/adminPinterest";
+import type { TumblrConnectionStatus } from "@/lib/adminTumblr";
 
-type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
-type Connection = "meta" | "threads" | "youtube" | "pinterest";
+type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest" | "tumblr";
+type Connection = "meta" | "threads" | "youtube" | "pinterest" | "tumblr";
 type TikTokStatus = TikTokConnectionStatus;
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
 type ThreadsStatus = ThreadsConnectionStatus & { redirectUri?: string };
 type BlueskyStatus = BlueskyConnectionStatus;
 type YouTubeStatus = YouTubeConnectionStatus & { redirectUri?: string };
 type PinterestStatus = PinterestConnectionStatus & { redirectUri?: string };
+type TumblrStatus = TumblrConnectionStatus & { redirectUri?: string };
 
 function TikTokGlyph() {
   return (
@@ -85,6 +87,25 @@ function PinterestGlyph() {
   return (
     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
       <path d="M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.5 1.8-2.5.9 0 1.3.6 1.3 1.4 0 .9-.5 2.2-.8 3.4-.3 1 .5 1.9 1.5 1.9 1.8 0 3.2-1.9 3.2-4.7 0-2.4-1.8-4.1-4.3-4.1a4.5 4.5 0 0 0-4.7 4.5c0 .9.3 1.8.8 2.3.1.1.1.2.1.3l-.3 1.1c0 .2-.1.2-.3.1-1.3-.6-2-2.4-2-3.9 0-3.2 2.3-6.1 6.7-6.1 3.5 0 6.2 2.5 6.2 5.8 0 3.5-2.2 6.3-5.2 6.3-1 0-2-.5-2.3-1.2l-.6 2.4c-.2.9-.8 2-1.2 2.6A10 10 0 1 0 12 2Z" />
+    </svg>
+  );
+}
+
+function TumblrGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+      <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" stroke="currentColor" strokeWidth="1.8" />
+      <text
+        x="12"
+        y="16.6"
+        textAnchor="middle"
+        fontSize="12"
+        fontWeight="700"
+        fill="currentColor"
+        fontFamily="ui-sans-serif, system-ui, sans-serif"
+      >
+        t
+      </text>
     </svg>
   );
 }
@@ -155,6 +176,7 @@ function platformLabel(platform: Platform) {
   if (platform === "bluesky") return "Bluesky";
   if (platform === "youtube") return "YouTube";
   if (platform === "pinterest") return "Pinterest";
+  if (platform === "tumblr") return "Tumblr";
   return "Facebook Reels";
 }
 
@@ -213,7 +235,9 @@ function PublishIconButton({
             ? "text-[#FF0000] hover:bg-[#FF0000] hover:text-white"
             : platform === "pinterest"
               ? "text-[#E60023] hover:bg-[#E60023] hover:text-white"
-              : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
+              : platform === "tumblr"
+                ? "text-[#36465D] hover:bg-[#001935] hover:text-white"
+                : "text-[#1877F2] hover:bg-[#1877F2] hover:text-white";
   return (
     <button
       type="button"
@@ -245,6 +269,8 @@ function PublishIconButton({
         <YouTubeGlyph />
       ) : platform === "pinterest" ? (
         <PinterestGlyph />
+      ) : platform === "tumblr" ? (
+        <TumblrGlyph />
       ) : (
         <FacebookGlyph />
       )}
@@ -360,6 +386,7 @@ export default function VideoLibraryPanel({
   const [bluesky, setBluesky] = useState<BlueskyStatus | null>(null);
   const [youtube, setYoutube] = useState<YouTubeStatus | null>(null);
   const [pinterest, setPinterest] = useState<PinterestStatus | null>(null);
+  const [tumblr, setTumblr] = useState<TumblrStatus | null>(null);
   const [connecting, setConnecting] = useState<"" | Connection>("");
   const [resetting, setResetting] = useState<"" | Connection>("");
   const [publishingKey, setPublishingKey] = useState("");
@@ -382,7 +409,16 @@ export default function VideoLibraryPanel({
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [libraryResponse, statusResponse, metaResponse, threadsResponse, blueskyResponse, youtubeResponse, pinterestResponse] = await Promise.all([
+      const [
+        libraryResponse,
+        statusResponse,
+        metaResponse,
+        threadsResponse,
+        blueskyResponse,
+        youtubeResponse,
+        pinterestResponse,
+        tumblrResponse,
+      ] = await Promise.all([
         fetch("/api/admin/video-library", { headers, cache: "no-store" }),
         fetch("/api/admin/tiktok/status", { headers, cache: "no-store" }),
         fetch("/api/admin/meta/status", { headers, cache: "no-store" }),
@@ -390,6 +426,7 @@ export default function VideoLibraryPanel({
         fetch("/api/admin/bluesky/status", { headers, cache: "no-store" }),
         fetch("/api/admin/youtube/status", { headers, cache: "no-store" }),
         fetch("/api/admin/pinterest/status", { headers, cache: "no-store" }),
+        fetch("/api/admin/tumblr/status", { headers, cache: "no-store" }),
       ]);
       const libraryPayload = (await libraryResponse.json()) as { items?: AdminVideoLibraryItem[]; error?: string };
       if (!libraryResponse.ok) throw new Error(libraryPayload.error || "Не удалось загрузить библиотеку");
@@ -407,6 +444,8 @@ export default function VideoLibraryPanel({
       if (youtubeResponse.ok) setYoutube(youtubePayload);
       const pinterestPayload = (await pinterestResponse.json()) as PinterestStatus & { error?: string };
       if (pinterestResponse.ok) setPinterest(pinterestPayload);
+      const tumblrPayload = (await tumblrResponse.json()) as TumblrStatus & { error?: string };
+      if (tumblrResponse.ok) setTumblr(tumblrPayload);
       setError("");
     } catch (loadError) {
       if (!quiet) setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
@@ -430,6 +469,7 @@ export default function VideoLibraryPanel({
     const threadsResult = params.get("threads");
     const youtubeResult = params.get("youtube");
     const pinterestResult = params.get("pinterest");
+    const tumblrResult = params.get("tumblr");
     if (metaResult === "connected") {
       setNotice({ type: "ok", text: "Meta подключена. Можно публиковать Reels в Instagram и Facebook." });
     } else if (metaResult === "error") {
@@ -446,6 +486,10 @@ export default function VideoLibraryPanel({
       setNotice({ type: "ok", text: "Pinterest подключён. Можно публиковать видеопины напрямую." });
     } else if (pinterestResult === "error") {
       setNotice({ type: "error", text: params.get("pinterest_error") || "Не удалось подключить Pinterest" });
+    } else if (tumblrResult === "connected") {
+      setNotice({ type: "ok", text: "Tumblr подключён. Видео уходят в блог напрямую через официальный API." });
+    } else if (tumblrResult === "error") {
+      setNotice({ type: "error", text: params.get("tumblr_error") || "Не удалось подключить Tumblr" });
     }
   }, [view]);
 
@@ -529,6 +573,26 @@ export default function VideoLibraryPanel({
     }
   }
 
+  async function connectTumblr() {
+    setConnecting("tumblr");
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/tumblr/oauth/start", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await response.json()) as { authorizeUrl?: string; error?: string };
+      if (!response.ok || !payload.authorizeUrl) {
+        throw new Error(payload.error || "Не удалось начать OAuth Tumblr");
+      }
+      window.location.href = payload.authorizeUrl;
+    } catch (connectError) {
+      setNotice({ type: "error", text: connectError instanceof Error ? connectError.message : "Ошибка подключения" });
+      setConnecting("");
+    }
+  }
+
   async function resetConnection(kind: Connection) {
     setResetting(kind);
     setNotice(null);
@@ -541,7 +605,9 @@ export default function VideoLibraryPanel({
             ? "/api/admin/threads/disconnect"
             : kind === "pinterest"
               ? "/api/admin/pinterest/disconnect"
-              : "/api/admin/youtube/disconnect";
+              : kind === "tumblr"
+                ? "/api/admin/tumblr/disconnect"
+                : "/api/admin/youtube/disconnect";
       const connectionLabel =
         kind === "meta"
           ? "Meta"
@@ -549,7 +615,9 @@ export default function VideoLibraryPanel({
             ? "Threads"
             : kind === "pinterest"
               ? "Pinterest"
-              : "YouTube";
+              : kind === "tumblr"
+                ? "Tumblr"
+                : "YouTube";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -567,7 +635,9 @@ export default function VideoLibraryPanel({
               ? "Threads сброшен. Можно подключить аккаунт заново."
               : kind === "pinterest"
                 ? "Pinterest сброшен. Можно подключить аккаунт заново."
-                : "YouTube сброшен. Можно подключить канал заново.",
+                : kind === "tumblr"
+                  ? "Tumblr отключён. Опубликованные посты остались в блоге."
+                  : "YouTube сброшен. Можно подключить канал заново.",
       });
       await load(true);
     } catch (resetError) {
@@ -591,6 +661,7 @@ export default function VideoLibraryPanel({
                 bluesky: Boolean(item.published?.bluesky),
                 youtube: Boolean(item.published?.youtube),
                 pinterest: Boolean(item.published?.pinterest),
+                tumblr: Boolean(item.published?.tumblr),
                 [platform]: true,
               },
               ...(platform === "tiktok" ? { tiktokState: "published" as const, tiktokError: "" } : {}),
@@ -598,6 +669,7 @@ export default function VideoLibraryPanel({
               ...(platform === "bluesky" ? { blueskyState: "published" as const, blueskyError: "" } : {}),
               ...(platform === "youtube" ? { youtubeState: "published" as const, youtubeError: "" } : {}),
               ...(platform === "pinterest" ? { pinterestState: "published" as const, pinterestError: "" } : {}),
+              ...(platform === "tumblr" ? { tumblrState: "published" as const, tumblrError: "" } : {}),
               ...extra,
             }
           : item,
@@ -663,6 +735,7 @@ export default function VideoLibraryPanel({
     ) {
       pending.push("youtube");
     }
+    if (tumblr?.connected && !item.published?.tumblr && item.tumblrState !== "publishing") pending.push("tumblr");
     return pending.filter((platform) => !queued.includes(platform));
   }
 
@@ -779,6 +852,28 @@ export default function VideoLibraryPanel({
       }
       markPublished(item.id, "youtube", { youtubeVideoId: payload.videoId || "" });
       return `${payload.privacyStatus || "public"}${watch}`;
+    }
+    if (platform === "tumblr") {
+      const response = await fetch("/api/admin/tumblr/publish", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ libraryId: item.id }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        status?: string;
+        postId?: string;
+        postUrl?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Не удалось опубликовать в Tumblr");
+      }
+      markPublished(item.id, "tumblr", {
+        tumblrPostId: payload.postId || "",
+        tumblrPostUrl: payload.postUrl || "",
+      });
+      return `${payload.status || "PUBLISHED"}${payload.postUrl ? ` · ${payload.postUrl}` : ""}`;
     }
     const response = await fetch("/api/admin/pinterest/publish", {
       method: "POST",
@@ -899,6 +994,30 @@ export default function VideoLibraryPanel({
       if (SHOW_PINTEREST_PUBLISH_ERRORS) {
         setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
       }
+      await load(true);
+    } finally {
+      setPublishingKey("");
+    }
+  }
+
+  function openTumblrPost(item: AdminVideoLibraryItem) {
+    if (item.tumblrPostUrl) window.open(item.tumblrPostUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function publishToTumblr(item: AdminVideoLibraryItem) {
+    if (item.published?.tumblr) {
+      openTumblrPost(item);
+      return;
+    }
+    if (cardBusy(item.id)) return;
+    setPublishingKey(`tumblr:${item.id}`);
+    setNotice(null);
+    try {
+      const detail = await publishVideoTo(item, "tumblr");
+      setNotice({ type: "ok", text: `Опубликовано в Tumblr · ${detail}` });
+      await load(true);
+    } catch (publishError) {
+      setNotice({ type: "error", text: publishError instanceof Error ? publishError.message : "Ошибка публикации" });
       await load(true);
     } finally {
       setPublishingKey("");
@@ -1241,6 +1360,29 @@ export default function VideoLibraryPanel({
         }
         onClick={() => void publishToPinterest(item)}
       />
+      <PublishIconButton
+        platform="tumblr"
+        published={Boolean(item.published?.tumblr)}
+        scheduled={queued.includes("tumblr")}
+        scheduledNote={queuedNote}
+        processing={item.tumblrState === "publishing"}
+        failed={item.tumblrState === "failed" || (scheduleFailed && item.scheduleError.includes("tumblr"))}
+        failureNote={item.tumblrError || scheduleError}
+        openHint={item.published?.tumblr && item.tumblrPostUrl ? "открыть пост" : ""}
+        disabled={
+          busy ||
+          item.tumblrState === "publishing" ||
+          queued.includes("tumblr") ||
+          (!tumblr?.connected && !item.published?.tumblr) ||
+          (Boolean(item.published?.tumblr) && !item.tumblrPostUrl)
+        }
+        busy={
+          publishingKey === `tumblr:${item.id}` ||
+          item.tumblrState === "publishing" ||
+          (allBusy && remaining.includes("tumblr"))
+        }
+        onClick={() => void publishToTumblr(item)}
+      />
       <button
         type="button"
         title={
@@ -1281,7 +1423,9 @@ export default function VideoLibraryPanel({
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Connections</p>
             <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Подключения соцсетей</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">TikTok · Meta · Threads · Bluesky · YouTube · Pinterest</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              TikTok · Meta · Threads · Bluesky · YouTube · Pinterest · Tumblr
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">
@@ -1350,6 +1494,22 @@ export default function VideoLibraryPanel({
               className="rounded-full bg-[#E60023] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
             >
               {connecting === "pinterest" ? "Открываем Pinterest…" : pinterest?.connected ? "Reconnect Pinterest" : "Connect Pinterest"}
+            </button>
+            <button
+              type="button"
+              disabled={resetting === "tumblr"}
+              onClick={() => void resetConnection("tumblr")}
+              className="rounded-full border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--text)] disabled:opacity-50"
+            >
+              {resetting === "tumblr" ? "Отключаем…" : "Disconnect Tumblr"}
+            </button>
+            <button
+              type="button"
+              disabled={connecting === "tumblr"}
+              onClick={() => void connectTumblr()}
+              className="rounded-full bg-[#001935] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {connecting === "tumblr" ? "Открываем Tumblr…" : tumblr?.connected ? "Reconnect Tumblr" : "Connect Tumblr"}
             </button>
           </div>
         </div>
@@ -1470,6 +1630,43 @@ export default function VideoLibraryPanel({
               <span>
                 Pinterest ещё не подключён. Нажмите Connect Pinterest и авторизуйте @getdreamly — пины уходят напрямую на доску «
                 {PINTEREST_BOARD_NAME}», без Instagram.
+              </span>
+            )}
+          </div>
+          <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] px-4 py-3 text-sm text-[var(--muted)]">
+            {tumblr?.configured === false ? (
+              <span>
+                Tumblr env: <code className="text-[var(--text)]">TUMBLR_CLIENT_ID</code>,{" "}
+                <code className="text-[var(--text)]">TUMBLR_CLIENT_SECRET</code>
+                {tumblr.redirectUri ? (
+                  <>
+                    {" "}
+                    · Redirect URI: <code className="text-[var(--text)]">{tumblr.redirectUri}</code>
+                  </>
+                ) : null}
+              </span>
+            ) : tumblr?.connected ? (
+              <span>
+                Tumblr подключён{tumblr.userName ? ` · @${tumblr.userName}` : ""}
+                {tumblr.blogTitle || tumblr.blogName ? ` · блог «${tumblr.blogTitle || tumblr.blogName}»` : ""}
+                {tumblr.blogUrl ? (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <a href={tumblr.blogUrl} target="_blank" rel="noreferrer" className="underline">
+                      {tumblr.blogUrl}
+                    </a>
+                  </>
+                ) : null}
+                {tumblr.tokenHealthy ? " · refresh token на месте" : " · нет refresh token, переподключите"}
+                {tumblr.blogAmbiguous && tumblr.blogs.length > 1
+                  ? ` · блогов несколько (${tumblr.blogs.map((blog) => blog.identifier).join(", ")}) — можно закрепить через TUMBLR_BLOG_IDENTIFIER`
+                  : ""}
+              </span>
+            ) : (
+              <span>
+                Tumblr ещё не подключён. Нажмите Connect Tumblr — видео уходят в блог напрямую через официальный API,
+                без Buffer и других посредников.
               </span>
             )}
           </div>

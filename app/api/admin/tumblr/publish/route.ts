@@ -1,0 +1,41 @@
+import { NextResponse } from "next/server";
+import { requireAdmin } from "@/app/api/admin/_lib/auth";
+import { publishLibraryVideoToTumblr } from "@/app/api/admin/tumblr/_lib";
+import { isSocialPublishPendingError } from "@/lib/socialPublishPending";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
+export async function POST(request: Request) {
+  try {
+    const adminUid = await requireAdmin(request);
+    const body = (await request.json().catch(() => ({}))) as { libraryId?: string };
+    const libraryId = String(body.libraryId || "").trim();
+    if (!/^(free|ai):[A-Za-z0-9_-]{6,128}$/.test(libraryId)) {
+      return NextResponse.json({ error: "Invalid libraryId" }, { status: 400 });
+    }
+
+    const result = await publishLibraryVideoToTumblr(libraryId, adminUid);
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    // A pending error means Tumblr is busy (transcoding, rate limit) — the
+    // schedule worker retries it, so this is a conflict, not a server fault.
+    const status =
+      message === "UNAUTHENTICATED"
+        ? 401
+        : message === "FORBIDDEN"
+          ? 403
+          : isSocialPublishPendingError(error) ||
+              message.includes("already published") ||
+              message.includes("already running") ||
+              message.includes("not connected") ||
+              message.includes("not configured") ||
+              message.includes("not selected")
+            ? 409
+            : 500;
+    if (status === 500) console.error("[admin/tumblr/publish]", error);
+    return NextResponse.json({ error: message }, { status });
+  }
+}

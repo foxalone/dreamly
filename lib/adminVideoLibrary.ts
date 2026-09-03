@@ -1,6 +1,14 @@
 export type AdminVideoLibrarySource = "free" | "free-mix" | "sora-preview" | "sora-standard" | "combined" | "veo";
 
-export type AdminVideoPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
+export type AdminVideoPlatform =
+  | "tiktok"
+  | "instagram"
+  | "facebook"
+  | "threads"
+  | "bluesky"
+  | "youtube"
+  | "pinterest"
+  | "tumblr";
 
 // YouTube releases a scheduled upload itself (status.publishAt), so it never
 // enters this queue. The remaining connected batch targets are published by
@@ -12,6 +20,7 @@ export const QUEUED_SCHEDULE_PLATFORMS: AdminVideoPlatform[] = [
   "facebook",
   "threads",
   "bluesky",
+  "tumblr",
 ];
 
 // State of the "All" batch queued on a video: pending waits for the worker,
@@ -27,6 +36,7 @@ export type AdminVideoLibraryPublished = {
   bluesky: boolean;
   youtube: boolean;
   pinterest: boolean;
+  tumblr: boolean;
 };
 
 // "publishing" is the in-flight state used by Threads; YouTube reports
@@ -70,6 +80,11 @@ export type AdminVideoLibraryItem = {
   pinterestState: AdminVideoPublishState;
   pinterestError: string;
   pinterestPinId: string;
+  tumblrState: AdminVideoPublishState;
+  tumblrError: string;
+  tumblrPostId: string;
+  tumblrPostUrl: string;
+  tumblrBlogUrl: string;
   // The moment the whole "All" batch is due, shared by every queued platform.
   scheduledAt: string;
   scheduledPlatforms: AdminVideoPlatform[];

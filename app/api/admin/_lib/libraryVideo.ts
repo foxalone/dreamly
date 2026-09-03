@@ -12,6 +12,11 @@ export type LibraryVideo = {
   title: string;
   topic: string;
   hashtags: string;
+  // The raw generated keyword lists, kept alongside the rendered `hashtags`
+  // string so a platform that wants real tag arrays (Tumblr) does not have to
+  // re-parse them or invent its own.
+  hashtagList: string[];
+  tags: string[];
   // The description written by the video generation pipeline
   // (youtubeMetadata.description). Empty for jobs generated before it existed.
   description: string;
@@ -24,7 +29,15 @@ export function buildDreamCaption(title: string, topic: string, hashtags: string
   return appendDreamlySocialCta(body, maxLen);
 }
 
-export type LibraryPublishPlatform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest";
+export type LibraryPublishPlatform =
+  | "tiktok"
+  | "instagram"
+  | "facebook"
+  | "threads"
+  | "bluesky"
+  | "youtube"
+  | "pinterest"
+  | "tumblr";
 
 function parseLibraryId(libraryId: string): { kind: LibraryVideo["kind"]; rawId: string; collection: string } {
   const [rawKind, rawId] = libraryId.split(":");
@@ -73,6 +86,10 @@ export async function markLibraryVideoPublishedManually(
     patch.pinterestStatus = "published";
     patch.pinterestError = "";
   }
+  if (platform === "tumblr") {
+    patch.tumblrStatus = "published";
+    patch.tumblrError = "";
+  }
 
   await ref.set(patch, { merge: true });
   const title = String(
@@ -98,14 +115,18 @@ export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200):
     videoUrl?: string;
     thumbnailUrl?: string;
     topic?: string;
-    youtubeMetadata?: { title?: string; hashtags?: string[]; description?: string };
+    youtubeMetadata?: { title?: string; hashtags?: string[]; tags?: string[]; description?: string };
   };
   const videoUrl = String(data.videoUrl || "");
   if (data.status !== "completed" || !videoUrl) throw new Error("Video is not ready");
   const title = String(data.youtubeMetadata?.title || data.topic || "Dreamly Short").trim();
-  const hashtags = Array.isArray(data.youtubeMetadata?.hashtags)
-    ? data.youtubeMetadata!.hashtags.map((tag) => `#${String(tag).replace(/^#/, "")}`).join(" ")
-    : "";
+  const hashtagList = Array.isArray(data.youtubeMetadata?.hashtags)
+    ? data.youtubeMetadata!.hashtags.map((tag) => String(tag).replace(/^#/, "").trim()).filter(Boolean)
+    : [];
+  const tags = Array.isArray(data.youtubeMetadata?.tags)
+    ? data.youtubeMetadata!.tags.map((tag) => String(tag).replace(/^#/, "").trim()).filter(Boolean)
+    : [];
+  const hashtags = hashtagList.map((tag) => `#${tag}`).join(" ");
   return {
     kind,
     jobId: rawId,
@@ -115,6 +136,8 @@ export async function loadLibraryVideo(libraryId: string, captionMaxLen = 2200):
     title,
     topic: String(data.topic || ""),
     hashtags,
+    hashtagList,
+    tags,
     description: String(data.youtubeMetadata?.description || "").trim(),
     caption: buildDreamCaption(title, String(data.topic || ""), hashtags, captionMaxLen),
   };

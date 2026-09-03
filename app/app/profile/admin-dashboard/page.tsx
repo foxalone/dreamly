@@ -254,7 +254,14 @@ export default function AdminDashboardPage() {
       requested === "CONNECTIONS"
     ) {
       setTab(requested);
-    } else if (params.get("tiktok") || params.get("meta") || params.get("threads") || params.get("youtube") || params.get("pinterest")) {
+    } else if (
+      params.get("tiktok") ||
+      params.get("meta") ||
+      params.get("threads") ||
+      params.get("youtube") ||
+      params.get("pinterest") ||
+      params.get("tumblr")
+    ) {
       setTab("CONNECTIONS");
     }
   }, []);
@@ -945,7 +952,7 @@ async function loadUsers() {
             ) : tab === "IMAGE_LIBRARY" ? (
               <>All Images · Sora · Veo · approx cost after generation</>
             ) : tab === "CONNECTIONS" ? (
-              <>Social connections · TikTok · Meta · Threads · YouTube · Pinterest</>
+              <>Social connections · TikTok · Meta · Threads · YouTube · Pinterest · Tumblr</>
             ) : (
               <>
                 Users analytics (Firestore: <span className="font-mono">users/*</span>)
