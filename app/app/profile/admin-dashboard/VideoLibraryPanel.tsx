@@ -332,6 +332,11 @@ function VideoTile({
           </p>
         ) : null}
         <div className="absolute inset-x-0 bottom-0 z-10 px-1 pb-1.5 pt-6">
+          {item.title ? (
+            <p className="mb-1 line-clamp-2 px-1 text-[11px] font-semibold leading-snug text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+              {item.title}
+            </p>
+          ) : null}
           <div className="flex flex-wrap items-center gap-1 rounded-lg bg-black/35 px-1 py-1 backdrop-blur-[2px]">
             {actions}
           </div>
