@@ -118,7 +118,7 @@ export default function NightmaresDictionaryPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Learn about dreaming</p>
           <h2 id="nightmare-guides-title" className="mt-1.5 text-2xl font-semibold tracking-tight">Night states beside the nightmare</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--dd-muted)]">
-            Recurring loops, sleep paralysis, and false awakenings often travel with frightening dreams. These guides explain the experience first, then point back to symbols.
+            Recurring loops, sleep paralysis, false awakenings, and nights that feel like repair often travel with frightening dreams. These guides explain the experience first, then point back to symbols.
           </p>
           <div className="mt-6">
             <GuideLinkCards
@@ -126,6 +126,8 @@ export default function NightmaresDictionaryPage() {
                 getDreamGuide("recurring-dreams")!,
                 getDreamGuide("sleep-paralysis")!,
                 getDreamGuide("false-awakening")!,
+                getDreamGuide("healing-dreams")!,
+                getDreamGuide("types-of-dreams")!,
               ]}
             />
           </div>

@@ -131,7 +131,7 @@ export default function DreamDictionaryPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">Learn about dreaming</p>
             <h2 id="how-dreaming-works-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">How dreaming works</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--dd-muted)] sm:text-base">
-              Educational guides on why we dream, lucidity, loops, and the night states that sit beside the symbol dictionary.
+              Educational guides on why we dream, the main dream types, recall, childhood nights, and the theorists behind interpretation.
             </p>
           </div>
           <div className="mt-6">

@@ -370,6 +370,399 @@ export const DREAM_GUIDES: DreamGuide[] = [
     relatedSymbolSlugs: ["nightmare", "demon", "ghost", "being-chased"],
     updatedAt: "2026-09-05",
   },
+  {
+    slug: "types-of-dreams",
+    name: "Types of Dreams",
+    title: "Types of Dreams",
+    seoTitle: "Types of Dreams: Nightmares, Lucid, Recurring & More",
+    seoDescription:
+      "A map of common dream types — nightmares, lucid dreams, false awakenings, recurring loops, prophetic claims, and healing dreams — and how to read each without treating the night as a verdict.",
+    icon: "🗂️",
+    accent: "#7c3aed",
+    summary: "A map of the main dream types — what they share, where they differ, and which page to open next.",
+    intro: [
+      "Most nights produce more than one kind of dream. A flying scene can become lucid. A chase can return for weeks. A false awakening can sit on the border of sleep paralysis. Treating every night as the same kind of message flattens the thing you are trying to understand.",
+      "This page is a map, not a taxonomy that science has settled. Researchers disagree about purpose. Dreamers still need names for what happened. Use the type as a first cut: body-state, unfinished feeling, rehearsal, or a story the mind told once and will not repeat. Then open the dedicated guide or the symbol that furnished the scene.",
+    ],
+    sections: [
+      {
+        heading: "Ordinary dreams",
+        paragraphs: [
+          "Most dreams are neither lucid nor nightmares. They stitch recent residue, older memory, and feeling into a plot that may look random in the morning. The useful question is rarely 'what does this object mean forever?' It is closer to: what feeling, relationship, or unfinished decision does this scene resemble?",
+          "If a single image stays — a house, a snake, a test — the dictionary is the next stop. If the night was just busy and faded by breakfast, it may not need a reading.",
+        ],
+      },
+      {
+        heading: "Nightmares, loops, and the border states",
+        paragraphs: [
+          "Nightmares are dreams that wake you with fear or dread. Recurring dreams reuse a file until the day handles what the night keeps staging. False awakenings stage the morning while you are still asleep. Sleep paralysis is a REM-wake overlap: the body is still offline while awareness returns.",
+          "These four sit together. A nightmare can end in a false awakening. Trying to become lucid can produce both. Read the nightmare and recurring guides first if the night is frightening; read false awakening and sleep paralysis if the problem is the border of waking.",
+        ],
+      },
+      {
+        heading: "Lucid, vivid, and 'epic' nights",
+        paragraphs: [
+          "Lucidity is knowing you are dreaming while the dream continues. Vividness is intensity of sensation — color, sound, the conviction that it happened. An 'epic' dream is a long, story-like night that feels larger than usual. None of these is automatically more meaningful. Intensity is not the same as a message.",
+          "Lucid dreams can be trained and used for rehearsal or for facing a nightmare. Vivid dreams often rise with pregnancy, fever, withdrawal from alcohol, new medication, or simply more REM awakenings. Treat the amplifier before building a life decision on one spectacular plot.",
+        ],
+      },
+      {
+        heading: "Prophetic, healing, and shared dreams",
+        paragraphs: [
+          "People report dreams that later seem to match an event, dreams that leave the body feeling repaired, and dreams that two people claim to have shared. The honest stance is the same for all three: rare, memorable, and easy to overfit after the fact. Anxiety wants certainty. Sleep is good at producing scenes that feel like answers.",
+          "The prophetic and healing pages take those claims seriously without turning them into a method. Shared or 'mutual' dreams are usually coincidence plus a shared day, or a story told until the versions converge. If a dream helps you act with more care, it has already done enough work.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "How many types of dreams are there?",
+        answer:
+          "There is no official list. Common working names include ordinary dreams, nightmares, lucid dreams, recurring dreams, false awakenings, and the rarer claims — prophetic, healing, epic, shared. The borders overlap.",
+      },
+      {
+        question: "Is a vivid dream a different type?",
+        answer:
+          "Vividness is a quality, not a separate species. Hormones, sleep debt, fever, and waking in REM all raise intensity. Read the content if a theme remains; check sleep and health if every night is suddenly cinematic.",
+      },
+      {
+        question: "Which type should I start with?",
+        answer:
+          "If you woke afraid, start with nightmares. If the same plot returns, start with recurring dreams. If you knew you were dreaming, start with lucid dreams. If you 'woke' and then woke again, start with false awakening.",
+      },
+      {
+        question: "Do daydreams count?",
+        answer:
+          "Daydreams are waking imagination. They share imagery with night dreams but not REM physiology. They can still show what the mind keeps returning to. They are not evidence that the night world leaked into the day.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "flying", "falling", "house"],
+    updatedAt: "2026-09-05",
+  },
+  {
+    slug: "prophetic-dreams",
+    name: "Prophetic Dreams",
+    title: "Prophetic Dreams",
+    seoTitle: "Prophetic Dreams: Premonition, Anxiety & What to Do",
+    seoDescription:
+      "A prophetic dream feels like it showed the future. How to tell anxiety and coincidence from a night that is actually asking for care — without treating dreams as forecasts.",
+    icon: "🔮",
+    accent: "#7c3aed",
+    summary: "When a dream feels like the future — anxiety, coincidence, and a careful way to respond.",
+    intro: [
+      "A prophetic dream is a dream that seems, afterward, to have shown something that later happened. The feeling is specific: not a vague mood, but a scene that lines up with a call, an accident, a result. Cultures have treated such nights as warnings, gifts, or tests. Modern sleep science treats most of them as the mind's talent for pattern — plus the human talent for remembering the hits and forgetting the misses.",
+      "You do not have to pick a side before you use the night. The useful move is the same whether you believe in preview or in probability: do not make a serious decision on a single dream, and do notice if the feeling points to a care you have been postponing.",
+    ],
+    sections: [
+      {
+        heading: "Why a dream can look like the future",
+        paragraphs: [
+          "The sleeping brain rehearses threat, stitches incomplete news, and runs versions of a decision you have not finished. If you are waiting for a test result, you will dream of verdicts. If a relative is ill, you will dream of phones ringing. When the day later rhymes with the night, the match feels supernatural. Often it is continuity: the mind was already working the file.",
+          "Memory also edits. People remember the dream that 'came true' and lose the ten that did not. After the event, the dream is retold until it fits more tightly. That is ordinary cognition, not proof that nothing unusual ever happens.",
+        ],
+      },
+      {
+        heading: "Anxiety wearing a prophet's coat",
+        paragraphs: [
+          "Many so-called premonitions are anxiety asking for certainty. The dream offers a plot because uncertainty is harder to hold than a bad story. Plane-crash, death, and exam dreams are classic here. They feel like warnings because fear wants a target.",
+          "A grounded check: is this a theme you already carry in the day? Are you sleeping badly? Did a film, a headline, or a conversation furnish the image? If yes, treat the dream as emotional weather, not as a schedule of events.",
+        ],
+      },
+      {
+        heading: "What to do with a dream that will not let go",
+        paragraphs: [
+          "Write it down before you interpret it. Note the feeling more than the plot. Then ask what care, conversation, or practical check the feeling is asking for — a doctor visit you have delayed, a boundary you have not spoken, a trip you are taking while exhausted. Acting on care is different from acting on a forecast.",
+          "Faith traditions that take dreams seriously usually pair them with counsel, prayer or discernment, and a refusal to let one night overrule wisdom. The Islamic and biblical readings in the dictionary follow that etiquette. A dream may prompt reflection. It should not automatically be labeled a message and used to control other people.",
+        ],
+      },
+      {
+        heading: "When the claim is larger than a personal night",
+        paragraphs: [
+          "Dreams about disasters, lottery numbers, or public events are especially easy to overfit. They are also especially costly if you treat them as instructions. Do not change medication, end a relationship, or spend rent because a night felt certain.",
+          "If prophetic-feeling dreams are frequent and frightening, you are closer to the nightmare and recurring-dream pages than to a gift. Sleep, stress, and — if needed — a clinician come before a theory of time.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can dreams predict the future?",
+        answer:
+          "There is no reliable scientific method for using dreams as forecasts. Some nights later rhyme with events because the mind was already rehearsing a fear or a hope. Treat matches as interesting, not as a system.",
+      },
+      {
+        question: "What if my dream already came true once?",
+        answer:
+          "One match is not a method. Write future dreams before the day unfolds if you want an honest record. Even then, use them as prompts for care, not as proof you can see ahead.",
+      },
+      {
+        question: "Are prophetic dreams mentioned in religion?",
+        answer:
+          "Yes — scripture and many traditions include warning and guidance dreams, and also warn against treating every night as revelation. Discernment, counsel, and ordinary wisdom stay in the loop.",
+      },
+      {
+        question: "Should I warn someone about my dream?",
+        answer:
+          "You can share a concern without claiming prophecy. 'I am worried about you and I had a hard dream' is different from 'I saw what will happen.' The first is care. The second can frighten people you cannot actually protect.",
+      },
+    ],
+    relatedSymbolSlugs: ["death", "plane-crash", "lottery", "god"],
+    updatedAt: "2026-09-05",
+  },
+  {
+    slug: "healing-dreams",
+    name: "Healing Dreams",
+    title: "Healing Dreams",
+    seoTitle: "Healing Dreams: When a Night Leaves You Changed",
+    seoDescription:
+      "Some dreams leave the body quieter, a grief moved, or a problem newly solvable. What healing dreams are, what they are not, and how to use the morning without magic thinking.",
+    icon: "🌿",
+    accent: "#16a34a",
+    summary: "Nights that leave you lighter — repair, rehearsal, and the difference between feeling healed and being finished.",
+    intro: [
+      "A healing dream is a night after which something in you is quieter: a grief has moved, a fear has a new ending, a body symptom has eased, or a problem looks solvable. People describe warmth, a guide, a completed cry, or simply waking without the usual knot. The experience is real as an experience. It is not a substitute for medicine, therapy, or the slow work of a life.",
+      "Sleep itself is already a repair process — memory, emotion, immune function. A dream that feels healing may be the visible edge of that overnight work. Reading it as a miracle can steal the more useful follow-up: what did the night finish, and what still belongs to the day?",
+    ],
+    sections: [
+      {
+        heading: "What people usually mean",
+        paragraphs: [
+          "Three patterns get called healing. First, emotional completion: you cry, confront, or forgive in the dream and wake less charged. Second, body dreams: pain lessens, a wound is tended, an illness is pictured as cleaning or light. Third, guidance dreams: a figure, a place, or a sentence that leaves you oriented.",
+          "Imagery rehearsal for nightmares is the closest clinical cousin — rewriting a bad ending while awake, then meeting a milder night. Lucid dreamers sometimes do the same from inside. That is skill plus safety, not proof that the dream world is a clinic.",
+        ],
+      },
+      {
+        heading: "How to use the morning",
+        paragraphs: [
+          "Write the feeling and one concrete image before they fade. If the dream offered an action — a conversation, a rest, a boundary — test a small version in daylight. If it offered only relief, protect the relief: do not immediately fill the space with the old argument.",
+          "Spiritual language is welcome if it helps you receive care. The dictionary's spiritual readings ask what quality the season is practicing — patience, courage, release — rather than what the night guaranteed. A healing dream can be an invitation. It is not a certificate that the work is done.",
+        ],
+      },
+      {
+        heading: "What a healing dream is not",
+        paragraphs: [
+          "It is not a diagnosis and not a treatment plan. Do not stop medication, skip a biopsy, or abandon therapy because a night felt clean. Body-repair dreams are common during illness and recovery; they often track hope and attention, not outcome.",
+          "It is also not owed to you. People in deep grief or trauma may have no gentle nights for a long time. That is not a spiritual failure. The nightmare and sleep-paralysis pages are the right neighbors when the night is still a battlefield.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can a dream heal my body?",
+        answer:
+          "Sleep supports healing. A dream that pictures repair can accompany that process and change how you feel. It does not replace medical care. Use the morning energy to keep the appointment, not to cancel it.",
+      },
+      {
+        question: "Why did I wake up crying and feel better?",
+        answer:
+          "The night sometimes finishes a feeling the day would not allow. Tears in sleep can discharge charge. If the relief lasts, you used the dream well. If the same cry returns for weeks, you are closer to a recurring-dream loop.",
+      },
+      {
+        question: "Is a guide or ancestor in a healing dream real?",
+        answer:
+          "This page cannot settle that. What can be said: the figure used a form you could receive. Thank the help, write what was said, and test any advice against waking wisdom and counsel.",
+      },
+      {
+        question: "How is this different from a lucid dream?",
+        answer:
+          "Lucidity is knowing you are dreaming. Healing is an after-effect. They can overlap — a lucid dreamer may choose a repair scene — but a healing dream can happen without any control at all.",
+      },
+    ],
+    relatedSymbolSlugs: ["water", "angel", "illness", "crying"],
+    updatedAt: "2026-09-05",
+  },
+  {
+    slug: "remembering-dreams",
+    name: "Remembering Dreams",
+    title: "Remembering Dreams",
+    seoTitle: "Remembering Dreams: Why They Fade & How to Keep Them",
+    seoDescription:
+      "Most dreams are gone in minutes. Why recall is fragile, what actually helps you remember, and when forgetting is just ordinary sleep — not a blocked gift.",
+    icon: "📝",
+    accent: "#0ea5e9",
+    summary: "Why dreams vanish by breakfast — and the few habits that actually improve recall.",
+    intro: [
+      "Dream memory is short on purpose. Five minutes after waking, much of the night is already gone. Ten minutes later, most of what remains has thinned to a mood. People who say they 'never dream' almost always dream; they wake in a way that misses the residue.",
+      "Remembering more is a skill of catching, not of dreaming harder. The people with rich dream lives are often the people who lie still, write three lines, and treat the first image as worth keeping. You do not need a leather journal. You need a pause before the day starts talking.",
+    ],
+    sections: [
+      {
+        heading: "Why the night erases itself",
+        paragraphs: [
+          "During REM the brain is vivid and the chemical mix is poor at writing long-term memory. Waking into an alarm, rolling toward a phone, or standing up immediately finishes the erasure. Alcohol late, some medications, and severe sleep debt also cut recall — either by reducing REM or by making the morning too rough to notice.",
+          "Forgetting is not a sign that you are blocked, unspiritual, or 'bad at dreams.' It is the default. The surprise is that we remember any of it.",
+        ],
+      },
+      {
+        heading: "What actually helps",
+        paragraphs: [
+          "The reliable method is small. Before sleep, tell yourself you will write one image. On waking, do not move for thirty seconds. Collect the last feeling, then the last place, then any person. Write fragments — 'blue kitchen, my brother, the door would not lock.' A full story is optional. Fragments train the catch.",
+          "Waking naturally from REM helps more than an aggressive alarm. A notebook you do not have to unlock beats an app you will negotiate with. Recording a voice note in the dark works if writing feels like too much. Reviewing the week's fragments on Sunday often reveals a theme the single night hid.",
+        ],
+      },
+      {
+        heading: "When more recall is not the goal",
+        paragraphs: [
+          "Nightmare sufferers sometimes remember too well. The job then is not a better journal. It is safety, sleep timing, and — if the nights are frequent — a clinician who knows imagery rehearsal. Lucidity practice can also raise recall and false awakenings together. Increase the catch only if you want more of the night in the day.",
+          "Children, pregnancy, and illness can all change recall without any technique. The life-stages guide covers those shifts. If recall suddenly vanishes with other sleep changes, mention it to a doctor the way you would mention new snoring or daytime crashes.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why don't I remember my dreams?",
+        answer:
+          "You likely wake past the fragile window, or sleep in a way that skips easy REM awakenings. Alarms, rushing, alcohol, and some medicines all thin recall. A thirty-second pause and three written words change more than any supplement.",
+      },
+      {
+        question: "Does everyone dream every night?",
+        answer:
+          "Healthy sleepers have several dream-rich periods a night, especially in REM. Not remembering is common. A true absence of dreaming is unusual and belongs with a doctor if it arrives with other sleep or mood changes.",
+      },
+      {
+        question: "How long do dreams last?",
+        answer:
+          "A remembered dream can feel like hours and have been minutes. REM periods lengthen toward morning, which is why the last dream is the one you usually catch. There is no single official duration.",
+      },
+      {
+        question: "Will writing dreams make them more intense?",
+        answer:
+          "Attention increases recall, and sometimes vividness, because you start waking with the question already on. That is usually manageable. If journaling makes nightmares louder, stop and use the nightmare guide instead.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "house", "mirror", "water"],
+    updatedAt: "2026-09-05",
+  },
+  {
+    slug: "children-and-dreams",
+    name: "Children & Pregnancy",
+    title: "Children, Babies & Pregnancy Dreams",
+    seoTitle: "Children and Pregnancy Dreams: Sleep Science & Meaning",
+    seoDescription:
+      "How dreaming changes in pregnancy, in babies, and in childhood — more vivid nights, common fears, and what is ordinary versus worth a conversation with a doctor.",
+    icon: "👶",
+    accent: "#f472b6",
+    summary: "How the night changes in pregnancy and childhood — vividness, fear, and what is ordinary.",
+    intro: [
+      "Dreaming is not the same across a life. Pregnancy often makes nights more vivid and more bodily. Young children have shorter, more fragmented sleep and different dream content than adults. New parents dream of lost babies and unlocked doors because the caregiving system is on. None of this is rare. Treating it as omen-making is the usual mistake.",
+      "This page is sleep and development first, symbol second. The pregnancy, baby, and nightmare dictionary pages remain the place for a specific image. Here the question is: what is the night doing in this season, and when is a child's fear just a child learning the dark?",
+    ],
+    sections: [
+      {
+        heading: "Pregnancy: why the nights get louder",
+        paragraphs: [
+          "Hormones, frequent waking, and the sheer scale of what is coming all raise dream recall. Sleep research finds pregnant people report more vivid, more bizarre, and more anxious dreams, especially later in pregnancy. Water, animals, labor, and the baby's safety are common files. Men and non-pregnant partners can have pregnancy dreams too; those are almost always metaphor or empathy, not a body report.",
+          "Anxiety dreams about labor or adequacy are documented in healthy pregnancies. They are rehearsal, not prediction. If nights become unmanageable — nightly terror, no sleep, or thoughts of harm — that belongs with a clinician, not a dictionary. The pregnancy symbol page covers the image. This page is the physiology around it.",
+        ],
+      },
+      {
+        heading: "Babies and very young children",
+        paragraphs: [
+          "Infants spend a large share of sleep in REM-like states. Whether they 'dream' in the adult story sense is still open. What parents see is twitching, smiles, and cries from sleep that are usually ordinary. Toddlers begin to report simple dream fragments as language arrives. They often do not appear as themselves in dreams until later preschool years.",
+          "Nightmares typically rise around age three and are common through seven or eight. Monsters, animals, and being lost are the usual casts. Night terrors are a different event: the child may scream and look awake while still in deep non-REM sleep and remember little in the morning. Comfort, a regular schedule, and not over-interviewing the plot are the first tools. Persistent terror, injury during sleep, or daytime collapse needs a pediatric clinician.",
+        ],
+      },
+      {
+        heading: "What to say in the morning",
+        paragraphs: [
+          "For a child: believe the fear, keep the room ordinary, and avoid turning the dream into a prophecy or a joke. 'That was a scary dream. You are safe in this bed' is enough. Drawing the monster and changing the ending can help older children the way imagery rehearsal helps adults.",
+          "For yourself in pregnancy or postpartum: write the feeling, check sleep and support, and use the baby or pregnancy pages if a symbol keeps returning. Do not read a lost-baby nightmare as a verdict on your care. Those dreams are common in attentive parents and usually fade as vigilance eases.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do babies dream?",
+        answer:
+          "They have REM-rich sleep. Whether that includes story-like dreams as adults know them is not settled. Twitches and sleep-cries are usually normal. Ask a doctor about unusual pauses in breathing, extreme irritability, or sleep that never settles.",
+      },
+      {
+        question: "Are pregnancy dreams more prophetic?",
+        answer:
+          "They are more frequent and more vivid, which makes them feel more important. That is not the same as prediction. Use them as a weather report on hope and fear, and keep prenatal care in the waking world.",
+      },
+      {
+        question: "When is a child's nightmare a problem?",
+        answer:
+          "When it is frequent, when the child cannot be comforted over weeks, when they are hurt or leave the bed in a terror they do not remember, or when daytime fear of sleep takes over. Then you want a clinician, not only a meaning.",
+      },
+      {
+        question: "Why do I dream I lost the baby?",
+        answer:
+          "The caregiving system rehearses loss because the stake is so high. It is a documented, painful, and usually non-prophetic dream. Check the crib if you must, then treat the night as vigilance — not as a message that you are failing.",
+      },
+    ],
+    relatedSymbolSlugs: ["pregnancy", "baby", "nightmare", "water"],
+    updatedAt: "2026-09-05",
+  },
+  {
+    slug: "dream-theorists",
+    name: "Freud, Jung & Others",
+    title: "Freud, Jung & Dream Theorists",
+    seoTitle: "Freud, Jung & Dream Theory: How to Use Them Now",
+    seoDescription:
+      "What Freud, Jung, Adler, and later researchers actually claimed about dreams — and how to use those lenses without turning one dead theorist into a verdict on your night.",
+    icon: "📚",
+    accent: "#6366f1",
+    summary: "Freud, Jung, and later theory — useful lenses, not a court that rules your dream.",
+    intro: [
+      "Dream interpretation in the West still walks around two names. Freud treated the dream as a disguised wish and a royal road to what the waking mind would not admit. Jung treated it as a message from a wider psyche — personal and collective — using images that behave like living symbols, not like a code with one key. Both are part of why people still open a dictionary at all.",
+      "Neither man had REM labs, pregnancy sleep studies, or a theory of threat rehearsal. Later researchers — Adler, Calvin Hall, Fritz Perls, and the sleep scientists of the last fifty years — revised the picture. Dreamly uses them as lenses beside spiritual, Islamic, and biblical readings. A lens is a way of looking. It is not the object.",
+    ],
+    sections: [
+      {
+        heading: "Freud: disguise, wish, and leftover day",
+        paragraphs: [
+          "Freud's claim, simplified: the dream is a wish — often unacceptable — dressed in leftover images from the day so that sleep can continue. He divided the remembered story (manifest) from the hidden thought (latent) and spent analysis translating one into the other. He also noticed that some dreams are just the body: thirst, an alarm, a full bladder.",
+          "What still helps: ask what you wanted and could not want by day. What is dated: treating every snake as one kind of symbol, and treating the analyst as the owner of the meaning. If a Freudian reading tightens your chest with recognition, keep it. If it feels like a joke at your expense, drop it.",
+        ],
+      },
+      {
+        heading: "Jung: symbol, compensation, and the larger self",
+        paragraphs: [
+          "Jung kept Freud's seriousness about the night and rejected the idea that a dream is mainly a censored wish. He read dreams as compensation — showing what the waking attitude left out — and as encounters with figures that can be bigger than one biography: the shadow, the wise other, the house as psyche. He asked the dreamer to stay with the image rather than replace it with an explanation too fast.",
+          "What still helps: 'What attitude in me is this night balancing?' and 'If this figure had a sentence, what would it say?' What to refuse: a collective-unconscious stamp that makes your personal history irrelevant. Jung himself started with the dreamer's life.",
+        ],
+      },
+      {
+        heading: "After them",
+        paragraphs: [
+          "Adler read many dreams as rehearsal of style and superiority — how you move toward a goal or defend against inferiority. Calvin Hall collected thousands of reports and argued that dreams picture the dreamer's conception of self, family, and world more plainly than Freud allowed. Fritz Perls treated every person and object as a part of you and asked you to speak as the image.",
+          "Sleep science added machinery Freud and Jung did not have: REM and non-REM, memory consolidation, emotion regulation, threat simulation. That research does not cancel meaning. It explains why the night has material at all. The why-we-dream guide is the companion page for that half of the story.",
+        ],
+      },
+      {
+        heading: "How Dreamly uses the theorists",
+        paragraphs: [
+          "On a symbol page, the psychological section often owes a debt to this lineage without naming a school every time: wish and defense, compensation, parts of the self, the house as inner architecture. The spiritual, Islamic, and biblical sections sit beside it so one dead European man cannot own the night.",
+          "If you want a method for tonight: write the dream, name the feeling, ask Freud's 'what wish or fear is dressed here?', ask Jung's 'what is this compensating?', then ask what you will do before noon. Three questions beat a system.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Should I interpret my dream the Freudian way or the Jungian way?",
+        answer:
+          "Try both as questions, not as loyalties. Freud is useful when something feels forbidden or disguised. Jung is useful when the image feels larger than a private wish. Keep whichever sentence makes your waking life more honest.",
+      },
+      {
+        question: "Did science disprove Freud?",
+        answer:
+          "Science discarded a lot of his specific symbol keys and his single-wish theory. It did not discard the idea that dreams use personal material and feeling. Use him as a historical lens, not as a laboratory result.",
+      },
+      {
+        question: "What is the collective unconscious?",
+        answer:
+          "Jung's name for shared patterns of image — mother, shadow, flood, snake — that turn up across cultures. It is a hypothesis, not a scanned organ. You can use the idea ('this image is older than my week') without needing to prove a psychic inheritance.",
+      },
+      {
+        question: "Do I need an analyst to understand a dream?",
+        answer:
+          "No. Recurring terror, trauma nights, or a dream life that is wrecking the day belong with a professional. Ordinary symbols do not. A dictionary and a few written lines are enough to start.",
+      },
+    ],
+    relatedSymbolSlugs: ["snake", "house", "water", "being-chased"],
+    updatedAt: "2026-09-05",
+  },
 ];
 
 export const DREAM_GUIDE_SLUGS = DREAM_GUIDES.map((guide) => guide.slug);
@@ -381,7 +774,13 @@ export function getDreamGuide(slug: string): DreamGuide | undefined {
 /** Parent symbol slugs that should surface educational guides. */
 export const GUIDES_FOR_SYMBOL: Record<string, string[]> = {
   flying: ["lucid-dreams"],
-  nightmare: ["recurring-dreams", "sleep-paralysis", "false-awakening"],
+  nightmare: ["recurring-dreams", "sleep-paralysis", "false-awakening", "healing-dreams"],
+  pregnancy: ["children-and-dreams"],
+  baby: ["children-and-dreams"],
+  death: ["prophetic-dreams"],
+  god: ["prophetic-dreams", "dream-theorists"],
+  house: ["types-of-dreams", "remembering-dreams"],
+  snake: ["dream-theorists"],
 };
 
 export function getGuidesForSymbol(symbolSlug: string): DreamGuide[] {
