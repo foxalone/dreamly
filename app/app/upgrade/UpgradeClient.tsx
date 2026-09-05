@@ -1,6 +1,5 @@
 "use client";
 
-import BottomNav from "../BottomNav";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -448,7 +447,6 @@ forceReRender={[selected]}
         </div>
       )}
 
-      <BottomNav />
     </main>
   );
 }

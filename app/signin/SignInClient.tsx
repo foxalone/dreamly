@@ -12,7 +12,6 @@ import {
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
-import BottomNav from "@/app/app/BottomNav";
 import { trackAuth } from "@/lib/analytics";
 
 export default function SignInClient() {
@@ -76,7 +75,7 @@ export default function SignInClient() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 pb-28">
+    <main className="flex min-h-[calc(100dvh-var(--app-nav-height,4rem))] items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl bg-[var(--card)] p-6 shadow-2xl border border-[var(--border)]">
         <h1 className="text-xl font-bold text-[var(--text)]">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
@@ -106,7 +105,6 @@ export default function SignInClient() {
           Cancel
         </button>
       </div>
-      <BottomNav />
     </main>
   );
 }

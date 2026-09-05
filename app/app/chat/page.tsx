@@ -777,7 +777,7 @@ if (
   }
 
   return (
-    <main className="mx-auto h-[calc(100dvh-92px)] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
+    <main className="mx-auto h-[calc(100dvh-var(--app-nav-height,4rem))] w-full max-w-6xl overflow-hidden px-4 sm:px-6 lg:px-8">
       <section
         className="flex h-full min-h-0 flex-col gap-4 overflow-hidden rounded-3xl border p-4 sm:gap-5 sm:p-5"
         style={{

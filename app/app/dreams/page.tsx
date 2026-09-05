@@ -1,6 +1,5 @@
 "use client";
 
-import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Keyboard, Mic, MoonStar } from "lucide-react";
@@ -1950,7 +1949,6 @@ export default function DreamsPage() {
         })()}
       </div>
 
-      <BottomNav hidden={open} />
     </main>
   );
 }

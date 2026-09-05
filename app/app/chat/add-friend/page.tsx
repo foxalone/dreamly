@@ -111,7 +111,7 @@ export default function AddFriendPage() {
   };
 
   return (
-    <main className="mx-auto min-h-[calc(100dvh-92px)] w-full max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
+    <main className="mx-auto min-h-[calc(100dvh-var(--app-nav-height,4rem))] w-full max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
       <section
         className="mx-auto flex w-full flex-col gap-4 rounded-3xl border p-4 sm:gap-5 sm:p-5"
         style={{

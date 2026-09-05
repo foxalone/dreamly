@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import BottomNav from "@/app/app/BottomNav";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 import DreamDictionaryHeader from "./DreamDictionaryHeader";
 import ScrollDepthTracker from "./ScrollDepthTracker";
@@ -30,7 +29,7 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
       <ScrollDepthTracker />
       <DreamDictionaryHeader />
       <div>{children}</div>
-      <footer className="border-t border-[var(--dd-border)] pb-32">
+      <footer className="border-t border-[var(--dd-border)] pb-12">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8">
           <nav aria-label="Dictionary hubs">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Explore</p>
@@ -73,7 +72,6 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
           </nav>
         </div>
       </footer>
-      <BottomNav />
     </div>
   );
 }

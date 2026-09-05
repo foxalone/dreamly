@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
-import BottomNav from "./BottomNav";
+import AppHeader from "./AppHeader";
 
 export const metadata: Metadata = {
   robots: {
@@ -27,8 +27,8 @@ export default function AppLayout({
         />
       ) : null}
 
-      <div className="pb-24">{children}</div>
-      <BottomNav />
+      <AppHeader />
+      <div>{children}</div>
     </div>
   );
 }

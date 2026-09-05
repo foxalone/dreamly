@@ -20,7 +20,6 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
-import BottomNav from "../BottomNav";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
 
@@ -623,7 +622,6 @@ export default function SharedPage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

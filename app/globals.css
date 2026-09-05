@@ -9,9 +9,10 @@
   --muted: #9ca3af;
 
     /* ✅ ADD */
-  --surface: var(--card);               /* surface for bottom nav */
-  --border: rgba(255,255,255,0.10);     /* subtle divider */
+  --surface: var(--card);
+  --border: rgba(255,255,255,0.10);
   --shadow: 0 -12px 30px rgba(0,0,0,0.35);
+  --app-nav-height: 4rem;
   color-scheme: dark;
 }
 
@@ -168,8 +169,8 @@
 }
 
 /* ===== HIDE-ON-SCROLL HEADER ===== */
-/* Shift sticky `top` only — never transform a wrapper that also contains
-   position:fixed navigation (that would pin the bottom bar to the header). */
+/* Shift sticky `top` only — avoid transform on wrappers that contain
+   position:fixed overlays. */
 
 .hide-on-scroll-header {
   top: 0;
@@ -217,29 +218,10 @@ a {
     font-size: 16px;
   }
 }
-html.modal-open .bottom-nav {
-  transform: translateY(120px);
+html.modal-open .app-top-nav {
+  transform: translateY(-120px);
   opacity: 0;
   pointer-events: none;
-}
-
-/* ===== BOTTOM NAV ===== */
-
-.bottom-nav {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  color: var(--text);
-}
-
-.bottom-nav .muted {
-  color: var(--muted);
-}
-
-.bottom-nav-shell {
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 
 /* ===== DREAMS: SHARE BUTTONS ===== */

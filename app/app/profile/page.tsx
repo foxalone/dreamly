@@ -485,7 +485,7 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
                 {user ? displayName : "Not signed in"}
               </div>
               <div className={`text-sm truncate ${mutedText}`}>
-                {user?.email ? user.email : "Sign in from the bottom bar"}
+                {user?.email ? user.email : "Sign in from the top bar"}
               </div>
 
               {user?.uid ? (

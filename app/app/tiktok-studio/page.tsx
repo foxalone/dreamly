@@ -1,6 +1,5 @@
 "use client";
 
-import BottomNav from "../BottomNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -959,7 +958,6 @@ useEffect(() => {
         </div>
       </div>
 
-      <BottomNav />
     </main>
   );
 }

@@ -42,7 +42,7 @@ function initialsFromUser(u: User) {
 
 function IconDreams({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
       <path
         d="M4 6.5C4 5.12 5.12 4 6.5 4H14c3.314 0 6 2.686 6 6v7.5c0 1.38-1.12 2.5-2.5 2.5H10c-3.314 0-6-2.686-6-6V6.5Z"
         stroke="currentColor"
@@ -62,7 +62,7 @@ function IconDreams({ active }: { active: boolean }) {
 
 function IconDictionary({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
       <path
         d="M4.5 5.5A2.5 2.5 0 0 1 7 3h5v17H7a2.5 2.5 0 0 0-2.5 1V5.5ZM19.5 5.5A2.5 2.5 0 0 0 17 3h-5v17h5a2.5 2.5 0 0 1 2.5 1V5.5Z"
         stroke="currentColor"
@@ -83,7 +83,7 @@ function IconDictionary({ active }: { active: boolean }) {
 
 function IconShared({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
       <path
         d="M12 21s-7-4.35-7-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 19 10c0 6.65-7 11-7 11Z"
         stroke="currentColor"
@@ -96,7 +96,7 @@ function IconShared({ active }: { active: boolean }) {
 
 function IconSignIn({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
       <path
         d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
         stroke="currentColor"
@@ -123,10 +123,9 @@ function IconSignIn({ active }: { active: boolean }) {
   );
 }
 
-
 function IconMap({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
       <path
         d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z"
         stroke="currentColor"
@@ -152,8 +151,8 @@ function AvatarIcon({
   user: User;
   active: boolean;
 }) {
-  const size = 22;
-  const ring = active ? "ring-2 ring-green-500" : "ring-1 ring-white/10";
+  const size = 20;
+  const ring = active ? "ring-2 ring-green-500" : "ring-1 ring-[var(--border)]";
   const photo = user.photoURL?.trim();
 
   if (photo) {
@@ -164,10 +163,7 @@ function AvatarIcon({
         alt="Profile"
         width={size}
         height={size}
-        className={cls(
-          "shrink-0 rounded-full object-cover",
-          ring
-        )}
+        className={cls("shrink-0 rounded-full object-cover", ring)}
         referrerPolicy="no-referrer"
       />
     );
@@ -177,10 +173,10 @@ function AvatarIcon({
     <div
       className={cls(
         "shrink-0 rounded-full flex items-center justify-center font-semibold",
-        "bg-[rgba(127,127,127,0.18)] text-[var(--text)]",
+        "bg-[rgba(127,127,127,0.18)] text-current",
         ring
       )}
-      style={{ width: size, height: size, fontSize: 10, lineHeight: "10px" }}
+      style={{ width: size, height: size, fontSize: 9, lineHeight: "9px" }}
       aria-label="Profile"
     >
       {initialsFromUser(user)}
@@ -188,11 +184,12 @@ function AvatarIcon({
   );
 }
 
-type BottomNavProps = {
+type PrimaryNavProps = {
+  tone?: "app" | "dictionary";
   hidden?: boolean;
 };
 
-export default function BottomNav({ hidden }: BottomNavProps) {
+export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
@@ -261,8 +258,6 @@ export default function BottomNav({ hidden }: BottomNavProps) {
     try {
       setBusy(true);
       const provider = new GoogleAuthProvider();
-      // опционально: выбирать аккаунт каждый раз
-      // provider.setCustomParameters({ prompt: "select_account" });
       const cred = await signInWithPopup(auth, provider);
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
@@ -275,62 +270,64 @@ export default function BottomNav({ hidden }: BottomNavProps) {
 
   const profileHref = "/app/profile";
   const profileActive = isActive(profileHref);
+  const idleClass = tone === "dictionary" ? "text-[var(--dd-muted)]" : "text-[var(--muted)]";
+  const itemClass =
+    "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 md:flex-none md:px-2.5 md:py-1";
 
   return (
-    <nav className="bottom-nav fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-x-hidden transition-all duration-300">
-      <div className="mx-auto w-full max-w-3xl min-w-0 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="bottom-nav-shell w-full min-w-0 rounded-3xl backdrop-blur-md">
-          <div className="grid w-full min-w-0 grid-cols-5">
-            {baseItems.map((it) => {
-              const active = isActive(it.href);
+    <nav
+      aria-label="Primary"
+      className="primary-nav grid min-w-0 w-full grid-cols-5 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
+    >
+      {baseItems.map((it) => {
+        const active = isActive(it.href);
 
-              return (
-                <Link
-                  key={it.href}
-                  href={it.href}
-                  className={cls(
-                    "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
-                    "text-sm font-medium transition-colors select-none",
-                    active ? it.activeClass : "text-[var(--muted)]"
-                  )}
-                >
-                  {it.icon(active)}
-                  <span className="max-w-full truncate text-xs">{it.label}</span>
-                </Link>
-              );
-            })}
-
-            {/* Final slot: Sign in OR Profile avatar */}
-            {user ? (
-              <Link
-                href={profileHref}
-                className={cls(
-                  "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
-                  "text-sm font-medium transition-colors select-none",
-                  profileActive ? "text-green-500" : "text-[var(--muted)]"
-                )}
-              >
-                <AvatarIcon user={user} active={profileActive} />
-                <span className="max-w-full truncate text-xs">Profile</span>
-              </Link>
-            ) : (
-              <button
-                onClick={signInGoogle}
-                disabled={busy}
-                className={cls(
-                  "flex min-w-0 flex-col items-center justify-center gap-1 py-3",
-                  "text-sm font-medium transition-colors select-none",
-                  "text-[var(--muted)]",
-                  busy && "opacity-60 cursor-not-allowed"
-                )}
-              >
-                <IconSignIn active={false} />
-                <span className="max-w-full truncate text-xs">{busy ? "..." : "Sign in"}</span>
-              </button>
+        return (
+          <Link
+            key={it.href}
+            href={it.href}
+            aria-current={active ? "page" : undefined}
+            className={cls(
+              itemClass,
+              "text-sm font-medium transition-colors select-none",
+              active ? it.activeClass : idleClass
             )}
-          </div>
-        </div>
-      </div>
+          >
+            {it.icon(active)}
+            <span className="max-w-full truncate text-[10px] md:text-xs">{it.label}</span>
+          </Link>
+        );
+      })}
+
+      {user ? (
+        <Link
+          href={profileHref}
+          aria-current={profileActive ? "page" : undefined}
+          className={cls(
+            itemClass,
+            "text-sm font-medium transition-colors select-none",
+            profileActive ? "text-green-500" : idleClass
+          )}
+        >
+          <AvatarIcon user={user} active={profileActive} />
+          <span className="max-w-full truncate text-[10px] md:text-xs">Profile</span>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={signInGoogle}
+          disabled={busy}
+          className={cls(
+            itemClass,
+            "text-sm font-medium transition-colors select-none",
+            idleClass,
+            busy && "opacity-60 cursor-not-allowed"
+          )}
+        >
+          <IconSignIn active={false} />
+          <span className="max-w-full truncate text-[10px] md:text-xs">{busy ? "..." : "Sign in"}</span>
+        </button>
+      )}
     </nav>
   );
 }

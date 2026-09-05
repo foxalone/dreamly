@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import BottomNav from "./BottomNav";
+import AppHeader from "./AppHeader";
 
 type NavCtx = {
   navHidden: boolean;
@@ -24,11 +24,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <NavVisibilityContext.Provider value={value}>
       <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-        {/* контент с запасом снизу под navbar */}
-        <div className={navHidden ? "" : "pb-24"}>{children}</div>
-
-        {/* сам navbar */}
-        <BottomNav hidden={navHidden} />
+        <AppHeader hidden={navHidden} />
+        <div>{children}</div>
       </div>
     </NavVisibilityContext.Provider>
   );
