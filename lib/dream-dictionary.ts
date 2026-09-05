@@ -159,6 +159,7 @@ const CLUSTERS: ClusterSeed[] = [
       "tsunami",
       "swimming",
       "boat",
+      "car",
     ],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
@@ -499,7 +500,8 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0ea5e9",
     summary: "direction, agency, progress, status, control, and the way you are moving through practical life",
     aliases: ["vehicle", "automobile", "dream about car", "car in a dream"],
-    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone", "train", "plane"],
+    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone", "train", "plane", "water"],
+    updatedAt: "2026-09-05",
     variations: [
       {
         slug: "car-accident",
@@ -530,6 +532,64 @@ const CLUSTERS: ClusterSeed[] = [
         ],
       },
       { slug: "brake-failure", name: "brake failure", focus: "inability to slow down, weak boundaries, accelerating pressure, or fear that consequences cannot be stopped" },
+      {
+        slug: "buying-a-car",
+        name: "buying a car",
+        focus: "choosing a new direction, committing resources, and deciding what kind of drive you are willing to own",
+        aliases: [
+          "buying a car dream meaning",
+          "dream about buying a car",
+          "buying a new car in a dream",
+          "purchasing a car dream",
+        ],
+      },
+      {
+        slug: "passenger-in-car",
+        name: "being a passenger in a car",
+        focus: "delegated control, riding someone else's direction, and how it feels to sit while another person steers",
+        aliases: [
+          "passenger in a car dream meaning",
+          "dream of being a passenger",
+          "back seat dream meaning",
+          "someone else driving my car dream",
+          "riding in the back seat dream",
+        ],
+      },
+      {
+        slug: "new-car",
+        name: "a new car",
+        focus: "a fresh drive, upgraded identity, and a transition that still feels unfamiliar in your hands",
+        aliases: [
+          "new car dream meaning",
+          "dream about a new car",
+          "driving a new car dream",
+          "brand new car in a dream",
+        ],
+      },
+      {
+        slug: "car-keys",
+        name: "car keys",
+        focus: "access to movement, a missing opportunity, and the small object that decides whether you can start at all",
+        aliases: [
+          "car keys dream meaning",
+          "lost car keys dream",
+          "dream about car keys",
+          "can't find car keys dream",
+          "keys to the car dream",
+        ],
+      },
+      {
+        slug: "car-in-water",
+        name: "a car in water",
+        focus: "your path meeting emotion, a drive flooded by feeling, or progress that has left dry ground",
+        aliases: [
+          "car in water dream meaning",
+          "car underwater dream",
+          "dream of driving into water",
+          "car sinking in water dream",
+          "car crashing into water dream",
+        ],
+      },
     ],
   },
   {
@@ -3470,6 +3530,130 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "I dreamed I caused the accident. Am I guilty of something?", answer: "Dream guilt often tracks waking responsibility you already feel — a decision, a conflict, a risk. Use it as an invitation to review your direction, not as a verdict." },
     ],
   },
+  "buying-a-car": {
+    introduction: [
+      "Buying a car in a dream is rarely about the dealership. The purchase is the moment you agree to own a direction: you pick the vehicle, you spend something that matters, and you accept the maintenance that comes with it. People searching buying a car dream meaning usually wake with the feeling of a commitment — excitement, sticker shock, or the suspicion they chose the wrong model.",
+      "Read the transaction first. A new car you can afford leans toward a direction you are ready to claim. Haggling, hidden damage, or a purchase you cannot pay for points to a change you want without the resources, timing, or honesty to support it. The type of car is secondary to whether you felt proud, rushed, or talked into the sale.",
+    ],
+    general: [
+      "Ask what you were buying a drive toward. Career, a relationship, a move, a version of yourself with more range — the dream uses a purchase because those changes cost something: money, time, identity, or other options you are giving up. Paying cash can read as using reserves you already have; financing can read as a path that will keep asking for payments.",
+      "Used versus new matters less than condition and fit. A used car that runs well can be a second chance at a familiar kind of agency. A luxury model that feels wrong often tracks status you are trying on. Walking away from the lot, or discovering the car is not yours after paying, usually means the commitment is still being negotiated in waking life.",
+    ],
+    commonScenarios: [
+      { title: "Buying a New Car", meaning: "A fresh drive you are willing to own: new role, new pace, new public identity. Mood at the counter tells you whether the change feels chosen or performed." },
+      { title: "Buying a Used Car", meaning: "Taking on a path that already has history — yours or someone else's. Inspect the condition: rust and hidden faults often name the cost you already suspect." },
+      { title: "Cannot Afford the Car", meaning: "A direction you want without the current means, timing, or support. The dream is usually about capacity, not a prediction that a purchase will fail." },
+      { title: "Being Talked Into the Sale", meaning: "Someone else's urgency steering your commitment. Ask who in waking life is selling you a pace or identity that is not quite yours." },
+      { title: "The Car Breaks After You Buy It", meaning: "Buyer's remorse in motion: a new plan that already needs repair, or a fear that the next chapter will cost more than the brochure promised." },
+      { title: "Choosing Between Cars", meaning: "Competing directions. Color, size, and who is waiting in which vehicle often say more than the price on the window." },
+    ],
+    faq: [
+      { question: "What does buying a car in a dream mean?", answer: "It commonly marks choosing and paying for a new direction — a role, relationship, or identity you are ready to own. The cost and how you felt at the sale refine whether the commitment is solid or premature." },
+      { question: "Is dreaming of buying a new car a good sign?", answer: "Often it leans toward readiness and a fresh drive, but it is not a guarantee of a purchase or a windfall. Excitement plus ease is a different reading from excitement plus debt-panic." },
+      { question: "What if I could not pay for the car?", answer: "That usually reflects a wanted change that currently exceeds your resources, time, or confidence — an invitation to check capacity, not a verdict that you will fail." },
+      { question: "Does the type of car matter?", answer: "Yes, as a clue about the kind of drive: practical, status-heavy, fast, family-sized. Still weigh fit and emotion above brand folklore." },
+    ],
+  },
+  "passenger-in-car": {
+    introduction: [
+      "Being a passenger in a car dream is the control question made obvious: someone else has the wheel, and you are living with their speed, route, and judgment. The parent car page already names this as the variant dreamers recognize with a jolt. This page stays with that seat — front passenger, back seat, or a ride you never agreed to take.",
+      "The useful reading is not 'I have no power.' It is 'who is steering, how did they get the wheel, and how do I actually feel about it?' Relaxed riding can be trust. Resigned riding can be a habit of delegation. Panic in the passenger seat is a running vote against an arrangement you have not yet changed while awake.",
+    ],
+    general: [
+      "Name the driver. A parent, partner, boss, or stranger is rarely random: the dream is pointing at the person — or the kind of authority — currently setting your pace. If you cannot see the driver, the force may be a system, a family script, or a default you have stopped questioning.",
+      "Then read your body in the seat. Reaching for the wheel from the back is influence without authority. Asking them to slow down and being ignored is a boundary you have already tried. Getting out, or finally switching seats, usually marks a waking shift from commentary to agency. Compare this page with driving a car and brake failure when the issue is your own grip rather than someone else's.",
+    ],
+    commonScenarios: [
+      { title: "A Parent or Partner Driving", meaning: "A familiar hand on your direction: caretaking, expectation, or a relationship that still sets the route. Comfort versus frustration in the seat is the real interpretation." },
+      { title: "Your Boss Is Driving", meaning: "Work or status steering more of your life than you admit. These dreams cluster around reviews, overwork, and seasons when the job has the map." },
+      { title: "A Stranger at the Wheel", meaning: "An unnamed force — institution, mood, or habit — carrying you. The dream asks whether you consented to this ride or only woke up already moving." },
+      { title: "Back Seat, No Seatbelt", meaning: "Influence at two removes, plus exposure: you can comment, but you cannot steer, and you do not feel protected if the course is wrong." },
+      { title: "Trying to Grab the Wheel", meaning: "Agency returning. The struggle itself is the message: you are no longer willing to be cargo, even if you have not yet changed seats in waking life." },
+      { title: "Enjoying the Ride", meaning: "Delegated control that currently fits — trust, rest, or a season of letting someone competent lead. Not every passenger dream is a complaint." },
+    ],
+    faq: [
+      { question: "What does it mean to be a passenger in a car dream?", answer: "It usually means someone or something else is steering your direction — a person, a job, a family script. Your emotion in the seat tells you whether that arrangement still fits." },
+      { question: "Why am I never the driver in my dreams?", answer: "Habitual passenger-seat dreams often mirror habitual delegation. If the dreams feel fine, they may simply be accurate. If they feel trapped, they are asking you to take the wheel of something specific this week." },
+      { question: "What if I cannot see who is driving?", answer: "An unseen driver often stands for a system, mood, or default path rather than one person. Ask what is moving your days that you have not named." },
+      { question: "Is the back seat different from the front?", answer: "Yes. The front passenger is close to the decisions; the back seat is influence at a remove — common when family, status, or someone else's map is two steps ahead of you." },
+    ],
+  },
+  "new-car": {
+    introduction: [
+      "A new car in a dream is the upgraded version of the same symbol: not just movement, but a fresher, cleaner, more public drive. People searching new car dream meaning are often in a transition — new job, new city, new relationship, new self-image — and the vehicle arrives before they have learned the dashboard.",
+      "The first question is fit. A new car that feels like yours marks readiness. A new car that feels too fast, too expensive, or like it belongs to someone else marks a change you are wearing before you have grown into it. Smell of the interior, keys in your hand, and whether you knew how to start it all refine that reading.",
+    ],
+    general: [
+      "Newness can be gift or pressure. Receiving a new car as a surprise often tracks an opportunity that arrived faster than your plan. Buying one (see buying a car) emphasizes choice and cost. Finding a new car already parked as if it were always yours can mean a capacity you have not admitted yet.",
+      "Damage on a brand-new vehicle, a missing feature, or getting lost on the first drive usually names the fear that the next chapter will not hold. Compare an old familiar car: that image looks backward to a drive you already knew. The new car looks forward and asks whether you can inhabit the upgrade without performing it.",
+    ],
+    commonScenarios: [
+      { title: "Driving a Brand-New Car", meaning: "A fresh identity in motion. If the handling feels natural, the transition is integrating; if you keep stalling, you are still learning the new controls." },
+      { title: "A New Car That Is Not Yours", meaning: "Trying on someone else's pace or status. Ask whose life you are rehearsing — a peer, a parent, an imagined future self." },
+      { title: "The New Car Gets Damaged", meaning: "Fear that a promising start will be marked. Often appears when you have just begun something public and already feel exposed." },
+      { title: "Cannot Find the Controls", meaning: "A role or tool you have been given without a manual. Competence is the theme, not the vehicle." },
+      { title: "Showing the New Car to Others", meaning: "The change is about being seen: status, proof, or the wish that someone important will recognize the upgrade." },
+      { title: "Preferring Your Old Car", meaning: "Loyalty to a former drive. The dream may be asking whether the upgrade is yours or only expected of you." },
+    ],
+    faq: [
+      { question: "What does a new car mean in a dream?", answer: "It commonly points to a fresh direction, upgraded identity, or a transition that still feels new in your hands. Emotion and whether the car fits you matter more than the make." },
+      { question: "Is a new car dream a sign of money coming?", answer: "No reliable prediction. The image is about drive and identity; any financial reading is metaphorical unless you are already making a real purchase." },
+      { question: "What if the new car felt wrong?", answer: "A poor fit usually means a change you are trying on for status, family, or fear of being left behind — not a path that already belongs to you." },
+      { question: "How is this different from buying a car?", answer: "Buying emphasizes the decision and the cost. A new car already in your possession emphasizes inhabiting the upgrade — whether you can drive it, not only whether you chose it." },
+    ],
+  },
+  "car-keys": {
+    introduction: [
+      "Car keys are the smallest object in the vehicle cluster and often the whole plot. Without them the car is only furniture: you have a direction in theory and no way to start. Lost keys, stolen keys, a key that will not turn, or a spare you suddenly find — each scene is about access to movement rather than the road itself.",
+      "Keys in dreams generally mark opportunity and the right to enter. Attached to a car they become permission to go: start a plan, leave a situation, take a job, reclaim independence. People searching car keys dream meaning are usually stuck in a parking lot of some kind — they can see the vehicle and cannot get in.",
+    ],
+    general: [
+      "Losing the keys is the everyday cousin of losing the car. The drive still exists; your access is what went missing — confidence, a password, a document, someone's approval, or simply the next practical step. Searching pockets and lots maps onto searching a structure (a company, a family, a stage of life) for the one thing that would let you move.",
+      "A key that does not fit, or a lock that turns but the engine stays dead, separates access from capacity: you got in and still cannot go. Finding keys you did not know you had often reads as a resource already in your possession. Someone else holding your keys returns to the passenger question — who is allowed to start your life.",
+    ],
+    commonScenarios: [
+      { title: "Lost Car Keys", meaning: "Access delayed: a plan you can see but cannot start. The search itself is the dream — where you look is often where waking life has buried the next step." },
+      { title: "Keys That Will Not Turn", meaning: "The door is the right door and the timing is wrong, or you are using the wrong kind of permission. Effort without ignition." },
+      { title: "Someone Else Has Your Keys", meaning: "Delegated or seized start-power. Compare being a passenger: they may not be driving yet, but they decide when you can leave." },
+      { title: "Finding Spare Keys", meaning: "A backup route to agency — a skill, relationship, or option you forgot you had. Relief in this scene is usually accurate." },
+      { title: "Locking the Keys Inside", meaning: "You built a structure that now locks you out of your own movement: overplanning, perfectionism, or a rule that once protected you." },
+      { title: "A Broken Key in the Ignition", meaning: "A start that snapped under pressure. The plan was engaged and then failed at the first turn — often a warning about forcing a stuck situation." },
+    ],
+    faq: [
+      { question: "What do car keys mean in a dream?", answer: "They usually represent access to movement — the permission, tool, or next step that starts a plan. Losing them is about delayed agency, not a prediction you will lose your real keys." },
+      { question: "What does losing car keys in a dream mean?", answer: "It commonly points to a drive you still have but cannot start: missing confidence, approval, information, or a practical step. The place you search is often the clue." },
+      { question: "Why can't I start the car even with the keys?", answer: "Access without ignition: you have permission or tools and still lack energy, timing, or a working plan. Check capacity, not only opportunity." },
+      { question: "What if someone took my keys?", answer: "Someone else currently controls when you get to move — a person, a job, or a gatekeeping process. Name who holds the start button in waking life." },
+    ],
+  },
+  "car-in-water": {
+    introduction: [
+      "A car in water joins the two most common dream machines: the vehicle of your path and the element of feeling. Driving into a river, sinking in a lake, floating, or watching the car fill from the floor — the scene says your direction has left dry ground. People searching car in water dream meaning are often tracking an emotional flood that has reached work, plans, or the way they move through the day.",
+      "This is not automatically a disaster. Calm clear water around a still-running car can mean emotion you can navigate. Murky water, a sinking cabin, or doors that will not open leans toward overwhelm: the drive is still yours and the feeling is higher than the vents. Compare drowning and falling into water when the body, not the vehicle, is what goes under.",
+    ],
+    general: [
+      "Start with how you entered the water. Steering in on purpose can be a chosen descent into feeling — therapy, grief, a conversation you finally had. Skidding off a bridge or a sudden flood is interruption: emotion arriving faster than the plan. Being a passenger in a car that hits water returns the control question inside an emotional crash.",
+      "Then read survival. Getting out, helping others, or calmly opening a window often shifts the dream toward resilience — you can leave a flooded plan and keep a self. Staying belted as the cabin fills tracks a loyalty to a course that is no longer breathable. The related water page holds the emotional vocabulary; this page keeps the question of path: which drive is underwater, and do you still want that destination.",
+    ],
+    islamic: [
+      "Water and vehicles both appear in classical readings as signs of worldly course, provision, and trial — water toward emotion, fitnah, or mercy depending on clarity; a mount or vessel toward how one's affairs are carried. A car in water has no fixed transmitted code, so the humble reading stays with those broader themes: a path meeting a test of feeling, or livelihood under a wave of circumstance.",
+      "A frightening sinking scene should not be treated as knowledge of a real accident or as evidence against another person. Seek refuge in Allah if the dream distresses you, avoid spreading a fearful prediction, and review the actual affairs that currently feel flooded. Decisions about travel, money, and relationships remain grounded in evidence, prayer, and counsel — not in the dream alone.",
+    ],
+    commonScenarios: [
+      { title: "Driving Into a Lake or River", meaning: "A chosen or half-chosen descent: your path entering feeling. Speed and whether you braked say if this is surrender, accident, or a decision you are still making." },
+      { title: "The Car Is Sinking", meaning: "A plan taking on more emotion than it can hold. Getting out is resilience; staying belted is loyalty to a course that may need abandoning." },
+      { title: "Floating but Unable to Steer", meaning: "You are still afloat and no longer directional — a season of emotion carrying you. Compare being a passenger: the water is now the driver." },
+      { title: "Water Rising Inside the Cabin", meaning: "Feeling entering the private space of the drive: work tears, family grief, or anxiety filling a role you are trying to keep dry." },
+      { title: "Watching the Car Go Under", meaning: "Distance from a flooded plan — yours or someone else's. Relief versus horror tells you whether you needed that ending." },
+      { title: "Pulling Someone From a Submerged Car", meaning: "A caretaker role in someone else's emotional crash, or a part of you retrieving another part. The person you save is often the clue." },
+    ],
+    faq: [
+      { question: "What does a car in water mean in a dream?", answer: "It usually means your direction has met strong emotion — a plan, role, or relationship flooded by feeling. Clear navigable water and a sinking cabin are different readings." },
+      { question: "Is a car underwater dream a bad omen?", answer: "No. It is not a prediction of an accident. Frightening versions often reflect overwhelm or a path that is no longer breathable; surviving or escaping leans toward resilience." },
+      { question: "What if I drove into the water on purpose?", answer: "A chosen entry can mean you are ready to feel something you had been driving around — grief, desire, a hard conversation — even if the landing is messy." },
+      { question: "How is this different from drowning?", answer: "Drowning puts the body under. A car in water puts your path under: agency, plans, and public movement meeting emotion. Both can appear in the same season." },
+    ],
+  },
   horse: {
     introduction: [
       "Horse dreams feel kinetic: power under you, or power coming at you. Across cultures the horse carries drive, status, and freedom — and in Islamic dream literature it is among the more carefully graded animal symbols. Searchers asking for horse in dream meaning, including Islamic views, are usually tracking ambition, control, and whether their energy is servant or master.",
@@ -4539,6 +4723,31 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Car Accident Dream Meaning (Including Islamic Views)",
     seoDescription:
       "What a car accident dream means psychologically and in Islamic dream tradition — collisions of plans, fear of consequence, and when the dream is about direction, not fate.",
+  },
+  "buying-a-car": {
+    seoTitle: "Buying a Car Dream Meaning: New Drive & Commitment",
+    seoDescription:
+      "Dreams about buying a car mark choosing a direction you will own — cost, fit, and whether the sale was yours or someone else's urgency.",
+  },
+  "passenger-in-car": {
+    seoTitle: "Passenger in a Car Dream Meaning: Who's Steering?",
+    seoDescription:
+      "Dreams about being a passenger ask who has the wheel — parent, partner, boss, or habit — and how it feels to ride someone else's direction.",
+  },
+  "new-car": {
+    seoTitle: "New Car Dream Meaning: Fresh Start & New Direction",
+    seoDescription:
+      "Dreams about a new car point to an upgraded drive or identity still unfamiliar in your hands — fit, first trip, and whether the upgrade is yours.",
+  },
+  "car-keys": {
+    seoTitle: "Car Keys Dream Meaning: Access, Opportunity & Stuckness",
+    seoDescription:
+      "Dreams about car keys are about access to movement — lost keys, a key that will not turn, and the small object that decides whether you can start.",
+  },
+  "car-in-water": {
+    seoTitle: "Car in Water Dream Meaning: When Feeling Floods the Path",
+    seoDescription:
+      "Dreams about a car in water join path and emotion — sinking, driving in, and whether your current drive can still breathe under the feeling.",
   },
   horse: {
     seoTitle: "Horse in Dream Meaning: Power, Drive & Islamic Readings",

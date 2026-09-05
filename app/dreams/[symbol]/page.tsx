@@ -137,7 +137,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
   const parent = getParentEntry(entry);
   const variations = getDreamVariations(entry);
   const relatedVariations = entry.parentSlug
-    ? variations.filter((variation) => variation.slug !== entry.slug).slice(0, 6)
+    ? variations.filter((variation) => variation.slug !== entry.slug)
     : variations;
   const relatedSymbols = getRelatedDreams(entry);
   const category = DREAM_CATEGORIES[entry.category];
