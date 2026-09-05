@@ -167,6 +167,26 @@
   color-scheme: light;
 }
 
+/* ===== HIDE-ON-SCROLL HEADER ===== */
+/* Shift sticky `top` only — never transform a wrapper that also contains
+   position:fixed navigation (that would pin the bottom bar to the header). */
+
+.hide-on-scroll-header {
+  top: 0;
+  transition: top 280ms ease;
+}
+
+.hide-on-scroll-header.is-hidden {
+  top: calc(-1 * var(--hide-on-scroll-offset, 4.5rem));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hide-on-scroll-header {
+    transition: none;
+  }
+}
+
 /* ===== BASE STYLES ===== */
 
 html, body {

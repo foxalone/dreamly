@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { MoonStar } from "lucide-react";
 import BottomNav from "@/app/app/BottomNav";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
-import QuickSymbolFab from "./QuickSymbolFab";
+import DreamDictionaryHeader from "./DreamDictionaryHeader";
 import ScrollDepthTracker from "./ScrollDepthTracker";
 
 export const metadata: Metadata = {
@@ -29,19 +28,7 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
   return (
     <div className="dream-dictionary min-h-screen bg-[var(--dd-bg)] text-[var(--dd-text)]">
       <ScrollDepthTracker />
-      <header className="sticky top-0 z-40 border-b border-[var(--dd-border)] bg-[var(--dd-header)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
-          <Link href="/dreams" className="flex items-center gap-2.5 text-sm font-semibold tracking-wide text-[var(--dd-text)]">
-            <span className="grid size-8 place-items-center rounded-xl bg-violet-500/15 text-[var(--dd-accent-text)] ring-1 ring-violet-400/20">
-              <MoonStar size={17} aria-hidden="true" />
-            </span>
-            <span>Dreamly Dictionary</span>
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <QuickSymbolFab />
-          </div>
-        </div>
-      </header>
+      <DreamDictionaryHeader />
       <div>{children}</div>
       <footer className="border-t border-[var(--dd-border)] pb-32">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8">
