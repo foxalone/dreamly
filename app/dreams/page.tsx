@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, ChevronRight, Layers3 } from "lucide-react";
 import DreamSearch from "./DreamSearch";
+import GuideLinkCards from "./GuideLinkCards";
 import {
   ALL_DREAM_ENTRIES,
   DREAM_CATEGORIES,
@@ -11,6 +12,7 @@ import {
   getDreamsByCategory,
   type DreamCategory,
 } from "@/lib/dream-dictionary";
+import { DREAM_GUIDES } from "@/lib/dream-guides";
 
 export const metadata: Metadata = {
   title: `Dream Dictionary: ${ALL_DREAM_ENTRIES.length} Symbols, Meanings & Interpretations`,
@@ -122,6 +124,19 @@ export default function DreamDictionaryPage() {
               );
             })}
           </nav>
+        </section>
+
+        <section id="how-dreaming-works" className="mt-14 scroll-mt-24" aria-labelledby="how-dreaming-works-title">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">Learn about dreaming</p>
+            <h2 id="how-dreaming-works-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">How dreaming works</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--dd-muted)] sm:text-base">
+              Educational guides on why we dream, lucidity, loops, and the night states that sit beside the symbol dictionary.
+            </p>
+          </div>
+          <div className="mt-6">
+            <GuideLinkCards guides={DREAM_GUIDES} />
+          </div>
         </section>
 
         <section className="mt-14" aria-labelledby="categories-title">

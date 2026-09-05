@@ -31,6 +31,8 @@ import {
 } from "@/lib/dream-dictionary";
 import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamPageImage } from "@/lib/getDreamPageImage";
+import { getGuidesForSymbol } from "@/lib/dream-guides";
+import GuideLinkCards from "../GuideLinkCards";
 
 type PageProps = { params: Promise<{ symbol: string }> };
 
@@ -144,6 +146,7 @@ export default async function DreamSymbolPage({ params }: PageProps) {
   const categorySiblings = getCategorySiblings(entry);
   const ringLinks = getRingLinks(entry);
   const combos = getCombosForSymbol(entry.parentSlug ?? entry.slug).filter((combo) => combo.slug !== entry.slug);
+  const relatedGuides = getGuidesForSymbol(entry.parentSlug ?? entry.slug);
   const pageImage = await getDreamPageImage(entry.slug);
   const articleImage = pageImage?.imageUrl
     ? {
@@ -346,6 +349,16 @@ export default async function DreamSymbolPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {relatedGuides.length > 0 ? (
+          <aside className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="symbol-guides-title">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Learn about dreaming</p>
+            <h2 id="symbol-guides-title" className="mt-1.5 text-2xl font-semibold tracking-tight">How this dream connects</h2>
+            <div className="mt-6">
+              <GuideLinkCards guides={relatedGuides} />
+            </div>
+          </aside>
+        ) : null}
 
         <section id="related" className="scroll-mt-24 border-t border-[var(--dd-border)] py-10 sm:py-14">
           <div>

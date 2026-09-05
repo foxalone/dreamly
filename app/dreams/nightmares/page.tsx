@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { DREAM_DICTIONARY, getAllEntriesByCategory, type DreamEntry } from "@/lib/dream-dictionary";
+import { getDreamGuide } from "@/lib/dream-guides";
+import GuideLinkCards from "../GuideLinkCards";
 
 const SCARY_SYMBOL_SLUGS = [
   "nightmare",
@@ -112,7 +114,24 @@ export default function NightmaresDictionaryPage() {
           </div>
         </header>
 
-        <section className="mt-10" aria-labelledby="common-nightmares-title">
+        <section className="mt-10" aria-labelledby="nightmare-guides-title">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Learn about dreaming</p>
+          <h2 id="nightmare-guides-title" className="mt-1.5 text-2xl font-semibold tracking-tight">Night states beside the nightmare</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--dd-muted)]">
+            Recurring loops, sleep paralysis, and false awakenings often travel with frightening dreams. These guides explain the experience first, then point back to symbols.
+          </p>
+          <div className="mt-6">
+            <GuideLinkCards
+              guides={[
+                getDreamGuide("recurring-dreams")!,
+                getDreamGuide("sleep-paralysis")!,
+                getDreamGuide("false-awakening")!,
+              ]}
+            />
+          </div>
+        </section>
+
+        <section className="mt-12" aria-labelledby="common-nightmares-title">
           <h2 id="common-nightmares-title" className="text-2xl font-semibold tracking-tight">Most common nightmares</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {scaryEntries.map((entry) => <NightmareCard key={entry.slug} entry={entry} />)}
