@@ -32,11 +32,11 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
       <ScrollDepthTracker />
       <DreamDictionaryHeader />
       <div>{children}</div>
-      <footer className="border-t border-[var(--dd-border)] pb-12">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8">
+      <footer className="border-t border-[var(--dd-border)]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 sm:py-12 lg:grid-cols-[1.3fr_1.3fr_0.8fr] lg:gap-12">
           <nav aria-label="Dictionary hubs">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Explore</p>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 min-[380px]:grid-cols-2">
               {HUB_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
@@ -48,7 +48,7 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
           </nav>
           <nav aria-label="Dream categories">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Categories</p>
-            <ul className="mt-4 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
+            <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 min-[380px]:grid-cols-2">
               {(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category) => (
                 <li key={category}>
                   <Link href={`/dreams/categories/${category}`} className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
@@ -58,9 +58,9 @@ export default function DreamDictionaryLayout({ children }: { children: ReactNod
               ))}
             </ul>
           </nav>
-          <nav aria-label="Legal">
+          <nav aria-label="Legal" className="sm:col-span-2 lg:col-span-1">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">Legal</p>
-            <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+            <ul className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5 lg:flex-col">
               <li>
                 <Link href="/privacy" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
                   Privacy Policy
