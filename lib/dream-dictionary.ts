@@ -87,7 +87,7 @@ const CLUSTERS: ClusterSeed[] = [
       "snake dream meaning",
       "snake in water in dream meaning",
     ],
-    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator"],
+    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator", "dragon"],
     variations: [
       { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
       { slug: "white-snake", name: "white snake", focus: "unfamiliar wisdom, clarity, healing, or a truth arriving in an unexpected form" },
@@ -160,6 +160,8 @@ const CLUSTERS: ClusterSeed[] = [
       "swimming",
       "boat",
       "car",
+      "moon",
+      "colors",
     ],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
@@ -208,6 +210,8 @@ const CLUSTERS: ClusterSeed[] = [
       "tunnel",
       "nightmare",
       "grandparents",
+      "old-friend",
+      "flowers",
     ],
     variations: [
       { slug: "someone-dying", name: "someone dying", focus: "fear of separation, a changing relationship, grief, or recognition that another person is changing" },
@@ -264,7 +268,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#f472b6",
     summary: "creation, development, anticipation, responsibility, and something important growing before it is ready to emerge",
     aliases: ["pregnant", "dream about pregnancy", "pregnancy in a dream", "pregnancy dream meaning"],
-    relatedSymbols: ["baby", "water", "hospital", "house", "wedding", "twins"],
+    relatedSymbols: ["baby", "water", "hospital", "house", "wedding", "twins", "flowers", "moon"],
     variations: [
       { slug: "being-pregnant", name: "being pregnant", focus: "personally carrying an idea, identity, responsibility, or change that is still developing" },
       { slug: "pregnancy-test", name: "a pregnancy test", focus: "waiting for confirmation, fearing consequences, or needing clarity about a life-changing possibility" },
@@ -322,7 +326,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#8b5cf6",
     summary: "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
     aliases: ["flight", "dream about flying", "flying in a dream", "flying dream meaning"],
-    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane"],
+    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane", "dragon"],
     variations: [
       { slug: "flying-high", name: "flying high", focus: "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground" },
       { slug: "flying-over-water", name: "flying over water", focus: "gaining perspective on strong emotions or moving between freedom and emotional depth" },
@@ -360,6 +364,7 @@ const CLUSTERS: ClusterSeed[] = [
       "plane",
       "stairs",
       "trapped",
+      "test",
     ],
     variations: [
       { slug: "falling-from-height", name: "falling from a height", focus: "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences", aliases: ["dreams about heights", "falling from heights dream"] },
@@ -409,6 +414,7 @@ const CLUSTERS: ClusterSeed[] = [
       "nightmare",
       "trapped",
       "being-lost",
+      "intruder",
     ],
     variations: [
       { slug: "chased-by-man", name: "being chased by a man", focus: "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence" },
@@ -447,6 +453,9 @@ const CLUSTERS: ClusterSeed[] = [
       "lottery",
       "debt",
       "eating",
+      "old-friend",
+      "keys",
+      "intruder",
     ],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
@@ -465,7 +474,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#22c55e",
     summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
     aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
-    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt", "eating"],
+    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt", "eating", "ring", "keys", "shoes"],
     variations: [
       { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
       { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
@@ -483,7 +492,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#64748b",
     summary: "patience, creativity, entanglement, fear, careful strategy, and the networks being built around you",
     aliases: ["spiders", "dream about spider", "spider in a dream", "spider dream meaning"],
-    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat", "crawling"],
+    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat", "crawling", "insects"],
     variations: [
       { slug: "big-spider", name: "big spider", focus: "a fear, influence, creative task, or complicated situation that has become difficult to overlook" },
       { slug: "black-spider", name: "black spider", focus: "hidden anxiety, patient strategy, an unknown influence, or a complicated issue operating quietly" },
@@ -500,7 +509,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0ea5e9",
     summary: "direction, agency, progress, status, control, and the way you are moving through practical life",
     aliases: ["vehicle", "automobile", "dream about car", "car in a dream"],
-    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone", "train", "plane", "water"],
+    relatedSymbols: ["flying", "falling", "money", "airport", "horse", "phone", "train", "plane", "water", "keys"],
     updatedAt: "2026-09-05",
     variations: [
       {
@@ -600,7 +609,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#3b82f6",
     summary: "performance pressure, evaluation, growth, social belonging, and unfinished lessons from earlier life",
     aliases: ["schoolyard", "classroom", "dream about school", "school in a dream"],
-    relatedSymbols: ["house", "being-chased", "falling", "hospital", "being-naked", "work"],
+    relatedSymbols: ["house", "being-chased", "falling", "hospital", "being-naked", "work", "old-friend", "test"],
     variations: [
       { slug: "old-school", name: "old school", focus: "nostalgia, unresolved memories from an earlier stage of life, or comparing past growth with where you stand now" },
       { slug: "being-late-to-school", name: "being late to school", focus: "fear of falling behind, missed responsibility, or anxiety about meeting an important expectation" },
@@ -660,7 +669,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#4b5563",
     summary: "grief, memory, closure, and the quiet presence of what has ended but is not forgotten",
     aliases: ["graveyard", "dream about cemetery", "cemetery in a dream"],
-    relatedSymbols: ["death", "church", "forest", "owl", "ghost"],
+    relatedSymbols: ["death", "church", "forest", "owl", "ghost", "flowers"],
     variations: [
       { slug: "walking-through-cemetery", name: "walking through a cemetery", focus: "processing grief, reflecting on mortality, or moving through unresolved memories at your own pace" },
       { slug: "graveyard", name: "a graveyard", focus: "endings, memory, respect for the past, or an honest confrontation with loss" },
@@ -720,7 +729,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#78716c",
     summary: "restriction, guilt, powerlessness, and the wish to be released from a situation that feels inescapable",
     aliases: ["jail", "incarceration", "dream about prison", "prison in a dream"],
-    relatedSymbols: ["house", "being-chased", "hospital", "trapped"],
+    relatedSymbols: ["house", "being-chased", "hospital", "trapped", "keys"],
     variations: [
       { slug: "being-in-prison", name: "being in prison", focus: "restriction, guilt, or a situation in waking life that feels inescapable or unfairly limiting" },
       { slug: "escaping-prison", name: "escaping prison", focus: "a wish for freedom, breaking free from limitation, or reclaiming control over a restrictive situation" },
@@ -980,7 +989,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ec4899",
     summary: "transformation, lightness, fragile beauty, and the delicate process of becoming something new",
     aliases: ["butterflies", "dream about butterfly", "butterfly in a dream"],
-    relatedSymbols: ["flying", "bird", "spider"],
+    relatedSymbols: ["flying", "bird", "spider", "insects"],
     variations: [
       { slug: "white-butterfly", name: "a white butterfly", focus: "purity, peace, or a gentle sign accompanying a meaningful personal change" },
       { slug: "black-butterfly", name: "a black butterfly", focus: "an unfamiliar transformation, grief, or change that feels mysterious rather than threatening" },
@@ -1010,7 +1019,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dream of a fire meaning",
       "significance of fire in dreams",
     ],
-    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death", "tsunami"],
+    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death", "tsunami", "dragon", "colors"],
     variations: [
       { slug: "escaping-a-fire", name: "escaping a fire", focus: "survival instinct, urgent change, or getting clear of a situation before it consumes you" },
       { slug: "starting-a-fire", name: "starting a fire", focus: "initiative, suppressed anger, a desire to force change, or the consequences of a deliberate act" },
@@ -1083,7 +1092,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#dc2626",
     summary: "life force, vitality, injury, sacrifice, family bonds, and energy being spent or lost",
     aliases: ["bleeding", "dream about blood", "blood in a dream"],
-    relatedSymbols: ["teeth", "death", "hospital", "hair", "illness", "wedding"],
+    relatedSymbols: ["teeth", "death", "hospital", "hair", "illness", "wedding", "colors"],
     variations: [
       { slug: "bleeding", name: "bleeding", focus: "energy draining away, an emotional wound still open, or a loss that has not been addressed" },
       { slug: "blood-on-hands", name: "blood on your hands", focus: "guilt, responsibility for harm, or anxiety about the consequences of your actions" },
@@ -1127,7 +1136,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does it mean when you dream of your ex",
       "what do dreams about my ex mean",
     ],
-    relatedSymbols: ["cheating", "wedding", "kissing", "mother", "sex"],
+    relatedSymbols: ["cheating", "wedding", "kissing", "mother", "sex", "celebrity", "old-friend", "ring", "being-ignored"],
     variations: [
       { slug: "ex-boyfriend", name: "an ex-boyfriend", focus: "unfinished emotion, a pattern from that relationship echoing in your current life" },
       { slug: "ex-girlfriend", name: "an ex-girlfriend", focus: "nostalgia, comparison with the present, or an unresolved question from a past bond" },
@@ -1183,7 +1192,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does a wedding dream mean",
       "wedding dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex"],
+    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex", "celebrity", "ring", "flowers"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1210,7 +1219,7 @@ const CLUSTERS: ClusterSeed[] = [
       "biblical meaning of kiss in a dream",
       "kiss in a dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "wedding", "sex"],
+    relatedSymbols: ["ex", "cheating", "wedding", "sex", "celebrity", "ring"],
     variations: [
       { slug: "kissing-a-stranger", name: "kissing a stranger", focus: "attraction to something unfamiliar, a new possibility, or an unacknowledged desire" },
       { slug: "kissing-an-ex", name: "kissing an ex", focus: "nostalgia, unresolved attraction, or reconnecting with who you were in that relationship" },
@@ -1239,7 +1248,7 @@ const CLUSTERS: ClusterSeed[] = [
       "meaning of sexual dreams",
       "sex dream interpretation",
     ],
-    relatedSymbols: ["cheating", "kissing", "ex", "wedding", "being-naked"],
+    relatedSymbols: ["cheating", "kissing", "ex", "wedding", "being-naked", "celebrity"],
     variations: [
       {
         slug: "sex-with-a-coworker",
@@ -1364,7 +1373,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#eab308",
     summary: "meaning, conscience, surrender, accountability, and the longing for guidance larger than the self",
     aliases: ["dream about god", "god in a dream", "seeing god in a dream"],
-    relatedSymbols: ["angel", "demon", "church", "ghost"],
+    relatedSymbols: ["angel", "demon", "church", "ghost", "moon", "colors"],
     variations: [
       { slug: "talking-to-god", name: "talking to god", focus: "a search for direction, an inner dialogue with conscience, or a question too large to carry alone" },
       { slug: "seeing-god", name: "seeing god", focus: "awe, a need for reassurance, or contact with the deepest source of meaning in your life" },
@@ -1418,7 +1427,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#7f1d1d",
     summary: "inner conflict, temptation, fear, shame, and destructive forces given a face by the dreaming mind",
     aliases: ["devil", "evil spirit", "dream about demons", "demon in a dream"],
-    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god", "nightmare"],
+    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god", "nightmare", "dragon"],
     variations: [
       { slug: "being-attacked-by-demon", name: "being attacked by a demon", focus: "an inner battle with fear, addiction, anger, or shame that feels stronger than you" },
       { slug: "demon-possession", name: "demonic possession", focus: "feeling controlled by an emotion, habit, or influence that overrides your intentions" },
@@ -1443,7 +1452,7 @@ const CLUSTERS: ClusterSeed[] = [
       "angel dream meaning",
       "angels dream meaning",
     ],
-    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god"],
+    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god", "moon"],
     variations: [
       { slug: "angel-visiting-you", name: "an angel visiting you", focus: "a need for reassurance, a sense of being guided, or hope during uncertainty" },
       { slug: "guardian-angel", name: "a guardian angel", focus: "protection, support you may be underestimating, or a wish for someone to watch over you" },
@@ -1461,7 +1470,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#57534e",
     summary: "distrust, guilt, survival, hidden problems, and anxieties gnawing quietly in the background",
     aliases: ["rats", "mouse", "mice", "dream about rats", "rat in a dream"],
-    relatedSymbols: ["cat", "snake", "spider", "house"],
+    relatedSymbols: ["cat", "snake", "spider", "house", "insects"],
     variations: [
       { slug: "rats-in-the-house", name: "rats in the house", focus: "a hidden problem eroding your private life, or unease inside a place meant to feel safe" },
       { slug: "rat-biting-you", name: "a rat biting you", focus: "a small betrayal, nagging guilt, or a minor issue that has begun to cause real harm" },
@@ -1530,7 +1539,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreams about being naked in public",
       "dream interpretation naked in public",
     ],
-    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror", "trapped", "sex"],
+    relatedSymbols: ["school", "falling", "being-chased", "nightmare", "mirror", "trapped", "sex", "test", "shoes", "intruder"],
     variations: [
       { slug: "naked-at-school", name: "being naked at school", focus: "performance anxiety, fear of judgment, or old social insecurities resurfacing" },
       { slug: "naked-at-work", name: "being naked at work", focus: "professional vulnerability, imposter feelings, or fear of being exposed as unprepared" },
@@ -1558,7 +1567,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of working",
       "working dream meaning",
     ],
-    relatedSymbols: ["money", "school", "father", "lottery", "debt", "sex-with-a-coworker"],
+    relatedSymbols: ["money", "school", "father", "lottery", "debt", "sex-with-a-coworker", "celebrity", "test", "shoes", "being-ignored"],
     variations: [
       { slug: "being-fired", name: "being fired", focus: "insecurity about your position, fear of rejection, or readiness to leave a role that no longer fits" },
       { slug: "being-late-for-work", name: "being late for work", focus: "fear of falling short, overload, or anxiety about meeting relentless expectations" },
@@ -1576,7 +1585,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#6366f1",
     summary: "connection, communication, urgency, dependence, and the channels that link you to others",
     aliases: ["mobile phone", "cell phone", "dream about phone", "phone in a dream"],
-    relatedSymbols: ["money", "car"],
+    relatedSymbols: ["money", "car", "being-ignored"],
     variations: [
       { slug: "losing-your-phone", name: "losing your phone", focus: "fear of disconnection, lost access to others, or dependence on constant contact" },
       { slug: "broken-phone", name: "a broken phone", focus: "failed communication, a relationship channel damaged, or messages not getting through" },
@@ -1601,7 +1610,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of crawling",
       "dream of crawling on hands and knees",
     ],
-    relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel", "trapped"],
+    relatedSymbols: ["being-chased", "falling", "spider", "baby", "tunnel", "trapped", "insects"],
     updatedAt: "2026-07-23",
     variations: [
       { slug: "crawling-on-the-floor", name: "crawling on the floor", focus: "humility, starting over, or progress that feels undignified but necessary" },
@@ -1698,7 +1707,7 @@ const CLUSTERS: ClusterSeed[] = [
       "meaning of your dreams and nightmares",
       "nightmares meanings",
     ],
-    relatedSymbols: ["being-chased", "falling", "being-naked", "demon", "death"],
+    relatedSymbols: ["being-chased", "falling", "being-naked", "demon", "death", "intruder"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "recurring-nightmare", name: "a recurring nightmare", focus: "an unresolved stressor or fear that keeps demanding attention until it is faced awake" },
@@ -1930,7 +1939,7 @@ const CLUSTERS: ClusterSeed[] = [
       "getting lost in a dream",
       "dreaming of being lost",
     ],
-    relatedSymbols: ["forest", "airport", "being-chased", "house", "train"],
+    relatedSymbols: ["forest", "airport", "being-chased", "house", "train", "old-friend", "shoes", "being-ignored"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "lost-in-a-city", name: "lost in a city", focus: "overwhelm in complex systems, unfamiliar rules, or ambition without a clear route" },
@@ -2094,6 +2103,334 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "empty-boat", name: "an empty boat", focus: "a vessel without purpose, abandoned plans, or solitude on the water" },
       { slug: "luxury-yacht", name: "a luxury boat or yacht", focus: "status on emotional seas, comfort insulating you from depth, or aspiration dressed as travel" },
       { slug: "docking-a-boat", name: "docking a boat", focus: "arrival after crossing, securing what you carried, or ending a journey across feeling" },
+    ],
+  },
+  {
+    slug: "celebrity",
+    name: "a celebrity",
+    category: "people",
+    icon: "🌟",
+    accent: "#eab308",
+    summary: "recognition, projection, public identity, and qualities you admire or want claimed as your own",
+    aliases: [
+      "famous person",
+      "celebrity dreams",
+      "dream about a celebrity",
+      "celebrity dream meaning",
+      "dreaming of a famous person",
+    ],
+    relatedSymbols: ["kissing", "sex", "work", "ex", "being-ignored", "wedding"],
+    updatedAt: "2026-09-05",
+    variations: [
+      {
+        slug: "meeting-a-celebrity",
+        name: "meeting a celebrity",
+        focus: "contact with a public quality you want — recognition, ease, talent — or rehearsal for being seen",
+        aliases: ["dream about meeting a celebrity", "meeting a famous person in a dream"],
+      },
+      { slug: "becoming-famous", name: "becoming famous", focus: "a wish to be seen, pressure of visibility, or identity expanding faster than privacy can hold" },
+      { slug: "celebrity-ignoring-you", name: "a celebrity ignoring you", focus: "unmet recognition, a closed door to status, or the ache of being unseen by someone you invested with meaning" },
+      { slug: "dating-a-celebrity", name: "dating a celebrity", focus: "intimacy with a public image, wanting the life they represent, or a relationship that is also a performance" },
+      { slug: "celebrity-ex", name: "a celebrity as an ex", focus: "a former version of yourself that was more visible, or nostalgia for a glow that was never quite yours" },
+    ],
+  },
+  {
+    slug: "old-friend",
+    name: "an old friend",
+    category: "people",
+    icon: "👋",
+    accent: "#fb923c",
+    summary: "unfinished history, a former self, nostalgia, and the person who still holds a chapter you have not closed",
+    aliases: [
+      "old friend dreams",
+      "dream about an old friend",
+      "old friend dream meaning",
+      "dreaming of a friend from the past",
+      "childhood friend in a dream",
+    ],
+    relatedSymbols: ["ex", "school", "house", "death", "being-lost"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "old-friend-from-school", name: "an old friend from school", focus: "an earlier identity, unfinished comparison, or a lesson from that era still asking for attention" },
+      { slug: "talking-to-old-friend", name: "talking to an old friend", focus: "catching up with a former self, words left unsaid, or comfort from a bond that time interrupted" },
+      { slug: "dead-old-friend", name: "a deceased old friend", focus: "grief, memory, or a quality that person carried which you still need" },
+      { slug: "arguing-with-old-friend", name: "arguing with an old friend", focus: "old rivalry returning, a grievance that never cleared, or tension between who you were and who you are" },
+      { slug: "old-friend-changed", name: "an old friend who has changed", focus: "distance, the shock of time, or realizing a relationship no longer fits the present" },
+    ],
+  },
+  {
+    slug: "test",
+    name: "a test",
+    category: "life-events",
+    icon: "📝",
+    accent: "#6366f1",
+    summary: "evaluation, preparedness, performance anxiety, and the fear of being measured and found unfinished",
+    aliases: [
+      "exam",
+      "test dreams",
+      "exam dream meaning",
+      "dream about a test",
+      "dreaming of an exam",
+      "unprepared for a test dream",
+    ],
+    relatedSymbols: ["school", "work", "being-naked", "falling"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "unprepared-for-test", name: "being unprepared for a test", focus: "a real evaluation you feel behind on, or the deeper fear that you will be asked for something you have not studied" },
+      { slug: "failing-a-test", name: "failing a test", focus: "shame after judgment, a standard you did not meet, or rehearsal of a consequence you already dread" },
+      { slug: "late-to-a-test", name: "being late to a test", focus: "time running out, missed readiness, or arriving after the moment of proof has started" },
+      { slug: "cannot-find-exam-room", name: "unable to find the exam room", focus: "not knowing where the test actually is — unclear rules, a hidden standard, or a life exam without a map" },
+      { slug: "blank-test-paper", name: "a blank test paper", focus: "mind going empty under pressure, or a question you cannot yet answer about your own life" },
+    ],
+  },
+  {
+    slug: "ring",
+    name: "a ring",
+    category: "objects",
+    icon: "💍",
+    accent: "#f59e0b",
+    summary: "commitment, belonging, a bond made visible, and the circle of a promise you are making or breaking",
+    aliases: [
+      "ring dreams",
+      "wedding ring dream",
+      "dream about a ring",
+      "ring dream meaning",
+      "dreaming of a ring",
+    ],
+    relatedSymbols: ["wedding", "money", "kissing", "ex"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "wedding-ring", name: "a wedding ring", focus: "marriage, a binding vow, or the public form of a private commitment" },
+      { slug: "losing-a-ring", name: "losing a ring", focus: "fear of losing a bond, a loosened commitment, or a promise that no longer sits securely" },
+      { slug: "broken-ring", name: "a broken ring", focus: "a damaged vow, a circle that cannot close, or a relationship whose form has cracked" },
+      { slug: "engagement-ring", name: "an engagement ring", focus: "a threshold commitment, hope mixed with pressure, or the question of whether you will say yes" },
+      { slug: "finding-a-ring", name: "finding a ring", focus: "an unexpected bond, a chance at belonging, or a promise arriving before you asked for it" },
+    ],
+  },
+  {
+    slug: "flowers",
+    name: "flowers",
+    category: "nature",
+    icon: "🌸",
+    accent: "#f472b6",
+    summary: "beauty, affection, blooming, grief made gentle, and a feeling offered or received in visible form",
+    aliases: [
+      "flower dreams",
+      "dream about flowers",
+      "flower dream meaning",
+      "dreaming of flowers",
+      "bouquet in a dream",
+    ],
+    relatedSymbols: ["cemetery", "wedding", "death", "colors", "pregnancy"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "receiving-flowers", name: "receiving flowers", focus: "affection arriving, apology, courtship, or recognition you did not have to ask for" },
+      { slug: "wilted-flowers", name: "wilted flowers", focus: "beauty past its season, neglected affection, or a feeling that was not watered" },
+      { slug: "roses", name: "roses", focus: "romance, passion, or love that also has thorns — beauty with a cost" },
+      { slug: "picking-flowers", name: "picking flowers", focus: "choosing what to gather, taking beauty into your hands, or ending something in order to keep it" },
+      { slug: "dead-flowers", name: "dead flowers", focus: "an ended offering, grief, or love that has completed its season" },
+    ],
+  },
+  {
+    slug: "keys",
+    name: "keys",
+    category: "objects",
+    icon: "🔑",
+    accent: "#ca8a04",
+    summary: "access, permission, the next step, and the small object that decides whether a door or a plan will open",
+    aliases: [
+      "key dreams",
+      "lost keys dream",
+      "dream about keys",
+      "keys dream meaning",
+      "dreaming of keys",
+    ],
+    relatedSymbols: ["car", "house", "money", "prison"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "lost-keys", name: "lost keys", focus: "access delayed: a plan you can see but cannot start, or permission that has gone missing" },
+      { slug: "finding-keys", name: "finding keys", focus: "a backup route to agency, a resource you forgot you had, or a door that can finally open" },
+      { slug: "house-keys", name: "house keys", focus: "access to private life, belonging, or who is allowed into your inner rooms" },
+      { slug: "broken-key", name: "a broken key", focus: "a start that snapped, the wrong tool for the lock, or permission that failed under pressure" },
+      { slug: "bunch-of-keys", name: "a bunch of keys", focus: "many options, too many roles, or responsibility for several doors at once" },
+    ],
+  },
+  {
+    slug: "shoes",
+    name: "shoes",
+    category: "objects",
+    icon: "👟",
+    accent: "#78716c",
+    summary: "the path you walk, public identity, readiness for a journey, and how you present yourself on the ground",
+    aliases: [
+      "shoe dreams",
+      "dream about shoes",
+      "shoe dream meaning",
+      "dreaming of shoes",
+      "lost shoes dream",
+    ],
+    relatedSymbols: ["being-naked", "being-lost", "work", "money"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "lost-shoes", name: "lost shoes", focus: "unprepared to walk the next path, missing public identity, or a journey you cannot start barefoot" },
+      { slug: "new-shoes", name: "new shoes", focus: "a fresh path, upgraded presentation, or a role you are still breaking in" },
+      { slug: "barefoot", name: "being barefoot", focus: "exposure, humility, direct contact with the ground, or a path you are walking without protection" },
+      { slug: "worn-shoes", name: "worn-out shoes", focus: "a path that has cost you, exhausted identity, or continuing in gear that no longer holds" },
+      { slug: "high-heels", name: "high heels", focus: "heightened presentation, status, difficulty walking, or a role that looks powerful and is hard to stand in" },
+    ],
+  },
+  {
+    slug: "dragon",
+    name: "a dragon",
+    category: "animals",
+    icon: "🐉",
+    accent: "#dc2626",
+    summary: "immense power, a guardian or devourer, transformation through fire, and a force too large to treat as ordinary fear",
+    aliases: [
+      "dragon dreams",
+      "dream about a dragon",
+      "dragon dream meaning",
+      "dreaming of dragons",
+      "dragons in dreams",
+    ],
+    relatedSymbols: ["snake", "fire", "flying", "demon"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "flying-dragon", name: "a flying dragon", focus: "power with range, a force that can leave the ground, or ambition given a mythic body" },
+      { slug: "dragon-attack", name: "a dragon attacking you", focus: "overwhelming power coming at you — rage, authority, or a problem that has grown legendary" },
+      { slug: "dragon-fire", name: "a dragon breathing fire", focus: "destructive or purifying force, anger that scorches, or transformation that cannot be gentle" },
+      { slug: "friendly-dragon", name: "a friendly dragon", focus: "power that is on your side, a guardian, or strength you are finally allowed to befriend" },
+      { slug: "chinese-dragon", name: "a Chinese dragon", focus: "luck, imperial power, wisdom in motion, or a cultural image of force that creates rather than only destroys" },
+    ],
+  },
+  {
+    slug: "moon",
+    name: "the moon",
+    category: "nature",
+    icon: "🌙",
+    accent: "#94a3b8",
+    summary: "cycles, intuition, the night mind, feminine association, and light that does not come from the waking sun",
+    aliases: [
+      "moon dreams",
+      "crescent moon",
+      "dream about the moon",
+      "moon dream meaning",
+      "dreaming of the moon",
+    ],
+    relatedSymbols: ["water", "god", "angel", "pregnancy"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "full-moon", name: "a full moon", focus: "culmination, visibility of what was hidden, or a cycle at its brightest and most charged" },
+      { slug: "crescent-moon", name: "a crescent moon", focus: "a beginning in the dark, growing or waning potential, or a slim light that is enough to steer by" },
+      { slug: "red-moon", name: "a red moon", focus: "omen-feeling, crisis in a cycle, passion or warning tinting the night" },
+      { slug: "moonlight", name: "moonlight", focus: "soft illumination, seeing by intuition rather than daylight, or a path that is visible only at night" },
+      { slug: "moon-over-water", name: "the moon over water", focus: "feeling and intuition meeting: emotion reflecting a cycle you can see but not command" },
+    ],
+  },
+  {
+    slug: "colors",
+    name: "colors",
+    category: "spiritual",
+    icon: "🎨",
+    accent: "#a855f7",
+    summary: "mood made visible, a feeling that arrives as hue, and the emotional weather of a scene before the plot explains it",
+    aliases: [
+      "color dreams",
+      "meaning of colors in dreams",
+      "dream about colors",
+      "colors in a dream",
+      "dreaming of colors",
+    ],
+    relatedSymbols: ["blood", "fire", "water", "flowers", "god"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "seeing-red", name: "seeing red", focus: "anger, urgency, vitality, or a warning the body already knows" },
+      { slug: "wearing-black", name: "wearing black", focus: "grief, protection, formality, hidden strength, or a mood you are putting on" },
+      { slug: "wearing-white", name: "wearing white", focus: "clarity, newness, exposure, or a wish to be read as clean and unfinished" },
+      { slug: "blue-in-a-dream", name: "the color blue", focus: "calm, sadness, distance, or a cool emotional climate" },
+      { slug: "yellow-in-a-dream", name: "the color yellow", focus: "attention, joy, caution, or a bright feeling that may also signal anxiety" },
+    ],
+  },
+  {
+    slug: "insects",
+    name: "insects",
+    category: "animals",
+    icon: "🐝",
+    accent: "#65a30d",
+    summary: "small persistent forces, irritation, swarming worry, instinct at a scale you can swat but not ignore",
+    aliases: [
+      "bugs",
+      "insect dreams",
+      "dream about insects",
+      "bugs in a dream",
+      "insect dream meaning",
+    ],
+    relatedSymbols: ["spider", "butterfly", "rat", "crawling"],
+    updatedAt: "2026-09-05",
+    variations: [
+      {
+        slug: "bees",
+        name: "bees",
+        focus: "productive swarm, sweet work, community, or a sting that follows useful labor",
+        aliases: ["bee dream meaning", "dream about bees", "dreaming of bees", "honeybees in a dream"],
+      },
+      {
+        slug: "cockroach",
+        name: "a cockroach",
+        focus: "what survives in the dark, shame, persistence of a problem you keep trying to kill",
+        aliases: ["cockroach dream meaning", "dream about cockroaches", "dreaming of cockroaches"],
+      },
+      { slug: "ants", name: "ants", focus: "small coordinated labor, invasion of private space, or many tiny tasks becoming a colony" },
+      { slug: "flies", name: "flies", focus: "irritation, decay nearby, or something unclean that will not leave the room" },
+      { slug: "insect-swarm", name: "a swarm of insects", focus: "overwhelm by many small pressures, anxiety without a single face, or a problem that multiplies" },
+    ],
+  },
+  {
+    slug: "intruder",
+    name: "an intruder",
+    category: "fear-nightmares",
+    icon: "🪟",
+    accent: "#44403c",
+    summary: "a boundary crossed, private space invaded, and the fear that something unwanted has already gotten in",
+    aliases: [
+      "intruder dreams",
+      "dream about an intruder",
+      "intruder in the house dream",
+      "burglar dream meaning",
+      "someone in my house dream",
+    ],
+    relatedSymbols: ["house", "being-chased", "nightmare", "being-naked"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "intruder-in-house", name: "an intruder in the house", focus: "private life entered without consent — a person, a feeling, or a demand that does not belong inside" },
+      { slug: "hiding-from-intruder", name: "hiding from an intruder", focus: "self-protection, hoping not to be found, or a threat you will not yet confront" },
+      { slug: "fighting-an-intruder", name: "fighting an intruder", focus: "defending a boundary, refusing invasion, or a conflict that has reached the doorway" },
+      { slug: "intruder-at-window", name: "an intruder at the window", focus: "a threat still outside but watching — warning, temptation, or a problem looking for a way in" },
+      { slug: "unknown-intruder", name: "an unknown intruder", focus: "anxiety without a face: a change, illness, or influence you cannot name but already feel inside" },
+    ],
+  },
+  {
+    slug: "being-ignored",
+    name: "being ignored",
+    category: "people",
+    icon: "🔇",
+    accent: "#64748b",
+    summary: "invisibility, a voice that does not land, withheld attention, and the wound of mattering less than you need",
+    aliases: [
+      "ignored in a dream",
+      "dream of being ignored",
+      "being ignored dream meaning",
+      "nobody listening in a dream",
+      "dream about being ignored",
+    ],
+    relatedSymbols: ["phone", "ex", "work", "celebrity", "being-lost"],
+    updatedAt: "2026-09-05",
+    variations: [
+      { slug: "ignored-by-friend", name: "being ignored by a friend", focus: "a bond going cold, social exclusion, or a friendship that no longer returns your effort" },
+      { slug: "ignored-by-family", name: "being ignored by family", focus: "an old family silence, a role in which you were not heard, or a need that still has no audience at home" },
+      { slug: "ignored-in-a-crowd", name: "being ignored in a crowd", focus: "anonymity that hurts, a public self that does not register, or shouting into a room that will not turn" },
+      { slug: "partner-ignoring-you", name: "a partner ignoring you", focus: "emotional withdrawal, a conversation that will not start, or intimacy that has gone one-way" },
+      { slug: "calling-and-being-ignored", name: "calling and being ignored", focus: "an unanswered bid for contact — a message, a need, or a part of you that keeps dialing" },
     ],
   },
 ];
@@ -5018,6 +5355,71 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Absent Father Dream Meaning: Missing Support & Guidance",
     seoDescription:
       "What an absent father means in a dream — missing guidance, approval, or protection, and how searching, distance, or relief changes the interpretation.",
+  },
+  celebrity: {
+    seoTitle: "Celebrity Dream Meaning: Fame, Recognition & Projection",
+    seoDescription:
+      "Dreams about a celebrity usually point to recognition, a public quality you want, or being seen — not a prediction you will become famous.",
+  },
+  "old-friend": {
+    seoTitle: "Old Friend Dream Meaning: Nostalgia & Unfinished History",
+    seoDescription:
+      "Dreams about an old friend often return a former self, unfinished words, or a chapter that still needs closing.",
+  },
+  test: {
+    seoTitle: "Test Dream Meaning: Exams, Unpreparedness & Judgment",
+    seoDescription:
+      "Dreams about a test or exam track evaluation anxiety — being unprepared, late, or measured against a standard you fear you cannot meet.",
+  },
+  ring: {
+    seoTitle: "Ring Dream Meaning: Commitment, Vows & Belonging",
+    seoDescription:
+      "Dreams about a ring mark a bond made visible — wedding and engagement rings, a lost or broken circle, and the promise you are making or loosening.",
+  },
+  flowers: {
+    seoTitle: "Flowers Dream Meaning: Affection, Blooming & Grief",
+    seoDescription:
+      "Dreams about flowers offer feeling in visible form — receiving a bouquet, wilted roses, and beauty that also belongs to farewell.",
+  },
+  keys: {
+    seoTitle: "Keys Dream Meaning: Access, Lost Keys & Next Steps",
+    seoDescription:
+      "Dreams about keys are about permission and access — lost house keys, a broken key, and the small object that decides whether a door will open.",
+  },
+  shoes: {
+    seoTitle: "Shoes Dream Meaning: The Path You Walk & Identity",
+    seoDescription:
+      "Dreams about shoes show how you walk a path in public — lost shoes, new pairs, going barefoot, and a role you are still breaking in.",
+  },
+  dragon: {
+    seoTitle: "Dragon Dream Meaning: Power, Fire & Transformation",
+    seoDescription:
+      "Dreams about a dragon name a force too large for ordinary fear — attack, fire, a friendly guardian, or power you are finally allowed to befriend.",
+  },
+  moon: {
+    seoTitle: "Moon Dream Meaning: Cycles, Intuition & Night Light",
+    seoDescription:
+      "Dreams about the moon track cycles and night-mind — a full or crescent moon, red omen-feeling, and light that does not come from the waking sun.",
+  },
+  colors: {
+    seoTitle: "Colors in Dreams Meaning: Mood, Hue & Feeling",
+    seoDescription:
+      "Dreams about colors make mood visible before the plot explains it — seeing red, wearing black or white, and the emotional weather of a scene.",
+  },
+  insects: {
+    seoTitle: "Insects Dream Meaning: Bees, Bugs, Swarms & Irritation",
+    seoDescription:
+      "Dreams about insects — bees, cockroaches, ants, flies, a swarm — point to small persistent forces you can swat but not ignore.",
+  },
+  intruder: {
+    seoTitle: "Intruder Dream Meaning: Boundary Crossed & Invasion",
+    seoDescription:
+      "Dreams about an intruder mark a private boundary crossed — someone in the house, at the window, or a threat you cannot yet name.",
+  },
+  "being-ignored": {
+    seoTitle: "Being Ignored Dream Meaning: Invisibility & Silence",
+    seoDescription:
+      "Dreams about being ignored track a voice that does not land — a friend, family, partner, or crowd that will not turn toward you.",
   },
 };
 
