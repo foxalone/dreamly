@@ -16,6 +16,7 @@ import { GoogleAuthProvider, getAdditionalUserInfo, onAuthStateChanged, signInWi
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
+import { takeHomeDreamPending } from "@/lib/homeDreamPending";
 import {
   addDoc,
   collection,
@@ -496,6 +497,11 @@ export default function DreamsPage() {
       setUid(user?.uid ?? null);
       if (!user) return;
       ensureUserProfileOnSignIn(user);
+      const pending = takeHomeDreamPending();
+      if (pending?.text) {
+        setText(pending.text);
+        setOpen(true);
+      }
     });
 
     return () => unsub();

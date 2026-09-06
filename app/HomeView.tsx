@@ -14,6 +14,7 @@ import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
+import HomeDreamAsk from "@/app/components/HomeDreamAsk";
 
 export default function HomeView({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
@@ -81,12 +82,7 @@ export default function HomeView({ locale }: { locale: Locale }) {
           </p>
           <h1 className="text-xl sm:text-2xl font-medium">{t.home.h1}</h1>
           <p className="mt-6 text-[var(--muted)] text-base sm:text-lg">{t.home.lead}</p>
-          <LocaleLink
-            href="/dreams"
-            className="mt-10 inline-block bg-purple-600 hover:bg-purple-500 text-white text-lg font-semibold px-10 py-4 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            {t.home.cta}
-          </LocaleLink>
+          <HomeDreamAsk />
         </div>
         <a
           href="#features"

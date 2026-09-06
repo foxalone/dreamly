@@ -14,6 +14,14 @@ export type UiMessages = {
     h1: string;
     lead: string;
     cta: string;
+    askPlaceholder: string;
+    askSubmit: string;
+    askBusy: string;
+    askHint: string;
+    askSave: string;
+    askMore: string;
+    askSignInNote: string;
+    askEmpty: string;
     discover: string;
     featuresTitle: string;
     featuresLead: string;

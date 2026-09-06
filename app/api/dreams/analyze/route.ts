@@ -2,12 +2,21 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { HOME_DREAM_MAX_CHARS } from "@/lib/homeDreamPending";
 import { requireSignedInUid } from "../_lib/requireUser";
 import {
   ANALYZE_CREDIT_COST,
   debitCredits,
   refundCredits,
 } from "../_lib/credits";
+import {
+  consumeGuestAsk,
+  newGuestId,
+  readClientIp,
+  readGuestId,
+  refundGuestAsk,
+  setGuestCookie,
+} from "../_lib/guestQuota";
 
 type Body = {
   text: string;
@@ -49,28 +58,67 @@ function analysisLanguageName(lang: string): string {
 
 export async function POST(req: Request) {
   let chargedUid: string | null = null;
+  let guestId: string | null = null;
+  let clientIp = "";
+
+  const finish = <T extends NextResponse>(res: T): T =>
+    guestId ? setGuestCookie(res, guestId) : res;
+
+  const refundCharge = async () => {
+    if (chargedUid) {
+      await refundCredits(chargedUid, ANALYZE_CREDIT_COST);
+      chargedUid = null;
+      return;
+    }
+    if (guestId) await refundGuestAsk(guestId, clientIp);
+  };
 
   try {
     const body = (await req.json()) as Body;
-
-    const auth = await requireSignedInUid(body?.idToken);
-    if ("error" in auth) return auth.error;
-    const { uid } = auth;
-
     const text = String(body?.text ?? "").trim();
     if (!text) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
+    if (text.length > HOME_DREAM_MAX_CHARS) {
+      return NextResponse.json({ error: "Dream text is too long." }, { status: 400 });
+    }
 
-    const debit = await debitCredits(uid, ANALYZE_CREDIT_COST);
-    if ("error" in debit) return debit.error;
-    chargedUid = uid;
+    const token = String(body?.idToken ?? "").trim();
+    let uid: string | null = null;
+    if (token) {
+      const auth = await requireSignedInUid(token);
+      if (!("error" in auth)) uid = auth.uid;
+    }
+
+    const isGuest = !uid;
+    if (isGuest) {
+      guestId = readGuestId(req) ?? newGuestId();
+      clientIp = readClientIp(req);
+      const booked = await consumeGuestAsk(guestId, clientIp);
+      if (!booked.ok) {
+        return finish(
+          NextResponse.json(
+            {
+              error:
+                booked.reason === "ip_limit"
+                  ? "Too many free interpretations from this network. Sign in to continue."
+                  : "That was your free interpretation. Sign in to continue.",
+              code: "GUEST_LIMIT_REACHED",
+            },
+            { status: 401 }
+          )
+        );
+      }
+    } else {
+      const debit = await debitCredits(uid, ANALYZE_CREDIT_COST);
+      if ("error" in debit) return debit.error;
+      chargedUid = uid;
+    }
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
-      await refundCredits(uid, ANALYZE_CREDIT_COST);
-      chargedUid = null;
-      return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
+      await refundCharge();
+      return finish(NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 }));
     }
 
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
@@ -111,33 +159,29 @@ Keep it under ~1000 characters.
       });
       analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
     } catch (e: any) {
-      await refundCredits(uid, ANALYZE_CREDIT_COST);
-      chargedUid = null;
-      return NextResponse.json(
-        { error: e?.message ?? "Analyze failed" },
-        { status: 500 }
+      await refundCharge();
+      return finish(
+        NextResponse.json({ error: e?.message ?? "Analyze failed" }, { status: 500 })
       );
     }
 
     if (!analysis) {
-      await refundCredits(uid, ANALYZE_CREDIT_COST);
-      chargedUid = null;
-      return NextResponse.json({ error: "Empty analysis" }, { status: 500 });
+      await refundCharge();
+      return finish(NextResponse.json({ error: "Empty analysis" }, { status: 500 }));
     }
 
-    return NextResponse.json({
-      analysis,
-      model,
-      cost: ANALYZE_CREDIT_COST,
-      credits: debit.credits,
-    });
+    return finish(
+      NextResponse.json({
+        analysis,
+        model,
+        guest: isGuest,
+        cost: isGuest ? 0 : ANALYZE_CREDIT_COST,
+      })
+    );
   } catch (e: any) {
-    if (chargedUid) {
-      await refundCredits(chargedUid, ANALYZE_CREDIT_COST);
-    }
-    return NextResponse.json(
-      { error: e?.message ?? "Analyze failed" },
-      { status: 500 }
+    if (chargedUid || guestId) await refundCharge();
+    return finish(
+      NextResponse.json({ error: e?.message ?? "Analyze failed" }, { status: 500 })
     );
   }
 }
