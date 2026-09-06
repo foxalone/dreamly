@@ -10,6 +10,7 @@ export const PT_MESSAGES: UiMessages = {
     signIn: "Entrar",
     profile: "Perfil",
     language: "Idioma",
+    languageHold: "Mantenha pressionado para escolher o idioma",
   },
   home: {
     h1: "O que significa o meu sonho? Intérprete de sonhos com IA e diário",

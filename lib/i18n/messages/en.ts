@@ -10,6 +10,7 @@ export const EN_MESSAGES: UiMessages = {
     signIn: "Sign in",
     profile: "Profile",
     language: "Language",
+    languageHold: "Hold to choose a language",
   },
   home: {
     h1: "What Does My Dream Mean? AI Dream Interpreter & Journal",

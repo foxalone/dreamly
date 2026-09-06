@@ -10,6 +10,7 @@ export const RU_MESSAGES: UiMessages = {
     signIn: "Войти",
     profile: "Профиль",
     language: "Язык",
+    languageHold: "Удерживайте, чтобы выбрать язык",
   },
   home: {
     h1: "К чему снится сон? ИИ-толкователь снов и дневник",

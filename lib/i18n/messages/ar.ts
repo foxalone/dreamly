@@ -10,6 +10,7 @@ export const AR_MESSAGES: UiMessages = {
     signIn: "دخول",
     profile: "الملف",
     language: "اللغة",
+    languageHold: "اضغط مطولاً لاختيار اللغة",
   },
   home: {
     h1: "ماذا يعني حلمي؟ مفسّر أحلام بالذكاء الاصطناعي ويوميات",

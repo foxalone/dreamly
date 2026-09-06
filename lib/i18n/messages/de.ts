@@ -10,6 +10,7 @@ export const DE_MESSAGES: UiMessages = {
     signIn: "Anmelden",
     profile: "Profil",
     language: "Sprache",
+    languageHold: "Gedrückt halten, um die Sprache zu wählen",
   },
   home: {
     h1: "Was bedeutet mein Traum? KI-Traumdeutung und Tagebuch",

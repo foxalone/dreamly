@@ -8,6 +8,7 @@ export type UiMessages = {
     signIn: string;
     profile: string;
     language: string;
+    languageHold: string;
   };
   home: {
     h1: string;
