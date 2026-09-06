@@ -17,7 +17,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
-import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
+import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
 import { isDreamLens } from "@/lib/dream-lenses";
 import {
   addDoc,
@@ -892,8 +892,6 @@ export default function DreamsPage() {
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
       stopRecording();
-      setText("");
-      setError(null);
       setSaving(false);
       setUsedVoice(false);
     }
@@ -1043,7 +1041,8 @@ export default function DreamsPage() {
 
   async function save() {
     const v = text.trim();
-    const noun = composerType === "story" ? "Story" : "Dream";
+    const type: ContentType = tab === "STORIES" ? "story" : "dream";
+    const noun = type === "story" ? "Story" : "Dream";
     if (v.length > MAX_DREAM_CHARS) {
       setError(`${noun} is too long. Max ${MAX_DREAM_CHARS} characters.`);
       return;
@@ -1056,7 +1055,7 @@ export default function DreamsPage() {
     const u = auth.currentUser;
     if (!u) return;
     if (credits < 1) {
-      setError(`Not enough credits to save a ${composerType}.`);
+      setError(`Not enough credits to save a ${type}.`);
       router.push(localePath("/app/upgrade", locale));
       return;
     }
@@ -1098,7 +1097,7 @@ export default function DreamsPage() {
       rootsLang: null as any,
       rootsUpdatedAt: null as any,
 
-      sourceType: composerType,
+      sourceType: type,
       ownerUid: u.uid,
       authorName: (u.displayName ?? "").trim() || null,
       authorEmail: (u.email ?? "").trim() || null,
@@ -1125,9 +1124,9 @@ export default function DreamsPage() {
 
       let docRef: any;
       try {
-        docRef = await addDoc(collection(firestore, "users", u.uid, getCollectionNameByType(composerType)), payload);
+        docRef = await addDoc(collection(firestore, "users", u.uid, getCollectionNameByType(type)), payload);
         trackEvent("journal_entry_saved", {
-          content_type: composerType,
+          content_type: type,
           input_method: payload.source,
           word_count: payload.wordCount,
         });
@@ -1149,19 +1148,21 @@ export default function DreamsPage() {
 
       setOpen(false);
       setSaving(false);
+      setText("");
+      setUsedVoice(false);
 
-      const createdType = composerType;
+      const createdType = type;
       setTimeout(() => {
         extractRootsForItem(docRef.id, createdType).catch(() => {});
       }, 50);
     } catch (e: any) {
       if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-        setError(`Not enough credits to save a ${composerType}.`);
+        setError(`Not enough credits to save a ${type}.`);
         setSaving(false);
         router.push(localePath("/app/upgrade", locale));
         return;
       }
-      setError(e?.message ?? `Failed to save ${composerType}.`);
+      setError(e?.message ?? `Failed to save ${type}.`);
       setSaving(false);
     }
   }
@@ -1529,7 +1530,7 @@ export default function DreamsPage() {
 
       <div className={locked ? "pointer-events-none select-none" : ""}>
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div>
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold">Your Diary</h1>
 
@@ -1585,28 +1586,66 @@ export default function DreamsPage() {
 </div>
         </div>
 
-        <button
-          onClick={() => {
-            setComposerType(tab === "STORIES" ? "story" : "dream");
-            setOpen(true);
-          }}
-          className="
-            inline-flex items-center gap-2
-            px-6 py-3
-            rounded-full
-            bg-[var(--card)]
-            text-[var(--text)]
-            border border-[var(--border)]
-            font-semibold
-            shadow-sm
-            hover:opacity-90
-            active:scale-[0.98]
-            transition
-          "
-        >
-          <span className="text-lg leading-none">+</span>
-          <span>New</span>
-        </button>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <textarea
+            value={text}
+            onChange={(e) => {
+              const raw = e.target.value ?? "";
+              const v = raw.length > MAX_DREAM_CHARS ? raw.slice(0, MAX_DREAM_CHARS) : raw;
+              setText(v);
+              const next = detectRecLangFromText(v);
+              if (next) setRecLang(next);
+            }}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                void save();
+              }
+            }}
+            maxLength={MAX_DREAM_CHARS}
+            placeholder={tab === "STORIES" ? t.app.writeStory : t.app.writeDream}
+            rows={3}
+            disabled={saving}
+            className="
+              w-full min-w-0 flex-1 resize-none rounded-2xl p-3.5
+              bg-[var(--card)] text-[var(--text)]
+              border border-[var(--border)] outline-none
+              placeholder:text-[var(--muted)]
+              focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
+              disabled:opacity-60
+            "
+          />
+          <div className="flex gap-2 sm:w-[12rem] sm:shrink-0 sm:flex-col">
+            {tab !== "STORIES" ? (
+              <DreamLensSelect
+                value={lens}
+                onChange={setLens}
+                disabled={!!analysisBusyId}
+                className="min-h-11 min-w-0 flex-1"
+              />
+            ) : null}
+            {credits >= 1 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void save();
+                }}
+                disabled={!canSave}
+                className={["dream-primary-btn h-11 shrink-0 sm:w-full", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
+              >
+                {saving ? t.app.saving : t.app.save}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.push(localePath("/app/upgrade", locale))}
+                className="dream-primary-btn h-11 shrink-0 sm:w-full"
+              >
+                Add credits
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Error */}
@@ -1615,12 +1654,6 @@ export default function DreamsPage() {
           {error}
         </div>
       )}
-
-      {tab === "DREAMS" ? (
-        <div className="mt-5">
-          <DreamLensChips value={lens} onChange={setLens} disabled={!!analysisBusyId} />
-        </div>
-      ) : null}
 
       {/* List */}
       {!uid ? null : visibleItems.length === 0 ? (

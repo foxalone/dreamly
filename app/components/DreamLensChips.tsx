@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   DREAM_LENSES,
   DEFAULT_DREAM_LENS,
@@ -25,6 +26,52 @@ export function useDreamLens(initial?: DreamLens | null): [DreamLens, (lens: Dre
   }
 
   return [lens, update];
+}
+
+export function DreamLensSelect({
+  value,
+  onChange,
+  disabled,
+  className,
+}: {
+  value: DreamLens;
+  onChange: (lens: DreamLens) => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const t = useMessages();
+
+  return (
+    <label className={["relative inline-flex min-w-[11.5rem] shrink-0", className].filter(Boolean).join(" ")}>
+      <span className="sr-only">{t.lens.label}</span>
+      <select
+        value={value}
+        disabled={disabled}
+        aria-label={t.lens.label}
+        onChange={(event) => onChange(parseDreamLens(event.target.value))}
+        className="
+          h-full w-full appearance-none rounded-2xl
+          border border-[var(--border)] bg-[var(--card)]
+          px-3 py-2.5 pe-9
+          text-sm font-semibold text-[var(--text)]
+          outline-none
+          focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
+          disabled:opacity-60
+        "
+      >
+        {DREAM_LENSES.map((lens) => (
+          <option key={lens} value={lens}>
+            {t.lens[lens]}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={16}
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 end-2.5 my-auto text-[var(--muted)]"
+      />
+    </label>
+  );
 }
 
 export default function DreamLensChips({

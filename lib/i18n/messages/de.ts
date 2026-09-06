@@ -234,6 +234,8 @@ export const DE_MESSAGES: UiMessages = {
     noDreams: "Noch keine Träume. Füge den ersten hinzu.",
     noStories: "Noch keine Geschichten. Füge die erste hinzu.",
     notEnoughCredits: "Nicht genug Guthaben zum Deuten.",
+    writeDream: "Schreib deinen Traum…",
+    writeStory: "Schreib deine Geschichte…",
   },
   theme: { label: "Thema", light: "Hell", dark: "Dunkel", system: "System" },
   common: { signIn: "Anmelden", interpret: "Deuten" },

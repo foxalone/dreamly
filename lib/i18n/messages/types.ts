@@ -189,6 +189,8 @@ export type UiMessages = {
     noDreams: string;
     noStories: string;
     notEnoughCredits: string;
+    writeDream: string;
+    writeStory: string;
   };
   lens: {
     label: string;

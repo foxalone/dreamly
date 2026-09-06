@@ -234,6 +234,8 @@ export const AR_MESSAGES: UiMessages = {
     noDreams: "لا أحلام بعد. أضف أول حلم.",
     noStories: "لا قصص بعد. أضف أول قصة.",
     notEnoughCredits: "لا رصيد كافيًا للتفسير.",
+    writeDream: "اكتب حلمك…",
+    writeStory: "اكتب قصتك…",
   },
   theme: { label: "المظهر", light: "فاتح", dark: "داكن", system: "النظام" },
   common: { signIn: "دخول", interpret: "فسّر" },

@@ -234,6 +234,8 @@ export const PT_MESSAGES: UiMessages = {
     noDreams: "Ainda não há sonhos. Adicione o primeiro.",
     noStories: "Ainda não há histórias. Adicione a primeira.",
     notEnoughCredits: "Créditos insuficientes para analisar.",
+    writeDream: "Escreva seu sonho…",
+    writeStory: "Escreva sua história…",
   },
   theme: { label: "Tema", light: "Claro", dark: "Escuro", system: "Sistema" },
   common: { signIn: "Entrar", interpret: "Interpretar" },

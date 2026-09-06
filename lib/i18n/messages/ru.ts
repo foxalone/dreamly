@@ -234,6 +234,8 @@ export const RU_MESSAGES: UiMessages = {
     noDreams: "Снов ещё нет. Добавьте первый.",
     noStories: "Историй ещё нет. Добавьте первую.",
     notEnoughCredits: "Не хватает кредитов для разбора.",
+    writeDream: "Опишите сон…",
+    writeStory: "Напишите историю…",
   },
   theme: { label: "Тема", light: "Светлая", dark: "Тёмная", system: "Система" },
   common: { signIn: "Войти", interpret: "Толковать" },
