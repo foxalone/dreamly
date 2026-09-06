@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { Keyboard, Mic, MoonStar } from "lucide-react";
+import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -76,7 +76,21 @@ type Dream = {
 
   iconsEn?: DreamIconKey[];
   sourceType?: ContentType;
+  city?: string;
+  cityId?: string;
+  country?: string;
+  admin1?: string;
 };
+
+function dreamCityLabel(item: Pick<Dream, "city" | "cityId">) {
+  const city = String(item.city ?? "").trim();
+  if (city) return city;
+  const parts = String(item.cityId ?? "")
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts[parts.length - 1] || "";
+}
 
 type ContentType = "dream" | "story";
 type Tab = "DREAMS" | "STORIES" | "SHARED";
@@ -1768,9 +1782,21 @@ export default function DreamsPage() {
                         <Keyboard size={14} strokeWidth={1.8} aria-hidden />
                       )}
                     </span>
-                    <div className="opacity-70 whitespace-nowrap">
-                      {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-                    </div>
+                    {(() => {
+                      const city = dreamCityLabel(d);
+                      return (
+                        <div className="opacity-70 inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <span>{(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}</span>
+                          {city ? (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <MapPin size={13} strokeWidth={1.8} aria-hidden="true" />
+                              <span>{city}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    })()}
                   </div>
                 {tab === "SHARED" &&
                   (() => {
