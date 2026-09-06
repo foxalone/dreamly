@@ -14,6 +14,8 @@ import {
 } from "@/lib/homeDreamPending";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import type { DreamLens } from "@/lib/dream-lenses";
+import DreamLensChips, { useDreamLens } from "./DreamLensChips";
 
 export default function HomeDreamAsk({
   onResultChange,
@@ -28,12 +30,14 @@ export default function HomeDreamAsk({
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [shareToMap, setShareToMap] = useState(true);
+  const [lens, setLens] = useDreamLens();
 
   useEffect(() => {
     const pending = readHomeDreamPending();
     if (!pending?.text) return;
     setText(pending.text);
     setShareToMap(pending.shareToMap !== false);
+    if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
       setAnalysis(pending.analysis);
       onResultChange?.(true);
@@ -42,12 +46,29 @@ export default function HomeDreamAsk({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function persistPending(dream = text, nextAnalysis = analysis, nextShare = shareToMap) {
+  function persistPending(
+    dream = text,
+    nextAnalysis = analysis,
+    nextShare = shareToMap,
+    nextLens = lens
+  ) {
     writeHomeDreamPending(dream, {
       analysis: nextAnalysis ?? undefined,
       shareToMap: nextShare,
       lang: locale,
+      lens: nextLens,
     });
+  }
+
+  function chooseLens(next: DreamLens) {
+    setLens(next);
+    if (analysis) {
+      setAnalysis(null);
+      onResultChange?.(false);
+      persistPending(text, "", shareToMap, next);
+      return;
+    }
+    if (text.trim()) persistPending(text, analysis, shareToMap, next);
   }
 
   function goToJournal(pending = text, guestLimit = false) {
@@ -90,6 +111,7 @@ export default function HomeDreamAsk({
         body: JSON.stringify({
           text: dream,
           lang: locale,
+          lens,
           ...(idToken ? { idToken } : {}),
         }),
       });
@@ -117,6 +139,7 @@ export default function HomeDreamAsk({
         analysis: next,
         shareToMap,
         lang: locale,
+        lens,
         emojis: visuals?.emojis,
         iconsEn: visuals?.iconsEn,
         rootsEn: visuals?.rootsEn,
@@ -141,6 +164,7 @@ export default function HomeDreamAsk({
               analysis: next,
               shareToMap,
               lang: locale,
+              lens,
               emojis: visuals.emojis,
               iconsEn: visuals.iconsEn,
               rootsEn: visuals.rootsEn,
@@ -164,6 +188,7 @@ export default function HomeDreamAsk({
         credits_used: Number(data.cost ?? 0) || 0,
         share_to_map: shareToMap,
         pinned_to_map: pinnedToMap,
+        lens,
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Analyze failed");
@@ -187,7 +212,7 @@ export default function HomeDreamAsk({
             if (analysis) {
               setAnalysis(null);
               onResultChange?.(false);
-              writeHomeDreamPending(next, { analysis: "", shareToMap, lang: locale });
+              writeHomeDreamPending(next, { analysis: "", shareToMap, lang: locale, lens });
             }
           }}
           rows={4}
@@ -196,6 +221,9 @@ export default function HomeDreamAsk({
           disabled={busy}
           className="w-full resize-none rounded-[1.15rem] bg-white px-4 py-3.5 text-base text-zinc-900 outline-none placeholder:text-zinc-400"
         />
+        <div className="px-2 pb-1 pt-2">
+          <DreamLensChips value={lens} onChange={chooseLens} disabled={busy} tone="onBrand" />
+        </div>
         <div className="flex flex-col gap-2 px-2 pb-1.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs font-medium text-white/90">
             <input

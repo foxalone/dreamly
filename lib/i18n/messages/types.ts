@@ -190,6 +190,16 @@ export type UiMessages = {
     noStories: string;
     notEnoughCredits: string;
   };
+  lens: {
+    label: string;
+    psychological: string;
+    spiritual: string;
+    islamic: string;
+    biblical: string;
+    hindu: string;
+    buddhist: string;
+    jewish: string;
+  };
   theme: {
     label: string;
     light: string;

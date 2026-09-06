@@ -237,4 +237,14 @@ export const AR_MESSAGES: UiMessages = {
   },
   theme: { label: "المظهر", light: "فاتح", dark: "داكن", system: "النظام" },
   common: { signIn: "دخول", interpret: "فسّر" },
+  lens: {
+    label: "أسلوب التفسير",
+    psychological: "نفسي",
+    spiritual: "روحاني",
+    islamic: "إسلامي",
+    biblical: "كتابي",
+    hindu: "هندوسي",
+    buddhist: "بوذي",
+    jewish: "يهودي",
+  },
 };

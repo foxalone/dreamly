@@ -237,4 +237,14 @@ export const EN_MESSAGES: UiMessages = {
   },
   theme: { label: "Theme", light: "Light", dark: "Dark", system: "System" },
   common: { signIn: "Sign in", interpret: "Interpret" },
+  lens: {
+    label: "Interpretation style",
+    psychological: "Psychological",
+    spiritual: "Spiritual",
+    islamic: "Islamic",
+    biblical: "Biblical",
+    hindu: "Hindu",
+    buddhist: "Buddhist",
+    jewish: "Jewish",
+  },
 };

@@ -17,10 +17,12 @@ import {
   refundGuestAsk,
   setGuestCookie,
 } from "../_lib/guestQuota";
+import { dreamLensPrompt, parseDreamLens } from "@/lib/dream-lenses";
 
 type Body = {
   text: string;
   lang?: string;
+  lens?: string;
   idToken?: string;
 };
 
@@ -122,6 +124,7 @@ export async function POST(req: Request) {
     }
 
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
+    const lens = parseDreamLens(body?.lens);
 
     const system =
       "You provide concise dream analysis text only. No headings, no questions, no advice.";
@@ -131,6 +134,10 @@ Dream text:
 """${text}"""
 
 Write a concise dream analysis in ${analysisLanguageName(lang)}.
+
+Interpretive lens: ${lens}.
+${dreamLensPrompt(lens)}
+The lens changes emphasis and vocabulary only. Keep the same format.
 
 Rules:
 - Do NOT include any titles or section headers.
@@ -174,6 +181,7 @@ Keep it under ~1000 characters.
       NextResponse.json({
         analysis,
         model,
+        lens,
         guest: isGuest,
         cost: isGuest ? 0 : ANALYZE_CREDIT_COST,
       })

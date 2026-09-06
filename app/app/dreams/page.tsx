@@ -17,6 +17,8 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
+import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
+import { isDreamLens } from "@/lib/dream-lenses";
 import {
   addDoc,
   collection,
@@ -73,6 +75,7 @@ type Dream = {
   analysisText?: string;
   analysisAtMs?: number;
   analysisModel?: string;
+  analysisLens?: string;
 
   iconsEn?: DreamIconKey[];
   sourceType?: ContentType;
@@ -456,6 +459,7 @@ export default function DreamsPage() {
   const router = useRouter();
   const locale = useLocale();
   const t = useMessages();
+  const [lens, setLens] = useDreamLens();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -1303,6 +1307,7 @@ export default function DreamsPage() {
         body: JSON.stringify({
           text: t,
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
+          lens,
           idToken,
         }),
       });
@@ -1327,6 +1332,7 @@ export default function DreamsPage() {
         analysisText,
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
+        analysisLens: data2?.lens ?? lens,
         updatedAt: serverTimestamp(),
       });
 
@@ -1337,7 +1343,13 @@ export default function DreamsPage() {
       setDreams((prev) =>
         prev.map((x) =>
           x.id === dreamId
-            ? { ...x, analysisText, analysisAtMs: nowMs, analysisModel: data2?.model ?? undefined }
+            ? {
+                ...x,
+                analysisText,
+                analysisAtMs: nowMs,
+                analysisModel: data2?.model ?? undefined,
+                analysisLens: data2?.lens ?? lens,
+              }
             : x
         )
       );
@@ -1346,6 +1358,7 @@ export default function DreamsPage() {
         input_language: (dream as any)?.langGuess ?? guessLang(t),
         word_count: countWords(t),
         credits_used: 2,
+        lens,
       });
       openAnalysis(dreamId);
     } catch (e: any) {
@@ -1602,6 +1615,12 @@ export default function DreamsPage() {
           {error}
         </div>
       )}
+
+      {tab === "DREAMS" ? (
+        <div className="mt-5">
+          <DreamLensChips value={lens} onChange={setLens} disabled={!!analysisBusyId} />
+        </div>
+      ) : null}
 
       {/* List */}
       {!uid ? null : visibleItems.length === 0 ? (
@@ -2003,6 +2022,9 @@ export default function DreamsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-lg font-semibold text-[var(--text)]">Dream Analysis</div>
+                    {d?.analysisLens && isDreamLens(d.analysisLens) ? (
+                      <div className="mt-1 text-xs text-[var(--muted)]">{t.lens[d.analysisLens]}</div>
+                    ) : null}
                     {d?.analysisAtMs ? (
                       <div className="mt-1 text-xs text-[var(--muted)]">Saved: {new Date(d.analysisAtMs).toLocaleString()}</div>
                     ) : null}

@@ -196,6 +196,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
             analysisText: analysis,
             analysisAtMs: nowMs,
             analysisModel: "home_ask",
+            analysisLens: pending.lens || null,
           }
         : {}),
     });

@@ -1,3 +1,5 @@
+import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
+
 export const HOME_DREAM_PENDING_KEY = "dreamly:homeDreamPending";
 export const HOME_DREAM_MAX_CHARS = 2000;
 const HOME_DREAM_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -14,6 +16,7 @@ export type HomeDreamPending = {
   analysis?: string;
   shareToMap?: boolean;
   lang?: string;
+  lens?: DreamLens;
   createdAtMs?: number;
   emojis?: { native: string; id?: string; name?: string }[];
   iconsEn?: string[];
@@ -57,6 +60,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
     analysis: analysis || undefined,
     shareToMap: parsed.shareToMap !== false,
     lang: typeof parsed.lang === "string" ? parsed.lang : undefined,
+    lens: parsed.lens ? parseDreamLens(parsed.lens) : undefined,
     createdAtMs: createdAtMs || Date.now(),
     emojis: Array.isArray(parsed.emojis) ? parsed.emojis.filter((item) => item?.native) : undefined,
     iconsEn: Array.isArray(parsed.iconsEn) ? parsed.iconsEn.map(String).filter(Boolean) : undefined,
@@ -91,6 +95,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
       shareToMap: extra?.shareToMap ?? prev?.shareToMap ?? true,
       lang: extra?.lang || prev?.lang,
+      lens: extra?.lens || prev?.lens,
       createdAtMs: extra?.createdAtMs || prev?.createdAtMs || Date.now(),
       emojis: extra?.emojis ?? prev?.emojis,
       iconsEn: extra?.iconsEn ?? prev?.iconsEn,

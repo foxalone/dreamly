@@ -237,4 +237,14 @@ export const RU_MESSAGES: UiMessages = {
   },
   theme: { label: "Тема", light: "Светлая", dark: "Тёмная", system: "Система" },
   common: { signIn: "Войти", interpret: "Толковать" },
+  lens: {
+    label: "Стиль толкования",
+    psychological: "Психологический",
+    spiritual: "Духовный",
+    islamic: "Исламский",
+    biblical: "Библейский",
+    hindu: "Индуистский",
+    buddhist: "Буддийский",
+    jewish: "Иудейский",
+  },
 };
