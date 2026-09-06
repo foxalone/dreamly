@@ -115,7 +115,7 @@ function PrivacyEn() {
           </li>
           <li>
             <strong>Payment and credit data</strong> — purchase status, order identifiers, and subscription/credit
-            balance. Card details are processed by our payment providers (for example PayPal or Paddle.com); we do not
+            balance. Card details are processed by our payment provider (PayPal); we do not
             store full card numbers on Dreamly servers.
           </li>
           <li>
@@ -330,9 +330,7 @@ function TermsEn() {
         <h2>7. Paid features, credits, and refunds</h2>
         <p>
           Some features may require payment, subscriptions, or credits. Prices and benefits are shown at checkout and on
-          our <LocaleLink href="/pricing">Pricing</LocaleLink> page. Payments may be processed by third parties such as
-          PayPal or Paddle.com. For orders processed by Paddle.com, Paddle.com is the Merchant of Record. Paddle
-          processes payments, provides customer support related to payment, and handles refunds for those orders.
+          our <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
         </p>
         <p>
           You have a money-back guarantee of at least 30 days from the date of your order. See our{" "}
@@ -468,7 +466,7 @@ function PrivacyEs() {
           <li>
             <strong>Datos de pago y de créditos</strong> — estado de la compra, identificadores de pedido y saldo de
             suscripción o créditos. Los datos de la tarjeta los procesan nuestros proveedores de pagos (por ejemplo,
-            PayPal o Paddle.com); no almacenamos el número completo de la tarjeta en los servidores de Dreamly.
+            PayPal); no almacenamos el número completo de la tarjeta en los servidores de Dreamly.
           </li>
           <li>
             <strong>Comunicaciones</strong> — mensajes que envíe por el chat o los canales de soporte de la aplicación,
@@ -691,10 +689,8 @@ function TermsEs() {
         <h2>7. Funciones de pago, créditos y reembolsos</h2>
         <p>
           Algunas funciones pueden exigir pago, suscripción o créditos. Los precios y beneficios se indican en el
-          momento del pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. Los cobros pueden
-          procesarse por terceros como PayPal o Paddle.com. En los pedidos que procesa Paddle.com, Paddle.com es el
-          Merchant of Record. Paddle procesa los pagos, atiende el soporte al cliente relacionado con el pago y gestiona
-          los reembolsos de esos pedidos.
+          momento del pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta
+          el pago a través de PayPal.
         </p>
         <p>
           Tiene una garantía de reembolso de al menos 30 días desde la fecha del pedido. Consulte nuestra{" "}
@@ -831,7 +827,7 @@ function PrivacyAr() {
           </li>
           <li>
             <strong>بيانات الدفع والأرصدة</strong> — حالة الشراء ومعرّفات الطلب ورصيد الاشتراك أو الأرصدة. تتولى جهة
-            الدفع لدينا (مثل PayPal أو Paddle.com) معالجة بيانات البطاقة؛ ولا نخزّن أرقام البطاقات كاملة على خوادم
+            الدفع لدينا (PayPal) معالجة بيانات البطاقة؛ ولا نخزّن أرقام البطاقات كاملة على خوادم
             Dreamly.
           </li>
           <li>
@@ -1035,9 +1031,7 @@ function TermsAr() {
         <h2>7. الميزات المدفوعة والأرصدة والاسترداد</h2>
         <p>
           قد تستلزم بعض الميزات دفعًا أو اشتراكًا أو أرصدة. وتُعرض الأسعار والمنافع عند إتمام الشراء وفي صفحة{" "}
-          <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويجوز أن تعالج أطراف ثالثة مثل PayPal أو Paddle.com
-          المدفوعات. وفي الطلبات التي تعالجها Paddle.com، تكون Paddle.com هي التاجر المسجّل (Merchant of Record). وتتولى
-          Paddle معالجة المدفوعات ودعم العملاء المتعلق بالدفع واسترداد تلك الطلبات.
+          <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويقبل البائع الدفع عبر PayPal.
         </p>
         <p>
           لديك ضمان استرداد للمبلغ لمدة لا تقل عن 30 يومًا من تاريخ الطلب. انظر{" "}
@@ -1169,7 +1163,7 @@ function PrivacyPt() {
           <li>
             <strong>Dados de pagamento e de créditos</strong> — status da compra, identificadores do pedido e saldo de
             assinatura ou créditos. Os dados do cartão são processados pelos nossos provedores de pagamento (por
-            exemplo, o PayPal ou a Paddle.com); não armazenamos o número completo do cartão nos servidores da Dreamly.
+            exemplo, o PayPal); não armazenamos o número completo do cartão nos servidores da Dreamly.
           </li>
           <li>
             <strong>Comunicações</strong> — mensagens que você enviar pelo chat ou pelos canais de suporte do
@@ -1387,10 +1381,7 @@ function TermsPt() {
         <h2>7. Recursos pagos, créditos e reembolsos</h2>
         <p>
           Alguns recursos podem exigir pagamento, assinatura ou créditos. Preços e benefícios aparecem no checkout e na
-          página de <LocaleLink href="/pricing">Preços</LocaleLink>. Os pagamentos podem ser processados por terceiros
-          como o PayPal ou a Paddle.com. Nos pedidos processados pela Paddle.com, a Paddle.com é a Merchant of Record. A
-          Paddle processa os pagamentos, presta o suporte ao cliente relacionado ao pagamento e cuida dos reembolsos
-          desses pedidos.
+          página de <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
         </p>
         <p>
           Você tem garantia de reembolso de pelo menos 30 dias a partir da data do pedido. Veja a nossa{" "}
@@ -1526,7 +1517,7 @@ function PrivacyDe() {
           </li>
           <li>
             <strong>Zahlungs- und Guthabendaten</strong> — Kaufstatus, Bestellkennungen sowie Abo- oder Guthabenstand.
-            Kartendaten verarbeiten unsere Zahlungsdienstleister (etwa PayPal oder Paddle.com); vollständige
+            Kartendaten verarbeitet unser Zahlungsdienstleister (PayPal); vollständige
             Kartennummern speichern wir nicht auf Dreamly-Servern.
           </li>
           <li>
@@ -1752,10 +1743,8 @@ function TermsDe() {
         <h2>7. Kostenpflichtige Funktionen, Guthaben und Erstattungen</h2>
         <p>
           Einzelne Funktionen können Zahlung, ein Abonnement oder Guthaben erfordern. Preise und Leistungen werden beim
-          Abschluss und auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> angezeigt. Zahlungen können Dritte
-          wie PayPal oder Paddle.com abwickeln. Bei Bestellungen, die Paddle.com abwickelt, ist Paddle.com der Merchant
-          of Record. Paddle verarbeitet die Zahlungen, leistet den zahlungsbezogenen Kundensupport und bearbeitet
-          Erstattungen für diese Bestellungen.
+          Abschluss und auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> angezeigt. Der Verkäufer nimmt
+          die Zahlung über PayPal entgegen.
         </p>
         <p>
           Sie haben eine Geld-zurück-Garantie von mindestens 30 Tagen ab dem Bestelldatum. Siehe unsere{" "}
@@ -1891,8 +1880,8 @@ function PrivacyRu() {
           </li>
           <li>
             <strong>Платёжные данные и сведения о кредитах</strong> — статус покупки, идентификаторы заказа и остаток
-            подписки или кредитов. Данные карты обрабатывают наши платёжные посредники (например, PayPal или
-            Paddle.com); полные номера карт на серверах Dreamly мы не храним.
+            подписки или кредитов. Данные карты обрабатывает наш платёжный посредник (PayPal); полные номера карт на
+            серверах Dreamly мы не храним.
           </li>
           <li>
             <strong>Переписка</strong> — сообщения, которые вы отправляете через чат или каналы поддержки в приложении,
@@ -2112,9 +2101,7 @@ function TermsRu() {
         <h2>7. Платные функции, кредиты и возвраты</h2>
         <p>
           Отдельные функции могут требовать оплаты, подписки или кредитов. Цены и состав услуг указываются при оплате и
-          на странице <LocaleLink href="/pricing">Цены</LocaleLink>. Платежи могут проводить третьи лица, в том числе
-          PayPal или Paddle.com. По заказам, которые обрабатывает Paddle.com, Paddle.com является Merchant of Record.
-          Paddle обрабатывает платежи, оказывает клиентскую поддержку по оплате и проводит возвраты по этим заказам.
+          на странице <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
         </p>
         <p>
           Вам гарантирован возврат средств не менее чем в течение 30 дней с даты заказа. См. нашу{" "}
@@ -2235,9 +2222,7 @@ function RefundEn() {
       <section>
         <h2>2. Who processes the order</h2>
         <p>
-          Payments may be processed by third parties such as PayPal or Paddle.com. For orders processed by Paddle.com,
-          Paddle.com is the Merchant of Record. Paddle processes payments, provides customer support related to payment,
-          and handles refunds for those orders.
+          The seller accepts payment through PayPal. Refunds are handled according to this Refund Policy.
         </p>
       </section>
 
@@ -2254,8 +2239,8 @@ function RefundEn() {
         <h2>4. How to request a refund</h2>
         <p>
           Email <SupportEmail /> with your order date, the email used at checkout, and (if you have it) the order or
-          receipt identifier. For Paddle orders, Paddle may also contact you about payment or refund questions. We aim
-          to respond promptly and to complete approved refunds through the original payment method.
+          receipt identifier. We aim to respond promptly and to complete approved refunds through the original payment
+          method.
         </p>
       </section>
 
@@ -2304,9 +2289,7 @@ function RefundEs() {
       <section>
         <h2>2. Quién procesa el pedido</h2>
         <p>
-          Los cobros pueden procesarse por terceros como PayPal o Paddle.com. En los pedidos que procesa Paddle.com,
-          Paddle.com es el Merchant of Record. Paddle procesa los pagos, atiende el soporte al cliente relacionado con
-          el pago y gestiona los reembolsos de esos pedidos.
+          El vendedor acepta el pago a través de PayPal. Los reembolsos se gestionan según esta Política de reembolso.
         </p>
       </section>
 
@@ -2323,9 +2306,8 @@ function RefundEs() {
         <h2>4. Cómo solicitar un reembolso</h2>
         <p>
           Escriba a <SupportEmail /> con la fecha del pedido, el correo usado al pagar y, si lo tiene, el identificador
-          del pedido o del recibo. En los pedidos de Paddle, Paddle también puede contactarle por cuestiones de pago o
-          reembolso. Procuramos responder con prontitud y completar los reembolsos aprobados por el método de pago
-          original.
+          del pedido o del recibo. Procuramos responder con prontitud y completar los reembolsos aprobados por el
+          método de pago original.
         </p>
       </section>
 
@@ -2374,9 +2356,7 @@ function RefundAr() {
       <section>
         <h2>2. من يعالج الطلب</h2>
         <p>
-          يجوز أن تعالج أطراف ثالثة مثل PayPal أو Paddle.com المدفوعات. وفي الطلبات التي تعالجها Paddle.com، تكون
-          Paddle.com هي التاجر المسجّل (Merchant of Record). وتتولى Paddle معالجة المدفوعات ودعم العملاء المتعلق بالدفع
-          واسترداد تلك الطلبات.
+          يقبل البائع الدفع عبر PayPal. وتُعالَج الاستردادات وفق سياسة الاسترداد هذه.
         </p>
       </section>
 
@@ -2391,9 +2371,8 @@ function RefundAr() {
       <section>
         <h2>4. كيف تطلب الاسترداد</h2>
         <p>
-          راسل <SupportEmail /> بتاريخ الطلب والبريد المستخدم عند الدفع ومعرّف الطلب أو الإيصال إن وُجد. وفي طلبات
-          Paddle قد تتواصل معك Paddle أيضًا بشأن الدفع أو الاسترداد. ونسعى إلى الرد سريعًا وإتمام الاستردادات المقبولة عبر
-          وسيلة الدفع الأصلية.
+          راسل <SupportEmail /> بتاريخ الطلب والبريد المستخدم عند الدفع ومعرّف الطلب أو الإيصال إن وُجد. ونسعى إلى الرد
+          سريعًا وإتمام الاستردادات المقبولة عبر وسيلة الدفع الأصلية.
         </p>
       </section>
 
@@ -2442,9 +2421,7 @@ function RefundPt() {
       <section>
         <h2>2. Quem processa o pedido</h2>
         <p>
-          Os pagamentos podem ser processados por terceiros como o PayPal ou a Paddle.com. Nos pedidos processados pela
-          Paddle.com, a Paddle.com é a Merchant of Record. A Paddle processa os pagamentos, presta o suporte ao cliente
-          relacionado ao pagamento e cuida dos reembolsos desses pedidos.
+          O vendedor aceita o pagamento pelo PayPal. Os reembolsos seguem esta Política de reembolso.
         </p>
       </section>
 
@@ -2461,8 +2438,8 @@ function RefundPt() {
         <h2>4. Como pedir um reembolso</h2>
         <p>
           Escreva para <SupportEmail /> com a data do pedido, o e-mail usado no checkout e, se tiver, o identificador do
-          pedido ou do recibo. Em pedidos da Paddle, a Paddle também pode contatá-lo sobre pagamento ou reembolso.
-          Procuramos responder com rapidez e concluir os reembolsos aprovados pelo método de pagamento original.
+          pedido ou do recibo. Procuramos responder com rapidez e concluir os reembolsos aprovados pelo método de
+          pagamento original.
         </p>
       </section>
 
@@ -2512,9 +2489,8 @@ function RefundDe() {
       <section>
         <h2>2. Wer die Bestellung abwickelt</h2>
         <p>
-          Zahlungen können Dritte wie PayPal oder Paddle.com abwickeln. Bei Bestellungen, die Paddle.com abwickelt, ist
-          Paddle.com der Merchant of Record. Paddle verarbeitet die Zahlungen, leistet den zahlungsbezogenen
-          Kundensupport und bearbeitet Erstattungen für diese Bestellungen.
+          Der Verkäufer nimmt die Zahlung über PayPal entgegen. Erstattungen richten sich nach dieser
+          Erstattungsrichtlinie.
         </p>
       </section>
 
@@ -2531,8 +2507,7 @@ function RefundDe() {
         <h2>4. Wie Sie eine Erstattung beantragen</h2>
         <p>
           Schreiben Sie an <SupportEmail /> mit Bestelldatum, der beim Abschluss verwendeten E-Mail und — sofern
-          vorhanden — der Bestell- oder Belegnummer. Bei Paddle-Bestellungen kann Paddle Sie auch zu Zahlungs- oder
-          Erstattungsfragen kontaktieren. Wir antworten zügig und schließen genehmigte Erstattungen über den
+          vorhanden — der Bestell- oder Belegnummer. Wir antworten zügig und schließen genehmigte Erstattungen über den
           ursprünglichen Zahlungsweg ab.
         </p>
       </section>
@@ -2582,9 +2557,7 @@ function RefundRu() {
       <section>
         <h2>2. Кто обрабатывает заказ</h2>
         <p>
-          Платежи могут проводить третьи лица, в том числе PayPal или Paddle.com. По заказам, которые обрабатывает
-          Paddle.com, Paddle.com является Merchant of Record. Paddle обрабатывает платежи, оказывает клиентскую
-          поддержку по оплате и проводит возвраты по этим заказам.
+          Оплату принимает продавец через PayPal. Возвраты оформляются по настоящей Политике возврата.
         </p>
       </section>
 
@@ -2600,8 +2573,8 @@ function RefundRu() {
         <h2>4. Как запросить возврат</h2>
         <p>
           Напишите на <SupportEmail />, указав дату заказа, почту, использованную при оплате, и — если есть —
-          идентификатор заказа или квитанции. По заказам Paddle компания Paddle также может связаться с вами по вопросам
-          оплаты или возврата. Мы стараемся отвечать оперативно и проводить одобренные возвраты тем же способом оплаты.
+          идентификатор заказа или квитанции. Мы стараемся отвечать оперативно и проводить одобренные возвраты тем же
+          способом оплаты.
         </p>
       </section>
 
