@@ -1240,6 +1240,18 @@ export default function DreamsPage() {
           : {}),
       });
 
+      if (Array.isArray((item as any).emojis) && (item as any).emojis.some((em: { native?: string }) => em?.native)) {
+        try {
+          await ingestDreamForMap({
+            uid: uid2,
+            dreamId: itemId,
+            sourceType: type,
+          });
+        } catch (e) {
+          console.warn("map ingest failed", e);
+        }
+      }
+
       trackEvent("share", {
         method: "dreamly_feed",
         content_type: type,

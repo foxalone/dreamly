@@ -204,7 +204,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
 
     if (pending.shareToMap !== false) {
       try {
-        await shareImportedDream(user, docRef.id, pending, visuals);
+        await shareImportedDream(user, docRef.id, { ...pending, city: city ?? pending.city }, visuals);
       } catch (e) {
         console.warn("home dream map share failed", e);
       }
