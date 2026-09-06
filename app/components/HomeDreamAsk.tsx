@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenText, Loader2, Sparkles } from "lucide-react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
-import { HOME_DREAM_MAX_CHARS, writeHomeDreamPending } from "@/lib/homeDreamPending";
+import {
+  HOME_DREAM_MAX_CHARS,
+  readHomeDreamPending,
+  writeHomeDreamPending,
+} from "@/lib/homeDreamPending";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 
@@ -22,9 +26,31 @@ export default function HomeDreamAsk({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [shareToMap, setShareToMap] = useState(false);
+
+  useEffect(() => {
+    const pending = readHomeDreamPending();
+    if (!pending?.text) return;
+    setText(pending.text);
+    setShareToMap(pending.shareToMap === true);
+    if (pending.analysis) {
+      setAnalysis(pending.analysis);
+      onResultChange?.(true);
+    }
+    // Restore once on mount so a later login still finds the same cache.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function persistPending(dream = text, nextAnalysis = analysis, nextShare = shareToMap) {
+    writeHomeDreamPending(dream, {
+      analysis: nextAnalysis ?? undefined,
+      shareToMap: nextShare,
+      lang: locale,
+    });
+  }
 
   function goToJournal(pending = text, guestLimit = false) {
-    writeHomeDreamPending(pending);
+    persistPending(pending);
     const next = localePath("/app/dreams", locale);
     const user = auth.currentUser;
     if (user) {
@@ -85,10 +111,12 @@ export default function HomeDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
+      persistPending(dream, next, shareToMap);
       onResultChange?.(true);
       trackEvent("home_dream_interpreted", {
         guest: !!data.guest,
         credits_used: Number(data.cost ?? 0) || 0,
+        share_to_map: shareToMap,
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Analyze failed");
@@ -106,19 +134,40 @@ export default function HomeDreamAsk({
         <textarea
           id="home-dream-text"
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            const next = event.target.value;
+            setText(next);
+            if (analysis) {
+              setAnalysis(null);
+              onResultChange?.(false);
+              writeHomeDreamPending(next, { analysis: "", shareToMap, lang: locale });
+            }
+          }}
           rows={4}
           maxLength={HOME_DREAM_MAX_CHARS}
           placeholder={t.home.askPlaceholder}
           disabled={busy}
           className="w-full resize-none rounded-[1.15rem] bg-white px-4 py-3.5 text-base text-zinc-900 outline-none placeholder:text-zinc-400"
         />
-        <div className="flex items-center justify-between gap-3 px-2 pb-1.5 pt-1">
-          <p className="min-w-0 text-xs font-medium text-white/80">{t.home.askHint}</p>
+        <div className="flex flex-col gap-2 px-2 pb-1.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs font-medium text-white/90">
+            <input
+              type="checkbox"
+              checked={shareToMap}
+              disabled={busy}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setShareToMap(next);
+                if (text.trim()) persistPending(text, analysis, next);
+              }}
+              className="mt-0.5 size-3.5 shrink-0 rounded border-white/40 bg-white/15 accent-white"
+            />
+            <span>{t.home.askShareMap}</span>
+          </label>
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition hover:bg-purple-50 disabled:opacity-70"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 self-end rounded-full bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition hover:bg-purple-50 disabled:opacity-70 sm:self-auto"
           >
             {busy ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
             {busy ? t.home.askBusy : t.home.askSubmit}
@@ -134,6 +183,7 @@ export default function HomeDreamAsk({
 
       {analysis ? null : (
         <div className="mt-4 text-center">
+          <p className="mb-3 text-xs text-[var(--muted)]">{t.home.askHint}</p>
           <LocaleLink
             href="/dreams"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--text)] hover:bg-[var(--surface)]"
@@ -147,7 +197,7 @@ export default function HomeDreamAsk({
       {analysis ? (
         <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
           <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{analysis}</p>
-          <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askSignInNote}</p>
+          <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

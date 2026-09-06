@@ -18,9 +18,11 @@ export type UiMessages = {
     askSubmit: string;
     askBusy: string;
     askHint: string;
+    askShareMap: string;
     askSave: string;
     askMore: string;
     askSignInNote: string;
+    askCached: string;
     askEmpty: string;
     askOrDictionary: string;
     askGuestLimit: string;
