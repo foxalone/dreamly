@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           "/app/chat",
           "/app/profile",
           "/app/profile/admin-dashboard",
-          "/app/tiktok-studio",
           "/app/upgrade",
           "/payment-success",
         ],

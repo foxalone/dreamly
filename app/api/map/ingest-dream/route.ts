@@ -145,8 +145,6 @@ export async function POST(req: Request) {
     }
 
     const item = itemSnap.data() || {};
-    const isTikTokDream =
-      sourceType === "dream" && s(item?.studio?.kind).toLowerCase() === "tiktok";
 
     const emojis: DreamEmoji[] = Array.isArray(item.emojis) ? item.emojis : [];
     const createdAtMs = Number(item.createdAtMs ?? Date.now());
@@ -167,7 +165,7 @@ export async function POST(req: Request) {
 
     const fromItem = getItemCity(item);
     const fromUser = getUserCity(user);
-    const fromIp = !isTikTokDream ? await resolveIpCity(req) : null;
+    const fromIp = await resolveIpCity(req);
     const ipCity: ResolvedCity = fromIp?.cityId
       ? {
           cityId: fromIp.cityId,
@@ -180,16 +178,10 @@ export async function POST(req: Request) {
         }
       : emptyCity("ip");
 
-    // Real dreams always pin by current IP. TikTok seeds keep the planted city.
-    // If this dream was already counted as a guest pin, keep that snapshot so
-    // the journal row matches the map and we do not move the emoji.
-    const resolvedCity: ResolvedCity = isTikTokDream
-      ? fromItem.cityId
-        ? fromItem
-        : fromUser.cityId
-          ? fromUser
-          : emptyCity("item")
-      : skipCity && fromItem.cityId
+    // Always pin by current IP. If this dream was already counted as a guest
+    // pin, keep that snapshot so the journal row matches the map.
+    const resolvedCity: ResolvedCity =
+      skipCity && fromItem.cityId
         ? fromItem
         : ipCity.cityId
           ? ipCity
@@ -198,13 +190,6 @@ export async function POST(req: Request) {
             : fromUser.cityId
               ? fromUser
               : emptyCity("ip");
-
-    if (isTikTokDream) {
-      console.log("[tiktok/ingest] city source:", resolvedCity.source, {
-        item: fromItem,
-        user: fromUser,
-      });
-    }
 
     const emojiPrefix = emojiFieldPrefix(sourceType);
     const totalKey = totalField(sourceType);
@@ -236,7 +221,7 @@ export async function POST(req: Request) {
         { merge: true }
       );
 
-      if (!isTikTokDream && resolvedCity.cityId) {
+      if (resolvedCity.cityId) {
         tx.set(itemRef, cityWriteFields(resolvedCity), { merge: true });
       }
 
@@ -336,10 +321,6 @@ export async function POST(req: Request) {
         emojisCount: natives.length,
       });
     });
-
-    if (isTikTokDream) {
-      console.log("[tiktok/ingest] cityId -> city_emoji_stats:", resolvedCity.cityId || null);
-    }
 
     if (resolvedCity.cityId) resolveCityCoordsIfNeeded(req, resolvedCity.cityId);
 

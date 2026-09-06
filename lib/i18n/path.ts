@@ -15,7 +15,6 @@ export function isLocaleExemptPath(pathname: string): boolean {
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/app/profile/admin-dashboard") ||
-    pathname.startsWith("/app/tiktok-studio") ||
     /\.[a-zA-Z0-9]+$/.test(pathname)
   );
 }
