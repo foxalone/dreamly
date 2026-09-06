@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { trackEvent } from "@/lib/analytics";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 import {
   BookOpenText,
   Brain,
@@ -14,22 +15,22 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const sections: Array<{ id: string; label: string; icon: LucideIcon }> = [
-  { id: "meaning", label: "Meaning", icon: BookOpenText },
-  { id: "psychology", label: "Psychology", icon: Brain },
-  { id: "spiritual", label: "Spiritual", icon: Sparkles },
-  { id: "islamic", label: "Islamic", icon: MoonStar },
-  { id: "biblical", label: "Biblical", icon: LibraryBig },
-  { id: "questions", label: "Questions", icon: CircleHelp },
-  { id: "related", label: "Related", icon: Compass },
-];
-
 export default function SectionJumpNav({ accent }: { accent: string }) {
   const pathname = usePathname();
+  const t = useMessages();
+  const sections: Array<{ id: string; label: string; icon: LucideIcon }> = [
+    { id: "meaning", label: t.chrome.meaning, icon: BookOpenText },
+    { id: "psychology", label: t.chrome.psychology, icon: Brain },
+    { id: "spiritual", label: t.chrome.spiritual, icon: Sparkles },
+    { id: "islamic", label: t.chrome.islamic, icon: MoonStar },
+    { id: "biblical", label: t.chrome.biblical, icon: LibraryBig },
+    { id: "questions", label: t.chrome.questions, icon: CircleHelp },
+    { id: "related", label: t.chrome.related, icon: Compass },
+  ];
 
   return (
-    <nav aria-label="On this page" className="mt-9">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">Explore this symbol</p>
+    <nav aria-label={t.chrome.onThisPage} className="mt-9">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">{t.chrome.exploreThis}</p>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
         {sections.map(({ id, label, icon: Icon }) => (
           <a

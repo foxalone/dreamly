@@ -1,33 +1,17 @@
 import type { Metadata } from "next";
 import FaithHub from "../FaithHub";
-import { PARENT_DREAMS } from "@/lib/dream-dictionary";
+import { getFaithCopy } from "@/lib/i18n/hubs";
+import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
+
+const copy = getFaithCopy("en", "islamic");
 
 export const metadata: Metadata = {
-  title: `Islamic Dream Meanings: ${PARENT_DREAMS.length} Symbols, Scenarios & Readings`,
-  description:
-    "Dreams about snakes, water, teeth, fire, and marriage in Islamic interpretation — true dreams, ordinary dreams, and distressing ones, without treating the image as a verdict.",
-  alternates: { canonical: "/dreams/islamic" },
-  openGraph: {
-    title: "Islamic Dream Meanings",
-    description: "Common dream symbols considered through the Islamic dream tradition.",
-    url: "/dreams/islamic",
-    type: "website",
-  },
+  title: copy.seoTitle,
+  description: copy.seoDescription,
+  ...localeMetadata("/dreams/islamic", "en"),
+  openGraph: localeOpenGraph("/dreams/islamic", "en", copy.seoTitle, copy.seoDescription),
 };
 
 export default function IslamicDreamMeaningsPage() {
-  return (
-    <FaithHub
-      config={{
-        slug: "islamic",
-        heading: "Islamic Dream Meanings",
-        anchor: "islamic",
-        perspectiveLabel: "Islamic meaning",
-        intro: [
-          "The Islamic tradition distinguishes between three kinds of dreams: truthful dreams regarded as glad tidings, dreams that arise from the self and its daily concerns, and distressing dreams. Interpretation is approached with humility — a dream is never treated as certain knowledge of the unseen, is not evidence against another person, and should be shared only with someone trustworthy.",
-          "Each symbol below links to a full Islamic reflection presented alongside psychological, spiritual, and biblical readings, so interpretation stays grounded rather than fearful.",
-        ],
-      }}
-    />
-  );
+  return <FaithHub slug="islamic" locale="en" />;
 }

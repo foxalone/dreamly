@@ -401,3 +401,12 @@ html, body {
 
 .dream-btn--blue:hover { filter: brightness(0.95); }
 .dream-btn--blue:active { transform: scale(0.98); }
+
+html {
+  font-family: var(--font-geist-sans), var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html.locale-ar,
+html.locale-ar body {
+  font-family: var(--font-noto-arabic), var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+}

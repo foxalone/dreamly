@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Keyboard, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
@@ -437,6 +439,8 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 // ------------------------
 export default function DreamsPage() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useMessages();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -992,7 +996,7 @@ export default function DreamsPage() {
     } catch (e: any) {
       if (e?.message === "INSUFFICIENT_CREDITS_ROOTWORDS") {
         setError("Not enough credits for symbol extraction (1 credit after today's free AI call).");
-        router.push("/app/upgrade");
+        router.push(localePath("/app/upgrade", locale));
       } else {
         setError(e?.message ?? "Failed to extract roots.");
       }
@@ -1017,7 +1021,7 @@ export default function DreamsPage() {
     if (!u) return;
     if (credits < 1) {
       setError(`Not enough credits to save a ${composerType}.`);
-      router.push("/app/upgrade");
+      router.push(localePath("/app/upgrade", locale));
       return;
     }
 
@@ -1118,7 +1122,7 @@ export default function DreamsPage() {
       if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
         setError(`Not enough credits to save a ${composerType}.`);
         setSaving(false);
-        router.push("/app/upgrade");
+        router.push(localePath("/app/upgrade", locale));
         return;
       }
       setError(e?.message ?? `Failed to save ${composerType}.`);
@@ -1230,7 +1234,7 @@ export default function DreamsPage() {
    if (credits < 2) {
   trackEvent("upgrade_prompt", { source: "dream_analysis" });
   setError("Not enough credits to analyze. Requires 2 credits.");
-  router.push("/app/upgrade");
+  router.push(localePath("/app/upgrade", locale));
   return;
 }
 
@@ -1244,7 +1248,7 @@ export default function DreamsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: t,
-          lang: (dream as any)?.langGuess ?? guessLang(t),
+          lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           idToken,
         }),
       });
@@ -1293,7 +1297,7 @@ export default function DreamsPage() {
     } catch (e: any) {
     if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
   setError("Not enough credits to analyze. Requires 2 credits.");
-  router.push("/app/upgrade");
+  router.push(localePath("/app/upgrade", locale));
 } else {
   setError(e?.message ?? "Failed to analyze dream.");
 }
@@ -1495,7 +1499,7 @@ export default function DreamsPage() {
 
   {/* Credits pill (не переключает таб, а ведёт на апгрейд) */}
   <button
-    onClick={() => router.push("/app/upgrade")}
+    onClick={() => router.push(localePath("/app/upgrade", locale))}
     className={[
       "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
@@ -1541,7 +1545,7 @@ export default function DreamsPage() {
       {/* List */}
       {!uid ? null : visibleItems.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
-          {tab === "SHARED" ? "No shared items yet. Share one from Dreams or Stories." : tab === "STORIES" ? "No stories yet. Add your first one." : "No dreams yet. Add your first one."}
+          {tab === "SHARED" ? t.app.noStories : tab === "STORIES" ? t.app.noStories : t.app.noDreams}
         </div>
       ) : (
         <div className="mt-8 space-y-3">
@@ -1620,7 +1624,7 @@ export default function DreamsPage() {
                         ].join(" ")}
                         title={isShared ? "Already shared" : "Publish to Shared feed"}
                       >
-                        {isShared ? "✓ Shared" : isSharing ? "Sharing…" : "Share"}
+                        {isShared ? `✓ ${t.app.shared}` : isSharing ? t.app.sharing : t.app.share}
                       </button>
                     ) : (
                       <span
@@ -1650,7 +1654,7 @@ export default function DreamsPage() {
                           ].join(" ")}
                           title={hasAnalysis ? "View analysis" : "Analyze with AI (Requires 2 credits)"}
                         >
-                          {isAnalyzing ? "Analyzing…" : hasAnalysis ? "Analysis" : "Analyze"}
+                          {isAnalyzing ? t.app.analyzing : hasAnalysis ? t.app.analysis : t.app.analyze}
                         </button>
                       );
                     })()}
@@ -1893,10 +1897,10 @@ export default function DreamsPage() {
                       disabled={!canSave}
                       className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                     >
-                      {saving ? "Saving…" : "Save"}
+                      {saving ? t.app.saving : t.app.save}
                     </button>
                   ) : (
-                  <button onClick={() => router.push("/app/upgrade")} className={["dream-primary-btn"].join(" ")} type="button">
+                  <button onClick={() => router.push(localePath("/app/upgrade", locale))} className={["dream-primary-btn"].join(" ")} type="button">
   Add credits
 </button>
                   )}

@@ -1,0 +1,25 @@
+---
+description: Every user-facing addition must ship in en + es + ar + pt + de + ru
+alwaysApply: true
+---
+
+# i18n (Dreamly)
+
+Locales: `en` (unprefixed URLs) + `es` `ar` `pt` `de` `ru` (`/es/...`). Full policy: `docs/i18n.md`.
+
+When you add **any** user-facing string, page, symbol, guide, or legal sentence:
+
+1. Put UI copy in `lib/i18n/messages/{en,es,ar,pt,de,ru}.ts` (update `types.ts` too).
+2. New dictionary slug → English seed in `lib/dream-dictionary.ts` **and** `name`+`summary`/`focus` in all five `lib/i18n/seeds/*.ts`.
+3. New guide → English in `lib/dream-guides.ts` **and** native rewrite in `lib/i18n/guides/*.ts`.
+4. Link with `LocaleLink` / `localePath`. Never hardcode English-only chrome on `/es` `/ar` `/pt` `/de` `/ru`.
+5. Keep slugs English (`/dreams/snake`, `/es/dreams/snake`). Do not prefix `/en`.
+6. Arabic is RTL (`dir=rtl`). Write MSA, not word-for-word English.
+
+```ts
+// ❌ BAD
+<Link href="/dreams">Dictionary</Link>
+
+// ✅ GOOD
+<LocaleLink href="/dreams">{t.nav.dictionary}</LocaleLink>
+```

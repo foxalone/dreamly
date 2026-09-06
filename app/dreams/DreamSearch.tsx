@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowRight, MoonStar, Search, X } from "lucide-react";
 import type { DreamCategory } from "@/lib/dream-categories";
-import { DREAM_CATEGORIES } from "@/lib/dream-categories";
+import { getCategoryCopy } from "@/lib/i18n/categories";
+import LocaleLink from "@/lib/i18n/LocaleLink";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { openQuickSymbol } from "./quickSymbolEvents";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -23,6 +24,8 @@ export type DreamSearchItem = {
 };
 
 export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
+  const locale = useLocale();
+  const t = useMessages();
   const [query, setQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const lastLoggedQuery = useRef("");
@@ -119,7 +122,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   return (
     <div className="mx-auto mt-8 grid max-w-3xl grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2 text-left">
       <div className="relative min-w-0">
-        <label htmlFor="dream-search" className="sr-only">Search the dream dictionary</label>
+        <label htmlFor="dream-search" className="sr-only">{t.chrome.searchLabel}</label>
         <div className="flex h-full min-h-12 items-center gap-3 rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] px-4 py-3 shadow-sm transition focus-within:border-violet-400/50 focus-within:ring-4 focus-within:ring-violet-400/10">
           <Search size={18} className="shrink-0 text-[var(--dd-accent-text)]" aria-hidden="true" />
           <input
@@ -127,7 +130,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search symbols…"
+            placeholder={t.dictionary.searchPlaceholder}
             autoComplete="off"
             className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"
           />
@@ -135,7 +138,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
             <button
               type="button"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={t.chrome.clearSearch}
               className="grid size-7 shrink-0 place-items-center rounded-full text-[var(--dd-subtle)] transition hover:bg-[var(--dd-surface-hover)] hover:text-[var(--dd-text)]"
             >
               <X size={14} aria-hidden="true" />
@@ -149,7 +152,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
               <ul aria-label="Dream search results">
                 {results.map((item) => (
                   <li key={item.slug}>
-                    <Link
+                    <LocaleLink
                       href={`/dreams/${item.slug}`}
                       onClick={() => logDictionarySearch(query, results)}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-[var(--dd-surface-hover)]"
@@ -158,16 +161,16 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-[var(--dd-text)]">{item.title}</span>
                         <span className="block text-xs text-[var(--dd-subtle)]">
-                          {item.parentSlug ? "Dream variation" : DREAM_CATEGORIES[item.category].label}
+                          {item.parentSlug ? t.chrome.dreamVariation : getCategoryCopy(locale, item.category).label}
                         </span>
                       </span>
-                    </Link>
+                    </LocaleLink>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="px-4 py-5 text-center text-sm text-[var(--dd-muted)]">
-                No matching symbol yet. Try a broader word.
+                {t.chrome.noMatch}
               </p>
             )}
           </div>
@@ -179,13 +182,13 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
         className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-400/35 bg-violet-500/10 px-3 py-2 shadow-sm transition focus-within:border-violet-400/70 focus-within:ring-4 focus-within:ring-violet-400/10"
       >
         <MoonStar size={18} className="shrink-0 text-[var(--dd-accent-text)]" aria-hidden="true" />
-        <label htmlFor="dream-ai-query" className="sr-only">Ask AI about a dream symbol</label>
+        <label htmlFor="dream-ai-query" className="sr-only">{t.dictionary.askLabel}</label>
         <input
           id="dream-ai-query"
           type="text"
           value={aiQuery}
           onChange={(event) => setAiQuery(event.target.value)}
-          placeholder="Ask AI about a dream…"
+          placeholder={t.dictionary.askPlaceholder}
           autoComplete="off"
           maxLength={120}
           className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"

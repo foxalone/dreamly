@@ -1,8 +1,14 @@
 import type { MetadataRoute } from "next";
 import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
 import { listDreamPageImageUrls } from "@/lib/getDreamPageImage";
+import { LOCALES } from "@/lib/i18n/config";
+import { localePath } from "@/lib/i18n/path";
 
 const SITE = "https://dreamly.art";
+
+function localizedUrls(path: string): string[] {
+  return LOCALES.map((locale) => `${SITE}${localePath(path, locale)}`);
+}
 
 // Bump when the homepage content materially changes.
 const HOME_UPDATED_AT = "2026-07-02";
@@ -18,36 +24,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const imageBySlug = await listDreamPageImageUrls();
 
   const core: MetadataRoute.Sitemap = [
-    {
-      url: `${SITE}/`,
+    ...localizedUrls("/").map((url) => ({
+      url,
       lastModified: HOME_UPDATED_AT,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 1.0,
-    },
-    {
-      url: `${SITE}/dreams`,
+    })),
+    ...localizedUrls("/dreams").map((url) => ({
+      url,
       lastModified: dictionaryUpdatedAt,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 0.9,
-    },
-    {
-      url: `${SITE}/privacy`,
+    })),
+    ...localizedUrls("/privacy").map((url) => ({
+      url,
       lastModified: "2026-08-12",
-      changeFrequency: "yearly",
+      changeFrequency: "yearly" as const,
       priority: 0.3,
-    },
-    {
-      url: `${SITE}/terms`,
+    })),
+    ...localizedUrls("/terms").map((url) => ({
+      url,
       lastModified: "2026-08-12",
-      changeFrequency: "yearly",
+      changeFrequency: "yearly" as const,
       priority: 0.3,
-    },
+    })),
     // Interactive /app routes are explicitly noindex and do not belong here.
-    {
-      url: `${SITE}/invite`,
-      changeFrequency: "monthly",
+    ...localizedUrls("/invite").map((url) => ({
+      url,
+      changeFrequency: "monthly" as const,
       priority: 0.3,
-    },
+    })),
   ];
 
   const hubs: MetadataRoute.Sitemap = [
@@ -69,22 +75,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/dreams/islamic",
     "/dreams/spiritual",
     ...(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category) => `/dreams/categories/${category}`),
-  ].map((path) => ({
-    url: `${SITE}${path}`,
-    lastModified: dictionaryUpdatedAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+  ].flatMap((path) =>
+    localizedUrls(path).map((url) => ({
+      url,
+      lastModified: dictionaryUpdatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+  );
 
-  const dictionary: MetadataRoute.Sitemap = ALL_DREAM_ENTRIES.map((entry) => {
+  const dictionary: MetadataRoute.Sitemap = ALL_DREAM_ENTRIES.flatMap((entry) => {
     const imageUrl = imageBySlug.get(entry.slug) || imageBySlug.get(entry.canonicalSlug);
-    return {
-      url: `${SITE}/dreams/${entry.canonicalSlug}`,
+    return localizedUrls(`/dreams/${entry.canonicalSlug}`).map((url) => ({
+      url,
       lastModified: entry.updatedAt,
       changeFrequency: "monthly" as const,
       priority: entry.parentSlug ? 0.7 : 0.8,
       ...(imageUrl ? { images: [imageUrl] } : {}),
-    };
+    }));
   });
 
   return [...core, ...hubs, ...dictionary];

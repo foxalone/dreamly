@@ -1,0 +1,5594 @@
+[
+  {
+    "slug": "snake",
+    "name": "snake",
+    "summary": "transformation, hidden fear, instinct, healing, and situations that require alertness",
+    "kind": "parent"
+  },
+  {
+    "slug": "black-snake",
+    "name": "black snake",
+    "focus": "an unknown threat, repressed fear, mystery, or a change that is difficult to read",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "white-snake",
+    "name": "white snake",
+    "focus": "unfamiliar wisdom, clarity, healing, or a truth arriving in an unexpected form",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "green-snake",
+    "name": "green snake",
+    "focus": "growth, renewal, jealousy, health, or instinct connected with a new opportunity",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "snake-bite",
+    "name": "snake bite",
+    "focus": "a sudden wake-up call, painful truth, conflict, or urgent boundary issue",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "dead-snake",
+    "name": "dead snake",
+    "focus": "the end of a threat, a completed transformation, or instinct that has been suppressed",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "many-snakes",
+    "name": "many snakes",
+    "focus": "multiple pressures, social mistrust, overstimulation, or several changes happening together",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "big-snake",
+    "name": "big snake",
+    "focus": "a fear, temptation, responsibility, or personal power that feels impossible to ignore",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "snakes-in-water",
+    "name": "snakes in water",
+    "focus": "hidden threat inside emotion, intuition mixed with fear, or change moving through a deep feeling",
+    "kind": "variation",
+    "parent": "snake"
+  },
+  {
+    "slug": "teeth",
+    "name": "teeth",
+    "summary": "confidence, communication, appearance, control, aging, and anxiety about change or loss",
+    "kind": "parent"
+  },
+  {
+    "slug": "teeth-falling-out",
+    "name": "teeth falling out",
+    "focus": "loss of control, embarrassment, transition, or concern about how others see you",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "broken-teeth",
+    "name": "broken teeth",
+    "focus": "damaged confidence, regret after conflict, or pressure that has exceeded your limits",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "loose-teeth",
+    "name": "loose teeth",
+    "focus": "uncertainty, an unstable decision, or awareness that a change can no longer be postponed",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "pulling-teeth",
+    "name": "pulling teeth",
+    "focus": "choosing a painful release, forcing change, or removing a problem at personal cost",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "rotten-teeth",
+    "name": "rotten teeth",
+    "focus": "a neglected concern, lingering shame, harmful communication, or fear that something is worsening",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "losing-teeth",
+    "name": "losing teeth",
+    "focus": "vulnerability, aging, social anxiety, or difficulty holding onto a familiar identity",
+    "kind": "variation",
+    "parent": "teeth"
+  },
+  {
+    "slug": "water",
+    "name": "water",
+    "summary": "emotion, intuition, cleansing, uncertainty, and the changing state of your inner world",
+    "kind": "parent"
+  },
+  {
+    "slug": "flood",
+    "name": "flood",
+    "focus": "feelings, demands, or changes that seem to be exceeding your current capacity",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "ocean",
+    "name": "ocean",
+    "focus": "vast emotion, freedom, uncertainty, or contact with forces larger than the conscious self",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "river",
+    "name": "river",
+    "focus": "the direction of life, emotional flow, passage of time, or movement through transition",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "drowning",
+    "name": "drowning",
+    "focus": "emotional overwhelm, exhaustion, loss of control, or difficulty asking for support",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "dirty-water",
+    "name": "dirty water",
+    "focus": "confusion, emotional residue, mixed motives, or a situation that is hard to read clearly",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "clear-water",
+    "name": "clear water",
+    "focus": "peace, honesty, emotional clarity, recovery, or trust in the direction of your life",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "rain",
+    "name": "rain",
+    "focus": "release, renewal, sadness, fertility, or a cleansing process that cannot be rushed",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "waterfall",
+    "name": "a waterfall",
+    "focus": "emotion arriving with force and beauty, a drop you cannot climb, or feeling pouring from a height you cannot hold back",
+    "kind": "variation",
+    "parent": "water"
+  },
+  {
+    "slug": "death",
+    "name": "death",
+    "summary": "endings, transformation, grief, mortality, release, and the closing of an old identity",
+    "kind": "parent"
+  },
+  {
+    "slug": "someone-dying",
+    "name": "someone dying",
+    "focus": "fear of separation, a changing relationship, grief, or recognition that another person is changing",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "dead-person",
+    "name": "a dead person",
+    "focus": "memory, unfinished emotion, longing, comfort, or qualities associated with someone who has died",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "funeral",
+    "name": "a funeral",
+    "focus": "acknowledging an ending, honoring what has passed, and beginning the process of letting go",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "being-killed",
+    "name": "being killed",
+    "focus": "feeling overpowered, abruptly changed, silenced, or unable to control an important ending",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "killing-someone",
+    "name": "killing someone",
+    "focus": "intense conflict, rejected traits, buried anger, or a forceful attempt to end a pattern",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "dead-relative",
+    "name": "a dead relative",
+    "focus": "grief, family memory, inherited values, unresolved words, or a wish for comfort and connection",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "own-death",
+    "name": "your own death",
+    "focus": "the end of an identity, chapter, or role — not a prediction of literal death",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "dead-parent",
+    "name": "a dead parent",
+    "focus": "grief, unfinished conversations, inherited patterns, or comfort associated with a parent who has died",
+    "kind": "variation",
+    "parent": "death"
+  },
+  {
+    "slug": "baby",
+    "name": "baby",
+    "summary": "new beginnings, vulnerability, potential, responsibility, and a tender part of life that needs care",
+    "kind": "parent"
+  },
+  {
+    "slug": "newborn-baby",
+    "name": "newborn baby",
+    "focus": "very recent potential, a fragile beginning, or a responsibility that has only just arrived",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "crying-baby",
+    "name": "crying baby",
+    "focus": "an unmet emotional need, neglected project, or vulnerable issue asking directly for attention",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "baby-boy",
+    "name": "baby boy",
+    "focus": "new active energy, emerging confidence, family hopes, or a beginning shaped by masculine associations",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "baby-girl",
+    "name": "baby girl",
+    "focus": "new receptive energy, tenderness, family hopes, or a beginning shaped by feminine associations",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "holding-a-baby",
+    "name": "holding a baby",
+    "focus": "accepting responsibility, protecting potential, or forming a bond with something newly important",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "lost-baby",
+    "name": "lost baby",
+    "focus": "fear of failure, neglected potential, separation anxiety, or uncertainty about caring for what matters",
+    "kind": "variation",
+    "parent": "baby"
+  },
+  {
+    "slug": "pregnancy",
+    "name": "pregnancy",
+    "summary": "creation, development, anticipation, responsibility, and something important growing before it is ready to emerge",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-pregnant",
+    "name": "being pregnant",
+    "focus": "personally carrying an idea, identity, responsibility, or change that is still developing",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "pregnancy-test",
+    "name": "a pregnancy test",
+    "focus": "waiting for confirmation, fearing consequences, or needing clarity about a life-changing possibility",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "giving-birth",
+    "name": "giving birth",
+    "focus": "bringing a project, role, relationship, or new phase into visible and demanding reality",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "miscarriage",
+    "name": "miscarriage",
+    "focus": "grief, fear of lost potential, interrupted plans, or direct processing of a deeply personal experience",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "pregnant-woman",
+    "name": "a pregnant woman",
+    "focus": "witnessing potential, sensing change in another person, or recognizing growth around you",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "pregnant-with-twins",
+    "name": "pregnant with twins",
+    "focus": "double potential, divided attention, or two developments growing at once and competing for care",
+    "kind": "variation",
+    "parent": "pregnancy"
+  },
+  {
+    "slug": "dog",
+    "name": "dog",
+    "summary": "loyalty, friendship, protection, instinct, companionship, and boundaries under pressure",
+    "kind": "parent"
+  },
+  {
+    "slug": "black-dog",
+    "name": "black dog",
+    "focus": "unknown instinct, grief, protection, depression, or a loyal presence that is difficult to understand",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "white-dog",
+    "name": "white dog",
+    "focus": "trustworthy support, peace, protection, innocence, or reassurance from a familiar bond",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "dog-bite",
+    "name": "dog bite",
+    "focus": "betrayal, threatened boundaries, conflict, or anger breaking through a relationship built on trust",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "friendly-dog",
+    "name": "friendly dog",
+    "focus": "companionship, emotional safety, dependable support, or comfort with your own instincts",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "aggressive-dog",
+    "name": "aggressive dog",
+    "focus": "defensive anger, social conflict, fear of betrayal, or a protective response that feels uncontrolled",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "dead-dog",
+    "name": "dead dog",
+    "focus": "grief, the end of a friendship, lost trust, or a dependable part of life that has changed",
+    "kind": "variation",
+    "parent": "dog"
+  },
+  {
+    "slug": "cat",
+    "name": "cat",
+    "summary": "independence, intuition, curiosity, sensuality, boundaries, and relationships that resist control",
+    "kind": "parent"
+  },
+  {
+    "slug": "black-cat",
+    "name": "black cat",
+    "focus": "mystery, intuition, superstition, independence, or anxiety about something you cannot fully predict",
+    "kind": "variation",
+    "parent": "cat"
+  },
+  {
+    "slug": "white-cat",
+    "name": "white cat",
+    "focus": "gentle intuition, apparent innocence, emotional distance, or a subtle issue beneath a calm surface",
+    "kind": "variation",
+    "parent": "cat"
+  },
+  {
+    "slug": "cat-attack",
+    "name": "cat attack",
+    "focus": "scratched boundaries, indirect conflict, mistrust, or an independent person resisting pressure",
+    "kind": "variation",
+    "parent": "cat"
+  },
+  {
+    "slug": "kittens",
+    "name": "kittens",
+    "focus": "playfulness, vulnerable independence, small responsibilities, or new curiosity that needs protection",
+    "kind": "variation",
+    "parent": "cat"
+  },
+  {
+    "slug": "dead-cat",
+    "name": "dead cat",
+    "focus": "lost independence, ignored intuition, grief, or the ending of a private and self-protective phase",
+    "kind": "variation",
+    "parent": "cat"
+  },
+  {
+    "slug": "flying",
+    "name": "flying",
+    "summary": "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
+    "kind": "parent"
+  },
+  {
+    "slug": "flying-high",
+    "name": "flying high",
+    "focus": "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground",
+    "kind": "variation",
+    "parent": "flying"
+  },
+  {
+    "slug": "flying-over-water",
+    "name": "flying over water",
+    "focus": "gaining perspective on strong emotions or moving between freedom and emotional depth",
+    "kind": "variation",
+    "parent": "flying"
+  },
+  {
+    "slug": "flying-without-wings",
+    "name": "flying without wings",
+    "focus": "unexpected agency, imagination, spiritual possibility, or confidence without familiar support",
+    "kind": "variation",
+    "parent": "flying"
+  },
+  {
+    "slug": "falling-while-flying",
+    "name": "falling while flying",
+    "focus": "fear of losing success, status, confidence, control, or a promising opportunity",
+    "kind": "variation",
+    "parent": "flying"
+  },
+  {
+    "slug": "falling",
+    "name": "falling",
+    "summary": "loss of control, insecurity, surrender, sudden change, and anxiety about failing or losing support",
+    "kind": "parent"
+  },
+  {
+    "slug": "falling-from-height",
+    "name": "falling from a height",
+    "focus": "fear of failure after progress, loss of status, or anxiety about a risk with serious consequences",
+    "kind": "variation",
+    "parent": "falling"
+  },
+  {
+    "slug": "falling-off-building",
+    "name": "falling off a building",
+    "focus": "instability in a structured area of life such as work, reputation, plans, or achievement",
+    "kind": "variation",
+    "parent": "falling"
+  },
+  {
+    "slug": "falling-into-water",
+    "name": "falling into water",
+    "focus": "sudden immersion in emotion, surrender to uncertainty, or an abrupt loss of emotional distance",
+    "kind": "variation",
+    "parent": "falling"
+  },
+  {
+    "slug": "falling-and-waking-up",
+    "name": "falling and waking up",
+    "focus": "a body-startle response, accumulated stress, or a fear that becomes urgent enough to interrupt sleep",
+    "kind": "variation",
+    "parent": "falling"
+  },
+  {
+    "slug": "fear-of-heights",
+    "name": "fear of heights",
+    "focus": "acrophobia, exposure after progress, vertigo at a life edge, and the dread of losing footing",
+    "kind": "variation",
+    "parent": "falling"
+  },
+  {
+    "slug": "being-chased",
+    "name": "being chased",
+    "summary": "avoidance, pressure, unresolved conflict, threatened safety, and a problem that keeps demanding attention",
+    "kind": "parent"
+  },
+  {
+    "slug": "chased-by-man",
+    "name": "being chased by a man",
+    "focus": "pressure connected with authority, conflict, unfamiliar intent, or a threatening masculine presence",
+    "kind": "variation",
+    "parent": "being-chased"
+  },
+  {
+    "slug": "chased-by-animal",
+    "name": "being chased by an animal",
+    "focus": "instinct, fear, anger, desire, or a natural reaction that the conscious mind is avoiding",
+    "kind": "variation",
+    "parent": "being-chased"
+  },
+  {
+    "slug": "chased-by-monster",
+    "name": "being chased by a monster",
+    "focus": "an exaggerated fear, shame, trauma, or problem that has become larger through avoidance",
+    "kind": "variation",
+    "parent": "being-chased"
+  },
+  {
+    "slug": "hiding-from-someone",
+    "name": "hiding from someone",
+    "focus": "self-protection, secrecy, avoidance of confrontation, or the need for a safer boundary",
+    "kind": "variation",
+    "parent": "being-chased"
+  },
+  {
+    "slug": "house",
+    "name": "house",
+    "summary": "the self, family, privacy, memory, emotional foundations, and the different rooms of inner life",
+    "kind": "parent"
+  },
+  {
+    "slug": "old-house",
+    "name": "old house",
+    "focus": "past identity, family history, neglected memories, or a foundation that needs repair and attention",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "new-house",
+    "name": "new house",
+    "focus": "a fresh identity, changed circumstances, future plans, or emotional space that is still unfamiliar",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "burning-house",
+    "name": "burning house",
+    "focus": "intense change, family conflict, emotional overload, purification, or fear of losing security",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "empty-house",
+    "name": "empty house",
+    "focus": "loneliness, unused potential, emotional absence, or a part of the self waiting to be inhabited",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "childhood-house",
+    "name": "childhood house",
+    "focus": "formative memory, family patterns, safety, unresolved history, or comparison between past and present",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "haunted-house",
+    "name": "haunted house",
+    "focus": "persistent memory, unresolved fear, family history, or an avoided part of your inner world",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "attic",
+    "name": "an attic",
+    "focus": "archived memory, unused ideas, or a higher unused room of the mind waiting to be opened",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "basement",
+    "name": "a basement",
+    "focus": "stored feeling, foundations, or material you put out of sight and are now walking down to meet",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "bathroom",
+    "name": "a bathroom",
+    "focus": "privacy, release, cleansing, or a need you cannot meet while other people are watching",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "cannot-find-bathroom",
+    "name": "unable to find a bathroom",
+    "focus": "a private need with no private place — delayed relief, shame, or putting yourself last for too long",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "kitchen",
+    "name": "a kitchen",
+    "focus": "nourishment, care work, family heat, or the room where something new is being prepared",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "unused-room",
+    "name": "an unused or hidden room",
+    "focus": "unclaimed capacity, a part of the self you did not know you had, or potential sitting empty in your own house",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "bedroom",
+    "name": "a bedroom",
+    "focus": "intimacy, rest, the private self, or what happens when the public rooms go dark",
+    "kind": "variation",
+    "parent": "house"
+  },
+  {
+    "slug": "money",
+    "name": "money",
+    "summary": "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
+    "kind": "parent"
+  },
+  {
+    "slug": "finding-money",
+    "name": "finding money",
+    "focus": "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "losing-money",
+    "name": "losing money",
+    "focus": "insecurity, missed opportunity, depleted energy, or concern about value and practical stability",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "coins",
+    "name": "coins",
+    "focus": "small but tangible value, accumulated effort, everyday choices, luck, or attention to modest resources",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "gold",
+    "name": "gold",
+    "focus": "lasting value, aspiration, spiritual richness, status, temptation, or something precious that requires discernment",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "wallet",
+    "name": "wallet",
+    "focus": "identity, personal resources, privacy, financial access, or the practical container for what you value",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "stealing-money",
+    "name": "stealing money",
+    "focus": "guilt, unfair exchange, desperation, envy, or taking value without a secure sense of deserving it",
+    "kind": "variation",
+    "parent": "money"
+  },
+  {
+    "slug": "spider",
+    "name": "spider",
+    "summary": "patience, creativity, entanglement, fear, careful strategy, and the networks being built around you",
+    "kind": "parent"
+  },
+  {
+    "slug": "big-spider",
+    "name": "big spider",
+    "focus": "a fear, influence, creative task, or complicated situation that has become difficult to overlook",
+    "kind": "variation",
+    "parent": "spider"
+  },
+  {
+    "slug": "black-spider",
+    "name": "black spider",
+    "focus": "hidden anxiety, patient strategy, an unknown influence, or a complicated issue operating quietly",
+    "kind": "variation",
+    "parent": "spider"
+  },
+  {
+    "slug": "spider-bite",
+    "name": "spider bite",
+    "focus": "a small but potent conflict, betrayal, warning, or consequence from an entangled situation",
+    "kind": "variation",
+    "parent": "spider"
+  },
+  {
+    "slug": "killing-spider",
+    "name": "killing a spider",
+    "focus": "confronting fear, ending manipulation, breaking a pattern, or rejecting a patient creative process",
+    "kind": "variation",
+    "parent": "spider"
+  },
+  {
+    "slug": "spider-web",
+    "name": "spider web",
+    "focus": "connection, creativity, careful planning, entrapment, or consequences woven over time",
+    "kind": "variation",
+    "parent": "spider"
+  },
+  {
+    "slug": "car",
+    "name": "car",
+    "summary": "direction, agency, progress, status, control, and the way you are moving through practical life",
+    "kind": "parent"
+  },
+  {
+    "slug": "car-accident",
+    "name": "car accident",
+    "focus": "a collision of plans, fear of consequences, sudden disruption, or concern about the direction of life",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "driving-car",
+    "name": "driving a car",
+    "focus": "personal agency, responsibility, confidence, and how much control you feel over your current direction",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "losing-car",
+    "name": "losing a car",
+    "focus": "lost direction, reduced independence, confusion about progress, or difficulty accessing your usual agency",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "stolen-car",
+    "name": "stolen car",
+    "focus": "violated autonomy, stolen opportunity, identity disruption, or fear that someone else controls your direction",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "car-crash",
+    "name": "car crash",
+    "focus": "conflicting goals, abrupt failure, accumulated pressure, or an urgent need to change course",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "brake-failure",
+    "name": "brake failure",
+    "focus": "inability to slow down, weak boundaries, accelerating pressure, or fear that consequences cannot be stopped",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "buying-a-car",
+    "name": "buying a car",
+    "focus": "choosing a new direction, committing resources, and deciding what kind of drive you are willing to own",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "passenger-in-car",
+    "name": "being a passenger in a car",
+    "focus": "delegated control, riding someone else's direction, and how it feels to sit while another person steers",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "new-car",
+    "name": "a new car",
+    "focus": "a fresh drive, upgraded identity, and a transition that still feels unfamiliar in your hands",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "car-keys",
+    "name": "car keys",
+    "focus": "access to movement, a missing opportunity, and the small object that decides whether you can start at all",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "car-in-water",
+    "name": "a car in water",
+    "focus": "your path meeting emotion, a drive flooded by feeling, or progress that has left dry ground",
+    "kind": "variation",
+    "parent": "car"
+  },
+  {
+    "slug": "school",
+    "name": "school",
+    "summary": "performance pressure, evaluation, growth, social belonging, and unfinished lessons from earlier life",
+    "kind": "parent"
+  },
+  {
+    "slug": "old-school",
+    "name": "old school",
+    "focus": "nostalgia, unresolved memories from an earlier stage of life, or comparing past growth with where you stand now",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "being-late-to-school",
+    "name": "being late to school",
+    "focus": "fear of falling behind, missed responsibility, or anxiety about meeting an important expectation",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "school-exam",
+    "name": "a school exam",
+    "focus": "performance pressure, self-doubt, or feeling unprepared for a real evaluation in waking life",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "empty-school",
+    "name": "an empty school",
+    "focus": "loneliness, a paused stage of growth, or absence of the structure and support you once depended on",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "getting-lost-in-school",
+    "name": "getting lost in school",
+    "focus": "confusion about direction, an unclear path forward, or difficulty navigating new expectations",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "childhood-school",
+    "name": "your childhood school",
+    "focus": "formative memory, early identity, or family and social patterns learned at a young age",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "school-classroom",
+    "name": "a school classroom",
+    "focus": "structured learning, comparison with peers, or a setting where your performance feels watched and measured",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "failing-at-school",
+    "name": "failing at school",
+    "focus": "fear of disappointing others, self-criticism, or anxiety about a serious lapse in competence or preparation",
+    "kind": "variation",
+    "parent": "school"
+  },
+  {
+    "slug": "hospital",
+    "name": "hospital",
+    "summary": "vulnerability, healing, urgent need, dependence on others, and the body's call for attention and care",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-in-hospital",
+    "name": "being in hospital",
+    "focus": "vulnerability, dependence on others, or a part of life that urgently needs attention and care",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "hospital-bed",
+    "name": "a hospital bed",
+    "focus": "forced rest, surrender of control, or a slow recovery that cannot be rushed",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "visiting-someone-in-hospital",
+    "name": "visiting someone in hospital",
+    "focus": "concern for another person, guilt, or a wish to support someone through a difficult time",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "empty-hospital",
+    "name": "an empty hospital",
+    "focus": "isolation, an unmet need for care, or fear of facing a crisis without support",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "hospital-emergency",
+    "name": "a hospital emergency",
+    "focus": "urgency, sudden crisis, fear of losing control, or a problem that can no longer be postponed",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "surgery-in-hospital",
+    "name": "surgery in hospital",
+    "focus": "deep change, exposure, trust in others, or a necessary but frightening intervention",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "lost-in-hospital",
+    "name": "being lost in hospital",
+    "focus": "confusion about a health concern, difficulty finding help, or disorientation during a vulnerable time",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "hospital-room",
+    "name": "a hospital room",
+    "focus": "a private struggle, recovery, or quiet waiting during an uncertain personal situation",
+    "kind": "variation",
+    "parent": "hospital"
+  },
+  {
+    "slug": "church",
+    "name": "church",
+    "summary": "faith, community, conscience, ritual, and the search for meaning, forgiveness, or moral clarity",
+    "kind": "parent"
+  },
+  {
+    "slug": "praying-in-church",
+    "name": "praying in church",
+    "focus": "sincere reflection, a need for guidance, or surrender of a burden too heavy to carry alone",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "empty-church",
+    "name": "an empty church",
+    "focus": "spiritual loneliness, doubt, or a quiet space waiting to be filled with renewed meaning",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "old-church",
+    "name": "an old church",
+    "focus": "inherited belief, tradition, family history, or values passed down over a long time",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "church-wedding",
+    "name": "a church wedding",
+    "focus": "commitment, public vows, blended families, or a significant life transition witnessed by community",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "church-bells",
+    "name": "church bells",
+    "focus": "a call to attention, an announcement, urgency, or a marker of time and ritual",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "burning-church",
+    "name": "a burning church",
+    "focus": "a crisis of faith, loss of a moral foundation, or intense upheaval within a belief system",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "church-service",
+    "name": "a church service",
+    "focus": "community, shared ritual, accountability, or reflection guided by a larger structure of meaning",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "abandoned-church",
+    "name": "an abandoned church",
+    "focus": "lost faith, neglected values, or a once-important belief that no longer feels active",
+    "kind": "variation",
+    "parent": "church"
+  },
+  {
+    "slug": "cemetery",
+    "name": "cemetery",
+    "summary": "grief, memory, closure, and the quiet presence of what has ended but is not forgotten",
+    "kind": "parent"
+  },
+  {
+    "slug": "walking-through-cemetery",
+    "name": "walking through a cemetery",
+    "focus": "processing grief, reflecting on mortality, or moving through unresolved memories at your own pace",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "graveyard",
+    "name": "a graveyard",
+    "focus": "endings, memory, respect for the past, or an honest confrontation with loss",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "visiting-a-grave",
+    "name": "visiting a grave",
+    "focus": "unfinished grief, a wish to reconnect, or honoring someone or something that has ended",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "open-grave",
+    "name": "an open grave",
+    "focus": "anticipated loss, fear of an ending, or anxiety about a change that feels final",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "old-cemetery",
+    "name": "an old cemetery",
+    "focus": "long-held memory, ancestral history, or grief that has settled into quiet acceptance over time",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "cemetery-at-night",
+    "name": "a cemetery at night",
+    "focus": "fear of the unknown, unresolved grief, or anxiety surfacing when defenses are lowered",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "seeing-your-own-grave",
+    "name": "seeing your own grave",
+    "focus": "confronting mortality, a major identity shift, or the symbolic end of an old version of yourself",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "flowers-on-a-grave",
+    "name": "flowers on a grave",
+    "focus": "tribute, ongoing love, closure, or a gentle way of honoring what has been lost",
+    "kind": "variation",
+    "parent": "cemetery"
+  },
+  {
+    "slug": "hotel",
+    "name": "hotel",
+    "summary": "transition, temporary identity, privacy among strangers, and life lived outside your usual routine",
+    "kind": "parent"
+  },
+  {
+    "slug": "staying-in-hotel",
+    "name": "staying in a hotel",
+    "focus": "a temporary phase, transition, or identity that feels comfortable but not permanent",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "luxury-hotel",
+    "name": "a luxury hotel",
+    "focus": "aspiration, reward, self-worth, or a wish for comfort and recognition",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "dirty-hotel-room",
+    "name": "a dirty hotel room",
+    "focus": "disappointment, neglected self-care, or a situation that looks acceptable but feels wrong up close",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "getting-lost-in-hotel",
+    "name": "getting lost in a hotel",
+    "focus": "disorientation during a transition, or difficulty finding stability in an unfamiliar situation",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "hotel-elevator",
+    "name": "a hotel elevator",
+    "focus": "rapid change in status or mood, transition between levels of a situation, or anxiety about losing control",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "empty-hotel",
+    "name": "an empty hotel",
+    "focus": "isolation during a transition, or a temporary phase that feels unexpectedly lonely",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "hotel-check-in",
+    "name": "a hotel check-in",
+    "focus": "entering a new phase, presenting an identity to others, or beginning an unfamiliar chapter",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "strange-hotel-room",
+    "name": "a strange hotel room",
+    "focus": "unfamiliarity, vulnerability, or discomfort with a temporary situation that feels out of your control",
+    "kind": "variation",
+    "parent": "hotel"
+  },
+  {
+    "slug": "airport",
+    "name": "airport",
+    "summary": "transition, departure, anticipation, and the pressure of timing during a major life change",
+    "kind": "parent"
+  },
+  {
+    "slug": "missing-flight",
+    "name": "missing a flight",
+    "focus": "fear of lost opportunity, poor timing, or anxiety about a chance that may not return",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "waiting-at-airport",
+    "name": "waiting at an airport",
+    "focus": "anticipation, suspended plans, or impatience during an unresolved transition",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "running-through-airport",
+    "name": "running through an airport",
+    "focus": "urgency, racing against time, or pressure to keep a plan from falling apart",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "empty-airport",
+    "name": "an empty airport",
+    "focus": "isolation during a transition, or uncertainty about a journey that feels unsupported",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "airport-security",
+    "name": "airport security",
+    "focus": "scrutiny, exposure, or anxiety about being judged before a significant change",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "lost-luggage-at-airport",
+    "name": "lost luggage at an airport",
+    "focus": "fear of losing resources, identity, or important parts of yourself during a transition",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "boarding-a-plane",
+    "name": "boarding a plane",
+    "focus": "committing to a change, accepting a new direction, or readiness to move forward",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "cancelled-flight",
+    "name": "a cancelled flight",
+    "focus": "blocked plans, frustration, or a transition that is delayed beyond your control",
+    "kind": "variation",
+    "parent": "airport"
+  },
+  {
+    "slug": "prison",
+    "name": "prison",
+    "summary": "restriction, guilt, powerlessness, and the wish to be released from a situation that feels inescapable",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-in-prison",
+    "name": "being in prison",
+    "focus": "restriction, guilt, or a situation in waking life that feels inescapable or unfairly limiting",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "escaping-prison",
+    "name": "escaping prison",
+    "focus": "a wish for freedom, breaking free from limitation, or reclaiming control over a restrictive situation",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "visiting-someone-in-prison",
+    "name": "visiting someone in prison",
+    "focus": "concern for another person, guilt by association, or witnessing someone else's restricted circumstances",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "prison-cell",
+    "name": "a prison cell",
+    "focus": "isolation, confinement, or a narrow set of choices that feels suffocating",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "being-wrongly-imprisoned",
+    "name": "being wrongly imprisoned",
+    "focus": "injustice, misunderstanding, or feeling blamed for something outside your control",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "prison-guards",
+    "name": "prison guards",
+    "focus": "authority, surveillance, or pressure from someone who controls your choices",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "breaking-out-of-prison",
+    "name": "breaking out of prison",
+    "focus": "rebellion, urgency, or a determined attempt to escape a limiting circumstance",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "locked-in-prison",
+    "name": "being locked in prison",
+    "focus": "powerlessness, despair, or a prolonged sense of being trapped without resolution",
+    "kind": "variation",
+    "parent": "prison"
+  },
+  {
+    "slug": "castle",
+    "name": "castle",
+    "summary": "status, ambition, protection, isolation, and the distance that power or achievement can create",
+    "kind": "parent"
+  },
+  {
+    "slug": "old-castle",
+    "name": "an old castle",
+    "focus": "inherited status, history, tradition, or a legacy that still shapes your identity",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "haunted-castle",
+    "name": "a haunted castle",
+    "focus": "unresolved family history, lingering fear, or grandeur shadowed by something unfinished",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "living-in-castle",
+    "name": "living in a castle",
+    "focus": "achieved status, ambition fulfilled, or comfort that comes with new responsibility",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "castle-ruins",
+    "name": "castle ruins",
+    "focus": "fallen status, lost achievement, or grief over something once powerful that has since declined",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "castle-on-a-hill",
+    "name": "a castle on a hill",
+    "focus": "aspiration, distance from others, or a goal that feels both desirable and hard to reach",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "entering-a-castle",
+    "name": "entering a castle",
+    "focus": "approaching a new level of status, opportunity, or an unfamiliar position of influence",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "being-trapped-in-castle",
+    "name": "being trapped in a castle",
+    "focus": "isolation that comes with status, protective walls that have become limiting, or loneliness at the top",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "royal-castle",
+    "name": "a royal castle",
+    "focus": "authority, legacy, formality, or pressure connected with a position of leadership",
+    "kind": "variation",
+    "parent": "castle"
+  },
+  {
+    "slug": "beach",
+    "name": "beach",
+    "summary": "relaxation, emotional exposure, the meeting point of conscious life and deeper feeling, and a need for renewal",
+    "kind": "parent"
+  },
+  {
+    "slug": "walking-on-beach",
+    "name": "walking on a beach",
+    "focus": "reflection, slow progress, or finding calm at the edge of strong emotion",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "empty-beach",
+    "name": "an empty beach",
+    "focus": "solitude, peaceful withdrawal, or a need for space away from daily demands",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "beach-waves",
+    "name": "beach waves",
+    "focus": "rhythms of emotion, repeated challenges, or the natural rise and fall of a feeling you cannot fully control",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "stormy-beach",
+    "name": "a stormy beach",
+    "focus": "emotional turbulence at the edge of awareness, or a calm area of life being disrupted by sudden feeling",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "sunny-beach",
+    "name": "a sunny beach",
+    "focus": "ease, optimism, reward, or a well-earned period of relaxation and clarity",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "beach-at-night",
+    "name": "a beach at night",
+    "focus": "mystery, introspection, or emotional depths that surface only when defenses are lowered",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "finding-something-on-beach",
+    "name": "finding something on a beach",
+    "focus": "unexpected insight, a forgotten resource, or meaning surfacing from beneath conscious awareness",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "lost-on-beach",
+    "name": "being lost on a beach",
+    "focus": "disorientation during a time meant for rest, or difficulty finding direction during a calm period",
+    "kind": "variation",
+    "parent": "beach"
+  },
+  {
+    "slug": "forest",
+    "name": "forest",
+    "summary": "the unconscious, uncertainty, instinct, growth, and the unknown territory beyond familiar structure",
+    "kind": "parent"
+  },
+  {
+    "slug": "dark-forest",
+    "name": "a dark forest",
+    "focus": "fear of the unknown, confusion, or an unresolved part of the unconscious mind",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "walking-in-forest",
+    "name": "walking in a forest",
+    "focus": "exploration, self-discovery, or steady progress through an uncertain stage of life",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "getting-lost-in-forest",
+    "name": "getting lost in a forest",
+    "focus": "disorientation, loss of direction, or difficulty trusting your own judgment in unfamiliar territory",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "burning-forest",
+    "name": "a burning forest",
+    "focus": "rapid destructive change, anxiety about loss of resources, or an overwhelming transformation",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "green-forest",
+    "name": "a green forest",
+    "focus": "growth, vitality, renewal, or trust in a natural process unfolding in its own time",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "forest-animals",
+    "name": "forest animals",
+    "focus": "instinct, hidden influences, or unfamiliar parts of yourself appearing in an unguarded setting",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "running-through-forest",
+    "name": "running through a forest",
+    "focus": "urgency, avoidance, or a pressing need to escape an unclear threat",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "enchanted-forest",
+    "name": "an enchanted forest",
+    "focus": "imagination, hidden potential, or an unfamiliar opportunity that feels both inviting and uncertain",
+    "kind": "variation",
+    "parent": "forest"
+  },
+  {
+    "slug": "fish",
+    "name": "fish",
+    "summary": "intuition, emotional resources, abundance, fertility, and ideas or feelings moving beneath the surface",
+    "kind": "parent"
+  },
+  {
+    "slug": "big-fish",
+    "name": "a big fish",
+    "focus": "a major opportunity, significant ambition, or an emotional resource that feels unusually large or important",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "dead-fish",
+    "name": "a dead fish",
+    "focus": "lost opportunity, emotional numbness, or a resource or feeling that has stopped developing",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "catching-fish",
+    "name": "catching a fish",
+    "focus": "successful effort, captured opportunity, or gaining insight into something previously hidden",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "swimming-fish",
+    "name": "swimming fish",
+    "focus": "ease with emotion, healthy intuition, or comfortable movement through a changing situation",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "fish-jumping",
+    "name": "a fish jumping",
+    "focus": "sudden insight, unexpected opportunity, or an emotion breaking briefly into conscious awareness",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "colorful-fish",
+    "name": "a colorful fish",
+    "focus": "vivid emotion, creative potential, or an attractive opportunity that stands out from the rest",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "fish-in-clear-water",
+    "name": "fish in clear water",
+    "focus": "emotional clarity, honest insight, or an opportunity that is easy to recognize and understand",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "fish-tank",
+    "name": "a fish tank",
+    "focus": "contained emotion, a controlled environment, or feelings observed safely from a protected distance",
+    "kind": "variation",
+    "parent": "fish"
+  },
+  {
+    "slug": "bird",
+    "name": "bird",
+    "summary": "freedom, perspective, communication, hope, and messages or insight arriving from beyond your usual viewpoint",
+    "kind": "parent"
+  },
+  {
+    "slug": "flying-bird",
+    "name": "a flying bird",
+    "focus": "freedom, ambition, optimism, or a message of hope reaching you at the right time",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "black-bird",
+    "name": "a black bird",
+    "focus": "unfamiliar news, mystery, grief, or transition arriving in a form that is difficult to predict",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "white-bird",
+    "name": "a white bird",
+    "focus": "peace, clarity, spiritual reassurance, or a hopeful sign during an uncertain time",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "bird-attack",
+    "name": "a bird attack",
+    "focus": "sudden criticism, anxiety about being judged, or a message that feels aggressive or unwelcome",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "dead-bird",
+    "name": "a dead bird",
+    "focus": "lost hope, a stalled plan, or grief over a freedom or opportunity that has ended",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "bird-nest",
+    "name": "a bird's nest",
+    "focus": "home, family, preparation, or the careful building of safety for something new",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "singing-bird",
+    "name": "a singing bird",
+    "focus": "joy, communication, encouragement, or a positive message worth paying attention to",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "flock-of-birds",
+    "name": "a flock of birds",
+    "focus": "community, shared direction, social belonging, or a collective movement you are part of",
+    "kind": "variation",
+    "parent": "bird"
+  },
+  {
+    "slug": "horse",
+    "name": "horse",
+    "summary": "power, drive, freedom, instinct, and the energy that carries you toward an important goal",
+    "kind": "parent"
+  },
+  {
+    "slug": "white-horse",
+    "name": "a white horse",
+    "focus": "purity of purpose, hope, or a powerful drive guided by clear intention",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "black-horse",
+    "name": "a black horse",
+    "focus": "unfamiliar power, hidden drive, or strong instinct that has not yet been fully understood",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "riding-horse",
+    "name": "riding a horse",
+    "focus": "personal control, confidence, and direct command over your own energy and direction",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "wild-horse",
+    "name": "a wild horse",
+    "focus": "untamed ambition, raw instinct, or freedom that resists structure and control",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "injured-horse",
+    "name": "an injured horse",
+    "focus": "depleted energy, blocked progress, or a powerful drive that has been weakened",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "dead-horse",
+    "name": "a dead horse",
+    "focus": "lost momentum, the end of a major effort, or grief over abandoned ambition",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "horse-race",
+    "name": "a horse race",
+    "focus": "competition, urgency, ambition, or pressure to outpace others toward a goal",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "horse-chasing-you",
+    "name": "a horse chasing you",
+    "focus": "overwhelming drive, pressure from your own ambition, or a powerful force you feel unable to control",
+    "kind": "variation",
+    "parent": "horse"
+  },
+  {
+    "slug": "wolf",
+    "name": "wolf",
+    "summary": "instinct, loyalty, social belonging, danger, and the tension between independence and the pack",
+    "kind": "parent"
+  },
+  {
+    "slug": "black-wolf",
+    "name": "a black wolf",
+    "focus": "hidden instinct, unfamiliar danger, or a powerful presence that is difficult to read",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "white-wolf",
+    "name": "a white wolf",
+    "focus": "guidance, protection, or a trustworthy instinct guiding you through uncertainty",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "wolf-attack",
+    "name": "a wolf attack",
+    "focus": "betrayal, social conflict, or a sudden threat connected with loyalty or trust",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "pack-of-wolves",
+    "name": "a pack of wolves",
+    "focus": "group pressure, social dynamics, or feeling outnumbered by a coordinated threat",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "friendly-wolf",
+    "name": "a friendly wolf",
+    "focus": "trustworthy instinct, loyalty, or comfort with your own untamed nature",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "dead-wolf",
+    "name": "a dead wolf",
+    "focus": "the end of a threat, lost loyalty, or instinct that has been suppressed or ignored",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "howling-wolf",
+    "name": "a howling wolf",
+    "focus": "a call for connection, warning, loneliness, or an urgent signal demanding attention",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "wolf-chasing-you",
+    "name": "a wolf chasing you",
+    "focus": "fear of betrayal, social pressure, or an instinctive threat that feels difficult to outrun",
+    "kind": "variation",
+    "parent": "wolf"
+  },
+  {
+    "slug": "bear",
+    "name": "bear",
+    "summary": "strength, protection, solitude, and a powerful instinct that can be either nurturing or dangerous",
+    "kind": "parent"
+  },
+  {
+    "slug": "black-bear",
+    "name": "a black bear",
+    "focus": "hidden strength, unfamiliar threat, or a powerful instinct beneath a calm surface",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "brown-bear",
+    "name": "a brown bear",
+    "focus": "grounded strength, protective instinct, or a dependable power you can call on when needed",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "bear-attack",
+    "name": "a bear attack",
+    "focus": "overwhelming threat, a protective boundary broken, or fear of a powerful uncontrollable force",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "friendly-bear",
+    "name": "a friendly bear",
+    "focus": "comfort with your own strength, protective support, or trustworthy power nearby",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "baby-bear",
+    "name": "a baby bear",
+    "focus": "vulnerable potential, a new responsibility, or strength that is still developing",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "dead-bear",
+    "name": "a dead bear",
+    "focus": "lost protection, diminished strength, or the end of a powerful but difficult phase",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "giant-bear",
+    "name": "a giant bear",
+    "focus": "an exaggerated threat, overwhelming responsibility, or power that feels too large to manage",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "running-from-bear",
+    "name": "running from a bear",
+    "focus": "avoidance of a serious threat, fear of confrontation, or pressure from a powerful force",
+    "kind": "variation",
+    "parent": "bear"
+  },
+  {
+    "slug": "lion",
+    "name": "lion",
+    "summary": "courage, authority, pride, leadership, and the confrontation between confidence and aggression",
+    "kind": "parent"
+  },
+  {
+    "slug": "lion-attack",
+    "name": "a lion attack",
+    "focus": "fear of authority, sudden confrontation, or an aggressive force testing your courage",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "friendly-lion",
+    "name": "a friendly lion",
+    "focus": "confidence, earned respect, or a powerful ally supporting your leadership",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "lion-chasing-you",
+    "name": "a lion chasing you",
+    "focus": "pressure from authority, fear of confrontation, or an aggressive challenge to your confidence",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "dead-lion",
+    "name": "a dead lion",
+    "focus": "lost authority, diminished confidence, or the end of a powerful leadership role",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "roaring-lion",
+    "name": "a roaring lion",
+    "focus": "a bold announcement, assertion of authority, or warning that demands attention",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "lion-cub",
+    "name": "a lion cub",
+    "focus": "developing confidence, emerging leadership, or potential strength that is not yet fully grown",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "black-lion",
+    "name": "a black lion",
+    "focus": "hidden authority, unfamiliar power, or confidence that has not yet been recognized",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "white-lion",
+    "name": "a white lion",
+    "focus": "pure authority, rare leadership, or a respected strength that stands apart from the rest",
+    "kind": "variation",
+    "parent": "lion"
+  },
+  {
+    "slug": "tiger",
+    "name": "tiger",
+    "summary": "passion, aggression, independence, and a fierce power that demands respect and careful boundaries",
+    "kind": "parent"
+  },
+  {
+    "slug": "tiger-attack",
+    "name": "a tiger attack",
+    "focus": "sudden aggression, fear of a fierce confrontation, or a powerful threat testing your boundaries",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "white-tiger",
+    "name": "a white tiger",
+    "focus": "rare strength, striking individuality, or a powerful instinct that stands out from the ordinary",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "black-tiger",
+    "name": "a black tiger",
+    "focus": "hidden aggression, unfamiliar power, or an intense force that is difficult to predict",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "friendly-tiger",
+    "name": "a friendly tiger",
+    "focus": "respected strength, confidence, or comfort with your own fierce and passionate nature",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "dead-tiger",
+    "name": "a dead tiger",
+    "focus": "lost intensity, diminished passion, or the end of an aggressive but powerful phase",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "tiger-chasing-you",
+    "name": "a tiger chasing you",
+    "focus": "fear of a fierce confrontation, pressure from an intense rival, or an unavoidable aggressive force",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "baby-tiger",
+    "name": "a baby tiger",
+    "focus": "developing strength, emerging independence, or passion that has not yet fully matured",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "giant-tiger",
+    "name": "a giant tiger",
+    "focus": "an exaggerated threat, overwhelming intensity, or power that feels disproportionate to the situation",
+    "kind": "variation",
+    "parent": "tiger"
+  },
+  {
+    "slug": "shark",
+    "name": "shark",
+    "summary": "danger, ruthlessness, deep fear, and the powerful threats that move unseen beneath the surface",
+    "kind": "parent"
+  },
+  {
+    "slug": "shark-attack",
+    "name": "a shark attack",
+    "focus": "sudden danger, fear of betrayal, or a ruthless threat striking without warning",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "dead-shark",
+    "name": "a dead shark",
+    "focus": "the end of a serious threat, removed danger, or fear that has finally been confronted",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "giant-shark",
+    "name": "a giant shark",
+    "focus": "an exaggerated threat, overwhelming fear, or danger that feels far larger than the situation warrants",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "swimming-with-sharks",
+    "name": "swimming with sharks",
+    "focus": "calculated risk, exposure to danger, or navigating a threatening situation with deliberate caution",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "black-shark",
+    "name": "a black shark",
+    "focus": "hidden danger, unfamiliar ruthlessness, or a threat that is difficult to see coming",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "shark-chasing-you",
+    "name": "a shark chasing you",
+    "focus": "fear of being targeted, an inescapable threat, or anxiety about a ruthless rival",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "shark-in-clear-water",
+    "name": "a shark in clear water",
+    "focus": "a visible danger, an acknowledged risk, or a threat that is easier to assess clearly",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "shark-bite",
+    "name": "a shark bite",
+    "focus": "sudden loss, painful betrayal, or an abrupt consequence from a dangerous situation",
+    "kind": "variation",
+    "parent": "shark"
+  },
+  {
+    "slug": "owl",
+    "name": "owl",
+    "summary": "wisdom, intuition, hidden knowledge, and an awareness that sees clearly even in darkness",
+    "kind": "parent"
+  },
+  {
+    "slug": "white-owl",
+    "name": "a white owl",
+    "focus": "pure insight, spiritual guidance, or wisdom arriving at a meaningful moment",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "black-owl",
+    "name": "a black owl",
+    "focus": "hidden knowledge, unfamiliar intuition, or wisdom connected with something not yet understood",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "owl-watching-you",
+    "name": "an owl watching you",
+    "focus": "a sense of being observed, inner guidance, or awareness surfacing about a situation you have been avoiding",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "dead-owl",
+    "name": "a dead owl",
+    "focus": "lost wisdom, ignored intuition, or insight that arrived too late to be useful",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "flying-owl",
+    "name": "a flying owl",
+    "focus": "active intuition, perspective gained through quiet observation, or wisdom in motion",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "owl-at-night",
+    "name": "an owl at night",
+    "focus": "insight surfacing when defenses are lowered, or clarity found in an otherwise uncertain time",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "giant-owl",
+    "name": "a giant owl",
+    "focus": "an exaggerated sense of being watched, or wisdom that feels larger than the situation calls for",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "talking-owl",
+    "name": "a talking owl",
+    "focus": "direct guidance, an inner voice of wisdom, or a message you are meant to consciously register",
+    "kind": "variation",
+    "parent": "owl"
+  },
+  {
+    "slug": "butterfly",
+    "name": "butterfly",
+    "summary": "transformation, lightness, fragile beauty, and the delicate process of becoming something new",
+    "kind": "parent"
+  },
+  {
+    "slug": "white-butterfly",
+    "name": "a white butterfly",
+    "focus": "purity, peace, or a gentle sign accompanying a meaningful personal change",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "black-butterfly",
+    "name": "a black butterfly",
+    "focus": "an unfamiliar transformation, grief, or change that feels mysterious rather than threatening",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "colorful-butterfly",
+    "name": "a colorful butterfly",
+    "focus": "creative transformation, joy, or a vivid new phase of personal expression",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "dead-butterfly",
+    "name": "a dead butterfly",
+    "focus": "an interrupted transformation, fragile hope lost, or a beautiful change that did not complete",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "giant-butterfly",
+    "name": "a giant butterfly",
+    "focus": "an exaggerated sense of change, a transformation that feels larger than expected",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "butterfly-landing-on-you",
+    "name": "a butterfly landing on you",
+    "focus": "personal significance, a gentle sign, or transformation that feels directly meant for you",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "many-butterflies",
+    "name": "many butterflies",
+    "focus": "widespread change, collective renewal, or many small transformations happening together",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "butterfly-transformation",
+    "name": "a butterfly transformation",
+    "focus": "the core process of change itself: fragile, gradual, and ultimately freeing",
+    "kind": "variation",
+    "parent": "butterfly"
+  },
+  {
+    "slug": "fire",
+    "name": "fire",
+    "summary": "transformation, passion, anger, destruction, purification, and energy that can either warm or consume",
+    "kind": "parent"
+  },
+  {
+    "slug": "escaping-a-fire",
+    "name": "escaping a fire",
+    "focus": "survival instinct, urgent change, or getting clear of a situation before it consumes you",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "starting-a-fire",
+    "name": "starting a fire",
+    "focus": "initiative, suppressed anger, a desire to force change, or the consequences of a deliberate act",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "putting-out-a-fire",
+    "name": "putting out a fire",
+    "focus": "crisis management, restoring control, or the exhausting work of containing a volatile situation",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "wildfire",
+    "name": "a wildfire",
+    "focus": "a change or emotion spreading faster than it can be controlled",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "fire-smoke",
+    "name": "fire and smoke",
+    "focus": "an obscured danger, confusion around a heated situation, or early warning before real damage",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "clothes-on-fire",
+    "name": "your clothes on fire",
+    "focus": "public exposure, damaged reputation, or an identity under sudden intense pressure",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "fire-in-the-sky",
+    "name": "fire in the sky",
+    "focus": "dramatic upheaval, a warning, or awe before events much larger than personal control",
+    "kind": "variation",
+    "parent": "fire"
+  },
+  {
+    "slug": "tornado",
+    "name": "tornado",
+    "summary": "chaotic emotion, sudden upheaval, anxiety, and destructive change that arrives without warning",
+    "kind": "parent"
+  },
+  {
+    "slug": "tornado-coming",
+    "name": "a tornado coming toward you",
+    "focus": "an approaching crisis, dread about a change you can see but not stop",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "hiding-from-tornado",
+    "name": "hiding from a tornado",
+    "focus": "self-protection, seeking safety, or bracing for an upheaval outside your control",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "surviving-a-tornado",
+    "name": "surviving a tornado",
+    "focus": "resilience, relief after turmoil, or discovering strength during a destructive period",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "multiple-tornadoes",
+    "name": "multiple tornadoes",
+    "focus": "several volatile situations at once, or anxiety multiplying across areas of life",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "tornado-destroying-house",
+    "name": "a tornado destroying a house",
+    "focus": "upheaval striking your sense of home, family stability, or personal foundations",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "tornado-far-away",
+    "name": "a tornado far away",
+    "focus": "witnessing turmoil at a distance, or a threat that is real but not yet personal",
+    "kind": "variation",
+    "parent": "tornado"
+  },
+  {
+    "slug": "earthquake",
+    "name": "earthquake",
+    "summary": "shaken foundations, sudden instability, insecurity, and change striking what once felt permanent",
+    "kind": "parent"
+  },
+  {
+    "slug": "ground-shaking",
+    "name": "the ground shaking",
+    "focus": "instability in something you assumed was solid: a job, relationship, belief, or plan",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "building-collapsing",
+    "name": "a building collapsing",
+    "focus": "the failure of a structure you depended on, or fear that achievements cannot hold",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "surviving-an-earthquake",
+    "name": "surviving an earthquake",
+    "focus": "endurance through upheaval and the reassessment that follows a major shock",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "earthquake-cracks",
+    "name": "cracks opening in the ground",
+    "focus": "growing divisions, a rift in a relationship, or hidden instability becoming visible",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "earthquake-at-home",
+    "name": "an earthquake at home",
+    "focus": "family instability, domestic conflict, or insecurity in your most personal foundations",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "aftershocks",
+    "name": "aftershocks",
+    "focus": "the lingering effects of a crisis, or anxiety that a disruption is not yet finished",
+    "kind": "variation",
+    "parent": "earthquake"
+  },
+  {
+    "slug": "storm",
+    "name": "storm",
+    "summary": "emotional turbulence, conflict, accumulated pressure, and a difficult season that eventually passes",
+    "kind": "parent"
+  },
+  {
+    "slug": "thunder-and-lightning",
+    "name": "thunder and lightning",
+    "focus": "sudden insight, shock, anger discharging, or a dramatic emotional release",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "caught-in-a-storm",
+    "name": "being caught in a storm",
+    "focus": "feeling exposed in the middle of conflict or turmoil without adequate shelter",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "storm-approaching",
+    "name": "a storm approaching",
+    "focus": "tension building, a conflict you sense coming, or dread ahead of a difficult conversation",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "sheltering-from-storm",
+    "name": "sheltering from a storm",
+    "focus": "self-protection, patience, and waiting out a period that cannot be fought directly",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "storm-passing",
+    "name": "a storm passing",
+    "focus": "relief, resolution after conflict, or the calm perspective that follows turmoil",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "storm-at-sea",
+    "name": "a storm at sea",
+    "focus": "emotional crisis in deep waters: turbulence in the least controllable parts of life",
+    "kind": "variation",
+    "parent": "storm"
+  },
+  {
+    "slug": "blood",
+    "name": "blood",
+    "summary": "life force, vitality, injury, sacrifice, family bonds, and energy being spent or lost",
+    "kind": "parent"
+  },
+  {
+    "slug": "bleeding",
+    "name": "bleeding",
+    "focus": "energy draining away, an emotional wound still open, or a loss that has not been addressed",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "blood-on-hands",
+    "name": "blood on your hands",
+    "focus": "guilt, responsibility for harm, or anxiety about the consequences of your actions",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "blood-on-clothes",
+    "name": "blood on your clothes",
+    "focus": "a visible mark of conflict, exposure of something you hoped to keep private",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "someone-else-bleeding",
+    "name": "someone else bleeding",
+    "focus": "concern for another person, empathy for their struggle, or witnessing harm you cannot stop",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "blood-on-the-floor",
+    "name": "blood on the floor",
+    "focus": "the aftermath of conflict, evidence of damage, or a situation that has already cost something",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "coughing-blood",
+    "name": "coughing up blood",
+    "focus": "health anxiety, words held in too long, or vitality being spent from the inside",
+    "kind": "variation",
+    "parent": "blood"
+  },
+  {
+    "slug": "hair",
+    "name": "hair",
+    "summary": "identity, strength, attractiveness, self-image, and control over how you present yourself",
+    "kind": "parent"
+  },
+  {
+    "slug": "hair-falling-out",
+    "name": "hair falling out",
+    "focus": "loss of confidence, health anxiety, aging, or fear of losing strength and attractiveness",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "cutting-hair",
+    "name": "cutting hair",
+    "focus": "a deliberate change of identity, letting go of the past, or asserting control over self-image",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "long-hair",
+    "name": "long hair",
+    "focus": "freedom, strength, sensuality, patience, or an identity grown over a long time",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "white-or-gray-hair",
+    "name": "white or gray hair",
+    "focus": "aging, wisdom, anxiety about time passing, or respect earned through experience",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "someone-cutting-your-hair",
+    "name": "someone cutting your hair",
+    "focus": "another person influencing your identity, or control over your image taken by someone else",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "washing-hair",
+    "name": "washing hair",
+    "focus": "clearing your mind, renewal, or releasing old thoughts and worries",
+    "kind": "variation",
+    "parent": "hair"
+  },
+  {
+    "slug": "ex",
+    "name": "your ex",
+    "summary": "unresolved feelings, closure, nostalgia, repeated patterns, and lessons from a past relationship",
+    "kind": "parent"
+  },
+  {
+    "slug": "ex-boyfriend",
+    "name": "an ex-boyfriend",
+    "focus": "unfinished emotion, a pattern from that relationship echoing in your current life",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "ex-girlfriend",
+    "name": "an ex-girlfriend",
+    "focus": "nostalgia, comparison with the present, or an unresolved question from a past bond",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "ex-coming-back",
+    "name": "an ex coming back",
+    "focus": "a wish for closure or reunion, or an old pattern trying to re-enter your life",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "arguing-with-ex",
+    "name": "arguing with an ex",
+    "focus": "unexpressed anger, unfinished business, or an internal debate that never got resolved",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "ex-apologizing",
+    "name": "an ex apologizing",
+    "focus": "a longing for acknowledgment, self-repair, or giving yourself the closure they never offered",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "ex-with-someone-else",
+    "name": "an ex with someone else",
+    "focus": "jealousy, comparison, acceptance of an ending, or anxiety about being replaced",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "ex-family",
+    "name": "an ex's family",
+    "focus": "lingering attachments to a shared world, or grief for connections lost alongside the relationship",
+    "kind": "variation",
+    "parent": "ex"
+  },
+  {
+    "slug": "cheating",
+    "name": "cheating",
+    "summary": "trust, insecurity, guilt, betrayal, and fears about loyalty within a close relationship",
+    "kind": "parent"
+  },
+  {
+    "slug": "partner-cheating",
+    "name": "your partner cheating",
+    "focus": "insecurity, fear of abandonment, or unmet needs in the relationship — not evidence of real betrayal",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "cheating-on-partner",
+    "name": "cheating on your partner",
+    "focus": "guilt, an unmet desire, a divided commitment, or attention pulled away from the relationship",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "being-caught-cheating",
+    "name": "being caught cheating",
+    "focus": "fear of exposure, shame about a hidden choice, or anxiety about disappointing someone you love",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "confronting-a-cheater",
+    "name": "confronting a cheater",
+    "focus": "asserting your worth, demanding honesty, or rehearsing a difficult confrontation",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "forgiving-cheating",
+    "name": "forgiving cheating",
+    "focus": "processing hurt, weighing trust against attachment, or exploring what repair would require",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "recurring-cheating-dreams",
+    "name": "recurring cheating dreams",
+    "focus": "a persistent insecurity or trust question that keeps demanding attention",
+    "kind": "variation",
+    "parent": "cheating"
+  },
+  {
+    "slug": "wedding",
+    "name": "wedding",
+    "summary": "commitment, union, transition, public promises, and the joining of different parts of life",
+    "kind": "parent"
+  },
+  {
+    "slug": "your-own-wedding",
+    "name": "your own wedding",
+    "focus": "a major commitment approaching, readiness for union, or anxiety about a binding choice",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "someone-elses-wedding",
+    "name": "someone else's wedding",
+    "focus": "witnessing change in others, comparison, or your own questions about commitment",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "wedding-going-wrong",
+    "name": "a wedding going wrong",
+    "focus": "doubts about a commitment, fear of public failure, or pressure around a major decision",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "wedding-dress",
+    "name": "a wedding dress",
+    "focus": "identity within commitment, purity of intention, or how you present a major life choice",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "marrying-a-stranger",
+    "name": "marrying a stranger",
+    "focus": "commitment to something unknown: a new role, path, or part of yourself not yet understood",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "runaway-bride-or-groom",
+    "name": "a runaway bride or groom",
+    "focus": "cold feet, avoidance of commitment, or doubts that have not been voiced",
+    "kind": "variation",
+    "parent": "wedding"
+  },
+  {
+    "slug": "kissing",
+    "name": "kissing",
+    "summary": "affection, desire, connection, acceptance, and intimacy offered or received",
+    "kind": "parent"
+  },
+  {
+    "slug": "kissing-a-stranger",
+    "name": "kissing a stranger",
+    "focus": "attraction to something unfamiliar, a new possibility, or an unacknowledged desire",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "kissing-an-ex",
+    "name": "kissing an ex",
+    "focus": "nostalgia, unresolved attraction, or reconnecting with who you were in that relationship",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "kissing-a-friend",
+    "name": "kissing a friend",
+    "focus": "affection deepening, blurred boundaries, or curiosity about a relationship's potential",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "being-kissed-unexpectedly",
+    "name": "being kissed unexpectedly",
+    "focus": "surprise affection, crossed boundaries, or attention you had not anticipated",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "refusing-a-kiss",
+    "name": "refusing a kiss",
+    "focus": "boundaries, self-respect, or declining an intimacy that does not feel right",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "kissing-a-celebrity",
+    "name": "kissing a celebrity",
+    "focus": "aspiration, a desire for recognition, or attraction to qualities the person represents",
+    "kind": "variation",
+    "parent": "kissing"
+  },
+  {
+    "slug": "sex",
+    "name": "sex",
+    "summary": "desire, intimacy, power, vulnerability, and the parts of yourself or others you want to be closer to",
+    "kind": "parent"
+  },
+  {
+    "slug": "sex-with-a-coworker",
+    "name": "sex with a coworker",
+    "focus": "recognition, power, proximity, and admiration at work rather than literal attraction to the person",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-an-ex",
+    "name": "sex with an ex",
+    "focus": "unfinished attachment, nostalgia for who you were with them, or a need that relationship once met",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-a-stranger",
+    "name": "sex with a stranger",
+    "focus": "curiosity about an unfamiliar part of yourself, novelty, or a desire that does not yet have a name",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-a-friend",
+    "name": "sex with a friend",
+    "focus": "closeness deepening, blurred boundaries, or a quality in them you want nearer to your own life",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-your-boss",
+    "name": "sex with your boss",
+    "focus": "power, approval, and ambition — wanting authority's attention more than the person who holds it",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-someone-you-dislike",
+    "name": "sex with someone you dislike",
+    "focus": "a rejected trait demanding integration, or conflict that carries more charge than you admit",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "sex-with-your-partner",
+    "name": "sex with your partner",
+    "focus": "reassurance, repair, or a wish for closeness that ordinary life has been crowding out",
+    "kind": "variation",
+    "parent": "sex"
+  },
+  {
+    "slug": "mother",
+    "name": "mother",
+    "summary": "nurture, origin, protection, family patterns, and the earliest template of love and care",
+    "kind": "parent"
+  },
+  {
+    "slug": "walking-with-my-mother",
+    "name": "walking with your mother",
+    "focus": "a shared life journey, guidance, emotional closeness or distance, inherited family patterns, and a transition you are navigating together",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "mother-dying",
+    "name": "your mother dying",
+    "focus": "fear of losing support, a changing relationship with her, or a shift in your own nurturing role",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "deceased-mother",
+    "name": "a deceased mother",
+    "focus": "grief, comfort, continued bond, or guidance associated with her memory",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "arguing-with-mother",
+    "name": "arguing with your mother",
+    "focus": "conflict over autonomy, old family patterns, or an internal clash with inherited values",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "mother-hugging-you",
+    "name": "your mother hugging you",
+    "focus": "a need for comfort, reconciliation, or reassurance during a demanding season",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "becoming-a-mother",
+    "name": "becoming a mother",
+    "focus": "a new caretaking role, creative responsibility, or identification with the nurturing part of yourself",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "angry-mother",
+    "name": "an angry mother",
+    "focus": "guilt, fear of disapproval, or an internalized critical voice connected with early authority",
+    "kind": "variation",
+    "parent": "mother"
+  },
+  {
+    "slug": "father",
+    "name": "father",
+    "summary": "authority, guidance, protection, expectation, and the earliest template of structure and approval",
+    "kind": "parent"
+  },
+  {
+    "slug": "father-dying",
+    "name": "your father dying",
+    "focus": "fear of losing guidance, a changing relationship with authority, or a shift in your own protective role",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "deceased-father",
+    "name": "a deceased father",
+    "focus": "grief, continued bond, unfinished conversations, or guidance associated with his memory",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "arguing-with-father",
+    "name": "arguing with your father",
+    "focus": "conflict with authority, a struggle for approval, or an internal clash with inherited expectations",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "father-hugging-you",
+    "name": "your father hugging you",
+    "focus": "a need for approval, reconciliation, or reassurance from a source of structure and protection",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "absent-father",
+    "name": "an absent father",
+    "focus": "missing guidance, unmet needs for support, or self-reliance built where protection was expected",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "angry-father",
+    "name": "an angry father",
+    "focus": "fear of judgment, internalized criticism, or pressure connected with early authority",
+    "kind": "variation",
+    "parent": "father"
+  },
+  {
+    "slug": "brother",
+    "name": "brother",
+    "summary": "loyalty, rivalry, shared history, protection, and a mirror of your own traits in familiar form",
+    "kind": "parent"
+  },
+  {
+    "slug": "brother-dying",
+    "name": "your brother dying",
+    "focus": "fear of losing a lifelong bond, a changing relationship, or worry about his path",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "arguing-with-brother",
+    "name": "arguing with your brother",
+    "focus": "rivalry, old family friction, or an inner conflict projected onto a familiar opponent",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "brother-in-danger",
+    "name": "your brother in danger",
+    "focus": "protectiveness, guilt about distance, or anxiety about a situation you cannot control for him",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "older-brother",
+    "name": "an older brother",
+    "focus": "guidance, comparison, protection, or authority experienced from within your own generation",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "younger-brother",
+    "name": "a younger brother",
+    "focus": "responsibility, nostalgia, or a younger part of yourself asking for attention",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "estranged-brother",
+    "name": "an estranged brother",
+    "focus": "unresolved family history, a wish for repair, or grief over a bond that has cooled",
+    "kind": "variation",
+    "parent": "brother"
+  },
+  {
+    "slug": "sister",
+    "name": "sister",
+    "summary": "closeness, comparison, empathy, shared history, and a familiar reflection of your own inner life",
+    "kind": "parent"
+  },
+  {
+    "slug": "sister-dying",
+    "name": "your sister dying",
+    "focus": "fear of losing closeness, a changing bond, or worry about her wellbeing",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "arguing-with-sister",
+    "name": "arguing with your sister",
+    "focus": "competition, old grievances, or a disagreement with a part of yourself she represents",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "sister-crying",
+    "name": "your sister crying",
+    "focus": "empathy for her struggle, guilt, or sadness within the family asking to be acknowledged",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "older-sister",
+    "name": "an older sister",
+    "focus": "guidance, comparison, care received, or standards you measure yourself against",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "younger-sister",
+    "name": "a younger sister",
+    "focus": "protectiveness, responsibility, or a tender younger part of yourself",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "protecting-your-sister",
+    "name": "protecting your sister",
+    "focus": "loyalty under threat, family duty, or defending a vulnerable part of your own life",
+    "kind": "variation",
+    "parent": "sister"
+  },
+  {
+    "slug": "god",
+    "name": "god",
+    "summary": "meaning, conscience, surrender, accountability, and the longing for guidance larger than the self",
+    "kind": "parent"
+  },
+  {
+    "slug": "talking-to-god",
+    "name": "talking to god",
+    "focus": "a search for direction, an inner dialogue with conscience, or a question too large to carry alone",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "seeing-god",
+    "name": "seeing god",
+    "focus": "awe, a need for reassurance, or contact with the deepest source of meaning in your life",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "praying-to-god",
+    "name": "praying to god",
+    "focus": "surrendering a burden, sincere reflection, or asking for help you have not voiced aloud",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "gods-voice",
+    "name": "hearing god's voice",
+    "focus": "an insight demanding attention, conscience speaking clearly, or guidance you already sense",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "being-judged-by-god",
+    "name": "being judged by god",
+    "focus": "guilt, moral self-examination, or fear of falling short of your own deepest standards",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "receiving-a-blessing",
+    "name": "receiving a blessing",
+    "focus": "reassurance, gratitude, permission to move forward, or hope during uncertainty",
+    "kind": "variation",
+    "parent": "god"
+  },
+  {
+    "slug": "illness",
+    "name": "illness",
+    "summary": "vulnerability, neglected needs, anxiety about health, and a part of life asking for care and rest",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-sick",
+    "name": "being sick",
+    "focus": "depleted energy, a neglected need, or anxiety about your body and capacity",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "terminal-illness",
+    "name": "a terminal illness",
+    "focus": "fear of an ending, urgency about time, or a dramatic image of something that feels unfixable",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "sick-family-member",
+    "name": "a sick family member",
+    "focus": "concern for a loved one, anticipatory grief, or worry about the family's stability",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "recovering-from-illness",
+    "name": "recovering from illness",
+    "focus": "healing, restored strength, or emergence from a draining period",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "undiagnosed-illness",
+    "name": "an undiagnosed illness",
+    "focus": "an unnamed worry, a problem sensed but not yet understood, or health anxiety seeking definition",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "vomiting-in-a-dream",
+    "name": "vomiting",
+    "focus": "rejecting something toxic, releasing what cannot be kept down, or urgent emotional purging",
+    "kind": "variation",
+    "parent": "illness"
+  },
+  {
+    "slug": "ghost",
+    "name": "ghost",
+    "summary": "unresolved past, memory, guilt, presence of what has ended, and feelings that refuse to stay buried",
+    "kind": "parent"
+  },
+  {
+    "slug": "ghost-of-a-loved-one",
+    "name": "the ghost of a loved one",
+    "focus": "continuing bonds, unfinished grief, or comfort and messages associated with someone who has died",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "haunted-by-a-ghost",
+    "name": "being haunted",
+    "focus": "a past event, mistake, or memory that keeps intruding on present life",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "friendly-ghost",
+    "name": "a friendly ghost",
+    "focus": "a benign memory, gentle nostalgia, or peace being made with the past",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "ghost-attacking-you",
+    "name": "a ghost attacking you",
+    "focus": "the past actively interfering with the present, or guilt that feels punishing",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "ghost-in-your-house",
+    "name": "a ghost in your house",
+    "focus": "unresolved family history, or an old influence still occupying your inner space",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "becoming-a-ghost",
+    "name": "becoming a ghost",
+    "focus": "feeling unseen, disconnected, or fading from a situation where you once belonged",
+    "kind": "variation",
+    "parent": "ghost"
+  },
+  {
+    "slug": "demon",
+    "name": "demon",
+    "summary": "inner conflict, temptation, fear, shame, and destructive forces given a face by the dreaming mind",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-attacked-by-demon",
+    "name": "being attacked by a demon",
+    "focus": "an inner battle with fear, addiction, anger, or shame that feels stronger than you",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "demon-possession",
+    "name": "demonic possession",
+    "focus": "feeling controlled by an emotion, habit, or influence that overrides your intentions",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "fighting-a-demon",
+    "name": "fighting a demon",
+    "focus": "active resistance against a destructive pattern, and the effort of reclaiming control",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "demon-in-your-house",
+    "name": "a demon in your house",
+    "focus": "a destructive influence inside your private life, family, or inner world",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "demon-watching-you",
+    "name": "a demon watching you",
+    "focus": "dread, guilt, or a threatening influence felt but not yet confronted",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "casting-out-a-demon",
+    "name": "casting out a demon",
+    "focus": "liberation, boundary-setting, or expelling a harmful influence from your life",
+    "kind": "variation",
+    "parent": "demon"
+  },
+  {
+    "slug": "angel",
+    "name": "angel",
+    "summary": "protection, guidance, hope, conscience, and reassurance arriving in a difficult season",
+    "kind": "parent"
+  },
+  {
+    "slug": "angel-visiting-you",
+    "name": "an angel visiting you",
+    "focus": "a need for reassurance, a sense of being guided, or hope during uncertainty",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "guardian-angel",
+    "name": "a guardian angel",
+    "focus": "protection, support you may be underestimating, or a wish for someone to watch over you",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "angel-delivering-message",
+    "name": "an angel delivering a message",
+    "focus": "an insight your deeper mind wants consciously acknowledged",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "angel-wings",
+    "name": "angel wings",
+    "focus": "aspiration, spiritual freedom, or the desire to rise above a heavy situation",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "crying-angel",
+    "name": "a crying angel",
+    "focus": "compassion, grief witnessed, or sorrow about a situation that conscience cannot ignore",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "angel-and-demon-together",
+    "name": "an angel and demon together",
+    "focus": "a moral conflict, a decision between constructive and destructive paths",
+    "kind": "variation",
+    "parent": "angel"
+  },
+  {
+    "slug": "rat",
+    "name": "rat",
+    "summary": "distrust, guilt, survival, hidden problems, and anxieties gnawing quietly in the background",
+    "kind": "parent"
+  },
+  {
+    "slug": "rats-in-the-house",
+    "name": "rats in the house",
+    "focus": "a hidden problem eroding your private life, or unease inside a place meant to feel safe",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "rat-biting-you",
+    "name": "a rat biting you",
+    "focus": "a small betrayal, nagging guilt, or a minor issue that has begun to cause real harm",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "many-rats",
+    "name": "many rats",
+    "focus": "accumulating worries, a situation infested with small problems, or social distrust",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "white-rat",
+    "name": "a white rat",
+    "focus": "an unexpected ally, a warning in a gentler form, or distrust that may be misplaced",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "dead-rat",
+    "name": "a dead rat",
+    "focus": "the end of a gnawing worry, or a hidden problem finally exposed and finished",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "rat-running-away",
+    "name": "a rat running away",
+    "focus": "a problem avoiding detection, or someone withdrawing rather than facing a conflict",
+    "kind": "variation",
+    "parent": "rat"
+  },
+  {
+    "slug": "alligator",
+    "name": "alligator",
+    "summary": "hidden danger, primal instinct, deception, and threats lurking beneath a calm surface",
+    "kind": "parent"
+  },
+  {
+    "slug": "alligator-attack",
+    "name": "an alligator attack",
+    "focus": "a hidden threat striking suddenly, or betrayal from something that seemed dormant",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "alligator-in-water",
+    "name": "an alligator in water",
+    "focus": "danger concealed within an emotional situation, or instinct warning you to stay alert",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "alligator-in-house",
+    "name": "an alligator in the house",
+    "focus": "a serious threat inside your personal life, or a dangerous dynamic close to home",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "running-from-alligator",
+    "name": "running from an alligator",
+    "focus": "avoiding a primal fear or a threat you sense is patient and persistent",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "baby-alligator",
+    "name": "a baby alligator",
+    "focus": "a small danger that will grow if ignored, or an early warning worth taking seriously",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "dead-alligator",
+    "name": "a dead alligator",
+    "focus": "a survived threat, ended deception, or a primal fear that has lost its power",
+    "kind": "variation",
+    "parent": "alligator"
+  },
+  {
+    "slug": "elephant",
+    "name": "elephant",
+    "summary": "memory, patience, loyalty, great responsibility, and an issue too large to keep ignoring",
+    "kind": "parent"
+  },
+  {
+    "slug": "friendly-elephant",
+    "name": "a friendly elephant",
+    "focus": "steady support, patient strength, or a large responsibility carried with grace",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "elephant-chasing-you",
+    "name": "an elephant chasing you",
+    "focus": "a major issue you have been avoiding that now demands attention",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "baby-elephant",
+    "name": "a baby elephant",
+    "focus": "a new responsibility with long-term weight, or gentle potential that will grow large",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "white-elephant",
+    "name": "a white elephant",
+    "focus": "a rare blessing or a burden disguised as a gift — something valuable but costly to keep",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "elephant-in-water",
+    "name": "an elephant in water",
+    "focus": "deep memory and emotion handled with patience, or heavy matters moving through feeling",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "dead-elephant",
+    "name": "a dead elephant",
+    "focus": "the end of a long era, lost wisdom, or grief over something of great weight",
+    "kind": "variation",
+    "parent": "elephant"
+  },
+  {
+    "slug": "being-naked",
+    "name": "being naked in public",
+    "summary": "exposure, vulnerability, shame, authenticity, and the fear of being seen without defenses",
+    "kind": "parent"
+  },
+  {
+    "slug": "naked-at-school",
+    "name": "being naked at school",
+    "focus": "performance anxiety, fear of judgment, or old social insecurities resurfacing",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "naked-at-work",
+    "name": "being naked at work",
+    "focus": "professional vulnerability, imposter feelings, or fear of being exposed as unprepared",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "nobody-noticing-you-naked",
+    "name": "nobody noticing you are naked",
+    "focus": "fears of exposure that are larger in your mind than in reality",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "trying-to-cover-up",
+    "name": "trying to cover yourself",
+    "focus": "damage control, hiding a perceived flaw, or protecting an image under pressure",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "partially-naked",
+    "name": "being partially naked",
+    "focus": "one specific area of vulnerability, or feeling unprepared in a single aspect of life",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "comfortable-being-naked",
+    "name": "feeling comfortable naked",
+    "focus": "self-acceptance, authenticity, and ease with being fully seen",
+    "kind": "variation",
+    "parent": "being-naked"
+  },
+  {
+    "slug": "work",
+    "name": "work",
+    "summary": "duty, identity, performance, security, and the balance between effort and the rest of life",
+    "kind": "parent"
+  },
+  {
+    "slug": "being-fired",
+    "name": "being fired",
+    "focus": "insecurity about your position, fear of rejection, or readiness to leave a role that no longer fits",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "being-late-for-work",
+    "name": "being late for work",
+    "focus": "fear of falling short, overload, or anxiety about meeting relentless expectations",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "old-job",
+    "name": "an old job",
+    "focus": "unfinished lessons from a past role, comparison with the present, or nostalgia for a former identity",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "angry-boss",
+    "name": "an angry boss",
+    "focus": "pressure from authority, self-criticism, or fear of evaluation and disapproval",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "new-job",
+    "name": "a new job",
+    "focus": "a new identity or responsibility, ambition, or uncertainty about an unfamiliar role",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "overwhelmed-at-work",
+    "name": "being overwhelmed at work",
+    "focus": "real workload stress surfacing in sleep, or duty crowding out other parts of life",
+    "kind": "variation",
+    "parent": "work"
+  },
+  {
+    "slug": "phone",
+    "name": "phone",
+    "summary": "connection, communication, urgency, dependence, and the channels that link you to others",
+    "kind": "parent"
+  },
+  {
+    "slug": "losing-your-phone",
+    "name": "losing your phone",
+    "focus": "fear of disconnection, lost access to others, or dependence on constant contact",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "broken-phone",
+    "name": "a broken phone",
+    "focus": "failed communication, a relationship channel damaged, or messages not getting through",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "phone-not-working",
+    "name": "a phone that will not work",
+    "focus": "urgency without means, being unable to reach help or say what needs to be said",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "unknown-caller",
+    "name": "an unknown caller",
+    "focus": "an unrecognized part of yourself or an unexpected message trying to reach awareness",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "missed-calls",
+    "name": "missed calls",
+    "focus": "neglected relationships, overlooked signals, or guilt about unavailability",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "phone-ringing",
+    "name": "a phone ringing",
+    "focus": "something demanding your attention now, or an opportunity requiring a response",
+    "kind": "variation",
+    "parent": "phone"
+  },
+  {
+    "slug": "crawling",
+    "name": "crawling",
+    "summary": "slow progress, vulnerability, regression, humility, and moving forward when standing feels impossible",
+    "kind": "parent"
+  },
+  {
+    "slug": "crawling-on-the-floor",
+    "name": "crawling on the floor",
+    "focus": "humility, starting over, or progress that feels undignified but necessary",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "crawling-like-a-baby",
+    "name": "crawling like a baby",
+    "focus": "regression to an earlier stage, dependence, or returning to foundations before you can stand again",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "crawling-through-a-tunnel",
+    "name": "crawling through a tunnel",
+    "focus": "a narrow passage through difficulty, or progress that requires getting low and patient",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "crawling-through-small-spaces",
+    "name": "crawling through small spaces",
+    "focus": "claustrophobic progress, squeezing through constraint, or advancing only by making yourself smaller",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "unable-to-stand-crawling",
+    "name": "unable to stand and crawling instead",
+    "focus": "depleted strength, lost status, or a season where the only available movement is slow and close to the ground",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "crawling-away-from-danger",
+    "name": "crawling away from danger",
+    "focus": "escaping under constraint, survival without full power, or getting clear of a threat with whatever strength remains",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "someone-crawling-toward-you",
+    "name": "someone crawling toward you",
+    "focus": "a need, fear, or person approaching from a vulnerable or unsettling place",
+    "kind": "variation",
+    "parent": "crawling"
+  },
+  {
+    "slug": "tunnel",
+    "name": "tunnel",
+    "summary": "passage, transition, the unknown ahead, and moving through a narrow phase toward light or deeper dark",
+    "kind": "parent"
+  },
+  {
+    "slug": "light-at-end-of-tunnel",
+    "name": "light at the end of a tunnel",
+    "focus": "hope after hardship, a visible exit from a hard season, or faith that the passage ends in relief",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "dark-tunnel",
+    "name": "a dark tunnel",
+    "focus": "uncertainty, fear of the next phase, or moving forward without a clear view of the outcome",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "endless-tunnel",
+    "name": "an endless tunnel",
+    "focus": "fatigue with a transition that feels without end, or waiting for relief that keeps receding",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "blocked-tunnel",
+    "name": "a blocked tunnel",
+    "focus": "a path forward that feels sealed, stalled progress, or resistance to entering the next chapter",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "train-in-a-tunnel",
+    "name": "a train in a tunnel",
+    "focus": "being carried through change without full control, or collective momentum through a dark stretch",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "exiting-a-tunnel",
+    "name": "exiting a tunnel",
+    "focus": "emergence, clarity after confinement, or the first breath of a new phase",
+    "kind": "variation",
+    "parent": "tunnel"
+  },
+  {
+    "slug": "heights",
+    "name": "heights",
+    "summary": "exposure, ambition, vertigo at a life edge, and the fear or thrill of standing above familiar ground",
+    "kind": "parent"
+  },
+  {
+    "slug": "standing-at-great-height",
+    "name": "standing at a great height",
+    "focus": "a vantage point after progress, or exposure that comes with a new role or risk",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "looking-down-from-heights",
+    "name": "looking down from a height",
+    "focus": "assessing how far you could fall, comparison with others, or vertigo about a choice",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "climbing-to-heights",
+    "name": "climbing to a height",
+    "focus": "ambition, effort toward status, or the strain of rising without solid footing",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "high-ledge-no-railing",
+    "name": "a high ledge without a railing",
+    "focus": "precarious success, missing support, or a situation that feels exposed and unsafe",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "afraid-on-a-bridge",
+    "name": "afraid on a high bridge",
+    "focus": "transition anxiety, crossing between chapters, or fear of mid-passage failure",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "heights-without-falling",
+    "name": "heights without falling",
+    "focus": "the brink itself as the message — dread of exposure rather than the drop",
+    "kind": "variation",
+    "parent": "heights"
+  },
+  {
+    "slug": "nightmare",
+    "name": "nightmare",
+    "summary": "distressing dreams, unresolved fear, overnight stress release, and images the mind uses to process threat",
+    "kind": "parent"
+  },
+  {
+    "slug": "recurring-nightmare",
+    "name": "a recurring nightmare",
+    "focus": "an unresolved stressor or fear that keeps demanding attention until it is faced awake",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "horrible-dream",
+    "name": "a horrible dream",
+    "focus": "intense emotional residue from the day, or a threat simulation that felt too real on waking",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "waking-from-nightmare",
+    "name": "waking from a nightmare",
+    "focus": "the body interrupting overload, or relief after the mind finished a stressful rehearsal",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "childhood-nightmare",
+    "name": "a childhood nightmare",
+    "focus": "old fears resurfacing, developmental anxiety, or unfinished business from an earlier stage of life",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "nightmare-about-death",
+    "name": "a nightmare about death",
+    "focus": "fear of endings, change, or loss — usually symbolic rather than prophetic",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "sharing-a-nightmare",
+    "name": "telling someone about a nightmare",
+    "focus": "seeking comfort, reducing the dream's power, or needing the fear witnessed",
+    "kind": "variation",
+    "parent": "nightmare"
+  },
+  {
+    "slug": "tsunami",
+    "name": "tsunami",
+    "summary": "overwhelming emotion, anticipatory dread, and a force of feeling too large to stop or negotiate with",
+    "kind": "parent"
+  },
+  {
+    "slug": "tsunami-coming",
+    "name": "a tsunami coming toward you",
+    "focus": "a crisis you can see approaching but feel powerless to stop",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "running-from-tsunami",
+    "name": "running from a tsunami",
+    "focus": "escape from emotional overwhelm, or urgency to get clear of a rising demand",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "surviving-a-tsunami",
+    "name": "surviving a tsunami",
+    "focus": "endurance after emotional flood, and the rebuilding that follows shock",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "tsunami-and-family",
+    "name": "a tsunami with family nearby",
+    "focus": "protectiveness under overwhelm, or shared crisis within close relationships",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "watching-tsunami-from-afar",
+    "name": "watching a tsunami from afar",
+    "focus": "witnessing upheaval at a distance, or dread that has not yet become personal",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "underwater-after-tsunami",
+    "name": "being underwater after a tsunami",
+    "focus": "immersion in aftermath emotion, or stillness after the wave has passed",
+    "kind": "variation",
+    "parent": "tsunami"
+  },
+  {
+    "slug": "swimming",
+    "name": "swimming",
+    "summary": "moving through emotion with skill or struggle, confidence in feeling, and how you navigate depth",
+    "kind": "parent"
+  },
+  {
+    "slug": "swimming-easily",
+    "name": "swimming easily",
+    "focus": "emotional fluency, confidence in a feeling-heavy situation, or flow through a difficult season",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "struggling-to-swim",
+    "name": "struggling to swim",
+    "focus": "effort without progress in an emotional situation, or fatigue from staying afloat",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "swimming-underwater",
+    "name": "swimming underwater",
+    "focus": "deep exploration of feeling, immersion in the unconscious, or holding your breath through intensity",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "swimming-in-dirty-water",
+    "name": "swimming in dirty water",
+    "focus": "navigating a murky emotional situation, mixed motives, or unclear boundaries",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "swimming-to-shore",
+    "name": "swimming to shore",
+    "focus": "seeking safety, grounding after depth, or effort toward emotional dry land",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "unable-to-swim",
+    "name": "unable to swim",
+    "focus": "feeling unprepared for emotional depth, or fear of a situation that requires feeling literacy",
+    "kind": "variation",
+    "parent": "swimming"
+  },
+  {
+    "slug": "mirror",
+    "name": "mirror",
+    "summary": "self-image, truth, confrontation with identity, and how you see — or refuse to see — yourself",
+    "kind": "parent"
+  },
+  {
+    "slug": "broken-mirror",
+    "name": "a broken mirror",
+    "focus": "shattered self-image, a painful truth, or identity that feels fragmented",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "not-recognizing-yourself",
+    "name": "not recognizing yourself in a mirror",
+    "focus": "identity shift, dissociation from who you have become, or a role that no longer fits",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "someone-else-in-mirror",
+    "name": "someone else in the mirror",
+    "focus": "qualities you project onto others, or a part of yourself you have not claimed",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "cracked-mirror",
+    "name": "a cracked mirror",
+    "focus": "distorted self-view, damaged confidence, or a truth seen only in pieces",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "mirror-in-dark-room",
+    "name": "a mirror in a dark room",
+    "focus": "self-reflection under uncertainty, or confronting identity without clear light",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "smashing-a-mirror",
+    "name": "smashing a mirror",
+    "focus": "rejecting a self-image, rage at how you are seen, or refusing a painful reflection",
+    "kind": "variation",
+    "parent": "mirror"
+  },
+  {
+    "slug": "train",
+    "name": "train",
+    "summary": "life direction on a fixed track, collective momentum, timing, and whether you chose the destination",
+    "kind": "parent"
+  },
+  {
+    "slug": "missing-a-train",
+    "name": "missing a train",
+    "focus": "fear of lost timing, a chance that left without you, or regret about hesitation",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "train-crash",
+    "name": "a train crash",
+    "focus": "a collective plan colliding with reality, or fear that a committed path ends badly",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "wrong-train",
+    "name": "being on the wrong train",
+    "focus": "a life path that no longer fits, or realizing you followed momentum instead of intention",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "empty-train",
+    "name": "an empty train",
+    "focus": "solitary progress, isolation on a journey, or a path others have abandoned",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "train-station",
+    "name": "a train station",
+    "focus": "waiting for the next chapter, transitions, or choosing among available directions",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "stopping-a-train",
+    "name": "stopping a train",
+    "focus": "forcing a halt to automatic momentum, or reclaiming agency from a fixed course",
+    "kind": "variation",
+    "parent": "train"
+  },
+  {
+    "slug": "plane",
+    "name": "plane",
+    "summary": "ambition, long-distance transition, trust in systems beyond your control, and elevated perspective",
+    "kind": "parent"
+  },
+  {
+    "slug": "plane-crash",
+    "name": "plane crash",
+    "focus": "fear that a high-ambition plan fails catastrophically, or loss of trust in a path you cannot pilot alone",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "flying-in-a-plane",
+    "name": "flying in a plane",
+    "focus": "progress toward a distant goal, transition, or surrendering control to a larger process",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "turbulence-on-plane",
+    "name": "turbulence on a plane",
+    "focus": "instability mid-journey, anxiety during a transition you cannot exit early",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "missing-a-plane",
+    "name": "missing a plane",
+    "focus": "a major opportunity lost to timing, preparation, or hesitation",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "piloting-a-plane",
+    "name": "piloting a plane",
+    "focus": "unusual responsibility, high-stakes agency, or being asked to steer something larger than yourself",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "plane-landing",
+    "name": "a plane landing",
+    "focus": "arrival after ambition, grounding after elevation, or the end of a long transition",
+    "kind": "variation",
+    "parent": "plane"
+  },
+  {
+    "slug": "grandparents",
+    "name": "grandparents",
+    "summary": "ancestry, wisdom, inheritance, family memory, and the longer story your life sits inside",
+    "kind": "parent"
+  },
+  {
+    "slug": "deceased-grandparent",
+    "name": "a deceased grandparent",
+    "focus": "comfort, unfinished words, inherited values, or grief finding a familiar face",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "grandmother-in-dream",
+    "name": "your grandmother",
+    "focus": "nurture across generations, family lore, or a softer form of maternal care",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "grandfather-in-dream",
+    "name": "your grandfather",
+    "focus": "guidance, legacy, standards, or masculine care across a longer timeline",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "visiting-grandparents",
+    "name": "visiting grandparents",
+    "focus": "returning to roots, seeking wisdom, or needing the safety of an earlier household",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "grandparents-house",
+    "name": "grandparents' house",
+    "focus": "ancestral foundation, childhood memory, or identity rooted in family history",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "arguing-with-grandparent",
+    "name": "arguing with a grandparent",
+    "focus": "clash with inherited values, or renegotiating loyalty to family tradition",
+    "kind": "variation",
+    "parent": "grandparents"
+  },
+  {
+    "slug": "stairs",
+    "name": "stairs",
+    "summary": "ascent and descent, effort between levels of life, and the steps required to change status or perspective",
+    "kind": "parent"
+  },
+  {
+    "slug": "climbing-stairs",
+    "name": "climbing stairs",
+    "focus": "effort toward a higher position, ambition, or progress that requires one step at a time",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "falling-down-stairs",
+    "name": "falling down stairs",
+    "focus": "a sudden setback after progress, lost footing in status, or fear of public failure mid-ascent",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "endless-stairs",
+    "name": "endless stairs",
+    "focus": "effort without arrival, burnout from climbing, or a goal that keeps moving upward",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "broken-stairs",
+    "name": "broken stairs",
+    "focus": "an unreliable path to the next level, missing support, or a plan that cannot hold your weight",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "descending-stairs",
+    "name": "going down stairs",
+    "focus": "returning to foundations, humility, or voluntary retreat from a high place",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "spiral-staircase",
+    "name": "a spiral staircase",
+    "focus": "progress that circles familiar themes, or rising while revisiting the same emotional ground",
+    "kind": "variation",
+    "parent": "stairs"
+  },
+  {
+    "slug": "trapped",
+    "name": "being trapped",
+    "summary": "no exit, stuck agency, pressure without escape, and a situation that feels sealed from every side",
+    "kind": "parent"
+  },
+  {
+    "slug": "trapped-in-a-room",
+    "name": "trapped in a room",
+    "focus": "a closed chapter of life, private confinement, or options that have narrowed to four walls",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "trapped-underwater",
+    "name": "trapped underwater",
+    "focus": "emotional overwhelm with no surface in sight, or feeling sealed inside a feeling you cannot name",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "trapped-in-a-crowd",
+    "name": "trapped in a crowd",
+    "focus": "social pressure, lost individuality, or being carried by others' expectations",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "cant-open-door",
+    "name": "unable to open a door",
+    "focus": "a blocked exit, a choice that will not yield, or help that remains just out of reach",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "trapped-in-elevator",
+    "name": "trapped in an elevator",
+    "focus": "suspended between levels of life, stalled progress, or public helplessness",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "escaping-being-trapped",
+    "name": "escaping after being trapped",
+    "focus": "relief after constraint, reclaiming agency, or the first breath after a sealed season",
+    "kind": "variation",
+    "parent": "trapped"
+  },
+  {
+    "slug": "being-lost",
+    "name": "being lost",
+    "summary": "disorientation, missing direction, searching without a map, and the anxiety of not knowing the next turn",
+    "kind": "parent"
+  },
+  {
+    "slug": "lost-in-a-city",
+    "name": "lost in a city",
+    "focus": "overwhelm in complex systems, unfamiliar rules, or ambition without a clear route",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "lost-and-cant-find-home",
+    "name": "lost and unable to find home",
+    "focus": "identity drift, missing belonging, or fear that your private life no longer orients you",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "lost-with-no-phone",
+    "name": "lost without a phone",
+    "focus": "disconnection from help, dependence on tools, or solitude when guidance is needed",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "asking-directions-dream",
+    "name": "asking for directions",
+    "focus": "humility, seeking counsel, or admitting you cannot navigate alone",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "lost-child-in-dream",
+    "name": "a lost child",
+    "focus": "a vulnerable part of yourself missing care, or worry about someone dependent on you",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "finding-your-way",
+    "name": "finding your way after being lost",
+    "focus": "orientation returning, a landmark of meaning, or relief when purpose clarifies",
+    "kind": "variation",
+    "parent": "being-lost"
+  },
+  {
+    "slug": "twins",
+    "name": "twins",
+    "summary": "doubling, mirroring, divided attention, and two developments growing side by side",
+    "kind": "parent"
+  },
+  {
+    "slug": "having-twins",
+    "name": "having twins",
+    "focus": "double responsibility, two projects at once, or abundance that also divides your energy",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "identical-twins",
+    "name": "identical twins",
+    "focus": "mirroring, confusion of identity, or two paths that look the same but are not",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "twin-babies",
+    "name": "twin babies",
+    "focus": "fragile double beginnings, or care split between two needy developments",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "meeting-your-twin",
+    "name": "meeting your twin",
+    "focus": "encountering a neglected side of yourself, or a relationship that reflects you too closely",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "twins-fighting",
+    "name": "twins fighting",
+    "focus": "inner conflict between equal claims, rival priorities, or split loyalties",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "losing-one-twin",
+    "name": "losing one twin",
+    "focus": "grief for half of a doubled hope, or fear that one path will cost the other",
+    "kind": "variation",
+    "parent": "twins"
+  },
+  {
+    "slug": "lottery",
+    "name": "lottery",
+    "summary": "sudden fortune, wishful thinking, chance, and the fantasy of a life changed without ordinary effort",
+    "kind": "parent"
+  },
+  {
+    "slug": "winning-the-lottery",
+    "name": "winning the lottery",
+    "focus": "hope for sudden relief, a wish to skip the hard middle, or belief that luck could rewrite your story",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "losing-lottery-ticket",
+    "name": "losing a lottery ticket",
+    "focus": "a missed chance, self-sabotage of opportunity, or fear that fortune slipped through your hands",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "sharing-lottery-win",
+    "name": "sharing a lottery win",
+    "focus": "questions of fairness, generosity under abundance, or who you imagine beside sudden wealth",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "fake-lottery-win",
+    "name": "a fake lottery win",
+    "focus": "disappointment after raised hopes, or suspicion that an easy solution is not real",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "buying-lottery-ticket",
+    "name": "buying a lottery ticket",
+    "focus": "investing hope in chance, small ritual of possibility, or outsourcing change to luck",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "lottery-numbers",
+    "name": "lottery numbers",
+    "focus": "searching for a code to change fate, or the mind's attempt to order randomness",
+    "kind": "variation",
+    "parent": "lottery"
+  },
+  {
+    "slug": "debt",
+    "name": "debt",
+    "summary": "obligation, weight of what is owed, anxiety about repayment, and exchanges that have fallen out of balance",
+    "kind": "parent"
+  },
+  {
+    "slug": "unable-to-pay-debt",
+    "name": "unable to pay a debt",
+    "focus": "overwhelm about obligation, shame, or a bill — literal or emotional — that exceeds capacity",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "someone-owes-you",
+    "name": "someone owing you",
+    "focus": "unpaid recognition, unfinished reciprocity, or waiting for another person to make things even",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "debt-collectors",
+    "name": "debt collectors",
+    "focus": "pressure arriving from outside, accountability you cannot postpone, or fear of exposure around money",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "paying-off-debt",
+    "name": "paying off debt",
+    "focus": "relief, restored balance, or the hard work of settling what was owed",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "hidden-debt",
+    "name": "a hidden debt",
+    "focus": "a secret obligation, guilt kept private, or a cost you have not yet admitted",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "inheriting-debt",
+    "name": "inheriting debt",
+    "focus": "family burdens passed down, obligations you did not choose, or legacy costs",
+    "kind": "variation",
+    "parent": "debt"
+  },
+  {
+    "slug": "rabbit",
+    "name": "rabbit",
+    "summary": "fertility, timidity, quick instinct, abundance, and vulnerability that freezes or flees",
+    "kind": "parent"
+  },
+  {
+    "slug": "white-rabbit",
+    "name": "a white rabbit",
+    "focus": "innocence, a guide into the unexpected, or a gentle invitation to follow curiosity",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "rabbit-running-away",
+    "name": "a rabbit running away",
+    "focus": "avoidance, missed opportunity, or a timid part of you fleeing confrontation",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "many-rabbits",
+    "name": "many rabbits",
+    "focus": "abundance, fertility themes, or small worries multiplying faster than you can manage",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "dead-rabbit",
+    "name": "a dead rabbit",
+    "focus": "lost innocence, ended vulnerability, or grief for something gentle that could not survive",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "holding-a-rabbit",
+    "name": "holding a rabbit",
+    "focus": "care for a fragile instinct, tenderness, or responsibility for something easily startled",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "rabbit-in-house",
+    "name": "a rabbit in the house",
+    "focus": "timidity entering private life, or a soft need asking for safety at home",
+    "kind": "variation",
+    "parent": "rabbit"
+  },
+  {
+    "slug": "eating",
+    "name": "eating",
+    "summary": "nourishment, appetite, receiving, pleasure, scarcity, and the experiences you are trying to take in",
+    "kind": "parent"
+  },
+  {
+    "slug": "eating-with-family",
+    "name": "eating with family",
+    "focus": "belonging, shared care, family roles, or tension around what is given and received at home",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "eating-alone",
+    "name": "eating alone",
+    "focus": "independence, loneliness, privacy, or a need that you are meeting without support",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "eating-at-restaurant",
+    "name": "eating at a restaurant",
+    "focus": "choice, pleasure, social presentation, or relying on others to provide what you need",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "eating-delicious-food",
+    "name": "eating delicious food",
+    "focus": "satisfaction, reward, gratitude, sensual pleasure, or readiness to enjoy what life is offering",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "eating-spoiled-food",
+    "name": "eating spoiled food",
+    "focus": "accepting something harmful, disappointment, distrust, or recognizing that an offer is no longer good for you",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "unable-to-eat",
+    "name": "being unable to eat",
+    "focus": "blocked receiving, anxiety, refusal, grief, or difficulty accepting care and opportunity",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "overeating",
+    "name": "overeating",
+    "focus": "excess, unmet emotional hunger, loss of limits, or trying to fill a need that food cannot satisfy",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "sharing-food",
+    "name": "sharing food",
+    "focus": "generosity, reciprocity, intimacy, and the fair distribution of attention or resources",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "cake",
+    "name": "cake",
+    "focus": "celebration, reward, sweetness you may or may not feel you deserve, or a ritual of being marked as special",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "cooking-food",
+    "name": "cooking",
+    "focus": "preparing nourishment, transforming raw material, or the labor of making something ready to receive",
+    "kind": "variation",
+    "parent": "eating"
+  },
+  {
+    "slug": "boat",
+    "name": "boat",
+    "summary": "navigating emotion with a vessel, crossing uncertain water, and how seaworthy your current life craft feels",
+    "kind": "parent"
+  },
+  {
+    "slug": "sinking-boat",
+    "name": "a sinking boat",
+    "focus": "a plan or relationship taking on water, or fear that your craft cannot hold the emotional load",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "rowing-a-boat",
+    "name": "rowing a boat",
+    "focus": "personal effort across emotion, slow progress by your own strength",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "boat-in-storm",
+    "name": "a boat in a storm",
+    "focus": "navigating turmoil, holding course under pressure, or leadership when waters turn hostile",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "empty-boat",
+    "name": "an empty boat",
+    "focus": "a vessel without purpose, abandoned plans, or solitude on the water",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "luxury-yacht",
+    "name": "a luxury boat or yacht",
+    "focus": "status on emotional seas, comfort insulating you from depth, or aspiration dressed as travel",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "docking-a-boat",
+    "name": "docking a boat",
+    "focus": "arrival after crossing, securing what you carried, or ending a journey across feeling",
+    "kind": "variation",
+    "parent": "boat"
+  },
+  {
+    "slug": "celebrity",
+    "name": "a celebrity",
+    "summary": "recognition, projection, public identity, and qualities you admire or want claimed as your own",
+    "kind": "parent"
+  },
+  {
+    "slug": "meeting-a-celebrity",
+    "name": "meeting a celebrity",
+    "focus": "contact with a public quality you want — recognition, ease, talent — or rehearsal for being seen",
+    "kind": "variation",
+    "parent": "celebrity"
+  },
+  {
+    "slug": "becoming-famous",
+    "name": "becoming famous",
+    "focus": "a wish to be seen, pressure of visibility, or identity expanding faster than privacy can hold",
+    "kind": "variation",
+    "parent": "celebrity"
+  },
+  {
+    "slug": "celebrity-ignoring-you",
+    "name": "a celebrity ignoring you",
+    "focus": "unmet recognition, a closed door to status, or the ache of being unseen by someone you invested with meaning",
+    "kind": "variation",
+    "parent": "celebrity"
+  },
+  {
+    "slug": "dating-a-celebrity",
+    "name": "dating a celebrity",
+    "focus": "intimacy with a public image, wanting the life they represent, or a relationship that is also a performance",
+    "kind": "variation",
+    "parent": "celebrity"
+  },
+  {
+    "slug": "celebrity-ex",
+    "name": "a celebrity as an ex",
+    "focus": "a former version of yourself that was more visible, or nostalgia for a glow that was never quite yours",
+    "kind": "variation",
+    "parent": "celebrity"
+  },
+  {
+    "slug": "old-friend",
+    "name": "an old friend",
+    "summary": "unfinished history, a former self, nostalgia, and the person who still holds a chapter you have not closed",
+    "kind": "parent"
+  },
+  {
+    "slug": "old-friend-from-school",
+    "name": "an old friend from school",
+    "focus": "an earlier identity, unfinished comparison, or a lesson from that era still asking for attention",
+    "kind": "variation",
+    "parent": "old-friend"
+  },
+  {
+    "slug": "talking-to-old-friend",
+    "name": "talking to an old friend",
+    "focus": "catching up with a former self, words left unsaid, or comfort from a bond that time interrupted",
+    "kind": "variation",
+    "parent": "old-friend"
+  },
+  {
+    "slug": "dead-old-friend",
+    "name": "a deceased old friend",
+    "focus": "grief, memory, or a quality that person carried which you still need",
+    "kind": "variation",
+    "parent": "old-friend"
+  },
+  {
+    "slug": "arguing-with-old-friend",
+    "name": "arguing with an old friend",
+    "focus": "old rivalry returning, a grievance that never cleared, or tension between who you were and who you are",
+    "kind": "variation",
+    "parent": "old-friend"
+  },
+  {
+    "slug": "old-friend-changed",
+    "name": "an old friend who has changed",
+    "focus": "distance, the shock of time, or realizing a relationship no longer fits the present",
+    "kind": "variation",
+    "parent": "old-friend"
+  },
+  {
+    "slug": "test",
+    "name": "a test",
+    "summary": "evaluation, preparedness, performance anxiety, and the fear of being measured and found unfinished",
+    "kind": "parent"
+  },
+  {
+    "slug": "unprepared-for-test",
+    "name": "being unprepared for a test",
+    "focus": "a real evaluation you feel behind on, or the deeper fear that you will be asked for something you have not studied",
+    "kind": "variation",
+    "parent": "test"
+  },
+  {
+    "slug": "failing-a-test",
+    "name": "failing a test",
+    "focus": "shame after judgment, a standard you did not meet, or rehearsal of a consequence you already dread",
+    "kind": "variation",
+    "parent": "test"
+  },
+  {
+    "slug": "late-to-a-test",
+    "name": "being late to a test",
+    "focus": "time running out, missed readiness, or arriving after the moment of proof has started",
+    "kind": "variation",
+    "parent": "test"
+  },
+  {
+    "slug": "cannot-find-exam-room",
+    "name": "unable to find the exam room",
+    "focus": "not knowing where the test actually is — unclear rules, a hidden standard, or a life exam without a map",
+    "kind": "variation",
+    "parent": "test"
+  },
+  {
+    "slug": "blank-test-paper",
+    "name": "a blank test paper",
+    "focus": "mind going empty under pressure, or a question you cannot yet answer about your own life",
+    "kind": "variation",
+    "parent": "test"
+  },
+  {
+    "slug": "ring",
+    "name": "a ring",
+    "summary": "commitment, belonging, a bond made visible, and the circle of a promise you are making or breaking",
+    "kind": "parent"
+  },
+  {
+    "slug": "wedding-ring",
+    "name": "a wedding ring",
+    "focus": "marriage, a binding vow, or the public form of a private commitment",
+    "kind": "variation",
+    "parent": "ring"
+  },
+  {
+    "slug": "losing-a-ring",
+    "name": "losing a ring",
+    "focus": "fear of losing a bond, a loosened commitment, or a promise that no longer sits securely",
+    "kind": "variation",
+    "parent": "ring"
+  },
+  {
+    "slug": "broken-ring",
+    "name": "a broken ring",
+    "focus": "a damaged vow, a circle that cannot close, or a relationship whose form has cracked",
+    "kind": "variation",
+    "parent": "ring"
+  },
+  {
+    "slug": "engagement-ring",
+    "name": "an engagement ring",
+    "focus": "a threshold commitment, hope mixed with pressure, or the question of whether you will say yes",
+    "kind": "variation",
+    "parent": "ring"
+  },
+  {
+    "slug": "finding-a-ring",
+    "name": "finding a ring",
+    "focus": "an unexpected bond, a chance at belonging, or a promise arriving before you asked for it",
+    "kind": "variation",
+    "parent": "ring"
+  },
+  {
+    "slug": "flowers",
+    "name": "flowers",
+    "summary": "beauty, affection, blooming, grief made gentle, and a feeling offered or received in visible form",
+    "kind": "parent"
+  },
+  {
+    "slug": "receiving-flowers",
+    "name": "receiving flowers",
+    "focus": "affection arriving, apology, courtship, or recognition you did not have to ask for",
+    "kind": "variation",
+    "parent": "flowers"
+  },
+  {
+    "slug": "wilted-flowers",
+    "name": "wilted flowers",
+    "focus": "beauty past its season, neglected affection, or a feeling that was not watered",
+    "kind": "variation",
+    "parent": "flowers"
+  },
+  {
+    "slug": "roses",
+    "name": "roses",
+    "focus": "romance, passion, or love that also has thorns — beauty with a cost",
+    "kind": "variation",
+    "parent": "flowers"
+  },
+  {
+    "slug": "picking-flowers",
+    "name": "picking flowers",
+    "focus": "choosing what to gather, taking beauty into your hands, or ending something in order to keep it",
+    "kind": "variation",
+    "parent": "flowers"
+  },
+  {
+    "slug": "dead-flowers",
+    "name": "dead flowers",
+    "focus": "an ended offering, grief, or love that has completed its season",
+    "kind": "variation",
+    "parent": "flowers"
+  },
+  {
+    "slug": "keys",
+    "name": "keys",
+    "summary": "access, permission, the next step, and the small object that decides whether a door or a plan will open",
+    "kind": "parent"
+  },
+  {
+    "slug": "lost-keys",
+    "name": "lost keys",
+    "focus": "access delayed: a plan you can see but cannot start, or permission that has gone missing",
+    "kind": "variation",
+    "parent": "keys"
+  },
+  {
+    "slug": "finding-keys",
+    "name": "finding keys",
+    "focus": "a backup route to agency, a resource you forgot you had, or a door that can finally open",
+    "kind": "variation",
+    "parent": "keys"
+  },
+  {
+    "slug": "house-keys",
+    "name": "house keys",
+    "focus": "access to private life, belonging, or who is allowed into your inner rooms",
+    "kind": "variation",
+    "parent": "keys"
+  },
+  {
+    "slug": "broken-key",
+    "name": "a broken key",
+    "focus": "a start that snapped, the wrong tool for the lock, or permission that failed under pressure",
+    "kind": "variation",
+    "parent": "keys"
+  },
+  {
+    "slug": "bunch-of-keys",
+    "name": "a bunch of keys",
+    "focus": "many options, too many roles, or responsibility for several doors at once",
+    "kind": "variation",
+    "parent": "keys"
+  },
+  {
+    "slug": "shoes",
+    "name": "shoes",
+    "summary": "the path you walk, public identity, readiness for a journey, and how you present yourself on the ground",
+    "kind": "parent"
+  },
+  {
+    "slug": "lost-shoes",
+    "name": "lost shoes",
+    "focus": "unprepared to walk the next path, missing public identity, or a journey you cannot start barefoot",
+    "kind": "variation",
+    "parent": "shoes"
+  },
+  {
+    "slug": "new-shoes",
+    "name": "new shoes",
+    "focus": "a fresh path, upgraded presentation, or a role you are still breaking in",
+    "kind": "variation",
+    "parent": "shoes"
+  },
+  {
+    "slug": "barefoot",
+    "name": "being barefoot",
+    "focus": "exposure, humility, direct contact with the ground, or a path you are walking without protection",
+    "kind": "variation",
+    "parent": "shoes"
+  },
+  {
+    "slug": "worn-shoes",
+    "name": "worn-out shoes",
+    "focus": "a path that has cost you, exhausted identity, or continuing in gear that no longer holds",
+    "kind": "variation",
+    "parent": "shoes"
+  },
+  {
+    "slug": "high-heels",
+    "name": "high heels",
+    "focus": "heightened presentation, status, difficulty walking, or a role that looks powerful and is hard to stand in",
+    "kind": "variation",
+    "parent": "shoes"
+  },
+  {
+    "slug": "dragon",
+    "name": "a dragon",
+    "summary": "immense power, a guardian or devourer, transformation through fire, and a force too large to treat as ordinary fear",
+    "kind": "parent"
+  },
+  {
+    "slug": "flying-dragon",
+    "name": "a flying dragon",
+    "focus": "power with range, a force that can leave the ground, or ambition given a mythic body",
+    "kind": "variation",
+    "parent": "dragon"
+  },
+  {
+    "slug": "dragon-attack",
+    "name": "a dragon attacking you",
+    "focus": "overwhelming power coming at you — rage, authority, or a problem that has grown legendary",
+    "kind": "variation",
+    "parent": "dragon"
+  },
+  {
+    "slug": "dragon-fire",
+    "name": "a dragon breathing fire",
+    "focus": "destructive or purifying force, anger that scorches, or transformation that cannot be gentle",
+    "kind": "variation",
+    "parent": "dragon"
+  },
+  {
+    "slug": "friendly-dragon",
+    "name": "a friendly dragon",
+    "focus": "power that is on your side, a guardian, or strength you are finally allowed to befriend",
+    "kind": "variation",
+    "parent": "dragon"
+  },
+  {
+    "slug": "chinese-dragon",
+    "name": "a Chinese dragon",
+    "focus": "luck, imperial power, wisdom in motion, or a cultural image of force that creates rather than only destroys",
+    "kind": "variation",
+    "parent": "dragon"
+  },
+  {
+    "slug": "moon",
+    "name": "the moon",
+    "summary": "cycles, intuition, the night mind, feminine association, and light that does not come from the waking sun",
+    "kind": "parent"
+  },
+  {
+    "slug": "full-moon",
+    "name": "a full moon",
+    "focus": "culmination, visibility of what was hidden, or a cycle at its brightest and most charged",
+    "kind": "variation",
+    "parent": "moon"
+  },
+  {
+    "slug": "crescent-moon",
+    "name": "a crescent moon",
+    "focus": "a beginning in the dark, growing or waning potential, or a slim light that is enough to steer by",
+    "kind": "variation",
+    "parent": "moon"
+  },
+  {
+    "slug": "red-moon",
+    "name": "a red moon",
+    "focus": "omen-feeling, crisis in a cycle, passion or warning tinting the night",
+    "kind": "variation",
+    "parent": "moon"
+  },
+  {
+    "slug": "moonlight",
+    "name": "moonlight",
+    "focus": "soft illumination, seeing by intuition rather than daylight, or a path that is visible only at night",
+    "kind": "variation",
+    "parent": "moon"
+  },
+  {
+    "slug": "moon-over-water",
+    "name": "the moon over water",
+    "focus": "feeling and intuition meeting: emotion reflecting a cycle you can see but not command",
+    "kind": "variation",
+    "parent": "moon"
+  },
+  {
+    "slug": "colors",
+    "name": "colors",
+    "summary": "mood made visible, a feeling that arrives as hue, and the emotional weather of a scene before the plot explains it",
+    "kind": "parent"
+  },
+  {
+    "slug": "seeing-red",
+    "name": "seeing red",
+    "focus": "anger, urgency, vitality, or a warning the body already knows",
+    "kind": "variation",
+    "parent": "colors"
+  },
+  {
+    "slug": "wearing-black",
+    "name": "wearing black",
+    "focus": "grief, protection, formality, hidden strength, or a mood you are putting on",
+    "kind": "variation",
+    "parent": "colors"
+  },
+  {
+    "slug": "wearing-white",
+    "name": "wearing white",
+    "focus": "clarity, newness, exposure, or a wish to be read as clean and unfinished",
+    "kind": "variation",
+    "parent": "colors"
+  },
+  {
+    "slug": "blue-in-a-dream",
+    "name": "the color blue",
+    "focus": "calm, sadness, distance, or a cool emotional climate",
+    "kind": "variation",
+    "parent": "colors"
+  },
+  {
+    "slug": "yellow-in-a-dream",
+    "name": "the color yellow",
+    "focus": "attention, joy, caution, or a bright feeling that may also signal anxiety",
+    "kind": "variation",
+    "parent": "colors"
+  },
+  {
+    "slug": "insects",
+    "name": "insects",
+    "summary": "small persistent forces, irritation, swarming worry, instinct at a scale you can swat but not ignore",
+    "kind": "parent"
+  },
+  {
+    "slug": "bees",
+    "name": "bees",
+    "focus": "productive swarm, sweet work, community, or a sting that follows useful labor",
+    "kind": "variation",
+    "parent": "insects"
+  },
+  {
+    "slug": "cockroach",
+    "name": "a cockroach",
+    "focus": "what survives in the dark, shame, persistence of a problem you keep trying to kill",
+    "kind": "variation",
+    "parent": "insects"
+  },
+  {
+    "slug": "ants",
+    "name": "ants",
+    "focus": "small coordinated labor, invasion of private space, or many tiny tasks becoming a colony",
+    "kind": "variation",
+    "parent": "insects"
+  },
+  {
+    "slug": "flies",
+    "name": "flies",
+    "focus": "irritation, decay nearby, or something unclean that will not leave the room",
+    "kind": "variation",
+    "parent": "insects"
+  },
+  {
+    "slug": "insect-swarm",
+    "name": "a swarm of insects",
+    "focus": "overwhelm by many small pressures, anxiety without a single face, or a problem that multiplies",
+    "kind": "variation",
+    "parent": "insects"
+  },
+  {
+    "slug": "intruder",
+    "name": "an intruder",
+    "summary": "a boundary crossed, private space invaded, and the fear that something unwanted has already gotten in",
+    "kind": "parent"
+  },
+  {
+    "slug": "intruder-in-house",
+    "name": "an intruder in the house",
+    "focus": "private life entered without consent — a person, a feeling, or a demand that does not belong inside",
+    "kind": "variation",
+    "parent": "intruder"
+  },
+  {
+    "slug": "hiding-from-intruder",
+    "name": "hiding from an intruder",
+    "focus": "self-protection, hoping not to be found, or a threat you will not yet confront",
+    "kind": "variation",
+    "parent": "intruder"
+  },
+  {
+    "slug": "fighting-an-intruder",
+    "name": "fighting an intruder",
+    "focus": "defending a boundary, refusing invasion, or a conflict that has reached the doorway",
+    "kind": "variation",
+    "parent": "intruder"
+  },
+  {
+    "slug": "intruder-at-window",
+    "name": "an intruder at the window",
+    "focus": "a threat still outside but watching — warning, temptation, or a problem looking for a way in",
+    "kind": "variation",
+    "parent": "intruder"
+  },
+  {
+    "slug": "unknown-intruder",
+    "name": "an unknown intruder",
+    "focus": "anxiety without a face: a change, illness, or influence you cannot name but already feel inside",
+    "kind": "variation",
+    "parent": "intruder"
+  },
+  {
+    "slug": "being-ignored",
+    "name": "being ignored",
+    "summary": "invisibility, a voice that does not land, withheld attention, and the wound of mattering less than you need",
+    "kind": "parent"
+  },
+  {
+    "slug": "ignored-by-friend",
+    "name": "being ignored by a friend",
+    "focus": "a bond going cold, social exclusion, or a friendship that no longer returns your effort",
+    "kind": "variation",
+    "parent": "being-ignored"
+  },
+  {
+    "slug": "ignored-by-family",
+    "name": "being ignored by family",
+    "focus": "an old family silence, a role in which you were not heard, or a need that still has no audience at home",
+    "kind": "variation",
+    "parent": "being-ignored"
+  },
+  {
+    "slug": "ignored-in-a-crowd",
+    "name": "being ignored in a crowd",
+    "focus": "anonymity that hurts, a public self that does not register, or shouting into a room that will not turn",
+    "kind": "variation",
+    "parent": "being-ignored"
+  },
+  {
+    "slug": "partner-ignoring-you",
+    "name": "a partner ignoring you",
+    "focus": "emotional withdrawal, a conversation that will not start, or intimacy that has gone one-way",
+    "kind": "variation",
+    "parent": "being-ignored"
+  },
+  {
+    "slug": "calling-and-being-ignored",
+    "name": "calling and being ignored",
+    "focus": "an unanswered bid for contact — a message, a need, or a part of you that keeps dialing",
+    "kind": "variation",
+    "parent": "being-ignored"
+  },
+  {
+    "slug": "crocodile",
+    "name": "a crocodile",
+    "summary": "ancient patience, a threat that waits, false tears, and instinct older than the conversation on the surface",
+    "kind": "parent"
+  },
+  {
+    "slug": "crocodile-attack",
+    "name": "a crocodile attacking you",
+    "focus": "a patient threat that finally moved, or a betrayal from something that looked still",
+    "kind": "variation",
+    "parent": "crocodile"
+  },
+  {
+    "slug": "crocodile-in-water",
+    "name": "a crocodile in water",
+    "focus": "danger inside emotion, a calm surface with teeth beneath, or instinct warning you not to wade in blindly",
+    "kind": "variation",
+    "parent": "crocodile"
+  },
+  {
+    "slug": "crocodile-tears",
+    "name": "crocodile tears",
+    "focus": "performed grief, insincere apology, or catching yourself or someone else acting wounded without being changed",
+    "kind": "variation",
+    "parent": "crocodile"
+  },
+  {
+    "slug": "baby-crocodile",
+    "name": "a baby crocodile",
+    "focus": "a small danger that will grow if ignored, or an early warning still easy to underestimate",
+    "kind": "variation",
+    "parent": "crocodile"
+  },
+  {
+    "slug": "dead-crocodile",
+    "name": "a dead crocodile",
+    "focus": "a survived ancient fear, ended deception, or a threat that has lost its patience and its power",
+    "kind": "variation",
+    "parent": "crocodile"
+  },
+  {
+    "slug": "dolphin",
+    "name": "a dolphin",
+    "summary": "intelligent play, guidance through emotion, trust in the water, and a helper that meets you in depth",
+    "kind": "parent"
+  },
+  {
+    "slug": "swimming-with-dolphins",
+    "name": "swimming with dolphins",
+    "focus": "ease in emotion, trusted guidance in depth, or play returning to a feeling-heavy season",
+    "kind": "variation",
+    "parent": "dolphin"
+  },
+  {
+    "slug": "dolphin-jumping",
+    "name": "a dolphin jumping",
+    "focus": "joy breaking the surface, a message leaping into view, or intelligence that will not stay hidden",
+    "kind": "variation",
+    "parent": "dolphin"
+  },
+  {
+    "slug": "injured-dolphin",
+    "name": "an injured dolphin",
+    "focus": "hurt intuition, a guide that needs care, or playfulness that has been wounded",
+    "kind": "variation",
+    "parent": "dolphin"
+  },
+  {
+    "slug": "many-dolphins",
+    "name": "many dolphins",
+    "focus": "belonging in a feeling-literate group, or support arriving from more than one direction",
+    "kind": "variation",
+    "parent": "dolphin"
+  },
+  {
+    "slug": "dead-dolphin",
+    "name": "a dead dolphin",
+    "focus": "lost guidance in emotion, grief for a playful part of you, or a helper that could not stay",
+    "kind": "variation",
+    "parent": "dolphin"
+  },
+  {
+    "slug": "frog",
+    "name": "a frog",
+    "summary": "transformation, a leap, unclean or fertile water, and a change that looks unready until it is sudden",
+    "kind": "parent"
+  },
+  {
+    "slug": "frog-turning-into-something",
+    "name": "a frog transforming",
+    "focus": "a change of form, a despised thing revealing value, or a leap you did not believe was possible",
+    "kind": "variation",
+    "parent": "frog"
+  },
+  {
+    "slug": "many-frogs",
+    "name": "many frogs",
+    "focus": "small changes multiplying, a noisy season of transition, or fertility themes arriving all at once",
+    "kind": "variation",
+    "parent": "frog"
+  },
+  {
+    "slug": "catching-a-frog",
+    "name": "catching a frog",
+    "focus": "trying to hold a change still, or grabbing at a transformation that needs to jump",
+    "kind": "variation",
+    "parent": "frog"
+  },
+  {
+    "slug": "frog-in-the-house",
+    "name": "a frog in the house",
+    "focus": "change entering private life, or an unfamiliar process sitting in a room that used to be tidy",
+    "kind": "variation",
+    "parent": "frog"
+  },
+  {
+    "slug": "dead-frog",
+    "name": "a dead frog",
+    "focus": "a transformation that stalled, a leap not taken, or grief for a change that dried up",
+    "kind": "variation",
+    "parent": "frog"
+  },
+  {
+    "slug": "fox",
+    "name": "a fox",
+    "summary": "cleverness, discretion, a sly helper or rival, and the part of you that survives by reading the room",
+    "kind": "parent"
+  },
+  {
+    "slug": "red-fox",
+    "name": "a red fox",
+    "focus": "visible cleverness, passion with a strategy, or a striking intelligence that will not be owned",
+    "kind": "variation",
+    "parent": "fox"
+  },
+  {
+    "slug": "fox-in-the-house",
+    "name": "a fox in the house",
+    "focus": "cunning inside private life, a clever problem at home, or a part of you that will not be domesticated",
+    "kind": "variation",
+    "parent": "fox"
+  },
+  {
+    "slug": "being-chased-by-a-fox",
+    "name": "being chased by a fox",
+    "focus": "outmaneuvered, hunted by something smarter than force, or your own slyness turning on you",
+    "kind": "variation",
+    "parent": "fox"
+  },
+  {
+    "slug": "friendly-fox",
+    "name": "a friendly fox",
+    "focus": "cleverness on your side, a guide who will not be sentimental, or permission to be shrewd",
+    "kind": "variation",
+    "parent": "fox"
+  },
+  {
+    "slug": "dead-fox",
+    "name": "a dead fox",
+    "focus": "lost cunning, a strategy that failed, or grief for a clever adaptation that no longer works",
+    "kind": "variation",
+    "parent": "fox"
+  },
+  {
+    "slug": "goat",
+    "name": "a goat",
+    "summary": "stubborn climb, appetite, scapegoat, and a sure-footed will that does not ask permission to keep going",
+    "kind": "parent"
+  },
+  {
+    "slug": "climbing-goat",
+    "name": "a goat climbing",
+    "focus": "unlikely progress, footing on a steep path, or persistence where others would turn back",
+    "kind": "variation",
+    "parent": "goat"
+  },
+  {
+    "slug": "goat-attack",
+    "name": "a goat attacking you",
+    "focus": "stubborn conflict, a head-on collision of wills, or being butted by a demand you dismissed",
+    "kind": "variation",
+    "parent": "goat"
+  },
+  {
+    "slug": "white-goat",
+    "name": "a white goat",
+    "focus": "a cleaner stubbornness, a climb with clearer motive, or a scapegoat you refuse to become",
+    "kind": "variation",
+    "parent": "goat"
+  },
+  {
+    "slug": "herd-of-goats",
+    "name": "a herd of goats",
+    "focus": "group appetite, many small wills, or a community that survives on rough ground",
+    "kind": "variation",
+    "parent": "goat"
+  },
+  {
+    "slug": "dead-goat",
+    "name": "a dead goat",
+    "focus": "ended stubbornness, a climb abandoned, or the cost of being made the scapegoat",
+    "kind": "variation",
+    "parent": "goat"
+  },
+  {
+    "slug": "giraffe",
+    "name": "a giraffe",
+    "summary": "a longer view, sticking your neck out, awkward height, and seeing farther than the crowd around your feet",
+    "kind": "parent"
+  },
+  {
+    "slug": "tall-giraffe",
+    "name": "a very tall giraffe",
+    "focus": "perspective that isolates you, a view others cannot share, or standing above a situation at a cost",
+    "kind": "variation",
+    "parent": "giraffe"
+  },
+  {
+    "slug": "giraffe-eating",
+    "name": "a giraffe eating leaves",
+    "focus": "nourishment that requires reach, patience, or going higher than the obvious food",
+    "kind": "variation",
+    "parent": "giraffe"
+  },
+  {
+    "slug": "baby-giraffe",
+    "name": "a baby giraffe",
+    "focus": "a new long view still unsteady, or a gift of perspective that has not learned its height",
+    "kind": "variation",
+    "parent": "giraffe"
+  },
+  {
+    "slug": "running-giraffe",
+    "name": "a running giraffe",
+    "focus": "awkward speed, fleeing with a long view, or urgency that looks ungainly and still covers ground",
+    "kind": "variation",
+    "parent": "giraffe"
+  },
+  {
+    "slug": "dead-giraffe",
+    "name": "a dead giraffe",
+    "focus": "lost perspective, a neck no longer stuck out, or grief for a view that has fallen",
+    "kind": "variation",
+    "parent": "giraffe"
+  },
+  {
+    "slug": "camel",
+    "name": "a camel",
+    "summary": "endurance across scarcity, stored reserves, a long crossing, and the load you agreed to carry through dry country",
+    "kind": "parent"
+  },
+  {
+    "slug": "riding-a-camel",
+    "name": "riding a camel",
+    "focus": "paced endurance, trusting a slow craft across a hard season, or letting stored strength carry you",
+    "kind": "variation",
+    "parent": "camel"
+  },
+  {
+    "slug": "thirsty-camel",
+    "name": "a thirsty camel",
+    "focus": "reserves running low, a crossing longer than planned, or a need you have been rationing",
+    "kind": "variation",
+    "parent": "camel"
+  },
+  {
+    "slug": "camel-caravan",
+    "name": "a camel caravan",
+    "focus": "shared endurance, a group crossing, or work that only makes sense as a long train of effort",
+    "kind": "variation",
+    "parent": "camel"
+  },
+  {
+    "slug": "loaded-camel",
+    "name": "a camel carrying a heavy load",
+    "focus": "responsibility stored on your back, patience under weight, or the question of how much more you can take",
+    "kind": "variation",
+    "parent": "camel"
+  },
+  {
+    "slug": "dead-camel",
+    "name": "a dead camel",
+    "focus": "endurance that failed, a crossing that ended, or grief for the part of you that could survive drought",
+    "kind": "variation",
+    "parent": "camel"
+  },
+  {
+    "slug": "bat",
+    "name": "a bat",
+    "summary": "night vision, the unseen, inversion, and a creature that reads the dark the way others read daylight",
+    "kind": "parent"
+  },
+  {
+    "slug": "bats-in-the-house",
+    "name": "bats in the house",
+    "focus": "night material inside private life, a dark room of the self becoming audible, or fear of what flies when you sleep",
+    "kind": "variation",
+    "parent": "bat"
+  },
+  {
+    "slug": "bat-flying-at-you",
+    "name": "a bat flying at you",
+    "focus": "the unseen coming close, a startle from the dark, or intuition arriving too fast to welcome",
+    "kind": "variation",
+    "parent": "bat"
+  },
+  {
+    "slug": "many-bats",
+    "name": "a swarm of bats",
+    "focus": "overwhelm by night thoughts, many small fears taking wing, or a dusk that will not stay outside",
+    "kind": "variation",
+    "parent": "bat"
+  },
+  {
+    "slug": "white-bat",
+    "name": "a white bat",
+    "focus": "rare night guidance, an omen-feeling, or a dark capacity appearing in a form you did not expect",
+    "kind": "variation",
+    "parent": "bat"
+  },
+  {
+    "slug": "dead-bat",
+    "name": "a dead bat",
+    "focus": "ended night-fear, lost dark vision, or a part of you that used to navigate without light",
+    "kind": "variation",
+    "parent": "bat"
+  },
+  {
+    "slug": "deer",
+    "name": "a deer",
+    "summary": "gentleness, alertness, a shy beauty, and the part of you that freezes or flees at the first wrong sound",
+    "kind": "parent"
+  },
+  {
+    "slug": "white-deer",
+    "name": "a white deer",
+    "focus": "a rare gentleness, a guide through the woods, or a sacred-feeling encounter with your own shyness",
+    "kind": "variation",
+    "parent": "deer"
+  },
+  {
+    "slug": "deer-running-away",
+    "name": "a deer running away",
+    "focus": "flight before contact, a missed gentle opportunity, or a timid part of you leaving the clearing",
+    "kind": "variation",
+    "parent": "deer"
+  },
+  {
+    "slug": "injured-deer",
+    "name": "an injured deer",
+    "focus": "hurt innocence, vulnerability that cannot run, or tenderness that has been wounded",
+    "kind": "variation",
+    "parent": "deer"
+  },
+  {
+    "slug": "stag-with-antlers",
+    "name": "a stag with antlers",
+    "focus": "gentle strength made visible, dignity, or a seasonal power you grow and shed",
+    "kind": "variation",
+    "parent": "deer"
+  },
+  {
+    "slug": "dead-deer",
+    "name": "a dead deer",
+    "focus": "lost gentleness, ended innocence, or grief for a shy part of life that could not survive the noise",
+    "kind": "variation",
+    "parent": "deer"
+  },
+  {
+    "slug": "dinosaur",
+    "name": "a dinosaur",
+    "summary": "an outdated force still walking, childhood awe, extinct power, and something huge that does not belong in the present tense",
+    "kind": "parent"
+  },
+  {
+    "slug": "t-rex",
+    "name": "a T-rex",
+    "focus": "overwhelming outdated power, a predator from an earlier chapter, or childhood fear given a museum body",
+    "kind": "variation",
+    "parent": "dinosaur"
+  },
+  {
+    "slug": "dinosaur-chasing-you",
+    "name": "a dinosaur chasing you",
+    "focus": "an old force that still hunts, a past era that will not stay extinct, or awe turning into flight",
+    "kind": "variation",
+    "parent": "dinosaur"
+  },
+  {
+    "slug": "friendly-dinosaur",
+    "name": "a friendly dinosaur",
+    "focus": "making peace with an outdated part of you, or finding that old power can be walked beside",
+    "kind": "variation",
+    "parent": "dinosaur"
+  },
+  {
+    "slug": "baby-dinosaur",
+    "name": "a baby dinosaur",
+    "focus": "an ancient pattern just beginning again, or a huge nature still small enough to hold",
+    "kind": "variation",
+    "parent": "dinosaur"
+  },
+  {
+    "slug": "dead-dinosaur",
+    "name": "a dead dinosaur",
+    "focus": "an era actually over, a fossil of a former self, or relief that the huge old thing has stopped walking",
+    "kind": "variation",
+    "parent": "dinosaur"
+  },
+  {
+    "slug": "beaver",
+    "name": "a beaver",
+    "summary": "industrious building, damming the flow, family work, and the instinct to make a home by reshaping the water",
+    "kind": "parent"
+  },
+  {
+    "slug": "beaver-dam",
+    "name": "a beaver dam",
+    "focus": "stopping a flow on purpose, building security from what you can chew, or blocking emotion to make a home",
+    "kind": "variation",
+    "parent": "beaver"
+  },
+  {
+    "slug": "beaver-building",
+    "name": "a beaver building",
+    "focus": "steady construction, work that looks small bite by bite and becomes a lodge",
+    "kind": "variation",
+    "parent": "beaver"
+  },
+  {
+    "slug": "beaver-in-the-house",
+    "name": "a beaver in the house",
+    "focus": "industrious instinct inside private life, or a builder rearranging rooms you thought were finished",
+    "kind": "variation",
+    "parent": "beaver"
+  },
+  {
+    "slug": "injured-beaver",
+    "name": "an injured beaver",
+    "focus": "work interrupted, a builder who cannot chew, or family labor that has cost too much",
+    "kind": "variation",
+    "parent": "beaver"
+  },
+  {
+    "slug": "dead-beaver",
+    "name": "a dead beaver",
+    "focus": "ended industry, a dam that will not be kept, or grief for the part of you that built safety from the current",
+    "kind": "variation",
+    "parent": "beaver"
+  },
+  {
+    "slug": "clothes",
+    "name": "clothes",
+    "summary": "the self you put on, public identity, covering, and the costume a role requires before you leave the house",
+    "kind": "parent"
+  },
+  {
+    "slug": "shopping-for-clothes",
+    "name": "shopping for clothes",
+    "focus": "trying on a future self, choosing a public identity, or not finding a garment that fits who you are becoming",
+    "kind": "variation",
+    "parent": "clothes"
+  },
+  {
+    "slug": "torn-clothes",
+    "name": "torn clothes",
+    "focus": "a role coming apart, exposure through a rip, or a presentation that can no longer hold",
+    "kind": "variation",
+    "parent": "clothes"
+  },
+  {
+    "slug": "childhood-clothes",
+    "name": "childhood clothes",
+    "focus": "an older identity that still fits or does not, a role you outgrew, or the body remembering a smaller self",
+    "kind": "variation",
+    "parent": "clothes"
+  },
+  {
+    "slug": "wrong-clothes",
+    "name": "wearing the wrong clothes",
+    "focus": "mismatch of role and self, social embarrassment, or arriving dressed for a life that is not this one",
+    "kind": "variation",
+    "parent": "clothes"
+  },
+  {
+    "slug": "new-clothes",
+    "name": "new clothes",
+    "focus": "a fresh identity, upgraded presentation, or a self you have not yet worn in daylight",
+    "kind": "variation",
+    "parent": "clothes"
+  },
+  {
+    "slug": "numbers",
+    "name": "numbers",
+    "summary": "measure, fate-feeling, a code you want to crack, and the mind's wish to make chance look like a message",
+    "kind": "parent"
+  },
+  {
+    "slug": "repeating-numbers",
+    "name": "repeating numbers",
+    "focus": "a pattern you cannot ignore, a sense of signal, or the mind stamping the same measure on the night",
+    "kind": "variation",
+    "parent": "numbers"
+  },
+  {
+    "slug": "unlucky-number",
+    "name": "an unlucky number",
+    "focus": "dread given a digit, a superstition waking, or a measure you treat as a verdict",
+    "kind": "variation",
+    "parent": "numbers"
+  },
+  {
+    "slug": "counting-in-a-dream",
+    "name": "counting",
+    "focus": "trying to get control through measure, inventorying a life, or anxiety that can only count",
+    "kind": "variation",
+    "parent": "numbers"
+  },
+  {
+    "slug": "wrong-number",
+    "name": "a wrong number",
+    "focus": "a missed connection, a code that does not open, or reaching the wrong measure of a situation",
+    "kind": "variation",
+    "parent": "numbers"
+  },
+  {
+    "slug": "golden-number",
+    "name": "a golden or winning number",
+    "focus": "the fantasy of the right code, a key that would change everything, or luck dressed as mathematics",
+    "kind": "variation",
+    "parent": "numbers"
+  },
+  {
+    "slug": "eyes",
+    "name": "eyes",
+    "summary": "seeing and being seen, insight, witness, and the organ that decides what is allowed into the story",
+    "kind": "parent"
+  },
+  {
+    "slug": "losing-an-eye",
+    "name": "losing an eye",
+    "focus": "refusing a view, injured insight, or a way of seeing that has been taken or given up",
+    "kind": "variation",
+    "parent": "eyes"
+  },
+  {
+    "slug": "someone-watching-you",
+    "name": "someone watching you",
+    "focus": "the feeling of being witnessed, scrutiny, or a part of you that will not look away",
+    "kind": "variation",
+    "parent": "eyes"
+  },
+  {
+    "slug": "blindness",
+    "name": "going blind",
+    "focus": "not wanting to see, a season without insight, or a truth you cannot yet look at",
+    "kind": "variation",
+    "parent": "eyes"
+  },
+  {
+    "slug": "third-eye",
+    "name": "a third eye",
+    "focus": "inner sight, spiritual attention, or a claim of seeing more than ordinary daylight allows",
+    "kind": "variation",
+    "parent": "eyes"
+  },
+  {
+    "slug": "injured-eyes",
+    "name": "injured or bleeding eyes",
+    "focus": "painful seeing, a view that costs you, or insight that arrived as a wound",
+    "kind": "variation",
+    "parent": "eyes"
+  },
+  {
+    "slug": "hands",
+    "name": "hands",
+    "summary": "agency, making, touching, holding, and the part of you that does or refuses the next practical act",
+    "kind": "parent"
+  },
+  {
+    "slug": "dirty-hands",
+    "name": "dirty hands",
+    "focus": "guilt you can feel, work that stains, or a sense that what you touched is not clean",
+    "kind": "variation",
+    "parent": "hands"
+  },
+  {
+    "slug": "injured-hands",
+    "name": "injured hands",
+    "focus": "blocked agency, a maker who cannot make, or pain in the part that was supposed to act",
+    "kind": "variation",
+    "parent": "hands"
+  },
+  {
+    "slug": "holding-hands",
+    "name": "holding hands",
+    "focus": "chosen contact, alliance, or a bond made visible through the smallest practical touch",
+    "kind": "variation",
+    "parent": "hands"
+  },
+  {
+    "slug": "cut-off-hands",
+    "name": "hands cut off",
+    "focus": "radical loss of agency, punishment of doing, or a fear that you will not be allowed to act",
+    "kind": "variation",
+    "parent": "hands"
+  },
+  {
+    "slug": "washing-hands",
+    "name": "washing your hands",
+    "focus": "wanting clean of a deed, ritual reset, or the wish to be innocent of what you already touched",
+    "kind": "variation",
+    "parent": "hands"
+  },
+  {
+    "slug": "crying",
+    "name": "crying",
+    "summary": "release, grief arriving in the body, a feeling that finally has water, and the night's way of finishing a cry the day postponed",
+    "kind": "parent"
+  },
+  {
+    "slug": "crying-in-public",
+    "name": "crying in public",
+    "focus": "grief without a private room, shame about feeling, or a need that will not wait for a better setting",
+    "kind": "variation",
+    "parent": "crying"
+  },
+  {
+    "slug": "unable-to-cry",
+    "name": "being unable to cry",
+    "focus": "blocked release, a feeling stuck behind the eyes, or the fear of what would happen if you let it start",
+    "kind": "variation",
+    "parent": "crying"
+  },
+  {
+    "slug": "someone-else-crying",
+    "name": "someone else crying",
+    "focus": "witnessed grief, a part of you speaking through another face, or care you do not know how to give",
+    "kind": "variation",
+    "parent": "crying"
+  },
+  {
+    "slug": "crying-with-relief",
+    "name": "crying with relief",
+    "focus": "a tension breaking, safety arriving, or the body finishing a long held breath",
+    "kind": "variation",
+    "parent": "crying"
+  },
+  {
+    "slug": "inconsolable-crying",
+    "name": "inconsolable crying",
+    "focus": "grief larger than comfort, a loss that will not take a reason, or a feeling that needs time more than advice",
+    "kind": "variation",
+    "parent": "crying"
+  },
+  {
+    "slug": "anger",
+    "name": "anger",
+    "summary": "heat that wants a target, a boundary that arrived as fire, and the feeling you were not allowed to have in the room",
+    "kind": "parent"
+  },
+  {
+    "slug": "screaming-in-anger",
+    "name": "screaming in anger",
+    "focus": "a voice that finally has volume, a boundary spoken too late and too loud, or heat that will not stay polite",
+    "kind": "variation",
+    "parent": "anger"
+  },
+  {
+    "slug": "someone-angry-at-you",
+    "name": "someone angry at you",
+    "focus": "projected heat, a conscience with a face, or a conflict you have been absorbing",
+    "kind": "variation",
+    "parent": "anger"
+  },
+  {
+    "slug": "unable-to-get-angry",
+    "name": "unable to get angry",
+    "focus": "swallowed heat, a boundary you cannot form, or politeness that has cost you the feeling you needed",
+    "kind": "variation",
+    "parent": "anger"
+  },
+  {
+    "slug": "breaking-things-in-anger",
+    "name": "breaking things in anger",
+    "focus": "a feeling that needs an object, damage as speech, or heat that has nowhere else to go",
+    "kind": "variation",
+    "parent": "anger"
+  },
+  {
+    "slug": "calm-after-anger",
+    "name": "calm after anger",
+    "focus": "heat that did its work, a boundary now visible, or the quiet that follows a necessary fire",
+    "kind": "variation",
+    "parent": "anger"
+  },
+  {
+    "slug": "snake-and-water",
+    "name": "snake and water",
+    "focus": "an emotional situation that carries a hidden threat, or transformation moving through deep feeling",
+    "kind": "combo"
+  },
+  {
+    "slug": "snake-and-baby",
+    "name": "snake and baby",
+    "focus": "a vulnerable new beginning shadowed by fear, or protective alertness around something fragile",
+    "kind": "combo"
+  },
+  {
+    "slug": "snake-and-fire",
+    "name": "snake and fire",
+    "focus": "a threat combined with rapid change: anger, temptation, or transformation that feels dangerous",
+    "kind": "combo"
+  },
+  {
+    "slug": "snake-and-house",
+    "name": "snake and house",
+    "focus": "a threat or transformation inside your private life, family, or personal foundations",
+    "kind": "combo"
+  },
+  {
+    "slug": "snake-and-pregnancy",
+    "name": "snake and pregnancy",
+    "focus": "anxiety, protectiveness, and heightened instinct around something important that is still developing",
+    "kind": "combo"
+  },
+  {
+    "slug": "baby-and-death",
+    "name": "baby and death",
+    "focus": "an ending and a beginning intertwined: one chapter closing while a fragile new one starts",
+    "kind": "combo"
+  },
+  {
+    "slug": "baby-and-water",
+    "name": "baby and water",
+    "focus": "new life surrounded by deep emotion, or the vulnerability of a beginning within a changing emotional current",
+    "kind": "combo"
+  },
+  {
+    "slug": "death-and-water",
+    "name": "death and water",
+    "focus": "grief and release moving together, or an ending processed through deep emotion",
+    "kind": "combo"
+  },
+  {
+    "slug": "death-and-fire",
+    "name": "death and fire",
+    "focus": "an ending through destruction and purification: something consumed so that something else can begin",
+    "kind": "combo"
+  },
+  {
+    "slug": "spider-and-snake",
+    "name": "spider and snake",
+    "focus": "two forms of threat at once: patient entanglement and sudden strike, or layered mistrust",
+    "kind": "combo"
+  },
+  {
+    "slug": "cat-and-dog",
+    "name": "cat and dog",
+    "focus": "the tension between independence and loyalty, or two relationship styles in conflict",
+    "kind": "combo"
+  },
+  {
+    "slug": "dog-and-snake",
+    "name": "dog and snake",
+    "focus": "trust and threat side by side: loyalty tested, or a warning within a trusted relationship",
+    "kind": "combo"
+  },
+  {
+    "slug": "wedding-and-death",
+    "name": "wedding and death",
+    "focus": "commitment and ending intertwined: an old identity closing as a binding new chapter begins",
+    "kind": "combo"
+  },
+  {
+    "slug": "wedding-and-blood",
+    "name": "wedding and blood",
+    "focus": "a commitment marked by cost, sacrifice, family tension, or a union that feels stained by conflict or loss",
+    "kind": "combo"
+  },
+  {
+    "slug": "teeth-and-blood",
+    "name": "teeth and blood",
+    "focus": "a loss that costs something vital: confidence, health, or words that wound on their way out",
+    "kind": "combo"
+  },
+  {
+    "slug": "fire-and-water",
+    "name": "fire and water",
+    "focus": "opposing forces in one scene: passion against emotion, destruction against renewal, or conflict seeking balance",
+    "kind": "combo"
+  },
+  {
+    "slug": "house-and-water",
+    "name": "house and water",
+    "focus": "emotion flooding into private life: feelings rising inside family, memory, or personal foundations",
+    "kind": "combo"
+  }
+]

@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import DreamGuidePage from "../DreamGuidePage";
-import { getDreamGuide } from "@/lib/dream-guides";
+import { getLocalizedGuide } from "@/lib/i18n/localize-guides";
+import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 
-const GUIDE = getDreamGuide("recurring-dreams")!;
+const GUIDE = getLocalizedGuide("recurring-dreams", "en")!;
 
 export const metadata: Metadata = {
   title: GUIDE.seoTitle,
   description: GUIDE.seoDescription,
-  alternates: { canonical: `/dreams/${GUIDE.slug}` },
-  openGraph: {
-    title: GUIDE.seoTitle,
-    description: GUIDE.seoDescription,
-    url: `/dreams/${GUIDE.slug}`,
-    type: "article",
-  },
+  ...localeMetadata(`/dreams/${GUIDE.slug}`, "en"),
+  openGraph: localeOpenGraph(`/dreams/${GUIDE.slug}`, "en", GUIDE.seoTitle, GUIDE.seoDescription, "article"),
 };
 
-export default function RecurringDreamsPage() {
-  return <DreamGuidePage guide={GUIDE} />;
+export default function Page() {
+  return <DreamGuidePage guide={GUIDE} locale="en" />;
 }

@@ -15,15 +15,36 @@ type Body = {
   idToken?: string;
 };
 
-function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
+function guessLang(text: string): string {
   const t = text ?? "";
   const hasHe = /[\u0590-\u05FF]/.test(t);
+  const hasAr = /[\u0600-\u06FF]/.test(t);
   const hasCy = /[\u0400-\u04FF]/.test(t);
   const hasLat = /[A-Za-z]/.test(t);
-  if (hasHe && !hasCy && !hasLat) return "he";
-  if (hasCy && !hasHe) return "ru";
-  if (hasLat && !hasHe && !hasCy) return "en";
+  if (hasHe && !hasCy && !hasLat && !hasAr) return "he";
+  if (hasAr && !hasHe && !hasCy) return "ar";
+  if (hasCy && !hasHe && !hasAr) return "ru";
+  if (hasLat && !hasHe && !hasCy && !hasAr) return "en";
   return "unknown";
+}
+
+function analysisLanguageName(lang: string): string {
+  switch (lang) {
+    case "es":
+      return "Spanish";
+    case "ar":
+      return "Arabic";
+    case "pt":
+      return "Brazilian Portuguese";
+    case "de":
+      return "German";
+    case "ru":
+      return "Russian";
+    case "he":
+      return "Hebrew";
+    default:
+      return "English";
+  }
 }
 
 export async function POST(req: Request) {
@@ -61,7 +82,7 @@ export async function POST(req: Request) {
 Dream text:
 """${text}"""
 
-Write a concise dream analysis in ${lang === "ru" ? "Russian" : lang === "he" ? "Hebrew" : "English"}.
+Write a concise dream analysis in ${analysisLanguageName(lang)}.
 
 Rules:
 - Do NOT include any titles or section headers.

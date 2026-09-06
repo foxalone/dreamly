@@ -1,17 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
+import AppI18n from "@/lib/i18n/AppI18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoSans = Noto_Sans({
+  variable: "--font-noto-sans",
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoArabic = Noto_Sans_Arabic({
+  variable: "--font-noto-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -48,13 +61,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSans.variable} ${notoArabic.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";if(loc==="ar")c.add("locale-ar");else c.remove("locale-ar");}catch(e){}})();`,
           }}
         />
         <script
@@ -65,8 +78,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         <FirebaseAnalytics />
-        {children}
-        <InstallPwaBanner />
+        <AppI18n>
+          {children}
+          <InstallPwaBanner />
+        </AppI18n>
       </body>
     </html>
   );

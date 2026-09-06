@@ -1,33 +1,17 @@
 import type { Metadata } from "next";
 import FaithHub from "../FaithHub";
-import { PARENT_DREAMS } from "@/lib/dream-dictionary";
+import { getFaithCopy } from "@/lib/i18n/hubs";
+import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
+
+const copy = getFaithCopy("en", "spiritual");
 
 export const metadata: Metadata = {
-  title: `Spiritual Dream Meanings: ${PARENT_DREAMS.length} Symbols, Growth & Attention`,
-  description:
-    "Dreams about snakes, water, angels, fire, and death as spiritual invitations to reflection and growth — not predictions of what will happen next.",
-  alternates: { canonical: "/dreams/spiritual" },
-  openGraph: {
-    title: "Spiritual Dream Meanings",
-    description: "What common dream symbols can mean as spiritual invitations to reflect and grow.",
-    url: "/dreams/spiritual",
-    type: "website",
-  },
+  title: copy.seoTitle,
+  description: copy.seoDescription,
+  ...localeMetadata("/dreams/spiritual", "en"),
+  openGraph: localeOpenGraph("/dreams/spiritual", "en", copy.seoTitle, copy.seoDescription),
 };
 
 export default function SpiritualDreamMeaningsPage() {
-  return (
-    <FaithHub
-      config={{
-        slug: "spiritual",
-        heading: "Spiritual Dream Meanings",
-        anchor: "spiritual",
-        perspectiveLabel: "Spiritual meaning",
-        intro: [
-          "A spiritual reading of a dream asks a different question than prediction: not \"what will happen?\" but \"what quality is this season of life asking me to practice?\" Patience, courage, release, protection, gratitude, discernment — a vivid symbol often marks the place where one of these is needed.",
-          "Each symbol below links to a full spiritual reflection alongside its psychological, Islamic, and biblical readings, so the interpretation deepens awareness instead of creating fear.",
-        ],
-      }}
-    />
-  );
+  return <FaithHub slug="spiritual" locale="en" />;
 }

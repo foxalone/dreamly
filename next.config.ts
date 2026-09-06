@@ -20,10 +20,20 @@ const nextConfig: NextConfig = {
         destination: "/app/dreams",
         permanent: true,
       },
+      {
+        source: "/:locale(es|ar|pt|de|ru)/app",
+        destination: "/:locale/app/dreams",
+        permanent: true,
+      },
       // Trailing-slash strip lands on a 404; send category index to the dictionary hub.
       {
         source: "/dreams/categories",
         destination: "/dreams",
+        permanent: true,
+      },
+      {
+        source: "/:locale(es|ar|pt|de|ru)/dreams/categories",
+        destination: "/:locale/dreams",
         permanent: true,
       },
     ];

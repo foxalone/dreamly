@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LocaleLink from "@/lib/i18n/LocaleLink";
+import { stripLocalePrefix } from "@/lib/i18n/path";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 
 import {
   GoogleAuthProvider,
@@ -191,6 +193,8 @@ type PrimaryNavProps = {
 
 export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
   const [signinNext, setSigninNext] = useState<string | null>(null);
@@ -208,7 +212,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   // can still be statically generated.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (pathname !== "/signin") {
+    if (stripLocalePrefix(pathname).path !== "/signin") {
       setSigninNext(null);
       return;
     }
@@ -217,8 +221,9 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   }, [pathname]);
 
   const effectivePath = useMemo(() => {
-    if (pathname === "/signin" && signinNext) return signinNext;
-    return pathname ?? "";
+    const unprefixed = stripLocalePrefix(pathname ?? "/").path;
+    if (unprefixed === "/signin" && signinNext) return signinNext;
+    return unprefixed;
   }, [pathname, signinNext]);
 
   const isActive = (href: string) =>
@@ -228,30 +233,30 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
     () => [
       {
         href: "/app/dreams",
-        label: "Dreams",
+        label: t.nav.dreams,
         icon: (a) => <IconDreams active={a} />,
         activeClass: "text-blue-500",
       },
       {
         href: "/app/shared",
-        label: "Feed",
+        label: t.nav.feed,
         icon: (a) => <IconShared active={a} />,
         activeClass: "text-red-500",
       },
       {
         href: "/dreams",
-        label: "Dictionary",
+        label: t.nav.dictionary,
         icon: (a) => <IconDictionary active={a} />,
         activeClass: "text-amber-400",
       },
       {
         href: "/app/map",
-        label: "Map",
+        label: t.nav.map,
         icon: (a) => <IconMap active={a} />,
         activeClass: "text-purple-500",
       },
     ],
-    []
+    [t]
   );
 
   async function signInGoogle() {
@@ -283,7 +288,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
         const active = isActive(it.href);
 
         return (
-          <Link
+          <LocaleLink
             key={it.href}
             href={it.href}
             aria-current={active ? "page" : undefined}
@@ -295,12 +300,12 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
           >
             {it.icon(active)}
             <span className="max-w-full truncate text-[10px] md:text-xs">{it.label}</span>
-          </Link>
+          </LocaleLink>
         );
       })}
 
       {user ? (
-        <Link
+        <LocaleLink
           href={profileHref}
           aria-current={profileActive ? "page" : undefined}
           className={cls(
@@ -310,8 +315,8 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
           )}
         >
           <AvatarIcon user={user} active={profileActive} />
-          <span className="max-w-full truncate text-[10px] md:text-xs">Profile</span>
-        </Link>
+          <span className="max-w-full truncate text-[10px] md:text-xs">{t.nav.profile}</span>
+        </LocaleLink>
       ) : (
         <button
           type="button"
@@ -325,7 +330,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
           )}
         >
           <IconSignIn active={false} />
-          <span className="max-w-full truncate text-[10px] md:text-xs">{busy ? "..." : "Sign in"}</span>
+          <span className="max-w-full truncate text-[10px] md:text-xs">{busy ? "..." : t.nav.signIn}</span>
         </button>
       )}
     </nav>
