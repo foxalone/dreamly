@@ -90,8 +90,7 @@ export async function POST(req: Request) {
       if (!("error" in auth)) uid = auth.uid;
     }
 
-    const isGuest = !uid;
-    if (isGuest) {
+    if (!uid) {
       guestId = readGuestId(req) ?? newGuestId();
       clientIp = readClientIp(req);
       const booked = await consumeGuestAsk(guestId, clientIp);
@@ -114,6 +113,7 @@ export async function POST(req: Request) {
       if ("error" in debit) return debit.error;
       chargedUid = uid;
     }
+    const isGuest = !uid;
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
