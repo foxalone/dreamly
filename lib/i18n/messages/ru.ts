@@ -24,6 +24,7 @@ export const RU_MESSAGES: UiMessages = {
     askMore: "Спросить ещё",
     askSignInNote: "Войдите, чтобы сохранить этот сон или спросить дальше.",
     askEmpty: "Сначала напишите несколько слов из сна.",
+    askOrDictionary: "Или открыть сонник",
     discover: "Открыть Dreamly",
     featuresTitle: "Всё, что нужно снам",
     featuresLead:

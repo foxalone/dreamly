@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles } from "lucide-react";
+import { BookOpenText, Loader2, Sparkles } from "lucide-react";
+import LocaleLink from "@/lib/i18n/LocaleLink";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { HOME_DREAM_MAX_CHARS, writeHomeDreamPending } from "@/lib/homeDreamPending";
@@ -121,10 +122,22 @@ export default function HomeDreamAsk({
       </form>
 
       {error ? (
-        <p className="mt-3 text-sm text-red-500" role="alert">
+        <p className="mt-3 text-center text-sm text-red-500" role="alert">
           {error}
         </p>
       ) : null}
+
+      {analysis ? null : (
+        <div className="mt-4 text-center">
+          <LocaleLink
+            href="/dreams"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--text)] hover:bg-[var(--surface)]"
+          >
+            <BookOpenText size={16} aria-hidden="true" />
+            {t.home.askOrDictionary}
+          </LocaleLink>
+        </div>
+      )}
 
       {analysis ? (
         <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
