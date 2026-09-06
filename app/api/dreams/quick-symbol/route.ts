@@ -20,11 +20,13 @@ import {
   refundGuestAsk,
   setGuestCookie,
 } from "../_lib/guestQuota";
+import { dreamLensPrompt, parseDreamLens } from "@/lib/dream-lenses";
 
 export const runtime = "nodejs";
 
 type Body = {
   query?: string;
+  lens?: string;
   idToken?: string;
 };
 
@@ -97,6 +99,7 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const query = String(body?.query ?? "").trim();
     const idToken = String(body?.idToken ?? "").trim();
+    const lens = parseDreamLens(body?.lens);
 
     if (!query) {
       return NextResponse.json({ error: "Missing query" }, { status: 400 });
@@ -129,7 +132,7 @@ export async function POST(req: Request) {
     const finish = <T extends NextResponse>(res: T): T =>
       guestId ? setGuestCookie(res, guestId) : res;
 
-    const match = findBestDreamMatch(query);
+    const match = findBestDreamMatch(query, lens);
 
     // Strong dictionary match → free
     if (match) {
@@ -151,6 +154,7 @@ export async function POST(req: Request) {
           answer: match.snippet || match.shortMeaning,
           href: `/dreams/${match.slug}`,
           guest: isGuest,
+          lens,
         })
       );
     }
@@ -239,7 +243,7 @@ export async function POST(req: Request) {
       const resp = await openai.responses.create({
         model,
         instructions:
-          "You are a concise dream-dictionary assistant. Given a short dream symbol or phrase, write 2–4 short sentences of practical meaning. No medical claims, no predictions, no titles, no bullet lists.",
+          `You are a concise dream-dictionary assistant. Given a short dream symbol or phrase, write 2–4 short sentences of practical meaning. No medical claims, no predictions, no titles, no bullet lists. Interpretive lens: ${lens}. ${dreamLensPrompt(lens)}`,
         input: `Dream symbol / phrase: """${query}"""`,
         reasoning: { effort: "minimal" },
       });
@@ -277,6 +281,7 @@ export async function POST(req: Request) {
         answer,
         href: null,
         model,
+        lens,
         guest: isGuest,
       })
     );

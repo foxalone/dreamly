@@ -36,10 +36,11 @@ export default function DreamLensChips({
   value: DreamLens;
   onChange: (lens: DreamLens) => void;
   disabled?: boolean;
-  tone?: "onBrand" | "onSurface";
+  tone?: "onBrand" | "onSurface" | "onDictionary";
 }) {
   const t = useMessages();
   const onBrand = tone === "onBrand";
+  const onDictionary = tone === "onDictionary";
 
   return (
     <div>
@@ -47,7 +48,9 @@ export default function DreamLensChips({
         className={
           onBrand
             ? "mb-1.5 px-0.5 text-[11px] font-medium text-white/75"
-            : "mb-1.5 text-[11px] font-medium text-[var(--muted)]"
+            : onDictionary
+              ? "mb-1.5 text-[11px] font-medium text-[var(--dd-subtle)]"
+              : "mb-1.5 text-[11px] font-medium text-[var(--muted)]"
         }
       >
         {t.lens.label}
@@ -69,9 +72,13 @@ export default function DreamLensChips({
                   ? selected
                     ? "bg-white text-purple-700"
                     : "bg-white/15 text-white hover:bg-white/25"
-                  : selected
-                    ? "bg-purple-600 text-white"
-                    : "border border-[var(--border)] bg-[var(--card)] text-[var(--muted)] hover:border-[var(--text)] hover:text-[var(--text)]",
+                  : onDictionary
+                    ? selected
+                      ? "bg-violet-500 text-white"
+                      : "border border-[var(--dd-border)] bg-[var(--dd-surface)] text-[var(--dd-muted)] hover:border-violet-400/50 hover:text-[var(--dd-text)]"
+                    : selected
+                      ? "bg-purple-600 text-white"
+                      : "border border-[var(--border)] bg-[var(--card)] text-[var(--muted)] hover:border-[var(--text)] hover:text-[var(--text)]",
               ].join(" ")}
             >
               {t.lens[lens]}

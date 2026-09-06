@@ -13,6 +13,8 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
 import { trackEvent } from "@/lib/analytics";
 import { QUICK_SYMBOL_OPEN_EVENT, type QuickSymbolOpenDetail } from "./quickSymbolEvents";
+import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
+import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
 
 const PENDING_KEY = "dreamly:quickSymbolPending";
 
@@ -31,6 +33,7 @@ type QuickResult = {
 
 type PendingPayload = {
   query: string;
+  lens?: DreamLens;
 };
 
 function toDateKeyLocal(d: Date) {
@@ -58,15 +61,15 @@ function readPending(): PendingPayload | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PendingPayload;
     const q = String(parsed?.query ?? "").trim();
-    return q ? { query: q } : null;
+    return q ? { query: q, lens: parsed.lens ? parseDreamLens(parsed.lens) : undefined } : null;
   } catch {
     return null;
   }
 }
 
-function writePending(query: string) {
+function writePending(query: string, lens?: DreamLens) {
   try {
-    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ query }));
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ query, lens }));
   } catch {
     // ignore
   }
@@ -93,6 +96,7 @@ export default function QuickSymbolFab() {
   const [resultIsGuest, setResultIsGuest] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const resumeStarted = useRef(false);
+  const [lens, setLens] = useDreamLens();
 
   useEffect(() => {
     setPortalReady(true);
@@ -118,8 +122,10 @@ export default function QuickSymbolFab() {
 
   useEffect(() => {
     const onOpen = (event: Event) => {
-      const nextQuery = (event as CustomEvent<QuickSymbolOpenDetail>).detail?.query?.trim();
+      const detail = (event as CustomEvent<QuickSymbolOpenDetail>).detail;
+      const nextQuery = detail?.query?.trim();
       if (nextQuery) setQuery(nextQuery);
+      if (detail?.lens) setLens(detail.lens);
       setError(null);
       setResult(null);
       setOpen(true);
@@ -135,6 +141,7 @@ export default function QuickSymbolFab() {
     matched: boolean;
     slug: string | null;
     cost: number;
+    lens: DreamLens;
   }) {
     const u = auth.currentUser;
     if (!u) return;
@@ -171,13 +178,14 @@ export default function QuickSymbolFab() {
       quickSymbolMatched: params.matched,
       quickSymbolSlug: params.slug,
       quickSymbolCost: params.cost,
+      analysisLens: params.lens,
       ownerUid: u.uid,
       authorName: (u.displayName ?? "").trim() || null,
       authorEmail: (u.email ?? "").trim() || null,
     });
   }
 
-  async function runLookup(rawQuery: string, currentUser: User | null) {
+  async function runLookup(rawQuery: string, currentUser: User | null, nextLens = lens) {
     const q = rawQuery.trim();
     setError(null);
     setResult(null);
@@ -198,7 +206,7 @@ export default function QuickSymbolFab() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify(idToken ? { query: q, idToken } : { query: q }),
+        body: JSON.stringify(idToken ? { query: q, lens: nextLens, idToken } : { query: q, lens: nextLens }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -235,6 +243,7 @@ export default function QuickSymbolFab() {
         word_count: countWords(q),
         credits_used: next.cost,
         guest: !currentUser,
+        lens: nextLens,
       });
 
       try {
@@ -244,6 +253,7 @@ export default function QuickSymbolFab() {
           matched: next.matched,
           slug: next.match?.slug ?? null,
           cost: next.cost,
+          lens: nextLens,
         });
       } catch (err) {
         console.warn("quick symbol diary save failed", err);
@@ -256,7 +266,7 @@ export default function QuickSymbolFab() {
   }
 
   function goToSignIn(pendingQuery: string) {
-    writePending(pendingQuery);
+    writePending(pendingQuery, lens);
     const returnTo = `${pathname || "/dreams"}${typeof window !== "undefined" ? window.location.search : ""}`;
     router.push(`/signin?next=${encodeURIComponent(returnTo)}`);
   }
@@ -289,7 +299,8 @@ export default function QuickSymbolFab() {
     clearPending();
     setOpen(true);
     setQuery(pending.query);
-    void runLookup(pending.query, user);
+    if (pending.lens) setLens(pending.lens);
+    void runLookup(pending.query, user, pending.lens);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once after auth resume
   }, [authReady, user]);
 
@@ -362,6 +373,7 @@ export default function QuickSymbolFab() {
                     disabled={busy}
                     autoFocus
                   />
+                  <DreamLensChips value={lens} onChange={setLens} disabled={busy} tone="onDictionary" />
                   <div className="flex items-center justify-between gap-2 text-xs text-[var(--dd-subtle)]">
                     <span>
                       {countWords(query)} / {QUICK_SYMBOL_MAX_WORDS} words

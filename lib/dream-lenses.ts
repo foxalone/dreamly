@@ -44,6 +44,29 @@ export function dreamLensPrompt(lens: DreamLens): string {
   return LENS_PROMPT[lens];
 }
 
+export function dictionarySectionForLens(lens: DreamLens): "psychological" | "spiritual" | "islamic" | "biblical" {
+  if (lens === "islamic") return "islamic";
+  if (lens === "biblical") return "biblical";
+  if (lens === "psychological") return "psychological";
+  return "spiritual";
+}
+
+export function dictionarySnippetForLens(
+  entry: {
+    shortMeaning?: string;
+    sections?: { [key: string]: unknown };
+  },
+  lens: DreamLens,
+): string {
+  const pick = (key: string) => {
+    const arr = entry.sections?.[key];
+    if (!Array.isArray(arr)) return "";
+    const first = arr[0];
+    return typeof first === "string" ? first.trim() : "";
+  };
+  return pick(dictionarySectionForLens(lens)) || pick("introduction") || String(entry.shortMeaning ?? "").trim();
+}
+
 export function readStoredDreamLens(): DreamLens {
   try {
     return parseDreamLens(window.localStorage.getItem(DREAM_LENS_STORAGE_KEY));

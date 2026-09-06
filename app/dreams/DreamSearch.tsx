@@ -7,6 +7,7 @@ import { getCategoryCopy } from "@/lib/i18n/categories";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { openQuickSymbol } from "./quickSymbolEvents";
+import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
 import { trackEvent } from "@/lib/analytics";
 import {
   containsWholePhrase,
@@ -28,6 +29,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   const t = useMessages();
   const [query, setQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
+  const [lens, setLens] = useDreamLens();
   const lastLoggedQuery = useRef("");
   const normalizedQuery = normalizeMatchText(query);
 
@@ -116,11 +118,12 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     const nextQuery = aiQuery.trim();
     if (!nextQuery) return;
     trackEvent("quick_symbol_opened", { source: "dictionary_search" });
-    openQuickSymbol(nextQuery);
+    openQuickSymbol(nextQuery, lens);
   }
 
   return (
-    <div className="mx-auto mt-8 grid max-w-3xl grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2 text-left">
+    <div className="mx-auto mt-8 max-w-3xl text-left">
+      <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2">
       <div className="relative min-w-0">
         <label htmlFor="dream-search" className="sr-only">{t.chrome.searchLabel}</label>
         <div className="flex h-full min-h-12 items-center gap-3 rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] px-4 py-3 shadow-sm transition focus-within:border-violet-400/50 focus-within:ring-4 focus-within:ring-violet-400/10">
@@ -202,6 +205,10 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
           <ArrowRight size={15} aria-hidden="true" />
         </button>
       </form>
+      </div>
+      <div className="mt-3">
+        <DreamLensChips value={lens} onChange={setLens} tone="onDictionary" />
+      </div>
     </div>
   );
 }
