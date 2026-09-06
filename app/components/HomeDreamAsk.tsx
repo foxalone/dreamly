@@ -9,7 +9,11 @@ import { HOME_DREAM_MAX_CHARS, writeHomeDreamPending } from "@/lib/homeDreamPend
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 
-export default function HomeDreamAsk() {
+export default function HomeDreamAsk({
+  onResultChange,
+}: {
+  onResultChange?: (hasResult: boolean) => void;
+}) {
   const t = useMessages();
   const locale = useLocale();
   const router = useRouter();
@@ -42,6 +46,7 @@ export default function HomeDreamAsk() {
     setBusy(true);
     setError(null);
     setAnalysis(null);
+    onResultChange?.(false);
 
     try {
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
@@ -74,6 +79,7 @@ export default function HomeDreamAsk() {
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
+      onResultChange?.(true);
       trackEvent("home_dream_interpreted", {
         guest: !!data.guest,
         credits_used: Number(data.cost ?? 0) || 0,

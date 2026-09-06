@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   BookOpenText,
-  ChevronDown,
   Globe2,
   NotebookPen,
   Sparkles,
@@ -14,7 +13,7 @@ import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
-import HomeDreamAsk from "@/app/components/HomeDreamAsk";
+import HomeHero from "@/app/components/HomeHero";
 
 export default function HomeView({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
@@ -69,29 +68,7 @@ export default function HomeView({ locale }: { locale: Locale }) {
         <LanguageSwitcher />
       </div>
 
-      <section className="relative min-h-[88svh] flex items-center justify-center">
-        <div className="text-center max-w-2xl">
-          <p
-            className="text-4xl sm:text-6xl font-semibold tracking-wide mb-8 bg-clip-text text-transparent"
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, #ff4d6d 0%, #ff9e00 18%, #ffd60a 36%, #38d39f 54%, #4dabf7 72%, #9775fa 100%)",
-            }}
-          >
-            Dreamly
-          </p>
-          <h1 className="text-xl sm:text-2xl font-medium">{t.home.h1}</h1>
-          <p className="mt-6 text-[var(--muted)] text-base sm:text-lg">{t.home.lead}</p>
-          <HomeDreamAsk />
-        </div>
-        <a
-          href="#features"
-          className="absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
-        >
-          <span className="text-sm font-medium">{t.home.discover}</span>
-          <ChevronDown size={20} className="animate-bounce" aria-hidden="true" />
-        </a>
-      </section>
+      <HomeHero />
 
       <section id="features" aria-labelledby="features-title" className="mx-auto max-w-4xl scroll-mt-8 pb-20 pt-6">
         <div className="text-center">
