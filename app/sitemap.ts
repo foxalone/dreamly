@@ -10,6 +10,11 @@ function localizedUrls(path: string): string[] {
   return LOCALES.map((locale) => `${SITE}${localePath(path, locale)}`);
 }
 
+/** Next.js writes image:loc as raw text; unescaped `&` in Storage URLs makes the XML invalid for GSC. */
+function xmlSafeImageUrl(url: string): string {
+  return url.replace(/&/g, "&amp;");
+}
+
 // Bump when the homepage content materially changes.
 const HOME_UPDATED_AT = "2026-07-02";
 
@@ -91,7 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: entry.updatedAt,
       changeFrequency: "monthly" as const,
       priority: entry.parentSlug ? 0.7 : 0.8,
-      ...(imageUrl ? { images: [imageUrl] } : {}),
+      ...(imageUrl ? { images: [xmlSafeImageUrl(imageUrl)] } : {}),
     }));
   });
 
