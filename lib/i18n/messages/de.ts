@@ -25,6 +25,7 @@ export const DE_MESSAGES: UiMessages = {
     askSignInNote: "Melde dich an, um diesen Traum zu speichern oder weiterzufragen.",
     askEmpty: "Schreib zuerst ein paar Worte aus dem Traum.",
     askOrDictionary: "Oder das Traumlexikon durchsuchen",
+    askGuestLimit: "Du hattest bereits eine kostenlose Deutung. Melde dich an, um mehr zu bekommen.",
     discover: "Dreamly entdecken",
     featuresTitle: "Alles, was deine Träume verdienen",
     featuresLead:

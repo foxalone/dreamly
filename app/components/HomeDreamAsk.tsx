@@ -23,7 +23,7 @@ export default function HomeDreamAsk({
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
 
-  function goToJournal(pending = text) {
+  function goToJournal(pending = text, guestLimit = false) {
     writeHomeDreamPending(pending);
     const next = localePath("/app/dreams", locale);
     const user = auth.currentUser;
@@ -31,7 +31,12 @@ export default function HomeDreamAsk({
       router.push(next);
       return;
     }
-    router.push(`${localePath("/signin", locale)}?next=${encodeURIComponent(next)}`);
+    const params = new URLSearchParams({ next });
+    if (guestLimit) {
+      params.set("reason", "guest_limit");
+      params.set("cancel", localePath("/dreams", locale));
+    }
+    router.push(`${localePath("/signin", locale)}?${params.toString()}`);
   }
 
   async function onSubmit(event: FormEvent) {
@@ -66,7 +71,7 @@ export default function HomeDreamAsk({
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source: "home_ask" });
-          goToJournal(dream);
+          goToJournal(dream, true);
           return;
         }
         if (data?.code === "INSUFFICIENT_CREDITS") {

@@ -25,6 +25,7 @@ export const PT_MESSAGES: UiMessages = {
     askSignInNote: "Entre para salvar este sonho ou continuar perguntando.",
     askEmpty: "Escreva primeiro algumas palavras do sonho.",
     askOrDictionary: "Ou abra o dicionário de sonhos",
+    askGuestLimit: "Você já usou sua interpretação grátis. Entre para obter mais.",
     discover: "Conheça a Dreamly",
     featuresTitle: "Tudo o que seus sonhos merecem",
     featuresLead:

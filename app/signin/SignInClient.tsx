@@ -13,31 +13,47 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
 import { trackAuth } from "@/lib/analytics";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
+
+function safeInternalPath(value: string | null): string | null {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  return value;
+}
 
 export default function SignInClient() {
   const router = useRouter();
   const sp = useSearchParams();
+  const locale = useLocale();
+  const t = useMessages();
 
   const next = useMemo(() => {
-    const n = sp.get("next");
-    return n && n.startsWith("/") ? n : "/app/dreams";
-  }, [sp]);
+    return safeInternalPath(sp.get("next")) ?? localePath("/app/dreams", locale);
+  }, [sp, locale]);
+
+  const cancelTo = useMemo(() => {
+    return (
+      safeInternalPath(sp.get("cancel")) ??
+      (sp.get("reason") === "guest_limit" ? localePath("/dreams", locale) : next)
+    );
+  }, [sp, locale, next]);
 
   const subtitle = useMemo(() => {
-    if (next.startsWith("/app/chat")) {
+    if (sp.get("reason") === "guest_limit") return t.home.askGuestLimit;
+    if (next.startsWith("/app/chat") || next.includes("/app/chat")) {
       return "Sign in with Google to chat with your friends.";
     }
-    if (next.startsWith("/app/shared")) {
+    if (next.startsWith("/app/shared") || next.includes("/app/shared")) {
       return "Sign in with Google to react and share dreams.";
     }
-    if (next.startsWith("/app/map")) {
+    if (next.startsWith("/app/map") || next.includes("/app/map")) {
       return "Sign in with Google to explore the dream map.";
     }
-    if (next.startsWith("/dreams")) {
+    if (next.includes("/dreams") && !next.includes("/app/dreams")) {
       return "Sign in with Google to look up dream symbols.";
     }
     return "Sign in with Google to save your dreams.";
-  }, [next]);
+  }, [next, sp, t.home.askGuestLimit]);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -99,10 +115,10 @@ export default function SignInClient() {
 
         <button
           disabled={busy}
-          onClick={() => router.replace(next)}
+          onClick={() => router.replace(cancelTo)}
           className="w-full mt-3 py-2 text-sm text-[var(--muted)] disabled:opacity-60"
         >
-          Cancel
+          {sp.get("reason") === "guest_limit" ? t.home.askOrDictionary : "Cancel"}
         </button>
       </div>
     </main>

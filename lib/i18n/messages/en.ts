@@ -25,6 +25,7 @@ export const EN_MESSAGES: UiMessages = {
     askSignInNote: "Sign in to save this dream or keep asking.",
     askEmpty: "Write a few words from the dream first.",
     askOrDictionary: "Or browse the dream dictionary",
+    askGuestLimit: "You already had one free interpretation. Sign in to get more.",
     discover: "Discover Dreamly",
     featuresTitle: "Everything your dreams deserve",
     featuresLead:

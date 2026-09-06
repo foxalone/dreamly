@@ -1449,6 +1449,13 @@ export default function DreamsPage() {
               <FcGoogle className="text-xl" />
               <span>Sign in with Google</span>
             </button>
+            <button
+              type="button"
+              onClick={() => router.push(localePath("/dreams", locale))}
+              className="mt-3 block text-sm font-semibold text-[var(--muted)] hover:text-[var(--text)]"
+            >
+              {t.home.askOrDictionary}
+            </button>
 
             {error && (
               <div className="mt-4 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">

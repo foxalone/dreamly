@@ -25,6 +25,7 @@ export const AR_MESSAGES: UiMessages = {
     askSignInNote: "سجّل الدخول لتحفظ هذا الحلم أو تسأل أكثر.",
     askEmpty: "اكتب أولاً بضع كلمات من الحلم.",
     askOrDictionary: "أو تصفّح قاموس الأحلام",
+    askGuestLimit: "لقد استخدمت تفسيرك المجاني. سجّل الدخول للحصول على المزيد.",
     discover: "اكتشف Dreamly",
     featuresTitle: "كل ما تستحقه أحلامك",
     featuresLead:

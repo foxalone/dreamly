@@ -23,6 +23,7 @@ export type UiMessages = {
     askSignInNote: string;
     askEmpty: string;
     askOrDictionary: string;
+    askGuestLimit: string;
     discover: string;
     featuresTitle: string;
     featuresLead: string;
