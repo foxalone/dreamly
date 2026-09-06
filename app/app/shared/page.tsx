@@ -467,11 +467,9 @@ export default function SharedPage() {
   }
 
   return (
-    <main className="relative min-h-screen px-6 py-10 max-w-3xl mx-auto">
+    <main className="relative min-h-screen px-6 pt-4 pb-10 max-w-3xl mx-auto">
       <div>
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-semibold text-[var(--text)]">Feed</h1>
-        </div>
+        <h1 className="sr-only">Feed</h1>
 
         {error && (
           <div className="mt-5 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
@@ -480,11 +478,11 @@ export default function SharedPage() {
         )}
 
         {list.length === 0 ? (
-          <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
+          <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
             No shared items yet.
           </div>
         ) : (
-          <div className="mt-8 space-y-3">
+          <div className="mt-2 space-y-3">
             {list.map((d, index) => {
               const myR = my[d.id] ?? { heart: false, like: false, star: false };
               const r = d.reactions ?? {};

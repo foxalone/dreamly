@@ -11,9 +11,10 @@ import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.e
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
-import { GoogleAuthProvider, getAdditionalUserInfo, onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { getAdditionalUserInfo, onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
@@ -901,9 +902,8 @@ export default function DreamsPage() {
   async function signInGoogle() {
     setError(null);
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await signInWithGoogle();
+      if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
       // uid will update via onAuthStateChanged
@@ -1497,7 +1497,7 @@ export default function DreamsPage() {
   }, [uid, tab, sharedItems]);
 
   return (
-    <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-3xl mx-auto">
+    <main className="relative min-h-screen px-5 sm:px-6 pt-4 pb-8 sm:pt-5 sm:pb-10 max-w-3xl mx-auto">
       {locked && (
         <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
           <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-6">
@@ -1531,11 +1531,10 @@ export default function DreamsPage() {
       <div className={locked ? "pointer-events-none select-none" : ""}>
       {/* Header */}
       <div>
-        <div className="min-w-0">
-          <h1 className="text-3xl font-semibold">Your Diary</h1>
+        <h1 className="sr-only">Your Diary</h1>
 
        {/* Tabs: Dreams → Stories → Shared → Credits */}
-<div className="mt-3 inline-flex max-w-full overflow-x-auto rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
+<div className="inline-flex max-w-full overflow-x-auto rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
   <button
     onClick={() => setTab("DREAMS")}
     className={[
@@ -1584,7 +1583,6 @@ export default function DreamsPage() {
     Credits <span className="opacity-70">({creditsLoading ? "…" : credits})</span>
   </button>
 </div>
-        </div>
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <textarea

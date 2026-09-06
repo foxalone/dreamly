@@ -43,3 +43,11 @@ yarn-error.log*
 next-env.d.ts
 serviceAccountKey.json
 .ai-video-work/
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/**/*.iml
+android/app/release/

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -41,6 +42,7 @@ export default function InstallPwaBanner() {
   const standalone = useMemo(() => isInStandaloneMode(), []);
 
   useEffect(() => {
+    if (isDreamlyAndroidApp()) return;
     if (!isMobile()) return;
     if (standalone) return;
 

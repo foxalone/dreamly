@@ -4,12 +4,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  GoogleAuthProvider,
   getAdditionalUserInfo,
   onAuthStateChanged,
-  signInWithPopup,
 } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth } from "@/lib/firebase";
 import { FcGoogle } from "react-icons/fc";
 import { trackAuth } from "@/lib/analytics";
@@ -76,10 +75,8 @@ export default function SignInClient() {
     setBusy(true);
 
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await signInWithGoogle();
+      if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
 

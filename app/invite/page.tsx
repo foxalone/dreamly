@@ -3,16 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  GoogleAuthProvider,
   getAdditionalUserInfo,
   onAuthStateChanged,
-  signInWithPopup,
   type User,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { createOrGetDirectChat } from "@/lib/chat/chatDb";
 import { trackAuth } from "@/lib/analytics";
 
@@ -168,8 +167,8 @@ export default function InvitePage() {
       setError("");
       setJoining(false);
 
-      const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await signInWithGoogle();
+      if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
     } catch (e) {

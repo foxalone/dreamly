@@ -7,14 +7,13 @@ import { stripLocalePrefix } from "@/lib/i18n/path";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 
 import {
-  GoogleAuthProvider,
   User,
   getAdditionalUserInfo,
   onAuthStateChanged,
-  signInWithPopup,
 } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth } from "@/lib/firebase";
 import { trackAuth } from "@/lib/analytics";
 
@@ -291,8 +290,8 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   async function signInGoogle() {
     try {
       setBusy(true);
-      const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await signInWithGoogle();
+      if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
     } finally {
