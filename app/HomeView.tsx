@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BookOpenText,
   Globe2,
+  Images,
   NotebookPen,
   Sparkles,
 } from "lucide-react";
@@ -23,6 +24,7 @@ export default function HomeView({ locale }: { locale: Locale }) {
     { icon: Sparkles, title: t.home.interpreterTitle, description: t.home.interpreterBody, href: "/app/dreams", linkLabel: t.home.interpreterCta },
     { icon: NotebookPen, title: t.home.journalTitle, description: t.home.journalBody, href: "/app/dreams", linkLabel: t.home.journalCta },
     { icon: Globe2, title: t.home.mapTitle, description: t.home.mapBody, href: "/app/map", linkLabel: t.home.mapCta },
+    { icon: Images, title: t.home.galleryTitle, description: t.home.galleryBody, href: "/gallery", linkLabel: t.home.galleryCta },
     { icon: BookOpenText, title: t.home.dictionaryTitle, description: t.home.dictionaryBody, href: "/dreams", linkLabel: t.home.dictionaryCta },
   ];
 

@@ -54,3 +54,18 @@ export async function listDreamPageImageUrls(): Promise<Map<string, string>> {
   }
   return urls;
 }
+
+export const listDreamPageImages = cache(async (): Promise<DreamPageImageAssignment[]> => {
+  try {
+    const snapshot = await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).get();
+    const items: DreamPageImageAssignment[] = [];
+    for (const doc of snapshot.docs) {
+      const assignment = assignmentFromData(doc.id, doc.data() as StoredAssignment | undefined);
+      if (assignment) items.push(assignment);
+    }
+    return items;
+  } catch (error) {
+    console.error("[dreamPageImage:listAll]", error);
+    return [];
+  }
+});

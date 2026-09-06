@@ -5,6 +5,7 @@ export const PT_MESSAGES: UiMessages = {
   nav: {
     dreams: "Sonhos",
     feed: "Feed",
+    gallery: "Arte",
     dictionary: "Dicionário",
     map: "Mapa",
     signIn: "Entrar",
@@ -44,6 +45,10 @@ export const PT_MESSAGES: UiMessages = {
     mapBody:
       "Veja o que o mundo está sonhando. Sonhos compartilhados de forma anônima aparecem num mapa ao vivo, perto de você e longe.",
     mapCta: "Explorar o mapa",
+    galleryTitle: "Galeria de arte dos sonhos",
+    galleryBody:
+      "Um mural vivo de ilustrações de sonhos feitas com IA. Abra qualquer imagem para ler o significado do símbolo no dicionário.",
+    galleryCta: "Ver a galeria",
     dictionaryTitle: "Dicionário de sonhos",
     dictionaryBody:
       "Centenas de símbolos e variações explicados — leituras psicológica, espiritual, islâmica e bíblica, cenas comuns e perguntas frequentes.",
@@ -87,6 +92,16 @@ export const PT_MESSAGES: UiMessages = {
           "Costumam repetir temas: cobras, transformação ou medo oculto; casamentos, compromisso e transição; fantasmas, memória ou luto; traição, confiança e insegurança. O dicionário cobre esses e centenas de símbolos com leituras psicológica, espiritual, islâmica e bíblica.",
       },
     ],
+  },
+  gallery: {
+    h1: "Galeria de arte dos sonhos",
+    lead: "Ilustrações com IA dos símbolos de sonho mais buscados. Cada imagem abre o significado no dicionário Dreamly.",
+    empty: "Novas ilustrações de sonhos aparecem aqui quando são publicadas.",
+    openMeaning: "Significado do sonho",
+    alt: "Arte de sonho de {name}",
+    seoTitle: "Galeria de arte dos sonhos: ilustrações de símbolos com IA",
+    seoDescription:
+      "Explore uma galeria estilo Pinterest de arte de sonhos com IA. Toque numa ilustração para ler o significado psicológico, espiritual, islâmico e bíblico daquele símbolo.",
   },
   dictionary: {
     badge: "{count} significados em {clusters} grupos",

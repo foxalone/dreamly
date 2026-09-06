@@ -62,6 +62,29 @@ function IconDreams({ active }: { active: boolean }) {
   );
 }
 
+function IconGallery({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
+      <path
+        d="M5 7.5 8.2 4h7.6L19 7.5V18a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        opacity={active ? 1 : 0.75}
+      />
+      <path
+        d="M8 14.5 10.2 12l2.1 2.2L15.8 11 18 13.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={active ? 1 : 0.75}
+      />
+      <circle cx="9" cy="9" r="1.15" fill="currentColor" opacity={active ? 1 : 0.75} />
+    </svg>
+  );
+}
+
 function IconDictionary({ active }: { active: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
@@ -244,6 +267,12 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
         activeClass: "text-red-500",
       },
       {
+        href: "/gallery",
+        label: t.nav.gallery,
+        icon: (a) => <IconGallery active={a} />,
+        activeClass: "text-rose-400",
+      },
+      {
         href: "/dreams",
         label: t.nav.dictionary,
         icon: (a) => <IconDictionary active={a} />,
@@ -277,12 +306,12 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const profileActive = isActive(profileHref);
   const idleClass = tone === "dictionary" ? "text-[var(--dd-muted)]" : "text-[var(--muted)]";
   const itemClass =
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 md:flex-none md:px-2.5 md:py-1";
+    "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 md:flex-none md:px-2.5 md:py-1";
 
   return (
     <nav
       aria-label="Primary"
-      className="primary-nav grid min-w-0 w-full grid-cols-5 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
+      className="primary-nav grid min-w-0 w-full grid-cols-6 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
     >
       {baseItems.map((it) => {
         const active = isActive(it.href);

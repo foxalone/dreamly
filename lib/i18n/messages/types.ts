@@ -3,6 +3,7 @@ export type UiMessages = {
   nav: {
     dreams: string;
     feed: string;
+    gallery: string;
     dictionary: string;
     map: string;
     signIn: string;
@@ -38,6 +39,9 @@ export type UiMessages = {
     mapTitle: string;
     mapBody: string;
     mapCta: string;
+    galleryTitle: string;
+    galleryBody: string;
+    galleryCta: string;
     dictionaryTitle: string;
     dictionaryBody: string;
     dictionaryCta: string;
@@ -48,6 +52,15 @@ export type UiMessages = {
     closingTitle: string;
     closingLead: string;
     faqs: { question: string; answer: string }[];
+  };
+  gallery: {
+    h1: string;
+    lead: string;
+    empty: string;
+    openMeaning: string;
+    alt: string;
+    seoTitle: string;
+    seoDescription: string;
   };
   dictionary: {
     badge: string;

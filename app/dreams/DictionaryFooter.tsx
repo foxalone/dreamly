@@ -13,6 +13,7 @@ export default function DictionaryFooter() {
 
   const hubs: { href: string; label: string }[] = [
     { href: "/dreams", label: t.dictionary.h1 },
+    { href: "/gallery", label: t.gallery.h1 },
     { href: "/dreams/a-z", label: t.dictionary.aToZ },
     { href: "/dreams/most-common", label: t.dictionary.mostCommon },
     { href: "/dreams/nightmares", label: t.dictionary.nightmares },

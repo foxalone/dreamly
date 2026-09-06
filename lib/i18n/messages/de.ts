@@ -5,6 +5,7 @@ export const DE_MESSAGES: UiMessages = {
   nav: {
     dreams: "Träume",
     feed: "Feed",
+    gallery: "Kunst",
     dictionary: "Lexikon",
     map: "Karte",
     signIn: "Anmelden",
@@ -44,6 +45,10 @@ export const DE_MESSAGES: UiMessages = {
     mapBody:
       "Sieh, wovon die Welt träumt. Anonym geteilte Träume erscheinen auf einer lebenden Weltkarte — in deiner Nähe und weit weg.",
     mapCta: "Karte erkunden",
+    galleryTitle: "Traumkunst-Galerie",
+    galleryBody:
+      "Eine lebende Wand aus KI-Traumbildern. Öffne ein Bild und lies die Bedeutung des Symbols im Lexikon.",
+    galleryCta: "Galerie öffnen",
     dictionaryTitle: "Traumlexikon",
     dictionaryBody:
       "Hunderte Symbole und Varianten — psychologische, spirituelle, islamische und biblische Lesarten, typische Szenen und häufige Fragen.",
@@ -87,6 +92,16 @@ export const DE_MESSAGES: UiMessages = {
           "Wiederkehrende Themen: Schlangen oft Verwandlung oder verborgene Angst; Hochzeit Bindung und Übergang; Geister unerledigte Erinnerung oder Trauer; Fremdgehen Vertrauen und Unsicherheit. Das Lexikon deckt diese und Hunderte weiterer Symbole mit psychologischer, spiritueller, islamischer und biblischer Lesart ab.",
       },
     ],
+  },
+  gallery: {
+    h1: "Traumkunst-Galerie",
+    lead: "KI-Illustrationen der meistgesuchten Traumsymbole. Jedes Bild öffnet die Bedeutung im Dreamly-Lexikon.",
+    empty: "Neue Traumbilder erscheinen hier, sobald sie veröffentlicht sind.",
+    openMeaning: "Traumbedeutung",
+    alt: "Traumkunst zu {name}",
+    seoTitle: "Traumkunst-Galerie: KI-Illustrationen von Traumsymbolen",
+    seoDescription:
+      "Eine Pinterest-artige Galerie mit KI-Traumkunst. Tippe auf ein Bild und lies die psychologische, spirituelle, islamische und biblische Bedeutung des Symbols.",
   },
   dictionary: {
     badge: "{count} Bedeutungen in {clusters} Traumgruppen",

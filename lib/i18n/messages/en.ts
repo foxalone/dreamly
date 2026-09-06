@@ -5,6 +5,7 @@ export const EN_MESSAGES: UiMessages = {
   nav: {
     dreams: "Dreams",
     feed: "Feed",
+    gallery: "Art",
     dictionary: "Dictionary",
     map: "Map",
     signIn: "Sign in",
@@ -44,6 +45,10 @@ export const EN_MESSAGES: UiMessages = {
     mapBody:
       "See what the world is dreaming. Dreams shared anonymously appear on a live world map, so you can discover the symbols people are dreaming about near you and far away.",
     mapCta: "Explore the map",
+    galleryTitle: "Dream Art Gallery",
+    galleryBody:
+      "A living wall of AI dream illustrations. Open any picture to read the symbol’s meaning in the dream dictionary.",
+    galleryCta: "Browse the gallery",
     dictionaryTitle: "Dream Dictionary",
     dictionaryBody:
       "Hundreds of dream symbols and variations explained — psychological, spiritual, Islamic, and biblical interpretations, common scenarios, and answers to popular questions.",
@@ -87,6 +92,16 @@ export const EN_MESSAGES: UiMessages = {
           "Common dreams tend to carry recurring themes: snakes often relate to transformation or hidden fear, weddings to commitment and transition, ghosts to unfinished memory or grief, and cheating dreams to trust and insecurity. Dreamly's dream dictionary covers these and hundreds of other symbols with psychological, spiritual, Islamic, and biblical interpretations.",
       },
     ],
+  },
+  gallery: {
+    h1: "Dream Art Gallery",
+    lead: "AI illustrations of the dream symbols people search for most. Each picture opens the meaning in the Dreamly dictionary.",
+    empty: "New dream illustrations appear here as they are published.",
+    openMeaning: "Dream meaning",
+    alt: "Dream art of {name}",
+    seoTitle: "Dream Art Gallery: AI Illustrations of Dream Symbols",
+    seoDescription:
+      "Browse a Pinterest-style gallery of AI dream art. Tap any illustration to read the psychological, spiritual, Islamic, and biblical meaning of that dream symbol.",
   },
   dictionary: {
     badge: "{count} meanings across {clusters} dream clusters",

@@ -5,6 +5,7 @@ export const ES_MESSAGES: UiMessages = {
   nav: {
     dreams: "Sueños",
     feed: "Feed",
+    gallery: "Arte",
     dictionary: "Diccionario",
     map: "Mapa",
     signIn: "Entrar",
@@ -44,6 +45,10 @@ export const ES_MESSAGES: UiMessages = {
     mapBody:
       "Mira qué está soñando el mundo. Los sueños compartidos de forma anónima aparecen en un mapa en vivo, cerca de ti y lejos.",
     mapCta: "Explorar el mapa",
+    galleryTitle: "Galería de arte onírico",
+    galleryBody:
+      "Un muro vivo de ilustraciones de sueños hechas con IA. Abre cualquier imagen para leer el significado del símbolo en el diccionario.",
+    galleryCta: "Ver la galería",
     dictionaryTitle: "Diccionario de sueños",
     dictionaryBody:
       "Cientos de símbolos y variaciones explicados — lecturas psicológicas, espirituales, islámicas y bíblicas, escenas frecuentes y preguntas habituales.",
@@ -87,6 +92,16 @@ export const ES_MESSAGES: UiMessages = {
           "Suelen repetir temas: las serpientes, transformación o miedo oculto; las bodas, compromiso y tránsito; los fantasmas, memoria o duelo; la infidelidad, confianza e inseguridad. El diccionario cubre estos y cientos de símbolos con lecturas psicológicas, espirituales, islámicas y bíblicas.",
       },
     ],
+  },
+  gallery: {
+    h1: "Galería de arte onírico",
+    lead: "Ilustraciones con IA de los símbolos de sueños que más se buscan. Cada imagen abre el significado en el diccionario Dreamly.",
+    empty: "Las nuevas ilustraciones de sueños aparecen aquí cuando se publican.",
+    openMeaning: "Significado del sueño",
+    alt: "Arte onírico de {name}",
+    seoTitle: "Galería de arte onírico: ilustraciones de símbolos de sueños",
+    seoDescription:
+      "Explora una galería tipo Pinterest de arte de sueños con IA. Toca una ilustración para leer el significado psicológico, espiritual, islámico y bíblico de ese símbolo.",
   },
   dictionary: {
     badge: "{count} significados en {clusters} grupos",
