@@ -1,25 +1,29 @@
 import type { ReactNode } from "react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
-import type { Locale } from "./config";
+import { SUPPORT_EMAIL, type Locale } from "./config";
 
 function SiteLink() {
   return <a href="https://dreamly.art">https://dreamly.art</a>;
 }
 
+function SupportEmail() {
+  return <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>;
+}
+
 export function legalUpdatedLabel(locale: Locale): string {
   switch (locale) {
     case "es":
-      return "12 de agosto de 2026";
+      return "6 de septiembre de 2026";
     case "ar":
-      return "12 أغسطس 2026";
+      return "6 سبتمبر 2026";
     case "pt":
-      return "12 de agosto de 2026";
+      return "6 de setembro de 2026";
     case "de":
-      return "12. August 2026";
+      return "6. September 2026";
     case "ru":
-      return "12 августа 2026 г.";
+      return "6 сентября 2026 г.";
     default:
-      return "August 12, 2026";
+      return "September 6, 2026";
   }
 }
 
@@ -54,6 +58,23 @@ export function TermsBody({ locale }: { locale: Locale }): ReactNode {
       return <TermsRu />;
     default:
       return <TermsEn />;
+  }
+}
+
+export function RefundBody({ locale }: { locale: Locale }): ReactNode {
+  switch (locale) {
+    case "es":
+      return <RefundEs />;
+    case "ar":
+      return <RefundAr />;
+    case "pt":
+      return <RefundPt />;
+    case "de":
+      return <RefundDe />;
+    case "ru":
+      return <RefundRu />;
+    default:
+      return <RefundEn />;
   }
 }
 
@@ -94,8 +115,8 @@ function PrivacyEn() {
           </li>
           <li>
             <strong>Payment and credit data</strong> — purchase status, order identifiers, and subscription/credit
-            balance. Card details are processed by our payment provider (for example PayPal); we do not store full card
-            numbers on Dreamly servers.
+            balance. Card details are processed by our payment providers (for example PayPal or Paddle.com); we do not
+            store full card numbers on Dreamly servers.
           </li>
           <li>
             <strong>Communications</strong> — messages you send through in-app chat/support features, if available.
@@ -213,11 +234,12 @@ function PrivacyEn() {
       <section>
         <h2>13. Contact</h2>
         <p>
-          Questions about privacy: reach us through the Dreamly website at <SiteLink /> or your account support channels
-          in the app.
+          Questions about privacy: email <SupportEmail />, or reach us through the Dreamly website at <SiteLink /> or
+          your account support channels in the app.
         </p>
         <p>
-          See also our <LocaleLink href="/terms">Terms of Service</LocaleLink>.
+          See also our <LocaleLink href="/terms">Terms of Service</LocaleLink> and{" "}
+          <LocaleLink href="/refund">Refund Policy</LocaleLink>.
         </p>
       </section>
     </>
@@ -307,10 +329,15 @@ function TermsEn() {
       <section>
         <h2>7. Paid features, credits, and refunds</h2>
         <p>
-          Some features may require payment, subscriptions, or credits. Prices and benefits are shown at checkout.
-          Payments may be processed by third parties such as PayPal. Except where required by law, fees are generally
-          non-refundable once digital access or credits have been delivered. Chargebacks and payment disputes may lead
-          to account review.
+          Some features may require payment, subscriptions, or credits. Prices and benefits are shown at checkout and on
+          our <LocaleLink href="/pricing">Pricing</LocaleLink> page. Payments may be processed by third parties such as
+          PayPal or Paddle.com. For orders processed by Paddle.com, Paddle.com is the Merchant of Record. Paddle
+          processes payments, provides customer support related to payment, and handles refunds for those orders.
+        </p>
+        <p>
+          You have a money-back guarantee of at least 30 days from the date of your order. See our{" "}
+          <LocaleLink href="/refund">Refund Policy</LocaleLink>. Mandatory consumer rights in your country remain
+          unaffected. Chargebacks and payment disputes may lead to account review.
         </p>
       </section>
 
@@ -389,10 +416,12 @@ function TermsEn() {
       <section>
         <h2>16. Contact</h2>
         <p>
-          Questions about these Terms: contact us through <SiteLink /> or in-app support channels.
+          Questions about these Terms: email <SupportEmail />, or contact us through <SiteLink /> or in-app support
+          channels.
         </p>
         <p>
-          See also our <LocaleLink href="/privacy">Privacy Policy</LocaleLink>.
+          See also our <LocaleLink href="/privacy">Privacy Policy</LocaleLink> and{" "}
+          <LocaleLink href="/refund">Refund Policy</LocaleLink>.
         </p>
       </section>
     </>
@@ -438,8 +467,8 @@ function PrivacyEs() {
           </li>
           <li>
             <strong>Datos de pago y de créditos</strong> — estado de la compra, identificadores de pedido y saldo de
-            suscripción o créditos. Los datos de la tarjeta los procesa nuestro proveedor de pagos (por ejemplo,
-            PayPal); no almacenamos el número completo de la tarjeta en los servidores de Dreamly.
+            suscripción o créditos. Los datos de la tarjeta los procesan nuestros proveedores de pagos (por ejemplo,
+            PayPal o Paddle.com); no almacenamos el número completo de la tarjeta en los servidores de Dreamly.
           </li>
           <li>
             <strong>Comunicaciones</strong> — mensajes que envíe por el chat o los canales de soporte de la aplicación,
@@ -562,11 +591,12 @@ function PrivacyEs() {
       <section>
         <h2>13. Contacto</h2>
         <p>
-          Consultas sobre privacidad: a través del sitio de Dreamly en <SiteLink /> o de los canales de soporte de su
-          cuenta en la aplicación.
+          Consultas sobre privacidad: escriba a <SupportEmail />, o a través del sitio de Dreamly en <SiteLink /> o de
+          los canales de soporte de su cuenta en la aplicación.
         </p>
         <p>
-          Véanse también nuestros <LocaleLink href="/terms">Términos de servicio</LocaleLink>.
+          Véanse también nuestros <LocaleLink href="/terms">Términos de servicio</LocaleLink> y la{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>.
         </p>
       </section>
     </>
@@ -661,9 +691,16 @@ function TermsEs() {
         <h2>7. Funciones de pago, créditos y reembolsos</h2>
         <p>
           Algunas funciones pueden exigir pago, suscripción o créditos. Los precios y beneficios se indican en el
-          momento del pago. Los cobros pueden procesarse por terceros como PayPal. Salvo cuando la ley lo imponga, las
-          tarifas suelen ser no reembolsables una vez entregado el acceso digital o los créditos. Los contracargos y las
-          controversias de pago pueden dar lugar a una revisión de la cuenta.
+          momento del pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. Los cobros pueden
+          procesarse por terceros como PayPal o Paddle.com. En los pedidos que procesa Paddle.com, Paddle.com es el
+          Merchant of Record. Paddle procesa los pagos, atiende el soporte al cliente relacionado con el pago y gestiona
+          los reembolsos de esos pedidos.
+        </p>
+        <p>
+          Tiene una garantía de reembolso de al menos 30 días desde la fecha del pedido. Consulte nuestra{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>. Los derechos imperativos de los consumidores de
+          su país no se ven afectados. Los contracargos y las controversias de pago pueden dar lugar a una revisión de
+          la cuenta.
         </p>
       </section>
 
@@ -746,10 +783,12 @@ function TermsEs() {
       <section>
         <h2>16. Contacto</h2>
         <p>
-          Consultas sobre estos Términos: a través de <SiteLink /> o de los canales de soporte de la aplicación.
+          Consultas sobre estos Términos: escriba a <SupportEmail />, o a través de <SiteLink /> o de los canales de
+          soporte de la aplicación.
         </p>
         <p>
-          Véase también nuestra <LocaleLink href="/privacy">Política de privacidad</LocaleLink>.
+          Véase también nuestra <LocaleLink href="/privacy">Política de privacidad</LocaleLink> y la{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>.
         </p>
       </section>
     </>
@@ -792,7 +831,8 @@ function PrivacyAr() {
           </li>
           <li>
             <strong>بيانات الدفع والأرصدة</strong> — حالة الشراء ومعرّفات الطلب ورصيد الاشتراك أو الأرصدة. تتولى جهة
-            الدفع لدينا (مثل PayPal) معالجة بيانات البطاقة؛ ولا نخزّن أرقام البطاقات كاملة على خوادم Dreamly.
+            الدفع لدينا (مثل PayPal أو Paddle.com) معالجة بيانات البطاقة؛ ولا نخزّن أرقام البطاقات كاملة على خوادم
+            Dreamly.
           </li>
           <li>
             <strong>المراسلات</strong> — الرسائل التي ترسلها عبر الدردشة أو قنوات الدعم داخل التطبيق، إن وُجدت.
@@ -906,11 +946,12 @@ function PrivacyAr() {
       <section>
         <h2>13. التواصل</h2>
         <p>
-          للاستفسار عن الخصوصية: تواصل معنا عبر موقع Dreamly على <SiteLink /> أو عبر قنوات الدعم المرتبطة بحسابك في
-          التطبيق.
+          للاستفسار عن الخصوصية: راسلنا على <SupportEmail />، أو تواصل معنا عبر موقع Dreamly على <SiteLink /> أو عبر
+          قنوات الدعم المرتبطة بحسابك في التطبيق.
         </p>
         <p>
-          انظر أيضًا <LocaleLink href="/terms">شروط الخدمة</LocaleLink>.
+          انظر أيضًا <LocaleLink href="/terms">شروط الخدمة</LocaleLink> و
+          <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>.
         </p>
       </section>
     </>
@@ -993,10 +1034,15 @@ function TermsAr() {
       <section>
         <h2>7. الميزات المدفوعة والأرصدة والاسترداد</h2>
         <p>
-          قد تستلزم بعض الميزات دفعًا أو اشتراكًا أو أرصدة. وتُعرض الأسعار والمنافع عند إتمام الشراء. ويجوز أن تعالج
-          أطراف ثالثة مثل PayPal المدفوعات. وما لم يوجب النظام خلاف ذلك، تكون الرسوم في الأصل غير قابلة للاسترداد بعد
-          تسليم الوصول الرقمي أو الأرصدة. وقد تؤدي عمليات استرداد المبالغ من جهة البطاقة ومنازعات الدفع إلى مراجعة
-          الحساب.
+          قد تستلزم بعض الميزات دفعًا أو اشتراكًا أو أرصدة. وتُعرض الأسعار والمنافع عند إتمام الشراء وفي صفحة{" "}
+          <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويجوز أن تعالج أطراف ثالثة مثل PayPal أو Paddle.com
+          المدفوعات. وفي الطلبات التي تعالجها Paddle.com، تكون Paddle.com هي التاجر المسجّل (Merchant of Record). وتتولى
+          Paddle معالجة المدفوعات ودعم العملاء المتعلق بالدفع واسترداد تلك الطلبات.
+        </p>
+        <p>
+          لديك ضمان استرداد للمبلغ لمدة لا تقل عن 30 يومًا من تاريخ الطلب. انظر{" "}
+          <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>. ولا تمس هذه السياسة حقوق المستهلك الإلزامية في بلدك.
+          وقد تؤدي عمليات استرداد المبالغ من جهة البطاقة ومنازعات الدفع إلى مراجعة الحساب.
         </p>
       </section>
 
@@ -1072,10 +1118,12 @@ function TermsAr() {
       <section>
         <h2>16. التواصل</h2>
         <p>
-          للاستفسار عن هذه الشروط: تواصل معنا عبر <SiteLink /> أو عبر قنوات الدعم داخل التطبيق.
+          للاستفسار عن هذه الشروط: راسلنا على <SupportEmail />، أو تواصل معنا عبر <SiteLink /> أو عبر قنوات الدعم داخل
+          التطبيق.
         </p>
         <p>
-          انظر أيضًا <LocaleLink href="/privacy">سياسة الخصوصية</LocaleLink>.
+          انظر أيضًا <LocaleLink href="/privacy">سياسة الخصوصية</LocaleLink> و
+          <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>.
         </p>
       </section>
     </>
@@ -1120,8 +1168,8 @@ function PrivacyPt() {
           </li>
           <li>
             <strong>Dados de pagamento e de créditos</strong> — status da compra, identificadores do pedido e saldo de
-            assinatura ou créditos. Os dados do cartão são processados pelo nosso provedor de pagamento (por exemplo, o
-            PayPal); não armazenamos o número completo do cartão nos servidores da Dreamly.
+            assinatura ou créditos. Os dados do cartão são processados pelos nossos provedores de pagamento (por
+            exemplo, o PayPal ou a Paddle.com); não armazenamos o número completo do cartão nos servidores da Dreamly.
           </li>
           <li>
             <strong>Comunicações</strong> — mensagens que você enviar pelo chat ou pelos canais de suporte do
@@ -1241,11 +1289,12 @@ function PrivacyPt() {
       <section>
         <h2>13. Contato</h2>
         <p>
-          Dúvidas sobre privacidade: pelo site da Dreamly em <SiteLink /> ou pelos canais de suporte da sua conta no
-          aplicativo.
+          Dúvidas sobre privacidade: escreva para <SupportEmail />, ou pelo site da Dreamly em <SiteLink /> ou pelos
+          canais de suporte da sua conta no aplicativo.
         </p>
         <p>
-          Veja também os nossos <LocaleLink href="/terms">Termos de Serviço</LocaleLink>.
+          Veja também os nossos <LocaleLink href="/terms">Termos de Serviço</LocaleLink> e a{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>.
         </p>
       </section>
     </>
@@ -1337,10 +1386,16 @@ function TermsPt() {
       <section>
         <h2>7. Recursos pagos, créditos e reembolsos</h2>
         <p>
-          Alguns recursos podem exigir pagamento, assinatura ou créditos. Preços e benefícios aparecem no checkout. Os
-          pagamentos podem ser processados por terceiros como o PayPal. Salvo quando a lei exigir o contrário, as
-          tarifas em geral não são reembolsáveis depois de entregue o acesso digital ou os créditos. Estornos e
-          contestações de pagamento podem ensejar revisão da conta.
+          Alguns recursos podem exigir pagamento, assinatura ou créditos. Preços e benefícios aparecem no checkout e na
+          página de <LocaleLink href="/pricing">Preços</LocaleLink>. Os pagamentos podem ser processados por terceiros
+          como o PayPal ou a Paddle.com. Nos pedidos processados pela Paddle.com, a Paddle.com é a Merchant of Record. A
+          Paddle processa os pagamentos, presta o suporte ao cliente relacionado ao pagamento e cuida dos reembolsos
+          desses pedidos.
+        </p>
+        <p>
+          Você tem garantia de reembolso de pelo menos 30 dias a partir da data do pedido. Veja a nossa{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>. Os direitos consumeristas cogentes do seu país
+          permanecem intactos. Estornos e contestações de pagamento podem ensejar revisão da conta.
         </p>
       </section>
 
@@ -1421,10 +1476,12 @@ function TermsPt() {
       <section>
         <h2>16. Contato</h2>
         <p>
-          Dúvidas sobre estes Termos: pelo site em <SiteLink /> ou pelos canais de suporte do aplicativo.
+          Dúvidas sobre estes Termos: escreva para <SupportEmail />, ou pelo site em <SiteLink /> ou pelos canais de
+          suporte do aplicativo.
         </p>
         <p>
-          Veja também a nossa <LocaleLink href="/privacy">Política de Privacidade</LocaleLink>.
+          Veja também a nossa <LocaleLink href="/privacy">Política de Privacidade</LocaleLink> e a{" "}
+          <LocaleLink href="/refund">Política de reembolso</LocaleLink>.
         </p>
       </section>
     </>
@@ -1469,8 +1526,8 @@ function PrivacyDe() {
           </li>
           <li>
             <strong>Zahlungs- und Guthabendaten</strong> — Kaufstatus, Bestellkennungen sowie Abo- oder Guthabenstand.
-            Kartendaten verarbeitet unser Zahlungsdienstleister (etwa PayPal); vollständige Kartennummern speichern wir
-            nicht auf Dreamly-Servern.
+            Kartendaten verarbeiten unsere Zahlungsdienstleister (etwa PayPal oder Paddle.com); vollständige
+            Kartennummern speichern wir nicht auf Dreamly-Servern.
           </li>
           <li>
             <strong>Kommunikation</strong> — Nachrichten, die Sie über Chat- oder Supportfunktionen in der App senden,
@@ -1595,11 +1652,12 @@ function PrivacyDe() {
       <section>
         <h2>13. Kontakt</h2>
         <p>
-          Fragen zum Datenschutz: über die Dreamly-Website unter <SiteLink /> oder über die Supportkanäle Ihres Kontos
-          in der App.
+          Fragen zum Datenschutz: per E-Mail an <SupportEmail /> oder über die Dreamly-Website unter <SiteLink /> bzw.
+          über die Supportkanäle Ihres Kontos in der App.
         </p>
         <p>
-          Siehe auch unsere <LocaleLink href="/terms">Nutzungsbedingungen</LocaleLink>.
+          Siehe auch unsere <LocaleLink href="/terms">Nutzungsbedingungen</LocaleLink> und die{" "}
+          <LocaleLink href="/refund">Erstattungsrichtlinie</LocaleLink>.
         </p>
       </section>
     </>
@@ -1694,9 +1752,15 @@ function TermsDe() {
         <h2>7. Kostenpflichtige Funktionen, Guthaben und Erstattungen</h2>
         <p>
           Einzelne Funktionen können Zahlung, ein Abonnement oder Guthaben erfordern. Preise und Leistungen werden beim
-          Abschluss angezeigt. Zahlungen können Dritte wie PayPal abwickeln. Soweit das Gesetz nichts anderes verlangt,
-          sind Entgelte in der Regel nicht erstattungsfähig, sobald der digitale Zugang oder das Guthaben bereitgestellt
-          wurde. Rückbuchungen und Zahlungsstreitigkeiten können zu einer Kontoprüfung führen.
+          Abschluss und auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> angezeigt. Zahlungen können Dritte
+          wie PayPal oder Paddle.com abwickeln. Bei Bestellungen, die Paddle.com abwickelt, ist Paddle.com der Merchant
+          of Record. Paddle verarbeitet die Zahlungen, leistet den zahlungsbezogenen Kundensupport und bearbeitet
+          Erstattungen für diese Bestellungen.
+        </p>
+        <p>
+          Sie haben eine Geld-zurück-Garantie von mindestens 30 Tagen ab dem Bestelldatum. Siehe unsere{" "}
+          <LocaleLink href="/refund">Erstattungsrichtlinie</LocaleLink>. Zwingende Verbraucherrechte Ihres Landes bleiben
+          unberührt. Rückbuchungen und Zahlungsstreitigkeiten können zu einer Kontoprüfung führen.
         </p>
       </section>
 
@@ -1777,10 +1841,12 @@ function TermsDe() {
       <section>
         <h2>16. Kontakt</h2>
         <p>
-          Fragen zu diesen Bedingungen: über <SiteLink /> oder über die Supportkanäle in der App.
+          Fragen zu diesen Bedingungen: per E-Mail an <SupportEmail /> oder über <SiteLink /> bzw. über die
+          Supportkanäle in der App.
         </p>
         <p>
-          Siehe auch unsere <LocaleLink href="/privacy">Datenschutzerklärung</LocaleLink>.
+          Siehe auch unsere <LocaleLink href="/privacy">Datenschutzerklärung</LocaleLink> und die{" "}
+          <LocaleLink href="/refund">Erstattungsrichtlinie</LocaleLink>.
         </p>
       </section>
     </>
@@ -1825,8 +1891,8 @@ function PrivacyRu() {
           </li>
           <li>
             <strong>Платёжные данные и сведения о кредитах</strong> — статус покупки, идентификаторы заказа и остаток
-            подписки или кредитов. Данные карты обрабатывает наш платёжный посредник (например, PayPal); полные номера
-            карт на серверах Dreamly мы не храним.
+            подписки или кредитов. Данные карты обрабатывают наши платёжные посредники (например, PayPal или
+            Paddle.com); полные номера карт на серверах Dreamly мы не храним.
           </li>
           <li>
             <strong>Переписка</strong> — сообщения, которые вы отправляете через чат или каналы поддержки в приложении,
@@ -1947,11 +2013,12 @@ function PrivacyRu() {
       <section>
         <h2>13. Контакты</h2>
         <p>
-          Вопросы о конфиденциальности: через сайт Dreamly по адресу <SiteLink /> или через каналы поддержки вашей
-          учётной записи в приложении.
+          Вопросы о конфиденциальности: напишите на <SupportEmail /> либо через сайт Dreamly по адресу <SiteLink /> или
+          через каналы поддержки вашей учётной записи в приложении.
         </p>
         <p>
-          См. также наши <LocaleLink href="/terms">Условия использования</LocaleLink>.
+          См. также наши <LocaleLink href="/terms">Условия использования</LocaleLink> и{" "}
+          <LocaleLink href="/refund">Политику возврата</LocaleLink>.
         </p>
       </section>
     </>
@@ -2044,10 +2111,15 @@ function TermsRu() {
       <section>
         <h2>7. Платные функции, кредиты и возвраты</h2>
         <p>
-          Отдельные функции могут требовать оплаты, подписки или кредитов. Цены и состав услуг указываются при оплате.
-          Платежи могут проводить третьи лица, в том числе PayPal. Если иное не предписано законом, вознаграждение, как
-          правило, не возвращается после предоставления цифрового доступа или кредитов. Чарджбэки и платёжные споры
-          могут повлечь проверку учётной записи.
+          Отдельные функции могут требовать оплаты, подписки или кредитов. Цены и состав услуг указываются при оплате и
+          на странице <LocaleLink href="/pricing">Цены</LocaleLink>. Платежи могут проводить третьи лица, в том числе
+          PayPal или Paddle.com. По заказам, которые обрабатывает Paddle.com, Paddle.com является Merchant of Record.
+          Paddle обрабатывает платежи, оказывает клиентскую поддержку по оплате и проводит возвраты по этим заказам.
+        </p>
+        <p>
+          Вам гарантирован возврат средств не менее чем в течение 30 дней с даты заказа. См. нашу{" "}
+          <LocaleLink href="/refund">Политику возврата</LocaleLink>. Императивные права потребителя вашей страны
+          сохраняются. Чарджбэки и платёжные споры могут повлечь проверку учётной записи.
         </p>
       </section>
 
@@ -2128,10 +2200,428 @@ function TermsRu() {
       <section>
         <h2>16. Контакты</h2>
         <p>
-          Вопросы по этим Условиям: через <SiteLink /> или через каналы поддержки в приложении.
+          Вопросы по этим Условиям: напишите на <SupportEmail /> либо через <SiteLink /> или через каналы поддержки в
+          приложении.
         </p>
         <p>
-          См. также нашу <LocaleLink href="/privacy">Политику конфиденциальности</LocaleLink>.
+          См. также нашу <LocaleLink href="/privacy">Политику конфиденциальности</LocaleLink> и{" "}
+          <LocaleLink href="/refund">Политику возврата</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundEn() {
+  return (
+    <>
+      <section>
+        <p>
+          This Refund Policy explains how <strong>Dreamly</strong> handles refunds for digital purchases on{" "}
+          <SiteLink />. It applies to optional credit packs and other paid digital features. Dreamly does not sell or
+          ship physical goods.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. What you buy</h2>
+        <p>
+          Paid purchases add digital credits or unlock digital access to extra AI dream interpretations and related
+          in-app features. Current packs and prices appear on our <LocaleLink href="/pricing">Pricing</LocaleLink> page
+          and at checkout.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Who processes the order</h2>
+        <p>
+          Payments may be processed by third parties such as PayPal or Paddle.com. For orders processed by Paddle.com,
+          Paddle.com is the Merchant of Record. Paddle processes payments, provides customer support related to payment,
+          and handles refunds for those orders.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. 30-day money-back guarantee</h2>
+        <p>
+          You may request a full refund within at least 30 days of the order date. This money-back guarantee is a
+          minimum; it does not shorten any longer right you already have under applicable law or a payment provider&apos;s
+          rules.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. How to request a refund</h2>
+        <p>
+          Email <SupportEmail /> with your order date, the email used at checkout, and (if you have it) the order or
+          receipt identifier. For Paddle orders, Paddle may also contact you about payment or refund questions. We aim
+          to respond promptly and to complete approved refunds through the original payment method.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Chargebacks</h2>
+        <p>
+          Please contact us or the payment processor before opening a chargeback so we can help. Unresolved payment
+          disputes may lead to account review.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Contact</h2>
+        <p>
+          Buyer support: <SupportEmail />. You can also reach us through <SiteLink /> or in-app support channels.
+        </p>
+        <p>
+          See also our <LocaleLink href="/terms">Terms of Service</LocaleLink> and{" "}
+          <LocaleLink href="/privacy">Privacy Policy</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundEs() {
+  return (
+    <>
+      <section>
+        <p>
+          Esta Política de reembolso explica cómo <strong>Dreamly</strong> gestiona las devoluciones de las compras
+          digitales en <SiteLink />. Se aplica a los paquetes de créditos opcionales y a otras funciones digitales de
+          pago. Dreamly no vende ni envía bienes físicos.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. Qué compra</h2>
+        <p>
+          Las compras de pago añaden créditos digitales o desbloquean acceso digital a interpretaciones extra con IA y
+          funciones relacionadas en la aplicación. Los paquetes y precios vigentes aparecen en la página de{" "}
+          <LocaleLink href="/pricing">Precios</LocaleLink> y en el momento del pago.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Quién procesa el pedido</h2>
+        <p>
+          Los cobros pueden procesarse por terceros como PayPal o Paddle.com. En los pedidos que procesa Paddle.com,
+          Paddle.com es el Merchant of Record. Paddle procesa los pagos, atiende el soporte al cliente relacionado con
+          el pago y gestiona los reembolsos de esos pedidos.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Garantía de reembolso de 30 días</h2>
+        <p>
+          Puede solicitar el reembolso íntegro en un plazo de al menos 30 días desde la fecha del pedido. Esta garantía
+          es un mínimo; no reduce ningún derecho más amplio que ya tenga por ley o por las reglas del proveedor de
+          pagos.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Cómo solicitar un reembolso</h2>
+        <p>
+          Escriba a <SupportEmail /> con la fecha del pedido, el correo usado al pagar y, si lo tiene, el identificador
+          del pedido o del recibo. En los pedidos de Paddle, Paddle también puede contactarle por cuestiones de pago o
+          reembolso. Procuramos responder con prontitud y completar los reembolsos aprobados por el método de pago
+          original.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Contracargos</h2>
+        <p>
+          Antes de abrir un contracargo, contacte con nosotros o con el procesador de pagos para que podamos ayudarle.
+          Las controversias de pago no resueltas pueden dar lugar a una revisión de la cuenta.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Contacto</h2>
+        <p>
+          Soporte al comprador: <SupportEmail />. También puede contactarnos a través de <SiteLink /> o de los canales
+          de soporte de la aplicación.
+        </p>
+        <p>
+          Véase también nuestros <LocaleLink href="/terms">Términos de servicio</LocaleLink> y la{" "}
+          <LocaleLink href="/privacy">Política de privacidad</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundAr() {
+  return (
+    <>
+      <section>
+        <p>
+          توضح سياسة الاسترداد هذه كيف تتعامل <strong>Dreamly</strong> مع استرداد المشتريات الرقمية على <SiteLink />.
+          وتسري على حزم الأرصدة الاختيارية وسائر الميزات الرقمية المدفوعة. ولا تبيع Dreamly سلعًا مادية ولا تشحنها.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. ما الذي تشتريه</h2>
+        <p>
+          تضيف المشتريات المدفوعة أرصدة رقمية أو تفتح وصولًا رقميًا إلى تفسيرات إضافية بالذكاء الاصطناعي وميزات مرتبطة
+          داخل التطبيق. وتظهر الحزم والأسعار الحالية في صفحة <LocaleLink href="/pricing">الأسعار</LocaleLink> وعند إتمام
+          الشراء.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. من يعالج الطلب</h2>
+        <p>
+          يجوز أن تعالج أطراف ثالثة مثل PayPal أو Paddle.com المدفوعات. وفي الطلبات التي تعالجها Paddle.com، تكون
+          Paddle.com هي التاجر المسجّل (Merchant of Record). وتتولى Paddle معالجة المدفوعات ودعم العملاء المتعلق بالدفع
+          واسترداد تلك الطلبات.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. ضمان استرداد خلال 30 يومًا</h2>
+        <p>
+          يجوز لك طلب استرداد كامل خلال مدة لا تقل عن 30 يومًا من تاريخ الطلب. وهذا الضمان حد أدنى؛ ولا يضيّق حقًا أوسع
+          ثابتًا لك بموجب القانون أو قواعد جهة الدفع.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. كيف تطلب الاسترداد</h2>
+        <p>
+          راسل <SupportEmail /> بتاريخ الطلب والبريد المستخدم عند الدفع ومعرّف الطلب أو الإيصال إن وُجد. وفي طلبات
+          Paddle قد تتواصل معك Paddle أيضًا بشأن الدفع أو الاسترداد. ونسعى إلى الرد سريعًا وإتمام الاستردادات المقبولة عبر
+          وسيلة الدفع الأصلية.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. استرداد المبلغ من جهة البطاقة</h2>
+        <p>
+          يُرجى التواصل معنا أو مع معالج الدفع قبل فتح نزاع لدى جهة البطاقة حتى نتمكن من المساعدة. وقد تؤدي منازعات
+          الدفع غير المحلولة إلى مراجعة الحساب.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. التواصل</h2>
+        <p>
+          دعم المشتري: <SupportEmail />. ويمكنك أيضًا التواصل عبر <SiteLink /> أو عبر قنوات الدعم داخل التطبيق.
+        </p>
+        <p>
+          انظر أيضًا <LocaleLink href="/terms">شروط الخدمة</LocaleLink> و
+          <LocaleLink href="/privacy">سياسة الخصوصية</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundPt() {
+  return (
+    <>
+      <section>
+        <p>
+          Esta Política de reembolso explica como a <strong>Dreamly</strong> trata devoluções de compras digitais em{" "}
+          <SiteLink />. Aplica-se a pacotes de créditos opcionais e a outros recursos digitais pagos. A Dreamly não
+          vende nem envia bens físicos.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. O que você compra</h2>
+        <p>
+          As compras pagas acrescentam créditos digitais ou liberam acesso digital a interpretações extras com IA e
+          recursos relacionados no aplicativo. Os pacotes e preços vigentes aparecem na página de{" "}
+          <LocaleLink href="/pricing">Preços</LocaleLink> e no checkout.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Quem processa o pedido</h2>
+        <p>
+          Os pagamentos podem ser processados por terceiros como o PayPal ou a Paddle.com. Nos pedidos processados pela
+          Paddle.com, a Paddle.com é a Merchant of Record. A Paddle processa os pagamentos, presta o suporte ao cliente
+          relacionado ao pagamento e cuida dos reembolsos desses pedidos.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Garantia de reembolso de 30 dias</h2>
+        <p>
+          Você pode pedir o reembolso integral em no mínimo 30 dias a partir da data do pedido. Essa garantia é um
+          mínimo; ela não reduz nenhum direito mais amplo que você já tenha por lei ou pelas regras do provedor de
+          pagamento.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Como pedir um reembolso</h2>
+        <p>
+          Escreva para <SupportEmail /> com a data do pedido, o e-mail usado no checkout e, se tiver, o identificador do
+          pedido ou do recibo. Em pedidos da Paddle, a Paddle também pode contatá-lo sobre pagamento ou reembolso.
+          Procuramos responder com rapidez e concluir os reembolsos aprovados pelo método de pagamento original.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Estornos</h2>
+        <p>
+          Antes de abrir um estorno, fale conosco ou com o processador de pagamento para que possamos ajudar.
+          Contestações de pagamento não resolvidas podem ensejar revisão da conta.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Contato</h2>
+        <p>
+          Suporte ao comprador: <SupportEmail />. Você também pode nos alcançar pelo <SiteLink /> ou pelos canais de
+          suporte do aplicativo.
+        </p>
+        <p>
+          Veja também os nossos <LocaleLink href="/terms">Termos de Serviço</LocaleLink> e a{" "}
+          <LocaleLink href="/privacy">Política de Privacidade</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundDe() {
+  return (
+    <>
+      <section>
+        <p>
+          Diese Erstattungsrichtlinie erläutert, wie <strong>Dreamly</strong> Erstattungen für digitale Käufe auf{" "}
+          <SiteLink /> behandelt. Sie gilt für optionale Guthabenpakete und andere kostenpflichtige digitale Funktionen.
+          Dreamly verkauft und versendet keine physischen Waren.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. Was Sie kaufen</h2>
+        <p>
+          Kostenpflichtige Käufe fügen digitales Guthaben hinzu oder schalten digitalen Zugang zu zusätzlichen
+          KI-Traumdeutungen und verwandten Funktionen in der App frei. Aktuelle Pakete und Preise stehen auf der Seite{" "}
+          <LocaleLink href="/pricing">Preise</LocaleLink> und beim Abschluss.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Wer die Bestellung abwickelt</h2>
+        <p>
+          Zahlungen können Dritte wie PayPal oder Paddle.com abwickeln. Bei Bestellungen, die Paddle.com abwickelt, ist
+          Paddle.com der Merchant of Record. Paddle verarbeitet die Zahlungen, leistet den zahlungsbezogenen
+          Kundensupport und bearbeitet Erstattungen für diese Bestellungen.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. 30 Tage Geld-zurück-Garantie</h2>
+        <p>
+          Sie können innerhalb von mindestens 30 Tagen ab dem Bestelldatum eine volle Erstattung verlangen. Diese
+          Geld-zurück-Garantie ist ein Mindeststandard; sie verkürzt kein weitergehendes Recht, das Ihnen bereits nach
+          geltendem Recht oder nach Regeln des Zahlungsdienstleisters zusteht.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Wie Sie eine Erstattung beantragen</h2>
+        <p>
+          Schreiben Sie an <SupportEmail /> mit Bestelldatum, der beim Abschluss verwendeten E-Mail und — sofern
+          vorhanden — der Bestell- oder Belegnummer. Bei Paddle-Bestellungen kann Paddle Sie auch zu Zahlungs- oder
+          Erstattungsfragen kontaktieren. Wir antworten zügig und schließen genehmigte Erstattungen über den
+          ursprünglichen Zahlungsweg ab.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Rückbuchungen</h2>
+        <p>
+          Bitte wenden Sie sich an uns oder den Zahlungsdienstleister, bevor Sie eine Rückbuchung einleiten, damit wir
+          helfen können. Ungelöste Zahlungsstreitigkeiten können zu einer Kontoprüfung führen.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Kontakt</h2>
+        <p>
+          Käufersupport: <SupportEmail />. Sie erreichen uns auch über <SiteLink /> oder die Supportkanäle in der App.
+        </p>
+        <p>
+          Siehe auch unsere <LocaleLink href="/terms">Nutzungsbedingungen</LocaleLink> und die{" "}
+          <LocaleLink href="/privacy">Datenschutzerklärung</LocaleLink>.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RefundRu() {
+  return (
+    <>
+      <section>
+        <p>
+          Настоящая Политика возврата объясняет, как <strong>Dreamly</strong> оформляет возвраты цифровых покупок на{" "}
+          <SiteLink />. Она распространяется на опциональные пакеты кредитов и другие платные цифровые функции. Dreamly
+          не продаёт и не доставляет физические товары.
+        </p>
+      </section>
+
+      <section>
+        <h2>1. Что вы покупаете</h2>
+        <p>
+          Платные покупки добавляют цифровые кредиты или открывают цифровой доступ к дополнительным толкованиям снов с
+          ИИ и связанным функциям в приложении. Актуальные пакеты и цены указаны на странице{" "}
+          <LocaleLink href="/pricing">Цены</LocaleLink> и при оплате.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Кто обрабатывает заказ</h2>
+        <p>
+          Платежи могут проводить третьи лица, в том числе PayPal или Paddle.com. По заказам, которые обрабатывает
+          Paddle.com, Paddle.com является Merchant of Record. Paddle обрабатывает платежи, оказывает клиентскую
+          поддержку по оплате и проводит возвраты по этим заказам.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Гарантия возврата 30 дней</h2>
+        <p>
+          Вы можете запросить полный возврат не менее чем в течение 30 дней с даты заказа. Эта гарантия — минимум; она
+          не сужает более широкое право, которое уже есть у вас по закону или по правилам платёжного провайдера.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Как запросить возврат</h2>
+        <p>
+          Напишите на <SupportEmail />, указав дату заказа, почту, использованную при оплате, и — если есть —
+          идентификатор заказа или квитанции. По заказам Paddle компания Paddle также может связаться с вами по вопросам
+          оплаты или возврата. Мы стараемся отвечать оперативно и проводить одобренные возвраты тем же способом оплаты.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Чарджбэки</h2>
+        <p>
+          Прежде чем открывать чарджбэк, напишите нам или платёжному посреднику — так мы сможем помочь. Неразрешённые
+          платёжные споры могут повлечь проверку учётной записи.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Контакты</h2>
+        <p>
+          Поддержка покупателя: <SupportEmail />. Также можно написать через <SiteLink /> или каналы поддержки в
+          приложении.
+        </p>
+        <p>
+          См. также наши <LocaleLink href="/terms">Условия использования</LocaleLink> и{" "}
+          <LocaleLink href="/privacy">Политику конфиденциальности</LocaleLink>.
         </p>
       </section>
     </>

@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import { SUPPORT_EMAIL } from "@/lib/i18n/config";
 
 export default function LegalShell({
   title,
@@ -23,12 +24,18 @@ export default function LegalShell({
           <LocaleLink href="/" className="text-sm font-semibold tracking-wide text-[var(--text)]">
             Dreamly
           </LocaleLink>
-          <nav className="flex items-center gap-4 text-sm text-[var(--muted)]">
+          <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-[var(--muted)]">
+            <LocaleLink href="/pricing" className="hover:text-[var(--text)]">
+              {t.legal.pricingShort}
+            </LocaleLink>
             <LocaleLink href="/privacy" className="hover:text-[var(--text)]">
               {t.legal.privacyShort}
             </LocaleLink>
             <LocaleLink href="/terms" className="hover:text-[var(--text)]">
               {t.legal.termsShort}
+            </LocaleLink>
+            <LocaleLink href="/refund" className="hover:text-[var(--text)]">
+              {t.legal.refundShort}
             </LocaleLink>
           </nav>
         </div>
@@ -50,6 +57,9 @@ export default function LegalShell({
           <LocaleLink href="/" className="hover:text-[var(--text)]">
             ← {t.legal.home}
           </LocaleLink>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[var(--text)]">
+            {SUPPORT_EMAIL}
+          </a>
           <p>© {new Date().getFullYear()} Dreamly</p>
         </div>
       </footer>

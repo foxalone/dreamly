@@ -49,15 +49,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...localizedUrls("/privacy").map((url) => ({
       url,
-      lastModified: "2026-08-12",
+      lastModified: "2026-09-06",
       changeFrequency: "yearly" as const,
       priority: 0.3,
     })),
     ...localizedUrls("/terms").map((url) => ({
       url,
-      lastModified: "2026-08-12",
+      lastModified: "2026-09-06",
       changeFrequency: "yearly" as const,
       priority: 0.3,
+    })),
+    ...localizedUrls("/refund").map((url) => ({
+      url,
+      lastModified: "2026-09-06",
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    })),
+    ...localizedUrls("/pricing").map((url) => ({
+      url,
+      lastModified: "2026-09-06",
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
     })),
     // Interactive /app routes are explicitly noindex and do not belong here.
     ...localizedUrls("/invite").map((url) => ({

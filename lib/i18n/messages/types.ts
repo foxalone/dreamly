@@ -117,10 +117,28 @@ export type UiMessages = {
   legal: {
     privacy: string;
     terms: string;
+    refund: string;
+    pricing: string;
     home: string;
     updated: string;
     privacyShort: string;
     termsShort: string;
+    refundShort: string;
+    pricingShort: string;
+    checkoutPrefix: string;
+    checkoutAnd: string;
+  };
+  pricing: {
+    h1: string;
+    lead: string;
+    packsTitle: string;
+    credits: string;
+    oneTime: string;
+    useFor: string;
+    freeNote: string;
+    refundNote: string;
+    seoTitle: string;
+    seoDescription: string;
   };
   chrome: {
     home: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import { SUPPORT_EMAIL } from "@/lib/i18n/config";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { getAllCategoryCopy } from "@/lib/i18n/categories";
 import type { DreamCategory } from "@/lib/dream-categories";
@@ -55,6 +56,11 @@ export default function DictionaryFooter() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">{t.dictionary.legal}</p>
           <ul className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5 lg:flex-col">
             <li>
+              <LocaleLink href="/pricing" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
+                {t.legal.pricing}
+              </LocaleLink>
+            </li>
+            <li>
               <LocaleLink href="/privacy" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
                 {t.legal.privacy}
               </LocaleLink>
@@ -63,6 +69,16 @@ export default function DictionaryFooter() {
               <LocaleLink href="/terms" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
                 {t.legal.terms}
               </LocaleLink>
+            </li>
+            <li>
+              <LocaleLink href="/refund" className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
+                {t.legal.refund}
+              </LocaleLink>
+            </li>
+            <li>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-sm text-[var(--dd-muted)] transition hover:text-[var(--dd-text)]">
+                {SUPPORT_EMAIL}
+              </a>
             </li>
           </ul>
         </nav>

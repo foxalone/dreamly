@@ -21,6 +21,9 @@ export const LOCALE_META: Record<
 
 export const SITE_URL = "https://dreamly.art";
 
+/** Buyer support inbox shown in the footer and legal pages. Confirm this mailbox is monitored. */
+export const SUPPORT_EMAIL = "support@dreamly.art";
+
 export function isLocale(value: string | undefined | null): value is Locale {
   return !!value && (LOCALES as readonly string[]).includes(value);
 }

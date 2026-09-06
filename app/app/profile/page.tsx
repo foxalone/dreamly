@@ -13,8 +13,10 @@ import { creditPackItem, trackEvent } from "@/lib/analytics";
 import { loadScript } from "@paypal/paypal-js";
 import ThemeSwitcher from "@/app/components/ThemeSwitcher";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import LocaleLink from "@/lib/i18n/LocaleLink";
+import CheckoutLegalConsent from "@/app/components/CheckoutLegalConsent";
 
 function initialsFromUser(u: User) {
   const name = (u.displayName ?? "").trim();
@@ -43,6 +45,7 @@ const PACK_LABELS: Record<PackId, { title: string; credits: number; price: strin
 
 export default function ProfilePage() {
   const locale = useLocale();
+  const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -327,26 +330,26 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
       <div
         className={`mt-6 w-full flex flex-wrap justify-center items-center gap-3 text-sm ${mutedText}`}
       >
-        <Link
-          href="https://docs.google.com/document/d/e/2PACX-1vSy6Krm2eiq85_FpOrw7IgDo3TBpkr3Trj2xWkomPm4P-VRiPtCvl80Zt2UEjGYyKKRP58eaFvUBr9U/pub"
+        <LocaleLink
+          href="/terms"
           className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
         >
-          Terms
-        </Link>
+          {t.legal.termsShort}
+        </LocaleLink>
         <span className="opacity-40">•</span>
-        <Link
-          href="https://docs.google.com/document/d/e/2PACX-1vTdSe8OazC2WXKnx_VRj2H6Z-NVYOsbB4KU_7uev3Qq1QMx-C1N9BJqkhSykVD9V50h-6zRulhKYxqh/pub"
+        <LocaleLink
+          href="/privacy"
           className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
         >
-          Privacy
-        </Link>
+          {t.legal.privacyShort}
+        </LocaleLink>
         <span className="opacity-40">•</span>
-        <Link
-          href="https://docs.google.com/document/d/e/2PACX-1vT8-k5pcd0iH9cAZHgeIbbqVpOAJeIoJ6ZIAZfbxuaKgJcRQXw3S5vk2Fz_lrnppLvg9iOe4JuGMqQ1/pub"
+        <LocaleLink
+          href="/refund"
           className="hover:underline underline-offset-4 opacity-90 hover:opacity-100"
         >
-          Refund
-        </Link>
+          {t.legal.refundShort}
+        </LocaleLink>
       </div>
 
       {/* BUY CREDITS CARD (PayPal JS SDK Buttons) */}
@@ -404,8 +407,9 @@ setPayMsg(`✅ Done! ${j.creditsAdded} credits added.`);
               ) : null}
             </div>
 
-            <div className={`text-xs ${mutedText} mt-4`}>
-  Credits are added immediately after payment (server-side capture).
+            <div className={`text-xs ${mutedText} mt-4 space-y-2`}>
+              <p>Credits are added immediately after payment (server-side capture).</p>
+              <CheckoutLegalConsent />
             </div>
           </div>
         </div>

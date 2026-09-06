@@ -9,6 +9,7 @@ import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
 import { formatMessage, getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 
 function sortGalleryItems(items: DreamPageImageAssignment[]) {
   const popular = new Map<string, number>(POPULAR_DREAM_SLUGS.map((slug, index) => [slug, index]));
@@ -64,6 +65,7 @@ export default function GalleryView({
   };
 
   return (
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
     <main className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-8 sm:pt-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
@@ -102,5 +104,7 @@ export default function GalleryView({
         </section>
       )}
     </main>
+      <SiteLegalFooter locale={locale} />
+    </div>
   );
 }

@@ -23,6 +23,7 @@ import {
 import { CREDIT_PACKS, type PackId } from "@/lib/credits/packs";
 import { creditPackItem, trackEvent } from "@/lib/analytics";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import CheckoutLegalConsent from "@/app/components/CheckoutLegalConsent";
 
 type UIStatus = "idle" | "creating" | "paying" | "success" | "error";
 
@@ -441,11 +442,16 @@ forceReRender={[selected]}
             {status === "paying" && <div className="mt-3 text-sm text-[var(--muted)]">Finalizing payment…</div>}
           </div>
 
-          <div className="mt-4 text-xs text-[var(--muted)]">
-            By purchasing, you agree this is a one-time digital credit top-up.
+          <div className="mt-4 space-y-2 text-xs text-[var(--muted)]">
+            <p>By purchasing, you agree this is a one-time digital credit top-up.</p>
+            <CheckoutLegalConsent />
           </div>
         </div>
       )}
+
+      {!uid ? (
+        <CheckoutLegalConsent className="mt-6 text-xs text-[var(--muted)]" />
+      ) : null}
 
     </main>
   );

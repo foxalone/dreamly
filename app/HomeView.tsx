@@ -15,6 +15,7 @@ import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
 import HomeHero from "@/app/components/HomeHero";
+import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 
 export default function HomeView({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
@@ -61,7 +62,8 @@ export default function HomeView({ locale }: { locale: Locale }) {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] px-6 text-[var(--text)]">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <main className="px-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
@@ -152,7 +154,10 @@ export default function HomeView({ locale }: { locale: Locale }) {
           {t.home.cta}
         </LocaleLink>
       </section>
+
     </main>
+      <SiteLegalFooter locale={locale} />
+    </div>
   );
 }
 
