@@ -3,21 +3,53 @@
 import { usePathname } from "next/navigation";
 import { LOCALES, LOCALE_META } from "./config";
 import { switchLocalePath } from "./path";
-import { useLocale } from "./LocaleProvider";
+import { useLocale, useMessages } from "./LocaleProvider";
+import { SegmentedPill, segmentedThumbClass } from "@/app/components/SegmentedPill";
 
-export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
+export default function LanguageSwitcher({
+  compact = false,
+  segmented = false,
+}: {
+  compact?: boolean;
+  segmented?: boolean;
+}) {
   const locale = useLocale();
+  const t = useMessages();
   const pathname = usePathname() || "/";
 
+  if (segmented) {
+    return (
+      <SegmentedPill ariaLabel={t.nav.language}>
+        {LOCALES.map((code) => {
+          const active = code === locale;
+          return (
+            <a
+              key={code}
+              href={switchLocalePath(pathname, code)}
+              hrefLang={LOCALE_META[code].htmlLang}
+              lang={LOCALE_META[code].htmlLang}
+              role="radio"
+              aria-checked={active}
+              aria-current={active ? "page" : undefined}
+              title={LOCALE_META[code].nativeLabel}
+              className={segmentedThumbClass(active)}
+            >
+              {code.toUpperCase()}
+            </a>
+          );
+        })}
+      </SegmentedPill>
+    );
+  }
+
   return (
-    <nav aria-label={LOCALE_META[locale].nativeLabel} className="flex flex-wrap items-center gap-1">
+    <nav aria-label={t.nav.language} className="flex flex-wrap items-center gap-1">
       {LOCALES.map((code) => {
         const active = code === locale;
-        const href = switchLocalePath(pathname, code);
         return (
           <a
             key={code}
-            href={href}
+            href={switchLocalePath(pathname, code)}
             hrefLang={LOCALE_META[code].htmlLang}
             lang={LOCALE_META[code].htmlLang}
             className={

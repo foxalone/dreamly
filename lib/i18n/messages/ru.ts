@@ -207,5 +207,6 @@ export const RU_MESSAGES: UiMessages = {
     noStories: "Историй ещё нет. Добавьте первую.",
     notEnoughCredits: "Не хватает кредитов для разбора.",
   },
+  theme: { label: "Тема", light: "Светлая", dark: "Тёмная", system: "Система" },
   common: { signIn: "Войти", interpret: "Толковать" },
 };

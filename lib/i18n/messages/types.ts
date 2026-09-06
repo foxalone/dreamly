@@ -164,6 +164,12 @@ export type UiMessages = {
     noStories: string;
     notEnoughCredits: string;
   };
+  theme: {
+    label: string;
+    light: string;
+    dark: string;
+    system: string;
+  };
   common: {
     signIn: string;
     interpret: string;

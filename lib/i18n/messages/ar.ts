@@ -207,5 +207,6 @@ export const AR_MESSAGES: UiMessages = {
     noStories: "لا قصص بعد. أضف أول قصة.",
     notEnoughCredits: "لا رصيد كافيًا للتفسير.",
   },
+  theme: { label: "المظهر", light: "فاتح", dark: "داكن", system: "النظام" },
   common: { signIn: "دخول", interpret: "فسّر" },
 };

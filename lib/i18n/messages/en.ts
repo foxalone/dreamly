@@ -207,5 +207,6 @@ export const EN_MESSAGES: UiMessages = {
     noStories: "No stories yet. Add your first one.",
     notEnoughCredits: "Not enough credits to analyze.",
   },
+  theme: { label: "Theme", light: "Light", dark: "Dark", system: "System" },
   common: { signIn: "Sign in", interpret: "Interpret" },
 };

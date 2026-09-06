@@ -207,5 +207,6 @@ export const DE_MESSAGES: UiMessages = {
     noStories: "Noch keine Geschichten. Füge die erste hinzu.",
     notEnoughCredits: "Nicht genug Guthaben zum Deuten.",
   },
+  theme: { label: "Thema", light: "Hell", dark: "Dunkel", system: "System" },
   common: { signIn: "Anmelden", interpret: "Deuten" },
 };

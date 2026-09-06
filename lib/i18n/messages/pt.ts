@@ -207,5 +207,6 @@ export const PT_MESSAGES: UiMessages = {
     noStories: "Ainda não há histórias. Adicione a primeira.",
     notEnoughCredits: "Créditos insuficientes para analisar.",
   },
+  theme: { label: "Tema", light: "Claro", dark: "Escuro", system: "Sistema" },
   common: { signIn: "Entrar", interpret: "Interpretar" },
 };
