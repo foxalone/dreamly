@@ -6,6 +6,7 @@ import { BookOpenText, Loader2, Sparkles } from "lucide-react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
+import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import {
   HOME_DREAM_MAX_CHARS,
   readHomeDreamPending,
@@ -26,13 +27,13 @@ export default function HomeDreamAsk({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
-  const [shareToMap, setShareToMap] = useState(false);
+  const [shareToMap, setShareToMap] = useState(true);
 
   useEffect(() => {
     const pending = readHomeDreamPending();
     if (!pending?.text) return;
     setText(pending.text);
-    setShareToMap(pending.shareToMap === true);
+    setShareToMap(pending.shareToMap !== false);
     if (pending.analysis) {
       setAnalysis(pending.analysis);
       onResultChange?.(true);
@@ -111,12 +112,58 @@ export default function HomeDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
-      persistPending(dream, next, shareToMap);
+      const visuals = shareToMap ? await pickDreamMapVisuals(dream).catch(() => null) : null;
+      writeHomeDreamPending(dream, {
+        analysis: next,
+        shareToMap,
+        lang: locale,
+        emojis: visuals?.emojis,
+        iconsEn: visuals?.iconsEn,
+        rootsEn: visuals?.rootsEn,
+      });
+
+      let pinnedToMap = false;
+      if (shareToMap && visuals?.emojis?.length) {
+        try {
+          const pinRes = await fetch("/api/map/ingest-guest", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ emojis: visuals.emojis }),
+          });
+          const pin = await pinRes.json().catch(() => ({}));
+          const cityId = String(pin?.cityId ?? "").trim();
+          const city = String(pin?.city ?? "").trim();
+          const country = String(pin?.country ?? "").trim();
+          if (cityId && city && country) {
+            pinnedToMap = pin?.ok === true;
+            writeHomeDreamPending(dream, {
+              analysis: next,
+              shareToMap,
+              lang: locale,
+              emojis: visuals.emojis,
+              iconsEn: visuals.iconsEn,
+              rootsEn: visuals.rootsEn,
+              city: {
+                cityId,
+                city,
+                country,
+                admin1: String(pin?.admin1 ?? "").trim(),
+              },
+              guestMapIngested: pinnedToMap,
+            });
+          }
+        } catch (e) {
+          console.warn("guest map ingest failed", e);
+        }
+      }
+
       onResultChange?.(true);
       trackEvent("home_dream_interpreted", {
         guest: !!data.guest,
         credits_used: Number(data.cost ?? 0) || 0,
         share_to_map: shareToMap,
+        pinned_to_map: pinnedToMap,
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Analyze failed");

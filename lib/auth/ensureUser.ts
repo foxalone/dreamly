@@ -4,8 +4,6 @@ import type { User } from "firebase/auth";
 
 let lastUpsertAtRef = 0;
 
-const CITY_UPDATES_PER_DAY = 2;
-
 function todayKeyUTC(ms = Date.now()) {
   const d = new Date(ms);
   const yyyy = d.getUTCFullYear();
@@ -83,19 +81,22 @@ async function ensureUserCity(u: User) {
     const snap = await getDoc(userRef);
     const data = snap.exists() ? (snap.data() as any) : null;
 
-    const dayKey = todayKeyUTC();
-    const sameDay = String(data?.cityUpdateDayKey ?? "") === dayKey;
-    const updatesToday = sameDay ? Number(data?.cityUpdatesToday ?? 0) : 0;
-
-    // Max 2 IP city overwrites per UTC day
-    if (sameDay && Number.isFinite(updatesToday) && updatesToday >= CITY_UPDATES_PER_DAY) {
+    const geo = await lookupCityByIp();
+    if (!geo) {
       const existingCityId = String(data?.currentCityId ?? "").trim();
       if (existingCityId) await resolveCityCoordsIfNeeded(existingCityId);
       return;
     }
 
-    const geo = await lookupCityByIp();
-    if (!geo) return;
+    const existingCityId = String(data?.currentCityId ?? "").trim();
+    if (existingCityId === geo.cityId) {
+      await resolveCityCoordsIfNeeded(existingCityId);
+      return;
+    }
+
+    const dayKey = todayKeyUTC();
+    const sameDay = String(data?.cityUpdateDayKey ?? "") === dayKey;
+    const updatesToday = sameDay ? Number(data?.cityUpdatesToday ?? 0) : 0;
 
     await setDoc(
       userRef,

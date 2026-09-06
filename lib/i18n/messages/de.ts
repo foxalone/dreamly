@@ -24,7 +24,7 @@ export const DE_MESSAGES: UiMessages = {
     askSave: "Im Tagebuch speichern",
     askMore: "Weiterfragen",
     askSignInNote: "Melde dich an, um diesen Traum zu speichern oder weiterzufragen.",
-    askCached: "Dieser Traum ist auf diesem Gerät gespeichert. Melde dich später an — wir legen ihn in dein Tagebuch.",
+    askCached: "Dieser Traum ist auf diesem Gerät gespeichert. Wenn du ihn geteilt hast, ist er schon auf der anonymen Karte. Melde dich später an — wir legen ihn in dein Tagebuch.",
     askEmpty: "Schreib zuerst ein paar Worte aus dem Traum.",
     askOrDictionary: "Oder das Traumlexikon durchsuchen",
     askGuestLimit: "Du hattest bereits eine kostenlose Deutung. Melde dich an, um mehr zu bekommen.",

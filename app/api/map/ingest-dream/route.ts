@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { adminFirestore } from "@/lib/firebaseAdmin";
+import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 
 type SourceType = "dream" | "story";
-type Body = { uid: string; dreamId: string; sourceType?: SourceType };
+type Body = { uid: string; dreamId: string; sourceType?: SourceType; skipCity?: boolean };
 type DreamEmoji = { native: string; id?: string; name?: string };
+type CitySource = "ip" | "item" | "user";
 
 type ResolvedCity = {
   cityId: string;
   city: string;
   country: string;
   admin1: string;
-  source: "item" | "user";
+  source: CitySource;
+  lat: number | null;
+  lng: number | null;
 };
+
+function emptyCity(source: CitySource): ResolvedCity {
+  return { cityId: "", city: "", country: "", admin1: "", source, lat: null, lng: null };
+}
 
 function s(v: any) {
   return String(v ?? "").trim();
@@ -49,23 +57,48 @@ async function resolveCityCoordsIfNeeded(req: Request, cityId: string) {
   }
 }
 
-function getItemCity(item: any): Omit<ResolvedCity, "source"> {
+function getItemCity(item: any): ResolvedCity {
   const itemCity = item?.city && typeof item.city === "object" ? item.city : null;
 
   const cityId = s(itemCity?.cityId || item?.cityId);
   const city = s(itemCity?.city || item?.cityName || item?.cityLabel || item?.city);
   const country = s(itemCity?.country || item?.cityCountry || item?.country);
   const admin1 = s(itemCity?.admin1 || item?.cityAdmin1 || item?.admin1);
+  const lat = Number(itemCity?.lat ?? item?.lat);
+  const lng = Number(itemCity?.lng ?? item?.lng);
 
-  return { cityId, city, country, admin1 };
+  return {
+    cityId,
+    city,
+    country,
+    admin1,
+    source: "item",
+    lat: Number.isFinite(lat) ? lat : null,
+    lng: Number.isFinite(lng) ? lng : null,
+  };
 }
 
-function getUserCity(user: any): Omit<ResolvedCity, "source"> {
+function getUserCity(user: any): ResolvedCity {
   return {
     cityId: s(user?.currentCityId),
     city: s(user?.currentCity),
     country: s(user?.currentCountry),
     admin1: s(user?.currentAdmin1),
+    source: "user",
+    lat: null,
+    lng: null,
+  };
+}
+
+function cityWriteFields(city: ResolvedCity) {
+  return {
+    cityId: city.cityId,
+    city: city.city,
+    country: city.country,
+    admin1: city.admin1 || null,
+    citySource: city.source,
+    ...(typeof city.lat === "number" ? { lat: city.lat } : {}),
+    ...(typeof city.lng === "number" ? { lng: city.lng } : {}),
   };
 }
 
@@ -83,6 +116,7 @@ export async function POST(req: Request) {
     const uid = s(body?.uid);
     const itemId = s(body?.dreamId);
     const sourceType = normalizeSourceType(body?.sourceType);
+    const skipCity = body?.skipCity === true;
 
     if (!uid || !itemId) {
       return NextResponse.json({ error: "Missing uid or dreamId" }, { status: 400 });
@@ -133,12 +167,37 @@ export async function POST(req: Request) {
 
     const fromItem = getItemCity(item);
     const fromUser = getUserCity(user);
+    const fromIp = !isTikTokDream ? await resolveIpCity(req) : null;
+    const ipCity: ResolvedCity = fromIp?.cityId
+      ? {
+          cityId: fromIp.cityId,
+          city: fromIp.city,
+          country: fromIp.country,
+          admin1: fromIp.admin1,
+          source: "ip",
+          lat: fromIp.lat,
+          lng: fromIp.lng,
+        }
+      : emptyCity("ip");
 
-    const useItem = !!fromItem.cityId;
-    const resolvedCity: ResolvedCity = {
-      ...(useItem ? fromItem : fromUser),
-      source: useItem ? "item" : "user",
-    };
+    // Real dreams always pin by current IP. TikTok seeds keep the planted city.
+    // If this dream was already counted as a guest pin, keep that snapshot so
+    // the journal row matches the map and we do not move the emoji.
+    const resolvedCity: ResolvedCity = isTikTokDream
+      ? fromItem.cityId
+        ? fromItem
+        : fromUser.cityId
+          ? fromUser
+          : emptyCity("item")
+      : skipCity && fromItem.cityId
+        ? fromItem
+        : ipCity.cityId
+          ? ipCity
+          : fromItem.cityId
+            ? fromItem
+            : fromUser.cityId
+              ? fromUser
+              : emptyCity("ip");
 
     if (isTikTokDream) {
       console.log("[tiktok/ingest] city source:", resolvedCity.source, {
@@ -163,9 +222,23 @@ export async function POST(req: Request) {
           uid,
           lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          ...(resolvedCity.source === "ip" && resolvedCity.cityId
+            ? {
+                currentCityId: resolvedCity.cityId,
+                currentCity: resolvedCity.city,
+                currentCountry: resolvedCity.country,
+                currentAdmin1: resolvedCity.admin1 || null,
+                citySource: "ip",
+                cityUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              }
+            : {}),
         },
         { merge: true }
       );
+
+      if (!isTikTokDream && resolvedCity.cityId) {
+        tx.set(itemRef, cityWriteFields(resolvedCity), { merge: true });
+      }
 
       tx.set(
         userStatsRef,
@@ -202,7 +275,7 @@ export async function POST(req: Request) {
         );
       }
 
-      if (resolvedCity.cityId) {
+      if (resolvedCity.cityId && !skipCity) {
         const cityStatsRef = db.collection("city_emoji_stats").doc(resolvedCity.cityId);
         const cityDailyRef = db
           .collection("city_emoji_daily")
@@ -217,6 +290,8 @@ export async function POST(req: Request) {
             admin1: resolvedCity.admin1,
             [totalKey]: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            ...(typeof resolvedCity.lat === "number" ? { lat: resolvedCity.lat } : {}),
+            ...(typeof resolvedCity.lng === "number" ? { lng: resolvedCity.lng } : {}),
           },
           { merge: true }
         );
@@ -273,6 +348,7 @@ export async function POST(req: Request) {
       cityId: resolvedCity.cityId || null,
       dateKey,
       sourceType,
+      citySource: resolvedCity.source,
     });
   } catch (e: any) {
     console.error(e);

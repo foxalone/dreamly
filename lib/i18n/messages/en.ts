@@ -24,7 +24,7 @@ export const EN_MESSAGES: UiMessages = {
     askSave: "Save to journal",
     askMore: "Ask more",
     askSignInNote: "Sign in to save this dream or keep asking.",
-    askCached: "This dream is saved on this device. Sign in later and we’ll move it into your journal.",
+    askCached: "This dream is saved on this device. If you shared it, it’s already on the anonymous map. Sign in later and we’ll move it into your journal.",
     askEmpty: "Write a few words from the dream first.",
     askOrDictionary: "Or browse the dream dictionary",
     askGuestLimit: "You already had one free interpretation. Sign in to get more.",

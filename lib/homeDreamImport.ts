@@ -2,10 +2,13 @@ import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "fir
 import type { User } from "firebase/auth";
 import { firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
+import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
+import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import {
   clearHomeDreamPending,
   HOME_DREAM_MAX_CHARS,
   readHomeDreamPending,
+  type HomeDreamCity,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
 
@@ -50,7 +53,42 @@ function toTimeKeyLocal(d: Date) {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-async function shareImportedDream(user: User, dreamId: string, pending: HomeDreamPending) {
+function visualsFromPending(pending: HomeDreamPending): DreamMapVisuals {
+  return {
+    emojis: Array.isArray(pending.emojis) ? pending.emojis.filter((item) => item?.native) : [],
+    iconsEn: Array.isArray(pending.iconsEn) ? pending.iconsEn.map(String).filter(Boolean) : [],
+    rootsEn: Array.isArray(pending.rootsEn) ? pending.rootsEn.map(String).filter(Boolean) : [],
+  };
+}
+
+async function resolveImportCity(pending: HomeDreamPending): Promise<HomeDreamCity | undefined> {
+  if (pending.city?.cityId) return pending.city;
+  try {
+    const res = await fetch("/api/geo/ip-city", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.ok) return undefined;
+    const cityId = String(data?.cityId ?? "").trim();
+    const city = String(data?.city ?? "").trim();
+    const country = String(data?.country ?? "").trim();
+    const admin1 = String(data?.admin1 ?? "").trim();
+    if (!cityId || !city || !country) return undefined;
+    return { cityId, city, country, admin1 };
+  } catch {
+    return undefined;
+  }
+}
+
+async function resolveVisuals(pending: HomeDreamPending): Promise<DreamMapVisuals> {
+  const cached = visualsFromPending(pending);
+  if (cached.emojis.length > 0) return cached;
+  return pickDreamMapVisuals(pending.text).catch(() => cached);
+}
+
+async function shareImportedDream(user: User, dreamId: string, pending: HomeDreamPending, visuals: DreamMapVisuals) {
   const nowMs = Date.now();
   const sharedId = `${user.uid}_${dreamId}`;
   const text = pending.text;
@@ -78,14 +116,23 @@ async function shareImportedDream(user: User, dreamId: string, pending: HomeDrea
     charCount: text.length,
     langGuess: pending.lang || guessLang(text),
     source: "manual",
-    iconsEn: [],
-    emojis: [],
+    iconsEn: visuals.iconsEn,
+    emojis: visuals.emojis,
     sharedAtMs: nowMs,
     sharedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     deleted: false,
     reactions: { heart: 0, like: 0, star: 0 },
     fromHomeAsk: true,
+    ...(pending.city?.cityId
+      ? {
+          cityId: pending.city.cityId,
+          city: pending.city.city,
+          country: pending.city.country,
+          admin1: pending.city.admin1 || null,
+          citySource: "ip",
+        }
+      : {}),
   });
 
   trackEvent("share", { method: "home_ask_map", content_type: "dream" });
@@ -99,6 +146,8 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
   const now = new Date();
   const analysis = pending.analysis?.trim() || "";
   const nowMs = Date.now();
+  const visuals = pending.shareToMap !== false ? await resolveVisuals(pending) : visualsFromPending(pending);
+  const city = pending.shareToMap !== false ? await resolveImportCity(pending) : pending.city;
 
   try {
     const docRef = await addDoc(collection(firestore, "users", user.uid, "dreams"), {
@@ -118,21 +167,30 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       summary: "",
       source: "manual" as const,
       deleted: false,
-      emojis: [] as { native: string }[],
-      iconsEn: [] as string[],
+      emojis: visuals.emojis,
+      iconsEn: visuals.iconsEn,
       shared: false,
       sharedAtMs: null,
       sharedAt: null,
-      roots: [] as string[],
+      roots: visuals.rootsEn,
       rootsTop: [] as { w: string; c: number }[],
-      rootsEn: [] as string[],
-      rootsLang: null,
-      rootsUpdatedAt: null,
+      rootsEn: visuals.rootsEn,
+      rootsLang: pending.lang || null,
+      rootsUpdatedAt: visuals.rootsEn.length ? serverTimestamp() : null,
       sourceType: "dream",
       ownerUid: user.uid,
       authorName: (user.displayName ?? "").trim() || null,
       authorEmail: (user.email ?? "").trim() || null,
       fromHomeAsk: true,
+      ...(city
+        ? {
+            cityId: city.cityId,
+            city: city.city,
+            country: city.country,
+            admin1: city.admin1 || null,
+            citySource: "ip",
+          }
+        : {}),
       ...(analysis
         ? {
             analysisText: analysis,
@@ -144,11 +202,23 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
 
     clearHomeDreamPending();
 
-    if (pending.shareToMap) {
+    if (pending.shareToMap !== false) {
       try {
-        await shareImportedDream(user, docRef.id, pending);
+        await shareImportedDream(user, docRef.id, pending, visuals);
       } catch (e) {
         console.warn("home dream map share failed", e);
+      }
+      if (visuals.emojis.length > 0) {
+        try {
+          await ingestDreamForMap({
+            uid: user.uid,
+            dreamId: docRef.id,
+            sourceType: "dream",
+            skipCity: pending.guestMapIngested === true,
+          });
+        } catch (e) {
+          console.warn("home dream map ingest failed", e);
+        }
       }
     }
 
@@ -156,13 +226,13 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       content_type: "dream",
       input_method: "home_ask",
       word_count: countWords(text),
-      shared_to_map: pending.shareToMap === true,
+      shared_to_map: pending.shareToMap !== false,
     });
 
     return {
       status: "imported",
       dreamId: docRef.id,
-      shared: pending.shareToMap === true,
+      shared: pending.shareToMap !== false,
       analysis: analysis || undefined,
     };
   } catch (error) {

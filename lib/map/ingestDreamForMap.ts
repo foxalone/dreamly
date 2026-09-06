@@ -5,6 +5,7 @@ export async function ingestDreamForMap(params: {
   uid: string;
   dreamId: string;
   sourceType?: MapIngestSourceType;
+  skipCity?: boolean;
 }) {
   const resp = await fetch("/api/map/ingest-dream", {
     method: "POST",
@@ -13,6 +14,7 @@ export async function ingestDreamForMap(params: {
       uid: params.uid,
       dreamId: params.dreamId,
       sourceType: params.sourceType ?? "dream",
+      ...(params.skipCity ? { skipCity: true } : {}),
     }),
   });
 
@@ -24,5 +26,6 @@ export async function ingestDreamForMap(params: {
     cityId?: string;
     dateKey?: string;
     sourceType?: MapIngestSourceType;
+    citySource?: "ip" | "item" | "user";
   };
 }

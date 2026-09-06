@@ -24,7 +24,7 @@ export const ES_MESSAGES: UiMessages = {
     askSave: "Guardar en el diario",
     askMore: "Preguntar más",
     askSignInNote: "Entra para guardar este sueño o seguir preguntando.",
-    askCached: "Este sueño está guardado en este dispositivo. Entra más tarde y lo pasaremos a tu diario.",
+    askCached: "Este sueño está guardado en este dispositivo. Si lo compartiste, ya está en el mapa anónimo. Entra más tarde y lo pasaremos a tu diario.",
     askEmpty: "Escribe primero unas palabras del sueño.",
     askOrDictionary: "O abre el diccionario de sueños",
     askGuestLimit: "Ya usaste tu interpretación gratis. Entra para obtener más.",

@@ -1214,6 +1214,16 @@ export default function DreamsPage() {
         deleted: false,
 
         reactions: { heart: 0, like: 0, star: 0 },
+
+        ...((item as any).cityId
+          ? {
+              cityId: (item as any).cityId,
+              city: (item as any).city ?? null,
+              country: (item as any).country ?? null,
+              admin1: (item as any).admin1 ?? null,
+              citySource: (item as any).citySource ?? "ip",
+            }
+          : {}),
       });
 
       trackEvent("share", {

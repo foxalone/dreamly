@@ -24,7 +24,7 @@ export const PT_MESSAGES: UiMessages = {
     askSave: "Salvar no diário",
     askMore: "Perguntar mais",
     askSignInNote: "Entre para salvar este sonho ou continuar perguntando.",
-    askCached: "Este sonho ficou salvo neste aparelho. Entre depois e nós o colocamos no seu diário.",
+    askCached: "Este sonho ficou salvo neste aparelho. Se você compartilhou, ele já está no mapa anônimo. Entre depois e nós o colocamos no seu diário.",
     askEmpty: "Escreva primeiro algumas palavras do sonho.",
     askOrDictionary: "Ou abra o dicionário de sonhos",
     askGuestLimit: "Você já usou sua interpretação grátis. Entre para obter mais.",
