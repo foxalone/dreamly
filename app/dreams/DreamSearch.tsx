@@ -135,7 +135,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t.dictionary.searchPlaceholder}
             autoComplete="off"
-            className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"
+            className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)] [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-ms-clear]:hidden"
           />
           {query ? (
             <button
