@@ -1,0 +1,21 @@
+# Local build output — Vercel builds from source, never upload these.
+.next
+.next-*
+out
+
+# Nested dependency trees (root node_modules is ignored by the CLI already).
+functions/node_modules
+
+# Local scratch / worker artifacts.
+.ai-video-work
+_to_delete
+*.tsbuildinfo
+
+# Secrets and local env — production values come from Vercel project settings.
+.env*
+!.env.example
+serviceAccountKey.json
+
+# Repo docs and notes, not needed by the build.
+*.md
+!README.md
