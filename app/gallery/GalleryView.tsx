@@ -78,12 +78,12 @@ export default function GalleryView({
       {items.length === 0 ? (
         <p className="mx-auto mt-16 max-w-md text-center text-sm leading-6 text-[var(--dd-muted)]">{t.gallery.empty}</p>
       ) : (
-        <section className="mt-10 columns-2 gap-3 sm:mt-12 sm:columns-3 sm:gap-4 lg:columns-4" aria-label={t.gallery.h1}>
+        <section className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-label={t.gallery.h1}>
           {items.map((item) => (
             <LocaleLink
               key={item.slug}
               href={`/dreams/${item.slug}`}
-              className="group mb-3 block break-inside-avoid overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:mb-4 sm:rounded-[1.35rem]"
+              className="group block overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
             >
               <span className="relative block">
                 <img
