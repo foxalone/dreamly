@@ -184,7 +184,7 @@ export const DE_MESSAGES: UiMessages = {
     billedMonthly: "Monatliche Abrechnung",
     billedYearly: "Jährliche Abrechnung",
     trialBadge: "3 Tage kostenlos testen",
-    limitsNote: "Bis zu 5 Träume pro Tag, je 250 Zeichen — auch in der Testphase.",
+    limitsNote: "Bis zu 5 Träume pro Tag — auch in der Testphase.",
     useFor: "Das Abo schaltet Speichern und KI-Deutungen in der App frei.",
     freeNote: "Lexikon, Galerie, Karte und die erste Deutung bleiben kostenlos.",
     refundNote: "Kündigst du in der Testphase, wird nichts berechnet. Siehe die Erstattungsrichtlinie.",

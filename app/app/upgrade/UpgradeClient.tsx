@@ -237,7 +237,11 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
               <div className="text-sm text-[var(--muted)]">{t.upgrade.creating}</div>
             ) : (
               <PayPalScriptProvider options={scriptOptions}>
-                <div className={status === "paying" ? "opacity-70 pointer-events-none" : ""}>
+                <div
+                  className={`w-full max-w-[280px] ${
+                    status === "paying" ? "opacity-70 pointer-events-none" : ""
+                  }`}
+                >
                   <PayPalButtons
                     style={{ layout: "vertical", label: "subscribe" }}
                     forceReRender={[selected]}

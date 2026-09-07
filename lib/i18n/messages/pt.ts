@@ -184,7 +184,7 @@ export const PT_MESSAGES: UiMessages = {
     billedMonthly: "Cobrado mensalmente",
     billedYearly: "Cobrado anualmente",
     trialBadge: "3 dias de teste grátis",
-    limitsNote: "Até 5 sonhos por dia, 250 caracteres cada — inclusive no teste.",
+    limitsNote: "Até 5 sonhos por dia — inclusive no teste.",
     useFor: "A assinatura libera salvar sonhos e interpretações com IA no aplicativo.",
     freeNote: "O dicionário, a galeria, o mapa e a primeira interpretação continuam grátis.",
     refundNote: "Cancele no teste e você não é cobrado. Veja a Política de reembolso.",

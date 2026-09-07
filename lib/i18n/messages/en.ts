@@ -184,7 +184,7 @@ export const EN_MESSAGES: UiMessages = {
     billedMonthly: "Billed monthly",
     billedYearly: "Billed yearly",
     trialBadge: "3-day free trial",
-    limitsNote: "Up to 5 dreams per day, 250 characters each — including during the trial.",
+    limitsNote: "Up to 5 dreams per day — including during the trial.",
     useFor: "Subscription unlocks saving dreams and AI interpretations in the app.",
     freeNote: "The dictionary, gallery, map, and your first interpretation stay free.",
     refundNote: "Cancel during the trial and you are not charged. See the Refund Policy.",
