@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
+import { PREFIX_LOCALES } from "@/lib/i18n/config";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
@@ -25,6 +26,11 @@ function readSlug(value: unknown) {
 
 function revalidateDreamPage(slug: string) {
   revalidatePath(`/dreams/${slug}`);
+  revalidatePath("/gallery");
+  for (const locale of PREFIX_LOCALES) {
+    revalidatePath(`/${locale}/dreams/${slug}`);
+    revalidatePath(`/${locale}/gallery`);
+  }
   revalidatePath("/sitemap.xml");
 }
 
@@ -64,6 +70,7 @@ export async function PUT(request: Request) {
         imageUrl,
         subject,
         alt: dreamPageImageAlt(getDreamEntry(slug)?.name || subject),
+        assignedAt: new Date().toISOString(),
       },
     });
   } catch (error) {

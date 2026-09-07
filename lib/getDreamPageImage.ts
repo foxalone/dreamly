@@ -11,7 +11,17 @@ type StoredAssignment = {
   imageUrl?: string;
   subject?: string;
   imageJobId?: string;
+  assignedAt?: { toDate?: () => Date } | string | null;
 };
+
+function assignedAtIso(value: StoredAssignment["assignedAt"]) {
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? new Date(parsed).toISOString() : "";
+  }
+  const date = value?.toDate?.();
+  return date && !Number.isNaN(date.getTime()) ? date.toISOString() : "";
+}
 
 function assignmentFromData(slug: string, data: StoredAssignment | undefined): DreamPageImageAssignment | null {
   const imageUrl = String(data?.imageUrl || "");
@@ -23,6 +33,7 @@ function assignmentFromData(slug: string, data: StoredAssignment | undefined): D
     imageUrl,
     subject: String(data?.subject || ""),
     alt: dreamPageImageAlt(entry?.name || data?.subject || ""),
+    assignedAt: assignedAtIso(data?.assignedAt),
   };
 }
 

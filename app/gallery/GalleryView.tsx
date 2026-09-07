@@ -1,7 +1,7 @@
-import { POPULAR_DREAM_SLUGS } from "@/lib/dream-dictionary";
 import {
   DREAM_PAGE_IMAGE_HEIGHT,
   DREAM_PAGE_IMAGE_WIDTH,
+  sortDreamPageImages,
   type DreamPageImageAssignment,
 } from "@/lib/dreamPageImage";
 import type { Locale } from "@/lib/i18n/config";
@@ -11,18 +11,6 @@ import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 
-function sortGalleryItems(items: DreamPageImageAssignment[]) {
-  const popular = new Map<string, number>(POPULAR_DREAM_SLUGS.map((slug, index) => [slug, index]));
-  return [...items].sort((a, b) => {
-    const aRank = popular.get(a.slug);
-    const bRank = popular.get(b.slug);
-    if (aRank != null && bRank != null) return aRank - bRank;
-    if (aRank != null) return -1;
-    if (bRank != null) return 1;
-    return a.slug.localeCompare(b.slug);
-  });
-}
-
 export default function GalleryView({
   locale,
   images,
@@ -31,7 +19,7 @@ export default function GalleryView({
   images: DreamPageImageAssignment[];
 }) {
   const t = getMessages(locale);
-  const items = sortGalleryItems(images).flatMap((image) => {
+  const items = sortDreamPageImages(images).flatMap((image) => {
     const entry = getLocalizedEntry(image.slug, locale);
     if (!entry) return [];
     return [

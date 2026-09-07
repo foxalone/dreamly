@@ -10,7 +10,17 @@ export type DreamPageImageAssignment = {
   imageUrl: string;
   subject: string;
   alt: string;
+  assignedAt: string;
 };
+
+export function sortDreamPageImages(items: DreamPageImageAssignment[]) {
+  return [...items].sort((a, b) => {
+    const aTime = Date.parse(a.assignedAt) || 0;
+    const bTime = Date.parse(b.assignedAt) || 0;
+    if (aTime !== bTime) return bTime - aTime;
+    return a.slug.localeCompare(b.slug);
+  });
+}
 
 export function dreamPageImageAlt(symbolName: string) {
   const name = symbolName.trim();
