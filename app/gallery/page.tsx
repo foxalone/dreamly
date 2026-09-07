@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listDreamPageImages } from "@/lib/getDreamPageImage";
+import { listGalleryHeartCounts } from "@/lib/getGalleryHearts";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 import GalleryView from "./GalleryView";
@@ -16,6 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default async function GalleryPage() {
-  const images = await listDreamPageImages();
-  return <GalleryView locale="en" images={images} />;
+  const [images, heartCounts] = await Promise.all([
+    listDreamPageImages(),
+    listGalleryHeartCounts(),
+  ]);
+  return <GalleryView locale="en" images={images} heartCounts={heartCounts} />;
 }

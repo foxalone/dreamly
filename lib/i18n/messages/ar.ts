@@ -102,6 +102,10 @@ export const AR_MESSAGES: UiMessages = {
     seoTitle: "معرض فن الأحلام: رسوم رموز الأحلام بالذكاء الاصطناعي",
     seoDescription:
       "تصفح معرضًا على طراز بنترست لفن الأحلام. اضغط أي رسم لتقرأ المعنى النفسي والروحي والإسلامي والكتابي لذلك الرمز.",
+    hadThisDream: "رأيت هذا الحلم",
+    undoHadThisDream: "إزالة: رأيت هذا الحلم",
+    peopleHadThisDream: "{count} رأوا هذا الحلم",
+    signInToHeart: "سجّل الدخول لتشير إلى أنك رأيت هذا الحلم.",
   },
   dictionary: {
     badge: "{count} معنى عبر {clusters} مجموعة",

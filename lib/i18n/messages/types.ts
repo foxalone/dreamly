@@ -61,6 +61,10 @@ export type UiMessages = {
     alt: string;
     seoTitle: string;
     seoDescription: string;
+    hadThisDream: string;
+    undoHadThisDream: string;
+    peopleHadThisDream: string;
+    signInToHeart: string;
   };
   dictionary: {
     badge: string;

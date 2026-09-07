@@ -48,11 +48,14 @@ export default function SignInClient() {
     if (next.startsWith("/app/map") || next.includes("/app/map")) {
       return "Sign in with Google to explore the dream map.";
     }
+    if (next.includes("/gallery")) {
+      return t.gallery.signInToHeart;
+    }
     if (next.includes("/dreams") && !next.includes("/app/dreams")) {
       return "Sign in with Google to look up dream symbols.";
     }
     return "Sign in with Google to save your dreams.";
-  }, [next, sp, t.home.askGuestLimit]);
+  }, [next, sp, t.gallery.signInToHeart, t.home.askGuestLimit]);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

@@ -102,6 +102,10 @@ export const EN_MESSAGES: UiMessages = {
     seoTitle: "Dream Art Gallery: AI Illustrations of Dream Symbols",
     seoDescription:
       "Browse a Pinterest-style gallery of AI dream art. Tap any illustration to read the psychological, spiritual, Islamic, and biblical meaning of that dream symbol.",
+    hadThisDream: "I had this dream",
+    undoHadThisDream: "Remove: I had this dream",
+    peopleHadThisDream: "{count} had this dream",
+    signInToHeart: "Sign in to mark that you had this dream.",
   },
   dictionary: {
     badge: "{count} meanings across {clusters} dream clusters",

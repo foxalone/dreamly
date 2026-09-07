@@ -102,6 +102,10 @@ export const PT_MESSAGES: UiMessages = {
     seoTitle: "Galeria de arte dos sonhos: ilustrações de símbolos com IA",
     seoDescription:
       "Explore uma galeria estilo Pinterest de arte de sonhos com IA. Toque numa ilustração para ler o significado psicológico, espiritual, islâmico e bíblico daquele símbolo.",
+    hadThisDream: "Eu tive esse sonho",
+    undoHadThisDream: "Remover: eu tive esse sonho",
+    peopleHadThisDream: "{count} tiveram esse sonho",
+    signInToHeart: "Entre para marcar que você teve esse sonho.",
   },
   dictionary: {
     badge: "{count} significados em {clusters} grupos",

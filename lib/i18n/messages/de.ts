@@ -102,6 +102,10 @@ export const DE_MESSAGES: UiMessages = {
     seoTitle: "Traumkunst-Galerie: KI-Illustrationen von Traumsymbolen",
     seoDescription:
       "Eine Pinterest-artige Galerie mit KI-Traumkunst. Tippe auf ein Bild und lies die psychologische, spirituelle, islamische und biblische Bedeutung des Symbols.",
+    hadThisDream: "Ich hatte diesen Traum",
+    undoHadThisDream: "Entfernen: Ich hatte diesen Traum",
+    peopleHadThisDream: "{count} hatten diesen Traum",
+    signInToHeart: "Melde dich an, um zu markieren, dass du diesen Traum hattest.",
   },
   dictionary: {
     badge: "{count} Bedeutungen in {clusters} Traumgruppen",

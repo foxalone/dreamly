@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import GalleryView from "../../gallery/GalleryView";
 import { listDreamPageImages } from "@/lib/getDreamPageImage";
+import { listGalleryHeartCounts } from "@/lib/getGalleryHearts";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 
@@ -21,6 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const locale = await localeFromParams(params);
-  const images = await listDreamPageImages();
-  return <GalleryView locale={locale} images={images} />;
+  const [images, heartCounts] = await Promise.all([
+    listDreamPageImages(),
+    listGalleryHeartCounts(),
+  ]);
+  return <GalleryView locale={locale} images={images} heartCounts={heartCounts} />;
 }

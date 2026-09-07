@@ -10,13 +10,16 @@ import { formatMessage, getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
+import { GalleryHeartButton, GalleryHeartsProvider } from "./GalleryHearts";
 
 export default function GalleryView({
   locale,
   images,
+  heartCounts = {},
 }: {
   locale: Locale;
   images: DreamPageImageAssignment[];
+  heartCounts?: Record<string, number>;
 }) {
   const t = getMessages(locale);
   const items = sortDreamPageImages(images).flatMap((image) => {
@@ -65,30 +68,38 @@ export default function GalleryView({
       {items.length === 0 ? (
         <p className="mx-auto mt-16 max-w-md text-center text-sm leading-6 text-[var(--dd-muted)]">{t.gallery.empty}</p>
       ) : (
+        <GalleryHeartsProvider initialCounts={heartCounts}>
         <section className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-label={t.gallery.h1}>
           {items.map((item) => (
-            <LocaleLink
+            <article
               key={item.slug}
-              href={`/dreams/${item.slug}`}
-              className="group block overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
+              className="group relative overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
             >
-              <span className="relative block">
-                <img
-                  src={item.imageUrl}
-                  alt={item.alt}
-                  width={DREAM_PAGE_IMAGE_WIDTH}
-                  height={DREAM_PAGE_IMAGE_HEIGHT}
-                  loading="lazy"
-                  className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                />
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
-                  <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
-                  <span className="mt-0.5 block truncate text-[11px] text-white/75">{t.gallery.openMeaning}</span>
+              <LocaleLink href={`/dreams/${item.slug}`} className="block">
+                <span className="relative block">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.alt}
+                    width={DREAM_PAGE_IMAGE_WIDTH}
+                    height={DREAM_PAGE_IMAGE_HEIGHT}
+                    loading="lazy"
+                    className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                  />
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10 pe-16">
+                    <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-white/75">{t.gallery.openMeaning}</span>
+                  </span>
                 </span>
-              </span>
-            </LocaleLink>
+              </LocaleLink>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-end px-2 pb-2 sm:px-2.5 sm:pb-2.5">
+                <div className="pointer-events-auto">
+                  <GalleryHeartButton slug={item.slug} />
+                </div>
+              </div>
+            </article>
           ))}
         </section>
+        </GalleryHeartsProvider>
       )}
     </main>
       <SiteLegalFooter locale={locale} />

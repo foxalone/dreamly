@@ -102,6 +102,10 @@ export const ES_MESSAGES: UiMessages = {
     seoTitle: "Galería de arte onírico: ilustraciones de símbolos de sueños",
     seoDescription:
       "Explora una galería tipo Pinterest de arte de sueños con IA. Toca una ilustración para leer el significado psicológico, espiritual, islámico y bíblico de ese símbolo.",
+    hadThisDream: "Tuve este sueño",
+    undoHadThisDream: "Quitar: tuve este sueño",
+    peopleHadThisDream: "{count} tuvieron este sueño",
+    signInToHeart: "Entra para marcar que tuviste este sueño.",
   },
   dictionary: {
     badge: "{count} significados en {clusters} grupos",

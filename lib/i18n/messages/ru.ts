@@ -102,6 +102,10 @@ export const RU_MESSAGES: UiMessages = {
     seoTitle: "Галерея арта снов: иллюстрации символов",
     seoDescription:
       "Галерея в духе Pinterest: арт снов, нарисованный ИИ. Нажмите иллюстрацию, чтобы прочитать психологическое, духовное, исламское и библейское значение символа.",
+    hadThisDream: "У меня был такой сон",
+    undoHadThisDream: "Убрать: у меня был такой сон",
+    peopleHadThisDream: "{count} видели такой сон",
+    signInToHeart: "Войдите, чтобы отметить, что у вас был такой сон.",
   },
   dictionary: {
     badge: "{count} значений в {clusters} гнёздах",
