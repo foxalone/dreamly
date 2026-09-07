@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { AdminImageLibraryItem } from "@/lib/adminImageLibrary";
 import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, type DreamPageImageAssignment } from "@/lib/dreamPageImage";
+import { imageSocialPlatformLabel, type ImageSocialPlatform } from "@/lib/imageSocialPublish";
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
@@ -45,6 +46,7 @@ export function DreamPageImageProvider({
   const [savingId, setSavingId] = useState("");
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
+  const [publishNotice, setPublishNotice] = useState<{ type: "pending" | "ok" | "error"; text: string } | null>(null);
 
   const loadAssignment = useCallback(async () => {
     const response = await fetch(`/api/dreams/${encodeURIComponent(slug)}/page-image`, { cache: "no-store" });
@@ -88,11 +90,58 @@ export function DreamPageImageProvider({
     void loadLibrary();
   }, [loadLibrary]);
 
+  async function publishAssignedToSocials(libraryId: string) {
+    const user = auth.currentUser;
+    if (!user) return;
+    setPublishNotice({ type: "pending", text: "Отправляем картинку в Instagram, Facebook, Threads и Pinterest…" });
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/image-library/publish-all", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ libraryId }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        published?: ImageSocialPlatform[];
+        skipped?: ImageSocialPlatform[];
+        failed?: { platform: ImageSocialPlatform; error?: string }[];
+        error?: string;
+      };
+      if (!response.ok) throw new Error(payload.error || "Не удалось опубликовать в соцсети");
+      const published = (payload.published || []).map(imageSocialPlatformLabel);
+      const failed = (payload.failed || []).map(
+        (entry) => `${imageSocialPlatformLabel(entry.platform)}: ${entry.error || "ошибка"}`,
+      );
+      if (!failed.length) {
+        setPublishNotice({
+          type: "ok",
+          text: published.length
+            ? `Опубликовано: ${published.join(", ")}. На All images иконки станут зелёными.`
+            : "Картинка уже была во всех доступных соцсетях.",
+        });
+        return;
+      }
+      setPublishNotice({
+        type: "error",
+        text: published.length
+          ? `Опубликовано: ${published.join(", ")}. Ошибки — ${failed.join("; ")}`
+          : failed.join("; "),
+      });
+    } catch (caught) {
+      setPublishNotice({
+        type: "error",
+        text: caught instanceof Error ? caught.message : "Ошибка публикации в соцсети",
+      });
+    }
+  }
+
   async function chooseImage(item: AdminImageLibraryItem) {
     const user = auth.currentUser;
     if (!user) return;
     setSavingId(item.id);
     setError("");
+    setPublishNotice(null);
     try {
       const token = await user.getIdToken();
       const response = await fetch("/api/admin/dream-page-image", {
@@ -104,6 +153,7 @@ export function DreamPageImageProvider({
       if (!response.ok || !payload.image) throw new Error(payload.error || "Не удалось назначить картинку");
       setImage(payload.image);
       setPickerOpen(false);
+      void publishAssignedToSocials(item.id);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Ошибка сохранения");
     } finally {
@@ -141,6 +191,19 @@ export function DreamPageImageProvider({
   return (
     <PageImageContext.Provider value={value}>
       {children}
+      {publishNotice && isAdmin ? (
+        <div
+          className={`fixed bottom-4 right-4 z-[70] max-w-sm rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl ${
+            publishNotice.type === "ok"
+              ? "border-emerald-500/40 bg-[var(--dd-surface)] text-emerald-500"
+              : publishNotice.type === "error"
+                ? "border-red-500/40 bg-[var(--dd-surface)] text-red-500"
+                : "border-[var(--dd-border)] bg-[var(--dd-surface)] text-[var(--dd-text)]"
+          }`}
+        >
+          {publishNotice.text}
+        </div>
+      ) : null}
       {pickerOpen && isAdmin ? (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/55 p-4 sm:items-center" role="dialog" aria-modal="true">
           <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-[var(--dd-border)] bg-[var(--dd-surface)] shadow-2xl">

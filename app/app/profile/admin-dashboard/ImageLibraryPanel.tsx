@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
 import type { AdminImageLibraryItem, AdminImagePublishPlatform } from "@/lib/adminImageLibrary";
+import { imageSocialsAllPublished, imageSocialsAnyPublished } from "@/lib/imageSocialPublish";
 import type { MetaConnectionStatus } from "@/lib/adminMeta";
 import type { ThreadsConnectionStatus } from "@/lib/adminThreads";
 import {
@@ -128,6 +129,7 @@ function ImageTile({
   dateLabel,
   costLabel,
   busyDownload,
+  publishedAll,
   actions,
   onDownload,
 }: {
@@ -135,11 +137,16 @@ function ImageTile({
   dateLabel: string;
   costLabel: string;
   busyDownload: boolean;
+  publishedAll: boolean;
   actions: ReactNode;
   onDownload: () => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
+    <div
+      className={`overflow-hidden rounded-xl border bg-[var(--bg)] ${
+        publishedAll ? "border-emerald-500/70" : "border-[var(--border)]"
+      }`}
+    >
       <div className="relative aspect-square overflow-hidden bg-[color-mix(in_srgb,var(--text)_8%,transparent)]">
         <a href={item.imageUrl} target="_blank" rel="noreferrer" title={item.subject || item.prompt} className="group absolute inset-0 block">
           <img src={item.imageUrl} alt={item.subject || item.prompt} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" />
@@ -300,6 +307,13 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
     return pending;
   }
 
+  function socialsDone(item: AdminImageLibraryItem) {
+    return (
+      imageSocialsAllPublished(item.published) ||
+      (pendingPlatforms(item).length === 0 && imageSocialsAnyPublished(item.published))
+    );
+  }
+
   async function publishImageTo(item: AdminImageLibraryItem, platform: ImagePlatform) {
     const token = await user.getIdToken();
     const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -458,6 +472,7 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
   const publishActions = (item: AdminImageLibraryItem) => {
     const busy = cardBusy(item.id);
     const remaining = pendingPlatforms(item);
+    const allDone = socialsDone(item);
     return (
       <>
         <PublishIconButton
@@ -512,7 +527,11 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
             event.stopPropagation();
             void publishToAll(item);
           }}
-          className="ml-auto shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-black disabled:cursor-not-allowed disabled:opacity-35"
+          className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold disabled:cursor-not-allowed ${
+            allDone
+              ? "bg-emerald-500/20 text-emerald-600 disabled:opacity-100"
+              : "bg-white/90 text-black disabled:opacity-35"
+          }`}
         >
           {busy ? "…" : "All"}
         </button>
@@ -561,6 +580,7 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
               dateLabel={dateFormatter.format(new Date(item.createdAt))}
               costLabel={item.actualCostUsd == null ? `оценка ${usd.format(item.estimatedCostUsd)}` : `≈ ${usd.format(item.actualCostUsd)}`}
               busyDownload={busyId === item.id}
+              publishedAll={socialsDone(item)}
               actions={publishActions(item)}
               onDownload={() => void download(item)}
             />
