@@ -123,9 +123,13 @@ export default function HomeDreamAsk({
           goToJournal(dream, true);
           return;
         }
-        if (data?.code === "INSUFFICIENT_CREDITS") {
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS") {
           trackEvent("upgrade_prompt", { source: "home_ask" });
           router.push(localePath("/app/upgrade", locale));
+          return;
+        }
+        if (data?.code === "DAILY_LIMIT") {
+          setError(typeof data?.error === "string" ? data.error : t.app.dailyLimitReached);
           return;
         }
         throw new Error(typeof data?.error === "string" ? data.error : "Analyze failed");

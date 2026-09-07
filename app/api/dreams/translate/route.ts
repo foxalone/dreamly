@@ -7,12 +7,7 @@ import {
 } from "@/lib/openaiEnv";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
-import {
-  TRANSLATE_CREDIT_COST,
-  chargeOpenAiCall,
-  refundOpenAiCall,
-  type OpenAiCharge,
-} from "../_lib/credits";
+import { requirePaidAccess } from "../_lib/subscription";
 
 export const runtime = "nodejs";
 
@@ -75,7 +70,6 @@ function extractOutputText(resp: unknown): string {
 
 export async function POST(req: Request) {
   let uid: string | null = null;
-  let charge: OpenAiCharge | null = null;
 
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
@@ -125,14 +119,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    const charged = await chargeOpenAiCall(uid, TRANSLATE_CREDIT_COST);
-    if ("error" in charged) return charged.error;
-    charge = charged;
+    const access = await requirePaidAccess(uid);
+    if ("error" in access) return access.error;
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json(
         { error: getMissingOneiroOpenAiKeyMessage() },
         { status: 500 }
@@ -154,8 +145,6 @@ export async function POST(req: Request) {
       });
       translation = extractOutputText(resp);
     } catch (e: any) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json(
         { error: e?.message ?? "Translate failed" },
         { status: 500 }
@@ -163,8 +152,6 @@ export async function POST(req: Request) {
     }
 
     if (!translation) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json({ error: "Empty translation" }, { status: 500 });
     }
 
@@ -188,14 +175,12 @@ export async function POST(req: Request) {
     return NextResponse.json({
       translation,
       cached: false,
-      cost: charge.cost,
-      usedDailyFree: charge.usedDailyFree,
-      credits: charge.credits,
+      cost: 0,
+      usedDailyFree: false,
       model,
       targetLang,
     });
   } catch (e: any) {
-    if (uid && charge) await refundOpenAiCall(uid, charge);
     return NextResponse.json(
       { error: e?.message ?? "Translate failed" },
       { status: 500 }

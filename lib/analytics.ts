@@ -41,11 +41,11 @@ export function trackAuth(isNewUser: boolean) {
   trackEvent(isNewUser ? "sign_up" : "login", { method: "google" });
 }
 
-export function creditPackItem(packId: string, credits: number, price: string) {
+export function subscriptionItem(planId: string, price: string) {
   return {
-    item_id: packId,
-    item_name: `${credits} credits`,
-    item_category: "credits",
+    item_id: planId,
+    item_name: planId === "yearly" ? "Dreamly Yearly" : "Dreamly Monthly",
+    item_category: "subscription",
     price: Number(price),
     quantity: 1,
   };

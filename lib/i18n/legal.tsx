@@ -114,8 +114,8 @@ function PrivacyEn() {
             (when needed for map/sharing features), browser/app type, and diagnostics.
           </li>
           <li>
-            <strong>Payment and credit data</strong> — purchase status, order identifiers, and subscription/credit
-            balance. Card details are processed by our payment provider (PayPal); we do not
+            <strong>Payment and subscription data</strong> — purchase status, PayPal subscription identifiers, and
+            access period. Card details are processed by our payment provider (PayPal); we do not
             store full card numbers on Dreamly servers.
           </li>
           <li>
@@ -133,7 +133,7 @@ function PrivacyEn() {
         <h2>3. How we use information</h2>
         <ul>
           <li>Provide dream interpretations, journaling, dictionary, map, and account features</li>
-          <li>Operate authentication, billing, credits, and customer support</li>
+          <li>Operate authentication, billing, subscriptions, and customer support</li>
           <li>Improve product quality, reliability, safety, and performance</li>
           <li>Prevent abuse, spam, fraud, and unauthorized access</li>
           <li>Publish content you explicitly ask us to publish to connected platforms</li>
@@ -320,22 +320,23 @@ function TermsEn() {
           <li>Break the law or infringe others&apos; rights</li>
           <li>Upload malware, scrape the Service abusively, or attempt unauthorized access</li>
           <li>Harass, threaten, or exploit others</li>
-          <li>Spam, manipulate rankings, or automate misuse of AI/credits features</li>
+          <li>Spam, manipulate rankings, or automate misuse of AI or paid features</li>
           <li>Reverse engineer the Service except where allowed by law</li>
           <li>Use Dreamly to generate or distribute unlawful or prohibited content</li>
         </ul>
       </section>
 
       <section>
-        <h2>7. Paid features, credits, and refunds</h2>
+        <h2>7. Paid features, subscriptions, and refunds</h2>
         <p>
-          Some features may require payment, subscriptions, or credits. Prices and benefits are shown at checkout and on
-          our <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
+          Saving dreams and extra AI interpretations require a Dreamly subscription after one free guest
+          interpretation. Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
+          <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
         </p>
         <p>
-          You have a money-back guarantee of at least 30 days from the date of your order. See our{" "}
-          <LocaleLink href="/refund">Refund Policy</LocaleLink>. Mandatory consumer rights in your country remain
-          unaffected. Chargebacks and payment disputes may lead to account review.
+          Cancel during the trial and you are not charged. After a paid period starts, you may cancel anytime and keep
+          access until that period ends. See our <LocaleLink href="/refund">Refund Policy</LocaleLink>. Mandatory
+          consumer rights in your country remain unaffected. Chargebacks and payment disputes may lead to account review.
         </p>
       </section>
 
@@ -464,8 +465,8 @@ function PrivacyEs() {
             navegador o aplicación y registros de diagnóstico.
           </li>
           <li>
-            <strong>Datos de pago y de créditos</strong> — estado de la compra, identificadores de pedido y saldo de
-            suscripción o créditos. Los datos de la tarjeta los procesan nuestros proveedores de pagos (por ejemplo,
+            <strong>Datos de pago y de suscripción</strong> — estado de la compra, identificadores de suscripción de
+            PayPal y periodo de acceso. Los datos de la tarjeta los procesan nuestros proveedores de pagos (por ejemplo,
             PayPal); no almacenamos el número completo de la tarjeta en los servidores de Dreamly.
           </li>
           <li>
@@ -484,7 +485,7 @@ function PrivacyEs() {
         <h2>3. Cómo usamos la información</h2>
         <ul>
           <li>Prestar las funciones de interpretación, diario, diccionario, mapa y cuenta</li>
-          <li>Operar la autenticación, la facturación, los créditos y la atención al usuario</li>
+          <li>Operar la autenticación, la facturación, las suscripciones y la atención al usuario</li>
           <li>Mejorar la calidad, la fiabilidad, la seguridad y el rendimiento del producto</li>
           <li>Prevenir abusos, correo no deseado, fraude y accesos no autorizados</li>
           <li>Publicar el contenido que usted nos pida expresamente que difundamos en las plataformas conectadas</li>
@@ -679,21 +680,23 @@ function TermsEs() {
           <li>Infringir la ley ni los derechos de terceros</li>
           <li>Cargar malware, extraer datos del Servicio de forma abusiva ni intentar accesos no autorizados</li>
           <li>Acosar, amenazar ni explotar a otras personas</li>
-          <li>Enviar spam, manipular clasificaciones ni automatizar el uso indebido de la IA o de los créditos</li>
+          <li>Enviar spam, manipular clasificaciones ni automatizar el uso indebido de la IA o de las funciones de pago</li>
           <li>Realizar ingeniería inversa del Servicio, salvo cuando la ley lo permita</li>
           <li>Emplear Dreamly para generar o difundir contenido ilícito o prohibido</li>
         </ul>
       </section>
 
       <section>
-        <h2>7. Funciones de pago, créditos y reembolsos</h2>
+        <h2>7. Funciones de pago, suscripciones y reembolsos</h2>
         <p>
-          Algunas funciones pueden exigir pago, suscripción o créditos. Los precios y beneficios se indican en el
-          momento del pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta
-          el pago a través de PayPal.
+          Guardar sueños e interpretaciones extra con IA requieren una suscripción Dreamly después de una interpretación
+          gratuita como invitado. Los precios, la prueba de 3 días y los límites diarios se indican en el momento del
+          pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta el pago a través
+          de PayPal.
         </p>
         <p>
-          Tiene una garantía de reembolso de al menos 30 días desde la fecha del pedido. Consulte nuestra{" "}
+          Si cancela durante la prueba, no se cobra. Tras empezar un periodo de pago, puede cancelar cuando quiera y
+          conserva el acceso hasta que termine ese periodo. Consulte nuestra{" "}
           <LocaleLink href="/refund">Política de reembolso</LocaleLink>. Los derechos imperativos de los consumidores de
           su país no se ven afectados. Los contracargos y las controversias de pago pueden dar lugar a una revisión de
           la cuenta.
@@ -826,7 +829,7 @@ function PrivacyAr() {
             عنوان بروتوكول الإنترنت (عند الحاجة لميزات الخريطة أو المشاركة) ونوع المتصفح أو التطبيق وبيانات التشخيص.
           </li>
           <li>
-            <strong>بيانات الدفع والأرصدة</strong> — حالة الشراء ومعرّفات الطلب ورصيد الاشتراك أو الأرصدة. تتولى جهة
+            <strong>بيانات الدفع والاشتراك</strong> — حالة الشراء ومعرّفات اشتراك PayPal وفترة الوصول. تتولى جهة
             الدفع لدينا (PayPal) معالجة بيانات البطاقة؛ ولا نخزّن أرقام البطاقات كاملة على خوادم
             Dreamly.
           </li>
@@ -844,7 +847,7 @@ function PrivacyAr() {
         <h2>3. كيف نستخدم المعلومات</h2>
         <ul>
           <li>تقديم ميزات التفسير والمفكّرة والقاموس والخريطة والحساب</li>
-          <li>تشغيل المصادقة والفوترة والأرصدة ودعم المستخدمين</li>
+          <li>تشغيل المصادقة والفوترة والاشتراكات ودعم المستخدمين</li>
           <li>تحسين جودة المنتج وموثوقيته وسلامته وأدائه</li>
           <li>منع إساءة الاستخدام والبريد العشوائي والاحتيال والوصول غير المصرّح به</li>
           <li>نشر المحتوى الذي تطلب منا صراحةً نشره على المنصات المرتبطة</li>
@@ -1028,15 +1031,16 @@ function TermsAr() {
       </section>
 
       <section>
-        <h2>7. الميزات المدفوعة والأرصدة والاسترداد</h2>
+        <h2>7. الميزات المدفوعة والاشتراكات والاسترداد</h2>
         <p>
-          قد تستلزم بعض الميزات دفعًا أو اشتراكًا أو أرصدة. وتُعرض الأسعار والمنافع عند إتمام الشراء وفي صفحة{" "}
+          حفظ الأحلام والتفسيرات الإضافية بالذكاء الاصطناعي يتطلبان اشتراك Dreamly بعد تفسير مجاني واحد للضيف. وتُعرض
+          الأسعار وتجربة 3 أيام والحدود اليومية عند إتمام الشراء وفي صفحة{" "}
           <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويقبل البائع الدفع عبر PayPal.
         </p>
         <p>
-          لديك ضمان استرداد للمبلغ لمدة لا تقل عن 30 يومًا من تاريخ الطلب. انظر{" "}
-          <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>. ولا تمس هذه السياسة حقوق المستهلك الإلزامية في بلدك.
-          وقد تؤدي عمليات استرداد المبالغ من جهة البطاقة ومنازعات الدفع إلى مراجعة الحساب.
+          إذا ألغيت أثناء التجربة فلن تُحصَّل أي رسوم. وبعد بدء فترة مدفوعة يمكنك الإلغاء في أي وقت ويبقى الوصول حتى
+          نهايتها. انظر <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>. ولا تمس هذه السياسة حقوق المستهلك
+          الإلزامية في بلدك. وقد تؤدي عمليات استرداد المبالغ من جهة البطاقة ومنازعات الدفع إلى مراجعة الحساب.
         </p>
       </section>
 
@@ -1161,8 +1165,8 @@ function PrivacyPt() {
             diagnósticos.
           </li>
           <li>
-            <strong>Dados de pagamento e de créditos</strong> — status da compra, identificadores do pedido e saldo de
-            assinatura ou créditos. Os dados do cartão são processados pelos nossos provedores de pagamento (por
+            <strong>Dados de pagamento e de assinatura</strong> — status da compra, identificadores de assinatura do
+            PayPal e período de acesso. Os dados do cartão são processados pelos nossos provedores de pagamento (por
             exemplo, o PayPal); não armazenamos o número completo do cartão nos servidores da Dreamly.
           </li>
           <li>
@@ -1181,7 +1185,7 @@ function PrivacyPt() {
         <h2>3. Como usamos as informações</h2>
         <ul>
           <li>Prestar as funções de interpretação, diário, dicionário, mapa e conta</li>
-          <li>Operar autenticação, cobrança, créditos e atendimento</li>
+          <li>Operar autenticação, cobrança, assinaturas e atendimento</li>
           <li>Melhorar a qualidade, a confiabilidade, a segurança e o desempenho do produto</li>
           <li>Prevenir abuso, spam, fraude e acesso não autorizado</li>
           <li>Publicar o conteúdo que você nos pedir expressamente para divulgar nas plataformas conectadas</li>
@@ -1378,13 +1382,15 @@ function TermsPt() {
       </section>
 
       <section>
-        <h2>7. Recursos pagos, créditos e reembolsos</h2>
+        <h2>7. Recursos pagos, assinaturas e reembolsos</h2>
         <p>
-          Alguns recursos podem exigir pagamento, assinatura ou créditos. Preços e benefícios aparecem no checkout e na
-          página de <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
+          Salvar sonhos e interpretações extras com IA exigem uma assinatura Dreamly depois de uma interpretação grátis
+          como convidado. Preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
+          <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
         </p>
         <p>
-          Você tem garantia de reembolso de pelo menos 30 dias a partir da data do pedido. Veja a nossa{" "}
+          Cancele no teste e você não é cobrado. Depois que um período pago começa, cancele quando quiser e mantenha o
+          acesso até o fim desse período. Veja a nossa{" "}
           <LocaleLink href="/refund">Política de reembolso</LocaleLink>. Os direitos consumeristas cogentes do seu país
           permanecem intactos. Estornos e contestações de pagamento podem ensejar revisão da conta.
         </p>
@@ -1516,9 +1522,9 @@ function PrivacyDe() {
             Diagnosedaten.
           </li>
           <li>
-            <strong>Zahlungs- und Guthabendaten</strong> — Kaufstatus, Bestellkennungen sowie Abo- oder Guthabenstand.
-            Kartendaten verarbeitet unser Zahlungsdienstleister (PayPal); vollständige
-            Kartennummern speichern wir nicht auf Dreamly-Servern.
+            <strong>Zahlungs- und Abo-Daten</strong> — Kaufstatus, PayPal-Abokennungen und Zugangszeitraum.
+            Kartendaten verarbeitet unser Zahlungsanbieter (PayPal); vollständige Kartennummern speichern wir nicht auf
+            Dreamly-Servern.
           </li>
           <li>
             <strong>Kommunikation</strong> — Nachrichten, die Sie über Chat- oder Supportfunktionen in der App senden,
@@ -1536,7 +1542,7 @@ function PrivacyDe() {
         <h2>3. Zwecke der Verarbeitung</h2>
         <ul>
           <li>Bereitstellung von Deutung, Tagebuch, Lexikon, Karte und Kontofunktionen</li>
-          <li>Betrieb von Authentifizierung, Abrechnung, Guthaben und Nutzerbetreuung</li>
+          <li>Betrieb von Authentifizierung, Abrechnung, Abos und Nutzerbetreuung</li>
           <li>Verbesserung von Qualität, Zuverlässigkeit, Sicherheit und Leistung des Produkts</li>
           <li>Verhinderung von Missbrauch, Spam, Betrug und unbefugtem Zugriff</li>
           <li>Veröffentlichung von Inhalten, die Sie uns ausdrücklich auf verbundenen Plattformen zu publizieren bitten</li>
@@ -1740,14 +1746,15 @@ function TermsDe() {
       </section>
 
       <section>
-        <h2>7. Kostenpflichtige Funktionen, Guthaben und Erstattungen</h2>
+        <h2>7. Kostenpflichtige Funktionen, Abos und Erstattungen</h2>
         <p>
-          Einzelne Funktionen können Zahlung, ein Abonnement oder Guthaben erfordern. Preise und Leistungen werden beim
-          Abschluss und auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> angezeigt. Der Verkäufer nimmt
-          die Zahlung über PayPal entgegen.
+          Träume speichern und weitere KI-Deutungen erfordern nach einer kostenlosen Gastdeutung ein Dreamly-Abo.
+          Preise, die 3-tägige Testphase und Tageslimits stehen beim Abschluss und auf der Seite{" "}
+          <LocaleLink href="/pricing">Preise</LocaleLink>. Der Verkäufer nimmt die Zahlung über PayPal entgegen.
         </p>
         <p>
-          Sie haben eine Geld-zurück-Garantie von mindestens 30 Tagen ab dem Bestelldatum. Siehe unsere{" "}
+          Kündigen Sie in der Testphase, wird nichts berechnet. Nach Beginn einer bezahlten Periode können Sie jederzeit
+          kündigen und behalten den Zugang bis zu deren Ende. Siehe unsere{" "}
           <LocaleLink href="/refund">Erstattungsrichtlinie</LocaleLink>. Zwingende Verbraucherrechte Ihres Landes bleiben
           unberührt. Rückbuchungen und Zahlungsstreitigkeiten können zu einer Kontoprüfung führen.
         </p>
@@ -1879,8 +1886,8 @@ function PrivacyRu() {
             и диагностические сведения.
           </li>
           <li>
-            <strong>Платёжные данные и сведения о кредитах</strong> — статус покупки, идентификаторы заказа и остаток
-            подписки или кредитов. Данные карты обрабатывает наш платёжный посредник (PayPal); полные номера карт на
+            <strong>Платёжные данные и сведения о подписке</strong> — статус покупки, идентификаторы подписки PayPal и
+            срок доступа. Данные карты обрабатывает наш платёжный посредник (PayPal); полные номера карт на
             серверах Dreamly мы не храним.
           </li>
           <li>
@@ -1899,7 +1906,7 @@ function PrivacyRu() {
         <h2>3. Как мы используем сведения</h2>
         <ul>
           <li>Предоставлять функции толкования, дневника, словаря, карты и учётной записи</li>
-          <li>Обеспечивать аутентификацию, расчёты, кредиты и поддержку пользователей</li>
+          <li>Обеспечивать аутентификацию, расчёты, подписки и поддержку пользователей</li>
           <li>Повышать качество, надёжность, безопасность и производительность продукта</li>
           <li>Предотвращать злоупотребления, спам, мошенничество и несанкционированный доступ</li>
           <li>Публиковать материалы, которые вы прямо просите разместить на подключённых площадках</li>
@@ -2098,13 +2105,15 @@ function TermsRu() {
       </section>
 
       <section>
-        <h2>7. Платные функции, кредиты и возвраты</h2>
+        <h2>7. Платные функции, подписки и возвраты</h2>
         <p>
-          Отдельные функции могут требовать оплаты, подписки или кредитов. Цены и состав услуг указываются при оплате и
-          на странице <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
+          Сохранение снов и дополнительные толкования с ИИ требуют подписки Dreamly после одного бесплатного гостевого
+          толкования. Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
+          <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
         </p>
         <p>
-          Вам гарантирован возврат средств не менее чем в течение 30 дней с даты заказа. См. нашу{" "}
+          Отмена в пробный период — без списания. После начала оплаченного периода подписку можно отменить в любой
+          момент, доступ сохранится до его конца. См. нашу{" "}
           <LocaleLink href="/refund">Политику возврата</LocaleLink>. Императивные права потребителя вашей страны
           сохраняются. Чарджбэки и платёжные споры могут повлечь проверку учётной записи.
         </p>
@@ -2205,7 +2214,7 @@ function RefundEn() {
       <section>
         <p>
           This Refund Policy explains how <strong>Dreamly</strong> handles refunds for digital purchases on{" "}
-          <SiteLink />. It applies to optional credit packs and other paid digital features. Dreamly does not sell or
+          <SiteLink />. It applies to PayPal subscriptions and other paid digital features. Dreamly does not sell or
           ship physical goods.
         </p>
       </section>
@@ -2213,9 +2222,9 @@ function RefundEn() {
       <section>
         <h2>1. What you buy</h2>
         <p>
-          Paid purchases add digital credits or unlock digital access to extra AI dream interpretations and related
-          in-app features. Current packs and prices appear on our <LocaleLink href="/pricing">Pricing</LocaleLink> page
-          and at checkout.
+          Paid purchases unlock a Dreamly subscription for AI dream interpretations and related in-app features. Current
+          plans and prices appear on our <LocaleLink href="/pricing">Pricing</LocaleLink> page and at checkout. New
+          subscriptions include a 3-day free trial.
         </p>
       </section>
 
@@ -2227,11 +2236,11 @@ function RefundEn() {
       </section>
 
       <section>
-        <h2>3. 30-day money-back guarantee</h2>
+        <h2>3. Trial and cancellation</h2>
         <p>
-          You may request a full refund within at least 30 days of the order date. This money-back guarantee is a
-          minimum; it does not shorten any longer right you already have under applicable law or a payment provider&apos;s
-          rules.
+          Cancel during the 3-day trial and you are not charged. After a paid period starts, you may cancel anytime in
+          your profile; access continues until the current period ends. We do not prorate unused days unless a longer
+          right already applies under the law of your country or PayPal&apos;s rules.
         </p>
       </section>
 
@@ -2272,7 +2281,7 @@ function RefundEs() {
       <section>
         <p>
           Esta Política de reembolso explica cómo <strong>Dreamly</strong> gestiona las devoluciones de las compras
-          digitales en <SiteLink />. Se aplica a los paquetes de créditos opcionales y a otras funciones digitales de
+          digitales en <SiteLink />. Se aplica a las suscripciones de PayPal y a otras funciones digitales de
           pago. Dreamly no vende ni envía bienes físicos.
         </p>
       </section>
@@ -2280,9 +2289,10 @@ function RefundEs() {
       <section>
         <h2>1. Qué compra</h2>
         <p>
-          Las compras de pago añaden créditos digitales o desbloquean acceso digital a interpretaciones extra con IA y
-          funciones relacionadas en la aplicación. Los paquetes y precios vigentes aparecen en la página de{" "}
-          <LocaleLink href="/pricing">Precios</LocaleLink> y en el momento del pago.
+          Las compras de pago desbloquean una suscripción Dreamly para interpretaciones con IA y funciones relacionadas
+          en la aplicación. Los planes y precios vigentes aparecen en la página de{" "}
+          <LocaleLink href="/pricing">Precios</LocaleLink> y en el momento del pago. Las suscripciones nuevas incluyen
+          3 días de prueba gratis.
         </p>
       </section>
 
@@ -2294,11 +2304,11 @@ function RefundEs() {
       </section>
 
       <section>
-        <h2>3. Garantía de reembolso de 30 días</h2>
+        <h2>3. Prueba y cancelación</h2>
         <p>
-          Puede solicitar el reembolso íntegro en un plazo de al menos 30 días desde la fecha del pedido. Esta garantía
-          es un mínimo; no reduce ningún derecho más amplio que ya tenga por ley o por las reglas del proveedor de
-          pagos.
+          Si cancela durante la prueba de 3 días, no se cobra. Tras empezar un periodo de pago, puede cancelar cuando
+          quiera en su perfil; el acceso continúa hasta el final de ese periodo. No prorrateamos los días no usados,
+          salvo un derecho más amplio que ya tenga por ley o por las reglas de PayPal.
         </p>
       </section>
 
@@ -2340,16 +2350,16 @@ function RefundAr() {
       <section>
         <p>
           توضح سياسة الاسترداد هذه كيف تتعامل <strong>Dreamly</strong> مع استرداد المشتريات الرقمية على <SiteLink />.
-          وتسري على حزم الأرصدة الاختيارية وسائر الميزات الرقمية المدفوعة. ولا تبيع Dreamly سلعًا مادية ولا تشحنها.
+          وتسري على اشتراكات PayPal وسائر الميزات الرقمية المدفوعة. ولا تبيع Dreamly سلعًا مادية ولا تشحنها.
         </p>
       </section>
 
       <section>
         <h2>1. ما الذي تشتريه</h2>
         <p>
-          تضيف المشتريات المدفوعة أرصدة رقمية أو تفتح وصولًا رقميًا إلى تفسيرات إضافية بالذكاء الاصطناعي وميزات مرتبطة
-          داخل التطبيق. وتظهر الحزم والأسعار الحالية في صفحة <LocaleLink href="/pricing">الأسعار</LocaleLink> وعند إتمام
-          الشراء.
+          تفتح المشتريات المدفوعة اشتراك Dreamly لتفسيرات بالذكاء الاصطناعي وميزات مرتبطة داخل التطبيق. وتظهر الخطط
+          والأسعار الحالية في صفحة <LocaleLink href="/pricing">الأسعار</LocaleLink> وعند إتمام الشراء. وتشمل الاشتراكات
+          الجديدة تجربة مجانية لثلاثة أيام.
         </p>
       </section>
 
@@ -2361,10 +2371,11 @@ function RefundAr() {
       </section>
 
       <section>
-        <h2>3. ضمان استرداد خلال 30 يومًا</h2>
+        <h2>3. التجربة والإلغاء</h2>
         <p>
-          يجوز لك طلب استرداد كامل خلال مدة لا تقل عن 30 يومًا من تاريخ الطلب. وهذا الضمان حد أدنى؛ ولا يضيّق حقًا أوسع
-          ثابتًا لك بموجب القانون أو قواعد جهة الدفع.
+          إذا ألغيت أثناء تجربة 3 أيام فلن تُحصَّل أي رسوم. وبعد بدء فترة مدفوعة يمكنك الإلغاء في أي وقت من ملفك؛ ويبقى
+          الوصول حتى نهاية تلك الفترة. ولا نوزّع الأيام غير المستخدمة نسبيًا إلا إذا كان لك حق أوسع بموجب القانون أو
+          قواعد PayPal.
         </p>
       </section>
 
@@ -2404,7 +2415,7 @@ function RefundPt() {
       <section>
         <p>
           Esta Política de reembolso explica como a <strong>Dreamly</strong> trata devoluções de compras digitais em{" "}
-          <SiteLink />. Aplica-se a pacotes de créditos opcionais e a outros recursos digitais pagos. A Dreamly não
+          <SiteLink />. Aplica-se a assinaturas do PayPal e a outros recursos digitais pagos. A Dreamly não
           vende nem envia bens físicos.
         </p>
       </section>
@@ -2412,9 +2423,10 @@ function RefundPt() {
       <section>
         <h2>1. O que você compra</h2>
         <p>
-          As compras pagas acrescentam créditos digitais ou liberam acesso digital a interpretações extras com IA e
-          recursos relacionados no aplicativo. Os pacotes e preços vigentes aparecem na página de{" "}
-          <LocaleLink href="/pricing">Preços</LocaleLink> e no checkout.
+          As compras pagas liberam uma assinatura Dreamly para interpretações com IA e recursos relacionados no
+          aplicativo. Os planos e preços vigentes aparecem na página de{" "}
+          <LocaleLink href="/pricing">Preços</LocaleLink> e no checkout. Assinaturas novas incluem 3 dias de teste
+          grátis.
         </p>
       </section>
 
@@ -2426,11 +2438,11 @@ function RefundPt() {
       </section>
 
       <section>
-        <h2>3. Garantia de reembolso de 30 dias</h2>
+        <h2>3. Teste e cancelamento</h2>
         <p>
-          Você pode pedir o reembolso integral em no mínimo 30 dias a partir da data do pedido. Essa garantia é um
-          mínimo; ela não reduz nenhum direito mais amplo que você já tenha por lei ou pelas regras do provedor de
-          pagamento.
+          Cancele no teste de 3 dias e você não é cobrado. Depois que um período pago começa, cancele quando quiser no
+          perfil; o acesso segue até o fim desse período. Não rateamos dias não usados, salvo um direito mais amplo que
+          você já tenha por lei ou pelas regras do PayPal.
         </p>
       </section>
 
@@ -2472,7 +2484,7 @@ function RefundDe() {
       <section>
         <p>
           Diese Erstattungsrichtlinie erläutert, wie <strong>Dreamly</strong> Erstattungen für digitale Käufe auf{" "}
-          <SiteLink /> behandelt. Sie gilt für optionale Guthabenpakete und andere kostenpflichtige digitale Funktionen.
+          <SiteLink /> behandelt. Sie gilt für PayPal-Abos und andere kostenpflichtige digitale Funktionen.
           Dreamly verkauft und versendet keine physischen Waren.
         </p>
       </section>
@@ -2480,9 +2492,9 @@ function RefundDe() {
       <section>
         <h2>1. Was Sie kaufen</h2>
         <p>
-          Kostenpflichtige Käufe fügen digitales Guthaben hinzu oder schalten digitalen Zugang zu zusätzlichen
-          KI-Traumdeutungen und verwandten Funktionen in der App frei. Aktuelle Pakete und Preise stehen auf der Seite{" "}
-          <LocaleLink href="/pricing">Preise</LocaleLink> und beim Abschluss.
+          Kostenpflichtige Käufe schalten ein Dreamly-Abo für KI-Traumdeutungen und verwandte Funktionen in der App frei.
+          Aktuelle Pläne und Preise stehen auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> und beim
+          Abschluss. Neue Abos enthalten eine 3-tägige Testphase.
         </p>
       </section>
 
@@ -2495,11 +2507,11 @@ function RefundDe() {
       </section>
 
       <section>
-        <h2>3. 30 Tage Geld-zurück-Garantie</h2>
+        <h2>3. Testphase und Kündigung</h2>
         <p>
-          Sie können innerhalb von mindestens 30 Tagen ab dem Bestelldatum eine volle Erstattung verlangen. Diese
-          Geld-zurück-Garantie ist ein Mindeststandard; sie verkürzt kein weitergehendes Recht, das Ihnen bereits nach
-          geltendem Recht oder nach Regeln des Zahlungsdienstleisters zusteht.
+          Kündigen Sie in der 3-tägigen Testphase, wird nichts berechnet. Nach Beginn einer bezahlten Periode können Sie
+          jederzeit im Profil kündigen; der Zugang bleibt bis zu deren Ende. Nicht genutzte Tage erstatten wir anteilig
+          nur, wenn ein weitergehendes Recht nach dem Recht Ihres Landes oder nach PayPal-Regeln bereits besteht.
         </p>
       </section>
 
@@ -2540,7 +2552,7 @@ function RefundRu() {
       <section>
         <p>
           Настоящая Политика возврата объясняет, как <strong>Dreamly</strong> оформляет возвраты цифровых покупок на{" "}
-          <SiteLink />. Она распространяется на опциональные пакеты кредитов и другие платные цифровые функции. Dreamly
+          <SiteLink />. Она распространяется на подписки PayPal и другие платные цифровые функции. Dreamly
           не продаёт и не доставляет физические товары.
         </p>
       </section>
@@ -2548,9 +2560,9 @@ function RefundRu() {
       <section>
         <h2>1. Что вы покупаете</h2>
         <p>
-          Платные покупки добавляют цифровые кредиты или открывают цифровой доступ к дополнительным толкованиям снов с
-          ИИ и связанным функциям в приложении. Актуальные пакеты и цены указаны на странице{" "}
-          <LocaleLink href="/pricing">Цены</LocaleLink> и при оплате.
+          Платные покупки открывают подписку Dreamly на толкования снов с ИИ и связанные функции в приложении. Актуальные
+          тарифы и цены указаны на странице <LocaleLink href="/pricing">Цены</LocaleLink> и при оплате. Новые подписки
+          включают пробный период 3 дня.
         </p>
       </section>
 
@@ -2562,10 +2574,11 @@ function RefundRu() {
       </section>
 
       <section>
-        <h2>3. Гарантия возврата 30 дней</h2>
+        <h2>3. Пробный период и отмена</h2>
         <p>
-          Вы можете запросить полный возврат не менее чем в течение 30 дней с даты заказа. Эта гарантия — минимум; она
-          не сужает более широкое право, которое уже есть у вас по закону или по правилам платёжного провайдера.
+          Отмена в пробный период 3 дня — без списания. После начала оплаченного периода подписку можно отменить в
+          любой момент в профиле; доступ сохранится до конца этого периода. Неиспользованные дни мы не возвращаем
+          пропорционально, если более широкое право уже не следует из закона вашей страны или правил PayPal.
         </p>
       </section>
 

@@ -31,3 +31,25 @@ export async function getPaypalAccessToken() {
   if (!r.ok) throw new Error(`PayPal token error: ${j?.error_description || j?.error || "unknown"}`);
   return j.access_token as string;
 }
+
+export function getSiteBaseUrl(req?: Request) {
+  const env = (process.env.NEXT_PUBLIC_BASE_URL || process.env.BASE_URL || "").trim().replace(/\/+$/, "");
+  if (env) return env;
+  const origin = req?.headers.get("origin")?.trim().replace(/\/+$/, "");
+  if (origin) return origin;
+  return "http://localhost:3000";
+}
+
+export async function paypalFetch(path: string, init?: RequestInit) {
+  const token = await getPaypalAccessToken();
+  const headers = new Headers(init?.headers);
+  if (!headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
+  if (!headers.has("Content-Type") && init?.body) headers.set("Content-Type", "application/json");
+  const r = await fetch(`${paypalBaseUrl()}${path}`, {
+    ...init,
+    headers,
+    cache: "no-store",
+  });
+  const json = await r.json().catch(() => ({} as Record<string, unknown>));
+  return { ok: r.ok, status: r.status, json };
+}

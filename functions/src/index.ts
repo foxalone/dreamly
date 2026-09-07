@@ -7,8 +7,6 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 initializeApp();
 const db = getFirestore();
 
-const WELCOME_CREDITS = 10;
-
 function emailInitials(email?: string | null) {
   const e = (email ?? "").trim();
   if (!e) return "U";
@@ -24,7 +22,6 @@ export const grantWelcomeCredits = functions
   .auth.user()
   .onCreate(async (user) => {
     const userRef = db.doc(`users/${user.uid}`);
-    const ledgerRef = userRef.collection("creditLedger").doc("welcome_bonus");
 
     await db.runTransaction(async (tx) => {
       const snap = await tx.get(userRef);
@@ -38,19 +35,9 @@ export const grantWelcomeCredits = functions
 
         // Выдаём бонус, не затирая существующие данные/кредиты
         tx.update(userRef, {
-          // если credits отсутствует, increment всё равно корректно выставит число
-          credits: FieldValue.increment(WELCOME_CREDITS),
           welcomeBonusGranted: true,
-          // можно обновить initials, если хочешь (не обязательно)
           initials: data.initials ?? emailInitials(user.email),
           updatedAt: FieldValue.serverTimestamp(),
-        });
-
-        // Делаем ledger запись 1 раз (фиксированный id)
-        tx.set(ledgerRef, {
-          type: "welcome_bonus",
-          delta: WELCOME_CREDITS,
-          createdAt: FieldValue.serverTimestamp(),
         });
 
         return;
@@ -64,17 +51,10 @@ export const grantWelcomeCredits = functions
         photoURL: user.photoURL ?? null,
         initials: emailInitials(user.email),
 
-        credits: WELCOME_CREDITS,
         welcomeBonusGranted: true,
 
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      tx.set(ledgerRef, {
-        type: "welcome_bonus",
-        delta: WELCOME_CREDITS,
-        createdAt: FieldValue.serverTimestamp(),
       });
     });
   });

@@ -134,14 +134,50 @@ export type UiMessages = {
   pricing: {
     h1: string;
     lead: string;
-    packsTitle: string;
-    credits: string;
-    oneTime: string;
+    plansTitle: string;
+    monthly: string;
+    yearly: string;
+    billedMonthly: string;
+    billedYearly: string;
+    trialBadge: string;
+    limitsNote: string;
     useFor: string;
     freeNote: string;
     refundNote: string;
     seoTitle: string;
     seoDescription: string;
+    subscribeCta: string;
+    cancelAnytime: string;
+    yearlySave: string;
+  };
+  upgrade: {
+    title: string;
+    back: string;
+    notSignedIn: string;
+    signInFirst: string;
+    goSignIn: string;
+    success: string;
+    cancelled: string;
+    creating: string;
+    paying: string;
+    continueWithout: string;
+    paypalMissing: string;
+    cancelCta: string;
+    cancelling: string;
+  };
+  profile: {
+    title: string;
+    copyUuid: string;
+    copied: string;
+    subscribe: string;
+    statusNone: string;
+    statusTrial: string;
+    statusActive: string;
+    statusCancelled: string;
+    remainingToday: string;
+    signOut: string;
+    notSignedIn: string;
+    signInHint: string;
   };
   chrome: {
     home: string;
@@ -209,7 +245,9 @@ export type UiMessages = {
     signInRequired: string;
     noDreams: string;
     noStories: string;
-    notEnoughCredits: string;
+    subscriptionRequired: string;
+    dailyLimitReached: string;
+    dreamTooLong: string;
     writeDream: string;
     writeStory: string;
   };

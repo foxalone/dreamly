@@ -4,28 +4,26 @@ import { useState } from "react";
 import { auth } from "@/lib/firebase";
 
 /**
- * Внутренняя «Confluence»-страница: как устроена монетизация (кредиты / Upgrade).
- * Данные синхронизированы с кодом: lib/credits/packs.ts, app/api/dreams/_lib/credits.ts, PayPal API.
+ * Внутренняя «Confluence»-страница: как устроена монетизация (PayPal-подписки).
+ * Данные синхронизированы с кодом: lib/subscriptions/plans.ts, app/api/dreams/_lib/subscription.ts, PayPal Subscriptions API.
  */
 
-const PACKS = [
-  { id: "pack_20", credits: 20, price: "$3.99" },
-  { id: "pack_50", credits: 50, price: "$7.99" },
-  { id: "pack_120", credits: 120, price: "$14.99", note: "default на /app/upgrade" },
-  { id: "pack_300", credits: 300, price: "$29.99" },
+const PLANS = [
+  { id: "monthly", price: "$6.99", note: "3-дневный trial, затем каждый месяц" },
+  { id: "yearly", price: "$69.99", note: "3-дневный trial, ~2 месяца в подарок" },
 ] as const;
 
-/** Платные / условно платные действия — source: app/api/dreams/_lib/credits.ts + dreams page */
+/** Платные / условно платные действия — source: app/api/dreams/_lib/subscription.ts + dreams page */
 const ACTIONS = [
   {
     action: "Сохранить сон / story",
-    cost: "1 кредит",
-    note: "При save. Списание в клиенте (Firestore). При нехватке → /app/upgrade",
+    cost: "подписка + 1 из 5/день",
+    note: "POST /api/dreams/consume-slot, затем Firestore addDoc. 250 символов.",
   },
   {
     action: "Analyze (разбор сна)",
-    cost: "2 кредита",
-    note: "Всегда платно. Списание на сервере до OpenAI. Бесплатного слота нет. Только dreams, не stories",
+    cost: "подписка + 1 из 5/день",
+    note: "consumeDreamSlot на сервере. Гость: 1 бесплатный ask.",
   },
   {
     action: "Quick Symbol — нашли в словаре",
@@ -34,23 +32,13 @@ const ACTIONS = [
   },
   {
     action: "Quick Symbol — GPT (не нашли)",
-    cost: "1 кредит",
-    note: "Списание на сервере",
+    cost: "гость 1 free / юзер — подписка",
+    note: "Списание дневного слота нет, нужна активная подписка",
   },
   {
-    action: "Rootwords (символы после save)",
-    cost: "0 или 1",
-    note: "Сервер: 1-й OpenAI-вызов за сутки (UTC) бесплатно, дальше 1 кредит. Общий дневной слот с translate / emoji-pick",
-  },
-  {
-    action: "Translate в ленте",
-    cost: "0 или 1",
-    note: "Кэш = всегда 0. Новый перевод: из дневного бесплатного слота, иначе 1 кредит",
-  },
-  {
-    action: "Emoji-pick API",
-    cost: "0 или 1",
-    note: "Тот же дневной слот / 1 кредит. В UI авто-эмодзи локальные (0); API платный от abuse",
+    action: "Rootwords / translate / emoji-pick",
+    cost: "подписка",
+    note: "Входят в план, без отдельного дневного капа",
   },
 ] as const;
 
@@ -121,13 +109,13 @@ export default function ProDocs() {
       {/* Confluence-like header */}
       <div className="px-6 py-4 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_85%,transparent)]">
         <div className="text-xs text-[var(--muted)]">
-          Admin / Docs / <span className="text-[var(--text)]">Монетизация и кредиты</span>
+          Admin / Docs / <span className="text-[var(--text)]">Монетизация и подписки</span>
         </div>
         <h2 className="mt-2 text-2xl font-semibold text-[var(--text)]">
           Pro / Upgrade — как это работает
         </h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Обновлено: 2026-07-23 · источник истины в коде, не подписка
+          Обновлено: 2026-09-07 · PayPal-подписки
         </p>
       </div>
 
@@ -136,11 +124,9 @@ export default function ProDocs() {
         <div className="rounded-xl border border-[color-mix(in_srgb,#3b82f6_40%,var(--border))] bg-[color-mix(in_srgb,#3b82f6_12%,var(--card))] px-4 py-3">
           <div className="font-semibold">Важно</div>
           <p className="mt-1 text-[var(--muted)]">
-            Отдельного статуса <span className="font-mono text-[var(--text)]">isPro</span> / подписки
-            нет. «Upgrade» и «Pro» в продукте ={" "}
-            <strong className="text-[var(--text)]">разовые пакеты кредитов через PayPal</strong>.
-            Доступ к функциям определяется только балансом{" "}
-            <span className="font-mono text-[var(--text)]">users/&#123;uid&#125;.credits</span>.
+            Доступ = активная PayPal-подписка или trial (
+            <span className="font-mono text-[var(--text)]">users/&#123;uid&#125;.subscriptionStatus</span>
+            ). Гость получает 1 бесплатную интерпретацию. Лимиты: 5 снов/день UTC и 250 символов.
           </p>
         </div>
 
@@ -151,7 +137,7 @@ export default function ProDocs() {
           </h3>
           <ol className="mt-3 list-decimal pl-5 space-y-1 text-[var(--muted)]">
             <li>Модель монетизации</li>
-            <li>Пакеты кредитов</li>
+            <li>Тарифы</li>
             <li>Что списывается (актуальная таблица)</li>
             <li>Платёжный flow (PayPal)</li>
             <li>Firebase / данные</li>
@@ -166,49 +152,42 @@ export default function ProDocs() {
           </h3>
           <ul className="mt-3 list-disc pl-5 space-y-1.5 text-[var(--muted)]">
             <li>
-              Новый пользователь получает{" "}
-              <strong className="text-[var(--text)]">10 welcome-кредитов</strong> (Cloud Function{" "}
-              <span className="font-mono text-[var(--text)]">grantWelcomeCredits</span>).
+              Гость: <strong className="text-[var(--text)]">1 бесплатная интерпретация</strong>.
             </li>
             <li>
-              Покупка — one-time packs на{" "}
-              <span className="font-mono text-[var(--text)]">/app/upgrade</span> и в профиле («Buy
-              credits»).
+              Дальше нужен PayPal-план: monthly $6.99 / yearly $69.99, trial 3 дня (
+              <span className="font-mono text-[var(--text)]">/app/upgrade</span>).
             </li>
-            <li>Провайдер: только PayPal (Stripe / subscription нет).</li>
             <li>
-              Free vs Paid = «есть кредиты» vs «закончились»; feature-flags по Pro отсутствуют.
+              Лимиты всегда: 5 снов в UTC-день, 250 символов на сон.
             </li>
+            <li>Welcome-кредиты больше не выдаются.</li>
           </ul>
         </section>
 
         <section>
           <h3 className="text-base font-semibold border-b border-[var(--border)] pb-2">
-            2. Пакеты кредитов
+            2. Тарифы
           </h3>
           <p className="mt-3 text-[var(--muted)]">
             Source of truth:{" "}
-            <span className="font-mono text-[var(--text)]">lib/credits/packs.ts</span>
+            <span className="font-mono text-[var(--text)]">lib/subscriptions/plans.ts</span>
           </p>
           <div className="mt-3 overflow-x-auto rounded-xl border border-[var(--border)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_6%,transparent)] text-left">
-                  <th className="p-3 font-semibold">Pack ID</th>
-                  <th className="p-3 font-semibold">Кредиты</th>
+                  <th className="p-3 font-semibold">Plan ID</th>
                   <th className="p-3 font-semibold">Цена</th>
                   <th className="p-3 font-semibold">Заметка</th>
                 </tr>
               </thead>
               <tbody>
-                {PACKS.map((p) => (
+                {PLANS.map((p) => (
                   <tr key={p.id} className="border-b border-[var(--border)] last:border-0">
                     <td className="p-3 font-mono text-xs">{p.id}</td>
-                    <td className="p-3">{p.credits}</td>
                     <td className="p-3">{p.price} USD</td>
-                    <td className="p-3 text-[var(--muted)]">
-                      {"note" in p ? p.note : "—"}
-                    </td>
+                    <td className="p-3 text-[var(--muted)]">{p.note}</td>
                   </tr>
                 ))}
               </tbody>
@@ -222,24 +201,14 @@ export default function ProDocs() {
           </h3>
 
           <div className="mt-3 rounded-xl border border-[color-mix(in_srgb,#f59e0b_40%,var(--border))] bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-3">
-            <div className="font-semibold">1 бесплатный OpenAI-вызов в день (UTC)</div>
+            <div className="font-semibold">5 снов в день (UTC)</div>
             <p className="mt-1 text-[var(--muted)]">
-              Общий слот на пользователя для{" "}
-              <span className="font-mono text-[var(--text)]">rootwords</span> +{" "}
-              <span className="font-mono text-[var(--text)]">translate</span> +{" "}
-              <span className="font-mono text-[var(--text)]">emoji-pick</span>. Первый вызов за
-              сутки —{" "}
-              <strong className="text-[var(--text)]">0 кредитов</strong>, дальше — по цене из
-              таблицы.{" "}
-              <strong className="text-[var(--text)]">Analyze</strong> и{" "}
-              <strong className="text-[var(--text)]">Save</strong> в этот слот{" "}
-              <strong className="text-[var(--text)]">не входят</strong>. Поля:{" "}
-              <span className="font-mono text-[var(--text)]">openaiFreeDayKey</span> /{" "}
-              <span className="font-mono text-[var(--text)]">openaiFreeUsed</span>.
+              Общий слот на save и analyze. Rootwords / translate / emoji-pick входят в подписку без
+              отдельного капа. Гость: 1 бесплатный analyze.
             </p>
           </div>
 
-          <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">За что берут кредиты</h4>
+          <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">Что требует подписку</h4>
           <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--border)]">
             <table className="w-full text-sm">
               <thead>
@@ -285,33 +254,12 @@ export default function ProDocs() {
 
           <h4 className="mt-5 text-sm font-semibold text-[var(--text)]">Типичный сценарий</h4>
           <ol className="mt-2 list-decimal pl-5 space-y-1 text-[var(--muted)]">
-            <li>
-              Save сна → <strong className="text-[var(--text)]">−1</strong>
-            </li>
-            <li>
-              Авто-rootwords (первый AI за день) →{" "}
-              <strong className="text-[var(--text)]">0</strong>
-            </li>
-            <li>
-              Analyze → <strong className="text-[var(--text)]">−2</strong>
-            </li>
-            <li>
-              Ещё translate/rootwords в тот же день →{" "}
-              <strong className="text-[var(--text)]">−1</strong>
-            </li>
+            <li>Гость: 1 бесплатный analyze</li>
+            <li>Sign-in → Subscribe (trial 3 дня)</li>
+            <li>Save + analyze: 1 слот из 5 за UTC-день</li>
           </ol>
-          <p className="mt-2 text-[var(--muted)]">
-            Итого за сон с анализом в тот же день: примерно{" "}
-            <strong className="text-[var(--text)]">3–4 кредита</strong>.
-          </p>
-
           <p className="mt-3 text-[var(--muted)]">
-            Auth обязателен на AI-роутах. При ошибке GPT — refund кредитов / возврат дневного
-            слота через{" "}
-            <span className="font-mono text-[var(--text)]">
-              app/api/dreams/_lib/credits.ts
-            </span>
-            .
+            Auth обязателен на AI-роутах подписанного пользователя. При ошибке GPT analyze возвращает дневной слот.
           </p>
         </section>
 
@@ -321,28 +269,17 @@ export default function ProDocs() {
           </h3>
           <ol className="mt-3 list-decimal pl-5 space-y-2 text-[var(--muted)]">
             <li>
-              UI выбирает <span className="font-mono text-[var(--text)]">packId</span> →{" "}
-              <span className="font-mono text-[var(--text)]">POST /api/paypal/create-order</span>
-              (сумма ставится на сервере из packs).
+              UI выбирает monthly/yearly →{" "}
+              <span className="font-mono text-[var(--text)]">POST /api/paypal/create-subscription</span>
             </li>
-            <li>PayPal Buttons → пользователь approve.</li>
+            <li>PayPal Buttons (intent=subscription) → пользователь approve.</li>
             <li>
-              <span className="font-mono text-[var(--text)]">POST /api/paypal/capture-order</span>{" "}
-              с <span className="font-mono text-[var(--text)]">&#123; orderID, idToken &#125;</span>
-              :
-              <ul className="mt-1 list-disc pl-5 space-y-1">
-                <li>проверка Firebase ID token;</li>
-                <li>capture в PayPal;</li>
-                <li>
-                  идемпотентность:{" "}
-                  <span className="font-mono text-[var(--text)]">transactions/&#123;orderID&#125;</span>
-                  ;
-                </li>
-                <li>
-                  <span className="font-mono text-[var(--text)]">credits += pack.credits</span>,{" "}
-                  <span className="font-mono text-[var(--text)]">totalPurchasedCredits += …</span>
-                </li>
-              </ul>
+              <span className="font-mono text-[var(--text)]">POST /api/paypal/activate-subscription</span>{" "}
+              пишет status/plan/accessUntilMs в users/&#123;uid&#125;.
+            </li>
+            <li>
+              Webhook <span className="font-mono text-[var(--text)]">/api/paypal/webhook</span> синхронизирует
+              renew/cancel/suspend.
             </li>
           </ol>
           <p className="mt-3 text-[var(--muted)]">
@@ -350,7 +287,8 @@ export default function ProDocs() {
             <span className="font-mono text-[var(--text)]">NEXT_PUBLIC_PAYPAL_CLIENT_ID</span>,{" "}
             <span className="font-mono text-[var(--text)]">PAYPAL_CLIENT_ID</span>,{" "}
             <span className="font-mono text-[var(--text)]">PAYPAL_CLIENT_SECRET</span>,{" "}
-            <span className="font-mono text-[var(--text)]">PAYPAL_ENV</span> (sandbox / live).
+            <span className="font-mono text-[var(--text)]">PAYPAL_ENV</span>, опционально{" "}
+            <span className="font-mono text-[var(--text)]">PAYPAL_WEBHOOK_ID</span> / plan IDs.
           </p>
         </section>
 
@@ -363,47 +301,24 @@ export default function ProDocs() {
               <div className="font-semibold text-[var(--text)]">users/&#123;uid&#125;</div>
               <ul className="mt-1 list-disc pl-5 space-y-1">
                 <li>
-                  <span className="font-mono text-[var(--text)]">credits</span> — баланс
+                  <span className="font-mono text-[var(--text)]">subscriptionStatus</span> — trial / active /
+                  cancelled / none
                 </li>
                 <li>
-                  <span className="font-mono text-[var(--text)]">creditsUpdatedAt</span>
+                  <span className="font-mono text-[var(--text)]">paypalSubscriptionId</span>
                 </li>
                 <li>
-                  <span className="font-mono text-[var(--text)]">openaiFreeDayKey</span> /{" "}
-                  <span className="font-mono text-[var(--text)]">openaiFreeUsed</span> — дневной
-                  бесплатный OpenAI-слот
+                  <span className="font-mono text-[var(--text)]">accessUntilMs</span>
                 </li>
                 <li>
-                  <span className="font-mono text-[var(--text)]">welcomeBonusGranted</span>
-                </li>
-                <li>
-                  <span className="font-mono text-[var(--text)]">totalPurchasedCredits</span> — сумма
-                  купленных
+                  <span className="font-mono text-[var(--text)]">dreamsDayKey</span> /{" "}
+                  <span className="font-mono text-[var(--text)]">dreamsTodayCount</span>
                 </li>
               </ul>
             </div>
             <div>
-              <div className="font-semibold text-[var(--text)]">
-                users/&#123;uid&#125;/creditLedger/welcome_bonus
-              </div>
-              <p className="mt-1">
-                Запись welcome:{" "}
-                <span className="font-mono text-[var(--text)]">
-                  &#123; type: &quot;welcome_bonus&quot;, delta: 10 &#125;
-                </span>
-              </p>
-            </div>
-            <div>
-              <div className="font-semibold text-[var(--text)]">transactions/&#123;orderID&#125;</div>
-              <p className="mt-1">
-                PayPal capture: packId, creditsAdded, amount, status COMPLETED, raw…
-              </p>
-            </div>
-            <div>
-              <div className="font-semibold text-[var(--text)]">RTDB analytics</div>
-              <p className="mt-1 font-mono text-xs text-[var(--text)]">
-                analytics/dreamly_upgrade/&#123;uid&#125;/visits|packClicks|…
-              </p>
+              <div className="font-semibold text-[var(--text)]">paypalSubscriptions/&#123;id&#125;</div>
+              <p className="mt-1">Маппинг PayPal subscription → uid</p>
             </div>
           </div>
         </section>
@@ -413,20 +328,13 @@ export default function ProDocs() {
             6. Ключевые файлы
           </h3>
           <ul className="mt-3 list-disc pl-5 space-y-1.5 font-mono text-xs text-[var(--muted)]">
-            <li className="text-[var(--text)]">lib/credits/packs.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/_lib/credits.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/_lib/requireUser.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/analyze/route.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/rootwords/route.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/translate/route.ts</li>
-            <li className="text-[var(--text)]">app/api/dreams/quick-symbol/route.ts</li>
+            <li className="text-[var(--text)]">lib/subscriptions/plans.ts</li>
+            <li className="text-[var(--text)]">app/api/dreams/_lib/subscription.ts</li>
+            <li className="text-[var(--text)]">app/api/paypal/create-subscription/route.ts</li>
+            <li className="text-[var(--text)]">app/api/paypal/webhook/route.ts</li>
             <li className="text-[var(--text)]">app/app/upgrade/UpgradeClient.tsx</li>
             <li className="text-[var(--text)]">app/app/profile/page.tsx</li>
-            <li className="text-[var(--text)]">app/api/paypal/create-order/route.ts</li>
-            <li className="text-[var(--text)]">app/api/paypal/capture-order/route.ts</li>
             <li className="text-[var(--text)]">app/app/dreams/page.tsx</li>
-            <li className="text-[var(--text)]">functions/src/index.ts (welcome credits)</li>
-            <li className="text-[var(--text)]">lib/paypal/server.ts</li>
           </ul>
         </section>
 
@@ -524,8 +432,8 @@ export default function ProDocs() {
         <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
           Эта страница — внутренняя документация в админке (Confluence-style). При изменении
           цен/стоимости действий обновляй{" "}
-          <span className="font-mono text-[var(--text)]">app/api/dreams/_lib/credits.ts</span>,{" "}
-          <span className="font-mono text-[var(--text)]">lib/credits/packs.ts</span> и этот блок.
+          <span className="font-mono text-[var(--text)]">app/api/dreams/_lib/subscription.ts</span>,{" "}
+          <span className="font-mono text-[var(--text)]">lib/subscriptions/plans.ts</span> и этот блок.
         </div>
       </div>
     </article>

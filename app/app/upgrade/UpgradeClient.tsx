@@ -1,29 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { auth, firestore } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 
-import {
-  getApps,
-  initializeApp,
-  type FirebaseApp,
-} from "firebase/app";
-import {
-  getDatabase,
-  ref as rtdbRef,
-  runTransaction,
-  set,
-  type Database,
-} from "firebase/database";
-
-import { CREDIT_PACKS, type PackId } from "@/lib/credits/packs";
-import { creditPackItem, trackEvent } from "@/lib/analytics";
+import { SUBSCRIPTION_PLANS, type PlanId } from "@/lib/subscriptions/plans";
+import { hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
+import { subscriptionItem, trackEvent } from "@/lib/analytics";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import CheckoutLegalConsent from "@/app/components/CheckoutLegalConsent";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
 
 type UIStatus = "idle" | "creating" | "paying" | "success" | "error";
 
@@ -37,226 +27,120 @@ function fmtMoney(price: string, currency: string) {
   }).format(v);
 }
 
-// ---- RTDB instance (safe even if firebase.ts doesn't export it) ----
-// If your "@/lib/firebase" already initializes the app, getApps()[0] exists.
-// If not, we try to init from env (client-side).
-function getClientApp(): FirebaseApp {
-  const apps = getApps();
-  if (apps.length) return apps[0];
-
-  // Fallback init (only if needed)
-  const cfg = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  };
-
-  // If your project never needs this fallback, it won’t run.
-  return initializeApp(cfg as any);
-}
-
-const rtdb: Database = getDatabase(getClientApp());
-
-async function incRtdb(path: string, by = 1) {
-  await runTransaction(rtdbRef(rtdb, path), (cur) => Number(cur || 0) + by);
-}
-
-function packLabel(p: { credits: number }) {
-  if (p.credits >= 300) return "Best value";
-  if (p.credits >= 120) return "Popular";
-  if (p.credits >= 50) return "Flexible";
-  return "Try";
-}
-
-function toInitialPack(initialPkg: string | null): PackId {
-  if (initialPkg === "20") return "pack_20";
-  if (initialPkg === "50") return "pack_50";
-  if (initialPkg === "120") return "pack_120";
-  if (initialPkg === "300") return "pack_300";
-  if (initialPkg && initialPkg in CREDIT_PACKS) return initialPkg as PackId;
-  return "pack_120";
+function toInitialPlan(initialPkg: string | null): PlanId {
+  if (initialPkg === "yearly" || initialPkg === "year") return "yearly";
+  return "monthly";
 }
 
 export default function UpgradeClient({ initialPkg }: { initialPkg: string | null }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useMessages();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const [uid, setUid] = useState<string | null>(null);
-  const [credits, setCredits] = useState(0);
-  const [creditsLoading, setCreditsLoading] = useState(true);
-
-  const [selected, setSelected] = useState<PackId>(() => toInitialPack(initialPkg));
+  const [billing, setBilling] = useState<UserBillingFields | null>(null);
+  const [selected, setSelected] = useState<PlanId>(() => toInitialPlan(initialPkg));
   const [status, setStatus] = useState<UIStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [lastAdded, setLastAdded] = useState<number | null>(null);
-
-  // ✅ фиксируем packId, который реально ушёл в create-order
-  const checkoutPackRef = useRef<PackId | null>(null);
+  const [busyCancel, setBusyCancel] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUid(u?.uid ?? null));
     return () => unsub();
   }, []);
 
-  // ✅ visit tracking (once per session)
-  useEffect(() => {
-    if (!uid) return;
-
-    const key = `dreamly_upgrade_visit_${uid}`;
-    if (sessionStorage.getItem(key) === "1") return;
-
-    (async () => {
-      try {
-        await runTransaction(
-          rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/visits`),
-          (cur) => Number(cur || 0) + 1
-        );
-
-
-        await set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastVisit`), Date.now());
-
-        sessionStorage.setItem(key, "1");
-      } catch (e) {
-        console.error("dreamly upgrade visit tracking failed:", e);
-      }
-    })();
-  }, [uid]);
-
-  // credits live
   useEffect(() => {
     if (!uid) {
-      setCredits(0);
-      setCreditsLoading(false);
+      setBilling(null);
       return;
     }
-    setCreditsLoading(true);
-
-    const userRef = doc(firestore, "users", uid);
-    const unsub = onSnapshot(
-      userRef,
-      (snap) => {
-        const data = snap.exists() ? (snap.data() as any) : {};
-        const next = Number.isFinite(Number(data?.credits))
-          ? Math.max(0, Math.floor(Number(data.credits)))
-          : 0;
-        setCredits(next);
-        setCreditsLoading(false);
-      },
-      () => {
-        setCredits(0);
-        setCreditsLoading(false);
-      }
-    );
-
+    const unsub = onSnapshot(doc(firestore, "users", uid), (snap) => {
+      setBilling(snap.exists() ? (snap.data() as UserBillingFields) : {});
+    });
     return () => unsub();
   }, [uid]);
 
-  const pack = CREDIT_PACKS[selected];
-
+  const plan = SUBSCRIPTION_PLANS[selected];
+  const subscribed = hasPaidAccess(billing);
   const paypalClientId = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "").trim();
   const paypalEnabled = !!paypalClientId;
 
- const scriptOptions = useMemo(() => {
-  return {
-    clientId: paypalClientId,
-    currency: "USD", // ← фиксированная валюта
-    intent: "capture",
-  } as const;
-}, [paypalClientId]);
+  const scriptOptions = useMemo(
+    () =>
+      ({
+        clientId: paypalClientId,
+        currency: "USD",
+        intent: "subscription",
+        vault: true,
+      }) as const,
+    [paypalClientId]
+  );
 
   async function getIdTokenOrThrow() {
     const u = auth.currentUser;
-    if (!u) throw new Error("Please sign in first.");
-    const t = await u.getIdToken(true).catch(() => "");
-    if (!t) throw new Error("Failed to get auth token. Please re-login.");
-    return t;
+    if (!u) throw new Error(t.upgrade.signInFirst);
+    const token = await u.getIdToken(true).catch(() => "");
+    if (!token) throw new Error(t.app.signInRequired);
+    return token;
   }
 
-  async function createOrderOnServer(packId: PackId): Promise<string> {
-    setStatus("creating");
-    setError(null);
-
-    // ✅ фиксируем именно тот packId, который реально уходит на сервер
-    checkoutPackRef.current = packId;
-
-    const r = await fetch("/api/paypal/create-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packId }),
-    });
-
-    const j = await r.json().catch(() => ({} as any));
-    if (!r.ok || !j?.orderID) throw new Error(j?.error ?? "Failed to create PayPal order.");
-
-    setStatus("idle");
-    return String(j.orderID);
+  async function cancelSubscription() {
+    try {
+      setBusyCancel(true);
+      setError(null);
+      const idToken = await getIdTokenOrThrow();
+      const r = await fetch("/api/paypal/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      const j = await r.json().catch(() => ({} as Record<string, unknown>));
+      if (!r.ok || !j?.ok) throw new Error(String(j?.error ?? t.upgrade.cancelled));
+      setStatus("success");
+    } catch (e: unknown) {
+      setStatus("error");
+      setError(e instanceof Error ? e.message : t.upgrade.cancelled);
+    } finally {
+      setBusyCancel(false);
+    }
   }
-
-  async function captureOrderOnServer(orderID: string) {
-    setStatus("paying");
-    setError(null);
-
-    const idToken = await getIdTokenOrThrow();
-
-    const r = await fetch("/api/paypal/capture-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderID, idToken }),
-    });
-
-    const j = await r.json().catch(() => ({} as any));
-    if (!r.ok || !j?.ok) throw new Error(j?.error ?? "Capture failed.");
-
-    setLastAdded(Number(j.creditsAdded ?? 0) || null);
-    setStatus("success");
-  }
-
-  const cards: { id: PackId; title: string; subtitle: string }[] = [
-    { id: "pack_20", title: "20 credits", subtitle: "For trying it out" },
-    { id: "pack_50", title: "50 credits", subtitle: "For regular use" },
-    { id: "pack_120", title: "120 credits", subtitle: "Most popular" },
-    { id: "pack_300", title: "300 credits", subtitle: "Best value" },
-  ];
 
   return (
     <main className="relative min-h-screen px-5 sm:px-6 py-8 sm:py-10 max-w-5xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-2xl sm:text-3xl font-semibold text-[var(--text)]">Upgrade</div>
-          <div className="mt-1 text-sm text-[var(--muted)]">
-            Credits: {creditsLoading ? "…" : credits}
-            {lastAdded ? <span className="ml-2 text-green-400">+{lastAdded}</span> : null}
-          </div>
+          <div className="text-2xl sm:text-3xl font-semibold text-[var(--text)]">{t.upgrade.title}</div>
+          <div className="mt-1 text-sm text-[var(--muted)]">{t.pricing.trialBadge}</div>
         </div>
-
-        <button onClick={() => router.push("/app/dreams")} className="dream-btn dream-btn--neutral" type="button">
-          Back
+        <button
+          onClick={() => router.push(localePath("/app/dreams", locale))}
+          className="dream-btn dream-btn--neutral"
+          type="button"
+        >
+          {t.upgrade.back}
         </button>
       </div>
 
       {!uid && (
         <div className="mt-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] p-5">
-          <div className="text-[var(--text)] font-semibold">You are not signed in.</div>
-          <div className="mt-2 text-[var(--muted)] text-sm">Please sign in first, then come back to buy credits.</div>
+          <div className="text-[var(--text)] font-semibold">{t.upgrade.notSignedIn}</div>
+          <div className="mt-2 text-[var(--muted)] text-sm">{t.upgrade.signInFirst}</div>
           <button
-            onClick={() => router.push("/signin?next=/app/upgrade")}
+            onClick={() => router.push(localePath("/signin?next=/app/upgrade", locale))}
             className="mt-4 dream-primary-btn"
             type="button"
           >
-            Go to Sign in
+            {t.upgrade.goSignIn}
           </button>
         </div>
       )}
 
       {uid && !paypalEnabled && (
         <div className="mt-6 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-2xl px-4 py-4">
-          Missing <code className="opacity-90">NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. PayPal buttons are disabled.
+          {t.upgrade.paypalMissing}
         </div>
       )}
 
@@ -268,41 +152,28 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
 
       {uid && status === "success" && (
         <div className="mt-6 text-sm text-green-200 bg-green-600/15 border border-green-500/30 rounded-2xl px-4 py-4">
-          Payment completed. Credits added to your account.
+          {subscribed ? t.upgrade.success : t.upgrade.cancelled}
         </div>
       )}
 
       {uid && (
-        <div className="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {cards.map((c) => {
-            const p = CREDIT_PACKS[c.id];
-            const active = selected === c.id;
-
+        <div className="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {(Object.keys(SUBSCRIPTION_PLANS) as PlanId[]).map((id) => {
+            const p = SUBSCRIPTION_PLANS[id];
+            const active = selected === id;
             return (
               <button
-                key={c.id}
+                key={id}
                 type="button"
                 onClick={() => {
-                  setSelected(c.id);
+                  setSelected(id);
                   setStatus("idle");
                   setError(null);
-                  setLastAdded(null);
-
                   trackEvent("select_item", {
-                    item_list_id: "credit_packs",
-                    item_list_name: "Credit packs",
-                    items: [creditPackItem(c.id, p.credits, p.price)],
+                    item_list_id: "subscription_plans",
+                    item_list_name: "Subscription plans",
+                    items: [subscriptionItem(id, p.price)],
                   });
-
-                  if (!uid) return;
-
-                  incRtdb(`analytics/dreamly_upgrade/${uid}/packClicks`, 1).catch(console.error);
-                  incRtdb(`analytics/dreamly_upgrade/${uid}/packs/${c.id}`, 1).catch(console.error);
-
-                  incRtdb(`analytics/dreamly_upgrade/_global/packClicks`, 1).catch(console.error);
-                  incRtdb(`analytics/dreamly_upgrade/_global/packs/${c.id}`, 1).catch(console.error);
-
-                  set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastClick`), Date.now()).catch(console.error);
                 }}
                 className={[
                   "text-left rounded-3xl border shadow-sm transition",
@@ -311,22 +182,19 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                 ].join(" ")}
               >
                 <div className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-lg font-semibold text-[var(--text)]">{c.title}</div>
-                      <div className="mt-1 text-sm text-[var(--muted)]">{c.subtitle}</div>
-                    </div>
-                    {/* optional badge */}
-                    {/* <div className="text-xs opacity-80">{packLabel(p)}</div> */}
+                  <div className="text-lg font-semibold text-[var(--text)]">
+                    {id === "yearly" ? t.pricing.yearly : t.pricing.monthly}
                   </div>
-
+                  <div className="mt-1 text-sm text-[var(--muted)]">
+                    {id === "yearly" ? t.pricing.billedYearly : t.pricing.billedMonthly}
+                  </div>
                   <div className="mt-4 text-2xl font-semibold text-[var(--text)]">
                     {fmtMoney(p.price, p.currency)}
                   </div>
                   <div className="mt-3 text-sm text-[var(--muted)] space-y-1">
-                    <div>• Instant credits</div>
-                    <div>• Use for save / analyze</div>
-                    <div>• One-time purchase</div>
+                    <div>• {t.pricing.trialBadge}</div>
+                    <div>• {t.pricing.limitsNote}</div>
+                    {id === "yearly" ? <div>• {t.pricing.yearlySave}</div> : null}
                   </div>
                 </div>
               </button>
@@ -339,92 +207,91 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
         <div className="mt-7 rounded-3xl bg-[var(--card)] border border-[var(--border)] p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="text-lg font-semibold text-[var(--text)]">Selected: {pack.credits} credits</div>
-              <div className="mt-1 text-sm text-[var(--muted)]">Total: {fmtMoney(pack.price, pack.currency)}</div>
+              <div className="text-lg font-semibold text-[var(--text)]">
+                {selected === "yearly" ? t.pricing.yearly : t.pricing.monthly}
+              </div>
+              <div className="mt-1 text-sm text-[var(--muted)]">{fmtMoney(plan.price, plan.currency)}</div>
             </div>
-
-            <button onClick={() => router.push("/app/dreams")} className="dream-btn dream-btn--neutral" type="button">
-              Continue without buying
+            <button
+              onClick={() => router.push(localePath("/app/dreams", locale))}
+              className="dream-btn dream-btn--neutral"
+              type="button"
+            >
+              {t.upgrade.continueWithout}
             </button>
           </div>
 
           <div className="mt-5">
-            {!paypalEnabled ? (
-              <div className="text-sm text-[var(--muted)]">PayPal is not configured.</div>
+            {subscribed ? (
+              <button
+                type="button"
+                onClick={() => void cancelSubscription()}
+                disabled={busyCancel || billing?.subscriptionStatus === "cancelled"}
+                className="dream-btn dream-btn--neutral disabled:opacity-60"
+              >
+                {busyCancel ? t.upgrade.cancelling : t.upgrade.cancelCta}
+              </button>
+            ) : !paypalEnabled ? (
+              <div className="text-sm text-[var(--muted)]">{t.upgrade.paypalMissing}</div>
             ) : !mounted ? (
-              <div className="text-sm text-[var(--muted)]">Loading checkout…</div>
+              <div className="text-sm text-[var(--muted)]">{t.upgrade.creating}</div>
             ) : (
-              <PayPalScriptProvider options={scriptOptions as any}>
+              <PayPalScriptProvider options={scriptOptions}>
                 <div className={status === "paying" ? "opacity-70 pointer-events-none" : ""}>
                   <PayPalButtons
-                    style={{ layout: "horizontal", label: "pay" }}
-forceReRender={[selected]}
-                    createOrder={async () => {
+                    style={{ layout: "vertical", label: "subscribe" }}
+                    forceReRender={[selected]}
+                    createSubscription={async () => {
                       setError(null);
-                      setLastAdded(null);
-
-                      const checkoutPack = CREDIT_PACKS[selected];
+                      setStatus("creating");
                       trackEvent("begin_checkout", {
-                        currency: checkoutPack.currency,
-                        value: Number(checkoutPack.price),
-                        items: [creditPackItem(selected, checkoutPack.credits, checkoutPack.price)],
+                        currency: plan.currency,
+                        value: Number(plan.price),
+                        items: [subscriptionItem(selected, plan.price)],
                       });
-
-                      if (uid) {
-                        incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStarts`, 1).catch(console.error);
-                        incRtdb(`analytics/dreamly_upgrade/${uid}/checkoutStartsByPack/${selected}`, 1).catch(console.error);
-                        set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastCheckoutStart`), Date.now()).catch(console.error);
-                      }
-
                       try {
-                        const orderId = await createOrderOnServer(selected);
-                        if (!orderId) {
-                          setStatus("error");
-                          setError("Failed to create PayPal order.");
-                          return "";
+                        const idToken = await getIdTokenOrThrow();
+                        const r = await fetch("/api/paypal/create-subscription", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ plan: selected, idToken }),
+                        });
+                        const j = await r.json().catch(() => ({} as Record<string, unknown>));
+                        const subscriptionID = String(j?.subscriptionID ?? "").trim();
+                        if (!r.ok || !subscriptionID) {
+                          throw new Error(String(j?.error ?? t.upgrade.creating));
                         }
-                        return orderId;
-                      } catch (e: any) {
-                        console.error("createOrder failed:", e);
+                        setStatus("idle");
+                        return subscriptionID;
+                      } catch (e: unknown) {
                         setStatus("error");
-                        setError(e?.message ?? "Failed to create order.");
+                        setError(e instanceof Error ? e.message : t.upgrade.creating);
                         return "";
                       }
                     }}
                     onApprove={async (data) => {
                       try {
-                        const orderID = String((data as any)?.orderID || "");
-                        if (!orderID) throw new Error("Missing orderID from PayPal.");
-
-                        const packAtCheckout = checkoutPackRef.current ?? selected;
-
-                        await captureOrderOnServer(orderID);
-
-                        const purchasedPack = CREDIT_PACKS[packAtCheckout];
-                        trackEvent("purchase", {
-                          transaction_id: orderID,
-                          currency: purchasedPack.currency,
-                          value: Number(purchasedPack.price),
-                          items: [
-                            creditPackItem(
-                              packAtCheckout,
-                              purchasedPack.credits,
-                              purchasedPack.price,
-                            ),
-                          ],
+                        setStatus("paying");
+                        const subscriptionID = String(data?.subscriptionID ?? "").trim();
+                        if (!subscriptionID) throw new Error("Missing subscriptionID from PayPal.");
+                        const idToken = await getIdTokenOrThrow();
+                        const r = await fetch("/api/paypal/activate-subscription", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ subscriptionID, idToken }),
                         });
-
-                        if (uid) {
-                          incRtdb(`analytics/dreamly_upgrade/${uid}/purchases`, 1).catch(console.error);
-                          incRtdb(`analytics/dreamly_upgrade/${uid}/purchasesByPack/${packAtCheckout}`, 1).catch(console.error);
-                          set(rtdbRef(rtdb, `analytics/dreamly_upgrade/${uid}/lastPurchase`), Date.now()).catch(console.error);
-
-                          incRtdb(`analytics/dreamly_upgrade/_global/purchases`, 1).catch(console.error);
-                          incRtdb(`analytics/dreamly_upgrade/_global/purchasesByPack/${packAtCheckout}`, 1).catch(console.error);
-                        }
-                      } catch (e: any) {
+                        const j = await r.json().catch(() => ({} as Record<string, unknown>));
+                        if (!r.ok || !j?.ok) throw new Error(String(j?.error ?? t.upgrade.paying));
+                        trackEvent("purchase", {
+                          transaction_id: subscriptionID,
+                          currency: plan.currency,
+                          value: Number(plan.price),
+                          items: [subscriptionItem(selected, plan.price)],
+                        });
+                        setStatus("success");
+                      } catch (e: unknown) {
                         setStatus("error");
-                        setError(e?.message ?? "Payment capture failed.");
+                        setError(e instanceof Error ? e.message : t.upgrade.paying);
                       }
                     }}
                     onCancel={() => setStatus("idle")}
@@ -438,21 +305,18 @@ forceReRender={[selected]}
               </PayPalScriptProvider>
             )}
 
-            {status === "creating" && <div className="mt-3 text-sm text-[var(--muted)]">Creating PayPal order…</div>}
-            {status === "paying" && <div className="mt-3 text-sm text-[var(--muted)]">Finalizing payment…</div>}
+            {status === "creating" && <div className="mt-3 text-sm text-[var(--muted)]">{t.upgrade.creating}</div>}
+            {status === "paying" && <div className="mt-3 text-sm text-[var(--muted)]">{t.upgrade.paying}</div>}
           </div>
 
           <div className="mt-4 space-y-2 text-xs text-[var(--muted)]">
-            <p>By purchasing, you agree this is a one-time digital credit top-up.</p>
+            <p>{t.pricing.cancelAnytime}</p>
             <CheckoutLegalConsent />
           </div>
         </div>
       )}
 
-      {!uid ? (
-        <CheckoutLegalConsent className="mt-6 text-xs text-[var(--muted)]" />
-      ) : null}
-
+      {!uid ? <CheckoutLegalConsent className="mt-6 text-xs text-[var(--muted)]" /> : null}
     </main>
   );
 }

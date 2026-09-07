@@ -22,7 +22,7 @@ export default function AppLayout({
       {/* PayPal JS SDK */}
       {paypalClientId ? (
         <Script
-          src={`https://www.paypal.com/sdk/js?client-id=${paypalClientId}&intent=capture`}
+          src={`https://www.paypal.com/sdk/js?client-id=${paypalClientId}&intent=subscription&vault=true`}
           strategy="afterInteractive"
         />
       ) : null}

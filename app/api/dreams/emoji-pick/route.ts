@@ -3,12 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { requireSignedInUid } from "../_lib/requireUser";
-import {
-  EMOJI_PICK_CREDIT_COST,
-  chargeOpenAiCall,
-  refundOpenAiCall,
-  type OpenAiCharge,
-} from "../_lib/credits";
+import { requirePaidAccess } from "../_lib/subscription";
 
 export const runtime = "nodejs";
 
@@ -85,15 +80,12 @@ function extractOutputText(resp: unknown): string {
 }
 
 export async function POST(req: Request) {
-  let uid: string | null = null;
-  let charge: OpenAiCharge | null = null;
-
   try {
     const body = (await req.json().catch(() => ({}))) as Partial<Body>;
 
     const auth = await requireSignedInUid(body?.idToken);
     if ("error" in auth) return auth.error;
-    uid = auth.uid;
+    const uid = auth.uid;
 
     const root = toStr(body?.root);
     const lang = toStr(body?.lang) || "unknown";
@@ -112,14 +104,11 @@ export async function POST(req: Request) {
     const safeCandidates = Array.from(uniq.values()).slice(0, 20);
     if (!safeCandidates.length) return NextResponse.json({ error: "No valid candidates" }, { status: 400 });
 
-    const charged = await chargeOpenAiCall(uid, EMOJI_PICK_CREDIT_COST);
-    if ("error" in charged) return charged.error;
-    charge = charged;
+    const access = await requirePaidAccess(uid);
+    if ("error" in access) return access.error;
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json(
         { error: getMissingOneiroOpenAiKeyMessage() },
         { status: 500 }
@@ -201,9 +190,8 @@ export async function POST(req: Request) {
     const pickedNative = toStr(parsed?.native);
     const found = safeCandidates.find((c) => c.native === pickedNative);
     const paid = {
-      cost: charge.cost,
-      credits: charge.credits,
-      usedDailyFree: charge.usedDailyFree,
+      cost: 0,
+      usedDailyFree: false,
     };
 
     if (!found) {
@@ -218,7 +206,6 @@ export async function POST(req: Request) {
       ...paid,
     });
   } catch (e: unknown) {
-    if (uid && charge) await refundOpenAiCall(uid, charge);
     console.error("emoji-pick error:", e);
     return NextResponse.json(
       { error: errorMessage(e) || "emoji-pick failed" },

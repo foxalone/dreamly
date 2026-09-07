@@ -4,11 +4,7 @@ import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { HOME_DREAM_MAX_CHARS } from "@/lib/homeDreamPending";
 import { requireSignedInUid } from "../_lib/requireUser";
-import {
-  ANALYZE_CREDIT_COST,
-  debitCredits,
-  refundCredits,
-} from "../_lib/credits";
+import { consumeDreamSlot, refundDreamSlot, requirePaidAccess } from "../_lib/subscription";
 import {
   consumeGuestAsk,
   newGuestId,
@@ -24,6 +20,7 @@ type Body = {
   lang?: string;
   lens?: string;
   idToken?: string;
+  countTowardLimit?: boolean;
 };
 
 function guessLang(text: string): string {
@@ -68,7 +65,7 @@ export async function POST(req: Request) {
 
   const refundCharge = async () => {
     if (chargedUid) {
-      await refundCredits(chargedUid, ANALYZE_CREDIT_COST);
+      await refundDreamSlot(chargedUid);
       chargedUid = null;
       return;
     }
@@ -111,9 +108,15 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      const debit = await debitCredits(uid, ANALYZE_CREDIT_COST);
-      if ("error" in debit) return debit.error;
-      chargedUid = uid;
+      const countTowardLimit = body?.countTowardLimit !== false;
+      if (countTowardLimit) {
+        const debit = await consumeDreamSlot(uid);
+        if ("error" in debit) return debit.error;
+        chargedUid = uid;
+      } else {
+        const access = await requirePaidAccess(uid);
+        if ("error" in access) return access.error;
+      }
     }
     const isGuest = !uid;
 
@@ -183,7 +186,7 @@ Keep it under ~1000 characters.
         model,
         lens,
         guest: isGuest,
-        cost: isGuest ? 0 : ANALYZE_CREDIT_COST,
+        cost: 0,
       })
     );
   } catch (e: any) {

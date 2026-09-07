@@ -1,7 +1,9 @@
 import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
 
+import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+
 export const HOME_DREAM_PENDING_KEY = "dreamly:homeDreamPending";
-export const HOME_DREAM_MAX_CHARS = 2000;
+export const HOME_DREAM_MAX_CHARS = DREAM_MAX_CHARS;
 const HOME_DREAM_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 export type HomeDreamCity = {

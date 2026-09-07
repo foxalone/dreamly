@@ -1,6 +1,6 @@
-import { CREDIT_PACKS } from "@/lib/credits/packs";
+import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions/plans";
 import type { Locale } from "@/lib/i18n/config";
-import { formatMessage, getMessages } from "@/lib/i18n/messages";
+import { getMessages } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
@@ -13,7 +13,6 @@ function formatUsd(price: string) {
 
 export default function PricingView({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
-  const packs = Object.values(CREDIT_PACKS);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
@@ -27,21 +26,33 @@ export default function PricingView({ locale }: { locale: Locale }) {
         <p className="mt-4 text-base leading-7 text-[var(--muted)] sm:text-lg">{t.pricing.lead}</p>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t.pricing.freeNote}</p>
 
-        <h2 className="mt-12 text-xl font-semibold tracking-tight">{t.pricing.packsTitle}</h2>
+        <h2 className="mt-12 text-xl font-semibold tracking-tight">{t.pricing.plansTitle}</h2>
         <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-          {packs.map((pack) => (
-            <li key={pack.credits} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-              <p className="text-lg font-semibold">{formatMessage(t.pricing.credits, { n: pack.credits })}</p>
-              <p className="mt-2 text-2xl font-semibold">{formatUsd(pack.price)}</p>
-              <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.oneTime}</p>
-            </li>
-          ))}
+          <li className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-lg font-semibold">{t.pricing.monthly}</p>
+            <p className="mt-2 text-2xl font-semibold">{formatUsd(SUBSCRIPTION_PLANS.monthly.price)}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.billedMonthly}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.trialBadge}</p>
+          </li>
+          <li className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-lg font-semibold">{t.pricing.yearly}</p>
+            <p className="mt-2 text-2xl font-semibold">{formatUsd(SUBSCRIPTION_PLANS.yearly.price)}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.billedYearly}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.yearlySave}</p>
+          </li>
         </ul>
 
-        <p className="mt-8 text-sm leading-6 text-[var(--muted)]">{t.pricing.useFor}</p>
+        <p className="mt-8 text-sm leading-6 text-[var(--muted)]">{t.pricing.limitsNote}</p>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t.pricing.useFor}</p>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t.pricing.cancelAnytime}</p>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           <LocaleLink href="/refund" className="underline underline-offset-2 hover:text-[var(--text)]">
             {t.pricing.refundNote}
+          </LocaleLink>
+        </p>
+        <p className="mt-8">
+          <LocaleLink href="/app/upgrade" className="dream-primary-btn inline-flex no-underline">
+            {t.pricing.subscribeCta}
           </LocaleLink>
         </p>
       </main>

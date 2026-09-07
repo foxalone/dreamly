@@ -3,12 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { requireSignedInUid } from "../_lib/requireUser";
-import {
-  ROOTWORDS_CREDIT_COST,
-  chargeOpenAiCall,
-  refundOpenAiCall,
-  type OpenAiCharge,
-} from "../_lib/credits";
+import { requirePaidAccess } from "../_lib/subscription";
 
 export const runtime = "nodejs";
 
@@ -47,7 +42,6 @@ function mapLangToRecLang(lang: string): "en" | "ru" | "he" | "unknown" {
 
 export async function POST(req: Request) {
   let uid: string | null = null;
-  let charge: OpenAiCharge | null = null;
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -59,14 +53,11 @@ export async function POST(req: Request) {
     const text = toStr(body?.text);
     if (!text) return NextResponse.json({ error: "Missing text" }, { status: 400 });
 
-    const charged = await chargeOpenAiCall(uid, ROOTWORDS_CREDIT_COST);
-    if ("error" in charged) return charged.error;
-    charge = charged;
+    const access = await requirePaidAccess(uid);
+    if ("error" in access) return access.error;
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 });
     }
 
@@ -141,8 +132,6 @@ Return only valid JSON.
         temperature: 0.2,
       });
     } catch (e: any) {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
     }
 
@@ -151,8 +140,6 @@ Return only valid JSON.
     try {
       data = JSON.parse(jsonText);
     } catch {
-      await refundOpenAiCall(uid, charge);
-      charge = null;
       return NextResponse.json({ error: "Invalid model response" }, { status: 500 });
     }
 
@@ -221,12 +208,10 @@ Rules:
       themes,
       roots,
       rootsEn,
-      cost: charge.cost,
-      usedDailyFree: charge.usedDailyFree,
-      credits: charge.credits,
+      cost: 0,
+      usedDailyFree: false,
     });
   } catch (e: any) {
-    if (uid && charge) await refundOpenAiCall(uid, charge);
     console.error("rootwords error:", e);
     return NextResponse.json({ error: e?.message ?? "Failed" }, { status: 500 });
   }

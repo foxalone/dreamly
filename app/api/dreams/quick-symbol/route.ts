@@ -6,6 +6,7 @@ import {
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
+import { requirePaidAccess } from "../_lib/subscription";
 import {
   countWords,
   findBestDreamMatch,
@@ -159,7 +160,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Signed in: 1 credit. Guest: one free lookup, then sign-in.
+    // Miss → GPT. Signed in: subscription. Guest: one free lookup, then sign-in.
     if (isGuest && guestId) {
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
@@ -176,53 +177,14 @@ export async function POST(req: Request) {
           )
         );
       }
+    } else if (uid) {
+      const access = await requirePaidAccess(uid);
+      if ("error" in access) return access.error;
     }
-
-    const db = adminDb();
-    const userRef = uid ? db.collection("users").doc(uid) : null;
 
     const refundOne = async () => {
-      if (userRef) {
-        await userRef.set(
-          {
-            credits: FieldValue.increment(1),
-            creditsUpdatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-        return;
-      }
       if (guestId) await refundGuestAsk(guestId, clientIp);
     };
-
-    if (userRef) {
-      try {
-        await db.runTransaction(async (tx) => {
-          const snap = await tx.get(userRef);
-          const credits = Number(snap.exists ? (snap.data() as any)?.credits ?? 0 : 0);
-          if (!Number.isFinite(credits) || credits < 1) {
-            throw new Error("INSUFFICIENT_CREDITS");
-          }
-          tx.set(
-            userRef,
-            {
-              credits: credits - 1,
-              creditsUpdatedAt: FieldValue.serverTimestamp(),
-              updatedAt: FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
-        });
-      } catch (e: any) {
-        if (e?.message === "INSUFFICIENT_CREDITS") {
-          return NextResponse.json(
-            { error: "Not enough credits.", code: "INSUFFICIENT_CREDITS" },
-            { status: 402 }
-          );
-        }
-        throw e;
-      }
-    }
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
@@ -269,14 +231,14 @@ export async function POST(req: Request) {
       matched: false,
       slug: null,
       uid,
-      cost: isGuest ? 0 : 1,
+      cost: 0,
     });
 
     return finish(
       NextResponse.json({
         ok: true,
         matched: false,
-        cost: isGuest ? 0 : 1,
+        cost: 0,
         match: null,
         answer,
         href: null,

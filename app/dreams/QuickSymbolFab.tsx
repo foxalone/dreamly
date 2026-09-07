@@ -220,9 +220,9 @@ export default function QuickSymbolFab() {
           goToSignIn(q);
           return;
         }
-        if (data?.code === "INSUFFICIENT_CREDITS") {
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS") {
           trackEvent("upgrade_prompt", { source: "quick_symbol" });
-          setError("Not enough credits.");
+          setError("A Dreamly subscription is required.");
           router.push("/app/upgrade");
           return;
         }

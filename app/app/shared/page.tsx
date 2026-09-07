@@ -416,8 +416,8 @@ export default function SharedPage() {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
-          throw new Error("Not enough credits to translate (1 credit after today's free AI call).");
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("A Dreamly subscription is required.");
         }
         throw new Error(data?.error ?? "Translate failed");
       }

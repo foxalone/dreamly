@@ -18,6 +18,13 @@ import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
+import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+import {
+  hasPaidAccess,
+  remainingDreamsToday,
+  type UserBillingFields,
+} from "@/lib/subscriptions/status";
+import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
 import { isDreamLens } from "@/lib/dream-lenses";
 import {
@@ -32,7 +39,6 @@ import {
   doc,
   setDoc,
   getDoc,
-  runTransaction,
 } from "firebase/firestore";
 
 
@@ -473,8 +479,8 @@ export default function DreamsPage() {
   const [dreams, setDreams] = useState<Dream[]>([]);
   const [stories, setStories] = useState<Dream[]>([]);
   const [uid, setUid] = useState<string | null>(null);
-  const [credits, setCredits] = useState(0);
-  const [creditsLoading, setCreditsLoading] = useState(true);
+  const [billing, setBilling] = useState<UserBillingFields | null>(null);
+  const [billingLoading, setBillingLoading] = useState(true);
 
   const [tab, setTab] = useState<Tab>("DREAMS");
   const [composerType, setComposerType] = useState<ContentType>("dream");
@@ -509,7 +515,9 @@ export default function DreamsPage() {
 
   const hintsRef = useRef<Record<string, string>>({});
 
-  const MAX_DREAM_CHARS = 2000;
+  const MAX_DREAM_CHARS = DREAM_MAX_CHARS;
+  const subscriptionRequiredCopy = t.app.subscriptionRequired;
+  const dailyLimitCopy = t.app.dailyLimitReached;
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -828,53 +836,23 @@ export default function DreamsPage() {
 
   useEffect(() => {
     if (!uid) {
-      setCredits(0);
-      setCreditsLoading(false);
+      setBilling(null);
+      setBillingLoading(false);
       return;
     }
 
-    setCreditsLoading(true);
+    setBillingLoading(true);
     const userRef = doc(firestore, "users", uid);
     const unsub = onSnapshot(
       userRef,
-      async (snap) => {
-        if (!snap.exists()) {
-          setCredits(0);
-          setCreditsLoading(false);
-          return;
-        }
-
-        const data2 = snap.data() as any;
-        const nextCredits = Number.isFinite(Number(data2?.credits))
-          ? Math.max(0, Math.floor(Number(data2.credits)))
-          : 0;
-        setCredits(nextCredits);
-        setCreditsLoading(false);
-
-        if (data2?.credits === undefined) {
-          // Seed the field only if it is STILL missing at commit time. A plain
-          // merge here could land after grantWelcomeCredits' increment and wipe
-          // the welcome bonus for good, since welcomeBonusGranted is already set
-          // and the function never runs twice.
-          await runTransaction(firestore, async (tx) => {
-            const fresh = await tx.get(userRef);
-            if (!fresh.exists()) return;
-            if (fresh.data()?.credits !== undefined) return;
-            tx.set(
-              userRef,
-              {
-                credits: 0,
-                creditsUpdatedAt: serverTimestamp(),
-              },
-              { merge: true }
-            );
-          }).catch(() => {});
-        }
+      (snap) => {
+        setBilling(snap.exists() ? (snap.data() as UserBillingFields) : {});
+        setBillingLoading(false);
       },
       (err) => {
-        console.error("credits onSnapshot error:", err);
-        setCredits(0);
-        setCreditsLoading(false);
+        console.error("billing snapshot error:", err);
+        setBilling(null);
+        setBillingLoading(false);
       }
     );
 
@@ -960,14 +938,10 @@ export default function DreamsPage() {
 
       const data2 = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
-          throw new Error("INSUFFICIENT_CREDITS_ROOTWORDS");
+        if (data2?.code === "SUBSCRIPTION_REQUIRED" || data2?.code === "DAILY_LIMIT" || res.status === 402) {
+          throw new Error(data2?.code === "DAILY_LIMIT" ? "DAILY_LIMIT" : "SUBSCRIPTION_REQUIRED");
         }
         throw new Error(data2?.error ?? "API failed");
-      }
-
-      if (Number.isFinite(Number(data2?.credits))) {
-        setCredits(Math.max(0, Math.floor(Number(data2.credits))));
       }
 
       const rootsArr = Array.isArray(data2?.roots) ? data2.roots : [];
@@ -1028,8 +1002,8 @@ export default function DreamsPage() {
       if (type === "story") setStories((prev) => prev.map(apply));
       else setDreams((prev) => prev.map(apply));
     } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_CREDITS_ROOTWORDS") {
-        setError("Not enough credits for symbol extraction (1 credit after today's free AI call).");
+      if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "DAILY_LIMIT") {
+        setError(e.message === "DAILY_LIMIT" ? dailyLimitCopy : subscriptionRequiredCopy);
         router.push(localePath("/app/upgrade", locale));
       } else {
         setError(e?.message ?? "Failed to extract roots.");
@@ -1042,9 +1016,8 @@ export default function DreamsPage() {
   async function save() {
     const v = text.trim();
     const type: ContentType = tab === "STORIES" ? "story" : "dream";
-    const noun = type === "story" ? "Story" : "Dream";
     if (v.length > MAX_DREAM_CHARS) {
-      setError(`${noun} is too long. Max ${MAX_DREAM_CHARS} characters.`);
+      setError(formatMessage(t.app.dreamTooLong, { n: MAX_DREAM_CHARS }));
       return;
     }
 
@@ -1054,9 +1027,13 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-    if (credits < 1) {
-      setError(`Not enough credits to save a ${type}.`);
+    if (!hasPaidAccess(billing)) {
+      setError(t.app.subscriptionRequired);
       router.push(localePath("/app/upgrade", locale));
+      return;
+    }
+    if (remainingDreamsToday(billing) < 1) {
+      setError(t.app.dailyLimitReached);
       return;
     }
 
@@ -1104,23 +1081,20 @@ export default function DreamsPage() {
     };
 
     setSaving(true);
+    let slotTaken = false;
     try {
-      const userRef = doc(firestore, "users", u.uid);
-      await runTransaction(firestore, async (tx) => {
-        const userSnap = await tx.get(userRef);
-        const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
-        if (currentCredits < 1) {
-          throw new Error("INSUFFICIENT_CREDITS_SAVE");
-        }
-        tx.set(
-          userRef,
-          {
-            credits: currentCredits - 1,
-            creditsUpdatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
+      const idToken = await u.getIdToken();
+      const slotRes = await fetch("/api/dreams/consume-slot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
       });
+      const slotData = await slotRes.json().catch(() => ({}));
+      if (!slotRes.ok) {
+        if (slotData?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
+        throw new Error("SUBSCRIPTION_REQUIRED");
+      }
+      slotTaken = true;
 
       let docRef: any;
       try {
@@ -1131,18 +1105,9 @@ export default function DreamsPage() {
           word_count: payload.wordCount,
         });
       } catch (e) {
-        await runTransaction(firestore, async (tx) => {
-          const userSnap = await tx.get(userRef);
-          const currentCredits = userSnap.exists() ? Math.max(0, Math.floor(Number((userSnap.data() as any)?.credits ?? 0))) : 0;
-          tx.set(
-            userRef,
-            {
-              credits: currentCredits + 1,
-              creditsUpdatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
-        }).catch(() => {});
+        if (slotTaken) {
+          // Slot already consumed server-side; keep it so abuse can't retry forever.
+        }
         throw e;
       }
 
@@ -1156,10 +1121,15 @@ export default function DreamsPage() {
         extractRootsForItem(docRef.id, createdType).catch(() => {});
       }, 50);
     } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-        setError(`Not enough credits to save a ${type}.`);
+      if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_SAVE") {
+        setError(t.app.subscriptionRequired);
         setSaving(false);
         router.push(localePath("/app/upgrade", locale));
+        return;
+      }
+      if (e?.message === "DAILY_LIMIT") {
+        setError(t.app.dailyLimitReached);
+        setSaving(false);
         return;
       }
       setError(e?.message ?? `Failed to save ${type}.`);
@@ -1290,12 +1260,12 @@ export default function DreamsPage() {
       return;
     }
 
-   if (credits < 2) {
-  trackEvent("upgrade_prompt", { source: "dream_analysis" });
-  setError("Not enough credits to analyze. Requires 2 credits.");
-  router.push(localePath("/app/upgrade", locale));
-  return;
-}
+    if (!hasPaidAccess(billing)) {
+      trackEvent("upgrade_prompt", { source: "dream_analysis" });
+      setError(subscriptionRequiredCopy);
+      router.push(localePath("/app/upgrade", locale));
+      return;
+    }
 
     setError(null);
     setAnalysisBusyId(dreamId);
@@ -1310,13 +1280,17 @@ export default function DreamsPage() {
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           lens,
           idToken,
+          countTowardLimit: false,
         }),
       });
 
       const data2 = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
-          throw new Error("INSUFFICIENT_CREDITS_ANALYZE");
+        if (data2?.code === "DAILY_LIMIT") {
+          throw new Error("DAILY_LIMIT");
+        }
+        if (data2?.code === "SUBSCRIPTION_REQUIRED" || data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          throw new Error("SUBSCRIPTION_REQUIRED");
         }
         if (data2?.code === "AUTH_REQUIRED" || res.status === 401) {
           throw new Error("Sign in required.");
@@ -1337,10 +1311,6 @@ export default function DreamsPage() {
         updatedAt: serverTimestamp(),
       });
 
-      if (Number.isFinite(Number(data2?.credits))) {
-        setCredits(Math.max(0, Math.floor(Number(data2.credits))));
-      }
-
       setDreams((prev) =>
         prev.map((x) =>
           x.id === dreamId
@@ -1358,17 +1328,19 @@ export default function DreamsPage() {
       trackEvent("dream_analysis_completed", {
         input_language: (dream as any)?.langGuess ?? guessLang(t),
         word_count: countWords(t),
-        credits_used: 2,
+        credits_used: 0,
         lens,
       });
       openAnalysis(dreamId);
     } catch (e: any) {
-    if (e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
-  setError("Not enough credits to analyze. Requires 2 credits.");
-  router.push(localePath("/app/upgrade", locale));
-} else {
-  setError(e?.message ?? "Failed to analyze dream.");
-}
+      if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
+        setError(subscriptionRequiredCopy);
+        router.push(localePath("/app/upgrade", locale));
+      } else if (e?.message === "DAILY_LIMIT") {
+        setError(dailyLimitCopy);
+      } else {
+        setError(e?.message ?? "Failed to analyze dream.");
+      }
     } finally {
       setAnalysisBusyId(null);
     }
@@ -1439,7 +1411,11 @@ export default function DreamsPage() {
     return out;
   }
 
-  const canSave = useMemo(() => !!text.trim() && !saving && credits >= 1, [text, saving, credits]);
+  const canAccess = hasPaidAccess(billing);
+  const canSave = useMemo(
+    () => !!text.trim() && !saving && canAccess && remainingDreamsToday(billing) > 0,
+    [text, saving, canAccess, billing]
+  );
 
   const aliveDreams = useMemo(
     () => dreams.filter((d) => (d as any).deleted !== true).map((d) => ({ ...d, sourceType: "dream" as const })),
@@ -1571,16 +1547,17 @@ export default function DreamsPage() {
     Shared <span className="opacity-70">({sharedItems.length})</span>
   </button>
 
-  {/* Credits pill (не переключает таб, а ведёт на апгрейд) */}
   <button
     onClick={() => router.push(localePath("/app/upgrade", locale))}
     className={[
       "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
       "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
     ].join(" ")}
-    title="Add credits"
+    title={t.profile.subscribe}
   >
-    Credits <span className="opacity-70">({creditsLoading ? "…" : credits})</span>
+    {canAccess
+      ? formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })
+      : t.profile.subscribe}
   </button>
 </div>
 
@@ -1622,7 +1599,7 @@ export default function DreamsPage() {
                 className="min-h-11 min-w-0 flex-1"
               />
             ) : null}
-            {credits >= 1 ? (
+            {canAccess ? (
               <button
                 type="button"
                 onClick={() => {
@@ -1639,7 +1616,7 @@ export default function DreamsPage() {
                 onClick={() => router.push(localePath("/app/upgrade", locale))}
                 className="dream-primary-btn h-11 shrink-0 sm:w-full"
               >
-                Add credits
+                {t.profile.subscribe}
               </button>
             )}
           </div>
@@ -1763,7 +1740,7 @@ export default function DreamsPage() {
                             isAnalyzing ? "opacity-80 cursor-wait" : "",
                             isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
                           ].join(" ")}
-                          title={hasAnalysis ? "View analysis" : "Analyze with AI (Requires 2 credits)"}
+                          title={hasAnalysis ? t.app.analysis : t.app.analyze}
                         >
                           {isAnalyzing ? t.app.analyzing : hasAnalysis ? t.app.analysis : t.app.analyze}
                         </button>
@@ -2014,7 +1991,7 @@ export default function DreamsPage() {
                     Cancel
                   </button>
 
-                  {credits >= 1 ? (
+                  {canAccess ? (
                     <button
                       onClick={save}
                       disabled={!canSave}
@@ -2024,7 +2001,7 @@ export default function DreamsPage() {
                     </button>
                   ) : (
                   <button onClick={() => router.push(localePath("/app/upgrade", locale))} className={["dream-primary-btn"].join(" ")} type="button">
-  Add credits
+  {t.profile.subscribe}
 </button>
                   )}
                 </div>
