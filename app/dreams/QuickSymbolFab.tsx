@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, MoonStar, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
@@ -306,24 +306,6 @@ export default function QuickSymbolFab() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => {
-          trackEvent("quick_symbol_opened", { source: "floating_button" });
-          setOpen(true);
-          setError(null);
-        }}
-        className={[
-          "quick-symbol-cta inline-flex items-center gap-1.5 rounded-full border border-violet-300/40 bg-violet-500 px-3 py-2 text-xs font-semibold text-white shadow-[0_0_0_1px_rgba(167,139,250,0.25),0_8px_24px_rgba(124,58,237,0.35)] transition hover:bg-violet-400 sm:gap-2 sm:px-3.5 sm:text-sm",
-          open ? "quick-symbol-cta--still" : "",
-        ].join(" ")}
-        aria-label="Quick dream symbol"
-        title="Quick symbol"
-      >
-        <MoonStar size={16} className="shrink-0" aria-hidden />
-        <span>Ask</span>
-      </button>
-
       {portalReady && open
         ? createPortal(
             <div
