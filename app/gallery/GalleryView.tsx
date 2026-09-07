@@ -58,8 +58,7 @@ export default function GalleryView({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <header className="mx-auto max-w-2xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">{t.nav.gallery}</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--dd-text)] sm:text-4xl">{t.gallery.h1}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-[var(--dd-text)] sm:text-4xl">{t.gallery.h1}</h1>
         <p className="mt-4 text-base leading-7 text-[var(--dd-muted)] sm:text-lg">{t.gallery.lead}</p>
       </header>
 
