@@ -34,7 +34,7 @@ export default function AppHeader({ hidden }: { hidden?: boolean }) {
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-1 px-3 py-2 md:grid-cols-[auto_minmax(0,1fr)] md:gap-3 sm:px-6 sm:py-2.5 lg:px-8">
         <Link
           href="/app/dreams"
-          className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-wide text-[var(--text)]"
+          className="hidden shrink-0 items-center gap-2 text-sm font-semibold tracking-wide text-[var(--text)] md:flex"
         >
           <span className="grid size-8 place-items-center rounded-xl bg-violet-500/15 text-violet-400 ring-1 ring-violet-400/20">
             <MoonStar size={17} aria-hidden="true" />
