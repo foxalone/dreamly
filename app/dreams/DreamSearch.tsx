@@ -123,7 +123,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
 
   return (
     <div className="mx-auto mt-8 max-w-3xl text-left">
-      <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2">
+      <div className="grid grid-cols-1 gap-2">
       <div className="relative min-w-0">
         <label htmlFor="dream-search" className="sr-only">{t.chrome.searchLabel}</label>
         <div className="flex h-full min-h-12 items-center gap-3 rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] px-4 py-3 shadow-sm transition focus-within:border-violet-400/50 focus-within:ring-4 focus-within:ring-violet-400/10">
@@ -182,7 +182,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
 
       <form
         onSubmit={onAiSubmit}
-        className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-400/35 bg-violet-500/10 px-3 py-2 shadow-sm transition focus-within:border-violet-400/70 focus-within:ring-4 focus-within:ring-violet-400/10"
+        className="flex min-h-12 min-w-0 items-center gap-3 rounded-2xl border border-violet-400/35 bg-violet-500/10 px-4 py-3 shadow-sm transition focus-within:border-violet-400/70 focus-within:ring-4 focus-within:ring-violet-400/10"
       >
         <MoonStar size={18} className="shrink-0 text-[var(--dd-accent-text)]" aria-hidden="true" />
         <label htmlFor="dream-ai-query" className="sr-only">{t.dictionary.askLabel}</label>

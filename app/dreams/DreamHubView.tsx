@@ -92,7 +92,7 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
 
-      <section className="relative overflow-visible border-b border-[var(--dd-border)] px-5 pb-14 pt-16 sm:px-8 sm:pb-20 sm:pt-24">
+      <section className="relative overflow-visible border-b border-[var(--dd-border)] px-5 pb-14 pt-6 sm:px-8 sm:pb-20 sm:pt-10">
         <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-80 max-w-3xl rounded-full bg-violet-600/15 blur-[110px]" />
         <div className="relative mx-auto max-w-4xl text-center">
           <div className="mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-xs font-medium text-[var(--dd-accent-text)]">
