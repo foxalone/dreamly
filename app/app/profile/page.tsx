@@ -37,15 +37,6 @@ function shortUid(uid?: string | null) {
   return `${uid.slice(0, 5)}…${uid.slice(-5)}`;
 }
 
-function statusLabel(t: ReturnType<typeof useMessages>, billing: UserBillingFields | null) {
-  const status = String(billing?.subscriptionStatus ?? "none");
-  if (status === "trial") return t.profile.statusTrial;
-  if (status === "active") return t.profile.statusActive;
-  if (status === "cancelled" && hasPaidAccess(billing)) return t.profile.statusCancelled;
-  if (status === "cancelled") return t.profile.statusCancelled;
-  return t.profile.statusNone;
-}
-
 export default function ProfilePage() {
   const locale = useLocale();
   const t = useMessages();
@@ -146,7 +137,7 @@ export default function ProfilePage() {
           {t.profile.subscribe}
         </button>
 
-        {user ? (
+        {user && hasPaidAccess(billing) ? (
           <div
             className="
               h-11 px-4 rounded-full
@@ -156,14 +147,8 @@ export default function ProfilePage() {
               flex items-center gap-2
               font-semibold
             "
-            title={statusLabel(t, billing)}
           >
-            <span>{statusLabel(t, billing)}</span>
-            {hasPaidAccess(billing) ? (
-              <span className="opacity-70 font-normal">
-                {formatMessage(t.profile.remainingToday, { n: remaining })}
-              </span>
-            ) : null}
+            {formatMessage(t.profile.remainingToday, { n: remaining })}
           </div>
         ) : null}
       </div>

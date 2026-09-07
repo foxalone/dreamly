@@ -170,10 +170,6 @@ export type UiMessages = {
     copyUuid: string;
     copied: string;
     subscribe: string;
-    statusNone: string;
-    statusTrial: string;
-    statusActive: string;
-    statusCancelled: string;
     remainingToday: string;
     signOut: string;
     notSignedIn: string;

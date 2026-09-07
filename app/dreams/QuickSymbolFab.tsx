@@ -397,7 +397,6 @@ export default function QuickSymbolFab() {
                           ? `${result.match?.icon ?? "🌙"} ${result.match?.title ?? "Match"}`
                           : "AI draft"}
                       </span>
-                      <span>{result.cost === 0 ? "Free" : "1 credit"}</span>
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-[var(--dd-text)] whitespace-pre-wrap">
                       {result.answer}

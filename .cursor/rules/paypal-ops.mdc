@@ -1,0 +1,24 @@
+---
+description: Напомнить пользователю чеклист PayPal, когда он спросит про PayPal / вебхук / подписки.
+alwaysApply: true
+---
+
+# PayPal — что сделать вручную (Dreamly)
+
+Отвечать на русском. Если пользователь спрашивает про PayPal, вебхук, подписки или «что мне ещё сделать» — напомнить этот чеклист. Не делать эти шаги за него в Dashboard.
+
+Код подписок уже в репо. Осталось у человека:
+
+1. **PayPal Dashboard → Webhooks**  
+   URL: `https://dreamly.art/api/paypal/webhook`  
+   События: `BILLING.SUBSCRIPTION.*` и `PAYMENT.SALE.COMPLETED`.
+
+2. **Vercel env**  
+   Вставить `PAYPAL_WEBHOOK_ID` (из шага 1).  
+   По желанию: `PAYPAL_PLAN_MONTHLY_ID`, `PAYPAL_PLAN_YEARLY_ID`, `PAYPAL_PRODUCT_ID` — иначе планы создаются сами при первом checkout.  
+   Проверить: `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV` (`live` для продакшена).
+
+3. **Cloud Function**  
+   Задеплоить `grantWelcomeCredits` (бонус-кредиты больше не выдаются; на проде ещё старая функция, пока не redeploy).
+
+UI: не показывать бейджи No plan / Free / Pro / Trial / Active на профиле.
