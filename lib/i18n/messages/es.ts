@@ -95,13 +95,13 @@ export const ES_MESSAGES: UiMessages = {
   },
   gallery: {
     h1: "Galería de arte onírico",
-    lead: "Ilustraciones con IA de los símbolos de sueños que más se buscan. Cada imagen abre el significado en el diccionario Dreamly.",
+    lead: "Ilustraciones de los símbolos de sueños que más se buscan. Cada imagen abre el significado en el diccionario Dreamly.",
     empty: "Las nuevas ilustraciones de sueños aparecen aquí cuando se publican.",
     openMeaning: "Significado del sueño",
     alt: "Arte onírico de {name}",
     seoTitle: "Galería de arte onírico: ilustraciones de símbolos de sueños",
     seoDescription:
-      "Explora una galería tipo Pinterest de arte de sueños con IA. Toca una ilustración para leer el significado psicológico, espiritual, islámico y bíblico de ese símbolo.",
+      "Explora una galería tipo Pinterest de arte de sueños. Toca una ilustración para leer el significado psicológico, espiritual, islámico y bíblico de ese símbolo.",
     hadThisDream: "Tuve este sueño",
     undoHadThisDream: "Quitar: tuve este sueño",
     peopleHadThisDream: "{count} tuvieron este sueño",

@@ -95,13 +95,13 @@ export const EN_MESSAGES: UiMessages = {
   },
   gallery: {
     h1: "Dream Art Gallery",
-    lead: "AI illustrations of the dream symbols people search for most. Each picture opens the meaning in the Dreamly dictionary.",
+    lead: "Illustrations of the dream symbols people search for most. Each picture opens the meaning in the Dreamly dictionary.",
     empty: "New dream illustrations appear here as they are published.",
     openMeaning: "Dream meaning",
     alt: "Dream art of {name}",
-    seoTitle: "Dream Art Gallery: AI Illustrations of Dream Symbols",
+    seoTitle: "Dream Art Gallery: Illustrations of Dream Symbols",
     seoDescription:
-      "Browse a Pinterest-style gallery of AI dream art. Tap any illustration to read the psychological, spiritual, Islamic, and biblical meaning of that dream symbol.",
+      "Browse a Pinterest-style gallery of dream art. Tap any illustration to read the psychological, spiritual, Islamic, and biblical meaning of that dream symbol.",
     hadThisDream: "I had this dream",
     undoHadThisDream: "Remove: I had this dream",
     peopleHadThisDream: "{count} had this dream",

@@ -95,13 +95,13 @@ export const PT_MESSAGES: UiMessages = {
   },
   gallery: {
     h1: "Galeria de arte dos sonhos",
-    lead: "Ilustrações com IA dos símbolos de sonho mais buscados. Cada imagem abre o significado no dicionário Dreamly.",
+    lead: "Ilustrações dos símbolos de sonho mais buscados. Cada imagem abre o significado no dicionário Dreamly.",
     empty: "Novas ilustrações de sonhos aparecem aqui quando são publicadas.",
     openMeaning: "Significado do sonho",
     alt: "Arte de sonho de {name}",
-    seoTitle: "Galeria de arte dos sonhos: ilustrações de símbolos com IA",
+    seoTitle: "Galeria de arte dos sonhos: ilustrações de símbolos",
     seoDescription:
-      "Explore uma galeria estilo Pinterest de arte de sonhos com IA. Toque numa ilustração para ler o significado psicológico, espiritual, islâmico e bíblico daquele símbolo.",
+      "Explore uma galeria estilo Pinterest de arte de sonhos. Toque numa ilustração para ler o significado psicológico, espiritual, islâmico e bíblico daquele símbolo.",
     hadThisDream: "Eu tive esse sonho",
     undoHadThisDream: "Remover: eu tive esse sonho",
     peopleHadThisDream: "{count} tiveram esse sonho",

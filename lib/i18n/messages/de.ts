@@ -95,13 +95,13 @@ export const DE_MESSAGES: UiMessages = {
   },
   gallery: {
     h1: "Traumkunst-Galerie",
-    lead: "KI-Illustrationen der meistgesuchten Traumsymbole. Jedes Bild öffnet die Bedeutung im Dreamly-Lexikon.",
+    lead: "Illustrationen der meistgesuchten Traumsymbole. Jedes Bild öffnet die Bedeutung im Dreamly-Lexikon.",
     empty: "Neue Traumbilder erscheinen hier, sobald sie veröffentlicht sind.",
     openMeaning: "Traumbedeutung",
     alt: "Traumkunst zu {name}",
-    seoTitle: "Traumkunst-Galerie: KI-Illustrationen von Traumsymbolen",
+    seoTitle: "Traumkunst-Galerie: Illustrationen von Traumsymbolen",
     seoDescription:
-      "Eine Pinterest-artige Galerie mit KI-Traumkunst. Tippe auf ein Bild und lies die psychologische, spirituelle, islamische und biblische Bedeutung des Symbols.",
+      "Eine Pinterest-artige Galerie mit Traumkunst. Tippe auf ein Bild und lies die psychologische, spirituelle, islamische und biblische Bedeutung des Symbols.",
     hadThisDream: "Ich hatte diesen Traum",
     undoHadThisDream: "Entfernen: Ich hatte diesen Traum",
     peopleHadThisDream: "{count} hatten diesen Traum",
