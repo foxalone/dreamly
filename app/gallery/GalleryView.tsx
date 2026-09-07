@@ -85,13 +85,13 @@ export default function GalleryView({
                     loading="lazy"
                     className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
-                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10 pe-16">
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
                     <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
                     <span className="mt-0.5 block truncate text-[11px] text-white/75">{t.gallery.openMeaning}</span>
                   </span>
                 </span>
               </LocaleLink>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-end px-2 pb-2 sm:px-2.5 sm:pb-2.5">
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-end px-2 pt-2 sm:px-2.5 sm:pt-2.5">
                 <div className="pointer-events-auto">
                   <GalleryHeartButton slug={item.slug} />
                 </div>
