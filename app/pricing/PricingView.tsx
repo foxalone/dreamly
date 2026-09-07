@@ -27,18 +27,27 @@ export default function PricingView({ locale }: { locale: Locale }) {
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t.pricing.freeNote}</p>
 
         <h2 className="mt-12 text-xl font-semibold tracking-tight">{t.pricing.plansTitle}</h2>
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+          <li className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+            <p className="text-lg font-semibold">{t.pricing.free}</p>
+            <p className="mt-2 text-2xl font-semibold">{formatUsd("0")}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.billedFree}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.freeNote}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.accessFeatures}</p>
+          </li>
           <li className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-lg font-semibold">{t.pricing.monthly}</p>
             <p className="mt-2 text-2xl font-semibold">{formatUsd(SUBSCRIPTION_PLANS.monthly.price)}</p>
             <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.billedMonthly}</p>
             <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.trialBadge}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.accessFeatures}</p>
           </li>
           <li className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
             <p className="text-lg font-semibold">{t.pricing.yearly}</p>
             <p className="mt-2 text-2xl font-semibold">{formatUsd(SUBSCRIPTION_PLANS.yearly.price)}</p>
             <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.billedYearly}</p>
             <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.yearlySave}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t.pricing.accessFeatures}</p>
           </li>
         </ul>
 

@@ -137,10 +137,13 @@ export type UiMessages = {
     plansTitle: string;
     monthly: string;
     yearly: string;
+    free: string;
     billedMonthly: string;
     billedYearly: string;
+    billedFree: string;
     trialBadge: string;
     limitsNote: string;
+    accessFeatures: string;
     useFor: string;
     freeNote: string;
     refundNote: string;
