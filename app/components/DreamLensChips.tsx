@@ -102,7 +102,11 @@ export default function DreamLensChips({
       >
         {t.lens.label}
       </p>
-      <div role="radiogroup" aria-label={t.lens.label} className="flex flex-wrap gap-1.5">
+      <div
+        role="radiogroup"
+        aria-label={t.lens.label}
+        className="flex flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {DREAM_LENSES.map((lens) => {
           const selected = value === lens;
           return (
@@ -114,7 +118,7 @@ export default function DreamLensChips({
               disabled={disabled}
               onClick={() => onChange(lens)}
               className={[
-                "rounded-full px-2.5 py-1 text-[11px] font-semibold transition disabled:opacity-60",
+                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold transition disabled:opacity-60",
                 onBrand
                   ? selected
                     ? "bg-white text-purple-700"
