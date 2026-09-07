@@ -110,7 +110,6 @@ export const RU_MESSAGES: UiMessages = {
     searchPlaceholder: "Искать символы…",
     askPlaceholder: "Спросите ИИ о сне…",
     askLabel: "Спросить ИИ о символе сна",
-    startHere: "Начать здесь",
     popularSymbols: "Популярные символы",
     popularSymbolsLead: "Главные темы и длинный хвост значений",
     learnTitle: "О сновидениях",

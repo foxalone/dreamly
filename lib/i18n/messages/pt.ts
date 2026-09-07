@@ -110,7 +110,6 @@ export const PT_MESSAGES: UiMessages = {
     searchPlaceholder: "Buscar símbolos…",
     askPlaceholder: "Pergunte à IA sobre um sonho…",
     askLabel: "Perguntar à IA sobre um símbolo",
-    startHere: "Comece aqui",
     popularSymbols: "Símbolos populares",
     popularSymbolsLead: "Temas principais e significados de cauda longa",
     learnTitle: "Aprenda sobre o sonhar",

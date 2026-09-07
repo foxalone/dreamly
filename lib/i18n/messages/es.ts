@@ -110,7 +110,6 @@ export const ES_MESSAGES: UiMessages = {
     searchPlaceholder: "Buscar símbolos…",
     askPlaceholder: "Pregunta a la IA sobre un sueño…",
     askLabel: "Preguntar a la IA por un símbolo",
-    startHere: "Empieza aquí",
     popularSymbols: "Símbolos populares",
     popularSymbolsLead: "Temas principales y significados de cola larga",
     learnTitle: "Aprende sobre el soñar",

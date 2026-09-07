@@ -110,7 +110,6 @@ export const DE_MESSAGES: UiMessages = {
     searchPlaceholder: "Symbole suchen…",
     askPlaceholder: "Frage die KI zu einem Traum…",
     askLabel: "KI zu einem Traumsymbol fragen",
-    startHere: "Hier beginnen",
     popularSymbols: "Beliebte Symbole",
     popularSymbolsLead: "Hauptthemen und Long-Tail-Bedeutungen",
     learnTitle: "Über das Träumen lernen",

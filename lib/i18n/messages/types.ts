@@ -69,7 +69,6 @@ export type UiMessages = {
     searchPlaceholder: string;
     askPlaceholder: string;
     askLabel: string;
-    startHere: string;
     popularSymbols: string;
     popularSymbolsLead: string;
     learnTitle: string;

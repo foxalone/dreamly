@@ -110,7 +110,6 @@ export const EN_MESSAGES: UiMessages = {
     searchPlaceholder: "Search symbols…",
     askPlaceholder: "Ask AI about a dream…",
     askLabel: "Ask AI about a dream symbol",
-    startHere: "Start here",
     popularSymbols: "Popular symbols",
     popularSymbolsLead: "Parent topics and long-tail meanings",
     learnTitle: "Learn about dreaming",

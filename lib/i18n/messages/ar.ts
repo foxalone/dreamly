@@ -110,7 +110,6 @@ export const AR_MESSAGES: UiMessages = {
     searchPlaceholder: "ابحث عن رموز…",
     askPlaceholder: "اسأل الذكاء الاصطناعي عن حلم…",
     askLabel: "اسأل الذكاء الاصطناعي عن رمز حلم",
-    startHere: "ابدأ من هنا",
     popularSymbols: "رموز شائعة",
     popularSymbolsLead: "موضوعات رئيسة ومعانٍ طويلة الذيل",
     learnTitle: "تعرّف على الحلم",

@@ -92,7 +92,7 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
 
-      <section className="relative overflow-visible border-b border-[var(--dd-border)] px-5 pb-14 pt-6 sm:px-8 sm:pb-20 sm:pt-10">
+      <section className="relative overflow-visible border-b border-[var(--dd-border)] px-5 pb-5 pt-6 sm:px-8 sm:pb-8 sm:pt-10">
         <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-80 max-w-3xl rounded-full bg-violet-600/15 blur-[110px]" />
         <div className="relative mx-auto max-w-4xl text-center">
           <div className="mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-xs font-medium text-[var(--dd-accent-text)]">
@@ -107,15 +107,12 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+      <div className="mx-auto max-w-6xl px-5 pb-10 pt-6 sm:px-8 sm:pb-14 sm:pt-8">
         <section aria-labelledby="popular-symbols-title">
           <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--dd-subtle)]">{t.dictionary.startHere}</p>
-              <h2 id="popular-symbols-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                {t.dictionary.popularSymbols}
-              </h2>
-            </div>
+            <h2 id="popular-symbols-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t.dictionary.popularSymbols}
+            </h2>
             <span className="hidden text-sm text-[var(--dd-subtle)] sm:block">{t.dictionary.popularSymbolsLead}</span>
           </div>
           <nav className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-12" aria-label={t.dictionary.popularSymbols}>
