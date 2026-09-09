@@ -3293,4 +3293,268 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "Haus und Wasser",
     focus: "Gefühl, das ins Privatleben schwappt: Empfinden, das in Familie, Erinnerung oder persönlichen Fundamenten steigt",
   },
+  "being-late": {
+    name: "Zuspätkommen",
+    summary: "verpasste Zeit, Leistungsangst, eine Uhr, die sich nicht zurückstellen lässt, und die Furcht, nach dem Augenblick zu kommen, der zählte",
+  },
+  "late-for-a-flight": {
+    name: "zu spät zum Flug",
+    focus: "ein Abflug, den man nicht halten kann, eine Chance, die das Gate verlässt, oder die Panik, dass ein größerer Übergang ohne dich geht",
+  },
+  "late-for-a-wedding": {
+    name: "zu spät zur Hochzeit",
+    focus: "ein Gelübde verpassen, nach der Besiegelung ankommen oder die Angst, zu einer Bindung nicht zu erscheinen",
+  },
+  "running-late": {
+    name: "in Eile zu spät",
+    focus: "Dringlichkeit ohne Zeit, ein Körper, der den Plan nicht einholt, oder ein Leben, das schneller ist, als du dich anziehen kannst",
+  },
+  "late-to-an-appointment": {
+    name: "zu spät zum Termin",
+    focus: "ein Treffen, auf das du nicht vorbereitet bist, ein Urteil, das schon sitzt, oder die Furcht, einzutreten, nachdem dein Name aufgerufen wurde",
+  },
+  "missed-the-event": {
+    name: "das Ereignis ganz verpassen",
+    focus: "in einen leeren Raum kommen, ein Kapitel schon zu oder der Schmerz, dass der Augenblick endete, während du dich noch fertigmachtest",
+  },
+  door: {
+    name: "eine Tür",
+    summary: "eine Schwelle, Erlaubnis einzutreten oder zu gehen, eine Wahl zwischen Zimmern des Lebens und die Grenze, die du öffnen oder geschlossen halten kannst",
+  },
+  "locked-door": {
+    name: "eine verschlossene Tür",
+    focus: "Zugang verweigert, ein Plan, den man sieht, aber nicht beginnen kann, oder ein Lebensteil, der sich noch nicht öffnet",
+  },
+  "open-door": {
+    name: "eine offene Tür",
+    focus: "Einladung, ein schon geräumter Weg oder eine Schwelle, durch die man dich bittet zu gehen",
+  },
+  "closed-door": {
+    name: "eine geschlossene Tür",
+    focus: "ein sichtbar gewordenes Ende, gehaltene Privatheit oder ein Kapitel, vor dem du draußen stehst",
+  },
+  "door-that-wont-open": {
+    name: "eine Tür, die nicht aufgeht",
+    focus: "Mühe gegen eine klemmende Schwelle, der falsche Schlüssel oder eine Veränderung, die dein Timing nicht annimmt",
+  },
+  "many-doors": {
+    name: "viele Türen",
+    focus: "zu viele nächste Schritte, ein Flur aus Wahlmöglichkeiten oder das Nichtwissen, welches Zimmer des Lebens du betreten sollst",
+  },
+  elevator: {
+    name: "ein Aufzug",
+    summary: "ein plötzliches Steigen oder Fallen des Status, eine senkrechte Abkürzung, die du nicht steuerst, und die Angst einer geschlossenen Kabine zwischen Lebensetagen",
+  },
+  "falling-elevator": {
+    name: "ein stürzender Aufzug",
+    focus: "ein plötzlicher Statusverlust, Halt, der im geschlossenen Raum versagt, oder Panik, dass ein Aufstieg nicht trägt",
+  },
+  "stuck-elevator": {
+    name: "ein steckengebliebener Aufzug",
+    focus: "Fortschritt, der zwischen Ebenen einfriert, öffentliche Hilflosigkeit oder ein Übergang, der nicht zu Ende kommt",
+  },
+  "elevator-going-up": {
+    name: "ein Aufzug, der nach oben fährt",
+    focus: "schneller Aufstieg, eine Abkürzung zu Status oder Überblick, oder gehoben werden, ohne selbst zu klettern",
+  },
+  "elevator-going-down": {
+    name: "ein Aufzug, der nach unten fährt",
+    focus: "Abstieg zu den Fundamenten, ein Fall, den du nicht wähltest, oder die Rückkehr auf ein niedrigeres Stockwerk des Lebens",
+  },
+  "crowded-elevator": {
+    name: "ein voller Aufzug",
+    focus: "zu viele Menschen in einem engen Aufstieg, sozialer Druck in einer geschlossenen Box oder ein Steigen, das du nicht allein schaffst",
+  },
+  tree: {
+    name: "ein Baum",
+    summary: "verwurzeltes Leben, Wachstum über Jahre, eine Familienlinie und ein lebendiges Gefüge, das Schutz und einen Weg nach oben gibt",
+  },
+  "climbing-a-tree": {
+    name: "auf einen Baum klettern",
+    focus: "mit den eigenen Gliedern steigen, eine weitere Sicht suchen oder den Boden verlassen, ohne die Wurzeln zu lassen",
+  },
+  "falling-tree": {
+    name: "ein stürzender Baum",
+    focus: "ein verwurzelter Halt, der fällt, ein altes Gefüge, das nachgibt, oder ein Leben, das so nicht mehr stehen kann",
+  },
+  "fruit-tree": {
+    name: "ein Obstbaum",
+    focus: "Reife, Ergebnis langen Wachstums oder Nahrung, die an der Arbeit hängt, die du früher pflanztest",
+  },
+  "dead-tree": {
+    name: "ein toter Baum",
+    focus: "beendetes Wachstum, eine trockene Linie oder ein einst lebendiges Gefüge, das niemanden mehr nährt",
+  },
+  "tree-in-the-house": {
+    name: "ein Baum im Haus",
+    focus: "Natur im privaten Leben, etwas Lebendiges, das die Zimmer einnimmt, oder Wachstum, das draußen nicht bleiben will",
+  },
+  sun: {
+    name: "die Sonne",
+    summary: "Klarheit, Lebenskraft, Bloßstellung, ein Kreis aus Aufgang und Untergang und Licht, das dich nicht verstecken lässt",
+  },
+  "rising-sun": {
+    name: "eine aufgehende Sonne",
+    focus: "ein sichtbar gewordener Anfang, Hoffnung, die zurückkehrt, oder ein Tag, der nicht dunkel bleibt",
+  },
+  "setting-sun": {
+    name: "eine untergehende Sonne",
+    focus: "ein Kapitel, das in Gold schließt, Schönheit an einem Ende oder das letzte Licht vor einer nötigen Nacht",
+  },
+  "solar-eclipse": {
+    name: "eine Sonnenfinsternis",
+    focus: "das gewohnte Licht unterbrochen, eine kurze Dunkelheit am Mittag oder eine Wahrheit, die zur hellsten Stunde verborgen ist",
+  },
+  "burning-sun": {
+    name: "eine brennende Sonne",
+    focus: "Bloßstellung, die versengt, zu viel Sichtbarkeit oder Lebenskraft, die zur Forderung ohne Schatten wird",
+  },
+  "sun-behind-clouds": {
+    name: "die Sonne hinter Wolken",
+    focus: "Wärme, von der du weißt, dass sie da ist, verzögerte Klarheit oder eine helle Tatsache, die auf das Wetter wartet",
+  },
+  child: {
+    name: "ein Kind",
+    summary: "ein jüngeres Selbst, eine Verantwortung, die schon selbst geht, Unschuld unter Druck und ein Leben, das Führung braucht, mehr als Getragenwerden",
+  },
+  "my-child": {
+    name: "das eigene Kind",
+    focus: "eine wirkliche Bindung, die nachts wiederkehrt, Schutzinstinkt oder eine Eigenschaft, die der Tag zu beschäftigt war zu sehen",
+  },
+  "lost-child": {
+    name: "ein verlorenes Kind",
+    focus: "Angst, einer Verantwortung nicht zu genügen, ein jüngeres Selbst, das du nicht findest, oder eine Bindung, die aus dem Blick glitt",
+  },
+  "unknown-child": {
+    name: "ein unbekanntes Kind",
+    focus: "ein Teil von dir, der noch wächst, ein Potenzial ohne Namen oder Fürsorge, die für jemand erbeten wird, den du noch nicht erkennst",
+  },
+  "child-in-danger": {
+    name: "ein Kind in Gefahr",
+    focus: "dringender Schutz, ein verwundbarer Anfang unter Bedrohung oder die Panik, dass Unschuld den Raum nicht überlebt",
+  },
+  "talking-to-a-child": {
+    name: "mit einem Kind sprechen",
+    focus: "Führung, ein Gespräch mit dem jüngeren Selbst oder eine einfachere Wahrheit, die du nicht mehr benutzt hast",
+  },
+  divorce: {
+    name: "Scheidung",
+    summary: "eine Bindung, die rechtlich und seelisch gelöst wird, geteilte Treue und die Identität, die bleibt, wenn ein Bund endet",
+  },
+  "getting-divorced": {
+    name: "sich scheiden lassen",
+    focus: "ein Ende, das du lebst oder fürchtest, eine rechtliche Form für einen privaten Bruch oder die Arbeit, wieder ein Mensch zu werden",
+  },
+  "parents-divorcing": {
+    name: "sich scheidende Eltern",
+    focus: "eine Kindheitsspaltung, die wiederkehrt, Treue zwischen zwei Ursprüngen oder die Angst, dass das erste Zuhause zerfallen kann",
+  },
+  "divorce-papers": {
+    name: "Scheidungspapiere",
+    focus: "ein Ende, das amtlich wird, eine Unterschrift, die sich nicht zurücknehmen lässt, oder der letzte förmliche Akt einer Bindung",
+  },
+  "happy-after-divorce": {
+    name: "Glück nach der Scheidung",
+    focus: "Erleichterung nach langer Enge, ein Selbst, das zurückkehrt, oder die Erlaubnis, ein Leben zu wollen, das die Ehe nicht tragen konnte",
+  },
+  "fighting-over-divorce": {
+    name: "um die Scheidung streiten",
+    focus: "was nach der Liebe strittig bleibt: Kinder, Haus, Geschichte oder der letzte Streit darüber, wer unrecht hatte",
+  },
+  fighting: {
+    name: "eine Schlägerei",
+    summary: "Konflikt, der körperlich wird, eine Grenze, die als Schlag kam, und der Wunsch, einen Kampf zu gewinnen, den Worte nicht schlichten",
+  },
+  "street-fight": {
+    name: "eine Straßenschlägerei",
+    focus: "öffentlicher Konflikt, ein Kampf ohne privaten Raum oder Zorn, der auf die Straße trat",
+  },
+  "fighting-a-friend": {
+    name: "mit einem Freund kämpfen",
+    focus: "Treue, die zum Zusammenstoß wird, eine Nähe, die nicht mehr höflich bleiben kann, oder eine Bindung, die mit Gewalt geprüft wird",
+  },
+  "fighting-family": {
+    name: "mit der Familie kämpfen",
+    focus: "ein alter Hauskrieg, ererbter Streit oder eine Liebe, die nur zuzuschlagen versteht",
+  },
+  "winning-a-fight": {
+    name: "einen Kampf gewinnen",
+    focus: "wiedergewonnene Handlungsfähigkeit, eine gehaltene Grenze oder die Fantasie, Kraft könne beenden, was Worte nicht konnten",
+  },
+  "unable-to-fight": {
+    name: "nicht kämpfen können",
+    focus: "erstarrte Handlungsfähigkeit, ein Schlag, den du nicht zurückgibst, oder die Hilflosigkeit, die eigenen Hände versagen zu sehen",
+  },
+  cow: {
+    name: "eine Kuh",
+    summary: "Versorgung, Geduld, heiliges Leben und der langsame Reichtum von etwas, das andere nährt, bevor es sich selbst nährt",
+  },
+  "white-cow": {
+    name: "eine weiße Kuh",
+    focus: "heilige Versorgung, eine reinere Geduld oder eine Gabe der Nahrung, die mehr sein will als Fleisch",
+  },
+  "milking-a-cow": {
+    name: "eine Kuh melken",
+    focus: "Nahrung aus Geduld ziehen, tägliche Versorgung oder Arbeit, die verlangt, still zu sitzen und zu empfangen",
+  },
+  "herd-of-cows": {
+    name: "eine Kuhherde",
+    focus: "gemeinsame Versorgung, langsamer Reichtum in der Zahl oder eine Gemeinschaft, die auf demselben Feld weidet",
+  },
+  bull: {
+    name: "ein Stier",
+    focus: "rohe Kraft, starrsinnige Potenz, ein Ansturm, mit dem man nicht redet, oder männliche Stärke, die nicht ruhig weiden will",
+  },
+  "dead-cow": {
+    name: "eine tote Kuh",
+    focus: "beendete Versorgung, ein verbrauchtes heiliges Leben oder Trauer um die Geduld, die das Haus nährte",
+  },
+  heaven: {
+    name: "der Himmel",
+    summary: "Wiedersehen, Ruhe nach dem Streben, ein ersehntes Zuhause und der Wunsch, dass ein Ende sich zu etwas Sanfterem öffnet als der Tod",
+  },
+  "gates-of-heaven": {
+    name: "die Himmelspforte",
+    focus: "eine Schwelle nach dem Sterbensgefühl, Gericht an der Tür oder die letzte Erlaubnis vor der Ruhe",
+  },
+  "being-in-heaven": {
+    name: "im Himmel sein",
+    focus: "Erleichterung nach dem Streben, ein Zuhause, das endlich passt, oder ein Friede so vollständig, dass er fragt, was du ertrugst",
+  },
+  "loved-one-in-heaven": {
+    name: "ein geliebter Mensch im Himmel",
+    focus: "Wiedersehen nach dem Verlust, Trost, dass Trauer nicht das letzte Wort ist, oder der Besuch einer Bindung, die der Tod nicht aufhob",
+  },
+  "denied-entry-to-heaven": {
+    name: "kein Einlass in den Himmel",
+    focus: "Unwürdigkeit, ein Maß, das du zu verfehlen fürchtest, oder eine Ruhe, die sich nicht öffnet, bis etwas geheilt ist",
+  },
+  "falling-from-heaven": {
+    name: "aus dem Himmel fallen",
+    focus: "verlorene Unschuld, Verbannung aus einem Frieden, den du hattest, oder der Schock, ins gewöhnliche Wetter zurückzukehren",
+  },
+  "sun-and-moon": {
+    name: "Sonne und Mond",
+    focus: "Tagesgeist und Nachtgeist in einem Himmel: Klarheit trifft Intuition, oder ein Kreis, der Licht und Dunkel braucht",
+  },
+  "door-and-keys": {
+    name: "Tür und Schlüssel",
+    focus: "eine Schwelle und die Erlaubnis, sie zu überschreiten: Zugang, das rechte Werkzeug oder ein Zimmer, das ohne den kleinen Gegenstand nicht aufgeht",
+  },
+  "heaven-and-death": {
+    name: "Himmel und Tod",
+    focus: "ein Ende, das sich zu Ruhe oder Wiedersehen öffnet, oder Trauer, die fragt, ob Liebe hinter dem letzten Zimmer weitergeht",
+  },
+  "divorce-and-wedding": {
+    name: "Scheidung und Hochzeit",
+    focus: "ein Bund, der gelöst wird, neben dem Bild, wie er begann: Ende und Gelübde in derselben Nacht",
+  },
+  "fighting-and-blood": {
+    name: "Kampf und Blut",
+    focus: "ein Konflikt, der schon Lebenskraft kostete: ein Streit, der nicht mehr nur Worte ist, oder Zorn, der eine Spur hinterließ",
+  },
+  "tree-and-house": {
+    name: "Baum und Haus",
+    focus: "lebendiges Wachstum in privaten Fundamenten, eine Familienlinie, die die Zimmer einnimmt, oder Natur, die nicht außerhalb des Selbst bleiben will",
+  },
 };
