@@ -171,7 +171,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
             <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Авто из словаря</p>
               <p className="text-sm leading-6 text-[var(--muted)]">
-                Система сама возьмёт неиспользованные символы: 2 Free Mix и 2 картинки Veo, затем поставит их в ближайший свободный день календаря — 05:00 и 15:00 по Иерусалиму.
+                Система сама возьмёт неиспользованные символы: видео Free Mix в 05:00 и 15:00, картинки Veo на страницы словаря. Один слот — одно видео.
               </p>
               {autoPreview && (
                 <p className="text-sm font-semibold text-[var(--text)]">Следующий: {autoPreview.title}</p>

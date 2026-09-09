@@ -472,6 +472,38 @@ export async function scheduleLibraryImagePublish(jobId: string, publishAtInput:
   return { ok: true as const, scheduledAt: publishAt, queued };
 }
 
+export async function cancelLibraryImageSchedule(jobId: string) {
+  const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) throw new Error("Image not found");
+  const data = snapshot.data() as { subject?: string; socialScheduledAt?: string };
+  const queueId = queueIdForLibraryId(`image:${jobId}`);
+  const schedule = readScheduleNode((await scheduleRef(queueId).get()).val());
+  const scheduledAt = schedule?.scheduledAt || String(data.socialScheduledAt || "");
+  if (schedule?.scheduledAt && schedule.status !== "running") {
+    await cancelQueue(queueId);
+  } else {
+    await assetRef(queueId).remove().catch(() => undefined);
+  }
+  await ref.set(
+    {
+      socialScheduledAt: FieldValue.delete(),
+      socialScheduledPlatforms: [],
+      socialScheduleStatus: "idle",
+      socialScheduleStartedAt: "",
+      socialScheduleError: "",
+      socialScheduleAttempts: 0,
+      socialSchedulePublished: [],
+      socialScheduleFailures: {},
+    },
+    { merge: true },
+  );
+  if (scheduledAt) {
+    await trackImageScheduled(jobId, String(data.subject || "Untitled image"), scheduledAt, "Отменено");
+  }
+  return { ok: true as const, cancelled: schedule?.platforms || [] };
+}
+
 async function runDueImageJob(item: DueSchedule, deadlineMs: number) {
   const claimed = await claim(item.id, Date.now());
   if (!claimed?.scheduledAt) return { claimed: false as const, reason: "CLAIM_REJECTED" };

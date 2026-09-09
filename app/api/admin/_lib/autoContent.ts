@@ -29,7 +29,7 @@ import { occupiedSlotKeys, nextEmptyPublishDay, publishSlotsForDay } from "@/lib
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
-import { scheduleLibraryImagePublish, scheduleLibraryVideoPublish } from "./socialSchedule";
+import { scheduleLibraryVideoPublish } from "./socialSchedule";
 import { QUEUED_SCHEDULE_PLATFORMS } from "@/lib/adminVideoLibrary";
 
 const FREE_VIDEO_COLLECTION = "adminVideoJobs";
@@ -339,6 +339,5 @@ export async function scheduleAutoDictionaryPair(input: {
     input.publishAt,
     input.createdBy,
   );
-  const image = await scheduleLibraryImagePublish(input.imageJobId, input.publishAt, input.createdBy);
-  return { video, image };
+  return { video };
 }
