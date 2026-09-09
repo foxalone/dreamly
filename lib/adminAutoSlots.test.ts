@@ -5,8 +5,10 @@ import {
   jerusalemDateKey,
   jerusalemWallTimeToIso,
   nextEmptyPublishDay,
+  nextEmptyPublishDays,
   occupiedSlotKeys,
   publishSlotsForDay,
+  publishSlotsForDays,
 } from "./adminAutoSlots";
 
 test("converts 13 Sep 2026 Jerusalem slots to UTC", () => {
@@ -31,4 +33,14 @@ test("picks the next fully free day after occupied 05:00/15:00 slots", () => {
     publishSlotsForDay(day).map((slot) => slot.publishAt),
     ["2026-09-13T02:00:00.000Z", "2026-09-13T12:00:00.000Z"],
   );
+});
+
+test("keeps a two-day horizon with four 05:00/15:00 slots", () => {
+  const occupied = occupiedSlotKeys([
+    "2026-09-12T02:00:00.000Z",
+    "2026-09-12T12:00:00.000Z",
+  ]);
+  const days = nextEmptyPublishDays(occupied, 2, new Date("2026-09-09T05:12:00.000Z"));
+  assert.deepEqual(days, ["2026-09-13", "2026-09-14"]);
+  assert.equal(publishSlotsForDays(days).length, 4);
 });

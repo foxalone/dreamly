@@ -1,5 +1,8 @@
 export const AUTO_SLOT_TIME_ZONE = "Asia/Jerusalem";
 export const AUTO_SLOT_HOURS = [5, 15] as const;
+export const AUTO_HORIZON_DAYS = 2;
+export const AUTO_PAIRS_PER_DAY = AUTO_SLOT_HOURS.length;
+export const AUTO_PAIR_COUNT = AUTO_HORIZON_DAYS * AUTO_PAIRS_PER_DAY;
 
 export type AutoPublishSlot = {
   dateKey: string;
@@ -82,18 +85,33 @@ export function occupiedSlotKeys(scheduledAtValues: Array<string | null | undefi
   return occupied;
 }
 
+function isDayFree(dateKey: string, taken: Set<string>, nowMs: number) {
+  return publishSlotsForDay(dateKey).every((slot) => {
+    const when = Date.parse(slot.publishAt);
+    return when > nowMs + 60_000 && !taken.has(slotKey(dateKey, slot.hour)) && !taken.has(dateKey);
+  });
+}
+
 export function nextEmptyPublishDay(occupied: Iterable<string>, now = new Date()) {
+  return nextEmptyPublishDays(occupied, 1, now)[0];
+}
+
+export function nextEmptyPublishDays(occupied: Iterable<string>, count = AUTO_HORIZON_DAYS, now = new Date()) {
   const taken = new Set(occupied);
   const nowMs = now.getTime();
+  const days: string[] = [];
   let dateKey = jerusalemDateKey(now);
-  for (let index = 0; index < 400; index += 1) {
-    const slots = publishSlotsForDay(dateKey);
-    const free = slots.every((slot) => {
-      const when = Date.parse(slot.publishAt);
-      return when > nowMs + 60_000 && !taken.has(slotKey(dateKey, slot.hour)) && !taken.has(dateKey);
-    });
-    if (free) return dateKey;
+  for (let index = 0; index < 400 && days.length < count; index += 1) {
+    if (isDayFree(dateKey, taken, nowMs)) {
+      days.push(dateKey);
+      for (const hour of AUTO_SLOT_HOURS) taken.add(slotKey(dateKey, hour));
+    }
     dateKey = addJerusalemDay(dateKey, 1);
   }
-  throw new Error("NO_EMPTY_PUBLISH_DAY");
+  if (days.length < count) throw new Error("NO_EMPTY_PUBLISH_DAY");
+  return days;
+}
+
+export function publishSlotsForDays(dateKeys: string[]) {
+  return dateKeys.flatMap((dateKey) => publishSlotsForDay(dateKey));
 }
