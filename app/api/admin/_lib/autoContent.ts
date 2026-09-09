@@ -25,7 +25,7 @@ import { MAX_SHORT_DURATION_SECONDS } from "@/lib/adminVideo";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { aiImageConfig, utcBudgetDate } from "../ai-image/_lib";
-import { occupiedSlotKeys, nextEmptyPublishDay, publishSlotsForDay } from "@/lib/adminAutoSlots";
+import { AUTO_HORIZON_DAYS, occupiedSlotKeys, nextEmptyPublishDays, publishSlotsForDays } from "@/lib/adminAutoSlots";
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
@@ -323,8 +323,8 @@ async function scheduledAtValues() {
 }
 
 export async function nextAutoPublishSlots() {
-  const day = nextEmptyPublishDay(occupiedSlotKeys(await scheduledAtValues()));
-  return { dateKey: day, slots: publishSlotsForDay(day) };
+  const dateKeys = nextEmptyPublishDays(occupiedSlotKeys(await scheduledAtValues()), AUTO_HORIZON_DAYS);
+  return { dateKey: dateKeys[0], dateKeys, slots: publishSlotsForDays(dateKeys) };
 }
 
 export async function scheduleAutoDictionaryPair(input: {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.dreamly.auto-dictionary</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/dimab/Documents/oneiro-web/scripts/auto-dictionary-daily.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/dimab/Documents/oneiro-web</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>2</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/dimab/Library/Logs/dreamly-auto-dictionary.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dimab/Library/Logs/dreamly-auto-dictionary.log</string>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

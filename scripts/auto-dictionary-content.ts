@@ -6,6 +6,7 @@ import {
   waitForAutoDictionaryContent,
 } from "../app/api/admin/_lib/autoContent";
 import { AUTO_CONTENT_CREATED_BY } from "../lib/adminAutoDictionary";
+import { AUTO_PAIR_COUNT } from "../lib/adminAutoSlots";
 
 type Pair = { slug: string; title: string; videoJobId: string; imageJobId: string };
 
@@ -31,7 +32,7 @@ function parseExistingPairs() {
 async function main() {
   const wait = process.argv.includes("--wait");
   const schedule = process.argv.includes("--schedule") || wait;
-  const extra = Math.max(0, Number(readFlag("--enqueue-more") || (parseExistingPairs().length ? "0" : "2")) || 0);
+  const extra = Math.max(0, Number(readFlag("--enqueue-more") || (parseExistingPairs().length ? "0" : String(AUTO_PAIR_COUNT))) || 0);
   const pairs: Pair[] = [...parseExistingPairs()];
 
   for (let index = 0; index < extra; index += 1) {
@@ -76,7 +77,7 @@ async function main() {
   const ok = results.every((item) => item.ok);
   const summary = [
     ok ? "Dreamly авто готово" : "Dreamly авто: есть ошибки",
-    `${slots.dateKey} · 05:00 и 15:00 Asia/Jerusalem`,
+    `${(slots.dateKeys || [slots.dateKey]).join(" и ")} · 05:00 и 15:00 Asia/Jerusalem`,
     ...results.map((item, index) => {
       const hour = slots.slots[index]?.hour ?? "?";
       return `${hour}:00 · ${item.title} · видео ${item.video.status} · картинка ${item.image.status}`;
