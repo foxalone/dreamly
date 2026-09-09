@@ -8,6 +8,8 @@ const WORKER_COMMAND = "cd /Users/dimab/Documents/oneiro-web && npm run video-wo
 
 type WorkerStatus = { online: boolean; lastSeenAt: string | null; host: string };
 
+type AutoPreview = { slug: string; title: string; topic: string; subject: string; pagePath: string; usedCount: number };
+
 function statusLabel(status: AdminVideoJob["status"]) {
   return { queued: "В очереди", processing: "Обработка", completed: "Готово", failed: "Ошибка" }[status];
 }
@@ -23,6 +25,8 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
   const [notice, setNotice] = useState<{ type: "ok" | "error"; text: string } | null>(null);
   const [copied, setCopied] = useState("");
   const [busyJob, setBusyJob] = useState("");
+  const [autoPreview, setAutoPreview] = useState<AutoPreview | null>(null);
+  const [autoRunning, setAutoRunning] = useState(false);
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short" }), []);
   const numberFormatter = useMemo(() => new Intl.NumberFormat("ru-RU"), []);
 
@@ -38,6 +42,14 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       if (!response.ok) throw new Error(payload.error || "Не удалось загрузить задания");
       setJobs((payload.jobs ?? []).filter((job) => (isMixed ? job.mode === "mixed" : job.mode !== "mixed")));
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "" });
+      if (isMixed && !quiet) {
+        const autoResponse = await fetch("/api/admin/auto-content", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const autoPayload = (await autoResponse.json()) as { preview?: AutoPreview };
+        if (autoResponse.ok && autoPayload.preview) setAutoPreview(autoPayload.preview);
+      }
     } catch (error) {
       if (!quiet) setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
     } finally {
@@ -56,6 +68,34 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       setCopied(key);
       window.setTimeout(() => setCopied(""), 2_000);
     });
+  }
+
+  async function runAutoDictionary() {
+    setAutoRunning(true);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/auto-content", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ sendToTelegram }),
+      });
+      const payload = (await response.json()) as {
+        entry?: AutoPreview;
+        videoJobId?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.entry) throw new Error(payload.error || "Не удалось запустить автогенерацию");
+      setNotice({
+        type: "ok",
+        text: `Авто: ${payload.entry.title}. Видео и картинка в очереди, Telegram пришлёт результат.`,
+      });
+      await loadJobs();
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка автогенерации" });
+    } finally {
+      setAutoRunning(false);
+    }
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -127,6 +167,25 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
             <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
+          {isMixed && (
+            <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Авто из словаря</p>
+              <p className="text-sm leading-6 text-[var(--muted)]">
+                Система сама возьмёт неиспользованные символы: 2 Free Mix и 2 картинки Veo, затем поставит их в ближайший свободный день календаря — 05:00 и 15:00 по Иерусалиму.
+              </p>
+              {autoPreview && (
+                <p className="text-sm font-semibold text-[var(--text)]">Следующий: {autoPreview.title}</p>
+              )}
+              <button
+                type="button"
+                disabled={autoRunning}
+                onClick={() => void runAutoDictionary()}
+                className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50"
+              >
+                {autoRunning ? "Запускаем…" : "Сделать видео + картинку автоматически"}
+              </button>
+            </div>
+          )}
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[var(--text)]">Тема видео</span>
             <textarea value={topic} onChange={(event) => setTopic(event.target.value)} className={`${input} min-h-28 resize-y`} placeholder="Например: What does dreaming about flying mean?" minLength={5} maxLength={300} required />

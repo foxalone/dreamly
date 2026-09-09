@@ -213,6 +213,19 @@ async function updateJob(reference, patch) {
   await reference.set(patch, { merge: true });
 }
 
+async function assignDreamPageImage(job, imageUrl) {
+  const slug = String(job.dreamSlug || "").trim();
+  if (!slug || !imageUrl || job.assignToDreamPage === false) return;
+  await db.collection("dreamPageImages").doc(slug).set({
+    slug,
+    imageJobId: job.id,
+    imageUrl,
+    subject: String(job.subject || ""),
+    assignedBy: "auto-dictionary",
+    assignedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+
 async function claimNextJob() {
   const snapshot = await db.collection(JOBS_COLLECTION).where("status", "in", ["queued", "processing"]).limit(30).get();
   const candidates = [...snapshot.docs].sort((left, right) =>
@@ -469,6 +482,7 @@ async function processJob(job) {
     if (job.retryTelegramOnly) {
       const filePath = await ensureLocalImage(job, directory);
       const telegramMessageId = await sendTelegram(filePath, job.mimeType || "image/png", costCaption(job, job.actualCostUsd));
+      await assignDreamPageImage(job, job.imageUrl);
       await updateJob(reference, {
         status: "completed",
         stage: "completed",
@@ -531,6 +545,7 @@ async function processJob(job) {
       leaseOwner: "",
       leaseExpiresAt: null,
     });
+    await assignDreamPageImage({ ...job, id: job.id }, uploaded.url);
   } catch (error) {
     const message = cleanError(error);
     console.error(`[ai-image-worker] job ${job.id} failed: ${message}`);

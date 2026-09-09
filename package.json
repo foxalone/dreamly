@@ -15,6 +15,7 @@
     "ai-video-synthetic-test": "node --env-file=.env.local scripts/ai-video-worker.mjs --synthetic-test",
     "ai-image-worker": "node --env-file=.env.local scripts/ai-image-worker.mjs",
     "ai-image-check": "node --env-file=.env.local scripts/ai-image-worker.mjs --check",
+    "auto-dictionary-content": "npx tsx --env-file=.env.local scripts/auto-dictionary-content.ts",
     "notion-backfill": "npx --yes tsx scripts/backfill-notion-publishes.ts",
     "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts",
     "repair-welcome-credits": "node --env-file=.env.local scripts/repair-welcome-credits.mjs"

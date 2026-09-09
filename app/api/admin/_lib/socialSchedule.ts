@@ -28,6 +28,9 @@ import {
 import { adminDb, adminRtdb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { trackSocialPublishes } from "@/app/api/admin/_lib/notionPublishLog";
 import { notifyTelegram } from "@/app/api/admin/_lib/telegram";
+import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
+import { IMAGE_SOCIAL_PLATFORMS } from "@/lib/imageSocialPublish";
+import { publishLibraryImageToAll } from "@/app/api/admin/_lib/publishLibraryImageAll";
 import { publishLibraryVideoToMeta } from "@/app/api/admin/meta/_lib";
 import { publishLibraryVideoToBluesky } from "@/app/api/admin/bluesky/_lib";
 import { publishLibraryVideoToThreads } from "@/app/api/admin/threads/_lib";
@@ -404,7 +407,127 @@ export async function cancelLibraryVideoSchedule(libraryId: string) {
   return { ok: true as const, cancelled: schedule.platforms };
 }
 
+function parseImageLibraryId(libraryId: string) {
+  if (!libraryId.startsWith("image:")) return "";
+  return libraryId.slice("image:".length).trim();
+}
+
+async function trackImageScheduled(jobId: string, title: string, publishAt: string, status: "Запланировано" | "Отменено") {
+  const note = status === "Запланировано" ? "scheduled" : "schedule cancelled";
+  await trackSocialPublishes(
+    IMAGE_SOCIAL_PLATFORMS.map((platform) =>
+      buildPublishLogEntry({
+        kind: "image",
+        assetId: jobId,
+        platform,
+        title,
+        publishedAt: publishAt,
+        status,
+        notes: `image ${jobId} ${note}`,
+      }),
+    ),
+  ).catch((error) => console.error("[social-schedule] positioner image", jobId, error));
+}
+
+export async function scheduleLibraryImagePublish(jobId: string, publishAtInput: string, adminUid: string) {
+  const publishAt = normalizePublishAt(publishAtInput);
+  if (!publishAt) throw new Error("Scheduled time is required");
+  const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) throw new Error("Image not found");
+  const data = snapshot.data() as { subject?: string; status?: string; imageUrl?: string };
+  if (data.status !== "completed" || !String(data.imageUrl || "").trim()) {
+    throw new Error("Image is not ready");
+  }
+  const title = String(data.subject || "Untitled image").trim();
+  const queued = normalizeSchedulePlatforms(["instagram", "facebook", "threads"]);
+  const libraryId = `image:${jobId}`;
+  const queueId = await writeQueue({
+    libraryId,
+    title,
+    scheduledAt: publishAt,
+    platforms: queued,
+    createdBy: adminUid,
+  });
+  try {
+    await ref.set(
+      {
+        socialScheduledAt: publishAt,
+        socialScheduledPlatforms: queued,
+        socialScheduleStatus: "pending",
+        socialScheduleBy: adminUid,
+        socialScheduleError: "",
+        socialScheduleStartedAt: "",
+        socialScheduleAttempts: 0,
+        socialSchedulePublished: [],
+        socialScheduleFailures: {},
+      },
+      { merge: true },
+    );
+  } catch (error) {
+    await assetRef(queueId).remove().catch(() => undefined);
+    throw error;
+  }
+  await trackImageScheduled(jobId, title, publishAt, "Запланировано");
+  return { ok: true as const, scheduledAt: publishAt, queued };
+}
+
+async function runDueImageJob(item: DueSchedule, deadlineMs: number) {
+  const claimed = await claim(item.id, Date.now());
+  if (!claimed?.scheduledAt) return { claimed: false as const, reason: "CLAIM_REJECTED" };
+  const jobId = parseImageLibraryId(item.libraryId);
+  const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
+  const results = await publishLibraryImageToAll(jobId, "scheduler");
+  const published = results
+    .filter((entry) => entry.status === "published" || entry.status === "skipped")
+    .map((entry) => entry.platform)
+    .filter((platform): platform is SocialSchedulePlatform => platform === "instagram" || platform === "facebook" || platform === "threads");
+  const failed = Object.fromEntries(
+    results
+      .filter((entry) => entry.status === "failed")
+      .filter((entry) => entry.platform === "instagram" || entry.platform === "facebook" || entry.platform === "threads")
+      .map((entry) => [entry.platform, entry.error || "ошибка"]),
+  ) as Partial<Record<SocialSchedulePlatform, string>>;
+  void deadlineMs;
+  const finish = buildFinishUpdate(
+    { published, failed, pending: [], containers: {}, attempts: claimed.attempts || 0 },
+    new Date().toISOString(),
+  );
+  await ref.set(
+    {
+      socialScheduledAt: FieldValue.delete(),
+      socialScheduledPlatforms: [],
+      socialScheduleStatus: finish.update.status,
+      socialScheduleFinishedAt: finish.update.finishedAt,
+      socialScheduleAttempts: Number(finish.update.attempts || 0),
+      socialSchedulePublished: published,
+      socialScheduleFailures: failed,
+      socialScheduleError: errorText(failed),
+    },
+    { merge: true },
+  );
+  await scheduleRef(item.id).update(finish.update);
+  if (finish.outcome === "done") await assetRef(item.id).remove();
+  return {
+    claimed: true as const,
+    item: {
+      node: SOCIAL_SCHEDULE_ASSETS_NODE,
+      id: item.id,
+      title: item.title,
+      scheduledAt: claimed.scheduledAt,
+      published,
+      failed: Object.entries(failed).map(([platform, error]) => ({
+        platform: platform as SocialSchedulePlatform,
+        error: String(error),
+      })),
+      pending: [] as SocialSchedulePlatform[],
+      outcome: finish.outcome,
+    } satisfies RunItem,
+  };
+}
+
 async function runDueJob(item: DueSchedule, deadlineMs: number) {
+  if (item.libraryId.startsWith("image:")) return runDueImageJob(item, deadlineMs);
   const claimed = await claim(item.id, Date.now());
   if (!claimed?.scheduledAt) return { claimed: false as const, reason: "CLAIM_REJECTED" };
 
