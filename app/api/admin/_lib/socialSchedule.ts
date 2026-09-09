@@ -478,14 +478,15 @@ async function runDueImageJob(item: DueSchedule, deadlineMs: number) {
   const jobId = parseImageLibraryId(item.libraryId);
   const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
   const results = await publishLibraryImageToAll(jobId, "scheduler");
-  const published = results
+  const queuedImagePlatform = (platform: string): platform is "instagram" | "facebook" | "threads" =>
+    platform === "instagram" || platform === "facebook" || platform === "threads";
+  const published: SocialSchedulePlatform[] = results
     .filter((entry) => entry.status === "published" || entry.status === "skipped")
     .map((entry) => entry.platform)
-    .filter((platform): platform is SocialSchedulePlatform => platform === "instagram" || platform === "facebook" || platform === "threads");
+    .filter(queuedImagePlatform);
   const failed = Object.fromEntries(
     results
-      .filter((entry) => entry.status === "failed")
-      .filter((entry) => entry.platform === "instagram" || entry.platform === "facebook" || entry.platform === "threads")
+      .filter((entry) => entry.status === "failed" && queuedImagePlatform(entry.platform))
       .map((entry) => [entry.platform, entry.error || "ошибка"]),
   ) as Partial<Record<SocialSchedulePlatform, string>>;
   void deadlineMs;
