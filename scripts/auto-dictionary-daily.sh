@@ -22,7 +22,15 @@ fi
 echo $$ >"$LOCK"
 trap 'rm -f "$LOCK"' EXIT
 
-cd "$ROOT"
+if ! cd "$ROOT"; then
+  echo "cannot cd to $ROOT — grant Full Disk Access to /bin/bash in System Settings → Privacy"
+  exit 1
+fi
+
+if [ "${1:-}" = "--probe" ]; then
+  echo "probe ok cwd=$(pwd) package=$(test -f package.json && echo yes || echo no)"
+  exit 0
+fi
 
 start_worker() {
   local name="$1"

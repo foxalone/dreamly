@@ -30,6 +30,7 @@ import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
 import { scheduleLibraryVideoPublish } from "./socialSchedule";
+import { scheduleAutoYouTube } from "./youtubeRemote";
 import { QUEUED_SCHEDULE_PLATFORMS } from "@/lib/adminVideoLibrary";
 
 const FREE_VIDEO_COLLECTION = "adminVideoJobs";
@@ -335,9 +336,15 @@ export async function scheduleAutoDictionaryPair(input: {
 }) {
   const video = await scheduleLibraryVideoPublish(
     `free:${input.videoJobId}`,
-    [...QUEUED_SCHEDULE_PLATFORMS, "youtube"],
+    [...QUEUED_SCHEDULE_PLATFORMS],
     input.publishAt,
     input.createdBy,
   );
-  return { video };
+  try {
+    await scheduleAutoYouTube(`free:${input.videoJobId}`, input.publishAt, input.createdBy);
+    return { video, youtubeScheduled: true, youtubeError: "" };
+  } catch (error) {
+    const youtubeError = error instanceof Error ? error.message : "YouTube error";
+    return { video, youtubeScheduled: false, youtubeError };
+  }
 }

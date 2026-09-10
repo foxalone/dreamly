@@ -7,10 +7,10 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/dimab/Documents/oneiro-web/scripts/auto-dictionary-daily.sh</string>
+    <string>/Users/dimab/Library/Application Support/dreamly/auto-dictionary-daily.sh</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/Users/dimab/Documents/oneiro-web</string>
+  <string>/Users/dimab</string>
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key>

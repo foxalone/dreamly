@@ -58,20 +58,39 @@ async function main() {
   }));
   if (!wait) return;
 
-  const results = [];
+  const results: Array<Pair & {
+    ok: boolean;
+    video: { status: string; error: string; url: string };
+    image: { status: string; error: string; url: string };
+    scheduledAt: string;
+    youtubeScheduled: boolean;
+    youtubeError: string;
+  }> = [];
   for (const [index, pair] of pairs.entries()) {
     const result = await waitForAutoDictionaryContent(pair);
     const slot = slots.slots[index];
     let scheduledAt = slot?.publishAt || "";
+    let youtubeScheduled = false;
+    let youtubeError = "";
     if (schedule && result.ok && slot) {
-      await scheduleAutoDictionaryPair({
+      const booked = await scheduleAutoDictionaryPair({
         videoJobId: pair.videoJobId,
         imageJobId: pair.imageJobId,
         publishAt: slot.publishAt,
         createdBy: AUTO_CONTENT_CREATED_BY,
       });
+      youtubeScheduled = booked.youtubeScheduled;
+      youtubeError = booked.youtubeError;
     }
-    results.push({ ...pair, ok: result.ok, video: result.video, image: result.image, scheduledAt });
+    results.push({
+      ...pair,
+      ok: result.ok && (!schedule || !slot || youtubeScheduled),
+      video: result.video,
+      image: result.image,
+      scheduledAt,
+      youtubeScheduled,
+      youtubeError,
+    });
   }
 
   const ok = results.every((item) => item.ok);
@@ -80,7 +99,12 @@ async function main() {
     `${(slots.dateKeys || [slots.dateKey]).join(" и ")} · 05:00 и 15:00 Asia/Jerusalem`,
     ...results.map((item, index) => {
       const hour = slots.slots[index]?.hour ?? "?";
-      return `${hour}:00 · ${item.title} · видео ${item.video.status} · картинка ${item.image.status}`;
+      const youtubeLine = item.youtubeScheduled
+        ? "YouTube ок"
+        : item.youtubeError
+          ? `YouTube: ${item.youtubeError}`
+          : "YouTube не ставили";
+      return `${hour}:00 · ${item.title} · видео ${item.video.status} · картинка ${item.image.status} · ${youtubeLine}`;
     }),
   ].join("\n");
   await notifyAutoDictionaryContentDone({

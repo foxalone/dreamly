@@ -1,8 +1,8 @@
 import { adminAuth } from "./firebaseAdmin";
 
-const ADMIN_UIDS = new Set<string>([
-  "sGbA77TlcsatEMrgEvCv7Shjrj32",
-]);
+export const PRIMARY_ADMIN_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
+
+const ADMIN_UIDS = new Set<string>([PRIMARY_ADMIN_UID]);
 
 export async function requireAdmin(req: Request) {
   const authHeader = req.headers.get("authorization") ?? "";
