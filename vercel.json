@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/gsc-sync",
       "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/indexnow",
+      "schedule": "30 6 * * *"
     }
   ]
 }

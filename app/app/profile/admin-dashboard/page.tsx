@@ -33,6 +33,7 @@ import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import GscQueriesPanel from "./GscQueriesPanel";
+import IndexNowPanel from "./IndexNowPanel";
 import QuickSymbolQueries from "./QuickSymbolQueries";
 import VideoAdminPanel from "./VideoAdminPanel";
 import AiVideoAdminPanel from "./AiVideoAdminPanel";
@@ -928,7 +929,7 @@ async function loadUsers() {
               <>
                 Google Search Console queries (Firestore:{" "}
                 <span className="font-mono">gsc_snapshots</span>
-                ) · last day of GSC data, not calendar
+                ) · IndexNow для Bing · last day of GSC data, not calendar
               </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
@@ -1643,7 +1644,12 @@ async function loadUsers() {
         </>
       )}
 
-      {tab === "GSC" && <GscQueriesPanel />}
+      {tab === "GSC" && (
+        <>
+          <IndexNowPanel />
+          <GscQueriesPanel />
+        </>
+      )}
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
