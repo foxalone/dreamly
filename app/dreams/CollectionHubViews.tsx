@@ -178,7 +178,17 @@ export function NightmaresView({ locale }: { locale: Locale }) {
   const dict = getLocalizedDictionary(locale);
   const fearEntries = getAllEntriesByCategory("fear-nightmares").map((entry) => dict[entry.slug]).filter(Boolean);
   const scaryEntries = SCARY_SYMBOL_SLUGS.map((slug) => dict[slug]).filter(Boolean);
-  const guides = ["recurring-dreams", "sleep-paralysis", "false-awakening", "healing-dreams", "types-of-dreams"]
+  const guides = [
+    "how-to-stop-nightmares",
+    "night-terrors",
+    "anxiety-dreams",
+    "hypnagogic-hallucinations",
+    "recurring-dreams",
+    "sleep-paralysis",
+    "false-awakening",
+    "healing-dreams",
+    "types-of-dreams",
+  ]
     .map((slug) => getLocalizedGuide(slug, locale))
     .filter(Boolean);
 

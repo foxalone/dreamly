@@ -117,7 +117,8 @@ export const PT_MESSAGES: UiMessages = {
     popularSymbols: "Símbolos populares",
     popularSymbolsLead: "Temas principais e significados de cauda longa",
     learnTitle: "Aprenda sobre o sonhar",
-    learnLead: "Guias sobre por que sonhamos, os tipos de sonho, a memória, a infância e os teóricos da interpretação.",
+    learnLead:
+      "Guias sobre como interpretar sonhos, por que sonhamos, pesadelos e terrores noturnos, noites vívidas e de ansiedade, sonhos de visitação e compartilhados, incubação, memória, infância e os teóricos da interpretação.",
     browseTheme: "Explorar por tema",
     seoClusters: "Grupos de símbolos",
     exploreCluster: "Ver o grupo",

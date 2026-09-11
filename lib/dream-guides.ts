@@ -376,7 +376,7 @@ export const DREAM_GUIDES: DreamGuide[] = [
     title: "Types of Dreams",
     seoTitle: "Types of Dreams: Nightmares, Lucid, Recurring & More",
     seoDescription:
-      "A map of common dream types — nightmares, lucid dreams, false awakenings, recurring loops, prophetic claims, and healing dreams — and how to read each without treating the night as a verdict.",
+      "A map of common dream types — nightmares, lucid dreams, false awakenings, recurring loops, anxiety and vivid nights, prophetic claims, healing, shared, visitation, and erotic dreams — and how to read each without treating the night as a verdict.",
     icon: "🗂️",
     accent: "#7c3aed",
     summary: "A map of the main dream types — what they share, where they differ, and which page to open next.",
@@ -396,21 +396,21 @@ export const DREAM_GUIDES: DreamGuide[] = [
         heading: "Nightmares, loops, and the border states",
         paragraphs: [
           "Nightmares are dreams that wake you with fear or dread. Recurring dreams reuse a file until the day handles what the night keeps staging. False awakenings stage the morning while you are still asleep. Sleep paralysis is a REM-wake overlap: the body is still offline while awareness returns.",
-          "These four sit together. A nightmare can end in a false awakening. Trying to become lucid can produce both. Read the nightmare and recurring guides first if the night is frightening; read false awakening and sleep paralysis if the problem is the border of waking.",
+          "These four sit together. A nightmare can end in a false awakening. Trying to become lucid can produce both. Read how to stop nightmares and the recurring guide first if the night is frightening; read false awakening, sleep paralysis, and hypnagogic hallucinations if the problem is the border of waking. Night terrors are a different event — the dedicated page explains why a screaming child may remember nothing in the morning.",
         ],
       },
       {
         heading: "Lucid, vivid, and 'epic' nights",
         paragraphs: [
           "Lucidity is knowing you are dreaming while the dream continues. Vividness is intensity of sensation — color, sound, the conviction that it happened. An 'epic' dream is a long, story-like night that feels larger than usual. None of these is automatically more meaningful. Intensity is not the same as a message.",
-          "Lucid dreams can be trained and used for rehearsal or for facing a nightmare. Vivid dreams often rise with pregnancy, fever, withdrawal from alcohol, new medication, or simply more REM awakenings. Treat the amplifier before building a life decision on one spectacular plot.",
+          "Lucid dreams can be trained and used for rehearsal or for facing a nightmare. Vivid dreams often rise with pregnancy, fever, withdrawal from alcohol, new medication, or simply more REM awakenings — the vivid-dreams page covers intensity as its own topic. Treat the amplifier before building a life decision on one spectacular plot. Anxiety dreams (tests, being late, falling) are ordinary rehearsal, not a separate species; erotic and visitation dreams have their own guides because people search them as if they were verdicts.",
         ],
       },
       {
         heading: "Prophetic, healing, and shared dreams",
         paragraphs: [
           "People report dreams that later seem to match an event, dreams that leave the body feeling repaired, and dreams that two people claim to have shared. The honest stance is the same for all three: rare, memorable, and easy to overfit after the fact. Anxiety wants certainty. Sleep is good at producing scenes that feel like answers.",
-          "The prophetic and healing pages take those claims seriously without turning them into a method. Shared or 'mutual' dreams are usually coincidence plus a shared day, or a story told until the versions converge. If a dream helps you act with more care, it has already done enough work.",
+          "The prophetic, healing, shared-dreams, and visitation-dreams pages take those claims seriously without turning them into a method. Shared or 'mutual' dreams are usually coincidence plus a shared day, or a story told until the versions converge. Dream incubation is the waking attempt to invite a night on a chosen question. If a dream helps you act with more care, it has already done enough work.",
         ],
       },
     ],
@@ -418,7 +418,7 @@ export const DREAM_GUIDES: DreamGuide[] = [
       {
         question: "How many types of dreams are there?",
         answer:
-          "There is no official list. Common working names include ordinary dreams, nightmares, lucid dreams, recurring dreams, false awakenings, and the rarer claims — prophetic, healing, epic, shared. The borders overlap.",
+          "There is no official list. Common working names include ordinary dreams, nightmares, lucid dreams, recurring dreams, false awakenings, anxiety and vivid nights, night terrors, hypnagogic images, and the rarer claims — prophetic, healing, epic, shared, visitation. The borders overlap. How to interpret dreams is the method page; this one is the map.",
       },
       {
         question: "Is a vivid dream a different type?",
@@ -428,7 +428,7 @@ export const DREAM_GUIDES: DreamGuide[] = [
       {
         question: "Which type should I start with?",
         answer:
-          "If you woke afraid, start with nightmares. If the same plot returns, start with recurring dreams. If you knew you were dreaming, start with lucid dreams. If you 'woke' and then woke again, start with false awakening.",
+          "If you woke afraid, start with how to stop nightmares. If the same plot returns, start with recurring dreams. If you knew you were dreaming, start with lucid dreams. If you 'woke' and then woke again, start with false awakening. If you want a method rather than a type, start with how to interpret dreams.",
       },
       {
         question: "Do daydreams count?",
@@ -658,7 +658,7 @@ export const DREAM_GUIDES: DreamGuide[] = [
         heading: "Babies and very young children",
         paragraphs: [
           "Infants spend a large share of sleep in REM-like states. Whether they 'dream' in the adult story sense is still open. What parents see is twitching, smiles, and cries from sleep that are usually ordinary. Toddlers begin to report simple dream fragments as language arrives. They often do not appear as themselves in dreams until later preschool years.",
-          "Nightmares typically rise around age three and are common through seven or eight. Monsters, animals, and being lost are the usual casts. Night terrors are a different event: the child may scream and look awake while still in deep non-REM sleep and remember little in the morning. Comfort, a regular schedule, and not over-interviewing the plot are the first tools. Persistent terror, injury during sleep, or daytime collapse needs a pediatric clinician.",
+          "Nightmares typically rise around age three and are common through seven or eight. Monsters, animals, and being lost are the usual casts. Night terrors are a different event: the child may scream and look awake while still in deep non-REM sleep and remember little in the morning. The night-terrors guide is the dedicated page for that distinction. Comfort, a regular schedule, and not over-interviewing the plot are the first tools. Persistent terror, injury during sleep, or daytime collapse needs a pediatric clinician.",
         ],
       },
       {
@@ -763,6 +763,696 @@ export const DREAM_GUIDES: DreamGuide[] = [
     relatedSymbolSlugs: ["snake", "house", "water", "being-chased"],
     updatedAt: "2026-09-05",
   },
+  {
+    slug: "how-to-interpret-dreams",
+    name: "How to Interpret Dreams",
+    title: "How to Interpret Dreams",
+    seoTitle: "How to Interpret Dreams: A Grounded Method",
+    seoDescription:
+      "A practical method for dream interpretation: catch the feeling, map the scene onto waking life, use symbols as questions — not as a one-key code or a prophecy.",
+    icon: "🔎",
+    accent: "#7c3aed",
+    summary: "A method for reading a night — feeling first, symbol second, action before noon.",
+    intro: [
+      "Most people open a dream dictionary looking for a verdict. The useful skill is smaller and slower: keep the image, name the feeling, and ask what in this week's life the scene resembles. Interpretation is a way of listening, not a court. Dreamly's four lenses — psychological, spiritual, Islamic, and biblical — sit beside each other so one night is not owned by a single school.",
+      "You do not need Freud, a crystal, or a complete theory of REM. You need a pause before the day talks over the residue, and a refusal to treat one plot as a medical diagnosis or a forecast of other people's actions. The pages on types of dreams, why we dream, and the theorists are companions. This one is the method.",
+    ],
+    sections: [
+      {
+        heading: "Start with the feeling, not the object",
+        paragraphs: [
+          "Write three things before you reach for a meaning: the last emotion, the last place, and what changed at the end. A snake that you befriend is not the same file as a snake that bites. Water you swim in is not water that drowns you. The dictionary entry is a starting vocabulary. The feeling tells you which sentence in that vocabulary is live.",
+          "If the night left no feeling, it may not need a reading. Busy plots that fade by breakfast are often leftover housekeeping. Recurrence, a mood that lasts into the day, or a scene that clearly rhymes with a waking pressure is a better signal than novelty or strangeness.",
+        ],
+      },
+      {
+        heading: "Map the night onto this week",
+        paragraphs: [
+          "Ask one blunt question: what situation, relationship, or postponed decision does this resemble? An exam dream during a performance week is usually evaluation anxiety, even if you left school decades ago. A house with extra rooms during a move or a new role is often the psyche adding space, not a real-estate omen. Keep the match local. Biography is allowed; fortune-telling is not.",
+          "Then look at what you did in the dream. Did you run, speak, freeze, repair, hide, ask for help? The action is often the rehearsal. The how-to-stop-nightmares and anxiety-dreams pages cover the nights that are mostly threat rehearsal. Healing and visitation dreams cover the nights that feel like contact or repair. Use the type as a first cut, then the symbol.",
+        ],
+      },
+      {
+        heading: "Use several lenses, keep none as a verdict",
+        paragraphs: [
+          "A psychological reading asks what wish, fear, or compensation is dressed in the scene. A spiritual reading asks what quality the season is practicing. Islamic and biblical pages summarize broad interpretive etiquette — discernment, counsel, a refusal to let one night overrule wisdom — not a ruling. If two lenses agree, take that seriously. If they conflict, the conflict is information: you are standing in more than one story about the same image.",
+          "Dream incubation is the reverse of interpretation: you pose a question before sleep and see what arrives. Lucidity lets you ask a figure from inside. Neither replaces the morning work of writing and acting. A meaning that does not change anything by noon was probably entertainment.",
+        ],
+      },
+      {
+        heading: "What not to do with a dream",
+        paragraphs: [
+          "Do not change medication, end a relationship, spend rent, or warn someone as if you saw their future. Do not skip a doctor's appointment because a healing dream felt clean. Do not force a child's nightmare into prophecy or joke. Fever, alcohol, new medicine, and a violent film are ordinary amplifiers — rule them out before you build a life decision.",
+          "If nights are frequent, terrifying, or wrecking the day, you are closer to sleep, trauma, and clinical care than to a better symbol key. The medical note at the bottom of these pages is not decoration. Interpretation is for residue you can afford to look at.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is there a correct way to interpret a dream?",
+        answer:
+          "There is a useful order: feeling, waking match, then symbol. There is no single correct key. Cultures and faiths disagree, which is why Dreamly keeps several readings on one page.",
+      },
+      {
+        question: "Do I need a dictionary?",
+        answer:
+          "A dictionary is vocabulary, not a verdict. It helps when an image is common — snake, teeth, chase, house. Your week still has to supply the match. Start with the most-common and A–Z indexes if you do not know the slug.",
+      },
+      {
+        question: "What if two meanings contradict each other?",
+        answer:
+          "Keep both as questions. A snake can be fear and transformation in the same night. The useful test is which sentence makes your waking life more honest, not which one sounds more mystical.",
+      },
+      {
+        question: "Should I interpret every dream?",
+        answer:
+          "No. Fragments that fade, fever nights, and plots that were clearly last night's film usually do not repay a close reading. Save the method for strong feeling, recurrence, or a scene you cannot shake.",
+      },
+    ],
+    relatedSymbolSlugs: ["snake", "house", "water", "flying"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "vivid-dreams",
+    name: "Vivid Dreams",
+    title: "Vivid Dreams",
+    seoTitle: "Vivid Dreams: Why Nights Suddenly Feel Real",
+    seoDescription:
+      "Vivid dreams feel more real than usual — color, sound, conviction. What raises intensity, when it is a sleep change, and how to read a cinematic night without treating it as a message.",
+    icon: "🎬",
+    accent: "#f59e0b",
+    summary: "When a dream feels more real than waking — amplifiers, meaning, and when to check sleep.",
+    intro: [
+      "A vivid dream is not a separate species. It is intensity: color that holds, sound that startles, a conviction that it happened. People search it because the morning can feel like a second life that refuses to close. Intensity is not the same as a message. The brain is good at cinema. Cinema is not automatically counsel.",
+      "Vividness often rises when sleep is broken into more REM awakenings — pregnancy, fever, a new medication, stopping alcohol, a baby in the house, jet lag, or simply training recall. The types-of-dreams map treats vividness as a quality. This page is the quality as a search.",
+    ],
+    sections: [
+      {
+        heading: "What 'vivid' usually means",
+        paragraphs: [
+          "Reports cluster around three features: sensory richness, emotional charge, and the feeling of duration. A vivid flying dream can leave the body still leaning. A vivid argument can leave the throat tight. You may remember dialogue, textures, and a plot with a beginning. Ordinary dreams are often mood plus two images.",
+          "Lucidity and vividness overlap but are not identical. You can know you are dreaming in a pale scene, and you can be fully fooled by a hyper-real one. False awakenings are often vivid because they copy the bedroom. Hypnagogic images at the edge of sleep can be vivid in a single flash without a story.",
+        ],
+      },
+      {
+        heading: "Common amplifiers",
+        paragraphs: [
+          "Hormones in pregnancy and postpartum are well documented. Withdrawal from alcohol or cannabis, SSRIs and other medicines that change REM, high fever, and sleep debt that then rebounds all raise intensity. Late caffeine and irregular hours fragment sleep so you wake more often in the cinematic last third of the night.",
+          "Attention is an amplifier too. Starting a dream journal, practicing lucidity, or deciding that 'the universe is speaking' will increase recall of vivid nights because you start waking with the question already on. That is useful if you want more of the night. It is noisy if you wanted quieter sleep.",
+        ],
+      },
+      {
+        heading: "How to read a cinematic night",
+        paragraphs: [
+          "Use the same method as any other dream, with one extra step: name the amplifier. If you just started a pill, got pregnant, or quit drinking, the vividness may be physiology wearing a plot. The plot can still be worth a sentence — what feeling did it use? — but do not build a vocation on a rebound REM week.",
+          "If the vivid night is also a nightmare, start with how to stop nightmares rather than with symbol hunting. If it is pleasant and recurring, ask what resource it restores. The remembering-dreams guide covers catching fragments; this page is about why some fragments arrive in 4K.",
+        ],
+      },
+      {
+        heading: "When vivid dreams need a clinician",
+        paragraphs: [
+          "Sudden, unmanageable intensity with daytime confusion, hallucinations while fully awake, or a collapse into sleep belongs with a doctor. So does a pattern that started with a new medicine and will not settle. These pages are not a side-effect sheet and not a diagnosis.",
+          "Children and pregnancy have their own guide because vividness there is often ordinary. Adults who never remembered dreams and then drown in them after trauma or a drug change should not treat the cinema as a spiritual promotion until sleep and mood are checked.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why are my dreams suddenly so vivid?",
+        answer:
+          "Broken sleep, more REM awakenings, pregnancy, fever, new or stopped medication, and alcohol withdrawal are the usual suspects. A new journaling habit also raises the catch. Check the body and the week before assuming a message.",
+      },
+      {
+        question: "Are vivid dreams more meaningful?",
+        answer:
+          "They are more memorable, which makes them feel more important. Meaning still tracks feeling, recurrence, and a waking match — not production value.",
+      },
+      {
+        question: "Can a vivid dream be a vision?",
+        answer:
+          "Some traditions read intense nights as visits or warnings. A grounded approach separates the experience from the claim: write it, test any advice against waking wisdom, and do not skip medical care because the night felt sacred.",
+      },
+      {
+        question: "How do I make vivid dreams stop?",
+        answer:
+          "Regular hours, less late alcohol, treating rebound from substances slowly, and asking a clinician about a new medicine are the practical levers. Stopping a journal can also quiet recall if attention was the amplifier.",
+      },
+    ],
+    relatedSymbolSlugs: ["flying", "water", "pregnancy", "nightmare"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "night-terrors",
+    name: "Night Terrors",
+    title: "Night Terrors",
+    seoTitle: "Night Terrors vs Nightmares: Why They Are Not the Same",
+    seoDescription:
+      "Night terrors are a deep-sleep arousal, not a remembered nightmare. How they differ from nightmares, what they look like in children and adults, and when to call a doctor.",
+    icon: "😱",
+    accent: "#dc2626",
+    summary: "Screaming from deep sleep with little memory — not the same event as a nightmare.",
+    intro: [
+      "A night terror is not a bad dream you can retell. It is a partial arousal from deep non-REM sleep: the person may scream, sit up, look terrified, sweat, and seem awake while remaining mostly unresponsive. In the morning they often remember nothing, or only a fragment of dread. A nightmare is a REM story that wakes you with a plot. Mixing the two words makes the wrong advice feel right.",
+      "Night terrors are common in preschool and early school years and usually fade. Adults can have them too, especially with sleep debt, alcohol, fever, or another sleep disorder. The children-and-dreams page covers the developmental setting. This page is the distinction, the first aid, and the line where a clinician belongs.",
+    ],
+    sections: [
+      {
+        heading: "Nightmare versus night terror",
+        paragraphs: [
+          "Nightmare: later in the night, REM, a story, full waking, memory of the plot, comfort usually works, the person can talk. Night terror: first third of the night, deep sleep, little or no story, glassy eyes, thrashing or a frozen scream, attempts to soothe may not land, amnesia in the morning. Confusional arousals and sleepwalking sit in the same family of disorders of arousal.",
+          "If a child describes a monster chase at breakfast, that was likely a nightmare. If they screamed at 10 p.m., did not know you, and remember a blank, that was likely a terror. The how-to-stop-nightmares guide is for the first. This page is for the second.",
+        ],
+      },
+      {
+        heading: "What to do in the moment",
+        paragraphs: [
+          "Keep them from injury. Soften the room, stand nearby, do not shake them hard into waking, and do not demand a report. Light touch and a low voice are enough. Trying to 'wake them properly' or interview the plot often prolongs the episode. Most terrors last seconds to a few minutes and end with a return to sleep.",
+          "Scheduled awakening — briefly rousing the child 15–30 minutes before the usual episode, for a stretch of nights — has evidence in stubborn cases, under pediatric guidance. A regular sleep schedule, treating fever, and cutting late chaos in the house are the ordinary levers. Do not turn the event into a family legend the child then fears.",
+        ],
+      },
+      {
+        heading: "Adults, trauma, and lookalikes",
+        paragraphs: [
+          "Adult night terrors exist. They are less common than in children and more often sit with sleep apnea, PTSD nightmares, alcohol, or irregular shift work. PTSD nightmares are usually REM stories with memory; they belong with trauma care and the nightmare pages, not with a terror label used as a metaphor.",
+          "Sleep paralysis, hypnagogic hallucinations, and false awakenings are border states of REM and waking — different physiology again. If you are unsure which night you are having, write when it happens, whether there was a story, and whether you could move and speak. That log helps a clinician more than a symbol.",
+        ],
+      },
+      {
+        heading: "When to get help",
+        paragraphs: [
+          "Injury, leaving the bed into danger, episodes most nights, daytime sleepiness, breathing pauses, or a sudden adult onset all belong with a doctor or sleep clinic. Night terrors in a feverish toddler that happen twice and vanish are usually ordinary. These pages cannot examine a child.",
+          "Do not medicate from a dictionary. Do not shame an adult partner who 'acted crazy' in sleep. Arousal disorders are not chosen. Safety of the room and sleep timing come before meaning.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Are night terrors a sign of trauma?",
+        answer:
+          "In young children they are usually a developmental sleep pattern, not a report of abuse. Frequent adult terrors or nightmare stories with memory deserve a proper history — including trauma — from a clinician, not a website.",
+      },
+      {
+        question: "Should I wake someone during a night terror?",
+        answer:
+          "Usually no. Protect them from injury and wait. Forced waking can lengthen confusion. In the morning, a simple 'you had a hard night, you are safe' is enough if they remember anything.",
+      },
+      {
+        question: "Do night terrors mean something symbolically?",
+        answer:
+          "They are more body-state than metaphor. If a fragment of image remains, you can read it the way you read any dream. The scream itself is not a coded message.",
+      },
+      {
+        question: "Will my child outgrow them?",
+        answer:
+          "Most do, especially if sleep is regular. Persistence, injury, or daytime collapse is the reason to see a pediatric clinician rather than wait on a statistic.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "being-chased", "demon", "child"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "anxiety-dreams",
+    name: "Anxiety Dreams",
+    title: "Anxiety Dreams",
+    seoTitle: "Anxiety Dreams: Tests, Being Late, Falling & Stress Nights",
+    seoDescription:
+      "Anxiety dreams rehearse evaluation, lateness, falling, and exposure. Why stress writes the same plots, how to read them, and when they are just a loud week.",
+    icon: "😰",
+    accent: "#ea580c",
+    summary: "Tests, lateness, falling, nakedness — how stress reuses a few efficient plots.",
+    intro: [
+      "An anxiety dream is a night that stages pressure: the exam you cannot find, the train you miss, the fall from a height, the room where you are unprepared or unclothed. The plots are famous because they are efficient. They pack evaluation, time, control, and exposure into a set the mind already owns. They are among the most searched dreams because they feel like a warning. They are usually a weather report.",
+      "Stress, performance weeks, and unfinished decisions raise the volume. Recurring anxiety dreams belong with the recurring-dreams guide. Nightmares that wake you in terror belong with how to stop nightmares. This page is the ordinary, exhausting middle: the night that keeps asking whether you are ready.",
+    ],
+    sections: [
+      {
+        heading: "Why the same plots keep winning",
+        paragraphs: [
+          "School, clocks, heights, and public rooms are shared cultural files. When the nervous system needs a rehearsal of 'I might fail / I might be too late / I might lose control / I might be seen,' it reaches for those files even if you have not sat an exam in twenty years. Calvin Hall's old point still holds: dreams picture how you see yourself in a world of others.",
+          "Falling often tracks a loss of support or a drop in status. Being late tracks a standard you fear you will not meet. Being naked tracks exposure. A test tracks measurement. The dictionary pages for those symbols go into the image. Here the point is the family: they are cousins of the same pressure.",
+        ],
+      },
+      {
+        heading: "How to read an anxiety night",
+        paragraphs: [
+          "Name the waking evaluation. Job, health result, relationship, money, a trip, a conversation you are postponing. Then notice what you did in the dream: freeze, run, cheat, ask for help, find a door. The action is often what you are rehearsing or refusing by day. Interpretation without a next step leaves the file open, which is why the loop returns.",
+          "Rule out amplifiers: caffeine late, skipped sleep, a thriller, a fever. Then take one concrete waking move — a smaller deadline, a question sent, a boundary spoken, a walk, a bedtime. The how-to-interpret-dreams method applies: feeling, match, action before noon.",
+        ],
+      },
+      {
+        heading: "When anxiety dreams are useful",
+        paragraphs: [
+          "They are a cheap simulator. A test dream can show you that you care, which is different from being doomed. A falling dream can show you where support actually failed this month. Used that way, the night is information. Used as prophecy, it becomes another examiner.",
+          "Pregnancy, new jobs, and grief all raise anxiety-dream frequency without meaning the outcome is bad. The children-and-dreams and visitation-dreams pages cover those seasons. If every night is a panic and the day is a panic too, treat the anxiety disorder or the sleep, not only the symbol.",
+        ],
+      },
+      {
+        heading: "When the night is no longer 'just stress'",
+        paragraphs: [
+          "Nightly terror, avoiding sleep, trauma replays, chest pain, or daytime collapse belong with a clinician. Imagery rehearsal — rewriting the ending while awake — has evidence for recurrent nightmares and can help some anxiety loops. These pages are reflection, not treatment.",
+          "Do not shame yourself for 'still dreaming about school.' The file is efficient. Change the waking standard or the support around it, and the night often updates the set.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why do I dream about exams years after school?",
+        answer:
+          "The exam is a compact picture of being measured. Performance weeks reactivate it. It is usually not a wish to return to class.",
+      },
+      {
+        question: "Are anxiety dreams a warning?",
+        answer:
+          "They warn about pressure you already carry, not about a scheduled disaster. Act on the waking situation. Do not cancel a trip because you missed a train in a dream.",
+      },
+      {
+        question: "How do I stop stress dreams?",
+        answer:
+          "Sleep timing, less late stimulation, and one real step on the problem beat another night of analysis. If the loop is a nightmare, use imagery rehearsal and the stop-nightmares guide.",
+      },
+      {
+        question: "Is a falling dream an anxiety dream?",
+        answer:
+          "Often yes — loss of control or support. Sometimes it is a body jerk at the edge of sleep (hypnic jerk) with a brief image. If there is no story, read the hypnagogic page.",
+      },
+    ],
+    relatedSymbolSlugs: ["test", "being-late", "falling", "being-naked"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "visitation-dreams",
+    name: "Visitation Dreams",
+    title: "Visitation Dreams",
+    seoTitle: "Visitation Dreams: When the Dead Appear in Sleep",
+    seoDescription:
+      "Dreams of deceased loved ones can feel like a visit. Grief, memory, and faith readings — how to receive the night without treating it as a séance or dismissing it as noise.",
+    icon: "🕊️",
+    accent: "#64748b",
+    summary: "When someone who died returns in a dream — grief, comfort, and a careful reading.",
+    intro: [
+      "A visitation dream is a night in which someone who has died appears with unusual clarity, often with a feeling of real contact: a hug, a sentence, a look that is more 'them' than a memory usually is. Grief makes these nights common. They can leave people lighter, wrecked, or both. Cultures have treated them as the dead checking in, as the mind's work of farewell, or as both at once.",
+      "This page will not settle metaphysics. It will refuse two cheap moves: calling every such dream a proven afterlife event, and calling every such dream meaningless noise. The ghost, death, funeral, and angel dictionary pages hold the images. Here the question is how to receive the night.",
+    ],
+    sections: [
+      {
+        heading: "Why the dead return in sleep",
+        paragraphs: [
+          "The sleeping brain still has the person's file — voice, gait, unfinished sentences. Grief is an attachment that has nowhere to go in the day. REM is good at generating a presence that feels like the one you lost. That explanation does not insult the experience. It explains why the night can do this so well.",
+          "People also dream of the dead during later life stress that rhymes with the original loss: another goodbye, a wedding, an illness, becoming a parent. The figure may be a resource, a judge, or unfinished business. Compare versions: is the person well? Silent? Angry? Trying to leave? The quality of the contact is the data.",
+        ],
+      },
+      {
+        heading: "How to receive the morning",
+        paragraphs: [
+          "Write the sentence, if there was one, before you interpret it. If the feeling is comfort, protect it: you do not have to argue it into a proof. If the feeling is unfinished or frightening, treat it as a cue for care — a ritual, a conversation with the living, grief support — not as a command from beyond.",
+          "Faith traditions that take these nights seriously usually pair them with counsel and a refusal to let one dream run a family's decisions. Islamic and biblical readings in the dictionary follow that etiquette. A spiritual reading can thank the help without turning you into a medium. Healing dreams are the cousin page when the night repairs rather than visits.",
+        ],
+      },
+      {
+        heading: "When the dream is not a visit",
+        paragraphs: [
+          "Anxiety can dress as a warning from the dead. A thriller, a funeral that day, or a photo on the phone can furnish the cast. Recurring frightening appearances after trauma belong with nightmares and clinical care. Hypnagogic flashes of a face at the edge of sleep are a different physiology — see that guide — even if they feel like a doorway.",
+          "Do not use a visitation dream to control other mourners, to claim exclusive knowledge of the person's wishes, or to skip your own grief work. The night can be a gift and still not be a legal will.",
+        ],
+      },
+      {
+        heading: "Shared grief and 'they came to me too'",
+        paragraphs: [
+          "Families often report similar dreams in the same week. Sometimes that is a shared day plus a shared file. Sometimes it is a story told until the versions converge. The shared-dreams page covers mutual nights without needing them to prove a network. If two people were comforted, that is already a result.",
+          "Anniversaries, birthdays, and holidays raise the odds. That is attachment, not a calendar the dead keep. You can still light a candle. Meaning and ritual do not require a laboratory.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Was it really them?",
+        answer:
+          "This page cannot prove that. What can be said: the night used a form you could receive. Write what was said, notice the feeling, and test any advice against waking wisdom and the person's known character.",
+      },
+      {
+        question: "Why did they seem angry or silent?",
+        answer:
+          "Dreams use the dead as they use any figure: to stage what is unfinished in you — guilt, a fight never had, a fear that love left. It is not a reliable report of their current mood.",
+      },
+      {
+        question: "Is it bad if I never dream of them?",
+        answer:
+          "No. Recall is uneven. Some griefs stay in the day. Absence of visitation dreams is not a verdict on the relationship or on your love.",
+      },
+      {
+        question: "Should I tell the family?",
+        answer:
+          "Share comfort without claiming prophecy. 'I dreamed of them and it helped me' is different from 'they told me what you must do.' The first is a gift. The second can become a weapon.",
+      },
+    ],
+    relatedSymbolSlugs: ["ghost", "death", "funeral", "angel"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "shared-dreams",
+    name: "Shared Dreams",
+    title: "Shared Dreams",
+    seoTitle: "Shared Dreams: When Two People Dream the Same Night",
+    seoDescription:
+      "Shared or mutual dreams feel like the same night in two heads. Coincidence, a shared day, storytelling — and how to use the overlap without needing a telepathy proof.",
+    icon: "🔗",
+    accent: "#8b5cf6",
+    summary: "When two people seem to have dreamed the same scene — overlap, coincidence, and care.",
+    intro: [
+      "A shared dream is a report that two people dreamed the same place, plot, or conversation on the same night, or that one person appeared in the other's dream with matching details. The feeling is intimacy plus uncanniness. Couples, siblings, and grief circles search for it because it seems to prove a link the day could not make.",
+      "Most overlaps have ordinary fuel: a shared conversation, a film, a trip, a wedding, a death in the family. Memory then edits both tellings until they fit more tightly. That does not make the morning worthless. It means you do not need a theory of telepathy before you can use the night.",
+    ],
+    sections: [
+      {
+        heading: "Why overlaps happen",
+        paragraphs: [
+          "People who sleep in the same house share residue: the argument, the baby monitor, the heat, the news. Dreams remix that residue. If both of you were bracing for a funeral, both may get a house, a hallway, a relative. The match feels supernatural because you did not compare notes until morning.",
+          "Storytelling does the rest. The first person to speak sets the frame. The second fills gaps. By the second telling the dreams are more alike than the raw nights were. Write independently before you compare if you want an honest record. Even then, a shared day is a strong prior.",
+        ],
+      },
+      {
+        heading: "What the overlap is good for",
+        paragraphs: [
+          "Treat it as a conversation starter, not as a court exhibit. 'We both dreamed of the locked door' can open a talk about a boundary you have been circling. A shared wedding or house dream can name a hope or a fear neither wanted to say first. The dictionary still helps: house, wedding, water, ghost are common shared files.",
+          "In grief, two visitation-like nights in one family can be a comfort even if they are not proof. Receive the comfort. Do not appoint one dreamer as the spokesperson of the dead. The visitation-dreams page is the companion.",
+        ],
+      },
+      {
+        heading: "Lucid, erotic, and 'I visited you'",
+        paragraphs: [
+          "Lucid dreamers sometimes try to meet another person on purpose. Reports of success are not a controlled method. Dream incubation can pose 'show me what they need' as a question to your own night; that is inner work, not a phone call. Erotic shared-dream claims need extra care: a dream about someone is not their consent, and telling them can burden a relationship they did not agree to enter.",
+          "False awakenings and hypnagogic images can also feel like slipping into someone else's room. Those are border states of your own sleep. Read those guides before you build a cosmology.",
+        ],
+      },
+      {
+        heading: "What not to do with a match",
+        paragraphs: [
+          "Do not use a shared dream to pressure a partner, to claim you know their secrets, or to make a medical or financial decision. Do not crowd a child's report until it matches yours. Coincidence is allowed to be coincidence.",
+          "If the overlap is frightening for both of you, you are closer to anxiety, nightmare, and sleep timing than to a joint prophecy. How to stop nightmares and anxiety dreams are the practical next pages.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Are shared dreams real?",
+        answer:
+          "The reports are real as reports. A proven channel between two sleeping brains is not established science. Shared days and shared telling explain most matches. You can still take the intimacy seriously.",
+      },
+      {
+        question: "We both dreamed the same house. What does it mean?",
+        answer:
+          "A house is a common image for inner life and family structure. Ask what is unfinished in the shared household. Then open the house symbol page for the image itself.",
+      },
+      {
+        question: "Can I make someone dream of me?",
+        answer:
+          "You can intend, journal, and incubate your own night. You cannot reliably send a dream into another person. Wanting that kind of control is itself worth a waking look.",
+      },
+      {
+        question: "Should we compare dreams every morning?",
+        answer:
+          "If it brings you closer, yes, after each of you has written a few lines alone. If it becomes a contest or a fear of missing a 'sign,' give it rest.",
+      },
+    ],
+    relatedSymbolSlugs: ["house", "wedding", "ghost", "water"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "dream-incubation",
+    name: "Dream Incubation",
+    title: "Dream Incubation",
+    seoTitle: "Dream Incubation: How to Ask a Dream a Question",
+    seoDescription:
+      "Dream incubation is the practice of inviting a night on a chosen question. How to set an intention, what actually arrives, and how to use the morning without forcing a prophecy.",
+    icon: "🕯️",
+    accent: "#d97706",
+    summary: "Inviting a dream on purpose — intention, catch, and a modest way to read what arrives.",
+    intro: [
+      "Dream incubation is an old practice with a modern, modest form: before sleep you name a question, and you treat whatever you remember as a response from the same mind that will also remix leftover news. Temples once did this. Labs have tested simpler versions. You do not need a shrine. You need a sentence, a pause, and a way to catch the morning.",
+      "Incubation is the reverse of ordinary interpretation. Instead of asking what last night meant, you ask the night to work a file you chose. Lucidity is a related skill — asking from inside. Remembering dreams is the catch. How to interpret dreams is the morning method. This page is the invitation.",
+    ],
+    sections: [
+      {
+        heading: "How to set the question",
+        paragraphs: [
+          "Pick one question you actually live with. 'What am I avoiding in this job?' beats 'What is the meaning of life?' Write it in a short sentence. Read it once in bed. Picture a simple scene related to it — a door, a table, a person — then let go. Demanding a cinematic answer is a good way to stay awake.",
+          "Avoid questions that are really forecasts: lottery numbers, whether someone will leave you, medical outcomes. The night is not a lab test. It is good at showing feeling and unfinished attitude. It is bad at being an oracle. Prophetic-dreams is the page for when a night later seems to match an event anyway.",
+        ],
+      },
+      {
+        heading: "What actually helps the night arrive",
+        paragraphs: [
+          "Recall is the bottleneck. The remembering-dreams habits apply: lie still, write fragments, skip the phone. A question you never catch cannot be used. Mild lucidity practice — a daytime reality check, a MILD sentence — can raise the odds of noticing you are in a scene related to the question. Sleep loss in pursuit of a vision is a bad trade.",
+          "Some people incubate for healing or for a visit from someone who died. Healing-dreams and visitation-dreams cover those hopes. Keep the frame as invitation, not as a demand that the dead or the body perform. If nothing comes, that is a common result, not a spiritual failure.",
+        ],
+      },
+      {
+        heading: "How to read what shows up",
+        paragraphs: [
+          "Assume the night used your material, not a courier. A snake, a house, a flood after you asked about a relationship is still a snake, a house, a flood — open those dictionary pages, then map onto the question you posed. If the dream seems unrelated, it may be answering a more honest question than the one you wrote.",
+          "Write before you admire. Then take one waking step the feeling suggests. Incubation without action is a hobby. The theorists page can add Freud's wish or Jung's compensation as extra questions. None of them owns the result.",
+        ],
+      },
+      {
+        heading: "When not to incubate",
+        paragraphs: [
+          "If you already have unmanageable nightmares, sleep paralysis fear, or hypnagogic distress, do not add a bedtime ritual that turns sleep into a project. Stabilize rest first. How to stop nightmares and the border-state guides are the neighbors.",
+          "Do not incubate other people's secrets or try to 'send' a dream into someone. Shared-dreams explains why that wish is usually about control. Your own night is enough material.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Does dream incubation work?",
+        answer:
+          "People who journal and set a simple intention often remember more on-topic nights. That is attention plus memory, which is already useful. It is not a guaranteed delivery system for answers.",
+      },
+      {
+        question: "What should I ask?",
+        answer:
+          "A question about a feeling, a choice, or a pattern you can act on. Not a yes-no about the future, not a medical diagnosis, not someone else's private life.",
+      },
+      {
+        question: "What if I get nothing?",
+        answer:
+          "Ordinary. Sleep may have had other housekeeping. Try again on a less exhausted night, or treat the absence as 'this file is not ready,' which is also information.",
+      },
+      {
+        question: "Is incubation the same as lucid dreaming?",
+        answer:
+          "No. Incubation is a bedtime invitation. Lucidity is knowing you are dreaming while it happens. You can use both. Neither is required for a useful morning.",
+      },
+    ],
+    relatedSymbolSlugs: ["house", "water", "snake", "god"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "how-to-stop-nightmares",
+    name: "How to Stop Nightmares",
+    title: "How to Stop Nightmares",
+    seoTitle: "How to Stop Nightmares: Sleep, Rehearsal & When to Get Help",
+    seoDescription:
+      "Practical ways to reduce nightmares: sleep timing, fewer amplifiers, imagery rehearsal, and the line where trauma nights belong with a clinician — not only a dictionary.",
+    icon: "🛡️",
+    accent: "#b91c1c",
+    summary: "What actually reduces nightmares — and what is a sleep problem rather than a symbol.",
+    intro: [
+      "A nightmare is a dream that wakes you with fear, dread, or disgust and leaves a plot you can often retell. People want them to stop because the night is wrecking the day, or because they fear sleep itself. Meaning still matters — chase, falling, drowning, a demon in the room — but the first job is rest. A symbol key will not put the body back in safety.",
+      "The nightmares hub gathers the frightening dictionary pages. Recurring dreams explain the loop. Night terrors are a different event. This page is the practical sequence: amplifiers, sleep, imagery rehearsal, and the point where you stop interpreting and get help.",
+    ],
+    sections: [
+      {
+        heading: "Cut the ordinary amplifiers",
+        paragraphs: [
+          "Late alcohol, skipped sleep, fever, a violent film, withdrawal from a substance, and some medications all raise nightmare frequency. Irregular hours push more REM into a rough morning. Treat these before you invent a curse. The vivid-dreams page covers intensity; here the target is fear that wakes you.",
+          "A regular window of sleep, a cooler darker room, and a buffer after screens and news are unglamorous and effective. If a new pill arrived with the nights, ask the prescriber — not a forum — whether vivid or frightening dreams are a known effect.",
+        ],
+      },
+      {
+        heading: "Imagery rehearsal",
+        paragraphs: [
+          "Imagery rehearsal therapy is the technique with the most evidence for recurrent nightmares: while awake, you write the nightmare, then write a new ending in which you have more agency, and you rehearse the new version daily. You are not pretending the fear was silly. You are giving the sleeping brain another file to run.",
+          "Keep the rewrite specific and short. Lucidity can do similar work from inside a chase, but you do not need lucidity for rehearsal to help. If the nightmare is trauma replay, use a clinician who knows trauma and sleep — self-administered rehearsal can still be useful but is not a full treatment.",
+        ],
+      },
+      {
+        heading: "Read the night after you can sleep",
+        paragraphs: [
+          "Once the frequency drops, interpretation is safer. Being chased often tracks avoidance. Drowning tracks overwhelm. A demon or intruder tracks a boundary or a part of you that feels hostile. Open those symbol pages and the anxiety-dreams guide. Healing dreams are the cousin when a night finally ends differently.",
+          "Do not interview a child for plot after a nightmare the way you would an adult journal. Comfort, safety of the room, drawing a new ending if they want. Night terrors still need the other page: no story, glassy eyes, little morning memory.",
+        ],
+      },
+      {
+        heading: "When to get help now",
+        paragraphs: [
+          "Nightly terror, avoiding sleep, injury, PTSD-style replays, daytime crashes, or thoughts of harm belong with a doctor or therapist. Sleep paralysis with a figure in the room is a border state — see that guide and hypnagogic hallucinations — and still deserves care if it makes you fear the bed.",
+          "These pages are for reflection. They are not a protocol for nightmare disorder. If the night is a battlefield, meaning can wait.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What is the fastest way to stop nightmares?",
+        answer:
+          "There is no honest switch. Regular sleep, cutting late alcohol, and daily imagery rehearsal are the most reliable starting set. Trauma nights need a clinician as well.",
+      },
+      {
+        question: "Does interpreting a nightmare make it worse?",
+        answer:
+          "Rumination can. A short written version plus a new ending is different from looping the fear all day. If journaling amplifies the night, stop and protect sleep first.",
+      },
+      {
+        question: "Are nightmares more meaningful than other dreams?",
+        answer:
+          "They are louder. Loud is not the same as truer. After you can rest, the feeling and the waking match still decide whether a reading helps.",
+      },
+      {
+        question: "Can lucid dreaming stop nightmares?",
+        answer:
+          "Sometimes, if you can recognize the dream and change the ending. Training lucidity can also fragment sleep. Rehearsal while awake is usually the gentler first tool.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "being-chased", "drowning", "demon"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "hypnagogic-hallucinations",
+    name: "Hypnagogic Hallucinations",
+    title: "Hypnagogic Hallucinations",
+    seoTitle: "Hypnagogic Hallucinations: Images at the Edge of Sleep",
+    seoDescription:
+      "Hypnagogic (and hypnopompic) hallucinations are images, sounds, or a presence at the edge of sleep. How they differ from dreams and psychosis, and how they sit next to sleep paralysis.",
+    icon: "🌫️",
+    accent: "#6d28d9",
+    summary: "Flashes, voices, and a presence while falling asleep or waking — not a full dream story.",
+    intro: [
+      "A hypnagogic hallucination is a sensory event at sleep onset: a flash of a face, a name spoken, the feeling of a figure in the room, a bang, a taste, a drop. Hypnopompic is the same family at waking. They can be vivid, brief, and convincing. They are not the same as a full REM dream with a plot, and they are not the same as a daytime psychotic hallucination — though they can be just as frightening in the moment.",
+      "They share a border with sleep paralysis, false awakening, and the first seconds of lucidity. The sleep-paralysis guide is the companion when the body will not move. This page is the image without the story, and the line where a doctor belongs.",
+    ],
+    sections: [
+      {
+        heading: "What people actually see and hear",
+        paragraphs: [
+          "Common reports: geometric flashes, a person in the doorway, an animal on the bed, one's name, a doorbell, the sense of being touched. The scene often uses the real room. That blend of perception and dream imagery is why it feels like an intrusion rather than 'just a dream.' A falling feeling with a body jerk is related (a hypnic jerk) and usually harmless.",
+          "Anxiety and grief can dress the flash as a ghost or a warning. Visitation-dreams covers full nights with a deceased person. A two-second face at the foot of the bed is more often this border state. Naming it correctly reduces the urge to build a cosmology before breakfast.",
+        ],
+      },
+      {
+        heading: "Why the edge of sleep does this",
+        paragraphs: [
+          "Falling asleep and waking are not switches. Sensory systems, REM-like imagery, and muscle tone come online and offline on slightly different clocks. If imagery arrives while you still have a foot in the room, you get a hallucination with your eyes perhaps open. Sleep debt, irregular hours, and narcolepsy-spectrum conditions raise the odds. So can fever and some medicines.",
+          "Trying hard to lucid dream or to incubate a vision can also park attention on the doorway and make flashes more noticeable. If that is your project, expect them. If they distress you, drop the techniques and protect ordinary sleep.",
+        ],
+      },
+      {
+        heading: "What to do in the moment",
+        paragraphs: [
+          "Name the state: 'this is the edge of sleep.' Turn on a low light if you need the room to be a room. Move a finger or a toe if you can; if you cannot, you may be in sleep paralysis — wait, breathe, it passes. Do not leap up to hunt an intruder until you are sure you are fully awake, especially after a false awakening loop.",
+          "In the morning, a one-line log (time, image, could I move?) is more useful than a symbol essay. If a figure keeps returning as a full nightmare, then open the demon, ghost, or chase pages and how to stop nightmares.",
+        ],
+      },
+      {
+        heading: "When it is not 'just hypnagogia'",
+        paragraphs: [
+          "Hallucinations while fully awake and oriented, daytime sleep attacks, sudden muscle weakness with emotion, or a new pattern after a medicine change belong with a clinician. So does a presence that wrecks sleep nightly. These pages cannot diagnose narcolepsy, delirium, or psychiatric illness.",
+          "Children who scream without a story are more often in night terrors than in hypnagogia. Keep the distinctions; they change the first aid.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Are hypnagogic hallucinations dangerous?",
+        answer:
+          "The events themselves are usually a sleep-wake overlap, not an attack. Danger is injury from bolting up, or missing a medical pattern such as daytime sleep attacks. Fright is common and not proof of a haunting.",
+      },
+      {
+        question: "Is this a dream or a hallucination?",
+        answer:
+          "It is dream-like imagery at the wrong moment, often mixed with the real room. A full dream is a longer REM (or NREM) story. The word hallucination here is clinical for the sensory event, not an insult.",
+      },
+      {
+        question: "Can they mean something?",
+        answer:
+          "A repeating figure can still be read as a symbol after you are safe. The flash itself is often just the doorway. Do not skip the sleep-paralysis and night-terror distinctions.",
+      },
+      {
+        question: "How do I make them stop?",
+        answer:
+          "Regular sleep, less sleep debt, caution with lucidity drills, and a check of medicines with a doctor. Alcohol and irregular shifts are common aggravators.",
+      },
+    ],
+    relatedSymbolSlugs: ["ghost", "demon", "nightmare", "falling"],
+    updatedAt: "2026-09-11",
+  },
+  {
+    slug: "erotic-dreams",
+    name: "Erotic Dreams",
+    title: "Erotic Dreams",
+    seoTitle: "Erotic Dreams & Wet Dreams: Desire, Guilt & Meaning",
+    seoDescription:
+      "Erotic dreams and wet dreams are common. How to read desire, cheating scenes, and an unexpected partner — without shame, prophecy, or treating the night as a verdict on a relationship.",
+    icon: "💫",
+    accent: "#db2777",
+    summary: "Sex in dreams — desire, rehearsal, guilt, and why the partner is often not the point.",
+    intro: [
+      "Erotic dreams are ordinary. They include desire, sex, wet dreams (nocturnal emission), scenes with a partner, an ex, a stranger, or someone 'you would never.' People search them because the morning can bring pleasure, confusion, or guilt as if the night were a confession. The body can complete a cycle in sleep. The plot can still be made of feeling, power, reunion, or curiosity rather than a to-do list for the day.",
+      "Dreamly's sex, cheating, ex, and wedding dictionary pages hold the images. This guide is the type: how to read the night without shame and without using it as a weapon against yourself or someone else.",
+    ],
+    sections: [
+      {
+        heading: "Body, REM, and leftover day",
+        paragraphs: [
+          "REM sleep is sexually active physiology for many people, including those who do not remember plots. Wet dreams in adolescence are a developmental file, not a moral report. Adults have them too, especially after abstinence, new attraction, or simply a REM-rich morning. Hormones, pregnancy, and some medications change frequency. None of that requires a scandal.",
+          "The plot still uses waking material: a look, a show, a fight, a reunion, a fear of being chosen or not chosen. Vivid erotic nights often rise with the same amplifiers as other vivid dreams. Read intensity as intensity; then ask what feeling the scene used.",
+        ],
+      },
+      {
+        heading: "When the partner is unexpected",
+        paragraphs: [
+          "Dreaming of sex with an ex often tracks unfinished attachment or an old pattern entering a new bond — not a command to text them. A coworker or friend can stand for a quality (ease, danger, admiration) more than for a plan. A stranger can be a part of you. Perls-style questions from the theorists page help: if this figure had a sentence, what would it say?",
+          "Cheating dreams are among the most searched and the most misused. They often track trust, comparison, or a fear of being replaceable rather than evidence of a waking affair. The cheating symbol page goes deeper. Do not open a trial at breakfast on the basis of a plot the other person did not dream.",
+        ],
+      },
+      {
+        heading: "Guilt, culture, and faith lenses",
+        paragraphs: [
+          "Shame after an erotic dream is often the culture talking, not the night. Psychological readings ask about desire and defense. Spiritual readings can ask what union, vitality, or hunger the season is practicing. Islamic and biblical sections in the dictionary summarize broad etiquette: dreams are not automatically rulings, and private nights are not public verdicts. Use those lenses as questions.",
+          "Shared or 'I dreamed of you' revelations need consent in the telling. An erotic dream about someone is not their invitation and not your right to narrate. The shared-dreams page covers the ethics of reporting overlap.",
+        ],
+      },
+      {
+        heading: "When the night is not about sex",
+        paragraphs: [
+          "Power, humiliation, healing, and anxiety borrow erotic imagery because it is intense. A nightmare that uses sex as threat belongs with how to stop nightmares and, if it is trauma, with a clinician — not with a coy symbol key. Compulsive, distressing, or compulsive-replay nights that wreck the day are a sleep and mental-health issue.",
+          "Incubation and lucidity can be used to explore desire with more choice. They can also become another performance. If the project is stealing rest, stop. Ordinary affection in the day changes more erotic nights than another technique.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Does an erotic dream mean I want that person?",
+        answer:
+          "Not necessarily. The figure may stand for a quality, a memory, or a conflict. Attraction in a dream is data about feeling, not a contract. Check waking life without putting the other person on trial.",
+      },
+      {
+        question: "Are wet dreams normal?",
+        answer:
+          "Yes, especially in adolescence and also in adults. They are a body event that may or may not come with a remembered plot. They are not proof of a moral failure.",
+      },
+      {
+        question: "I dreamed my partner cheated. Should I be worried?",
+        answer:
+          "Often the dream is your insecurity or a real trust question you have not spoken. Ask about the waking relationship. Do not treat the plot as evidence they did something last night.",
+      },
+      {
+        question: "Can I stop erotic dreams?",
+        answer:
+          "You can lower recall and some amplifiers (late stimulation, irregular sleep). You cannot fully cancel sexual physiology in REM. If the content is traumatic or compulsive, get clinical help rather than a suppression trick.",
+      },
+    ],
+    relatedSymbolSlugs: ["sex", "cheating", "ex", "wedding"],
+    updatedAt: "2026-09-11",
+  },
 ];
 
 export const DREAM_GUIDE_SLUGS = DREAM_GUIDES.map((guide) => guide.slug);
@@ -773,14 +1463,39 @@ export function getDreamGuide(slug: string): DreamGuide | undefined {
 
 /** Parent symbol slugs that should surface educational guides. */
 export const GUIDES_FOR_SYMBOL: Record<string, string[]> = {
-  flying: ["lucid-dreams"],
-  nightmare: ["recurring-dreams", "sleep-paralysis", "false-awakening", "healing-dreams"],
-  pregnancy: ["children-and-dreams"],
-  baby: ["children-and-dreams"],
-  death: ["prophetic-dreams"],
-  god: ["prophetic-dreams", "dream-theorists"],
-  house: ["types-of-dreams", "remembering-dreams"],
-  snake: ["dream-theorists"],
+  flying: ["lucid-dreams", "vivid-dreams"],
+  nightmare: [
+    "how-to-stop-nightmares",
+    "recurring-dreams",
+    "sleep-paralysis",
+    "false-awakening",
+    "night-terrors",
+    "anxiety-dreams",
+    "hypnagogic-hallucinations",
+    "healing-dreams",
+  ],
+  pregnancy: ["children-and-dreams", "vivid-dreams"],
+  baby: ["children-and-dreams", "night-terrors"],
+  child: ["children-and-dreams", "night-terrors"],
+  death: ["visitation-dreams", "prophetic-dreams"],
+  funeral: ["visitation-dreams"],
+  ghost: ["visitation-dreams", "hypnagogic-hallucinations"],
+  angel: ["visitation-dreams", "healing-dreams"],
+  god: ["dream-incubation", "prophetic-dreams", "dream-theorists"],
+  house: ["how-to-interpret-dreams", "dream-incubation", "types-of-dreams", "remembering-dreams", "shared-dreams"],
+  snake: ["how-to-interpret-dreams", "dream-theorists", "dream-incubation"],
+  water: ["how-to-interpret-dreams", "vivid-dreams", "shared-dreams"],
+  falling: ["anxiety-dreams", "hypnagogic-hallucinations"],
+  "being-late": ["anxiety-dreams"],
+  test: ["anxiety-dreams"],
+  "being-naked": ["anxiety-dreams"],
+  "being-chased": ["how-to-stop-nightmares", "anxiety-dreams"],
+  drowning: ["how-to-stop-nightmares"],
+  demon: ["how-to-stop-nightmares", "hypnagogic-hallucinations", "night-terrors"],
+  sex: ["erotic-dreams"],
+  cheating: ["erotic-dreams"],
+  ex: ["erotic-dreams"],
+  wedding: ["shared-dreams", "erotic-dreams"],
 };
 
 export function getGuidesForSymbol(symbolSlug: string): DreamGuide[] {

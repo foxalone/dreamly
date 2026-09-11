@@ -117,7 +117,8 @@ export const EN_MESSAGES: UiMessages = {
     popularSymbols: "Popular symbols",
     popularSymbolsLead: "Parent topics and long-tail meanings",
     learnTitle: "Learn about dreaming",
-    learnLead: "Educational guides on why we dream, the main dream types, recall, childhood nights, and the theorists behind interpretation.",
+    learnLead:
+      "Guides on how to interpret dreams, why we dream, nightmares and night terrors, vivid and anxiety nights, visitation and shared dreams, incubation, recall, childhood, and the theorists behind interpretation.",
     browseTheme: "Browse by theme",
     seoClusters: "SEO clusters",
     exploreCluster: "Explore cluster",

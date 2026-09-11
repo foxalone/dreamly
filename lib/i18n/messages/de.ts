@@ -117,7 +117,8 @@ export const DE_MESSAGES: UiMessages = {
     popularSymbols: "Beliebte Symbole",
     popularSymbolsLead: "Hauptthemen und Long-Tail-Bedeutungen",
     learnTitle: "Über das Träumen lernen",
-    learnLead: "Leitfäden: warum wir träumen, Traumarten, Erinnern, Kindheit und die Theoretiker der Deutung.",
+    learnLead:
+      "Leitfäden: Träume deuten, warum wir träumen, Albträume und Pavor nocturnus, lebhafte und Angstnächte, Besuchsträume und geteilte Träume, Inkubation, Erinnern, Kindheit und die Theoretiker der Deutung.",
     browseTheme: "Nach Thema stöbern",
     seoClusters: "Symbolgruppen",
     exploreCluster: "Gruppe öffnen",

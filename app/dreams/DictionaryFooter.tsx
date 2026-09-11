@@ -4,6 +4,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import { SUPPORT_EMAIL } from "@/lib/i18n/config";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { getAllCategoryCopy } from "@/lib/i18n/categories";
+import { getLocalizedGuide } from "@/lib/i18n/localize-guides";
 import type { DreamCategory } from "@/lib/dream-categories";
 import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 
@@ -12,12 +13,17 @@ export default function DictionaryFooter() {
   const t = useMessages();
   const categories = getAllCategoryCopy(locale);
 
+  const interpret = getLocalizedGuide("how-to-interpret-dreams", locale);
+  const stopNightmares = getLocalizedGuide("how-to-stop-nightmares", locale);
+
   const hubs: { href: string; label: string }[] = [
     { href: "/dreams", label: t.dictionary.h1 },
     { href: "/gallery", label: t.gallery.h1 },
     { href: "/dreams/a-z", label: t.dictionary.aToZ },
     { href: "/dreams/most-common", label: t.dictionary.mostCommon },
     { href: "/dreams/nightmares", label: t.dictionary.nightmares },
+    { href: "/dreams/how-to-interpret-dreams", label: interpret?.name ?? t.guide.learn },
+    { href: "/dreams/how-to-stop-nightmares", label: stopNightmares?.name ?? t.dictionary.nightmares },
     { href: "/dreams/why-we-dream", label: t.guide.learn },
     { href: "/dreams/types-of-dreams", label: t.dictionary.howDreamingWorks },
     { href: "/dreams/biblical", label: t.dictionary.biblical },
