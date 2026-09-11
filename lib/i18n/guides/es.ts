@@ -687,41 +687,41 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
   "how-to-interpret-dreams": {
     name: "Cómo interpretar sueños",
     title: "Cómo interpretar sueños",
-    seoTitle: "Cómo interpretar sueños: un método con los pies en la tierra",
+    seoTitle: "Cómo interpretar un sueño: sentimiento primero, símbolo después",
     seoDescription:
-      "Un método práctico para interpretar sueños: atrapa el sentimiento, mapea la escena sobre la vida despierta, usa los símbolos como preguntas — no como un código de una sola clave ni como profecía.",
-    summary: "Un método para leer una noche — primero el sentimiento, después el símbolo, y una acción antes del mediodía.",
+      "Un método con los pies en la tierra: nombra lo que sentiste, acerca la escena a esta semana y trata los símbolos como preguntas. Ni clave única ni profecía.",
+    summary: "Un modo de leer la noche: primero el sentimiento, después la imagen, y un paso concreto antes del mediodía.",
     intro: [
-      "La mayoría abre un diccionario de sueños buscando un veredicto. La habilidad útil es más chica y más lenta: conservar la imagen, nombrar el sentimiento y preguntar a qué de esta semana se parece la escena. Interpretar es una forma de escuchar, no un tribunal. Las cuatro lentes de Dreamly — psicológica, espiritual, islámica y bíblica — se sientan juntas para que una sola escuela no sea dueña de la noche.",
-      "No necesitas a Freud, un cristal ni una teoría completa del REM. Necesitas una pausa antes de que el día hable por encima del residuo, y la negativa a tratar una trama como diagnóstico médico o como pronóstico de lo que harán los demás. Las páginas de tipos de sueños, por qué soñamos y los teóricos son compañeras. Esta es el método.",
+      "Casi nadie abre un diccionario de sueños para escuchar. Se busca un veredicto: esto significa aquello, de una vez. El oficio útil es más chico y más lento. Conservas la imagen, nombras lo que sentiste y preguntas a qué de esta semana se parece esa escena. Interpretar es una forma de atender, no un tribunal. En Dreamly las cuatro lecturas —psicológica, espiritual, islámica y bíblica— conviven para que una sola escuela no se quede con la noche.",
+      "No hace falta Freud, ni un cristal, ni una teoría cerrada del REM. Hace falta una pausa antes de que el día hable por encima de lo que quedó, y la negativa a tratar una trama como diagnóstico o como pronóstico de lo que harán los demás. Las páginas de tipos de sueños, por qué soñamos y Freud, Jung y otros acompañan. Esta es el método.",
     ],
     sections: [
       {
         heading: "Empieza por el sentimiento, no por el objeto",
         paragraphs: [
-          "Escribe tres cosas antes de ir a buscar un sentido: la última emoción, el último lugar y qué cambió al final. Una serpiente a la que haces amiga no es el mismo archivo que una que muerde. El agua en la que nadas no es el agua que te ahoga. La entrada del diccionario es un vocabulario de partida. El sentimiento te dice qué frase de ese vocabulario está viva.",
-          "Si la noche no dejó sentimiento, puede que no necesite lectura. Tramas ocupadas que se evaporan con el desayuno suelen ser aseo pendiente. La recurrencia, un ánimo que dura hasta el día o una escena que rima con una presión despierta es mejor señal que la novedad o lo extraño.",
+          "Antes de ir a buscar un sentido, anota tres cosas: la última emoción, el último lugar y qué cambió al final. Una serpiente a la que acercas la mano no es la misma noche que una que muerde. El agua en la que nadas no es el agua que te cubre la boca. El diccionario ofrece un vocabulario de partida. El sentimiento te dice cuál de esas frases está viva esta mañana.",
+          "Si la noche no dejó sentimiento, tal vez no pida lectura. Las tramas ocupadas que se evaporan con el café suelen ser el aseo de la mente. Lo que sí pide atención: que vuelva, que el ánimo dure hasta el mediodía, o que la escena rime con una presión que ya cargas. Lo extraño, por sí solo, no es una señal.",
         ],
       },
       {
-        heading: "Mapea la noche sobre esta semana",
+        heading: "Compara el sueño con esta semana",
         paragraphs: [
-          "Haz una pregunta seca: ¿a qué situación, relación o decisión pospuesta se parece esto? Un sueño de examen en una semana de rendimiento suele ser ansiedad de evaluación, aunque hayas dejado la escuela hace décadas. Una casa con habitaciones de más durante una mudanza o un rol nuevo suele ser la psique agregando espacio, no un presagio inmobiliario. Mantén el encaje local. La biografía está permitida; la adivinación, no.",
-          "Después mira qué hiciste en el sueño. ¿Corriste, hablaste, te congelaste, reparaste, te escondiste, pediste ayuda? La acción suele ser el ensayo. Las páginas de cómo detener pesadillas y de sueños de ansiedad cubren las noches que son sobre todo ensayo de amenaza. Los sueños de sanación y de visita cubren las que se sienten como contacto o reparación. Usa el tipo como primer corte; después, el símbolo.",
+          "Haz una pregunta seca: ¿a qué situación, vínculo o decisión pospuesta se parece esto? Soñar un examen en una semana de evaluación suele ser el miedo a que te midan, aunque hayas dejado el aula hace veinte años. Una casa con habitaciones de más durante una mudanza o un cargo nuevo suele ser la psique pidiendo espacio, no un aviso inmobiliario. Quédate en estos días. Tu historia puede entrar; adivinar el porvenir, no.",
+          "Después mira qué hiciste. ¿Corriste, hablaste, te quedaste quieto, reparaste, te escondiste, pediste ayuda? Esa acción suele ser el ensayo. Cómo detener pesadillas y sueños de ansiedad cubren las noches que ensayan amenaza. Sueños de sanación y sueños de visita cubren las que se sienten como contacto o reparación. Primero el tipo de noche; después, el símbolo.",
         ],
       },
       {
-        heading: "Usa varias lentes; no dejes que ninguna sentencie",
+        heading: "Varias lecturas, ninguna como veredicto",
         paragraphs: [
-          "Una lectura psicológica pregunta qué deseo, miedo o compensación se viste en la escena. Una espiritual pregunta qué cualidad está practicando la temporada. Las páginas islámica y bíblica resumen una etiqueta interpretativa amplia — discernimiento, consejo, la negativa a que una noche anule la sabiduría — no un dictamen. Si dos lentes coinciden, tómate eso en serio. Si chocan, el choque es información: estás parado en más de una historia sobre la misma imagen.",
-          "La incubación de sueños es el reverso de la interpretación: planteas una pregunta antes de dormir y ves qué llega. La lucidez te deja preguntarle a una figura desde adentro. Ninguna sustituye el trabajo de la mañana: escribir y actuar. Un sentido que no cambia nada antes del mediodía probablemente fue entretenimiento.",
+          "La lectura psicológica pregunta qué deseo, miedo o compensación se viste en la escena. La espiritual, qué cualidad está practicando esta temporada. Las páginas islámica y bíblica recuerdan una etiqueta amplia —discernimiento, consejo, no dejar que una noche anule el juicio— y no dictan. Si dos lecturas coinciden, tómatelo en serio. Si chocan, el choque también informa: estás parado en más de una historia sobre la misma imagen.",
+          "La incubación de sueños es el reverso: planteas una pregunta al acostarte y ves qué llega. La lucidez te deja preguntarle a una figura desde adentro. Ninguna sustituye el trabajo de la mañana: escribir y actuar. Un sentido que no mueve nada antes del mediodía probablemente fue entretenimiento.",
         ],
       },
       {
-        heading: "Qué no hacer con un sueño",
+        heading: "Lo que un sueño no puede pedirte",
         paragraphs: [
-          "No cambies un medicamento, no termines una relación, no gastes la renta ni avises a alguien como si le hubieras visto el futuro. No saltes una cita médica porque un sueño de sanación se sintió limpio. No fuerces la pesadilla de un niño hacia la profecía ni hacia la burla. La fiebre, el alcohol, un medicamento nuevo y una película violenta son amplificadores ordinarios: descártalos antes de apoyar una decisión de vida.",
-          "Si las noches son frecuentes, aterradoras o están destrozando el día, estás más cerca del sueño, el trauma y el cuidado clínico que de una mejor clave de símbolos. La nota médica al pie de estas páginas no es adorno. Interpretar es para el residuo que te puedes permitir mirar.",
+          "No cambies un medicamento, no cierres una relación, no gastes la renta ni avises a alguien como si le hubieras visto el futuro. No canceles una cita médica porque un sueño de sanación se sintió limpio. No conviertas la pesadilla de un niño en profecía ni en chiste. La fiebre, el alcohol, un fármaco nuevo y una película violenta avivan noches raras: descártalos antes de apoyar una decisión de vida.",
+          "Si las noches son frecuentes, aterradoras o te dejan el día destrozado, estás más cerca del descanso, del trauma y de un clínico que de una clave más fina de símbolos. La nota médica al pie de estas páginas no es adorno. Interpretar es para el residuo que te puedes permitir mirar.",
         ],
       },
     ],
@@ -729,63 +729,63 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Hay una forma correcta de interpretar un sueño?",
         answer:
-          "Hay un orden útil: sentimiento, encaje despierto, después el símbolo. No hay una sola clave correcta. Las culturas y las fes discrepan, y por eso Dreamly guarda varias lecturas en una página.",
+          "Hay un orden útil: sentimiento, parecido con el día, después el símbolo. No hay una sola clave correcta. Las culturas y las fes discrepan, y por eso Dreamly guarda varias lecturas en una misma página.",
       },
       {
         question: "¿Necesito un diccionario?",
         answer:
-          "Un diccionario es vocabulario, no un veredicto. Ayuda cuando la imagen es común — serpiente, dientes, persecución, casa. Tu semana sigue teniendo que dar el encaje. Empieza por los índices de más comunes y A–Z si no sabes el slug.",
+          "Un diccionario es vocabulario, no un veredicto. Ayuda cuando la imagen es frecuente —serpiente, dientes, persecución, casa—. Tu semana sigue teniendo que dar el parecido. Empieza por los índices de más comunes y A–Z si no sabes por dónde buscar.",
       },
       {
         question: "¿Y si dos sentidos se contradicen?",
         answer:
-          "Quédate con ambos como preguntas. Una serpiente puede ser miedo y transformación en la misma noche. La prueba útil es qué frase vuelve más honesta tu vida despierta, no cuál suena más mística.",
+          "Quédate con ambos como preguntas. Una serpiente puede ser miedo y transformación en la misma noche. La prueba útil es qué frase vuelve más honesta tu vida despierta, no cuál suena más misteriosa.",
       },
       {
         question: "¿Debo interpretar cada sueño?",
         answer:
-          "No. Los fragmentos que se desvanecen, las noches de fiebre y las tramas que eran claramente la película de anoche casi nunca pagan una lectura cerrada. Reserva el método para un sentimiento fuerte, la recurrencia o una escena que no puedes sacudirte.",
+          "No. Los fragmentos que se desvanecen, las noches de fiebre y las tramas que eran claramente la película de anoche casi nunca merecen una lectura cerrada. Reserva el método para un sentimiento fuerte, para lo que vuelve o para una escena que no puedes sacudirte.",
       },
     ],
   },
   "vivid-dreams": {
     name: "Sueños vívidos",
     title: "Sueños vívidos",
-    seoTitle: "Sueños vívidos: por qué la noche de pronto se siente real",
+    seoTitle: "Sueños vívidos: cuando la noche se siente más real que el día",
     seoDescription:
-      "Los sueños vívidos se sienten más reales de lo habitual — color, sonido, convicción. Qué sube la intensidad, cuándo es un cambio de sueño y cómo leer una noche cinematográfica sin tratarla como un mensaje.",
-    summary: "Cuando un sueño se siente más real que el día — amplificadores, sentido y cuándo revisar el sueño.",
+      "Color que se sostiene, sonido que sobresalta, la convicción de que ocurrió. Qué aviva esa nitidez, cuándo es un cambio de sueño y cómo leerla sin tratarla como un mensaje.",
+    summary: "Cuando un sueño se siente más real que el día — qué lo aviva, qué puede significar y cuándo revisar el descanso.",
     intro: [
-      "Un sueño vívido no es una especie aparte. Es intensidad: color que se sostiene, sonido que sobresalta, la convicción de que ocurrió. La gente lo busca porque la mañana puede sentirse como una segunda vida que se niega a cerrar. Intensidad no es lo mismo que un mensaje. El cerebro es bueno haciendo cine. El cine no es automáticamente un consejo.",
-      "La vividez suele subir cuando el sueño se parte en más despertares REM — embarazo, fiebre, un medicamento nuevo, dejar el alcohol, un bebé en casa, el jet lag, o simplemente entrenar el recuerdo. El mapa de tipos de sueños trata la vividez como una cualidad. Esta página es esa cualidad como búsqueda.",
+      "Un sueño vívido no es otra especie. Es intensidad: un color que no se desdibuja, un sonido que te sobresalta, la convicción de que de verdad ocurrió. Se busca porque la mañana puede sentirse como una segunda vida que se niega a cerrar. Intensidad no es lo mismo que un mensaje. El cerebro es bueno fabricando presencia. La presencia no es, por sí sola, un consejo.",
+      "Esa nitidez suele subir cuando el sueño se parte y despiertas más veces en REM: embarazo, fiebre, un medicamento nuevo, dejar el alcohol, un bebé en casa, el jet lag, o simplemente entrenar el recuerdo. Tipos de sueños trata la vividez como una cualidad. Esta página es esa cualidad cuando alguien la busca por nombre.",
     ],
     sections: [
       {
-        heading: "Qué suele querer decir «vívido»",
+        heading: "Qué se siente una noche tan nítida",
         paragraphs: [
-          "Los relatos se agrupan en tres rasgos: riqueza sensorial, carga emocional y la sensación de duración. Un sueño vívido de volar puede dejar el cuerpo todavía inclinándose. Una discusión vívida puede dejar la garganta apretada. Puedes recordar diálogo, texturas y una trama con comienzo. Los sueños ordinarios suelen ser un ánimo más dos imágenes.",
-          "La lucidez y la vividez se solapan, pero no son lo mismo. Puedes saber que sueñas en una escena pálida, y puedes quedar completamente engañado por una hiperreal. Los falsos despertares suelen ser vívidos porque copian el dormitorio. Las imágenes hipnagógicas en el umbral del sueño pueden ser vívidas en un solo destello, sin historia.",
+          "Los relatos se agrupan en tres rasgos: riqueza de los sentidos, carga emocional y la sensación de que duró. Un vuelo nítido puede dejar el cuerpo todavía inclinándose. Una discusión nítida puede dejar la garganta apretada. Recuerdas diálogos, texturas, un comienzo. Los sueños ordinarios suelen ser un ánimo y dos imágenes.",
+          "Saber que sueñas y sentir la noche tan real no son lo mismo. Puedes estar lúcido en una escena pálida, y puedes quedar completamente engañado por una que parece el cuarto de verdad. Los falsos despertares suelen ser nítidos porque copian la recámara. Las alucinaciones hipnagógicas pueden ser nítidas en un solo destello, sin historia.",
         ],
       },
       {
-        heading: "Amplificadores frecuentes",
+        heading: "Qué enciende esa intensidad",
         paragraphs: [
-          "Las hormonas del embarazo y el posparto están bien documentadas. Dejar el alcohol o el cannabis, los ISRS y otros medicamentos que cambian el REM, la fiebre alta y una deuda de sueño que después rebota suben la intensidad. La cafeína tarde y los horarios irregulares fragmentan el sueño para que despiertes más a menudo en el último tercio cinematográfico de la noche.",
-          "La atención también amplifica. Empezar un diario de sueños, practicar la lucidez o decidir que «el universo está hablando» aumenta el recuerdo de noches vívidas porque despiertas ya con la pregunta puesta. Eso sirve si quieres más de la noche. Es ruido si querías un sueño más quieto.",
+          "Las hormonas del embarazo y del posparto están bien documentadas. Dejar el alcohol o el cannabis, ciertos antidepresivos y otros fármacos que cambian el REM, la fiebre alta y una deuda de sueño que después rebota suben la nitidez. La cafeína tarde y los horarios rotos fragmentan la noche para que despiertes más a menudo en el último tercio, cuando las imágenes ya vienen cargadas.",
+          "La atención también enciende. Empezar un diario, practicar la lucidez o decidir que «el universo está hablando» aumenta el recuerdo de noches nítidas porque despiertas ya con la pregunta puesta. Eso sirve si quieres más de la noche. Estorba si lo que buscabas era un descanso más quieto.",
         ],
       },
       {
-        heading: "Cómo leer una noche cinematográfica",
+        heading: "Cómo leerla sin convertirla en oráculo",
         paragraphs: [
-          "Usa el mismo método que con cualquier otro sueño, con un paso extra: nombra el amplificador. Si acabas de empezar una pastilla, te embarazaste o dejaste de beber, la vividez puede ser fisiología vestida de trama. La trama igual puede valer una frase — ¿qué sentimiento usó? — pero no construyas una vocación sobre una semana de REM de rebote.",
-          "Si la noche vívida es también una pesadilla, empieza por cómo detener pesadillas antes de cazar símbolos. Si es agradable y recurrente, pregunta qué recurso restaura. La guía de recordar sueños cubre cómo atrapar fragmentos; esta página trata por qué algunos llegan en 4K.",
+          "Usa el mismo método que con cualquier otro sueño, con un paso extra: nombra qué pudo avivar la noche. Si acabas de empezar una pastilla, estás embarazada o dejaste de beber, la nitidez puede ser el cuerpo vestido de trama. La trama igual puede valer una frase —¿qué sentimiento usó?— pero no construyas una vocación sobre una semana de REM de rebote.",
+          "Si esa noche nítida es también una pesadilla, empieza por cómo detener pesadillas antes de cazar símbolos. Si es agradable y vuelve, pregunta qué recurso restaura. Recordar sueños cubre cómo atrapar fragmentos; esta página trata por qué algunos llegan con un realismo que no cabía.",
         ],
       },
       {
-        heading: "Cuándo los sueños vívidos piden un clínico",
+        heading: "Cuándo conviene ver a un médico",
         paragraphs: [
-          "Una intensidad súbita e inmanejable con confusión diurna, alucinaciones estando del todo despierto o un colapso hacia el sueño corresponde a un médico. También un patrón que empezó con un medicamento nuevo y no se asienta. Estas páginas no son una ficha de efectos secundarios ni un diagnóstico.",
-          "Los niños y el embarazo tienen su propia guía porque ahí la vividez suele ser ordinaria. Un adulto que nunca recordaba sueños y de pronto se ahoga en ellos después de un trauma o un cambio de fármaco no debería tratar el cine como un ascenso espiritual hasta revisar sueño y ánimo.",
+          "Una intensidad súbita e inmanejable, con confusión de día, visiones estando del todo despierto o un desplome hacia el sueño, corresponde a un médico. También un patrón que empezó con un fármaco nuevo y no se asienta. Estas páginas no son una ficha de efectos secundarios ni un diagnóstico.",
+          "Infancia y embarazo tiene su propia guía porque ahí la nitidez suele ser ordinaria. Un adulto que nunca recordaba sueños y de pronto se ahoga en ellos después de un trauma o un cambio de medicamento no debería tratar esa avalancha como un ascenso espiritual hasta revisar descanso y ánimo.",
         ],
       },
     ],
@@ -793,63 +793,63 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Por qué de pronto mis sueños son tan vívidos?",
         answer:
-          "El sueño partido, más despertares REM, el embarazo, la fiebre, un medicamento nuevo o suspendido y la abstinencia de alcohol son los sospechosos habituales. Un hábito nuevo de diario también sube la captura. Revisa el cuerpo y la semana antes de asumir un mensaje.",
+          "El sueño partido, más despertares en REM, el embarazo, la fiebre, un medicamento nuevo o suspendido y dejar el alcohol son los sospechosos habituales. Un diario recién empezado también sube lo que atrapas. Revisa el cuerpo y la semana antes de asumir un mensaje.",
       },
       {
         question: "¿Los sueños vívidos significan más?",
         answer:
-          "Se recuerdan más, y por eso se sienten más importantes. El sentido sigue el sentimiento, la recurrencia y un encaje despierto — no el valor de producción.",
+          "Se recuerdan más, y por eso se sienten más importantes. El sentido sigue al sentimiento, a lo que vuelve y a un parecido con el día — no a lo vistoso de la noche.",
       },
       {
         question: "¿Puede un sueño vívido ser una visión?",
         answer:
-          "Algunas tradiciones leen las noches intensas como visitas o advertencias. Un enfoque con los pies en la tierra separa la experiencia de la pretensión: escríbela, prueba cualquier consejo contra la sabiduría despierta y no saltes el cuidado médico porque la noche se sintió sagrada.",
+          "Algunas tradiciones leen las noches intensas como visitas o advertencias. Un enfoque con los pies en la tierra separa lo vivido de la pretensión: escríbelo, prueba cualquier consejo contra la sabiduría despierta y no canceles el cuidado médico porque la noche se sintió sagrada.",
       },
       {
         question: "¿Cómo hago que paren los sueños vívidos?",
         answer:
-          "Horarios regulares, menos alcohol tarde, tratar con calma el rebote de sustancias y preguntarle a un clínico por un medicamento nuevo son las palancas prácticas. Dejar el diario también puede callar el recuerdo si la atención era el amplificador.",
+          "Horarios regulares, menos alcohol tarde, tratar con calma el rebote de una sustancia y preguntarle a un clínico por un medicamento nuevo son las palancas prácticas. Dejar el diario también puede callar el recuerdo si lo que avivaba la noche era la atención.",
       },
     ],
   },
   "night-terrors": {
     name: "Terrores nocturnos",
     title: "Terrores nocturnos",
-    seoTitle: "Terrores nocturnos frente a pesadillas: por qué no son lo mismo",
+    seoTitle: "Terrores nocturnos: no son la misma noche que una pesadilla",
     seoDescription:
-      "Los terrores nocturnos son un despertar del sueño profundo, no una pesadilla que se recuerda. En qué se diferencian, cómo se ven en niños y adultos, y cuándo llamar a un médico.",
-    summary: "Gritar desde el sueño profundo casi sin memoria — no es el mismo evento que una pesadilla.",
+      "Un terror nocturno es un despertar del sueño profundo, no una pesadilla que se puede contar. Cómo se ve en niños y adultos, qué hacer en el momento y cuándo llamar a un médico.",
+    summary: "Gritar desde el sueño profundo, casi sin memoria — no es el mismo suceso que una pesadilla.",
     intro: [
-      "Un terror nocturno no es un mal sueño que puedas contar. Es un despertar parcial del sueño profundo no REM: la persona puede gritar, sentarse, verse aterrada, sudar y parecer despierta sin responder de verdad. A la mañana suele no recordar nada, o solo un fragmento de pavor. Una pesadilla es una historia REM que te despierta con una trama. Mezclar las dos palabras hace que el consejo equivocado se sienta correcto.",
-      "Los terrores nocturnos son frecuentes en preescolar y los primeros años de escuela, y suelen desvanecerse. Los adultos también pueden tenerlos, sobre todo con deuda de sueño, alcohol, fiebre u otro trastorno del sueño. La página de niños y sueños cubre el marco del desarrollo. Esta es la distinción, los primeros auxilios y la línea donde corresponde un clínico.",
+      "Un terror nocturno no es un mal sueño que puedas contar al desayuno. Es un despertar a medias desde el sueño profundo, el que no es REM: la persona puede gritar, sentarse, verse aterrada, sudar y parecer despierta sin responder de verdad. A la mañana suele no recordar nada, o solo un resto de pavor. Una pesadilla es una historia del REM que te despierta con trama. Mezclar las dos palabras hace que el consejo equivocado se sienta correcto.",
+      "Son frecuentes en el preescolar y en los primeros años de escuela, y casi siempre se van. Los adultos también pueden tenerlos, sobre todo con deuda de sueño, alcohol, fiebre u otro trastorno. Infancia y embarazo cubre el marco del crecimiento. Esta página es la distinción, el primer auxilio y la raya donde corresponde un clínico.",
     ],
     sections: [
       {
-        heading: "Pesadilla frente a terror nocturno",
+        heading: "No es la misma noche que una pesadilla",
         paragraphs: [
-          "Pesadilla: más tarde en la noche, REM, una historia, despertar completo, memoria de la trama, el consuelo suele funcionar, la persona puede hablar. Terror nocturno: primer tercio de la noche, sueño profundo, poca o ninguna historia, ojos vidriosos, forcejeo o un grito congelado, intentar calmar puede no llegar, amnesia a la mañana. Los despertares confusos y el sonambulismo se sientan en la misma familia de trastornos del despertar.",
-          "Si un niño describe una persecución de monstruos en el desayuno, eso probablemente fue una pesadilla. Si gritó a las diez, no te reconoció y recuerda un blanco, eso probablemente fue un terror. La guía de cómo detener pesadillas es para lo primero. Esta página es para lo segundo.",
+          "Pesadilla: más tarde, REM, una historia, despertar completo, se recuerda la trama, el consuelo suele funcionar, la persona puede hablar. Terror nocturno: el primer tercio de la noche, sueño hondo, poca o ninguna historia, ojos vidriosos, forcejeo o un grito trabado, el consuelo puede no llegar, y a la mañana casi no hay memoria. Los despertares confusos y el sonambulismo pertenecen a la misma familia: trastornos del despertar.",
+          "Si un niño describe una persecución de monstruos en el desayuno, eso casi seguro fue una pesadilla. Si gritó a las diez, no te reconoció y recuerda un blanco, eso casi seguro fue un terror. Cómo detener pesadillas es para lo primero. Esta página es para lo segundo.",
         ],
       },
       {
-        heading: "Qué hacer en el momento",
+        heading: "Qué hacer mientras dura",
         paragraphs: [
-          "Evita que se lastime. Suaviza el cuarto, quédate cerca, no lo sacudas con fuerza para despertarlo y no exijas un relato. Un toque ligero y una voz baja alcanzan. Intentar «despertarlo bien» o interrogar la trama suele alargar el episodio. La mayoría de los terrores duran de segundos a unos minutos y terminan con un regreso al sueño.",
-          "El despertar programado — levantarlo un momento 15–30 minutos antes del episodio habitual, durante una tira de noches — tiene evidencia en casos tozudos, bajo guía pediátrica. Un horario regular de sueño, tratar la fiebre y recortar el caos tarde en la casa son las palancas ordinarias. No conviertas el evento en una leyenda familiar que el niño después tema.",
+          "Evita que se lastime. Baja las luces, quédate cerca, no lo sacudas para «despertarlo bien» y no le exijas un relato. Un toque ligero y una voz baja alcanzan. Interrogar la trama suele alargar el episodio. La mayoría dura de unos segundos a pocos minutos y termina cuando la persona vuelve a dormir.",
+          "En casos que no ceden, el pediatra a veces propone un despertar breve quince o treinta minutos antes de la hora habitual, durante varias noches seguidas. Un horario regular, tratar la fiebre y recortar el alboroto tarde en la casa son las palancas de siempre. No conviertas el episodio en una leyenda familiar que el niño después tema.",
         ],
       },
       {
-        heading: "Adultos, trauma y parecidos",
+        heading: "Adultos, trauma y lo que se le parece",
         paragraphs: [
-          "Los terrores nocturnos adultos existen. Son menos frecuentes que en los niños y más a menudo se sientan con apnea del sueño, pesadillas de TEPT, alcohol o turnos irregulares. Las pesadillas de TEPT suelen ser historias REM con memoria; corresponden al cuidado del trauma y a las páginas de pesadillas, no a la etiqueta de terror usada como metáfora.",
-          "La parálisis del sueño, las alucinaciones hipnagógicas y los falsos despertares son estados de frontera entre el REM y la vigilia — otra fisiología otra vez. Si no estás seguro de qué noche tuviste, anota a qué hora pasó, si hubo historia y si podías moverte y hablar. Ese registro le sirve más a un clínico que un símbolo.",
+          "Los terrores nocturnos también existen en adultos. Son menos frecuentes que en los niños y más a menudo conviven con apnea, pesadillas de trauma, alcohol o turnos rotos. Las pesadillas de TEPT suelen ser historias del REM con memoria; corresponden al cuidado del trauma y a cómo detener pesadillas, no a la palabra «terror» usada como metáfora.",
+          "La parálisis del sueño, las alucinaciones hipnagógicas y el falso despertar son otra frontera: REM y vigilia mezclados, otra fisiología. Si no estás seguro de qué noche tuviste, anota la hora, si hubo historia y si podías moverte y hablar. Ese apunte le sirve más a un clínico que cualquier símbolo.",
         ],
       },
       {
         heading: "Cuándo pedir ayuda",
         paragraphs: [
-          "Una lesión, salir de la cama hacia el peligro, episodios casi todas las noches, somnolencia diurna, pausas de la respiración o un inicio súbito en la adultez corresponden a un médico o a una clínica del sueño. Los terrores de un niño con fiebre que ocurren dos veces y se van suelen ser ordinarios. Estas páginas no pueden examinar a un niño.",
-          "No mediques desde un diccionario. No avergüences a una pareja adulta que «actuó como loca» dormida. Los trastornos del despertar no se eligen. La seguridad del cuarto y el horario del sueño van antes que el sentido.",
+          "Una lesión, salir de la cama hacia el peligro, episodios casi todas las noches, somnolencia de día, pausas al respirar o un comienzo súbito en la adultez corresponden a un médico o a una clínica del sueño. Los terrores de un niño con fiebre que ocurren dos veces y se van suelen ser ordinarios. Estas páginas no pueden examinar a un niño.",
+          "No mediques desde un diccionario. No avergüences a una pareja adulta que «actuó como loca» dormida. Estos despertares no se eligen. Primero la seguridad del cuarto y el horario; el sentido, si queda alguno, después.",
         ],
       },
     ],
@@ -857,7 +857,7 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Los terrores nocturnos son señal de trauma?",
         answer:
-          "En los niños chicos suelen ser un patrón de sueño del desarrollo, no un reporte de abuso. Los terrores adultos frecuentes o las historias de pesadilla con memoria merecen una historia clínica de verdad — incluido el trauma — de un profesional, no de un sitio web.",
+          "En los niños chicos suelen ser un patrón del desarrollo, no un reporte de abuso. Los terrores frecuentes en adultos, o las pesadillas con historia que se recuerdan, merecen una consulta de verdad —incluido el trauma— con un profesional, no con un sitio web.",
       },
       {
         question: "¿Debo despertar a alguien durante un terror nocturno?",
@@ -872,48 +872,48 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Mi hijo los va a superar?",
         answer:
-          "La mayoría sí, sobre todo si el sueño es regular. La persistencia, una lesión o un colapso diurno es la razón para ver a un clínico pediátrico en vez de esperar una estadística.",
+          "La mayoría sí, sobre todo si el sueño es regular. Si persisten, si hay una lesión o si de día se desploma, ve a un pediatra en vez de esperar una estadística.",
       },
     ],
   },
   "anxiety-dreams": {
     name: "Sueños de ansiedad",
     title: "Sueños de ansiedad",
-    seoTitle: "Sueños de ansiedad: exámenes, llegar tarde, caer y noches de estrés",
+    seoTitle: "Sueños de ansiedad: exámenes, llegar tarde y la presión de la semana",
     seoDescription:
-      "Los sueños de ansiedad ensayan la evaluación, la tardanza, la caída y la exposición. Por qué el estrés escribe las mismas tramas, cómo leerlas y cuándo son solo una semana ruidosa.",
-    summary: "Exámenes, tardanza, caer, desnudez — cómo el estrés reutiliza unas pocas tramas eficientes.",
+      "Exámenes, tardanza, caer, quedar a la vista. Por qué el estrés reutiliza las mismas tramas, cómo leerlas y cuándo son solo una semana ruidosa — no un presagio.",
+    summary: "Exámenes, llegar tarde, caer, desnudez — cómo el estrés vuelve a las mismas pocas tramas.",
     intro: [
-      "Un sueño de ansiedad es una noche que escenifica la presión: el examen que no encuentras, el tren que pierdes, la caída desde lo alto, el cuarto donde llegas sin preparar o sin ropa. Las tramas son famosas porque son eficientes. Empacan evaluación, tiempo, control y exposición en un set que la mente ya posee. Están entre los sueños más buscados porque se sienten como una advertencia. Suelen ser un parte del clima.",
-      "El estrés, las semanas de rendimiento y las decisiones inconclusas suben el volumen. Los sueños de ansiedad recurrentes corresponden a la guía de sueños recurrentes. Las pesadillas que te despiertan aterrado corresponden a cómo detener pesadillas. Esta página es el medio ordinario y agotador: la noche que sigue preguntando si estás listo.",
+      "Un sueño de ansiedad es una noche que pone en escena la presión: el examen que no encuentras, el tren que se te va, la caída desde lo alto, el cuarto donde llegas sin preparar o sin ropa. Esas tramas son famosas porque rinden mucho con poco. Meten evaluación, tiempo, control y quedar a la vista en un escenario que la mente ya conoce. Se buscan porque se sienten como una advertencia. Suelen ser, más bien, un parte del clima.",
+      "El estrés, las semanas en las que te miden y las decisiones que no cierras suben el volumen. Si la misma noche vuelve, abre sueños recurrentes. Si despiertas aterrado, abre cómo detener pesadillas. Esta página es el medio ordinario y agotador: la noche que sigue preguntando si estás listo.",
     ],
     sections: [
       {
-        heading: "Por qué ganan siempre las mismas tramas",
+        heading: "Por qué vuelven las mismas tramas",
         paragraphs: [
-          "La escuela, los relojes, las alturas y los cuartos públicos son archivos culturales compartidos. Cuando el sistema nervioso necesita ensayar «puedo fallar / puedo llegar tarde / puedo perder el control / me pueden ver», echa mano de esos archivos aunque no te hayas sentado a un examen en veinte años. El punto viejo de Calvin Hall sigue en pie: los sueños figuran cómo te ves a ti en un mundo de otros.",
-          "Caer suele seguir a una pérdida de apoyo o a una baja de estatus. Llegar tarde sigue a un estándar que temes no cumplir. Quedar desnudo sigue a la exposición. Un examen sigue a la medición. Las páginas del diccionario de esos símbolos profundizan en la imagen. Aquí el punto es la familia: son primas de la misma presión.",
+          "La escuela, los relojes, las alturas y los cuartos públicos son imágenes que casi todos compartimos. Cuando el cuerpo necesita ensayar «puedo fallar / puedo llegar tarde / puedo perder el control / me pueden ver», echa mano de esas imágenes aunque no te hayas sentado a un examen en veinte años. Lo que decía Calvin Hall sigue en pie: los sueños muestran cómo te ves a ti en un mundo de otros.",
+          "Caer suele hablar de un apoyo que faltó o de un descenso de lugar. Llegar tarde, de un listón que temes no alcanzar. Quedar desnudo, de la exposición. Un examen, de que te midan. Las páginas del diccionario de esos símbolos entran en la imagen. Aquí importa la familia: son parientes de la misma presión.",
         ],
       },
       {
-        heading: "Cómo leer una noche de ansiedad",
+        heading: "Cómo leer una noche de presión",
         paragraphs: [
-          "Nombra la evaluación despierta. Trabajo, resultado de salud, relación, dinero, un viaje, una conversación que pospones. Después nota qué hiciste en el sueño: congelarte, correr, hacer trampa, pedir ayuda, encontrar una puerta. La acción suele ser lo que ensayas o te niegas a hacer de día. Interpretar sin un siguiente paso deja el archivo abierto, y por eso vuelve el bucle.",
-          "Descarta amplificadores: cafeína tarde, sueño saltado, un thriller, fiebre. Después da un paso concreto despierto — una fecha más chica, una pregunta enviada, un límite dicho, una caminata, una hora de acostarte. El método de cómo interpretar sueños aplica: sentimiento, encaje, acción antes del mediodía.",
+          "Nombra la evaluación del día. El trabajo, un resultado de salud, la relación, el dinero, un viaje, una conversación que pospones. Después nota qué hiciste en el sueño: quedarte quieto, correr, hacer trampa, pedir ayuda, encontrar una puerta. Esa acción suele ser lo que ensayas o te niegas a hacer despierto. Interpretar sin un paso siguiente deja la pregunta abierta, y por eso el bucle vuelve.",
+          "Descarta primero lo ordinario: cafeína tarde, sueño saltado, un thriller, fiebre. Después da un paso concreto —una fecha más chica, una pregunta enviada, un límite dicho, una caminata, una hora de acostarte—. Cómo interpretar sueños aplica igual: sentimiento, parecido con el día, acción antes del mediodía.",
         ],
       },
       {
-        heading: "Cuándo los sueños de ansiedad sirven",
+        heading: "Cuando el sueño sí sirve",
         paragraphs: [
-          "Son un simulador barato. Un sueño de examen puede mostrarte que te importa, y eso no es lo mismo que estar condenado. Un sueño de caer puede mostrarte dónde falló de verdad el apoyo este mes. Usada así, la noche es información. Usada como profecía, se vuelve otro examinador.",
-          "El embarazo, un trabajo nuevo y el duelo suben la frecuencia de los sueños de ansiedad sin que el desenlace sea malo. Las páginas de niños y sueños y de sueños de visita cubren esas temporadas. Si cada noche es un pánico y el día también, trata el trastorno de ansiedad o el sueño, no solo el símbolo.",
+          "Es un ensayo barato. Un examen soñado puede mostrarte que te importa, y eso no es lo mismo que estar condenado. Una caída puede señalar dónde falló de verdad el apoyo este mes. Usada así, la noche informa. Usada como profecía, se vuelve otro examinador.",
+          "El embarazo, un trabajo nuevo y el duelo suben estas noches sin que el desenlace sea malo. Infancia y embarazo y sueños de visita cubren esas temporadas. Si cada noche es un pánico y el día también, trata la ansiedad o el descanso, no solo el símbolo.",
         ],
       },
       {
-        heading: "Cuando la noche ya no es «solo estrés»",
+        heading: "Cuando ya no es «solo estrés»",
         paragraphs: [
-          "El terror todas las noches, evitar dormir, repeticiones de trauma, dolor de pecho o un colapso diurno corresponden a un clínico. El ensayo de imágenes — reescribir el final despierto — tiene evidencia para pesadillas recurrentes y puede ayudar a algunos bucles de ansiedad. Estas páginas son reflexión, no tratamiento.",
-          "No te avergüences por «seguir soñando con la escuela». El archivo es eficiente. Cambia el estándar despierto o el apoyo alrededor, y la noche suele actualizar el set.",
+          "El terror todas las noches, evitar la cama, repeticiones de un trauma, dolor de pecho o un desplome de día corresponden a un clínico. Reescribir el final despierto —el ensayo de imágenes— tiene evidencia para pesadillas que vuelven y puede aflojar algunos bucles de ansiedad. Estas páginas son para reflexionar, no para tratar.",
+          "No te avergüences por «seguir soñando con la escuela». Esa imagen rinde. Cambia el listón del día o el apoyo alrededor, y la noche suele cambiar el escenario.",
         ],
       },
     ],
@@ -921,62 +921,62 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Por qué sueño con exámenes años después de la escuela?",
         answer:
-          "El examen es una imagen compacta de que te miden. Las semanas de rendimiento lo reactivan. Por lo general no es un deseo de volver al salón.",
+          "El examen es una imagen compacta de que te miden. Las semanas en las que te evalúan lo despiertan. Por lo general no es un deseo de volver al salón.",
       },
       {
         question: "¿Los sueños de ansiedad son una advertencia?",
         answer:
-          "Advierten sobre una presión que ya cargas, no sobre un desastre programado. Actúa sobre la situación despierta. No canceles un viaje porque perdiste un tren en un sueño.",
+          "Advierten sobre una presión que ya cargas, no sobre un desastre con fecha. Actúa sobre la situación despierta. No canceles un viaje porque perdiste un tren en un sueño.",
       },
       {
         question: "¿Cómo detengo los sueños de estrés?",
         answer:
-          "El horario de sueño, menos estímulo tarde y un paso real sobre el problema le ganan a otra noche de análisis. Si el bucle es una pesadilla, usa el ensayo de imágenes y la guía de cómo detener pesadillas.",
+          "El horario, menos estímulo tarde y un paso real sobre el problema le ganan a otra noche de análisis. Si el bucle es una pesadilla, usa el ensayo de imágenes y cómo detener pesadillas.",
       },
       {
         question: "¿Un sueño de caer es un sueño de ansiedad?",
         answer:
-          "A menudo sí — pérdida de control o de apoyo. A veces es un sacudón del cuerpo en el umbral del sueño (sacudida hípnica) con una imagen breve. Si no hay historia, lee la página de alucinaciones hipnagógicas.",
+          "A menudo sí: pérdida de control o de apoyo. A veces es solo un sacudón del cuerpo en el umbral —la sacudida hípnica— con una imagen breve. Si no hay historia, lee alucinaciones hipnagógicas.",
       },
     ],
   },
   "visitation-dreams": {
     name: "Sueños de visita",
     title: "Sueños de visita",
-    seoTitle: "Sueños de visita: cuando los muertos aparecen en el sueño",
+    seoTitle: "Sueños de visita: cuando alguien que murió aparece de noche",
     seoDescription:
-      "Soñar con un ser querido que murió puede sentirse como una visita. Duelo, memoria y lecturas de fe — cómo recibir la noche sin tratarla como una sesión ni desecharla como ruido.",
+      "Soñar con quien se fue puede sentirse como una visita. Duelo, memoria y lecturas de fe: cómo recibir la noche sin tratarla como una sesión ni desecharla como ruido.",
     summary: "Cuando alguien que murió vuelve en un sueño — duelo, consuelo y una lectura cuidadosa.",
     intro: [
-      "Un sueño de visita es una noche en la que alguien que murió aparece con una claridad inusual, a menudo con la sensación de un contacto real: un abrazo, una frase, una mirada que es más «ella» o «él» de lo que suele ser un recuerdo. El duelo vuelve estas noches frecuentes. Pueden dejarte más liviano, destrozado, o las dos cosas. Las culturas las han tratado como a los muertos que pasan a ver, como el trabajo de la mente para despedirse, o como ambas a la vez.",
-      "Esta página no va a zanjar la metafísica. Sí va a rechazar dos movimientos baratos: llamar a cada uno de estos sueños un evento comprobado del más allá, y llamar a cada uno ruido sin sentido. Las páginas del diccionario de fantasma, muerte, funeral y ángel guardan las imágenes. Aquí la pregunta es cómo recibir la noche.",
+      "Un sueño de visita es una noche en la que alguien que murió aparece con una claridad rara: un abrazo, una frase, una mirada que es más «ella» o «él» de lo que suele ser un recuerdo. El duelo vuelve estas noches frecuentes. Pueden dejarte más liviano, destrozado, o las dos cosas. Las culturas las han leído como a los muertos que pasan a ver, como el trabajo de la mente para despedirse, o como ambas a la vez.",
+      "Esta página no va a zanjar la metafísica. Sí rechaza dos movimientos baratos: llamar a cada una de estas noches una prueba del más allá, y llamarlas ruido sin valor. Las páginas del diccionario de fantasma, muerte, funeral y ángel guardan las imágenes. Aquí la pregunta es cómo recibir la mañana.",
     ],
     sections: [
       {
-        heading: "Por qué vuelven los muertos en el sueño",
+        heading: "Por qué aparecen quienes se fueron",
         paragraphs: [
-          "El cerebro dormido todavía tiene el archivo de esa persona — la voz, el andar, las frases inconclusas. El duelo es un apego que de día no tiene adónde ir. El REM es bueno generando una presencia que se siente como quien perdiste. Esa explicación no insulta la experiencia. Explica por qué la noche puede hacer esto tan bien.",
-          "La gente también sueña con los muertos en un estrés posterior que rima con la pérdida original: otra despedida, una boda, una enfermedad, volverse padre o madre. La figura puede ser un recurso, un juez o un asunto inconcluso. Compara versiones: ¿está bien la persona? ¿Callada? ¿Enojada? ¿Intentando irse? La calidad del contacto es el dato.",
+          "El cerebro dormido todavía tiene a esa persona: la voz, el andar, las frases que quedaron a medias. El duelo es un apego que de día no tiene adónde ir. El REM es bueno inventando una presencia que se siente como quien perdiste. Esa explicación no insulta lo vivido. Explica por qué la noche puede hacerlo tan bien.",
+          "También soñamos con los muertos cuando un estrés posterior rima con la pérdida: otra despedida, una boda, una enfermedad, volverse padre o madre. La figura puede ser un recurso, un juez o un asunto inconcluso. Compara versiones: ¿está bien? ¿Callada? ¿Enojada? ¿Intentando irse? La calidad del contacto es el dato.",
         ],
       },
       {
         heading: "Cómo recibir la mañana",
         paragraphs: [
-          "Escribe la frase, si hubo una, antes de interpretarla. Si el sentimiento es consuelo, protégelo: no tienes que argumentarlo hasta convertirlo en una prueba. Si el sentimiento es inconcluso o da miedo, trátalo como una señal de cuidado — un rito, una conversación con los vivos, apoyo en el duelo — no como una orden del más allá.",
-          "Las tradiciones de fe que toman en serio estas noches suelen emparejarlas con consejo y con la negativa a que un solo sueño maneje las decisiones de una familia. Las lecturas islámica y bíblica del diccionario siguen esa etiqueta. Una lectura espiritual puede agradecer la ayuda sin convertirte en médium. Los sueños de sanación son la página prima cuando la noche repara más que visita.",
+          "Escribe la frase, si hubo una, antes de interpretarla. Si el sentimiento es consuelo, protégelo: no tienes que argumentarlo hasta convertirlo en una prueba. Si queda inconcluso o da miedo, trátalo como una señal de cuidado —un rito, una conversación con los vivos, apoyo en el duelo—, no como una orden del otro lado.",
+          "Las tradiciones de fe que toman en serio estas noches suelen emparejarlas con consejo y con la negativa a que un solo sueño maneje las decisiones de una familia. Las lecturas islámica y bíblica del diccionario siguen esa etiqueta. Una lectura espiritual puede agradecer la ayuda sin convertirte en médium. Sueños de sanación es la página hermana cuando la noche repara más de lo que visita.",
         ],
       },
       {
-        heading: "Cuando el sueño no es una visita",
+        heading: "Cuando no es una visita",
         paragraphs: [
-          "La ansiedad puede vestirse de advertencia de los muertos. Un thriller, un funeral ese día o una foto en el teléfono pueden amueblar el elenco. Las apariciones recurrentes y aterradoras después de un trauma corresponden a las pesadillas y al cuidado clínico. Los destellos hipnagógicos de un rostro en el umbral del sueño son otra fisiología — ve esa guía — aunque se sientan como una puerta.",
-          "No uses un sueño de visita para controlar a otros que duelen, para reclamar un saber exclusivo sobre los deseos de esa persona o para saltarte tu propio trabajo de duelo. La noche puede ser un don y aun así no ser un testamento.",
+          "La ansiedad puede vestirse de advertencia de los muertos. Un thriller, un funeral ese día o una foto en el teléfono pueden amueblar el elenco. Las apariciones que vuelven y asustan después de un trauma corresponden a las pesadillas y a un clínico. Un rostro de dos segundos en el umbral es, más a menudo, alucinación hipnagógica —otra fisiología—, aunque se sienta como una puerta.",
+          "No uses un sueño de visita para manejar el duelo de otros, para reclamar un saber exclusivo sobre los deseos de esa persona o para saltarte el tuyo. La noche puede ser un don y aun así no ser un testamento.",
         ],
       },
       {
         heading: "El duelo compartido y «a mí también vino»",
         paragraphs: [
-          "Las familias suelen contar sueños parecidos en la misma semana. A veces es un día compartido más un archivo compartido. A veces es un relato contado hasta que las versiones convergen. La página de sueños compartidos cubre las noches mutuas sin exigirles que prueben una red. Si dos personas quedaron consoladas, eso ya es un resultado.",
+          "Las familias suelen contar sueños parecidos en la misma semana. A veces es un día compartido y una memoria compartida. A veces es un relato contado hasta que las versiones se acercan. Sueños compartidos cubre esas noches sin exigirles que prueben una red. Si dos personas quedaron consoladas, eso ya es un resultado.",
           "Los aniversarios, los cumpleaños y las fiestas suben las chances. Eso es apego, no un calendario que guardan los muertos. Igual puedes encender una vela. El sentido y el rito no piden un laboratorio.",
         ],
       },
@@ -985,12 +985,12 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Era de verdad esa persona?",
         answer:
-          "Esta página no puede probarlo. Lo que sí se puede decir: la noche usó una forma que pudiste recibir. Escribe lo que se dijo, nota el sentimiento y prueba cualquier consejo contra la sabiduría despierta y el carácter conocido de esa persona.",
+          "Esta página no puede probarlo. Lo que sí se puede decir: la noche usó una forma que pudiste recibir. Escribe lo que se dijo, nota el sentimiento y prueba cualquier consejo contra la sabiduría despierta y el carácter que conocías.",
       },
       {
         question: "¿Por qué se veía enojada o callada?",
         answer:
-          "Los sueños usan a los muertos como usan a cualquier figura: para escenificar lo inconcluso en ti — culpa, una pelea que no hubo, el miedo de que el amor se fue. No es un reporte fiable de su ánimo actual.",
+          "Los sueños usan a los muertos como usan a cualquier figura: para poner en escena lo inconcluso en ti —culpa, una pelea que no hubo, el miedo de que el amor se fue—. No es un reporte fiable de su ánimo ahora.",
       },
       {
         question: "¿Es malo si nunca sueño con esa persona?",
@@ -1007,41 +1007,41 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
   "shared-dreams": {
     name: "Sueños compartidos",
     title: "Sueños compartidos",
-    seoTitle: "Sueños compartidos: cuando dos personas sueñan la misma noche",
+    seoTitle: "Sueños compartidos: cuando dos personas sueñan casi lo mismo",
     seoDescription:
-      "Los sueños compartidos o mutuos se sienten como la misma noche en dos cabezas. Coincidencia, un día compartido, el relato — y cómo usar el solapamiento sin necesitar una prueba de telepatía.",
-    summary: "Cuando dos personas parecen haber soñado la misma escena — solapamiento, coincidencia y cuidado.",
+      "Parece la misma noche en dos cabezas. Coincidencia, un día en común, el relato al despertar — y cómo usar ese parecido sin necesitar una prueba de telepatía.",
+    summary: "Cuando dos personas parecen haber soñado la misma escena — parecido, coincidencia y cuidado.",
     intro: [
-      "Un sueño compartido es el relato de que dos personas soñaron el mismo lugar, la misma trama o la misma conversación en la misma noche, o de que una apareció en el sueño de la otra con detalles que coinciden. El sentimiento es intimidad más lo extraño. Parejas, hermanos y círculos de duelo lo buscan porque parece probar un vínculo que el día no pudo hacer.",
-      "La mayoría de los solapamientos tiene combustible ordinario: una conversación compartida, una película, un viaje, una boda, una muerte en la familia. La memoria después edita ambos relatos hasta que encajan más apretado. Eso no vuelve inútil la mañana. Significa que no necesitas una teoría de la telepatía antes de poder usar la noche.",
+      "Un sueño compartido es el relato de que dos personas soñaron el mismo lugar, la misma trama o la misma conversación en la misma noche, o de que una apareció en el sueño de la otra con detalles que coinciden. El sentimiento mezcla intimidad y extrañeza. Parejas, hermanos y círculos de duelo lo buscan porque parece probar un vínculo que el día no pudo hacer.",
+      "La mayoría de esos parecidos tiene combustible ordinario: una conversación, una película, un viaje, una boda, una muerte en la familia. La memoria después edita ambos relatos hasta que encajan más justo. Eso no vuelve inútil la mañana. Significa que no necesitas una teoría de la telepatía antes de poder usar la noche.",
     ],
     sections: [
       {
-        heading: "Por qué ocurren los solapamientos",
+        heading: "Por qué coinciden dos noches",
         paragraphs: [
-          "Quienes duermen en la misma casa comparten residuo: la pelea, el monitor del bebé, el calor, las noticias. Los sueños remezclan ese residuo. Si los dos se estaban preparando para un funeral, los dos pueden soñar una casa, un pasillo, un pariente. El encaje se siente sobrenatural porque no compararon notas hasta la mañana.",
-          "El relato hace el resto. Quien habla primero fija el marco. El segundo rellena huecos. Para el segundo conteo los sueños se parecen más de lo que se parecían las noches crudas. Escribe por separado antes de comparar si quieres un registro honesto. Aun así, un día compartido sigue siendo la explicación más probable.",
+          "Quienes duermen en la misma casa comparten residuo: la pelea, el monitor del bebé, el calor, las noticias. Los sueños remezclan ese residuo. Si los dos se preparaban para un funeral, los dos pueden soñar una casa, un pasillo, un pariente. El parecido se siente sobrenatural porque no compararon notas hasta la mañana.",
+          "El relato hace el resto. Quien habla primero fija el marco. El segundo rellena huecos. Al contarlo por segunda vez, las noches se parecen más de lo que se parecían al despertar. Escribe por separado antes de comparar si quieres un registro honesto. Aun así, un día en común sigue siendo la explicación más probable.",
         ],
       },
       {
-        heading: "Para qué sirve el solapamiento",
+        heading: "Para qué sirve esa coincidencia",
         paragraphs: [
-          "Trátalo como el arranque de una conversación, no como una pieza de tribunal. «Los dos soñamos la puerta cerrada» puede abrir una charla sobre un límite que venían rodeando. Un sueño compartido de boda o de casa puede nombrar una esperanza o un miedo que ninguno quería decir primero. El diccionario igual ayuda: casa, boda, agua, fantasma son archivos compartidos frecuentes.",
-          "En el duelo, dos noches parecidas a una visita en una misma familia pueden ser un consuelo aunque no sean una prueba. Recibe el consuelo. No nombres a un soñante como vocero de los muertos. La página de sueños de visita es la compañera.",
+          "Trátala como el arranque de una conversación, no como una prueba ante un juez. «Los dos soñamos la puerta cerrada» puede abrir una charla sobre un límite que venían rodeando. Un sueño compartido de boda o de casa puede nombrar una esperanza o un miedo que ninguno quería decir primero. El diccionario igual ayuda: casa, boda, agua, fantasma son imágenes que mucha gente comparte.",
+          "En el duelo, dos noches parecidas a una visita en la misma familia pueden consolar aunque no prueben nada. Recibe el consuelo. No nombres a un soñante como vocero de los muertos. Sueños de visita es la página compañera.",
         ],
       },
       {
-        heading: "Lúcidos, eróticos y «fui a visitarte»",
+        heading: "Lúcidos, eróticos y «fui a verte»",
         paragraphs: [
-          "Quienes sueñan lúcido a veces intentan encontrarse a propósito. Los relatos de éxito no son un método controlado. La incubación de sueños puede plantear «muéstrame qué necesita esa persona» como una pregunta a tu propia noche; eso es trabajo interior, no una llamada. Las pretensiones de un sueño erótico compartido piden más cuidado: soñar con alguien no es su consentimiento, y contárselo puede cargar una relación que esa persona no acordó entrar.",
-          "Los falsos despertares y las imágenes hipnagógicas también pueden sentirse como colarse en el cuarto de otro. Esos son estados de frontera de tu propio sueño. Lee esas guías antes de armar una cosmología.",
+          "Quienes sueñan lúcido a veces intentan encontrarse a propósito. Los relatos de éxito no son un método. La incubación de sueños puede plantear «muéstrame qué necesita esa persona» como una pregunta a tu propia noche; eso es trabajo interior, no una llamada. Un sueño erótico «compartido» pide más cuidado: soñar con alguien no es su consentimiento, y contárselo puede cargar una relación que esa persona no acordó entrar.",
+          "El falso despertar y las alucinaciones hipnagógicas también pueden sentirse como colarse en el cuarto de otro. Son estados de frontera de tu propio sueño. Lee esas guías antes de armar una cosmología.",
         ],
       },
       {
-        heading: "Qué no hacer con un encaje",
+        heading: "Lo que no hay que hacer con un parecido",
         paragraphs: [
-          "No uses un sueño compartido para presionar a una pareja, para reclamar que conoces sus secretos o para tomar una decisión médica o financiera. No aprietes el relato de un niño hasta que coincida con el tuyo. A la coincidencia se le permite ser coincidencia.",
-          "Si el solapamiento asusta a los dos, estás más cerca de la ansiedad, la pesadilla y el horario de sueño que de una profecía conjunta. Cómo detener pesadillas y sueños de ansiedad son las páginas prácticas que siguen.",
+          "No uses un sueño compartido para presionar a una pareja, para reclamar que conoces sus secretos o para tomar una decisión médica o de dinero. No aprietes el relato de un niño hasta que coincida con el tuyo. A la coincidencia se le permite ser coincidencia.",
+          "Si el parecido asusta a los dos, estás más cerca de la ansiedad, de la pesadilla y del horario que de una profecía a dúo. Cómo detener pesadillas y sueños de ansiedad son las páginas prácticas que siguen.",
         ],
       },
     ],
@@ -1049,17 +1049,17 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Los sueños compartidos son reales?",
         answer:
-          "Los relatos son reales como relatos. Un canal comprobado entre dos cerebros dormidos no es ciencia establecida. Los días compartidos y el relato compartido explican la mayoría de los encajes. Igual puedes tomarte en serio la intimidad.",
+          "Los relatos son reales como relatos. Un canal comprobado entre dos cerebros dormidos no es ciencia establecida. Los días en común y el relato al despertar explican la mayoría de los parecidos. Igual puedes tomarte en serio la intimidad.",
       },
       {
         question: "Los dos soñamos la misma casa. ¿Qué significa?",
         answer:
-          "Una casa es una imagen frecuente de la vida interior y de la estructura familiar. Pregunta qué está inconcluso en el hogar compartido. Después abre la página del símbolo de la casa para la imagen misma.",
+          "Una casa es una imagen frecuente de la vida interior y de la forma de una familia. Pregunta qué está inconcluso en el hogar que comparten. Después abre la página del símbolo de la casa para la imagen misma.",
       },
       {
         question: "¿Puedo hacer que alguien sueñe conmigo?",
         answer:
-          "Puedes tener la intención, llevar diario e incubar tu propia noche. No puedes enviar con fiabilidad un sueño a otra persona. Querer ese tipo de control ya vale una mirada despierta.",
+          "Puedes tener la intención, llevar diario e invitar un sueño en tu propia noche. No puedes enviar con fiabilidad un sueño a otra persona. Querer ese tipo de control ya vale una mirada despierta.",
       },
       {
         question: "¿Deberíamos comparar sueños todas las mañanas?",
@@ -1071,41 +1071,41 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
   "dream-incubation": {
     name: "Incubación de sueños",
     title: "Incubación de sueños",
-    seoTitle: "Incubación de sueños: cómo hacerle una pregunta a la noche",
+    seoTitle: "Incubación de sueños: cómo pedirle una pregunta a la noche",
     seoDescription:
-      "La incubación de sueños es la práctica de invitar una noche sobre una pregunta elegida. Cómo fijar una intención, qué llega de verdad y cómo usar la mañana sin forzar una profecía.",
-    summary: "Invitar un sueño a propósito — intención, captura y una forma modesta de leer lo que llega.",
+      "Invitar un sueño sobre una pregunta que tú eliges. Cómo plantear la intención, qué llega de verdad y cómo usar la mañana sin forzar una profecía.",
+    summary: "Pedirle un sueño a la noche — una pregunta, atrapar la mañana y leer lo que llega sin exigirle oráculo.",
     intro: [
-      "La incubación de sueños es una práctica vieja con una forma moderna y modesta: antes de dormir nombras una pregunta, y tratas lo que recuerdes como una respuesta de la misma mente que también va a remezclar las noticias que sobraron. Los templos lo hacían. Los laboratorios han probado versiones más simples. No necesitas un santuario. Necesitas una frase, una pausa y una forma de atrapar la mañana.",
-      "Incubar es el reverso de la interpretación ordinaria. En vez de preguntar qué quiso decir anoche, le pides a la noche que trabaje un archivo que tú elegiste. La lucidez es una habilidad prima — preguntar desde adentro. Recordar sueños es la captura. Cómo interpretar sueños es el método de la mañana. Esta página es la invitación.",
+      "La incubación de sueños es una práctica vieja con una forma moderna y modesta: antes de dormir nombras una pregunta, y tratas lo que recuerdes como una respuesta de la misma mente que también va a remezclar las noticias que sobraron. Los templos lo hacían. Los laboratorios han probado versiones más simples. No necesitas un santuario. Necesitas una frase, una pausa y un modo de atrapar la mañana.",
+      "Pedirle algo a la noche es el reverso de cómo interpretar sueños. En vez de preguntar qué quiso decir anoche, le pides que trabaje un asunto que tú elegiste. La lucidez es la prima: preguntar desde adentro. Recordar sueños es la captura. Esta página es la invitación.",
     ],
     sections: [
       {
-        heading: "Cómo fijar la pregunta",
+        heading: "Cómo plantear la pregunta",
         paragraphs: [
-          "Elige una pregunta que de verdad vivas. «¿Qué estoy evitando en este trabajo?» le gana a «¿cuál es el sentido de la vida?». Escríbela en una frase corta. Léela una vez en la cama. Imagina una escena simple ligada a ella — una puerta, una mesa, una persona — y suelta. Exigir una respuesta cinematográfica es una buena forma de quedarte despierto.",
-          "Evita las preguntas que en el fondo son pronósticos: números de lotería, si alguien te va a dejar, desenlaces médicos. La noche no es un examen de laboratorio. Es buena mostrando sentimiento y una actitud inconclusa. Es mala siendo oráculo. Sueños premonitorios es la página para cuando una noche, más tarde, parece coincidir con un evento de todos modos.",
+          "Elige una pregunta que de verdad vivas. «¿Qué estoy evitando en este trabajo?» le gana a «¿cuál es el sentido de la vida?». Escríbela en una frase corta. Léela una vez en la cama. Imagina una escena simple ligada a ella —una puerta, una mesa, una persona— y suelta. Exigir una respuesta espectacular es una buena forma de quedarte despierto.",
+          "Evita las que en el fondo son pronósticos: números de lotería, si alguien te va a dejar, un desenlace médico. La noche no es un laboratorio. Es buena mostrando sentimiento y una actitud inconclusa. Es mala siendo oráculo. Sueños premonitorios es la página para cuando, más tarde, una noche parece coincidir con un suceso de todos modos.",
         ],
       },
       {
-        heading: "Qué ayuda de verdad a que llegue la noche",
+        heading: "Qué ayuda a que algo llegue",
         paragraphs: [
-          "El cuello de botella es el recuerdo. Aplican los hábitos de recordar sueños: quédate quieto, escribe fragmentos, salta el teléfono. Una pregunta que nunca atrapas no se puede usar. Una práctica leve de lucidez — una comprobación de realidad de día, una frase MILD — puede subir las chances de notar que estás en una escena ligada a la pregunta. Perder sueño persiguiendo una visión es un mal trueque.",
-          "Hay quien incuba para sanar o para una visita de alguien que murió. Sueños de sanación y sueños de visita cubren esas esperanzas. Mantén el marco como invitación, no como una exigencia de que los muertos o el cuerpo actúen. Si no llega nada, ese es un resultado frecuente, no un fracaso espiritual.",
+          "Lo que traba todo es el recuerdo. Aplican los hábitos de recordar sueños: quédate quieto, escribe fragmentos, deja el teléfono. Una pregunta que nunca atrapas no se puede usar. Una práctica leve de lucidez —una comprobación de día, una frase MILD— puede subir las chances de notar que estás en una escena ligada a la pregunta. Perder sueño persiguiendo una visión es un mal trueque.",
+          "Hay quien invita la noche para sanar o para una visita de alguien que murió. Sueños de sanación y sueños de visita cubren esas esperanzas. Quédate en la invitación: no exijas que los muertos ni el cuerpo actúen. Si no llega nada, ese es un resultado frecuente, no un fracaso espiritual.",
         ],
       },
       {
         heading: "Cómo leer lo que aparece",
         paragraphs: [
-          "Asume que la noche usó tu material, no un mensajero. Una serpiente, una casa, una inundación después de preguntar por una relación sigue siendo una serpiente, una casa, una inundación — abre esas páginas del diccionario y después mapea sobre la pregunta que planteaste. Si el sueño parece no tener que ver, puede estar respondiendo una pregunta más honesta que la que escribiste.",
-          "Escribe antes de admirar. Después da un paso despierto que sugiera el sentimiento. Incubar sin acción es un pasatiempo. La página de los teóricos puede sumar el deseo de Freud o la compensación de Jung como preguntas extra. Ninguno es dueño del resultado.",
+          "Asume que la noche usó tu material, no un mensajero. Una serpiente, una casa, una inundación después de preguntar por una relación sigue siendo una serpiente, una casa, una inundación: abre esas páginas del diccionario y después acércalas a la pregunta que planteaste. Si el sueño parece no tener que ver, puede estar respondiendo una pregunta más honesta que la que escribiste.",
+          "Escribe antes de admirar. Después da un paso despierto que sugiera el sentimiento. Invitar la noche sin actuar es un pasatiempo. Freud, Jung y otros puede sumar el deseo o la compensación como preguntas extra. Ninguno es dueño del resultado.",
         ],
       },
       {
-        heading: "Cuándo no incubar",
+        heading: "Cuándo no conviene pedirle nada a la noche",
         paragraphs: [
-          "Si ya tienes pesadillas inmanejables, miedo a la parálisis del sueño o angustia hipnagógica, no agregues un rito al acostarte que convierta el dormir en un proyecto. Estabiliza el descanso primero. Cómo detener pesadillas y las guías de los estados de frontera son las vecinas.",
-          "No incubes los secretos de otros ni intentes «enviar» un sueño a alguien. Sueños compartidos explica por qué ese deseo suele ser sobre el control. Tu propia noche ya es material de sobra.",
+          "Si ya tienes pesadillas que no puedes sostener, miedo a la parálisis del sueño o angustia en el umbral, no agregues un rito al acostarte que convierta el dormir en un proyecto. Estabiliza el descanso primero. Cómo detener pesadillas, parálisis del sueño y alucinaciones hipnagógicas son las vecinas.",
+          "No invites la noche para espiar los secretos de otros ni intentes «enviar» un sueño a alguien. Sueños compartidos explica por qué ese deseo suele ser sobre el control. Tu propia noche ya es material de sobra.",
         ],
       },
     ],
@@ -1113,7 +1113,7 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Funciona la incubación de sueños?",
         answer:
-          "Quienes llevan diario y fijan una intención simple suelen recordar más noches sobre el tema. Eso es atención más memoria, y ya es útil. No es un sistema de entrega garantizado de respuestas.",
+          "Quienes llevan diario y plantean una intención simple suelen recordar más noches sobre el tema. Eso es atención más memoria, y ya es útil. No es un correo garantizado de respuestas.",
       },
       {
         question: "¿Qué debería preguntar?",
@@ -1123,7 +1123,7 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Y si no llega nada?",
         answer:
-          "Ordinario. El sueño puede haber tenido otro aseo. Prueba otra vez en una noche menos agotada, o trata la ausencia como «este archivo no está listo», que también es información.",
+          "Es lo habitual. El sueño puede haber tenido otro aseo. Prueba otra vez en una noche menos agotada, o trata la ausencia como «este asunto todavía no está listo», que también informa.",
       },
       {
         question: "¿Incubar es lo mismo que soñar lúcido?",
@@ -1135,40 +1135,40 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
   "how-to-stop-nightmares": {
     name: "Cómo detener pesadillas",
     title: "Cómo detener pesadillas",
-    seoTitle: "Cómo detener pesadillas: sueño, ensayo y cuándo pedir ayuda",
+    seoTitle: "Cómo detener pesadillas: descanso, un final nuevo y cuándo pedir ayuda",
     seoDescription:
-      "Maneras prácticas de reducir pesadillas: horarios de sueño, menos amplificadores, ensayo de imágenes, y la línea donde las noches de trauma corresponden a un clínico — no solo a un diccionario.",
-    summary: "Qué reduce de verdad las pesadillas — y qué es un problema de sueño más que un símbolo.",
+      "Qué reduce de verdad las pesadillas: horario, menos lo que aviva el miedo, reescribir el final despierto, y la raya donde las noches de trauma piden un clínico — no solo un diccionario.",
+    summary: "Qué baja las pesadillas de verdad — y cuándo son un problema de sueño más que un símbolo.",
     intro: [
-      "Una pesadilla es un sueño que te despierta con miedo, pavor o asco y deja una trama que a menudo puedes contar. La gente quiere que paren porque la noche está destrozando el día, o porque les da miedo el sueño mismo. El sentido sigue importando — persecución, caer, ahogarse, un demonio en el cuarto — pero el primer trabajo es el descanso. Una clave de símbolos no va a devolverle al cuerpo la seguridad.",
-      "El centro de pesadillas reúne las páginas aterradoras del diccionario. Los sueños recurrentes explican el bucle. Los terrores nocturnos son otro evento. Esta página es la secuencia práctica: amplificadores, sueño, ensayo de imágenes y el punto donde dejas de interpretar y pides ayuda.",
+      "Una pesadilla es un sueño que te despierta con miedo, pavor o asco y deja una trama que a menudo puedes contar. Se quiere que paren porque la noche está destrozando el día, o porque da miedo el sueño mismo. El sentido sigue importando —persecución, caer, ahogarse, un demonio en el cuarto—, pero el primer trabajo es el descanso. Una clave de símbolos no le va a devolver al cuerpo la seguridad.",
+      "El centro de pesadillas reúne las páginas aterradoras del diccionario. Sueños recurrentes explica el bucle. Terrores nocturnos es otro suceso. Esta página es la secuencia práctica: lo que aviva el miedo, el horario, reescribir el final, y el punto donde dejas de interpretar y pides ayuda.",
     ],
     sections: [
       {
-        heading: "Corta los amplificadores ordinarios",
+        heading: "Baja primero lo que enciende el miedo",
         paragraphs: [
-          "El alcohol tarde, el sueño saltado, la fiebre, una película violenta, dejar una sustancia y algunos medicamentos suben la frecuencia de las pesadillas. Los horarios irregulares empujan más REM hacia una mañana áspera. Trata esto antes de inventar una maldición. La página de sueños vívidos cubre la intensidad; aquí el blanco es el miedo que te despierta.",
-          "Una ventana regular de sueño, un cuarto más fresco y más oscuro, y un colchón de tiempo después de las pantallas y las noticias son poco glamorosos y efectivos. Si una pastilla nueva llegó con las noches, pregúntale a quien la recetó — no a un foro — si los sueños vívidos o aterradores son un efecto conocido.",
+          "El alcohol tarde, el sueño saltado, la fiebre, una película violenta, dejar una sustancia y algunos medicamentos suben las pesadillas. Los horarios rotos empujan más REM hacia una mañana áspera. Trata esto antes de inventar una maldición. Sueños vívidos cubre la intensidad; aquí el blanco es el miedo que te despierta.",
+          "Una franja regular de sueño, un cuarto más fresco y más oscuro, y un rato sin pantallas ni noticias antes de acostarte son poco vistosos y efectivos. Si una pastilla nueva llegó con las noches, pregúntale a quien la recetó —no a un foro— si los sueños nítidos o aterradores son un efecto conocido.",
         ],
       },
       {
-        heading: "Ensayo de imágenes",
+        heading: "Reescribir el final despierto",
         paragraphs: [
-          "La terapia de ensayo de imágenes es la técnica con más evidencia para pesadillas recurrentes: despierto, escribes la pesadilla, después escribes un final nuevo en el que tienes más agencia, y ensayas la versión nueva todos los días. No estás fingiendo que el miedo era tonto. Le estás dando al cerebro dormido otro archivo para correr.",
-          "Mantén la reescritura concreta y corta. La lucidez puede hacer un trabajo parecido desde adentro de una persecución, pero no necesitas lucidez para que el ensayo ayude. Si la pesadilla es una repetición de trauma, usa un clínico que sepa de trauma y de sueño — el ensayo por tu cuenta igual puede servir, pero no es un tratamiento completo.",
+          "El ensayo de imágenes es la técnica con más evidencia para pesadillas que vuelven: despierto, escribes la pesadilla, después escribes un final nuevo en el que tienes más agencia, y ensayas esa versión todos los días. No estás fingiendo que el miedo era tonto. Le estás ofreciendo al cerebro dormido otra escena para recorrer.",
+          "Mantén la reescritura concreta y corta. La lucidez puede hacer un trabajo parecido desde adentro de una persecución, pero no la necesitas para que el ensayo ayude. Si la pesadilla es la repetición de un trauma, busca un clínico que sepa de trauma y de sueño. Ensayar por tu cuenta igual puede servir; no es un tratamiento completo.",
         ],
       },
       {
-        heading: "Lee la noche cuando ya puedas dormir",
+        heading: "Interpreta cuando ya puedas dormir",
         paragraphs: [
-          "Cuando baja la frecuencia, interpretar es más seguro. Que te persigan suele seguir a la evitación. Ahogarse, al desborde. Un demonio o un intruso, a un límite o a una parte tuya que se siente hostil. Abre esas páginas de símbolos y la guía de sueños de ansiedad. Los sueños de sanación son la prima cuando una noche por fin termina distinto.",
-          "No interroges a un niño por la trama después de una pesadilla como harías con el diario de un adulto. Consuelo, seguridad del cuarto, dibujar un final nuevo si quiere. Los terrores nocturnos siguen pidiendo la otra página: sin historia, ojos vidriosos, poca memoria a la mañana.",
+          "Cuando baja la frecuencia, interpretar es más seguro. Que te persigan suele hablar de evitación. Ahogarse, de desborde. Un demonio o un intruso, de un límite o de una parte tuya que se siente hostil. Abre esas páginas del diccionario y sueños de ansiedad. Sueños de sanación es la hermana cuando una noche por fin termina distinto.",
+          "No interroges a un niño por la trama como harías con el diario de un adulto. Consuelo, seguridad del cuarto, dibujar un final nuevo si quiere. Terrores nocturnos sigue pidiendo la otra página: sin historia, ojos vidriosos, poca memoria a la mañana.",
         ],
       },
       {
         heading: "Cuándo pedir ayuda ahora",
         paragraphs: [
-          "El terror todas las noches, evitar dormir, una lesión, repeticiones al estilo TEPT, caídas diurnas o pensamientos de hacerse daño corresponden a un médico o a un terapeuta. La parálisis del sueño con una figura en el cuarto es un estado de frontera — ve esa guía y la de alucinaciones hipnagógicas — y igual merece cuidado si te hace temer la cama.",
+          "El terror todas las noches, evitar dormir, una lesión, repeticiones al estilo de un trauma, caídas de día o pensamientos de hacerse daño corresponden a un médico o a un terapeuta. La parálisis del sueño con una figura en el cuarto es un estado de frontera —ve esa guía y alucinaciones hipnagógicas— y igual merece cuidado si te hace temer la cama.",
           "Estas páginas son para reflexionar. No son un protocolo para el trastorno de pesadillas. Si la noche es un campo de batalla, el sentido puede esperar.",
         ],
       },
@@ -1177,22 +1177,22 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Cuál es la forma más rápida de detener las pesadillas?",
         answer:
-          "No hay un interruptor honesto. El sueño regular, recortar el alcohol tarde y el ensayo de imágenes diario son el set de partida más fiable. Las noches de trauma necesitan además un clínico.",
+          "No hay un interruptor honesto. El sueño regular, recortar el alcohol tarde y ensayar un final nuevo cada día son el punto de partida más fiable. Las noches de trauma necesitan además un clínico.",
       },
       {
         question: "¿Interpretar una pesadilla la empeora?",
         answer:
-          "La rumia puede. Una versión escrita corta más un final nuevo es distinto de dar vueltas al miedo todo el día. Si el diario amplifica la noche, para y protege primero el sueño.",
+          "Dar vueltas al miedo, sí. Una versión escrita corta más un final nuevo es otra cosa. Si el diario aviva la noche, para y protege primero el descanso.",
       },
       {
         question: "¿Las pesadillas significan más que otros sueños?",
         answer:
-          "Son más ruidosas. Ruidoso no es lo mismo que más verdadero. Cuando ya puedas descansar, el sentimiento y el encaje despierto siguen decidiendo si una lectura ayuda.",
+          "Son más ruidosas. Ruidoso no es lo mismo que más verdadero. Cuando ya puedas descansar, el sentimiento y el parecido con el día siguen decidiendo si una lectura ayuda.",
       },
       {
         question: "¿Soñar lúcido puede detener las pesadillas?",
         answer:
-          "A veces, si reconoces el sueño y cambias el final. Entrenar la lucidez también puede fragmentar el sueño. El ensayo despierto suele ser la primera herramienta más suave.",
+          "A veces, si reconoces el sueño y cambias el final. Entrenar la lucidez también puede romper el sueño. Ensayar despierto suele ser la primera herramienta más suave.",
       },
     ],
   },
@@ -1201,39 +1201,39 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
     title: "Alucinaciones hipnagógicas",
     seoTitle: "Alucinaciones hipnagógicas: imágenes en el umbral del sueño",
     seoDescription:
-      "Las alucinaciones hipnagógicas (e hipnopómpicas) son imágenes, sonidos o una presencia en el umbral del sueño. En qué se diferencian de un sueño y de la psicosis, y cómo se sientan junto a la parálisis del sueño.",
+      "Un destello, una voz o una presencia al dormirse o al despertar. En qué se diferencian de un sueño y de la psicosis, y cómo conviven con la parálisis del sueño.",
     summary: "Destellos, voces y una presencia al dormirse o al despertar — no una historia de sueño completa.",
     intro: [
-      "Una alucinación hipnagógica es un evento sensorial al inicio del sueño: el destello de un rostro, un nombre dicho, la sensación de una figura en el cuarto, un golpe, un sabor, una caída. Hipnopómpica es la misma familia al despertar. Pueden ser vívidas, breves y convincentes. No son lo mismo que un sueño REM completo con trama, y no son lo mismo que una alucinación psicótica de día — aunque en el momento puedan asustar igual.",
-      "Comparten frontera con la parálisis del sueño, el falso despertar y los primeros segundos de lucidez. La guía de parálisis del sueño es la compañera cuando el cuerpo no se mueve. Esta página es la imagen sin historia, y la línea donde corresponde un médico.",
+      "Una alucinación hipnagógica es un suceso de los sentidos al inicio del sueño: el destello de un rostro, un nombre dicho, la sensación de una figura en el cuarto, un golpe, un sabor, una caída. Hipnopómpica es la misma familia al despertar. Pueden ser nítidas, breves y convincentes. No son un sueño REM con trama, y no son una alucinación psicótica de día —aunque en el momento asusten igual.",
+      "Comparten frontera con la parálisis del sueño, el falso despertar y los primeros segundos de lucidez. Parálisis del sueño es la compañera cuando el cuerpo no se mueve. Esta página es la imagen sin historia, y la raya donde corresponde un médico.",
     ],
     sections: [
       {
-        heading: "Qué ve y oye la gente de verdad",
+        heading: "Qué se ve y se oye de verdad",
         paragraphs: [
-          "Relatos frecuentes: destellos geométricos, una persona en el umbral de la puerta, un animal en la cama, el propio nombre, un timbre, la sensación de que te tocan. La escena suele usar el cuarto real. Esa mezcla de percepción e imaginería de sueño es por qué se siente como una intromisión y no como «solo un sueño». Una sensación de caer con un sacudón del cuerpo está emparentada (sacudida hípnica) y suele ser inofensiva.",
-          "La ansiedad y el duelo pueden vestir el destello de fantasma o de advertencia. Sueños de visita cubre las noches enteras con alguien que murió. Un rostro de dos segundos al pie de la cama es más a menudo este estado de frontera. Nombrarlo bien baja las ganas de armar una cosmología antes del desayuno.",
+          "Relatos frecuentes: destellos geométricos, una persona en el umbral de la puerta, un animal en la cama, el propio nombre, un timbre, la sensación de que te tocan. La escena suele usar el cuarto real. Esa mezcla de lo percibido y de la imaginería del sueño es por qué se siente como una intromisión y no como «solo un sueño». Una caída con un sacudón del cuerpo está emparentada —la sacudida hípnica— y suele ser inofensiva.",
+          "La ansiedad y el duelo pueden vestir el destello de fantasma o de advertencia. Sueños de visita cubre las noches enteras con alguien que murió. Un rostro de dos segundos al pie de la cama es, más a menudo, este estado de frontera. Nombrarlo bien baja las ganas de armar una cosmología antes del desayuno.",
         ],
       },
       {
-        heading: "Por qué el umbral del sueño hace esto",
+        heading: "Por qué el umbral hace esto",
         paragraphs: [
-          "Dormirse y despertar no son interruptores. Los sistemas sensoriales, la imaginería parecida al REM y el tono muscular se encienden y se apagan en relojes un poco distintos. Si la imaginería llega cuando todavía tienes un pie en el cuarto, obtienes una alucinación con los ojos quizá abiertos. La deuda de sueño, los horarios irregulares y las condiciones del espectro de la narcolepsia suben las chances. También la fiebre y algunos medicamentos.",
-          "Esforzarte por soñar lúcido o por incubar una visión también puede estacionar la atención en el umbral y hacer más notorios los destellos. Si ese es tu proyecto, espéralos. Si te angustian, suelta las técnicas y protege el sueño ordinario.",
+          "Dormirse y despertar no son un interruptor. Los sentidos, las imágenes parecidas al REM y el tono muscular se encienden y se apagan en relojes un poco distintos. Si las imágenes llegan cuando todavía tienes un pie en el cuarto, obtienes una alucinación con los ojos quizá abiertos. La deuda de sueño, los horarios rotos y las condiciones del espectro de la narcolepsia suben las chances. También la fiebre y algunos medicamentos.",
+          "Esforzarte por soñar lúcido o por invitar una visión también puede estacionar la atención en la puerta y hacer más notorios los destellos. Si ese es tu proyecto, espéralos. Si te angustian, suelta las técnicas y protege el sueño ordinario.",
         ],
       },
       {
         heading: "Qué hacer en el momento",
         paragraphs: [
-          "Nombra el estado: «esto es el umbral del sueño». Enciende una luz baja si necesitas que el cuarto sea un cuarto. Mueve un dedo de la mano o del pie si puedes; si no puedes, puede que estés en parálisis del sueño — espera, respira, pasa. No saltes a cazar a un intruso hasta estar seguro de que estás del todo despierto, sobre todo después de un bucle de falso despertar.",
-          "A la mañana, un registro de una línea (hora, imagen, ¿podía moverme?) sirve más que un ensayo de símbolos. Si una figura sigue volviendo como una pesadilla completa, entonces abre las páginas de demonio, fantasma o persecución y cómo detener pesadillas.",
+          "Nombra el estado: «esto es el umbral del sueño». Enciende una luz baja si necesitas que el cuarto vuelva a ser un cuarto. Mueve un dedo de la mano o del pie si puedes; si no puedes, puede que estés en parálisis del sueño —espera, respira, pasa—. No saltes a cazar a un intruso hasta estar seguro de que estás del todo despierto, sobre todo después de un bucle de falso despertar.",
+          "A la mañana, una línea —hora, imagen, ¿podía moverme?— sirve más que un ensayo de símbolos. Si una figura sigue volviendo como una pesadilla completa, entonces abre las páginas de demonio, fantasma o persecución y cómo detener pesadillas.",
         ],
       },
       {
-        heading: "Cuando no es «solo hipnagogia»",
+        heading: "Cuando no es solo el umbral",
         paragraphs: [
-          "Las alucinaciones estando del todo despierto y orientado, los ataques de sueño diurnos, una debilidad muscular súbita con la emoción o un patrón nuevo después de un cambio de medicamento corresponden a un clínico. También una presencia que destroza el sueño todas las noches. Estas páginas no pueden diagnosticar narcolepsia, delirium ni una enfermedad psiquiátrica.",
-          "Los niños que gritan sin historia están más a menudo en terrores nocturnos que en hipnagogia. Conserva las distinciones; cambian los primeros auxilios.",
+          "Las alucinaciones estando del todo despierto y orientado, los ataques de sueño de día, una debilidad muscular súbita con la emoción o un patrón nuevo después de un cambio de medicamento corresponden a un clínico. También una presencia que destroza el sueño todas las noches. Estas páginas no pueden diagnosticar narcolepsia, delirium ni una enfermedad psiquiátrica.",
+          "Los niños que gritan sin historia están más a menudo en terrores nocturnos que en este umbral. Conserva las distinciones: cambian el primer auxilio.",
         ],
       },
     ],
@@ -1241,12 +1241,12 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Las alucinaciones hipnagógicas son peligrosas?",
         answer:
-          "Los eventos mismos suelen ser un solapamiento sueño-vigilia, no un ataque. El peligro es lastimarse al saltar de la cama, o perderse un patrón médico como los ataques de sueño diurnos. El susto es frecuente y no es prueba de que la casa esté embrujada.",
+          "El suceso mismo suele ser un cruce entre dormir y despertar, no un ataque. El peligro es lastimarse al saltar de la cama, o no ver un patrón médico como los ataques de sueño de día. El susto es frecuente y no prueba que la casa esté embrujada.",
       },
       {
         question: "¿Esto es un sueño o una alucinación?",
         answer:
-          "Es imaginería parecida al sueño en el momento equivocado, a menudo mezclada con el cuarto real. Un sueño completo es una historia REM (o no REM) más larga. La palabra alucinación aquí es clínica para el evento sensorial, no un insulto.",
+          "Es imaginería parecida al sueño en el momento equivocado, a menudo mezclada con el cuarto real. Un sueño completo es una historia más larga, de REM o no. La palabra alucinación aquí nombra el suceso de los sentidos, no es un insulto.",
       },
       {
         question: "¿Pueden significar algo?",
@@ -1256,48 +1256,48 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Cómo hago que paren?",
         answer:
-          "Sueño regular, menos deuda de sueño, cuidado con los ejercicios de lucidez y una revisión de medicamentos con un médico. El alcohol y los turnos irregulares son agravantes frecuentes.",
+          "Sueño regular, menos deuda de sueño, cuidado con los ejercicios de lucidez y una revisión de medicamentos con un médico. El alcohol y los turnos rotos las agravan con frecuencia.",
       },
     ],
   },
   "erotic-dreams": {
     name: "Sueños eróticos",
     title: "Sueños eróticos",
-    seoTitle: "Sueños eróticos y poluciones: deseo, culpa y sentido",
+    seoTitle: "Sueños eróticos: deseo, culpa y por qué la pareja no siempre es el punto",
     seoDescription:
-      "Los sueños eróticos y las poluciones nocturnas son comunes. Cómo leer el deseo, las escenas de infidelidad y una pareja inesperada — sin vergüenza, sin profecía y sin tratar la noche como un veredicto sobre una relación.",
-    summary: "Sexo en los sueños — deseo, ensayo, culpa, y por qué la pareja a menudo no es el punto.",
+      "El deseo en sueños y los sueños húmedos son frecuentes. Cómo leer una escena con alguien inesperado o una infidelidad soñada — sin vergüenza, sin profecía y sin usarla como veredicto.",
+    summary: "Sexo en los sueños — deseo, ensayo, culpa, y por qué quien aparece a menudo no es el asunto.",
     intro: [
-      "Los sueños eróticos son ordinarios. Incluyen deseo, sexo, poluciones nocturnas (eyaculación durante el sueño), escenas con una pareja, un ex, un desconocido o alguien «con quien nunca». La gente los busca porque la mañana puede traer placer, confusión o culpa como si la noche fuera una confesión. El cuerpo puede completar un ciclo dormido. La trama igual puede estar hecha de sentimiento, poder, reencuentro o curiosidad, no de una lista de pendientes para el día.",
+      "Los sueños eróticos son ordinarios. Incluyen deseo, sexo, sueños húmedos, escenas con una pareja, un ex, un desconocido o alguien «con quien nunca». Se buscan porque la mañana puede traer placer, confusión o culpa, como si la noche hubiera sido una confesión. El cuerpo puede completar un ciclo dormido. La trama igual puede estar hecha de sentimiento, poder, reencuentro o curiosidad, no de una lista de pendientes para el día.",
       "Las páginas del diccionario de Dreamly sobre sexo, infidelidad, el ex y la boda guardan las imágenes. Esta guía es el tipo: cómo leer la noche sin vergüenza y sin usarla como un arma contra ti o contra otra persona.",
     ],
     sections: [
       {
-        heading: "Cuerpo, REM y el resto del día",
+        heading: "El cuerpo, el REM y lo que sobró del día",
         paragraphs: [
-          "El sueño REM es fisiología sexualmente activa para mucha gente, incluidos quienes no recuerdan tramas. Las poluciones en la adolescencia son un archivo del desarrollo, no un reporte moral. Los adultos también las tienen, sobre todo después de abstinencia, una atracción nueva o simplemente una mañana rica en REM. Las hormonas, el embarazo y algunos medicamentos cambian la frecuencia. Nada de eso pide un escándalo.",
-          "La trama igual usa material despierto: una mirada, una serie, una pelea, un reencuentro, el miedo de ser elegido o de no serlo. Las noches eróticas vívidas suelen subir con los mismos amplificadores que otros sueños vívidos. Lee la intensidad como intensidad; después pregunta qué sentimiento usó la escena.",
+          "Para mucha gente el REM es fisiología sexualmente activa, también para quien no recuerda tramas. Un sueño húmedo en la adolescencia es un suceso del crecimiento, no un reporte moral. Los adultos también los tienen, sobre todo después de un tiempo sin sexo, una atracción nueva o simplemente una mañana rica en REM. Las hormonas, el embarazo y algunos medicamentos cambian la frecuencia. Nada de eso pide un escándalo.",
+          "La trama igual usa material despierto: una mirada, una serie, una pelea, un reencuentro, el miedo de ser elegido o de no serlo. Las noches eróticas nítidas suelen subir con lo mismo que aviva otros sueños vívidos. Lee la intensidad como intensidad; después pregunta qué sentimiento usó la escena.",
         ],
       },
       {
-        heading: "Cuando la pareja es inesperada",
+        heading: "Cuando aparece alguien inesperado",
         paragraphs: [
-          "Soñar sexo con un ex suele seguir a un apego inconcluso o a un patrón viejo que entra en un vínculo nuevo — no a una orden de mandarle un mensaje. Un compañero de trabajo o un amigo puede estar por una cualidad (facilidad, peligro, admiración) más que por un plan. Un desconocido puede ser una parte tuya. Las preguntas al estilo Perls de la página de los teóricos ayudan: si esta figura tuviera una frase, ¿cuál sería?",
-          "Los sueños de infidelidad están entre los más buscados y los más mal usados. Suelen seguir a la confianza, a la comparación o al miedo de ser reemplazable, no a la evidencia de una aventura despierta. La página del símbolo de infidelidad profundiza. No abras un juicio en el desayuno sobre la base de una trama que la otra persona no soñó.",
+          "Soñar sexo con un ex suele hablar de un apego inconcluso o de un patrón viejo que entra en un vínculo nuevo — no de una orden de mandarle un mensaje. Un compañero de trabajo o un amigo puede estar por una cualidad —facilidad, peligro, admiración— más que por un plan. Un desconocido puede ser una parte tuya. Las preguntas de Freud, Jung y otros ayudan: si esta figura tuviera una frase, ¿cuál sería?",
+          "Los sueños de infidelidad están entre los más buscados y los más mal usados. Suelen hablar de confianza, de comparación o del miedo a ser reemplazable, no de la prueba de una aventura despierta. La página del símbolo de infidelidad profundiza. No abras un juicio en el desayuno sobre una trama que la otra persona no soñó.",
         ],
       },
       {
-        heading: "Culpa, cultura y lentes de fe",
+        heading: "Culpa, cultura y lecturas de fe",
         paragraphs: [
-          "La vergüenza después de un sueño erótico suele ser la cultura hablando, no la noche. Las lecturas psicológicas preguntan por el deseo y la defensa. Las espirituales pueden preguntar qué unión, vitalidad o hambre está practicando la temporada. Las secciones islámica y bíblica del diccionario resumen una etiqueta amplia: los sueños no son dictámenes automáticos, y las noches privadas no son veredictos públicos. Usa esas lentes como preguntas.",
-          "Las revelaciones compartidas o de «soñé contigo» piden consentimiento al contarlas. Un sueño erótico sobre alguien no es su invitación ni tu derecho a narrarlo. La página de sueños compartidos cubre la ética de reportar un solapamiento.",
+          "La vergüenza después de un sueño erótico suele ser la cultura hablando, no la noche. Las lecturas psicológicas preguntan por el deseo y la defensa. Las espirituales pueden preguntar qué unión, vitalidad o hambre está practicando esta temporada. Las secciones islámica y bíblica del diccionario recuerdan una etiqueta amplia: los sueños no son dictámenes automáticos, y las noches privadas no son veredictos públicos. Usa esas lecturas como preguntas.",
+          "Contar «soñé contigo» pide consentimiento. Un sueño erótico sobre alguien no es su invitación ni tu derecho a narrarlo. Sueños compartidos cubre la ética de contar un parecido.",
         ],
       },
       {
         heading: "Cuando la noche no trata de sexo",
         paragraphs: [
-          "El poder, la humillación, la sanación y la ansiedad piden prestada imaginería erótica porque es intensa. Una pesadilla que usa el sexo como amenaza corresponde a cómo detener pesadillas y, si es trauma, a un clínico — no a una clave de símbolos tímida. Las noches compulsivas, angustiosas o de repetición compulsiva que destrozan el día son un asunto de sueño y de salud mental.",
-          "La incubación y la lucidez se pueden usar para explorar el deseo con más elección. También pueden volverse otra actuación. Si el proyecto te está robando el descanso, para. El afecto ordinario de día cambia más noches eróticas que otra técnica.",
+          "El poder, la humillación, la sanación y la ansiedad piden prestada imaginería erótica porque es intensa. Una pesadilla que usa el sexo como amenaza corresponde a cómo detener pesadillas y, si es trauma, a un clínico — no a una clave tímida de símbolos. Las noches compulsivas o angustiosas que destrozan el día son un asunto de sueño y de salud mental.",
+          "La incubación de sueños y la lucidez se pueden usar para explorar el deseo con más elección. También pueden volverse otra actuación. Si el proyecto te está robando el descanso, para. El afecto ordinario de día cambia más noches eróticas que otra técnica.",
         ],
       },
     ],
@@ -1308,9 +1308,9 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
           "No necesariamente. La figura puede estar por una cualidad, un recuerdo o un conflicto. La atracción en un sueño es dato sobre el sentimiento, no un contrato. Revisa la vida despierta sin poner a la otra persona en juicio.",
       },
       {
-        question: "¿Las poluciones nocturnas son normales?",
+        question: "¿Los sueños húmedos son normales?",
         answer:
-          "Sí, sobre todo en la adolescencia y también en adultos. Son un evento del cuerpo que puede venir o no con una trama recordada. No son prueba de un fracaso moral.",
+          "Sí, sobre todo en la adolescencia y también en adultos. Son un suceso del cuerpo que puede venir o no con una trama recordada. No son prueba de un fracaso moral.",
       },
       {
         question: "Soñé que mi pareja me fue infiel. ¿Debería preocuparme?",
@@ -1320,7 +1320,7 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       {
         question: "¿Puedo detener los sueños eróticos?",
         answer:
-          "Puedes bajar el recuerdo y algunos amplificadores (estímulo tarde, sueño irregular). No puedes cancelar del todo la fisiología sexual del REM. Si el contenido es traumático o compulsivo, busca ayuda clínica en vez de un truco de supresión.",
+          "Puedes bajar el recuerdo y lo que aviva la noche —estímulo tarde, sueño irregular—. No puedes cancelar del todo la fisiología sexual del REM. Si el contenido es traumático o compulsivo, busca ayuda clínica en vez de un truco para callarlo.",
       },
     ],
   },

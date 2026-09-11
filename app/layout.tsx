@@ -68,7 +68,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";if(loc==="ar")c.add("locale-ar");else c.remove("locale-ar");}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";["ar","ru"].forEach(function(l){c.toggle("locale-"+l,loc===l)});}catch(e){}})();`,
           }}
         />
         <script
