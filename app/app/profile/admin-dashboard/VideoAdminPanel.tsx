@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { MAX_SHORT_DURATION_SECONDS, type AdminVideoJob } from "@/lib/adminVideo";
+import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
 
 const WORKER_COMMAND = "cd /Users/dimab/Documents/oneiro-web && npm run video-worker";
 
@@ -168,22 +169,24 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
           {isMixed && (
-            <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Авто из словаря</p>
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                Каждую ночь в 02:00: 4 видео Free Mix на два ближайших свободных дня (05:00 и 15:00) и 4 картинки Veo на страницы словаря. Один слот — одно видео.
-              </p>
-              {autoPreview && (
-                <p className="text-sm font-semibold text-[var(--text)]">Следующий: {autoPreview.title}</p>
-              )}
-              <button
-                type="button"
-                disabled={autoRunning}
-                onClick={() => void runAutoDictionary()}
-                className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50"
-              >
-                {autoRunning ? "Запускаем…" : "Сделать видео + картинку автоматически"}
-              </button>
+            <div className="space-y-3">
+              <AutoDictionaryCatchUpCard user={user} />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] p-4">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text)]">Одна пара вручную</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    {autoPreview ? `Следующий символ: ${autoPreview.title}` : "Одно видео Free Mix и одна картинка Veo, без слотов."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={autoRunning}
+                  onClick={() => void runAutoDictionary()}
+                  className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-bold text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_6%,transparent)] disabled:opacity-50"
+                >
+                  {autoRunning ? "Запускаем…" : "Только видео + картинка"}
+                </button>
+              </div>
             </div>
           )}
           <label className="block">

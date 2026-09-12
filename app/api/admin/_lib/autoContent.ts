@@ -25,7 +25,7 @@ import { MAX_SHORT_DURATION_SECONDS } from "@/lib/adminVideo";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { aiImageConfig, utcBudgetDate } from "../ai-image/_lib";
-import { AUTO_HORIZON_DAYS, occupiedSlotKeys, nextEmptyPublishDays, publishSlotsForDays } from "@/lib/adminAutoSlots";
+import { AUTO_HORIZON_DAYS, AUTO_PAIR_COUNT, occupiedSlotKeys, nextEmptyPublishDays, publishSlotsForDays } from "@/lib/adminAutoSlots";
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
@@ -34,6 +34,15 @@ import { scheduleAutoYouTube } from "./youtubeRemote";
 import { QUEUED_SCHEDULE_PLATFORMS } from "@/lib/adminVideoLibrary";
 
 const FREE_VIDEO_COLLECTION = "adminVideoJobs";
+export const WORKER_WAKE_DOCUMENT = "adminSystem/workerWake";
+
+export async function requestLocalWorkerWake(createdBy: string, reason: string) {
+  await adminDb().doc(WORKER_WAKE_DOCUMENT).set({
+    requestedAt: FieldValue.serverTimestamp(),
+    requestedBy: createdBy,
+    reason,
+  });
+}
 
 async function loadCollectionDocs(collection: string) {
   const docs: QueryDocumentSnapshot[] = [];
@@ -325,7 +334,81 @@ async function scheduledAtValues() {
 
 export async function nextAutoPublishSlots() {
   const dateKeys = nextEmptyPublishDays(occupiedSlotKeys(await scheduledAtValues()), AUTO_HORIZON_DAYS);
-  return { dateKey: dateKeys[0], dateKeys, slots: publishSlotsForDays(dateKeys) };
+  return { dateKey: dateKeys[0], dateKeys, slots: publishSlotsForDays(dateKeys), pairCount: AUTO_PAIR_COUNT };
+}
+
+export async function enqueueAutoDictionaryBatch(options: {
+  createdBy: string;
+  sendToTelegram?: boolean;
+  imageProvider?: AiImageProvider;
+  count?: number;
+}) {
+  const slots = await nextAutoPublishSlots();
+  const count = Math.min(Math.max(options.count ?? AUTO_PAIR_COUNT, 1), AUTO_PAIR_COUNT);
+  const pairs = [];
+  for (let index = 0; index < count; index += 1) {
+    const queued = await enqueueAutoDictionaryContent(options);
+    const slot = slots.slots[index];
+    pairs.push({
+      slug: queued.entry.slug,
+      title: queued.entry.topic,
+      topic: queued.entry.topic,
+      pagePath: queued.entry.pagePath,
+      videoJobId: queued.videoJobId,
+      imageJobId: queued.imageJobId,
+      publishAt: slot?.publishAt || "",
+      dateKey: slot?.dateKey || "",
+      hour: slot?.hour ?? null,
+    });
+  }
+  return { slots, pairs };
+}
+
+export async function readAutoPairState(videoJobId: string, imageJobId: string) {
+  const [video, image] = await Promise.all([
+    readJobState(FREE_VIDEO_COLLECTION, videoJobId),
+    readJobState(AI_IMAGE_COLLECTION, imageJobId),
+  ]);
+  return { video, image };
+}
+
+export async function scheduleReadyAutoDictionaryPair(input: {
+  slug: string;
+  videoJobId: string;
+  imageJobId: string;
+  publishAt: string;
+  createdBy: string;
+}) {
+  const { video, image } = await readAutoPairState(input.videoJobId, input.imageJobId);
+  if (video.status === "failed" || image.status === "failed") {
+    await adminDb().collection(AUTO_USED_SLUGS_COLLECTION).doc(input.slug).set({
+      status: "failed",
+      completedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    throw new Error(video.error || image.error || "AUTO_PAIR_FAILED");
+  }
+  if (video.status !== "completed" || image.status !== "completed") {
+    throw new Error("AUTO_PAIR_NOT_READY");
+  }
+
+  const videoSnap = await adminDb().collection(FREE_VIDEO_COLLECTION).doc(input.videoJobId).get();
+  if (String(videoSnap.get("socialScheduledAt") || "")) {
+    return {
+      alreadyScheduled: true,
+      youtubeScheduled: String(videoSnap.get("youtubeStatus") || "") === "scheduled",
+      youtubeError: String(videoSnap.get("youtubeError") || ""),
+      video,
+      image,
+    };
+  }
+
+  await assignAutoImageToDreamPage(input.imageJobId);
+  await adminDb().collection(AUTO_USED_SLUGS_COLLECTION).doc(input.slug).set({
+    status: "completed",
+    completedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  const booked = await scheduleAutoDictionaryPair(input);
+  return { alreadyScheduled: false, ...booked, video, image };
 }
 
 export async function scheduleAutoDictionaryPair(input: {

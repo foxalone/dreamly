@@ -19,6 +19,7 @@ import {
   type PinterestConnectionStatus,
 } from "@/lib/adminPinterest";
 import type { TumblrConnectionStatus } from "@/lib/adminTumblr";
+import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
 
 type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest" | "tumblr";
 type Connection = "meta" | "threads" | "youtube" | "pinterest" | "tumblr";
@@ -1695,7 +1696,9 @@ export default function VideoLibraryPanel({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+    <section className="mt-6 space-y-4">
+      <AutoDictionaryCatchUpCard user={user} />
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Video library</p>
@@ -1896,6 +1899,7 @@ export default function VideoLibraryPanel({
           </div>
         </div>
       ) : null}
+    </div>
     </section>
   );
 }

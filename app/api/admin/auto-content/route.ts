@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
-import { enqueueAutoDictionaryContent, nextAutoPublishSlots, previewAutoDictionaryContent } from "@/app/api/admin/_lib/autoContent";
+import { enqueueAutoDictionaryBatch, enqueueAutoDictionaryContent, nextAutoPublishSlots, previewAutoDictionaryContent, requestLocalWorkerWake } from "@/app/api/admin/_lib/autoContent";
+import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,12 +41,27 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const uid = await requireAdmin(request);
-    const payload = (await request.json().catch(() => ({}))) as { sendToTelegram?: unknown; imageProvider?: unknown };
-    const result = await enqueueAutoDictionaryContent({
+    const payload = (await request.json().catch(() => ({}))) as {
+      sendToTelegram?: unknown;
+      imageProvider?: unknown;
+      catchUp?: unknown;
+      count?: unknown;
+    };
+    const options = {
       createdBy: uid,
       sendToTelegram: payload.sendToTelegram !== false,
-      imageProvider: "veo",
-    });
+      imageProvider: "veo" as const,
+    };
+    await requestLocalWorkerWake(uid, payload.catchUp === true ? "catch-up" : "single");
+    if (payload.catchUp === true) {
+      const count = Number(payload.count);
+      const result = await enqueueAutoDictionaryBatch({
+        ...options,
+        count: Number.isFinite(count) && count > 0 ? count : AUTO_PAIR_COUNT,
+      });
+      return NextResponse.json(result, { status: 201 });
+    }
+    const result = await enqueueAutoDictionaryContent(options);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     return apiError(error);

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.dreamly.worker-supervisor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/dimab/Library/Application Support/dreamly/auto-dictionary-supervisor.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/dimab</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>/Users/dimab/Library/Logs/dreamly-worker-supervisor.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dimab/Library/Logs/dreamly-worker-supervisor.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/dimab/.nvm/versions/node/v20.19.6/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>/Users/dimab</string>
+  </dict>
+</dict>
+</plist>
