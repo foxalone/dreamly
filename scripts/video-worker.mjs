@@ -457,6 +457,9 @@ async function sendTelegram(filePath, caption) {
 async function processJob(job) {
   const reference = db.collection(JOBS_COLLECTION).doc(job.id);
   let usage = null;
+  const keepAlive = setInterval(() => {
+    void heartbeat("processing", job.id);
+  }, 20_000);
   try {
     await heartbeat("processing", job.id);
     const generated = await createScript(job.topic);
@@ -511,6 +514,7 @@ async function processJob(job) {
       error: message,
     });
   } finally {
+    clearInterval(keepAlive);
     await heartbeat("idle", "");
   }
 }
