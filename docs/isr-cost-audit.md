@@ -48,6 +48,8 @@ not separately measured.
   processes, and external scripts/direct Firestore changes, including deletion.
   It never interprets a failed source read as deletion. Failed invalidations
   don't advance the acknowledgement. Concurrent changes are detected next tick.
+- Dictionary image reads propagate backend failures so ISR retains the last good
+  HTML/metadata instead of caching an artificial missing image for 24 hours.
 - Shared transactional image save avoids resetting assignment time for identical
   imageJobId/imageUrl/subject, including worker/wait/schedule retries.
 - A batch invalidates each gallery and sitemap only once. An unchanged scan
@@ -95,13 +97,13 @@ separate unknown-URL/query-string write problem. No speculative fix was applied.
   confirms 86400 for dictionary routes and 3600 for galleries/sitemap.
 - TypeScript passes; changed-file ESLint has no errors (one existing unused
   import warning in autoContent.ts).
-- Seven new fixture tests pass: publication, image replacement, external edit,
+- Eight new fixture tests pass: publication, image replacement, external edit,
   deletion, all locales, repeated save/scan deduplication, failure/retry behavior,
   batch path scope, and the complete localized dictionary/sitemap inventory.
 - Local production HTTP: six symbol pages and six galleries return 200;
   canonical/hreflang and query cache identity pass; English/Russian unknown
   symbols return 404. Sitemap parses as XML: 5574 URLs and 294 image entries.
-- Full tests: 112/113 library tests and 9/9 scheduler script tests pass. Existing
+- Full tests: 113/114 library tests and 9/9 scheduler script tests pass. Existing
   `adminAutoSlots.test.ts` test “keeps a two-day horizon with four 05:00/15:00
   slots” expects September 13/14 from a September 9 reference date while only
   September 12 is occupied; implementation returns September 10/11. Both files

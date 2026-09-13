@@ -3,6 +3,7 @@ import test from "node:test";
 import type { Firestore } from "firebase-admin/firestore";
 import { refreshDreamPageImageCache } from "../app/api/admin/_lib/dreamPageImageCache";
 import { dreamPageImageFingerprint, dreamPageImagePaths } from "./dreamPageImageCache";
+import { readDreamPageImageAssignment } from "./getDreamPageImage";
 import { saveDreamPageImage } from "./dreamPageImageStore.mjs";
 import { LOCALES } from "./i18n/config";
 import { localePath } from "./i18n/path";
@@ -126,4 +127,12 @@ test("every deployed dictionary symbol has all six locale entries and sitemap UR
       assert.ok(urls.has(`https://dreamly.art${localePath(`/dreams/${entry.canonicalSlug}`, locale)}`));
     }
   }
+});
+
+
+test("rendering distinguishes a deleted image from a failed read, preserving ISR on failure", async () => {
+  const missing = { collection: () => ({ doc: () => ({ get: async () => ({ exists: false }) }) }) } as unknown as Firestore;
+  assert.equal(await readDreamPageImageAssignment("snake", missing), null);
+  const unavailable = { collection: () => ({ doc: () => ({ get: async () => { throw new Error("fixture read failure"); } }) }) } as unknown as Firestore;
+  await assert.rejects(readDreamPageImageAssignment("snake", unavailable), /fixture read failure/);
 });

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import type { Firestore } from "firebase-admin/firestore";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import {
@@ -37,16 +38,20 @@ function assignmentFromData(slug: string, data: StoredAssignment | undefined): D
   };
 }
 
-export async function readDreamPageImageAssignment(slug: string): Promise<DreamPageImageAssignment | null> {
+export async function readDreamPageImageAssignment(
+  slug: string, db?: Firestore,
+): Promise<DreamPageImageAssignment | null> {
   const cleaned = slug.trim();
   if (!cleaned || !getDreamEntry(cleaned)) return null;
   try {
-    const snapshot = await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).doc(cleaned).get();
+    const snapshot = await (db ?? adminDb()).collection(DREAM_PAGE_IMAGE_COLLECTION).doc(cleaned).get();
     if (!snapshot.exists) return null;
     return assignmentFromData(cleaned, snapshot.data() as StoredAssignment | undefined);
   } catch (error) {
     console.error("[dreamPageImage]", error);
-    return null;
+    // A failed read is not a removed image. Let ISR retain the last good page
+    // and retry instead of caching missing HTML/OG images for the daily TTL.
+    throw error;
   }
 }
 
