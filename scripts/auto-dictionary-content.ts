@@ -56,7 +56,7 @@ async function main() {
     slots: slots.slots,
     pairs,
   }));
-  if (!wait) return;
+  if (!wait) process.exit(0);
 
   const results: Array<Pair & {
     ok: boolean;
@@ -121,7 +121,7 @@ async function main() {
     dateKey: slots.dateKey,
     results,
   }));
-  if (!ok) process.exitCode = 1;
+  process.exit(ok ? 0 : 1);
 }
 
 main().catch((error) => {
