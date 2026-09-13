@@ -11,6 +11,7 @@ import {
   createBlueskyVideoPost,
   downloadBlueskyVideo,
   getBlueskyUploadLimits,
+  isRetryableBlueskyError,
   resolveBlueskyRkey,
   sanitizeBlueskyError,
   uploadBlueskyVideo,
@@ -116,7 +117,7 @@ async function existingBlueskyPost(auth: AuthenticatedBluesky, rkey: string): Pr
     throw new BlueskyPublishError(
       "publishing",
       sanitizeBlueskyError(error instanceof Error ? error.message : "Could not verify the Bluesky post"),
-      !source.status || source.status === 408 || source.status === 429 || source.status >= 500,
+      isRetryableBlueskyError(error),
     );
   }
 }
@@ -162,6 +163,22 @@ async function persistPublished(
 }
 
 export async function publishLibraryVideoToBluesky(
+  libraryId: string,
+  adminUid: string,
+  options?: { deadlineMs?: number },
+) {
+  // Preflight authentication/record reads also need to reach the scheduler as pending.
+  try {
+    return await publishLibraryVideoToBlueskyAttempt(libraryId, adminUid, options);
+  } catch (error) {
+    if (isRetryableBlueskyError(error)) {
+      throw new SocialPublishPendingError(sanitizeBlueskyError(error));
+    }
+    throw error;
+  }
+}
+
+async function publishLibraryVideoToBlueskyAttempt(
   libraryId: string,
   adminUid: string,
   options?: { deadlineMs?: number },
@@ -239,41 +256,41 @@ export async function publishLibraryVideoToBluesky(
     );
   });
 
-  // The transaction may have adopted an rkey written by another attempt. Recheck it
-  // before reusing/uploading media so a completed post is recovered without duplication.
-  const existingAfterLock = await existingBlueskyPost(auth, rkey);
-  if (existingAfterLock) {
-    const patch = await persistPublished({
-      jobRef,
-      libraryId,
-      title: video.title,
-      auth,
-      uri: existingAfterLock.uri,
-      cid: existingAfterLock.cid,
-      adminUid,
-    });
-    return {
-      target: "bluesky" as const,
-      status: "PUBLISHED" as const,
-      recovered: true,
-      uri: existingAfterLock.uri,
-      cid: existingAfterLock.cid,
-      rkey,
-      postUrl: patch.blueskyPostUrl,
-      handle: auth.handle,
-    };
-  }
-
-  const caption = buildBlueskyCaption({
-    title: video.title,
-    topic: video.topic,
-    description: video.description,
-  });
-  const alt = [video.title, video.topic && video.topic !== video.title ? `Dream topic: ${video.topic}` : ""]
-    .filter(Boolean)
-    .join(". ");
-
   try {
+    // The transaction may have adopted an rkey written by another attempt. Recheck it
+    // before reusing/uploading media so a completed post is recovered without duplication.
+    const existingAfterLock = await existingBlueskyPost(auth, rkey);
+    if (existingAfterLock) {
+      const patch = await persistPublished({
+        jobRef,
+        libraryId,
+        title: video.title,
+        auth,
+        uri: existingAfterLock.uri,
+        cid: existingAfterLock.cid,
+        adminUid,
+      });
+      return {
+        target: "bluesky" as const,
+        status: "PUBLISHED" as const,
+        recovered: true,
+        uri: existingAfterLock.uri,
+        cid: existingAfterLock.cid,
+        rkey,
+        postUrl: patch.blueskyPostUrl,
+        handle: auth.handle,
+      };
+    }
+
+    const caption = buildBlueskyCaption({
+      title: video.title,
+      topic: video.topic,
+      description: video.description,
+    });
+    const alt = [video.title, video.topic && video.topic !== video.title ? `Dream topic: ${video.topic}` : ""]
+      .filter(Boolean)
+      .join(". ");
+
     const limits = await getBlueskyUploadLimits(auth);
     if (!auth.emailConfirmed) throw new BlueskyPublishError("readiness", "Bluesky account email is not verified");
     if (!limits.canUpload) {
@@ -336,7 +353,7 @@ export async function publishLibraryVideoToBluesky(
       try { return blueskyConfig(); } catch { return { appPassword: "" }; }
     })();
     const message = sanitizeBlueskyError(error, [configured.appPassword]);
-    if (error instanceof BlueskyPublishError && error.retryable) {
+    if (isRetryableBlueskyError(error)) {
       await jobRef.set(
         {
           blueskyStatus: jobId ? "processing" : "failed",

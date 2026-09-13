@@ -3,7 +3,11 @@ import test from "node:test";
 
 import type { Agent, BlobRef, CredentialSession } from "@atproto/api";
 
-import { getBlueskyStatus } from "../app/api/admin/bluesky/_lib";
+import { initializeApp, deleteApp } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { isSocialPublishPendingError } from "./socialPublishPending";
+
+import { publishLibraryVideoToBluesky, getBlueskyStatus } from "../app/api/admin/bluesky/_lib";
 import {
   BLUESKY_POST_GRAPHEME_LIMIT,
   BlueskyPublishError,
@@ -15,6 +19,8 @@ import {
   createBlueskyVideoPost,
   downloadBlueskyVideo,
   isValidBlueskyRkey,
+  isRetryableBlueskyError,
+  getBlueskyUploadLimits,
   normalizeBlueskyJobStatus,
   resolveBlueskyRkey,
   sanitizeBlueskyError,
@@ -141,6 +147,7 @@ test("authentication failure is classified and does not expose password", async 
     (error: unknown) => {
       assert.ok(error instanceof BlueskyPublishError);
       assert.equal(error.phase, "authentication");
+      assert.equal(error.retryable, false);
       assert.doesNotMatch(error.message, new RegExp(password));
       return true;
     },
@@ -388,4 +395,103 @@ test("error sanitization removes app passwords and authorization tokens", () => 
     ["secret-value"],
   );
   assert.doesNotMatch(cleaned, /secret-value|eyJ\.private\.token|abc123/);
+});
+
+
+test("transport failures remain retryable through SDK authentication", async () => {
+  await assert.rejects(
+    authenticateBluesky({
+      handle: "dreamly.art",
+      appPassword: "secret",
+      fetchImpl: (async () => { throw new TypeError("fetch failed"); }) as typeof fetch,
+    }),
+    (error: unknown) => error instanceof BlueskyPublishError && error.phase === "authentication" && error.retryable,
+  );
+});
+
+test("transient HTTP errors retry while authorization and validation failures stay terminal", async () => {
+  for (const status of [401, 403, 400, 429, 503]) {
+    await assert.rejects(
+      authenticateBluesky({ handle: "dreamly.art", appPassword: "secret", fetchImpl: sdkFetch({ loginStatus: status }) }),
+      (error: unknown) => error instanceof BlueskyPublishError && error.retryable === [429, 503].includes(status),
+    );
+  }
+  assert.equal(isRetryableBlueskyError(new Error("Unexpected Bluesky account")), false);
+  assert.equal(isRetryableBlueskyError({ status: 1, cause: { code: "ECONNRESET" } }), true);
+  assert.equal(isRetryableBlueskyError({ status: 400, message: "fetch failed" }), false);
+});
+
+test("service authentication network failure is retryable before upload", async () => {
+  const auth = authWith();
+  auth.agent.com.atproto.server.getServiceAuth = async () => { throw new TypeError("fetch failed"); };
+  await assert.rejects(
+    getBlueskyUploadLimits(auth),
+    (error: unknown) => error instanceof BlueskyPublishError && error.phase === "readiness" && error.retryable,
+  );
+  await assert.rejects(
+    uploadBlueskyVideo(auth, { bytes: mp4Bytes(), size: 12, contentType: "video/mp4" }, "video.mp4"),
+    (error: unknown) => error instanceof BlueskyPublishError && error.phase === "upload" && error.retryable,
+  );
+});
+
+test("lost post creation response can be retried with the persisted record key", async () => {
+  const auth = authWith({
+    agent: { app: { bsky: { feed: { post: { create: async () => {
+      throw Object.assign(new Error("fetch failed"), { status: 1 });
+    } } } } } } as unknown as Agent,
+  });
+  await assert.rejects(
+    createBlueskyVideoPost({ auth, text: "Dream", blob: blobRef(), alt: "Dream", rkey: "3jzfcijpj2z2a" }),
+    (error: unknown) => error instanceof BlueskyPublishError && error.phase === "publishing" && error.retryable,
+  );
+});
+
+
+test("scheduler retries preflight failures and releases the lock after record lookup fails", async (t) => {
+  const app = initializeApp({ projectId: "demo-bluesky-retry-test" }, "project-server");
+  const db = getFirestore(app);
+  const stored: Record<string, unknown> = {
+    status: "completed",
+    videoUrl: "https://storage.example/video.mp4",
+    blueskyRkey: "3jzfcijpj2z2a",
+    blueskyVideoJobId: "already-uploaded-job",
+  };
+  const writes: Record<string, unknown>[] = [];
+  const ref = {
+    get: async () => ({ exists: true, data: () => ({ ...stored }) }),
+    set: async (patch: Record<string, unknown>) => { writes.push(patch); Object.assign(stored, patch); },
+  };
+  t.mock.method(db, "collection", () => ({ doc: () => ref }));
+  t.mock.method(db, "runTransaction", async (run: (tx: unknown) => Promise<void>) => run({
+    get: ref.get,
+    set: (_ref: unknown, patch: Record<string, unknown>) => { writes.push(patch); Object.assign(stored, patch); },
+  }));
+  try {
+    await withBlueskyEnv(async () => {
+      const fetchMock = t.mock.method(globalThis, "fetch", async () => { throw new TypeError("fetch failed"); });
+      await assert.rejects(publishLibraryVideoToBluesky("free:test", "scheduler"), isSocialPublishPendingError);
+      assert.equal(writes.length, 0);
+
+      let reads = 0;
+      const sdk = sdkFetch();
+      fetchMock.mock.mockImplementation((async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : String(input));
+        if (url.pathname.endsWith("/com.atproto.repo.getRecord")) {
+          reads += 1;
+          if (reads === 1) return json({ error: "RecordNotFound", message: "Record not found" }, 400);
+          throw new TypeError("fetch failed");
+        }
+        return sdk(input, init);
+      }) as typeof fetch);
+      await assert.rejects(publishLibraryVideoToBluesky("free:test", "scheduler"), isSocialPublishPendingError);
+      assert.equal(reads, 2);
+      assert.equal(stored.blueskyStatus, "processing");
+      assert.equal(stored.blueskyVideoJobId, "already-uploaded-job");
+      assert.equal(stored.blueskyRkey, "3jzfcijpj2z2a");
+      assert.deepEqual(writes.at(-1)?.blueskyPublishStartedAt, FieldValue.delete());
+    });
+  } finally {
+    t.mock.restoreAll();
+    await deleteApp(app);
+  }
 });

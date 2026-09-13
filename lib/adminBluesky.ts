@@ -44,6 +44,25 @@ export class BlueskyPublishError extends Error {
   }
 }
 
+/** SDK transport failures may be wrapped as XRPCError(status=1) with a cause. */
+export function isRetryableBlueskyError(error: unknown): boolean {
+  const seen = new Set<unknown>();
+  let current = error;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    if (current instanceof BlueskyPublishError) return current.retryable;
+    const source = current as { status?: number; code?: string; name?: string; message?: string; cause?: unknown };
+    if (source.status && source.status >= 100) return RETRYABLE_HTTP_STATUS.has(source.status);
+    if (
+      ["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN", "ENETUNREACH", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT", "UND_ERR_SOCKET"].includes(source.code || "") ||
+      source.name === "TimeoutError" ||
+      /^(fetch failed|network request failed|terminated)$/i.test(source.message || "")
+    ) return true;
+    current = source.cause;
+  }
+  return false;
+}
+
 export type BlueskyConnectionStatus = {
   configured: boolean;
   connected: boolean;
@@ -361,7 +380,7 @@ export async function authenticateBluesky(options?: {
     throw new BlueskyPublishError(
       "authentication",
       sanitizeBlueskyError(error, [configured.appPassword]),
-      false,
+      isRetryableBlueskyError(error),
     );
   }
 }
@@ -376,7 +395,7 @@ async function videoServiceAuth(auth: AuthenticatedBluesky, lxm: string, seconds
     if (!result.data.token) throw new Error("Bluesky did not return service authentication");
     return result.data.token;
   } catch (error) {
-    throw new BlueskyPublishError("readiness", sanitizeBlueskyError(error), false);
+    throw new BlueskyPublishError("readiness", sanitizeBlueskyError(error), isRetryableBlueskyError(error));
   }
 }
 
@@ -459,7 +478,7 @@ export async function uploadBlueskyVideo(
     token = result.data.token;
     if (!token) throw new Error("Bluesky did not return service authentication");
   } catch (error) {
-    throw new BlueskyPublishError("upload", `Bluesky service authentication failed: ${sanitizeBlueskyError(error)}`);
+    throw new BlueskyPublishError("upload", `Bluesky service authentication failed: ${sanitizeBlueskyError(error)}`, isRetryableBlueskyError(error));
   }
 
   const url = new URL(`${BLUESKY_VIDEO_SERVICE_URL}/xrpc/app.bsky.video.uploadVideo`);
@@ -564,6 +583,6 @@ export async function createBlueskyVideoPost(input: {
       },
     );
   } catch (error) {
-    throw new BlueskyPublishError("publishing", `Bluesky post creation failed: ${sanitizeBlueskyError(error)}`);
+    throw new BlueskyPublishError("publishing", `Bluesky post creation failed: ${sanitizeBlueskyError(error)}`, isRetryableBlueskyError(error));
   }
 }
