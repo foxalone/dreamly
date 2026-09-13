@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { MAX_SHORT_DURATION_SECONDS, type AdminVideoJob } from "@/lib/adminVideo";
 import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
+import { isAdminJobActive, useAdminActivePolling } from "./useAdminActivePolling";
 
 const WORKER_COMMAND = "cd /Users/dimab/Documents/oneiro-web && npm run video-worker";
 
@@ -58,11 +59,15 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
     }
   }, [isMixed, user]);
 
+  const quietReload = useCallback(() => {
+    void loadJobs(true);
+  }, [loadJobs]);
+  const hasActiveJob = jobs.some((job) => isAdminJobActive(job.status));
+
   useEffect(() => {
     void loadJobs();
-    const timer = window.setInterval(() => void loadJobs(true), 5_000);
-    return () => window.clearInterval(timer);
   }, [loadJobs]);
+  useAdminActivePolling(hasActiveJob, quietReload, 5_000);
 
   function copy(key: string, value: string) {
     void navigator.clipboard.writeText(value).then(() => {

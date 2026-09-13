@@ -11,6 +11,11 @@ import {
   SHOW_PINTEREST_PUBLISH_ERRORS,
   type PinterestConnectionStatus,
 } from "@/lib/adminPinterest";
+import { useAdminActivePolling } from "./useAdminActivePolling";
+
+function imageLibraryItemInFlight(item: AdminImageLibraryItem) {
+  return item.threadsState === "publishing" || item.pinterestState === "publishing";
+}
 
 type ImagePlatform = AdminImagePublishPlatform;
 type MetaStatus = MetaConnectionStatus & { redirectUri?: string };
@@ -238,13 +243,15 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
     }
   }, [user]);
 
+  const quietReload = useCallback(() => {
+    void load(true);
+  }, [load]);
+  const hasInFlightWork = !publishingKey && items.some(imageLibraryItemInFlight);
+
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => {
-      if (!publishingKey) void load(true);
-    }, 15_000);
-    return () => window.clearInterval(timer);
-  }, [load, publishingKey]);
+  }, [load]);
+  useAdminActivePolling(hasInFlightWork, quietReload, 15_000);
 
   function markPublished(itemId: string, platform: ImagePlatform, extra: Partial<AdminImageLibraryItem> = {}) {
     setItems((current) =>

@@ -81,8 +81,6 @@ export default function SocialMapPanel({ user }: { user: User }) {
 
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => void load(true), 30_000);
-    return () => window.clearInterval(timer);
   }, [load]);
 
   const rows = useMemo(() => buildSocialCoverageRows(statuses), [statuses]);

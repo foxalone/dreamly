@@ -14,6 +14,7 @@ import {
   type AdminAiImageJob,
   type AiImagePublicConfig,
 } from "@/lib/adminAiImage";
+import { isAdminJobActive, useAdminActivePolling } from "./useAdminActivePolling";
 
 const WORKER_COMMAND = "cd /Users/dimab/Documents/oneiro-web && npm run ai-image-worker";
 
@@ -106,11 +107,15 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
     }
   }, [isVeo, user]);
 
+  const quietReload = useCallback(() => {
+    void loadJobs(true);
+  }, [loadJobs]);
+  const hasActiveJob = jobs.some((job) => isAdminJobActive(job.status));
+
   useEffect(() => {
     void loadJobs();
-    const timer = window.setInterval(() => void loadJobs(true), 5_000);
-    return () => window.clearInterval(timer);
   }, [loadJobs]);
+  useAdminActivePolling(hasActiveJob, quietReload, 5_000);
 
   function copy(key: string, value: string) {
     void navigator.clipboard.writeText(value).then(() => {

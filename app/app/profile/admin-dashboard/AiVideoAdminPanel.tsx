@@ -9,6 +9,7 @@ import {
   type AiVideoMode,
   type AiVideoPublicConfig,
 } from "@/lib/adminAiVideo";
+import { isAdminJobActive, useAdminActivePolling } from "./useAdminActivePolling";
 
 const WORKER_COMMAND = "cd /Users/dimab/Documents/oneiro-web && npm run ai-video-worker";
 
@@ -87,11 +88,15 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
     }
   }, [isCombined, isVeo, user]);
 
+  const quietReload = useCallback(() => {
+    void loadJobs(true);
+  }, [loadJobs]);
+  const hasActiveJob = jobs.some((job) => isAdminJobActive(job.status));
+
   useEffect(() => {
     void loadJobs();
-    const timer = window.setInterval(() => void loadJobs(true), 5_000);
-    return () => window.clearInterval(timer);
   }, [loadJobs]);
+  useAdminActivePolling(hasActiveJob, quietReload, 5_000);
 
   useEffect(() => setCostConfirmed(false), [mode]);
 

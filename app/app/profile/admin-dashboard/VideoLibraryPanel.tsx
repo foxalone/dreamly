@@ -20,6 +20,22 @@ import {
 } from "@/lib/adminPinterest";
 import type { TumblrConnectionStatus } from "@/lib/adminTumblr";
 import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
+import { useAdminActivePolling } from "./useAdminActivePolling";
+
+function videoLibraryItemInFlight(item: AdminVideoLibraryItem) {
+  return (
+    item.scheduleStatus === "pending" ||
+    item.scheduleStatus === "running" ||
+    item.tiktokState === "publishing" ||
+    item.tiktokState === "uploading" ||
+    item.threadsState === "publishing" ||
+    item.blueskyState === "publishing" ||
+    item.youtubeState === "publishing" ||
+    item.youtubeState === "uploading" ||
+    item.pinterestState === "publishing" ||
+    item.tumblrState === "publishing"
+  );
+}
 
 type Platform = "tiktok" | "instagram" | "facebook" | "threads" | "bluesky" | "youtube" | "pinterest" | "tumblr";
 type Connection = "meta" | "threads" | "youtube" | "pinterest" | "tumblr";
@@ -460,13 +476,19 @@ export default function VideoLibraryPanel({
     }
   }, [user]);
 
+  const quietReload = useCallback(() => {
+    void load(true);
+  }, [load]);
+  const hasInFlightWork =
+    view === "library" &&
+    !publishingKey &&
+    !deletingId &&
+    items.some(videoLibraryItemInFlight);
+
   useEffect(() => {
     void load();
-    const timer = window.setInterval(() => {
-      if (!publishingKey && !deletingId) void load(true);
-    }, 15_000);
-    return () => window.clearInterval(timer);
-  }, [deletingId, load, publishingKey]);
+  }, [load]);
+  useAdminActivePolling(hasInFlightWork, quietReload, 15_000);
 
   useEffect(() => {
     if (view !== "connections") return;

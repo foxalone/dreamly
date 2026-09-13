@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
+import { useAdminActivePolling } from "./useAdminActivePolling";
 
 const STORAGE_KEY = "dreamly.autoCatchUp";
 
@@ -69,7 +70,9 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     () => (slots.length ? slots.map((slot) => slotLabel(slot.publishAt)).join(" · ") : "свободные 05:00 и 15:00"),
     [slots],
   );
-  const active = pairs.some((pair) => !pair.scheduled && pair.videoStatus !== "failed" && pair.imageStatus !== "failed");
+  const active = pairs.some(
+    (pair) => !pair.scheduled && !pair.error && pair.videoStatus !== "failed" && pair.imageStatus !== "failed",
+  );
 
   const persist = useCallback((next: CatchUpPair[]) => {
     setPairs(next);
@@ -155,20 +158,16 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     return next;
   }, [persist, user]);
 
+  const pollCatchUp = useCallback(() => {
+    void refreshPairs(readStoredPairs().length ? readStoredPairs() : pairs);
+  }, [pairs, refreshPairs]);
+
   useEffect(() => {
     const stored = readStoredPairs();
     if (stored.length) setPairs(stored);
     void loadPreview();
   }, [loadPreview]);
-
-  useEffect(() => {
-    if (!pairs.length) return;
-    const timer = window.setInterval(() => {
-      void refreshPairs(readStoredPairs().length ? readStoredPairs() : pairs);
-      void loadPreview();
-    }, 8_000);
-    return () => window.clearInterval(timer);
-  }, [loadPreview, pairs, refreshPairs]);
+  useAdminActivePolling(active, pollCatchUp, 8_000, { pauseWhenHidden: false });
 
   async function waitForWorkers(token: string) {
     const deadline = Date.now() + 60_000;
