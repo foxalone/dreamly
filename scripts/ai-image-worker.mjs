@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveDreamPageImage } from "../lib/dreamPageImageStore.mjs";
 
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -216,14 +217,13 @@ async function updateJob(reference, patch) {
 async function assignDreamPageImage(job, imageUrl) {
   const slug = String(job.dreamSlug || "").trim();
   if (!slug || !imageUrl || job.assignToDreamPage === false) return;
-  await db.collection("dreamPageImages").doc(slug).set({
+  await saveDreamPageImage(db, slug, {
     slug,
     imageJobId: job.id,
     imageUrl,
     subject: String(job.subject || ""),
     assignedBy: "auto-dictionary",
-    assignedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
+  }, FieldValue.serverTimestamp());
 }
 
 async function claimNextJob() {

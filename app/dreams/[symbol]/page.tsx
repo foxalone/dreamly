@@ -5,7 +5,8 @@ import DreamSymbolView, { dreamSymbolMetadata } from "../DreamSymbolView";
 type PageProps = { params: Promise<{ symbol: string }> };
 
 export const dynamicParams = false;
-export const revalidate = 3600;
+// Text changes ship with a deploy; images invalidate by path. Daily fallback for missed updates.
+export const revalidate = 86400;
 
 export function generateStaticParams() {
   return DREAM_SLUGS.map((symbol) => ({ symbol }));

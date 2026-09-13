@@ -1,10 +1,10 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { revalidatePath } from "next/cache";
+import { refreshDreamPageImageCache } from "@/app/api/admin/_lib/dreamPageImageCache";
+import { saveDreamPageImage } from "@/lib/dreamPageImageStore.mjs";
 import { NextResponse } from "next/server";
 import { AI_IMAGE_COLLECTION } from "@/lib/adminAiImage";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
-import { PREFIX_LOCALES } from "@/lib/i18n/config";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
@@ -22,16 +22,6 @@ function readSlug(value: unknown) {
   const slug = typeof value === "string" ? value.trim() : "";
   if (!slug || !getDreamEntry(slug)) return "";
   return slug;
-}
-
-function revalidateDreamPage(slug: string) {
-  revalidatePath(`/dreams/${slug}`);
-  revalidatePath("/gallery");
-  for (const locale of PREFIX_LOCALES) {
-    revalidatePath(`/${locale}/dreams/${slug}`);
-    revalidatePath(`/${locale}/gallery`);
-  }
-  revalidatePath("/sitemap.xml");
 }
 
 export async function PUT(request: Request) {
@@ -53,15 +43,14 @@ export async function PUT(request: Request) {
     }
 
     const subject = String(job.subject || "");
-    await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).set({
+    const changed = await saveDreamPageImage(adminDb(), slug, {
       slug,
       imageJobId,
       imageUrl,
       subject,
       assignedBy: uid,
-      assignedAt: FieldValue.serverTimestamp(),
-    });
-    revalidateDreamPage(slug);
+    }, FieldValue.serverTimestamp());
+    if (changed) await refreshDreamPageImageCache([slug]);
 
     return NextResponse.json({
       image: {
@@ -83,8 +72,15 @@ export async function DELETE(request: Request) {
     await requireAdmin(request);
     const slug = readSlug(new URL(request.url).searchParams.get("slug"));
     if (!slug) return NextResponse.json({ error: "Unknown symbol" }, { status: 400 });
-    await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).delete();
-    revalidateDreamPage(slug);
+    const db = adminDb();
+    const ref = db.collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug);
+    const changed = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists) return false;
+      transaction.delete(ref);
+      return true;
+    });
+    if (changed) await refreshDreamPageImageCache([slug]);
     return NextResponse.json({ image: null });
   } catch (error) {
     return apiError(error);

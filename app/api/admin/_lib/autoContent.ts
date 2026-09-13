@@ -1,3 +1,4 @@
+import { saveDreamPageImage } from "@/lib/dreamPageImageStore.mjs";
 import { FieldValue, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import {
   AI_IMAGE_ASPECT_RATIO,
@@ -234,14 +235,13 @@ export async function assignAutoImageToDreamPage(imageJobId: string) {
   if (!snapshot.exists || data?.status !== "completed" || !slug || !imageUrl) return null;
   if (data.assignToDreamPage === false) return null;
   const entry = getDreamEntry(slug);
-  await db.collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).set({
+  await saveDreamPageImage(db, slug, {
     slug,
     imageJobId,
     imageUrl,
     subject: String(data.subject || ""),
     assignedBy: AUTO_CONTENT_CREATED_BY,
-    assignedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
+  }, FieldValue.serverTimestamp());
   return {
     slug,
     imageJobId,
