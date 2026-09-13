@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import { MAX_SHORT_DURATION_SECONDS, type AdminVideoJob } from "@/lib/adminVideo";
 import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
@@ -32,7 +34,10 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short" }), []);
   const numberFormatter = useMemo(() => new Intl.NumberFormat("ru-RU"), []);
 
+  const pollGate = useRef(new AdminPollingGate());
+
   const loadJobs = useCallback(async (quiet = false) => {
+    if (!pollGate.current.begin(quiet)) return;
     if (!quiet) setLoading(true);
     try {
       const token = await user.getIdToken();
@@ -41,7 +46,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
         cache: "no-store",
       });
       const payload = (await response.json()) as { jobs?: AdminVideoJob[]; worker?: WorkerStatus; error?: string };
-      if (!response.ok) throw new Error(payload.error || "Не удалось загрузить задания");
+      if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Не удалось загрузить задания");
       setJobs((payload.jobs ?? []).filter((job) => (isMixed ? job.mode === "mixed" : job.mode !== "mixed")));
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "" });
       if (isMixed && !quiet) {
@@ -52,15 +57,18 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
         const autoPayload = (await autoResponse.json()) as { preview?: AutoPreview };
         if (autoResponse.ok && autoPayload.preview) setAutoPreview(autoPayload.preview);
       }
+      pollGate.current.success();
     } catch (error) {
-      if (!quiet) setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
+      pollGate.current.failure(error);
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
     } finally {
+      pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
   }, [isMixed, user]);
 
   const quietReload = useCallback(() => {
-    void loadJobs(true);
+    return loadJobs(true);
   }, [loadJobs]);
   const hasActiveJob = jobs.some((job) => isAdminJobActive(job.status));
 

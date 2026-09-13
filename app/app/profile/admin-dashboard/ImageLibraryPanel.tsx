@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
+
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
 import type { AdminImageLibraryItem, AdminImagePublishPlatform } from "@/lib/adminImageLibrary";
 import { imageSocialsAllPublished, imageSocialsAnyPublished } from "@/lib/imageSocialPublish";
@@ -214,7 +216,10 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
     [],
   );
 
+  const pollGate = useRef(new AdminPollingGate());
+
   const load = useCallback(async (quiet = false) => {
+    if (!pollGate.current.begin(quiet)) return;
     if (!quiet) setLoading(true);
     try {
       const token = await user.getIdToken();
@@ -226,7 +231,7 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
         fetch("/api/admin/pinterest/status", { headers, cache: "no-store" }),
       ]);
       const payload = (await libraryResponse.json()) as { items?: AdminImageLibraryItem[]; error?: string };
-      if (!libraryResponse.ok) throw new Error(payload.error || "Не удалось загрузить библиотеку");
+      if (!libraryResponse.ok) throw new AdminPollingError(libraryResponse.status, payload.error || "Не удалось загрузить библиотеку");
       setItems(payload.items ?? []);
       const metaPayload = (await metaResponse.json()) as MetaStatus & { error?: string };
       if (metaResponse.ok) setMeta(metaPayload);
@@ -235,16 +240,19 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
       const pinterestPayload = (await pinterestResponse.json()) as PinterestStatus & { error?: string };
       if (pinterestResponse.ok) setPinterest(pinterestPayload);
       setError("");
+      pollGate.current.success();
     } catch (caught) {
+      pollGate.current.failure(caught);
       const message = caught instanceof Error ? caught.message : "Ошибка загрузки";
-      if (!quiet) setError(message);
+      setError(message);
     } finally {
+      pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
   }, [user]);
 
   const quietReload = useCallback(() => {
-    void load(true);
+    return load(true);
   }, [load]);
   const hasInFlightWork = !publishingKey && items.some(imageLibraryItemInFlight);
 

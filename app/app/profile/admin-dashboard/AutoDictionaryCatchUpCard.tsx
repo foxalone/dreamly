@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
 import { useAdminActivePolling } from "./useAdminActivePolling";
@@ -95,71 +97,82 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     if (imageResponse.ok) setImageWorker(imagePayload.worker ?? { online: false });
   }, [user]);
 
-  const refreshPairs = useCallback(async (current: CatchUpPair[]) => {
-    if (!current.length) return current;
-    const token = await user.getIdToken();
-    const next = [];
-    for (const pair of current) {
-      if (pair.scheduled || pair.scheduling || pair.error) {
-        next.push(pair);
-        continue;
-      }
-      const response = await fetch(
-        `/api/admin/auto-content/schedule?videoJobId=${encodeURIComponent(pair.videoJobId)}&imageJobId=${encodeURIComponent(pair.imageJobId)}`,
-        { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-      );
-      const payload = (await response.json()) as {
-        video?: { status?: string; error?: string };
-        image?: { status?: string; error?: string };
-        error?: string;
-      };
-      const videoStatus = payload.video?.status || pair.videoStatus || "queued";
-      const imageStatus = payload.image?.status || pair.imageStatus || "queued";
-      if (videoStatus === "failed" || imageStatus === "failed") {
-        next.push({
-          ...pair,
-          videoStatus,
-          imageStatus,
-          error: payload.video?.error || payload.image?.error || "Ошибка генерации",
-        });
-        continue;
-      }
-      if (videoStatus === "completed" && imageStatus === "completed") {
-        const remaining = current.slice(next.length + 1);
-        persist([...next, { ...pair, videoStatus, imageStatus, scheduling: true }, ...remaining]);
-        const booked = await fetch("/api/admin/auto-content/schedule", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug: pair.slug,
-            videoJobId: pair.videoJobId,
-            imageJobId: pair.imageJobId,
-            publishAt: pair.publishAt,
-          }),
-        });
-        const bookedPayload = (await booked.json()) as { youtubeScheduled?: boolean; youtubeError?: string; error?: string };
-        if (!booked.ok) {
-          next.push({ ...pair, videoStatus, imageStatus, error: bookedPayload.error || "Не удалось поставить в слот" });
+  const pairPollGate = useRef(new AdminPollingGate());
+  const refreshPairs = useCallback(async (current: CatchUpPair[], quiet = false) => {
+    if (!current.length || !pairPollGate.current.begin(quiet)) return current;
+    try {
+      const token = await user.getIdToken();
+      const next = [];
+      for (const pair of current) {
+        if (pair.scheduled || pair.scheduling || pair.error) {
+          next.push(pair);
           continue;
         }
-        next.push({
-          ...pair,
-          videoStatus,
-          imageStatus,
-          scheduled: true,
-          youtubeScheduled: bookedPayload.youtubeScheduled !== false,
-          error: bookedPayload.youtubeError || "",
-        });
-        continue;
+        const response = await fetch(
+          `/api/admin/auto-content/schedule?videoJobId=${encodeURIComponent(pair.videoJobId)}&imageJobId=${encodeURIComponent(pair.imageJobId)}`,
+          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+        );
+        const payload = (await response.json()) as {
+          video?: { status?: string; error?: string };
+          image?: { status?: string; error?: string };
+          error?: string;
+        };
+        if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Ошибка генерации");
+        const videoStatus = payload.video?.status || pair.videoStatus || "queued";
+        const imageStatus = payload.image?.status || pair.imageStatus || "queued";
+        if (videoStatus === "failed" || imageStatus === "failed") {
+          next.push({
+            ...pair,
+            videoStatus,
+            imageStatus,
+            error: payload.video?.error || payload.image?.error || "Ошибка генерации",
+          });
+          continue;
+        }
+        if (videoStatus === "completed" && imageStatus === "completed") {
+          const remaining = current.slice(next.length + 1);
+          persist([...next, { ...pair, videoStatus, imageStatus, scheduling: true }, ...remaining]);
+          const booked = await fetch("/api/admin/auto-content/schedule", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              slug: pair.slug,
+              videoJobId: pair.videoJobId,
+              imageJobId: pair.imageJobId,
+              publishAt: pair.publishAt,
+            }),
+          });
+          const bookedPayload = (await booked.json()) as { youtubeScheduled?: boolean; youtubeError?: string; error?: string };
+          if (!booked.ok) {
+            next.push({ ...pair, videoStatus, imageStatus, error: bookedPayload.error || "Не удалось поставить в слот" });
+            continue;
+          }
+          next.push({
+            ...pair,
+            videoStatus,
+            imageStatus,
+            scheduled: true,
+            youtubeScheduled: bookedPayload.youtubeScheduled !== false,
+            error: bookedPayload.youtubeError || "",
+          });
+          continue;
+        }
+        next.push({ ...pair, videoStatus, imageStatus });
       }
-      next.push({ ...pair, videoStatus, imageStatus });
+      persist(next);
+      pairPollGate.current.success();
+      return next;
+    } catch (error) {
+      pairPollGate.current.failure(error);
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка генерации" });
+      return current;
+    } finally {
+      pairPollGate.current.finish();
     }
-    persist(next);
-    return next;
   }, [persist, user]);
 
   const pollCatchUp = useCallback(() => {
-    void refreshPairs(readStoredPairs().length ? readStoredPairs() : pairs);
+    return refreshPairs(readStoredPairs().length ? readStoredPairs() : pairs, true);
   }, [pairs, refreshPairs]);
 
   useEffect(() => {

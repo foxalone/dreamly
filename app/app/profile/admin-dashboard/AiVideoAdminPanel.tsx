@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   AI_VIDEO_MAX_DURATION_SECONDS,
@@ -64,7 +66,10 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
   const modeConfig = AI_VIDEO_MODES[mode];
   const estimatedPrice = config.prices[mode];
 
+  const pollGate = useRef(new AdminPollingGate());
+
   const loadJobs = useCallback(async (quiet = false) => {
+    if (!pollGate.current.begin(quiet)) return;
     if (!quiet) setLoading(true);
     try {
       const token = await user.getIdToken();
@@ -76,20 +81,23 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
         worker?: WorkerStatus;
         error?: string;
       };
-      if (!response.ok) throw new Error(payload.error || "Не удалось загрузить задания");
+      if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Не удалось загрузить задания");
       setJobs((payload.jobs ?? []).filter((job) => isCombined ? job.mode === "combined" : isVeo ? job.mode === "veo" : job.mode === "preview" || job.mode === "standard"));
       setConfig(payload.config ?? DEFAULT_CONFIG);
       setBudget(payload.budget ?? { date: "", reservedUsd: 0, jobsCount: 0 });
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "", state: "offline", currentJobId: "" });
+      pollGate.current.success();
     } catch (error) {
-      if (!quiet) setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
+      pollGate.current.failure(error);
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка загрузки" });
     } finally {
+      pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
   }, [isCombined, isVeo, user]);
 
   const quietReload = useCallback(() => {
-    void loadJobs(true);
+    return loadJobs(true);
   }, [loadJobs]);
   const hasActiveJob = jobs.some((job) => isAdminJobActive(job.status));
 

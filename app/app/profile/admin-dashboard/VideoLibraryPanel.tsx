@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
+
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
 import { Trash2 } from "lucide-react";
 import {
@@ -426,7 +428,10 @@ export default function VideoLibraryPanel({
     [],
   );
 
+  const pollGate = useRef(new AdminPollingGate());
+
   const load = useCallback(async (quiet = false) => {
+    if (!pollGate.current.begin(quiet)) return;
     if (!quiet) setLoading(true);
     try {
       const token = await user.getIdToken();
@@ -451,7 +456,7 @@ export default function VideoLibraryPanel({
         fetch("/api/admin/tumblr/status", { headers, cache: "no-store" }),
       ]);
       const libraryPayload = (await libraryResponse.json()) as { items?: AdminVideoLibraryItem[]; error?: string };
-      if (!libraryResponse.ok) throw new Error(libraryPayload.error || "Не удалось загрузить библиотеку");
+      if (!libraryResponse.ok) throw new AdminPollingError(libraryResponse.status, libraryPayload.error || "Не удалось загрузить библиотеку");
       setItems(libraryPayload.items ?? []);
 
       const statusPayload = (await statusResponse.json()) as TikTokStatus & { error?: string };
@@ -469,15 +474,18 @@ export default function VideoLibraryPanel({
       const tumblrPayload = (await tumblrResponse.json()) as TumblrStatus & { error?: string };
       if (tumblrResponse.ok) setTumblr(tumblrPayload);
       setError("");
+      pollGate.current.success();
     } catch (loadError) {
-      if (!quiet) setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
+      pollGate.current.failure(loadError);
+      setError(loadError instanceof Error ? loadError.message : "Ошибка загрузки");
     } finally {
+      pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
   }, [user]);
 
   const quietReload = useCallback(() => {
-    void load(true);
+    return load(true);
   }, [load]);
   const hasInFlightWork =
     view === "library" &&

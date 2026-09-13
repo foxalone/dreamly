@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { startAdminPolling } from "@/lib/adminPolling";
 
 export function isAdminJobActive(status?: string | null) {
   return status === "queued" || status === "processing";
@@ -9,25 +10,17 @@ export function isAdminJobActive(status?: string | null) {
 /** Poll only while work is in flight. Studio panels pause in a hidden tab. */
 export function useAdminActivePolling(
   enabled: boolean,
-  tick: () => void,
+  tick: () => void | Promise<unknown>,
   intervalMs: number,
   options?: { pauseWhenHidden?: boolean },
 ) {
   const pauseWhenHidden = options?.pauseWhenHidden !== false;
+  const tickRef = useRef(tick);
+  useEffect(() => { tickRef.current = tick; }, [tick]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const run = () => {
-      if (pauseWhenHidden && document.visibilityState === "hidden") return;
-      tick();
-    };
-
-    const timer = window.setInterval(run, intervalMs);
-    if (pauseWhenHidden) document.addEventListener("visibilitychange", run);
-    return () => {
-      window.clearInterval(timer);
-      if (pauseWhenHidden) document.removeEventListener("visibilitychange", run);
-    };
-  }, [enabled, intervalMs, pauseWhenHidden, tick]);
+    return startAdminPolling(() => tickRef.current(), intervalMs, pauseWhenHidden);
+  }, [enabled, intervalMs, pauseWhenHidden]);
 }
