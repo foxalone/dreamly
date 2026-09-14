@@ -1,13 +1,13 @@
-import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import {
-  clearHomeDreamPending,
   HOME_DREAM_MAX_CHARS,
-  readHomeDreamPending,
+  takeHomeDreamPending,
+  writeHomeDreamPending,
   type HomeDreamCity,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
@@ -138,25 +138,48 @@ async function shareImportedDream(user: User, dreamId: string, pending: HomeDrea
   trackEvent("share", { method: "home_ask_map", content_type: "dream" });
 }
 
+function restorePending(pending: HomeDreamPending) {
+  writeHomeDreamPending(pending.text, {
+    analysis: pending.analysis ?? "",
+    shareToMap: pending.shareToMap,
+    lang: pending.lang,
+    lens: pending.lens,
+    createdAtMs: pending.createdAtMs,
+    emojis: pending.emojis,
+    iconsEn: pending.iconsEn,
+    rootsEn: pending.rootsEn,
+    city: pending.city,
+    guestMapIngested: pending.guestMapIngested,
+  });
+}
+
 async function importOnce(user: User): Promise<HomeDreamImportResult> {
-  const pending = readHomeDreamPending();
+  // Claim the cache before the first await. The localStorage entry is the only
+  // lock shared between tabs and page loads, and everything below (visuals, geo,
+  // the Firestore round-trip) is slow enough for a second context to start the
+  // very same import and write a duplicate dream.
+  const pending = takeHomeDreamPending();
   const text = pending?.text.trim() ?? "";
   if (!pending || !text) return { status: "empty" };
 
   const now = new Date();
   const analysis = pending.analysis?.trim() || "";
   const nowMs = Date.now();
+  const createdAtMs = pending.createdAtMs || nowMs;
+  // Deterministic id: re-running the import overwrites the same dream instead of
+  // adding another one.
+  const dreamId = `home_${createdAtMs}`;
   const visuals = pending.shareToMap !== false ? await resolveVisuals(pending) : visualsFromPending(pending);
   const city = pending.shareToMap !== false ? await resolveImportCity(pending) : pending.city;
 
   try {
-    const docRef = await addDoc(collection(firestore, "users", user.uid, "dreams"), {
+    await setDoc(doc(firestore, "users", user.uid, "dreams", dreamId), {
       uid: user.uid,
       text: text.slice(0, HOME_DREAM_MAX_CHARS),
       title: makeTitle(text),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      createdAtMs: pending.createdAtMs || nowMs,
+      createdAtMs,
       dateKey: toDateKeyLocal(now),
       timeKey: toTimeKeyLocal(now),
       tzOffsetMin: now.getTimezoneOffset(),
@@ -201,11 +224,9 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         : {}),
     });
 
-    clearHomeDreamPending();
-
     if (pending.shareToMap !== false) {
       try {
-        await shareImportedDream(user, docRef.id, { ...pending, city: city ?? pending.city }, visuals);
+        await shareImportedDream(user, dreamId, { ...pending, city: city ?? pending.city }, visuals);
       } catch (e) {
         console.warn("home dream map share failed", e);
       }
@@ -213,7 +234,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         try {
           await ingestDreamForMap({
             uid: user.uid,
-            dreamId: docRef.id,
+            dreamId,
             sourceType: "dream",
             skipCity: pending.guestMapIngested === true,
           });
@@ -232,11 +253,14 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
 
     return {
       status: "imported",
-      dreamId: docRef.id,
+      dreamId,
       shared: pending.shareToMap !== false,
       analysis: analysis || undefined,
     };
   } catch (error) {
+    // Nothing was written: hand the cache back so the journal composer (and a
+    // later retry) can still find the dream.
+    restorePending(pending);
     return { status: "failed", pendingText: text, error };
   }
 }

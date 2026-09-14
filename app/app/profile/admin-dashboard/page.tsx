@@ -71,6 +71,12 @@ type DreamAdmin = {
   deletedAtMs?: number;
 
   emojis?: Array<{ id?: string; name?: string; native?: string }>;
+
+  cityId?: string | null;
+  city?: string | null;
+  country?: string | null;
+  admin1?: string | null;
+  citySource?: string | null;
 };
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
@@ -149,6 +155,11 @@ type UserRow = {
 function fmtUserCity(city: string, country: string, admin1: string) {
   const parts = [city, admin1, country].map((x) => String(x ?? "").trim()).filter(Boolean);
   return parts.length ? parts.join(", ") : "—";
+}
+
+function dreamCityLabel(d: DreamAdmin) {
+  const label = fmtUserCity(d.city ?? "", d.country ?? "", d.admin1 ?? "");
+  return label === "—" ? "" : label;
 }
 
 function toMs(v: unknown): number | null {
@@ -381,6 +392,12 @@ export default function AdminDashboardPage() {
 
               authorName: data.authorName ?? null,
               authorEmail: data.authorEmail ?? null,
+
+              cityId: data.cityId ?? null,
+              city: data.city ?? null,
+              country: data.country ?? null,
+              admin1: data.admin1 ?? null,
+              citySource: data.citySource ?? null,
             };
           }
 
@@ -403,6 +420,12 @@ export default function AdminDashboardPage() {
             deletedAtMs: data.deletedAtMs,
 
             emojis: Array.isArray(data.emojis) ? data.emojis : [],
+
+            cityId: data.cityId ?? null,
+            city: data.city ?? null,
+            country: data.country ?? null,
+            admin1: data.admin1 ?? null,
+            citySource: data.citySource ?? null,
           };
         });
 
@@ -1243,6 +1266,12 @@ async function loadUsers() {
                       <span>
                         deleted: <b>{d.deleted ? "yes" : "no"}</b>
                       </span>
+                      {dreamCityLabel(d) ? (
+                        <span title={d.cityId ?? ""}>
+                          city: <b>{dreamCityLabel(d)}</b>
+                          {d.citySource ? ` (${d.citySource})` : ""}
+                        </span>
+                      ) : null}
                     </div>
 
                     {d.emojis?.length ? (

@@ -1,7 +1,7 @@
 // app/signin/SignInClient.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getAdditionalUserInfo,
@@ -60,6 +60,15 @@ export default function SignInClient() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Навигация ровно один раз: и слушатель, и кнопка ведут в одно и то же место,
+  // а двойной переход поднимает целевую страницу дважды.
+  const navigatedRef = useRef(false);
+  const goNext = useCallback(() => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    router.replace(next);
+  }, [next, router]);
+
   // если уже залогинен — сразу уходим
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -67,11 +76,11 @@ export default function SignInClient() {
       setBusy(true);
       setErr(null);
       ensureUserProfileOnSignIn(u)
-        .then(() => router.replace(next))
+        .then(() => goNext())
         .finally(() => setBusy(false));
     });
     return () => unsub();
-  }, [next, router]);
+  }, [goNext]);
 
   async function handleGoogleSignIn() {
     setErr(null);
@@ -83,7 +92,7 @@ export default function SignInClient() {
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
 
-      router.replace(next);
+      goNext();
     } catch (e: any) {
       setErr(e?.message ?? "Failed to sign in");
       setBusy(false);
