@@ -37,10 +37,14 @@ test("picks the next fully free day after occupied 05:00/15:00 slots", () => {
 
 test("keeps a two-day horizon with four 05:00/15:00 slots", () => {
   const occupied = occupiedSlotKeys([
+    "2026-09-10T02:00:00.000Z",
     "2026-09-12T02:00:00.000Z",
     "2026-09-12T12:00:00.000Z",
   ]);
+  // 09-09 has already lost its 05:00 slot and 09-10 has one slot booked, so the
+  // horizon takes the earliest days where BOTH slots are still free - gaps
+  // before the last booked day included.
   const days = nextEmptyPublishDays(occupied, 2, new Date("2026-09-09T05:12:00.000Z"));
-  assert.deepEqual(days, ["2026-09-13", "2026-09-14"]);
+  assert.deepEqual(days, ["2026-09-11", "2026-09-13"]);
   assert.equal(publishSlotsForDays(days).length, 4);
 });
