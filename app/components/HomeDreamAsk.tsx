@@ -225,6 +225,11 @@ export default function HomeDreamAsk({
           disabled={busy}
           className="w-full resize-none rounded-[1.15rem] bg-white px-4 py-3.5 text-base text-zinc-900 outline-none placeholder:text-zinc-400"
         />
+        <div className="flex justify-end px-2 pt-1.5 text-[11px] font-medium tabular-nums">
+          <span className={text.length >= HOME_DREAM_MAX_CHARS ? "text-amber-200" : "text-white/70"}>
+            {text.length}/{HOME_DREAM_MAX_CHARS}
+          </span>
+        </div>
         <div className="px-2 pb-1 pt-2">
           <DreamLensChips value={lens} onChange={chooseLens} disabled={busy} tone="onBrand" />
         </div>
