@@ -74,7 +74,7 @@ export const PT_MESSAGES: UiMessages = {
       {
         question: "A Dreamly é grátis?",
         answer:
-          "O dicionário, a galeria, o mapa e a primeira interpretação como convidado são grátis. Salvar sonhos e mais leituras com IA exigem uma assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste). Assinantes podem salvar e interpretar até 5 sonhos por dia, com 250 caracteres cada.",
+          "O dicionário, a galeria, o mapa e a primeira interpretação como convidado são grátis. Salvar sonhos e mais leituras com IA exigem uma assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste). Assinantes podem salvar e interpretar até 5 sonhos por dia, com 400 caracteres cada.",
       },
       {
         question: "Como funciona a interpretação com IA?",

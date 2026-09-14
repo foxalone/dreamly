@@ -74,7 +74,7 @@ export const ES_MESSAGES: UiMessages = {
       {
         question: "¿Dreamly es gratis?",
         answer:
-          "El diccionario, la galería, el mapa y tu primera interpretación como invitado son gratis. Guardar sueños y más lecturas con IA requieren una suscripción Dreamly (6,99 USD/mes o 69,99 USD/año, con 3 días de prueba). Los suscriptores pueden guardar e interpretar hasta 5 sueños al día, de 250 caracteres cada uno.",
+          "El diccionario, la galería, el mapa y tu primera interpretación como invitado son gratis. Guardar sueños y más lecturas con IA requieren una suscripción Dreamly (6,99 USD/mes o 69,99 USD/año, con 3 días de prueba). Los suscriptores pueden guardar e interpretar hasta 5 sueños al día, de 400 caracteres cada uno.",
       },
       {
         question: "¿Cómo funciona la interpretación con IA?",

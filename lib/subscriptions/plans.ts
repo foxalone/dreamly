@@ -1,4 +1,4 @@
-export const DREAM_MAX_CHARS = 250;
+export const DREAM_MAX_CHARS = 400;
 export const DREAMS_PER_DAY = 5;
 export const TRIAL_DAYS = 3;
 

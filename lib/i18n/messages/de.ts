@@ -74,7 +74,7 @@ export const DE_MESSAGES: UiMessages = {
       {
         question: "Ist Dreamly kostenlos?",
         answer:
-          "Lexikon, Galerie, Karte und die erste Deutung als Gast sind kostenlos. Träume speichern und weitere KI-Lesungen brauchen ein Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test). Abonnenten können bis zu 5 Träume pro Tag speichern und deuten, je 250 Zeichen.",
+          "Lexikon, Galerie, Karte und die erste Deutung als Gast sind kostenlos. Träume speichern und weitere KI-Lesungen brauchen ein Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test). Abonnenten können bis zu 5 Träume pro Tag speichern und deuten, je 400 Zeichen.",
       },
       {
         question: "Wie funktioniert die KI-Traumdeutung?",

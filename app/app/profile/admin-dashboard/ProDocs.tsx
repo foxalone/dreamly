@@ -18,7 +18,7 @@ const ACTIONS = [
   {
     action: "Сохранить сон / story",
     cost: "подписка + 1 из 5/день",
-    note: "POST /api/dreams/consume-slot, затем Firestore addDoc. 250 символов.",
+    note: "POST /api/dreams/consume-slot, затем Firestore addDoc. 400 символов.",
   },
   {
     action: "Analyze (разбор сна)",
@@ -126,7 +126,7 @@ export default function ProDocs() {
           <p className="mt-1 text-[var(--muted)]">
             Доступ = активная PayPal-подписка или trial (
             <span className="font-mono text-[var(--text)]">users/&#123;uid&#125;.subscriptionStatus</span>
-            ). Гость получает 1 бесплатную интерпретацию. Лимиты: 5 снов/день UTC и 250 символов.
+            ). Гость получает 1 бесплатную интерпретацию. Лимиты: 5 снов/день UTC и 400 символов.
           </p>
         </div>
 
@@ -159,7 +159,7 @@ export default function ProDocs() {
               <span className="font-mono text-[var(--text)]">/app/upgrade</span>).
             </li>
             <li>
-              Лимиты всегда: 5 снов в UTC-день, 250 символов на сон.
+              Лимиты всегда: 5 снов в UTC-день, 400 символов на сон.
             </li>
             <li>Welcome-кредиты больше не выдаются.</li>
           </ul>

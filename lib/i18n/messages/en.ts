@@ -74,7 +74,7 @@ export const EN_MESSAGES: UiMessages = {
       {
         question: "Is Dreamly free to use?",
         answer:
-          "The dictionary, gallery, map, and your first guest interpretation are free. Saving dreams and extra AI readings need a Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial). Subscribers can save and interpret up to 5 dreams a day, 250 characters each.",
+          "The dictionary, gallery, map, and your first guest interpretation are free. Saving dreams and extra AI readings need a Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial). Subscribers can save and interpret up to 5 dreams a day, 400 characters each.",
       },
       {
         question: "How does AI dream interpretation work?",
