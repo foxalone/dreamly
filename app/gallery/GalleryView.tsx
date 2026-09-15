@@ -87,7 +87,6 @@ export default function GalleryView({
                   />
                   <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
                     <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
-                    <span className="mt-0.5 block truncate text-[11px] text-white/75">{t.gallery.openMeaning}</span>
                   </span>
                 </span>
               </LocaleLink>
