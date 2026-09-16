@@ -118,7 +118,7 @@ export const PT_MESSAGES: UiMessages = {
     popularSymbolsLead: "Temas principais e significados de cauda longa",
     learnTitle: "Aprenda sobre o sonhar",
     learnLead:
-      "Guias sobre como interpretar sonhos, por que sonhamos, pesadelos e terrores noturnos, noites vívidas e de ansiedade, sonhos de visitação e compartilhados, incubação, memória, infância e os teóricos da interpretação.",
+      "Guias sobre como interpretar sonhos, por que sonhamos, sono REM, pesadelos, terrores noturnos e sonambulismo, noites vívidas e de ansiedade, sonhar com alguém, arquétipos, sonhar acordado, cores e sentidos, déjà vu, remédios, criatividade, sonhos de visitação e compartilhados, incubação, memória, infância e os teóricos da interpretação.",
     browseTheme: "Explorar por tema",
     seoClusters: "Grupos de símbolos",
     exploreCluster: "Ver o grupo",

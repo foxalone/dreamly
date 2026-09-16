@@ -1453,6 +1453,816 @@ export const DREAM_GUIDES: DreamGuide[] = [
     relatedSymbolSlugs: ["sex", "cheating", "ex", "wedding"],
     updatedAt: "2026-09-11",
   },
+  {
+    slug: "rem-sleep",
+    name: "REM Sleep and Dreams",
+    title: "REM Sleep and Dreams",
+    seoTitle: "REM Sleep and Dreams: Cycles, Paralysis & Dream Time",
+    seoDescription:
+      "What REM sleep is, how the 90-minute cycle shapes your dreams, why the body is paralyzed, how long dreams really last, and what REM rebound does to your nights.",
+    icon: "👁️",
+    accent: "#0ea5e9",
+    summary: "The sleep stage behind most vivid dreams — cycles, paralysis, dream time, and rebound.",
+    intro: [
+      "REM sleep — rapid eye movement sleep — is the stage most people mean when they say 'dream sleep.' It was described in 1953, when Eugene Aserinsky and Nathaniel Kleitman noticed that sleepers' eyes darted under their lids in regular bursts, and that people woken during those bursts usually reported a dream. Seventy years later REM is still the best-mapped doorway into the dreaming mind, even though it is not the only one.",
+      "Understanding the stage changes how you read your nights. It explains why the last dream before the alarm is the one you remember, why a sleepless week ends in a flood of strange plots, and why the body can feel frozen at the edge of waking. This page is the physiology; [why we dream](/dreams/why-we-dream) covers the theories, and [how to interpret dreams](/dreams/how-to-interpret-dreams) covers what to do with the story.",
+    ],
+    sections: [
+      {
+        heading: "The 90-minute cycle",
+        paragraphs: [
+          "A night is not one long block. The sleeping brain moves through cycles of light non-REM sleep, deep slow-wave sleep, and REM, each lasting roughly 90 minutes, with real variation from about 70 to 120. Most adults complete four to six cycles. The first REM period usually arrives an hour or more after falling asleep and may last only a few minutes. As the night goes on, deep sleep shrinks and REM periods stretch, so the final third of the night is where the longest, most story-like dreams live.",
+          "That timing is practical. Someone who sleeps five hours instead of eight loses a disproportionate share of REM, because the long morning periods are the ones cut. Someone who wakes naturally at the end of a REM period is far more likely to remember a plot than someone dragged out of deep sleep by an alarm. The [remembering dreams](/dreams/remembering-dreams) guide builds on exactly this rhythm.",
+        ],
+      },
+      {
+        heading: "What the brain and body are doing",
+        paragraphs: [
+          "In REM the brain looks close to awake on an EEG. Imaging studies show strong activity in visual and emotional regions, including the amygdala, while parts of the prefrontal cortex that handle planning and self-checking are relatively quiet. The stress chemical noradrenaline drops to its lowest level of the day. Put together, that recipe produces vivid scenes, strong feelings, and a narrator who rarely asks whether any of it makes sense.",
+          "The body, meanwhile, is held still. Circuits in the brainstem switch off most skeletal muscle tone — a state called atonia — while the eyes and the breathing muscles keep working. Atonia is the reason you do not run when you dream of running. When it lingers into waking you get [sleep paralysis](/dreams/sleep-paralysis); when it fails during REM you get people acting out dreams, which the [sleepwalking and sleep talking](/dreams/sleepwalking-and-sleep-talking) guide explains.",
+        ],
+      },
+      {
+        heading: "Do dreams happen outside REM?",
+        paragraphs: [
+          "Yes. Most awakenings from REM produce a dream report, but a substantial minority of awakenings from non-REM sleep do too. Non-REM dreams tend to be shorter, more thought-like, and less emotional — a worry replayed, a list rehearsed, a single image. Late in the night, non-REM dreams can become almost as vivid as REM ones, which is one reason researchers stopped treating 'REM' and 'dreaming' as the same word.",
+          "The distinction matters for frightening nights. A [night terror](/dreams/night-terrors) comes out of deep non-REM sleep and usually leaves no story behind. A [nightmare](/dreams/nightmare) is typically a REM event that wakes you with a plot you can retell. The same parent, partner, or clinician response does not fit both.",
+        ],
+      },
+      {
+        heading: "How long do dreams last?",
+        paragraphs: [
+          "A popular idea says dreams flash by in a few seconds. The evidence points the other way. In early sleep-lab work, people woken after longer REM periods tended to report longer dreams. Later studies with lucid dreamers, who can signal from inside a dream with agreed eye movements, found that counting or simple actions take roughly as long in the dream as awake — sometimes a little longer. Dream time is compressed in the telling, not necessarily in the living.",
+          "Those eye signals are also how researchers proved that [lucid dreams](/dreams/lucid-dreams) happen during genuine REM sleep rather than brief awakenings. In recent experiments, a few lucid dreamers even answered simple questions from the lab by moving their eyes, a small but real line of communication with the dreaming mind.",
+        ],
+      },
+      {
+        heading: "REM rebound and why some weeks get loud",
+        paragraphs: [
+          "When REM is cut short — by a short night, alcohol, jet lag, or certain medications — the brain tends to pay the debt back later with longer and denser REM periods. People describe that rebound as a sudden wave of [vivid dreams](/dreams/vivid-dreams), sometimes disturbing ones. It is common after a heavy drinking night wears off, after quitting cannabis, and when some antidepressants are stopped. The [medication and dreams](/dreams/medication-and-dreams) page covers the specific triggers.",
+          "Rebound is useful context before you search for meaning. A strange plot during a catch-up week may be physiology wearing a costume. The content can still be worth a line in a journal — what feeling did the night reach for? — but the intensity itself is often about sleep pressure, not about a message.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "How much of the night is REM sleep?",
+        answer:
+          "In healthy adults REM usually makes up about a fifth to a quarter of total sleep, concentrated in the second half of the night. Newborns spend far more of their sleep in the equivalent active state.",
+      },
+      {
+        question: "Do I dream every night?",
+        answer:
+          "Almost certainly. Everyone with normal sleep cycles through REM several times a night. People who say they never dream usually do not remember, which is about how and when they wake rather than about the dreams themselves.",
+      },
+      {
+        question: "Why can't I move when I wake from a dream?",
+        answer:
+          "REM atonia, the muscle shutdown that keeps you still in dreams, can briefly overlap with waking awareness. That overlap is sleep paralysis. It is frightening but usually harmless, and it passes within seconds to a couple of minutes.",
+      },
+      {
+        question: "Is REM sleep the most important stage?",
+        answer:
+          "No stage wins. Deep non-REM sleep carries much of the physical recovery and memory stabilization; REM is tied to emotional processing and certain kinds of learning. A good night needs the full cycle, repeated.",
+      },
+      {
+        question: "Can I get more REM sleep?",
+        answer:
+          "The most reliable lever is simply sleeping long enough and at regular times, since REM is concentrated in the morning. Limiting alcohol late in the evening helps. Changes to medication should only happen with a prescriber.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "flying", "falling", "being-chased"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "dreaming-about-someone",
+    name: "Dreaming About Someone",
+    title: "Dreaming About Someone",
+    seoTitle: "Dreaming About Someone: Why a Person Keeps Showing Up",
+    seoDescription:
+      "Why you dream about a specific person — a crush, an ex, a friend, a stranger, someone who died — what it can mean, and why it does not prove they are thinking of you.",
+    icon: "👤",
+    accent: "#ec4899",
+    summary: "Why a particular person appears in your dreams — and what that does and does not mean.",
+    intro: [
+      "Few dream questions are searched as often as 'why did I dream about him?' or 'why do I keep dreaming about her?' The person may be a crush, an ex you have not spoken to in years, a coworker you barely notice, a celebrity, a parent, or someone who has died. The morning brings a small jolt: the night seems to have chosen this person on purpose.",
+      "It did choose — but mostly from your side of the relationship. Research on dream content repeatedly finds that the people in our dreams track the people who occupy our feelings, worries, and memories. This guide covers why someone appears, how to read the role they play, and the one conclusion you should not jump to.",
+    ],
+    sections: [
+      {
+        heading: "Why the mind casts a particular person",
+        paragraphs: [
+          "Dream researchers call it the continuity hypothesis: dreams draw heavily on the concerns and relationships of waking life. The people we see most, argue with most, or care about most show up most. Emotional charge matters more than hours spent together — a two-minute conversation that stung can earn more dream time than a week of routine meetings.",
+          "Dreams also borrow people as shorthand. A friend who is always calm may appear when you need calm. An old teacher may stand in for being evaluated. Before asking what the dream says about the person, ask what the person represents to you right now: a quality, a period of your life, an unfinished conversation, or a fear.",
+        ],
+      },
+      {
+        heading: "Crushes, exes, and partners",
+        paragraphs: [
+          "Dreaming about a crush is usually the simplest case: attention and hope rehearsing a connection. Dreams about an [ex](/dreams/ex) are more layered. They often appear when a current relationship hits a familiar pattern, when you are comparing, or when a chapter of your own identity — who you were then — is asking for attention. They are rarely an instruction to get back in touch.",
+          "Dreams in which a partner leaves or cheats are among the most distressing and the most common. They tend to reflect insecurity, distance, or a trust question that has not been spoken, not evidence of anything that happened. The [cheating](/dreams/cheating) symbol page and the [erotic dreams](/dreams/erotic-dreams) guide go further into romantic and sexual scenes with unexpected partners.",
+        ],
+      },
+      {
+        heading: "Friends, family, strangers, and celebrities",
+        paragraphs: [
+          "An [old friend](/dreams/old-friend) often returns when something in your present echoes the time you shared: a similar crossroads, a lost ease, a loyalty question. Parents and siblings frequently appear during changes in independence, caregiving, or family roles, even when the relationship is calm. Arguments with family in dreams are often rehearsals of boundaries you have not yet set.",
+          "Strangers may be parts of yourself you have not claimed — the [dream archetypes](/dreams/dream-archetypes) guide explains Jung's shadow and related figures. A [celebrity](/dreams/celebrity) usually carries what they symbolize for you: recognition, glamour, talent, or a feeling of being unseen. The popular claim that every face in a dream must be someone you once saw has never been established; the brain is quite able to assemble a new face from familiar features.",
+        ],
+      },
+      {
+        heading: "Does it mean they are thinking of you?",
+        paragraphs: [
+          "There is no evidence that dreaming about someone means they are thinking about you, missing you, or dreaming about you too. The idea is appealing because it turns a private night into a shared signal, but the dream was built from your memories and feelings. When two people do report similar dreams, the explanation is usually a shared day, shared worries, or stories that converged in the retelling — the [shared dreams](/dreams/shared-dreams) guide looks at that closely.",
+          "It is kinder, and more accurate, to treat the dream as information about you. Telling someone 'I dreamed about you' can be warm, but it can also put pressure on a person who never agreed to be part of your inner life. Faith traditions offer similar caution: Islamic etiquette, for example, advises sharing a good dream with people who wish you well and keeping a distressing one to yourself.",
+        ],
+      },
+      {
+        heading: "When the same person keeps coming back",
+        paragraphs: [
+          "If one person appears night after night, look at what stays constant: the feeling, the setting, what they do, and how the scene ends. A repeated dream about someone who hurt you may be the mind rehearsing safety. A repeated dream about someone you lost may be grief finding its pace — the [visitation dreams](/dreams/visitation-dreams) guide is written for that. The [recurring dreams](/dreams/recurring-dreams) guide explains why loops persist and what helps them change.",
+          "A short journal helps. Write the person's name, the role they played, and one sentence about the day before. After a few weeks the pattern tends to show itself: a conflict that is still open, a quality you are missing, or a change you are circling. If dreams about a specific person are tied to trauma or leave you afraid to sleep, that is a reason to talk with a professional rather than to decode alone.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why do I dream about someone I haven't seen in years?",
+        answer:
+          "Something in your present likely echoes the time you knew them — a similar decision, feeling, or relationship pattern. The person is often a bookmark for that chapter of your life rather than a message about them today.",
+      },
+      {
+        question: "If I dream about someone, do they dream about me?",
+        answer:
+          "There is no evidence for that. Dreams are built from the dreamer's own memory and emotion. Matching dreams are usually explained by shared experiences or conversations.",
+      },
+      {
+        question: "Why do I dream about my crush every night?",
+        answer:
+          "Attention and hope are strong dream material. Repeated crush dreams usually track how much mental space the person occupies, not a sign about how they feel.",
+      },
+      {
+        question: "What does it mean to dream about someone you dislike?",
+        answer:
+          "Often the person carries a trait or conflict you are wrestling with. Ask what they represent to you and whether that quality, or the tension around it, is active in your life right now.",
+      },
+      {
+        question: "Should I tell the person I dreamed about them?",
+        answer:
+          "That depends on the dream and the relationship. A warm, simple dream can be a nice thing to share. An intimate or disturbing one can feel intrusive, so consider how it would land before you tell it.",
+      },
+    ],
+    relatedSymbolSlugs: ["ex", "celebrity", "old-friend", "kissing", "being-ignored", "mother"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "dream-archetypes",
+    name: "Dream Archetypes",
+    title: "Dream Archetypes",
+    seoTitle: "Dream Archetypes: Shadow, Anima, Trickster & the Self",
+    seoDescription:
+      "Jung's archetypes in dreams — the shadow, persona, anima and animus, wise elder, trickster, great mother, and the Self — how to recognize them and use them without mysticism.",
+    icon: "🎭",
+    accent: "#a855f7",
+    summary: "Jung's recurring dream figures — shadow, anima, trickster, elder — and how to work with them.",
+    intro: [
+      "Some dream figures feel older than your own biography: the pursuer who is somehow familiar, the wise stranger who knows the way, the child who must be protected, the shape-shifter who laughs at the rules. Carl Jung called the patterns behind such figures archetypes — inherited tendencies of the human imagination that show up across myths, fairy tales, religions, and ordinary nights.",
+      "You do not have to accept Jung's whole theory to find the idea useful. Archetypes give names to roles that dreams keep casting, and naming a role often makes a confusing dream readable. This guide explains the main figures, how to spot them, and where the approach has limits. For the wider history, see [dream theorists](/dreams/dream-theorists).",
+    ],
+    sections: [
+      {
+        heading: "What Jung meant by an archetype",
+        paragraphs: [
+          "Jung distinguished between the archetype itself — a pattern or predisposition that cannot be seen directly — and archetypal images, the concrete forms it takes in a given culture and a given life. The 'mother' pattern might appear as your own mother, a vast house, the sea, or a cow grazing in a field. The pattern is shared; the costume is personal.",
+          "He placed these patterns in what he called the collective unconscious, a layer beneath personal memory. Dreams, in his view, often compensate for the one-sidedness of waking attitudes, bringing forward what the conscious self ignores. The long process of integrating those neglected parts he called individuation — becoming more fully who you are rather than who you perform.",
+        ],
+      },
+      {
+        heading: "Persona and shadow",
+        paragraphs: [
+          "The persona is the social face: the role, uniform, and manners that help you function. Dreams about wearing the wrong [clothes](/dreams/clothes), losing a costume, or appearing [naked in public](/dreams/being-naked) often touch the persona — the fear that the mask is slipping, or the wish to drop it.",
+          "The shadow holds what you reject in yourself: anger you do not show, ambition you call selfish, softness you call weakness. Jung noted it often appears as a figure of the dreamer's own sex who is threatening, disgusting, or shameful — the [intruder](/dreams/intruder), the pursuer, the criminal. Being [chased](/dreams/being-chased) by such a figure can mean the disowned quality is pressing to be acknowledged. The shadow is not only dark; it can hold talents you were taught to hide.",
+        ],
+      },
+      {
+        heading: "Anima, animus, and the Self",
+        paragraphs: [
+          "Jung described the anima as the feminine image in a man's psyche and the animus as the masculine image in a woman's, figures that guide, seduce, or challenge the dreamer toward a wider inner life. Many contemporary Jungians treat this language as a product of its era and speak instead of the 'contrasexual' or simply 'other' within — the unfamiliar figure you are drawn toward and slightly afraid of.",
+          "The Self is Jung's name for the organizing center of the whole psyche, larger than the everyday ego. It tends to appear in images of wholeness and order: a circle or mandala, a radiant child, a sacred building, a [tree](/dreams/tree) at the center of a garden, sometimes a divine figure. Such dreams often come at turning points and leave a feeling of quiet rightness rather than a clear message.",
+        ],
+      },
+      {
+        heading: "The elder, the trickster, the mother, the child",
+        paragraphs: [
+          "The wise elder appears as a teacher, grandparent, guide, or [angel](/dreams/angel) who offers counsel at a crossroads. The trickster — clown, fox, shape-shifter, prankster — breaks rules and exposes pretense; a dream that humiliates you playfully may be the trickster pointing at rigidity. The great [mother](/dreams/mother) nourishes and devours: she can be a sheltering house or a swallowing sea. The divine [child](/dreams/child) carries new potential that is fragile and must be protected.",
+          "Animals and monsters often carry archetypal energy too. The [snake](/dreams/snake) is one of the oldest images of transformation and danger; the [dragon](/dreams/dragon) combines guarded treasure with overwhelming force. Noticing these echoes does not replace the personal reading in Dreamly's symbol pages. It adds a second question: what old human story is this scene borrowing?",
+        ],
+      },
+      {
+        heading: "Using archetypes without mystifying the dream",
+        paragraphs: [
+          "Archetypal ideas are hard to test scientifically, and critics note that almost any image can be fitted into a mythic scheme after the fact. Use them as prompts, not verdicts. Start with the personal: what does this figure remind you of from your own life? Then ask the archetypal question: what role is it playing — pursuer, guide, trickster, caretaker, newborn?",
+          "Jung's own practical method was conversation. In a quiet moment, imagine the figure again and ask what it wants, what it is protecting, or what it would say if it could speak. Write the answer without editing. The [how to interpret dreams](/dreams/how-to-interpret-dreams) guide shows how to connect that answer with this week's decisions, and [dream incubation](/dreams/dream-incubation) shows how to invite a figure back on purpose.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What are the main dream archetypes?",
+        answer:
+          "Jung's most discussed figures are the persona, shadow, anima and animus, and the Self, along with recurring roles such as the wise elder, trickster, great mother, hero, and divine child.",
+      },
+      {
+        question: "What does the shadow look like in dreams?",
+        answer:
+          "Often as a threatening or shameful figure — an intruder, pursuer, or someone you despise — who carries traits you reject in yourself. It can also carry hidden strengths.",
+      },
+      {
+        question: "Are archetypes scientifically proven?",
+        answer:
+          "No. They are an interpretive framework rather than a tested theory. Many people still find them useful for recognizing recurring roles and themes in their dreams.",
+      },
+      {
+        question: "Is every dream about archetypes?",
+        answer:
+          "No. Most dreams are built from recent, personal material. Archetypal readings are most helpful for dreams that feel unusually mythic, numinous, or recurring.",
+      },
+      {
+        question: "How can I work with an archetype from a dream?",
+        answer:
+          "Write the dream, name the role the figure plays, and hold a brief imagined conversation with it. Then look for where that role — pursuer, guide, trickster — is active in your waking life.",
+      },
+    ],
+    relatedSymbolSlugs: ["mirror", "intruder", "mother", "child", "snake", "dragon"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "do-animals-dream",
+    name: "Do Animals Dream?",
+    title: "Do Animals Dream?",
+    seoTitle: "Do Animals Dream? Dogs, Cats, Birds & What Science Shows",
+    seoDescription:
+      "Do dogs and cats dream? What REM sleep, brain replay in rats and songbirds, and new findings in octopuses and spiders suggest — and whether to wake a pet that seems to have a nightmare.",
+    icon: "🐾",
+    accent: "#22c55e",
+    summary: "What the evidence says about dreaming in dogs, cats, birds, and beyond.",
+    intro: [
+      "Anyone who has watched a sleeping dog paddle its legs, twitch its lips, and let out a muffled bark has wondered the same thing: is it dreaming? Animals cannot tell us their dreams, so science has to work from indirect clues — sleep stages, brain recordings, and behavior. Those clues have become surprisingly strong.",
+      "This guide gathers what is known, what is still guesswork, and what it means for the animals you live with. If you are here because an animal appeared in your own dream, the dictionary pages for [dogs](/dreams/dog), [cats](/dreams/cat), and [birds](/dreams/bird) are the place to start.",
+    ],
+    sections: [
+      {
+        heading: "REM sleep across the animal kingdom",
+        paragraphs: [
+          "Practically all mammals and birds studied show both non-REM sleep and a REM-like stage with an active brain and relaxed muscles. The amounts vary a great deal. Many young animals spend much of their sleep in the active state, and the platypus shows a remarkable amount of REM-type activity. Dolphins, which sleep with one brain hemisphere at a time, show little or no clear REM at all.",
+          "In recent years similar two-stage patterns have been reported far from mammals: in bearded dragons, in cuttlefish and octopuses whose skin flickers through color patterns during 'active sleep,' and even in jumping spiders whose legs twitch and eyes move during sleep-like rest. None of this proves those animals dream, but it suggests that a quiet phase and an active phase of sleep are very old. The [REM sleep](/dreams/rem-sleep) guide explains the human version.",
+        ],
+      },
+      {
+        heading: "Replay: the strongest evidence",
+        paragraphs: [
+          "The most persuasive clue comes from recording individual brain cells. In rats that ran a maze, researchers found that patterns of hippocampal activity from the run reappeared during later sleep, including REM, sometimes at a similar pace. The animals were, in a measurable sense, going over the route again. Other work shows similar replay of places and sequences during non-REM sleep, tied to memory consolidation.",
+          "Songbirds offer another window. In sleeping zebra finches, neurons in a song-control region fire in patterns resembling those produced while the bird sings, as if the song were being rehearsed silently. Replay is not the same as a vivid movie with a plot, but it is the closest thing science has to seeing the raw material of a dream in an animal's brain.",
+        ],
+      },
+      {
+        heading: "Dogs and cats",
+        paragraphs: [
+          "In the 1960s, the French researcher Michel Jouvet found that damaging a small brainstem region in cats removed the muscle paralysis of REM. Those cats would rise during REM, stalk, pounce, and hiss at nothing — behavior that looked very much like acting out a hunt or a fight. It remains one of the most striking hints that cats experience something scene-like in sleep.",
+          "Dogs cycle through non-REM and REM much as we do, only in shorter cycles. Hungarian researchers have recorded family dogs' sleep with non-invasive EEG and found that a dog's daytime experiences, including emotionally charged ones, change how it sleeps afterward. Twitching paws, soft barks, and rapid eye movements usually cluster in REM. It is a reasonable guess — though only a guess — that dogs dream about their ordinary lives: people, smells, play, and the occasional squirrel.",
+        ],
+      },
+      {
+        heading: "Can animals have nightmares?",
+        paragraphs: [
+          "We cannot know what an animal feels in sleep, but some dogs whimper, growl, or wake suddenly looking confused, and animals with traumatic histories may sleep more restlessly. Stress, pain, and unfamiliar surroundings all disturb animal sleep in ways that look similar to humans with bad nights.",
+          "If your dog seems distressed, it is usually wiser to call its name softly from a short distance than to touch it. A dog startled out of deep sleep can snap before it knows where it is. Frequent violent movements, collapse, or episodes that look like seizures deserve a veterinarian, not a dream theory — some animals, like some people, have genuine sleep disorders.",
+        ],
+      },
+      {
+        heading: "What this means for human dreaming",
+        paragraphs: [
+          "If many animals replay experience during sleep, dreaming may be rooted in very old functions: consolidating memory, rehearsing movement, and practicing responses to threat. That fits the scientific theories described in [why we dream](/dreams/why-we-dream), and it softens the idea that dreams are purely a human puzzle of symbols.",
+          "It also explains why animals are among the most common figures in human dreams. They carry instinct, loyalty, fear, and freedom in a form older than language. When a [wolf](/dreams/wolf), [horse](/dreams/horse), or [spider](/dreams/spider) appears in your night, you are borrowing from the same deep stock of experience that other animals may be sorting through in their own sleep.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do dogs dream?",
+        answer:
+          "Very likely. Dogs have REM sleep with twitching, eye movements, and soft vocalizing, and animal research shows the sleeping brain replays waking experience. What exactly a dog experiences cannot be confirmed.",
+      },
+      {
+        question: "What do dogs dream about?",
+        answer:
+          "No one knows for sure. Based on replay studies, a reasonable guess is familiar daily experiences — their people, walks, smells, and play.",
+      },
+      {
+        question: "Should I wake my dog if it seems to have a nightmare?",
+        answer:
+          "Usually not by touching it. Call its name gently from a distance if you want to wake it. A startled dog may bite reflexively before it is fully awake.",
+      },
+      {
+        question: "Do cats dream?",
+        answer:
+          "Cats have clear REM sleep, and classic experiments showed that cats without REM paralysis act out stalking and pouncing during sleep, which strongly suggests dream-like experience.",
+      },
+      {
+        question: "Do fish or insects dream?",
+        answer:
+          "They sleep, and some show sleep states with active features, but there is no evidence of dreaming in the human sense. The question remains open for many species.",
+      },
+    ],
+    relatedSymbolSlugs: ["dog", "cat", "bird", "horse", "spider", "wolf"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "daydreaming",
+    name: "Daydreaming",
+    title: "Daydreaming",
+    seoTitle: "Daydreaming: Mind-Wandering, Creativity & When It's Too Much",
+    seoDescription:
+      "What daydreaming is, how it relates to night dreams, why the wandering mind can help creativity and planning, and when maladaptive daydreaming becomes a problem.",
+    icon: "☁️",
+    accent: "#38bdf8",
+    summary: "The waking dream — mind-wandering, its uses, its costs, and how it connects to the night.",
+    intro: [
+      "Daydreaming is the dream you have with your eyes open. You are on a bus, in a meeting, or washing dishes, and suddenly you are elsewhere: replaying a conversation, rehearsing a speech, living a life that has not happened. Psychologists call the broader habit mind-wandering, and it takes up a startling share of waking life.",
+      "People search the topic for two opposite reasons. Some want to know whether daydreaming is a waste of time. Others fear they do it too much. Both questions have real answers, and both connect to what happens at night. For the map of night-time dream types, see [types of dreams](/dreams/types-of-dreams).",
+    ],
+    sections: [
+      {
+        heading: "How much we daydream",
+        paragraphs: [
+          "In a well-known 2010 study, people were pinged on their phones at random moments and asked what they were doing and thinking. Nearly half the time, their minds were somewhere other than the task at hand. The same study found that people tended to report feeling less happy while their minds wandered, especially when the wandering drifted to unpleasant topics.",
+          "Daydreaming research goes back further, to the psychologist Jerome L. Singer, who studied it from the 1950s onward. He distinguished between positive-constructive daydreaming — playful, wishful, forward-looking — and styles marked by guilt, fear, or an inability to hold attention. The content and tone, not just the amount, shape whether daydreams help or hurt.",
+        ],
+      },
+      {
+        heading: "Daydreams and night dreams",
+        paragraphs: [
+          "When attention turns inward, a set of brain regions known as the default mode network becomes more active. The same network is involved in remembering the past, imagining the future, and thinking about other people, and researchers have linked it to night dreaming as well. In that sense daydreams and dreams are cousins: both are the mind simulating experiences that are not currently happening.",
+          "The differences matter, though. In a daydream you usually know you are imagining, you can steer, and the logic of the waking world stays mostly intact. Night dreams arrive with full conviction and little control — unless you become [lucid](/dreams/lucid-dreams). The border between them is the drowsy zone of [hypnagogic hallucinations](/dreams/hypnagogic-hallucinations), where a daydream can suddenly take over and become a dream.",
+        ],
+      },
+      {
+        heading: "What daydreaming is good for",
+        paragraphs: [
+          "Daydreams help people plan, rehearse conversations, imagine alternatives, and keep long-term goals alive. In one experiment, people who took a break with an easy task that let their minds wander later came up with more creative uses for everyday objects than those who took a demanding break or none at all. Letting go of focus can give a stuck problem room to reorganize — the [dreams and creativity](/dreams/dreams-and-creativity) guide follows that thread into sleep.",
+          "Daydreams also reveal what matters. The fantasies you return to — a different job, a reunion, a house by the sea, winning the [lottery](/dreams/lottery) — point to needs that deserve attention: security, recognition, freedom, belonging. Reading them the way you would read a night dream, with the [how to interpret dreams](/dreams/how-to-interpret-dreams) method, can be surprisingly useful.",
+        ],
+      },
+      {
+        heading: "When daydreaming becomes too much",
+        paragraphs: [
+          "The term maladaptive daydreaming was introduced by the Israeli clinical psychologist Eli Somer to describe vivid, absorbing fantasy that takes up hours a day, is hard to stop, and interferes with work, study, or relationships. People often describe elaborate storylines with recurring characters, frequently triggered by music and accompanied by pacing or repetitive movement.",
+          "It is not an official diagnosis in the major manuals, but it is increasingly studied and it often travels with loneliness, anxiety, depression, attention difficulties, or past distress. The daydreams themselves can be comforting; the problem is the cost. If fantasy is replacing sleep, people, or responsibilities you care about, talking with a mental-health professional is a better step than trying to shame yourself out of it.",
+        ],
+      },
+      {
+        heading: "Working with your daydreams",
+        paragraphs: [
+          "Notice the difference between wandering and ruminating. Planning tomorrow's talk is useful; replaying an argument for the fortieth time rarely is. When you catch a loop, ask whether it leads to an action. If not, name it and return to something physical — breath, a walk, the task in front of you.",
+          "You can also make room for daydreaming on purpose: a walk without headphones, a shower, ten minutes staring out a window. Keep a note of fantasies that recur, just as you would with [recurring dreams](/dreams/recurring-dreams). Over time the themes tend to repeat, and the repetition shows you what the mind keeps trying to solve, whether it is awake or asleep.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is daydreaming bad for you?",
+        answer:
+          "Not in general. It supports planning, creativity, and reflection. It becomes a problem when it is constant, compulsive, mostly negative, or crowds out important parts of life.",
+      },
+      {
+        question: "Are daydreams the same as dreams?",
+        answer:
+          "They are related — both involve the mind simulating experiences — but daydreams happen awake, usually with some control and awareness that you are imagining.",
+      },
+      {
+        question: "What is maladaptive daydreaming?",
+        answer:
+          "A term for excessive, immersive daydreaming that takes up many hours and interferes with daily life. It is not a formal diagnosis but is actively researched.",
+      },
+      {
+        question: "Why do I daydream so much?",
+        answer:
+          "Boredom, stress, unmet needs, fatigue, and attention differences all increase mind-wandering. Noticing when and about what you drift is the best first clue.",
+      },
+      {
+        question: "Can daydreaming help creativity?",
+        answer:
+          "Yes, in moderation. Studies suggest that letting the mind wander during an easy task can help people find more original solutions afterward.",
+      },
+    ],
+    relatedSymbolSlugs: ["flying", "lottery", "celebrity", "house"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "dreaming-in-color",
+    name: "Dreaming in Color",
+    title: "Do We Dream in Color?",
+    seoTitle: "Do We Dream in Color? Senses, Sound & Blind Dreamers",
+    seoDescription:
+      "Do people dream in color or black and white? What studies found, why television changed the answers, how sound, touch, smell, and pain appear in dreams, and how blind people dream.",
+    icon: "🎨",
+    accent: "#f97316",
+    summary: "Color, sound, smell, and pain in dreams — and how people who are blind dream.",
+    intro: [
+      "Most people, asked right after waking, say their dreams are in color. Yet in the middle of the twentieth century a large share of people insisted they dreamed in black and white. That shift is one of the strangest stories in dream research, and it says as much about memory and culture as about the sleeping brain.",
+      "This guide looks at color and the other senses in dreams: what we see, hear, feel, smell, and taste, and how people who are blind experience their nights. If a specific color stood out in your dream, the [colors](/dreams/colors) page in the dictionary covers its symbolic readings.",
+    ],
+    sections: [
+      {
+        heading: "The black-and-white puzzle",
+        paragraphs: [
+          "Surveys from the 1940s and 1950s found that many respondents — in some studies a majority — described their dreams as mostly black and white. By the 1960s and later, most people reported color. What changed was not the eye or the brain but the world of images around people: black-and-white film and television dominated the earlier decades.",
+          "A 2008 study in Scotland found that older adults who had grown up with black-and-white television reported a noticeably larger share of monochrome dreams than younger adults who had grown up with color screens. Philosophers who study the question point out that memories of dreams are fragile, and we may describe them using whatever media feel natural. Either way, the lesson is that dream reports are shaped by expectations as well as by experience.",
+        ],
+      },
+      {
+        heading: "Why color can feel vague",
+        paragraphs: [
+          "Many people are unsure whether a dream was in color at all. That is not strange: in waking life we rarely notice the color of most things unless it matters. Dreams work the same way. A red door or a blue ocean may be vivid because it carries meaning, while everything else is simply 'there' without a clear hue.",
+          "When color is striking — a [red](/dreams/seeing-red) sky, a golden light, an all-white room — it often carries emotional weight. Unusually intense color is also a hallmark of [vivid dreams](/dreams/vivid-dreams) and of lucid ones, and some people report richer colors after sleep changes or medication shifts.",
+        ],
+      },
+      {
+        heading: "Sound, touch, smell, taste, and pain",
+        paragraphs: [
+          "Vision dominates most dream reports, but hearing is common: voices, music, alarms, the sound of your own name. Touch and movement — falling, flying, running, being held — are frequent too, which is why [falling](/dreams/falling) and [flying](/dreams/flying) dreams can leave a physical echo on waking.",
+          "Smell and taste are much rarer, appearing in a small fraction of reports, often during meals or strongly emotional scenes. Pain in dreams is also uncommon but documented, sometimes linked to real bodily pain during sleep. A sensation that feels unusually physical is worth noting — occasionally the body is simply sending a signal into the dream.",
+        ],
+      },
+      {
+        heading: "How blind people dream",
+        paragraphs: [
+          "People who were born blind or lost their sight very early generally report dreams without visual imagery. Their dreams are rich in sound, touch, smell, and taste, and in the sense of space and movement. A Danish study found that congenitally blind participants reported more nightmares than sighted people, possibly because their waking life involves more everyday threat situations to navigate.",
+          "People who lose their sight later in life, especially after early childhood, often continue to have visual dreams, though the images may fade or become less frequent over the years. These findings suggest that dreams are built from the kinds of experience a person has actually lived — the same continuity seen in [why we dream](/dreams/why-we-dream).",
+        ],
+      },
+      {
+        heading: "Text, clocks, and other unstable details",
+        paragraphs: [
+          "Some details behave strangely in dreams. Written text often shifts when you look away and back again; clocks show impossible times; light switches fail to change the brightness of a room. These instabilities are well known among lucid dreamers, who use them as 'reality checks' — the [lucid dreams](/dreams/lucid-dreams) guide explains how.",
+          "Numbers that repeat or change are a related experience and appear in the [repeating numbers](/dreams/repeating-numbers) entry. If you want to study your own dream senses, add one line to your journal each morning: which senses were present, and which color or sound stood out. The [remembering dreams](/dreams/remembering-dreams) guide shows how to catch those details before they fade.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do most people dream in color?",
+        answer:
+          "Yes. Most people today report color in most of their dreams, although many cannot say for certain because color often goes unnoticed unless it matters.",
+      },
+      {
+        question: "Why do some people dream in black and white?",
+        answer:
+          "Research suggests early exposure to black-and-white film and television influenced how people remember and describe dreams. Memory and expectation shape the report.",
+      },
+      {
+        question: "Can you smell or taste in dreams?",
+        answer:
+          "Yes, but it is rare. Smell and taste appear in only a small share of dream reports, far less often than sight, sound, and movement.",
+      },
+      {
+        question: "Do blind people dream?",
+        answer:
+          "Yes. People blind from birth dream in sound, touch, smell, taste, and movement rather than images. People who lose sight later often keep some visual dreams.",
+      },
+      {
+        question: "Can you feel pain in a dream?",
+        answer:
+          "It happens, though uncommonly. Dream pain is sometimes linked to real discomfort in the body during sleep.",
+      },
+    ],
+    relatedSymbolSlugs: ["colors", "eyes", "numbers", "flying"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "deja-vu-dreams",
+    name: "Déjà Vu and Dreams",
+    title: "Déjà Vu and Dreams",
+    seoTitle: "Déjà Vu From a Dream: Déjà Rêvé Explained",
+    seoDescription:
+      "Why a moment can feel like something you already dreamed. What déjà vu and déjà rêvé are, what memory research suggests, when it is worth a doctor's visit, and how to test the feeling.",
+    icon: "🌀",
+    accent: "#14b8a6",
+    summary: "When life feels like a dream you already had — memory, familiarity, and how to test it.",
+    intro: [
+      "You walk into a room, hear a sentence, or see a street corner and feel sure you dreamed this exact moment before. The feeling is brief, uncanny, and hard to shake. French has a name for the dream version: déjà rêvé, 'already dreamed,' a close relative of déjà vu, 'already seen.'",
+      "For many people the experience raises a big question: did the dream predict the future? This guide explains what the feeling is, what memory research has found, how to test it honestly, and the rare cases where it points to a medical issue. For the wider question of dreams that seem to come true, see [prophetic dreams](/dreams/prophetic-dreams).",
+    ],
+    sections: [
+      {
+        heading: "What déjà vu actually is",
+        paragraphs: [
+          "Déjà vu is the feeling that a present moment has been experienced before, combined with the awareness that this cannot really be so. Surveys suggest that roughly two-thirds of people have had it at least once. It is more common in young adults and tends to become less frequent with age. Fatigue, stress, and travel seem to make it more likely.",
+          "The leading explanations treat it as a glitch in the sense of familiarity. The brain has separate processes for 'this feels familiar' and 'I can recall where I know this from.' When the first fires without the second, the result is a strong sense of familiarity with no source — and the mind reaches for the nearest explanation, which is often 'I must have dreamed it.'",
+        ],
+      },
+      {
+        heading: "Déjà rêvé: already dreamed",
+        paragraphs: [
+          "Déjà rêvé can happen in two ways. Sometimes a real dream fragment genuinely resembles a later situation: dreams draw on everyday places, people, and worries, so partial matches are common. Sometimes there was no specific dream at all, and the feeling of 'I dreamed this' is itself the familiarity glitch in a dream-flavored form.",
+          "Neurologists have long studied a related 'dreamy state' in people with certain temporal lobe seizures, and a French study of epilepsy patients found that gentle electrical stimulation of particular brain regions could produce the feeling of having dreamed a moment before. That does not mean ordinary déjà rêvé is a seizure. It does show that the sensation can be generated by the brain's memory circuits independently of any real prior dream.",
+        ],
+      },
+      {
+        heading: "Why it feels like a prediction",
+        paragraphs: [
+          "Memory researchers have found that during déjà vu, people often feel they know what will happen next. In experiments designed to test this, that sense of prediction did not actually help people guess what came next better than chance. The feeling of foresight appears to be part of the familiarity experience, not evidence of it.",
+          "Laboratory studies using virtual scenes have also shown that déjà vu becomes more likely when a new place shares its layout with a place a person saw before but cannot consciously remember. A new café arranged like a forgotten childhood kitchen can trigger 'I've been here' — and, if the person dreams often of old rooms, 'I dreamed this.' The [childhood house](/dreams/childhood-house) and [being lost](/dreams/being-lost) entries show how often such spaces appear in dreams.",
+        ],
+      },
+      {
+        heading: "How to test the feeling",
+        paragraphs: [
+          "The only honest way to check déjà rêvé is to write dreams down before events happen. Keep a dated journal — on paper or in Dreamly's journal — and when a moment feels already dreamed, look back. Most of the time you will find either nothing or a loose resemblance. Occasionally you will find a striking match, and it is worth noting how many dreams did not match.",
+          "Journaling also improves recall, which the [remembering dreams](/dreams/remembering-dreams) guide covers, and it reduces the tendency to reshape memory after the fact. If the feeling comes with a sense of being stuck in a loop on waking, read about [false awakenings](/dreams/false-awakening), which can blur the line between dream and morning.",
+        ],
+      },
+      {
+        heading: "When to see a doctor",
+        paragraphs: [
+          "Occasional déjà vu is normal. It is worth talking with a doctor if episodes become very frequent, last longer than usual, or come with other symptoms: a strange smell or taste, a rising feeling in the stomach, fear, blank spells, confusion, or not remembering what happened afterward. Those can be signs of focal seizures, which are treatable.",
+          "Sudden changes in memory or a flood of déjà vu after a head injury, a new medication, or with other neurological symptoms also deserve medical attention. Dreamly's pages are for reflection, not diagnosis — a neurologist can tell the difference between an ordinary quirk of memory and something that needs care.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why do I feel like I dreamed something before it happened?",
+        answer:
+          "Usually because the brain's sense of familiarity fires without a clear memory source, and a dream is the easiest explanation to reach for. Sometimes a real dream fragment loosely resembled the moment.",
+      },
+      {
+        question: "Is déjà vu a sign of psychic ability?",
+        answer:
+          "There is no reliable evidence for that. In experiments, the feeling that you know what comes next during déjà vu did not improve actual predictions.",
+      },
+      {
+        question: "What is déjà rêvé?",
+        answer:
+          "French for 'already dreamed' — the feeling that a present moment matches a previous dream. It is a close relative of déjà vu.",
+      },
+      {
+        question: "Is frequent déjà vu dangerous?",
+        answer:
+          "Occasional déjà vu is normal. Very frequent episodes, or déjà vu with odd smells, blank spells, or confusion, should be checked by a doctor because they can be seizure-related.",
+      },
+      {
+        question: "How can I prove a dream predicted something?",
+        answer:
+          "Write dreams down with a date before events happen, and count the misses as carefully as the hits. Memories edited after the event are not reliable evidence.",
+      },
+    ],
+    relatedSymbolSlugs: ["numbers", "mirror", "door", "being-lost"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "sleepwalking-and-sleep-talking",
+    name: "Sleepwalking and Sleep Talking",
+    title: "Sleepwalking, Sleep Talking & Acting Out Dreams",
+    seoTitle: "Sleepwalking & Sleep Talking: Causes, Dreams & Safety",
+    seoDescription:
+      "Why people talk and walk in their sleep, how it differs from acting out dreams in REM sleep behavior disorder, what triggers episodes, and how to keep a sleepwalker safe.",
+    icon: "🚶",
+    accent: "#64748b",
+    summary: "Talking, walking, and moving in sleep — what is ordinary, what is a disorder, and how to stay safe.",
+    intro: [
+      "A partner mumbles a full sentence at 2 a.m. A child is found standing in the hallway with open, unseeing eyes. Someone punches the pillow while shouting at an attacker only they can see. All three are sleep behaviors, but they come from different stages of sleep and mean different things.",
+      "This guide separates sleep talking, sleepwalking, and dream enactment, explains what is known about their causes, and lists the practical steps that keep everyone safe. For screaming episodes from deep sleep, see [night terrors](/dreams/night-terrors); for the opposite experience — awake but unable to move — see [sleep paralysis](/dreams/sleep-paralysis).",
+    ],
+    sections: [
+      {
+        heading: "Sleep talking",
+        paragraphs: [
+          "Sleep talking, or somniloquy, is extremely common: surveys suggest most adults have done it at some point, and it is even more frequent in children. It can happen in any stage of sleep. In lighter stages speech may be clear and conversational; in deeper stages it tends to be mumbled or fragmented. The speaker almost never remembers it.",
+          "A French study that recorded hundreds of sleep talkers found that 'no' was the most frequent word, and that swearing and negative or argumentative speech were more common than in waking conversation — perhaps because many dreams involve conflict. Sleep talking is rarely a medical concern on its own. It is not a confession, and words spoken in sleep should not be treated as evidence of anything.",
+        ],
+      },
+      {
+        heading: "Sleepwalking",
+        paragraphs: [
+          "Sleepwalking, or somnambulism, usually starts in deep non-REM sleep during the first third of the night. The brain is partly awake — enough to walk, open doors, or even eat — and partly asleep, so judgment and memory are offline. Episodes are most common in children and often fade by adolescence, though a smaller share of adults continue or start sleepwalking.",
+          "Sleepwalkers usually remember nothing, or only a vague fragment, sometimes of a threat they were escaping. It runs in families. Common triggers include sleep deprivation, stress, fever, irregular schedules, alcohol, and noise or a full bladder that partly rouses the sleeper. Some sleep medications, particularly the so-called Z-drugs, carry warnings about complex sleep behaviors such as walking or driving while not fully awake.",
+        ],
+      },
+      {
+        heading: "Acting out dreams: REM sleep behavior disorder",
+        paragraphs: [
+          "Normally the body is paralyzed during REM sleep, as the [REM sleep](/dreams/rem-sleep) guide explains. In REM sleep behavior disorder that paralysis fails, and people physically act out their dreams — punching, kicking, shouting, or leaping out of bed, often while dreaming of being [chased](/dreams/being-chased) or attacked. Unlike sleepwalkers, they can often recall the dream vividly when woken, and the actions match the story.",
+          "The disorder most often begins after age fifty and can injure the sleeper or a bed partner. It deserves a proper evaluation, including an overnight sleep study, because long-term research links it with a later risk of certain neurological conditions such as Parkinson's disease. That link is a reason for follow-up with a specialist, not for panic. Some antidepressants can also trigger dream-enactment behavior.",
+        ],
+      },
+      {
+        heading: "What to do during an episode",
+        paragraphs: [
+          "The old belief that waking a sleepwalker is dangerous is not quite right, but waking them abruptly can cause confusion or a startled reaction. The safest approach is to guide the person gently back to bed with a calm voice and minimal touch. Do not argue, restrain, or question them. Most episodes end on their own within minutes.",
+          "Make the environment safe: lock outer doors and windows, use door alarms or bells, remove sharp or breakable objects, keep stairs gated, and avoid top bunks for children who sleepwalk. For dream enactment, pad the floor, move the bed away from windows and furniture, and consider sleeping apart until the condition is treated.",
+        ],
+      },
+      {
+        heading: "When to seek help",
+        paragraphs: [
+          "See a doctor or sleep clinic if episodes are frequent, if anyone has been injured, if the person leaves the house, if sleepwalking begins in adulthood, or if violent dream enactment occurs. Also mention loud snoring or breathing pauses, since sleep apnea can trigger parasomnias. A simple log of times, behaviors, and possible triggers helps the clinician far more than dream symbolism.",
+          "Treatment often starts with better sleep: regular hours, enough total sleep, less alcohol, and a review of medications with the prescriber. For some children, scheduled awakenings before the usual episode time help. Dream content can still be worth reflecting on — a recurring [nightmare](/dreams/nightmare) behind the behavior may respond to the steps in [how to stop nightmares](/dreams/how-to-stop-nightmares) — but safety comes first.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is sleep talking a sign of a problem?",
+        answer:
+          "Usually not. It is very common and mostly harmless. It is worth mentioning to a doctor only if it comes with other issues such as violent movements, loud snoring, or daytime sleepiness.",
+      },
+      {
+        question: "Is it dangerous to wake a sleepwalker?",
+        answer:
+          "It is not harmful in itself, but a sudden awakening can cause confusion or a startled reaction. Gently guiding the person back to bed is usually safer.",
+      },
+      {
+        question: "Do sleepwalkers act out their dreams?",
+        answer:
+          "Usually not in the way people imagine. Sleepwalking comes from deep non-REM sleep and often has little remembered dream content. Acting out a vivid dream is typical of REM sleep behavior disorder.",
+      },
+      {
+        question: "What causes sleepwalking in adults?",
+        answer:
+          "Common factors include sleep deprivation, stress, alcohol, irregular schedules, some medications, and other sleep disorders such as sleep apnea. A family history also raises the risk.",
+      },
+      {
+        question: "Can what I say in my sleep be true?",
+        answer:
+          "Sleep speech comes from a brain that is partly dreaming and partly confused. It is not a reliable account of thoughts or events and should not be taken as a confession.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "being-chased", "fighting", "falling"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "medication-and-dreams",
+    name: "Medication and Dreams",
+    title: "Melatonin, Medication & Dreams",
+    seoTitle: "Melatonin, Medication & Dreams: Why Pills Change Your Nights",
+    seoDescription:
+      "Why melatonin, antidepressants, beta-blockers, quitting smoking aids, alcohol, and cannabis can bring vivid dreams or nightmares — and what to discuss with your doctor.",
+    icon: "💊",
+    accent: "#10b981",
+    summary: "How melatonin, common medicines, alcohol, and cannabis change dream intensity and recall.",
+    intro: [
+      "Some of the most searched dream questions are really medication questions: 'Why does melatonin give me crazy dreams?' 'Why are my dreams so intense since I started this pill?' 'Why can't I stop dreaming since I quit weed?' Substances that touch sleep chemistry often change dreams too — their intensity, their emotional tone, and how much you remember.",
+      "This page is an overview, not medical advice and not a side-effect list for any specific product. Its purpose is to help you recognize a possible pattern and bring good questions to a doctor or pharmacist. If your nights have become unusually cinematic, the [vivid dreams](/dreams/vivid-dreams) guide is a good companion.",
+    ],
+    sections: [
+      {
+        heading: "Why substances change dreams",
+        paragraphs: [
+          "Dreams depend on the architecture of sleep — how much REM you get, when it happens, and how often you wake near it. Many substances shift that architecture. Some suppress REM; when they wear off or are stopped, the brain often compensates with longer, denser REM, a rebound described in the [REM sleep](/dreams/rem-sleep) guide. Others fragment sleep so you wake more often in the middle of dreams and remember more of them.",
+          "Chemistry also matters. Neurotransmitters such as serotonin, noradrenaline, acetylcholine, and dopamine help regulate both sleep stages and the emotional tone of dreams. A medicine that changes one of them can change what the night feels like, even when total sleep time stays the same.",
+        ],
+      },
+      {
+        heading: "Melatonin",
+        paragraphs: [
+          "Melatonin is a hormone that signals darkness to the body, and supplements are widely used for jet lag and sleep timing. Many users report vivid or strange dreams. Research on the effect is mixed; possible explanations include longer or more consolidated sleep, more REM late in the night, and more awakenings remembered when doses are taken at odd times.",
+          "Rules differ by country — melatonin is sold over the counter in some places and requires a prescription in others — and product doses vary widely. If the dreams are unpleasant, the timing and dose are worth discussing with a pharmacist or doctor. Melatonin is not recommended as a casual fix for nightmares, and children's use should be guided by a clinician.",
+        ],
+      },
+      {
+        heading: "Prescription medicines often linked to dream changes",
+        paragraphs: [
+          "Many antidepressants, including common SSRIs and SNRIs, suppress REM sleep, and users often report unusually vivid, strange, or disturbing dreams, especially when starting, changing doses, or stopping. Some beta-blockers used for blood pressure and heart conditions are associated with vivid dreams and nightmares. Varenicline, a stop-smoking medicine, lists abnormal dreams among its common effects, and nicotine patches worn overnight can do the same.",
+          "Other examples include some asthma and allergy medicines such as montelukast, which carries warnings about mood and sleep changes including nightmares; medicines for Parkinson's disease; and certain dementia treatments that are sometimes moved to the morning because of vivid dreams. Some sleep medicines can cause complex behaviors while not fully awake — see [sleepwalking and sleep talking](/dreams/sleepwalking-and-sleep-talking). Never stop or change a prescription on your own; ask the prescriber about timing, dose, or alternatives.",
+        ],
+      },
+      {
+        heading: "Alcohol, cannabis, and withdrawal",
+        paragraphs: [
+          "Alcohol can help people fall asleep faster, but it suppresses REM in the first half of the night. As it wears off, sleep becomes lighter and more broken, and REM rebounds toward morning — a common recipe for intense, fragmented dreams and early waking. Regular heavy drinking and withdrawal from alcohol can bring especially disturbing nights and deserve medical attention.",
+          "Cannabis containing THC tends to reduce dream recall while it is used regularly. When people stop, many experience weeks of unusually vivid dreams, sometimes unpleasant, as REM rebounds. This is one of the most common withdrawal effects and usually settles with time. Nicotine and caffeine late in the day can also fragment sleep and raise dream recall.",
+        ],
+      },
+      {
+        heading: "What to do if your dreams changed",
+        paragraphs: [
+          "Start a simple log: the medicine or substance, dose and time, when the dream change began, and how the nights feel. Bring it to your doctor or pharmacist. Sometimes moving a dose to the morning, adjusting the amount, or switching to a related drug solves the problem. Tapering under supervision is safer than stopping suddenly, which can itself cause rebound dreams and other withdrawal effects.",
+          "If the nights are frightening, the techniques in [how to stop nightmares](/dreams/how-to-stop-nightmares) still help, and trauma-related nightmares have specific treatments, including medicines that doctors sometimes prescribe for them. The content of a medication-driven dream can still be read — what feeling did the night use? — but it is wise to treat the intensity itself as a body signal first and a message second.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Why does melatonin give me vivid dreams?",
+        answer:
+          "Possibly because it changes sleep timing and consolidation, including REM later in the night, and makes remembered awakenings more likely. Research is mixed, so discuss dose and timing with a pharmacist if dreams bother you.",
+      },
+      {
+        question: "Can antidepressants cause nightmares?",
+        answer:
+          "Some can change dreams, making them more vivid or disturbing, especially when starting, adjusting, or stopping. Talk with your prescriber rather than stopping on your own.",
+      },
+      {
+        question: "Why are my dreams so intense after quitting cannabis?",
+        answer:
+          "THC suppresses REM and dream recall. When use stops, REM tends to rebound, bringing vivid dreams that usually ease over several weeks.",
+      },
+      {
+        question: "Does alcohol affect dreams?",
+        answer:
+          "Yes. It suppresses REM early in the night and causes rebound and broken sleep later, which often produces intense or unpleasant dreams toward morning.",
+      },
+      {
+        question: "Should I stop a medicine that gives me bad dreams?",
+        answer:
+          "Not on your own. Talk with the prescriber first. Timing or dose changes, or an alternative, are often possible, and stopping suddenly can create new problems.",
+      },
+    ],
+    relatedSymbolSlugs: ["nightmare", "illness", "hospital", "falling"],
+    updatedAt: "2026-09-16",
+  },
+  {
+    slug: "dreams-and-creativity",
+    name: "Dreams and Creativity",
+    title: "Dreams and Creativity",
+    seoTitle: "Dreams and Creativity: Sleep-Born Ideas & How to Catch Them",
+    seoDescription:
+      "Famous ideas that came from dreams, what sleep science says about insight and creativity, the hypnagogic 'sweet spot,' and practical ways to use your nights for creative work.",
+    icon: "💡",
+    accent: "#eab308",
+    summary: "How sleep and dreams feed insight — famous stories, the research, and practical methods.",
+    intro: [
+      "Artists, scientists, and inventors have long credited dreams with their best ideas. Some of those stories are well documented; others grew in the retelling. Behind them sits a real question that sleep research has started to answer: does sleeping on a problem actually help, and can dreams be used on purpose?",
+      "This guide collects the evidence, separates legend from record, and offers practical methods. It pairs naturally with [dream incubation](/dreams/dream-incubation), which is about asking the night a question, and with [daydreaming](/dreams/daydreaming), its waking cousin.",
+    ],
+    sections: [
+      {
+        heading: "Famous sleep-born ideas",
+        paragraphs: [
+          "The pharmacologist Otto Loewi described waking in the night with the design for an experiment on frog hearts, losing it by morning, and catching it again the next night. The experiment helped show that nerves communicate chemically, and he later shared a Nobel Prize. Mary Shelley wrote that the vision behind Frankenstein came to her while lying in bed, eyes closed, in a state between waking and sleep. Paul McCartney has said he woke with the melody of one of his best-known songs already in his head.",
+          "Other stories are less certain. The chemist August Kekulé's account of seeing a snake seizing its own tail before grasping the ring structure of benzene was given decades later and is debated by historians. Claims that Mendeleev saw the periodic table in a dream rest on second-hand reports. The pattern is still telling: ideas often arrive when deliberate effort has stopped.",
+        ],
+      },
+      {
+        heading: "What the research shows",
+        paragraphs: [
+          "In a 2004 study, people who slept after practicing a number task were far more likely to discover a hidden shortcut than people who stayed awake for the same period. Other experiments found that REM sleep in particular helped people find remote connections between words. Sleep appears to loosen and reorganize memories, making unusual associations easier to find.",
+          "The dreams themselves can carry problems too. In a classic incubation study led by the psychologist Deirdre Barrett, students who focused on a personal or academic problem before bed for a week often dreamed about it, and a smaller share reported dreams that contained a solution. The results are modest, but they suggest that the night works on what we bring to it.",
+        ],
+      },
+      {
+        heading: "The hypnagogic sweet spot",
+        paragraphs: [
+          "Thomas Edison and Salvador Dalí are said to have napped holding an object that would fall and wake them just as they drifted off, capturing the images of early sleep. A 2021 study in Paris tested a version of that trick: participants who spent at least a short time in the lightest stage of sleep were nearly three times as likely to discover a hidden rule in a math problem as those who stayed awake.",
+          "Researchers at MIT have also built devices that play a prompt at sleep onset to steer [hypnagogic](/dreams/hypnagogic-hallucinations) imagery toward a theme, and they reported more creative responses afterward. The practical takeaway is that the border of sleep — not only deep dreaming — can be fertile ground, as long as you do not sacrifice real rest to chase it.",
+        ],
+      },
+      {
+        heading: "How to invite creative dreams",
+        paragraphs: [
+          "Before sleep, spend a few minutes with the problem: look at the unfinished sketch, reread the stuck paragraph, or write the question in one sentence. Then let it go rather than solving it in bed. Keep a notebook or voice recorder within reach, and when you wake, stay still for a moment and replay whatever is there before checking your phone. The [remembering dreams](/dreams/remembering-dreams) guide explains why the first minute matters.",
+          "Dream material rarely arrives as a finished answer. More often it offers an image, a mood, a color, or an odd combination — a [house](/dreams/house) with an impossible room, [water](/dreams/water) where a wall should be, [flying](/dreams/flying) over a familiar city. Treat those as raw material. Artists sketch them; writers use them as openings; scientists turn them into questions. Some people practice [lucid dreaming](/dreams/lucid-dreams) to explore a scene deliberately.",
+        ],
+      },
+      {
+        heading: "Keeping it healthy",
+        paragraphs: [
+          "Creative use of sleep works best when sleep itself is protected. Waking repeatedly to capture ideas, or lying awake trying to force a dream, can wear down the very rest that makes insight possible. Short experiments with naps or incubation are fine; a nightly routine that leaves you exhausted is not.",
+          "Remember, too, that not every compelling dream idea survives daylight. The morning edit is part of the process. Dreamly's journal is a practical place to keep fragments, and the [how to interpret dreams](/dreams/how-to-interpret-dreams) guide can help you see what personal theme a creative dream is carrying alongside the idea.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can dreams really solve problems?",
+        answer:
+          "Sometimes. Studies show that sleep helps people find hidden patterns and remote connections, and some dreamers report solutions after focusing on a problem before bed.",
+      },
+      {
+        question: "What famous inventions or works came from dreams?",
+        answer:
+          "Well-documented examples include Otto Loewi's nerve experiment and Mary Shelley's vision for Frankenstein. Some popular stories, such as Mendeleev's periodic table dream, are less reliable.",
+      },
+      {
+        question: "What is the hypnagogic state and why does it help creativity?",
+        answer:
+          "It is the drowsy transition into sleep, full of loose images and associations. Research suggests briefly entering this state can make insights more likely.",
+      },
+      {
+        question: "How can I remember creative ideas from dreams?",
+        answer:
+          "Keep a notebook or recorder by the bed, stay still on waking, replay the dream, and write key images or phrases before doing anything else.",
+      },
+      {
+        question: "Can I use dreams for creative work every night?",
+        answer:
+          "Light practice is fine, but protect your sleep. Frequent deliberate awakenings can reduce rest and, with it, the benefits sleep brings to creativity.",
+      },
+    ],
+    relatedSymbolSlugs: ["house", "water", "flying", "keys"],
+    updatedAt: "2026-09-16",
+  },
 ];
 
 export const DREAM_GUIDE_SLUGS = DREAM_GUIDES.map((guide) => guide.slug);
@@ -1463,7 +2273,7 @@ export function getDreamGuide(slug: string): DreamGuide | undefined {
 
 /** Parent symbol slugs that should surface educational guides. */
 export const GUIDES_FOR_SYMBOL: Record<string, string[]> = {
-  flying: ["lucid-dreams", "vivid-dreams"],
+  flying: ["lucid-dreams", "vivid-dreams", "daydreaming"],
   nightmare: [
     "how-to-stop-nightmares",
     "recurring-dreams",
@@ -1473,29 +2283,62 @@ export const GUIDES_FOR_SYMBOL: Record<string, string[]> = {
     "anxiety-dreams",
     "hypnagogic-hallucinations",
     "healing-dreams",
+    "sleepwalking-and-sleep-talking",
+    "medication-and-dreams",
+    "rem-sleep",
   ],
   pregnancy: ["children-and-dreams", "vivid-dreams"],
   baby: ["children-and-dreams", "night-terrors"],
-  child: ["children-and-dreams", "night-terrors"],
+  child: ["children-and-dreams", "night-terrors", "dream-archetypes"],
   death: ["visitation-dreams", "prophetic-dreams"],
   funeral: ["visitation-dreams"],
   ghost: ["visitation-dreams", "hypnagogic-hallucinations"],
   angel: ["visitation-dreams", "healing-dreams"],
   god: ["dream-incubation", "prophetic-dreams", "dream-theorists"],
-  house: ["how-to-interpret-dreams", "dream-incubation", "types-of-dreams", "remembering-dreams", "shared-dreams"],
-  snake: ["how-to-interpret-dreams", "dream-theorists", "dream-incubation"],
+  house: [
+    "how-to-interpret-dreams",
+    "dream-incubation",
+    "types-of-dreams",
+    "remembering-dreams",
+    "shared-dreams",
+    "dreams-and-creativity",
+  ],
+  snake: ["how-to-interpret-dreams", "dream-theorists", "dream-incubation", "dream-archetypes"],
   water: ["how-to-interpret-dreams", "vivid-dreams", "shared-dreams"],
-  falling: ["anxiety-dreams", "hypnagogic-hallucinations"],
+  falling: ["anxiety-dreams", "hypnagogic-hallucinations", "rem-sleep"],
   "being-late": ["anxiety-dreams"],
   test: ["anxiety-dreams"],
   "being-naked": ["anxiety-dreams"],
-  "being-chased": ["how-to-stop-nightmares", "anxiety-dreams"],
+  "being-chased": ["how-to-stop-nightmares", "anxiety-dreams", "sleepwalking-and-sleep-talking", "dream-archetypes"],
   drowning: ["how-to-stop-nightmares"],
   demon: ["how-to-stop-nightmares", "hypnagogic-hallucinations", "night-terrors"],
-  sex: ["erotic-dreams"],
-  cheating: ["erotic-dreams"],
-  ex: ["erotic-dreams"],
+  sex: ["erotic-dreams", "dreaming-about-someone"],
+  cheating: ["erotic-dreams", "dreaming-about-someone"],
+  ex: ["erotic-dreams", "dreaming-about-someone"],
   wedding: ["shared-dreams", "erotic-dreams"],
+  dog: ["do-animals-dream"],
+  cat: ["do-animals-dream"],
+  bird: ["do-animals-dream"],
+  horse: ["do-animals-dream"],
+  wolf: ["do-animals-dream"],
+  celebrity: ["dreaming-about-someone", "daydreaming"],
+  "old-friend": ["dreaming-about-someone"],
+  kissing: ["dreaming-about-someone"],
+  mother: ["dream-archetypes", "dreaming-about-someone"],
+  father: ["dream-archetypes", "dreaming-about-someone"],
+  mirror: ["dream-archetypes", "deja-vu-dreams"],
+  intruder: ["dream-archetypes"],
+  dragon: ["dream-archetypes"],
+  colors: ["dreaming-in-color"],
+  eyes: ["dreaming-in-color"],
+  numbers: ["deja-vu-dreams", "dreaming-in-color"],
+  door: ["deja-vu-dreams"],
+  "being-lost": ["deja-vu-dreams"],
+  fighting: ["sleepwalking-and-sleep-talking"],
+  illness: ["medication-and-dreams"],
+  hospital: ["medication-and-dreams"],
+  lottery: ["daydreaming"],
+  keys: ["dreams-and-creativity"],
 };
 
 export function getGuidesForSymbol(symbolSlug: string): DreamGuide[] {

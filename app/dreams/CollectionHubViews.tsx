@@ -183,6 +183,8 @@ export function NightmaresView({ locale }: { locale: Locale }) {
     "night-terrors",
     "anxiety-dreams",
     "hypnagogic-hallucinations",
+    "sleepwalking-and-sleep-talking",
+    "medication-and-dreams",
     "recurring-dreams",
     "sleep-paralysis",
     "false-awakening",

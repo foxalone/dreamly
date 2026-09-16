@@ -118,7 +118,7 @@ export const EN_MESSAGES: UiMessages = {
     popularSymbolsLead: "Parent topics and long-tail meanings",
     learnTitle: "Learn about dreaming",
     learnLead:
-      "Guides on how to interpret dreams, why we dream, nightmares and night terrors, vivid and anxiety nights, visitation and shared dreams, incubation, recall, childhood, and the theorists behind interpretation.",
+      "Guides on how to interpret dreams, why we dream, REM sleep, nightmares, night terrors and sleepwalking, vivid and anxiety nights, dreaming about someone, archetypes, daydreaming, color and the senses, déjà vu, medication, creativity, visitation and shared dreams, incubation, recall, childhood, and the theorists behind interpretation.",
     browseTheme: "Browse by theme",
     seoClusters: "SEO clusters",
     exploreCluster: "Explore cluster",

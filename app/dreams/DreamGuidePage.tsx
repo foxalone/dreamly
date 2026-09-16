@@ -1,5 +1,7 @@
+import { Fragment } from "react";
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import type { DreamGuide } from "@/lib/dream-guides";
+import { guideTextPlain, isKnownGuideHref, parseGuideText } from "@/lib/guideLinks";
 import type { Locale } from "@/lib/i18n/config";
 import { DEFAULT_LOCALE, SITE_URL } from "@/lib/i18n/config";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
@@ -8,6 +10,26 @@ import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import GuideLinkCards from "./GuideLinkCards";
+
+function GuideText({ text }: { text: string }) {
+  return (
+    <>
+      {parseGuideText(text).map((segment, index) =>
+        segment.kind === "link" && isKnownGuideHref(segment.href) ? (
+          <LocaleLink
+            key={index}
+            href={segment.href}
+            className="font-medium text-[var(--dd-accent-text)] underline decoration-[var(--dd-border-strong)] underline-offset-4 transition hover:decoration-current"
+          >
+            {segment.text}
+          </LocaleLink>
+        ) : (
+          <Fragment key={index}>{segment.text}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
 
 export default function DreamGuidePage({
   guide,
@@ -42,7 +64,7 @@ export default function DreamGuidePage({
     mainEntity: guide.faqs.map(({ question, answer }) => ({
       "@type": "Question",
       name: question,
-      acceptedAnswer: { "@type": "Answer", text: answer },
+      acceptedAnswer: { "@type": "Answer", text: guideTextPlain(answer) },
     })),
   };
 
@@ -82,7 +104,9 @@ export default function DreamGuidePage({
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">{guide.title}</h1>
           <div className="mt-5 max-w-3xl space-y-4 text-base leading-7 text-[var(--dd-muted)] sm:text-lg sm:leading-8">
             {guide.intro.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+              <p key={paragraph}>
+                <GuideText text={paragraph} />
+              </p>
             ))}
           </div>
         </header>
@@ -92,7 +116,9 @@ export default function DreamGuidePage({
             <h2 className="text-2xl font-semibold tracking-tight">{section.heading}</h2>
             <div className="mt-5 max-w-3xl space-y-4 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
+                <p key={paragraph}>
+                  <GuideText text={paragraph} />
+                </p>
               ))}
             </div>
           </section>
@@ -110,7 +136,9 @@ export default function DreamGuidePage({
                   {question}
                   <span className="text-xl font-light text-[var(--dd-subtle)] transition group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-4 pr-6 text-sm leading-7 text-[var(--dd-muted)]">{answer}</p>
+                <p className="mt-4 pr-6 text-sm leading-7 text-[var(--dd-muted)]">
+                  <GuideText text={answer} />
+                </p>
               </details>
             ))}
           </div>

@@ -1324,4 +1324,764 @@ export const GUIDES_ES: Record<string, GuideL10n> = {
       },
     ],
   },
+  "rem-sleep": {
+    name: "Sueño REM y sueños",
+    title: "El sueño REM y los sueños",
+    seoTitle: "Sueño REM y sueños: ciclos, parálisis y cuánto dura un sueño",
+    seoDescription:
+      "Qué es el sueño REM, cómo el ciclo de unos 90 minutos organiza tus sueños, por qué el cuerpo queda inmóvil, cuánto duran de verdad los sueños y qué es el rebote REM.",
+    summary: "La fase del dormir donde nacen los sueños más vívidos: ciclos, parálisis, duración y rebote.",
+    intro: [
+      "Cuando alguien dice «la fase en la que se sueña», casi siempre habla del sueño REM, por las siglas en inglés de movimientos oculares rápidos. Lo describieron en 1953 Eugene Aserinsky y Nathaniel Kleitman en Chicago: notaron que los ojos de quienes dormían se movían en ráfagas bajo los párpados y que, al despertarlos en ese momento, casi todos contaban un sueño. Desde entonces el REM es la puerta mejor estudiada hacia la mente que sueña, aunque no la única.",
+      "Entender esta fase cambia la forma de leer tus noches. Explica por qué recuerdas el último sueño antes de la alarma, por qué una semana de desvelos termina en una avalancha de tramas raras y por qué a veces el cuerpo no responde al despertar. Aquí va la fisiología; las teorías están en [por qué soñamos](/dreams/why-we-dream) y el método para leer la historia, en [cómo interpretar los sueños](/dreams/how-to-interpret-dreams).",
+    ],
+    sections: [
+      {
+        heading: "Una noche hecha de ciclos",
+        paragraphs: [
+          "Dormir no es un bloque parejo. El cerebro recorre ciclos de sueño ligero, sueño profundo de ondas lentas y REM, cada uno de unos 90 minutos, con variaciones reales entre 70 y 120. La mayoría de los adultos completa entre cuatro y seis ciclos por noche. El primer REM suele llegar más de una hora después de dormirse y puede durar apenas unos minutos. Con el paso de las horas el sueño profundo se acorta y los periodos REM se alargan: el último tercio de la noche es el territorio de los sueños más largos y con más argumento.",
+          "Eso tiene consecuencias prácticas. Quien duerme cinco horas en lugar de ocho no pierde un poco de REM, pierde muchísimo, porque se recortan justamente los tramos largos de la madrugada. Y quien despierta solo al final de un REM tiene muchas más probabilidades de recordar la trama que quien sale del sueño profundo con un despertador. La guía para [recordar los sueños](/dreams/remembering-dreams) se apoya en este ritmo.",
+        ],
+      },
+      {
+        heading: "Cerebro encendido, cuerpo en pausa",
+        paragraphs: [
+          "En un electroencefalograma, el REM se parece mucho a la vigilia. Los estudios de imagen muestran gran actividad en las zonas visuales y emocionales, incluida la amígdala, mientras que partes de la corteza prefrontal encargadas de planear y revisar la lógica se aquietan. La noradrenalina, una sustancia ligada al estrés, cae a su punto más bajo del día. Con esa receta salen escenas vivísimas, emociones intensas y un narrador que casi nunca pregunta si todo tiene sentido.",
+          "El cuerpo, en cambio, queda quieto. Circuitos del tronco cerebral apagan casi todo el tono muscular —la llamada atonía— y solo siguen trabajando los ojos y los músculos de la respiración. Gracias a eso no sales corriendo cuando sueñas que corres. Si la atonía se estira hasta el despertar aparece la [parálisis del sueño](/dreams/sleep-paralysis); si falla durante el REM, la persona actúa lo que sueña, algo que explicamos en [sonambulismo y hablar dormido](/dreams/sleepwalking-and-sleep-talking).",
+        ],
+      },
+      {
+        heading: "¿Se sueña fuera del REM?",
+        paragraphs: [
+          "Sí. Casi todos los despertares en REM traen un relato, pero una parte importante de los despertares en sueño no REM también. Esos sueños suelen ser más breves, más parecidos a un pensamiento y menos cargados: una preocupación que da vueltas, una lista que se repasa, una sola imagen. Hacia la mañana, los sueños no REM pueden volverse casi tan vívidos como los otros, y por eso la ciencia dejó de usar «REM» y «soñar» como sinónimos.",
+          "La diferencia importa cuando la noche asusta. Un [terror nocturno](/dreams/night-terrors) sale del sueño profundo y casi nunca deja historia. Una [pesadilla](/dreams/nightmare) suele ser un episodio REM que te despierta con una trama que puedes contar. No se acompañan igual, ni en un niño ni en un adulto.",
+        ],
+      },
+      {
+        heading: "¿Cuánto dura un sueño?",
+        paragraphs: [
+          "Circula la idea de que los sueños pasan en un par de segundos. La evidencia apunta en otra dirección. En los primeros laboratorios del sueño, quienes despertaban tras periodos REM largos contaban sueños más largos. Después, con soñadores lúcidos que podían avisar desde dentro del sueño con movimientos de ojos acordados, se vio que contar o hacer tareas sencillas toma más o menos el mismo tiempo que despierto, a veces un poco más. El sueño se comprime al contarlo, no necesariamente al vivirlo.",
+          "Esas mismas señales oculares sirvieron para demostrar que los [sueños lúcidos](/dreams/lucid-dreams) ocurren en pleno REM y no en microdespertares. En experimentos recientes, algunos soñadores lúcidos incluso respondieron preguntas sencillas del equipo moviendo los ojos: una línea de comunicación pequeña, pero real, con la mente dormida.",
+        ],
+      },
+      {
+        heading: "El rebote REM: semanas en que la noche grita",
+        paragraphs: [
+          "Cuando el REM se recorta —por dormir poco, por el alcohol, por el desfase horario o por ciertos medicamentos— el cerebro suele cobrarse la deuda después con periodos REM más largos y densos. Mucha gente vive ese rebote como una ola repentina de [sueños vívidos](/dreams/vivid-dreams), a veces inquietantes. Es frecuente tras una noche de copas, al dejar la marihuana o al suspender algunos antidepresivos; los detalles están en [medicamentos y sueños](/dreams/medication-and-dreams).",
+          "Tener esto en mente ayuda antes de buscar significados. Una trama extrañísima en una semana de recuperación puede ser fisiología disfrazada. Aun así vale la pena anotarla —¿qué emoción eligió la noche?—, pero la intensidad en sí suele hablar de presión de sueño, no de un mensaje.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Qué parte de la noche es sueño REM?",
+        answer:
+          "En adultos sanos, entre una quinta y una cuarta parte del sueño total, concentrada sobre todo en la segunda mitad de la noche. Los recién nacidos pasan mucho más tiempo en su equivalente, el sueño activo.",
+      },
+      {
+        question: "¿Sueño todas las noches?",
+        answer:
+          "Casi con seguridad. Cualquier persona con un dormir normal pasa varias veces por el REM. Quien dice que nunca sueña, en general no recuerda, y eso depende de cómo y cuándo despierta.",
+      },
+      {
+        question: "¿Por qué no me puedo mover al despertar de un sueño?",
+        answer:
+          "La atonía del REM, que te mantiene quieto mientras sueñas, puede solaparse unos instantes con la conciencia despierta. Eso es la parálisis del sueño: asusta, pero suele ser inofensiva y pasa en segundos o pocos minutos.",
+      },
+      {
+        question: "¿El REM es la fase más importante?",
+        answer:
+          "Ninguna fase gana sola. El sueño profundo sostiene gran parte de la recuperación física y la memoria; el REM se relaciona con el procesamiento emocional y ciertos aprendizajes. Una buena noche necesita el ciclo completo, varias veces.",
+      },
+      {
+        question: "¿Cómo puedo tener más sueño REM?",
+        answer:
+          "Lo más confiable es dormir lo suficiente y en horarios regulares, porque el REM se acumula en la madrugada. Evitar el alcohol por la noche también ayuda. Cualquier cambio de medicación, solo con quien la recetó.",
+      },
+    ],
+  },
+  "dreaming-about-someone": {
+    name: "Soñar con alguien",
+    title: "Soñar con alguien",
+    seoTitle: "Soñar con alguien: por qué una persona aparece en tus sueños",
+    seoDescription:
+      "Por qué sueñas con una persona concreta —tu crush, tu ex, un amigo, un desconocido, alguien que falleció—, qué puede significar y por qué no prueba que esté pensando en ti.",
+    summary: "Por qué cierta persona se cuela en tus sueños, y qué significa (y qué no).",
+    intro: [
+      "«¿Por qué soñé con él?», «¿por qué sigo soñando con ella?». Pocas búsquedas sobre sueños son tan frecuentes. Puede ser la persona que te gusta, un ex con quien no hablas hace años, alguien del trabajo en quien casi no piensas, un famoso, tu mamá o alguien que ya murió. Al despertar queda una sensación rara: como si la noche hubiera elegido a esa persona a propósito.",
+      "Y sí la eligió, pero sobre todo desde tu lado de la relación. La investigación sobre el contenido de los sueños muestra una y otra vez que los personajes nocturnos siguen a las personas que ocupan tus emociones, tus preocupaciones y tu memoria. Esta guía explica por qué aparece alguien, cómo leer el papel que cumple y cuál es la conclusión que conviene no sacar.",
+    ],
+    sections: [
+      {
+        heading: "Cómo elige la mente a sus personajes",
+        paragraphs: [
+          "Los investigadores lo llaman hipótesis de continuidad: los sueños se alimentan de las inquietudes y los vínculos de la vida despierta. Las personas que más vemos, con las que más discutimos o que más nos importan son las que más aparecen. Pesa más la carga emocional que las horas compartidas: una conversación de dos minutos que dolió puede ganarse más escenas que una semana de reuniones rutinarias.",
+          "Además, los sueños usan a la gente como atajo. Una amiga siempre serena puede aparecer cuando necesitas calma; un profesor de la secundaria puede representar la sensación de ser evaluado. Antes de preguntarte qué dice el sueño sobre esa persona, pregúntate qué representa ella para ti hoy: una cualidad, una etapa de tu vida, una conversación pendiente o un miedo.",
+        ],
+      },
+      {
+        heading: "Crush, ex y pareja",
+        paragraphs: [
+          "Soñar con alguien que te gusta es el caso más simple: la atención y la esperanza ensayan un vínculo. Los sueños con tu [ex](/dreams/ex) tienen más capas. Suelen aparecer cuando la relación actual repite un patrón conocido, cuando estás comparando o cuando la persona que eras en esa época pide atención. Rara vez son una orden para escribirle.",
+          "Soñar que tu pareja te deja o te engaña es de lo más angustiante y de lo más común. Suele reflejar inseguridad, distancia o una pregunta de confianza que no se ha dicho en voz alta, no una prueba de lo que pasó. La página sobre [infidelidad](/dreams/cheating) y la guía de [sueños eróticos](/dreams/erotic-dreams) profundizan en escenas románticas o sexuales con personas inesperadas.",
+        ],
+      },
+      {
+        heading: "Amigos, familia, desconocidos y famosos",
+        paragraphs: [
+          "Un [viejo amigo](/dreams/old-friend) suele volver cuando algo del presente se parece a lo que vivieron juntos: una encrucijada parecida, una soltura que se perdió, una lealtad en duda. Padres y hermanos aparecen mucho en épocas de cambios de independencia, de cuidados o de roles familiares, aunque la relación esté tranquila. Discutir con la familia en sueños a menudo es ensayar límites que todavía no pusiste.",
+          "Los desconocidos pueden ser partes tuyas que aún no reconoces; la guía de [arquetipos en los sueños](/dreams/dream-archetypes) explica la sombra de Jung y otras figuras. Un [famoso](/dreams/celebrity) carga lo que simboliza para ti: reconocimiento, brillo, talento o la sensación de pasar desapercibido. La idea popular de que toda cara soñada tiene que ser de alguien que viste alguna vez nunca se ha demostrado; el cerebro es perfectamente capaz de armar un rostro nuevo con rasgos conocidos.",
+        ],
+      },
+      {
+        heading: "¿Significa que esa persona piensa en mí?",
+        paragraphs: [
+          "No hay evidencia de que soñar con alguien signifique que te piensa, te extraña o también sueña contigo. La idea seduce porque convierte una noche privada en una señal compartida, pero el sueño se construyó con tus recuerdos y tus emociones. Cuando dos personas cuentan sueños parecidos, la explicación suele ser un día compartido, preocupaciones en común o relatos que se fueron pareciendo al contarse; lo vemos a fondo en [sueños compartidos](/dreams/shared-dreams).",
+          "Es más amable, y más preciso, tomar el sueño como información sobre ti. Decirle a alguien «soñé contigo» puede ser un gesto cálido, pero también puede presionar a quien nunca pidió formar parte de tu mundo interior. Las tradiciones de fe aconsejan algo parecido: en la ética islámica, por ejemplo, un sueño bueno se comparte con quien te quiere bien y uno angustiante se guarda.",
+        ],
+      },
+      {
+        heading: "Cuando la misma persona vuelve noche tras noche",
+        paragraphs: [
+          "Si alguien aparece una y otra vez, fíjate en lo que no cambia: la emoción, el lugar, lo que hace y cómo termina la escena. Un sueño repetido con quien te hizo daño puede ser la mente ensayando seguridad. Uno repetido con alguien que perdiste puede ser el duelo buscando su ritmo, y para eso está la guía de [sueños de visita](/dreams/visitation-dreams). La de [sueños recurrentes](/dreams/recurring-dreams) explica por qué los bucles persisten y qué ayuda a cambiarlos.",
+          "Un diario breve sirve mucho. Anota el nombre, el papel que cumplió y una frase sobre el día anterior. En pocas semanas el patrón suele asomar: un conflicto abierto, una cualidad que te falta, un cambio que estás rodeando. Si los sueños con una persona están ligados a un trauma o te dan miedo de dormir, conviene hablar con un profesional en lugar de descifrarlos en soledad.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Por qué sueño con alguien que no veo hace años?",
+        answer:
+          "Probablemente algo de tu presente se parece a la época en que lo conociste: una decisión, una emoción o un patrón de relación. La persona funciona como marcador de ese capítulo, no como noticia sobre ella hoy.",
+      },
+      {
+        question: "Si sueño con alguien, ¿esa persona sueña conmigo?",
+        answer:
+          "No hay pruebas de eso. Los sueños se construyen con la memoria y las emociones de quien sueña. Las coincidencias suelen explicarse por experiencias o conversaciones compartidas.",
+      },
+      {
+        question: "¿Por qué sueño todas las noches con la persona que me gusta?",
+        answer:
+          "La atención y la ilusión son material potente para soñar. Esos sueños repetidos muestran cuánto espacio ocupa esa persona en tu cabeza, no lo que siente por ti.",
+      },
+      {
+        question: "¿Qué significa soñar con alguien que me cae mal?",
+        answer:
+          "Muchas veces esa persona encarna un rasgo o un conflicto con el que estás lidiando. Pregúntate qué representa y si esa cualidad, o la tensión alrededor, está activa en tu vida ahora.",
+      },
+      {
+        question: "¿Le cuento que soñé con ella?",
+        answer:
+          "Depende del sueño y del vínculo. Un sueño tierno y sencillo puede ser lindo de compartir. Uno íntimo o perturbador puede sentirse invasivo, así que piensa cómo caería antes de contarlo.",
+      },
+    ],
+  },
+  "dream-archetypes": {
+    name: "Arquetipos en los sueños",
+    title: "Arquetipos en los sueños",
+    seoTitle: "Arquetipos en los sueños: sombra, ánima, embaucador y el Sí-mismo",
+    seoDescription:
+      "Los arquetipos de Jung en los sueños —persona, sombra, ánima y ánimus, el sabio, el embaucador, la gran madre y el Sí-mismo—: cómo reconocerlos y usarlos sin caer en misticismos.",
+    summary: "Las figuras que Jung vio repetirse en los sueños y cómo trabajar con ellas.",
+    intro: [
+      "Hay personajes de sueño que parecen más antiguos que tu propia historia: el perseguidor que de algún modo reconoces, el anciano que sabe el camino, el niño al que hay que proteger, el bromista que se ríe de todas las reglas. Carl Gustav Jung llamó arquetipos a los patrones detrás de esas figuras: tendencias heredadas de la imaginación humana que se repiten en mitos, cuentos, religiones y en noches comunes y corrientes.",
+      "No hace falta comprar toda la teoría junguiana para sacarle provecho. Los arquetipos dan nombre a papeles que los sueños reparten una y otra vez, y ponerle nombre a un papel suele volver legible un sueño confuso. Aquí van las figuras principales, cómo detectarlas y dónde están los límites del enfoque. El contexto histórico completo está en [teóricos de los sueños](/dreams/dream-theorists).",
+    ],
+    sections: [
+      {
+        heading: "Qué entendía Jung por arquetipo",
+        paragraphs: [
+          "Jung separaba el arquetipo en sí —un patrón que no se ve directamente— de las imágenes arquetípicas, las formas concretas que toma en cada cultura y en cada biografía. Lo materno puede presentarse como tu propia madre, una casa enorme, el mar o una vaca pastando. El patrón es común a todos; el vestuario es personal.",
+          "Ubicaba esos patrones en lo que llamó inconsciente colectivo, una capa más honda que la memoria personal. Para él, los sueños suelen compensar la unilateralidad de la actitud consciente y traen al frente lo que el yo despierto descuida. Al largo trabajo de integrar esas partes olvidadas lo llamó individuación: llegar a ser más quien eres y menos el papel que representas.",
+        ],
+      },
+      {
+        heading: "La persona y la sombra",
+        paragraphs: [
+          "La persona es la cara social: el rol, el uniforme, los modales que te permiten funcionar. Los sueños en que llevas la [ropa](/dreams/clothes) equivocada, pierdes el disfraz o apareces [desnudo en público](/dreams/being-naked) suelen tocar este punto: el miedo a que se caiga la máscara o las ganas de quitártela.",
+          "La sombra guarda lo que rechazas de ti: el enojo que no muestras, la ambición que llamas egoísmo, la ternura que llamas debilidad. Jung observó que a menudo aparece como una figura del mismo sexo que quien sueña, amenazante, repulsiva o vergonzosa: el [intruso](/dreams/intruder), el perseguidor, el delincuente. Que te [persiga](/dreams/being-chased) alguien así puede indicar que una cualidad negada empuja para ser reconocida. Y ojo: la sombra no es solo oscura; también guarda talentos que aprendiste a esconder.",
+        ],
+      },
+      {
+        heading: "Ánima, ánimus y el Sí-mismo",
+        paragraphs: [
+          "Jung describió el ánima como la imagen femenina en la psique del hombre y el ánimus como la imagen masculina en la de la mujer: figuras que guían, seducen o desafían hacia una vida interior más amplia. Muchos junguianos actuales consideran ese lenguaje hijo de su época y prefieren hablar de «lo otro» dentro de uno: esa figura desconocida que te atrae y te intimida un poco a la vez.",
+          "El Sí-mismo es el nombre que Jung dio al centro organizador de toda la psique, más amplio que el yo cotidiano. Suele mostrarse en imágenes de totalidad y orden: un círculo o mandala, un niño luminoso, un templo, un [árbol](/dreams/tree) en medio de un jardín, a veces una figura divina. Estos sueños llegan con frecuencia en momentos de giro y dejan una sensación serena de que algo está en su sitio, más que un mensaje claro.",
+        ],
+      },
+      {
+        heading: "El sabio, el embaucador, la madre y el niño",
+        paragraphs: [
+          "El sabio aparece como maestro, abuelo, guía o [ángel](/dreams/angel) que aconseja en una encrucijada. El embaucador —payaso, zorro, cambiaformas, bromista— rompe reglas y desnuda las poses; un sueño que te ridiculiza con humor quizá esté señalando tu rigidez. La gran [madre](/dreams/mother) nutre y también devora: puede ser una casa que abriga o un mar que traga. El [niño](/dreams/child) divino lleva un potencial nuevo, frágil, que pide cuidado.",
+          "Los animales y los monstruos también cargan energía arquetípica. La [serpiente](/dreams/snake) es una de las imágenes más antiguas de transformación y peligro; el [dragón](/dreams/dragon) une el tesoro custodiado con una fuerza desbordante. Notar esos ecos no reemplaza la lectura personal de las páginas de símbolos de Dreamly: suma una segunda pregunta, ¿qué historia humana antigua está tomando prestada esta escena?",
+        ],
+      },
+      {
+        heading: "Usarlos sin mistificar",
+        paragraphs: [
+          "Las ideas arquetípicas son difíciles de probar científicamente, y sus críticos advierten que casi cualquier imagen cabe en un esquema mítico si se busca con ganas. Úsalas como disparadores, no como veredictos. Empieza por lo personal: ¿a quién o a qué te recuerda esta figura en tu vida? Después haz la pregunta arquetípica: ¿qué papel cumple aquí, perseguidor, guía, embaucador, cuidadora, recién nacido?",
+          "El método práctico del propio Jung era conversar. En un momento tranquilo, vuelve a imaginar la figura y pregúntale qué quiere, qué protege o qué diría si pudiera hablar. Escribe la respuesta sin corregirla. La guía de [cómo interpretar los sueños](/dreams/how-to-interpret-dreams) muestra cómo cruzar esa respuesta con las decisiones de esta semana, y la de [incubación de sueños](/dreams/dream-incubation), cómo invitar a una figura a volver.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Cuáles son los principales arquetipos en los sueños?",
+        answer:
+          "Los más citados de Jung son la persona, la sombra, el ánima y el ánimus y el Sí-mismo, junto con papeles recurrentes como el sabio, el embaucador, la gran madre, el héroe y el niño divino.",
+      },
+      {
+        question: "¿Cómo se ve la sombra en un sueño?",
+        answer:
+          "Muchas veces como una figura amenazante o vergonzosa —un intruso, un perseguidor, alguien que desprecias— que carga rasgos que rechazas de ti. También puede traer fortalezas escondidas.",
+      },
+      {
+        question: "¿Los arquetipos están demostrados científicamente?",
+        answer:
+          "No. Son un marco de interpretación, no una teoría comprobada. Aun así, a mucha gente le sirven para reconocer papeles y temas que se repiten en sus sueños.",
+      },
+      {
+        question: "¿Todos los sueños son arquetípicos?",
+        answer:
+          "No. La mayoría se arma con material reciente y personal. La lectura arquetípica rinde más en sueños que se sienten míticos, sagrados o que vuelven una y otra vez.",
+      },
+      {
+        question: "¿Cómo trabajo con un arquetipo que apareció en un sueño?",
+        answer:
+          "Escribe el sueño, nombra el papel de la figura y sostén con ella una breve conversación imaginada. Después busca dónde está activo ese papel en tu vida despierta.",
+      },
+    ],
+  },
+  "do-animals-dream": {
+    name: "¿Los animales sueñan?",
+    title: "¿Los animales sueñan?",
+    seoTitle: "¿Los animales sueñan? Perros, gatos, aves y lo que dice la ciencia",
+    seoDescription:
+      "¿Sueñan los perros y los gatos? Lo que revelan el sueño REM, la repetición cerebral en ratas y aves y los hallazgos recientes en pulpos y arañas. Y si conviene despertar a una mascota inquieta.",
+    summary: "Lo que se sabe sobre los sueños de perros, gatos, aves y otros animales.",
+    intro: [
+      "Quien ha visto a su perro dormido mover las patas como si corriera, fruncir el hocico y soltar un ladrido ahogado se ha hecho la misma pregunta: ¿está soñando? Los animales no pueden contarnos sus sueños, así que la ciencia trabaja con pistas indirectas: fases del sueño, registros cerebrales y conducta. Y esas pistas se han vuelto sorprendentemente sólidas.",
+      "Esta guía reúne lo que se sabe, lo que sigue siendo conjetura y lo que implica para los animales con los que convives. Si llegaste porque un animal apareció en tu propio sueño, empieza por las páginas del diccionario sobre [perros](/dreams/dog), [gatos](/dreams/cat) y [aves](/dreams/bird).",
+    ],
+    sections: [
+      {
+        heading: "El REM en el reino animal",
+        paragraphs: [
+          "Prácticamente todos los mamíferos y las aves estudiados muestran un sueño no REM y una fase parecida al REM, con cerebro activo y músculos relajados. Las cantidades cambian muchísimo entre especies. Las crías pasan buena parte del sueño en esa fase activa, y el ornitorrinco exhibe una cantidad notable de actividad tipo REM. Los delfines, que duermen con un hemisferio a la vez, muestran poco o ningún REM claro.",
+          "En los últimos años se describieron patrones de dos fases lejos de los mamíferos: en el dragón barbudo, en sepias y pulpos cuya piel parpadea en colores durante el «sueño activo» e incluso en arañas saltadoras que mueven patas y ojos mientras reposan. Nada de eso prueba que sueñen, pero sugiere que alternar una fase quieta y otra activa es muy antiguo. La versión humana está en la guía de [sueño REM](/dreams/rem-sleep).",
+        ],
+      },
+      {
+        heading: "La repetición: la pista más fuerte",
+        paragraphs: [
+          "La prueba más convincente viene de registrar neuronas individuales. En ratas que recorrían un laberinto, los investigadores vieron que los patrones de actividad del hipocampo durante el recorrido reaparecían en el sueño posterior, también en REM, a veces a un ritmo parecido. En un sentido medible, los animales volvían a hacer el camino. Otros trabajos muestran repeticiones similares de lugares y secuencias en el sueño no REM, ligadas a la consolidación de la memoria.",
+          "Los pájaros cantores abren otra ventana. En diamantes mandarines dormidos, neuronas de una región que controla el canto se activan con patrones parecidos a los del canto real, como si el ave ensayara en silencio. Repetir actividad no equivale a ver una película con argumento, pero es lo más cerca que ha llegado la ciencia de observar la materia prima de un sueño en un cerebro animal.",
+        ],
+      },
+      {
+        heading: "Perros y gatos",
+        paragraphs: [
+          "En los años sesenta, el investigador francés Michel Jouvet descubrió que al dañar una pequeña zona del tronco cerebral de los gatos desaparecía la parálisis del REM. Esos gatos se levantaban en pleno REM, acechaban, saltaban y bufaban a la nada, como si estuvieran cazando o peleando. Sigue siendo uno de los indicios más llamativos de que los gatos viven algo parecido a escenas mientras duermen.",
+          "Los perros alternan no REM y REM como nosotros, aunque en ciclos más cortos. Investigadores húngaros registraron el sueño de perros de familia con electroencefalografía no invasiva y vieron que las experiencias del día, incluidas las de fuerte carga emocional, cambian cómo duermen después. Las patitas que se mueven, los ladridos suaves y los ojos inquietos se concentran en el REM. Es razonable suponer —solo suponer— que sueñan con su vida de todos los días: su gente, los olores, el juego y alguna que otra ardilla.",
+        ],
+      },
+      {
+        heading: "¿Tienen pesadillas?",
+        paragraphs: [
+          "No podemos saber qué siente un animal dormido, pero algunos perros gimen, gruñen o se despiertan de golpe desorientados, y los animales con historias de maltrato pueden dormir más inquietos. El estrés, el dolor y los entornos nuevos alteran su descanso de un modo que recuerda a nuestras malas noches.",
+          "Si tu perro parece angustiado, suele ser mejor llamarlo suavemente por su nombre desde cierta distancia que tocarlo. Un perro sobresaltado en pleno sueño profundo puede morder antes de entender dónde está. Movimientos violentos frecuentes, desmayos o episodios parecidos a convulsiones son asunto del veterinario, no de una teoría onírica: algunos animales, igual que algunas personas, tienen trastornos del sueño reales.",
+        ],
+      },
+      {
+        heading: "Lo que esto dice de nuestros sueños",
+        paragraphs: [
+          "Si muchos animales repasan su experiencia durmiendo, soñar podría tener raíces muy antiguas: consolidar memoria, ensayar movimientos y practicar respuestas al peligro. Eso encaja con las teorías científicas de [por qué soñamos](/dreams/why-we-dream) y suaviza la idea de que los sueños son un acertijo exclusivamente humano hecho de símbolos.",
+          "También explica por qué los animales están entre las figuras más frecuentes de nuestros sueños. Llevan instinto, lealtad, miedo y libertad en una forma más vieja que el lenguaje. Cuando un [lobo](/dreams/wolf), un [caballo](/dreams/horse) o una [araña](/dreams/spider) entran en tu noche, estás tomando del mismo fondo de experiencia que otros animales quizá estén ordenando en su propio dormir.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Los perros sueñan?",
+        answer:
+          "Es muy probable. Tienen sueño REM con espasmos, movimientos oculares y ruiditos, y la investigación muestra que el cerebro dormido repasa lo vivido. Qué experimenta exactamente un perro no se puede confirmar.",
+      },
+      {
+        question: "¿Con qué sueñan los perros?",
+        answer:
+          "Nadie lo sabe con certeza. Por los estudios de repetición, lo razonable es pensar en su día a día: su familia, los paseos, los olores y el juego.",
+      },
+      {
+        question: "¿Despierto a mi perro si parece tener una pesadilla?",
+        answer:
+          "Mejor no tocarlo. Si quieres despertarlo, llámalo con voz suave desde un poco de distancia. Un perro sobresaltado puede morder por reflejo antes de despertar del todo.",
+      },
+      {
+        question: "¿Los gatos sueñan?",
+        answer:
+          "Tienen un REM muy claro, y experimentos clásicos mostraron que, sin la parálisis del REM, los gatos acechan y saltan dormidos, lo que sugiere con fuerza una experiencia parecida al sueño.",
+      },
+      {
+        question: "¿Los peces o los insectos sueñan?",
+        answer:
+          "Duermen, y algunos muestran estados de sueño con rasgos activos, pero no hay evidencia de que sueñen como nosotros. En muchas especies la pregunta sigue abierta.",
+      },
+    ],
+  },
+  daydreaming: {
+    name: "Soñar despierto",
+    title: "Soñar despierto",
+    seoTitle: "Soñar despierto: mente divagante, creatividad y cuándo es demasiado",
+    seoDescription:
+      "Qué es soñar despierto, cómo se relaciona con los sueños nocturnos, por qué la mente que divaga ayuda a crear y planear, y cuándo el ensueño excesivo se vuelve un problema.",
+    summary: "El sueño con los ojos abiertos: para qué sirve, cuánto cuesta y cómo se conecta con la noche.",
+    intro: [
+      "Vas en el colectivo, estás en una reunión o lavando los platos y de pronto ya no estás ahí: repasas una conversación, ensayas un discurso, vives una vida que no pasó. Eso es soñar despierto. La psicología lo estudia dentro de un fenómeno más amplio, la divagación mental, y ocupa una parte asombrosa del día.",
+      "La gente lo busca por dos motivos opuestos: unos quieren saber si es tiempo perdido, otros temen hacerlo demasiado. Las dos preguntas tienen respuesta, y las dos se conectan con lo que ocurre de noche. El mapa de los sueños nocturnos está en [tipos de sueños](/dreams/types-of-dreams).",
+    ],
+    sections: [
+      {
+        heading: "Cuánto divagamos",
+        paragraphs: [
+          "En un estudio muy citado de 2010, los participantes recibían avisos en el celular en momentos al azar y contaban qué hacían y en qué pensaban. Casi la mitad de las veces su mente estaba en otra parte. El mismo trabajo encontró que la gente se sentía algo menos feliz mientras divagaba, sobre todo cuando la mente se iba a temas desagradables.",
+          "La investigación es más vieja: el psicólogo Jerome L. Singer la estudió desde los años cincuenta. Distinguía un ensueño positivo y constructivo —lúdico, esperanzado, mirando al futuro— de estilos teñidos de culpa, miedo o dificultad para sostener la atención. No solo importa cuánto se sueña despierto, sino con qué tono.",
+        ],
+      },
+      {
+        heading: "Primos de los sueños nocturnos",
+        paragraphs: [
+          "Cuando la atención se vuelca hacia adentro se activa un conjunto de regiones conocido como red neuronal por defecto. Esa misma red participa al recordar el pasado, imaginar el futuro y pensar en otras personas, y se la ha vinculado también con el soñar nocturno. En ese sentido, ensueños y sueños son parientes: la mente simula experiencias que no están ocurriendo.",
+          "Pero las diferencias pesan. Despierto sueles saber que imaginas, puedes dirigir la escena y la lógica del mundo se mantiene. El sueño nocturno llega con convicción total y poco control, salvo que te vuelvas [lúcido](/dreams/lucid-dreams). La frontera entre ambos es la zona adormilada de las [alucinaciones hipnagógicas](/dreams/hypnagogic-hallucinations), donde un ensueño puede tomar el mando y convertirse en sueño.",
+        ],
+      },
+      {
+        heading: "Para qué sirve",
+        paragraphs: [
+          "Soñar despierto ayuda a planear, a ensayar conversaciones, a imaginar alternativas y a mantener vivas las metas lejanas. En un experimento, quienes hicieron una pausa con una tarea fácil que dejaba divagar encontraron después usos más creativos para objetos cotidianos que quienes hicieron una pausa exigente o ninguna. Soltar el foco le da aire a un problema trabado; la guía de [sueños y creatividad](/dreams/dreams-and-creativity) sigue ese hilo hacia la noche.",
+          "Los ensueños también muestran qué importa. Las fantasías a las que vuelves —otro trabajo, un reencuentro, una casa frente al mar, sacarte la [lotería](/dreams/lottery)— señalan necesidades que merecen atención: seguridad, reconocimiento, libertad, pertenencia. Leerlas como leerías un sueño, con el método de [cómo interpretar los sueños](/dreams/how-to-interpret-dreams), puede ser sorprendentemente útil.",
+        ],
+      },
+      {
+        heading: "Cuando se vuelve demasiado",
+        paragraphs: [
+          "El psicólogo clínico israelí Eli Somer propuso el término ensoñación excesiva (maladaptive daydreaming) para describir fantasías vívidas y absorbentes que ocupan horas al día, cuestan detenerse y afectan el trabajo, el estudio o las relaciones. Quienes la viven describen tramas elaboradas con personajes fijos, a menudo disparadas por la música y acompañadas de caminar de un lado a otro o de movimientos repetitivos.",
+          "No figura como diagnóstico oficial en los grandes manuales, pero se investiga cada vez más y suele ir de la mano con soledad, ansiedad, depresión, dificultades de atención o malestares del pasado. La fantasía en sí puede consolar; el problema es lo que cuesta. Si está reemplazando el sueño, a las personas o responsabilidades que te importan, hablar con un profesional de salud mental es mejor camino que intentar cortarla a fuerza de culpa.",
+        ],
+      },
+      {
+        heading: "Cómo trabajar con tus ensueños",
+        paragraphs: [
+          "Distingue divagar de rumiar. Preparar la presentación de mañana sirve; repasar una pelea por cuadragésima vez casi nunca. Cuando detectes un bucle, pregúntate si lleva a alguna acción. Si no, nómbralo y vuelve a algo físico: la respiración, una caminata, la tarea que tienes enfrente.",
+          "También puedes darle espacio a propósito: caminar sin audífonos, una ducha, diez minutos mirando por la ventana. Anota las fantasías que se repiten, como harías con los [sueños recurrentes](/dreams/recurring-dreams). Con el tiempo los temas vuelven, y esa repetición te muestra qué intenta resolver la mente, esté despierta o dormida.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Soñar despierto es malo?",
+        answer:
+          "En general no. Ayuda a planear, crear y reflexionar. Se vuelve un problema cuando es constante, compulsivo, mayormente negativo o desplaza partes importantes de tu vida.",
+      },
+      {
+        question: "¿Soñar despierto es lo mismo que soñar dormido?",
+        answer:
+          "Son parientes —en ambos la mente simula experiencias—, pero despierto sueles tener cierto control y saber que estás imaginando.",
+      },
+      {
+        question: "¿Qué es la ensoñación excesiva?",
+        answer:
+          "Un término para el ensueño inmersivo que ocupa muchas horas e interfiere con la vida diaria. No es un diagnóstico formal, pero se investiga activamente.",
+      },
+      {
+        question: "¿Por qué sueño despierto todo el tiempo?",
+        answer:
+          "El aburrimiento, el estrés, las necesidades no cubiertas, el cansancio y las diferencias de atención aumentan la divagación. Observar cuándo y sobre qué te vas es la mejor primera pista.",
+      },
+      {
+        question: "¿Soñar despierto ayuda a la creatividad?",
+        answer:
+          "Sí, con medida. Los estudios sugieren que dejar divagar la mente durante una tarea fácil ayuda a encontrar después soluciones más originales.",
+      },
+    ],
+  },
+  "dreaming-in-color": {
+    name: "Soñar en colores",
+    title: "¿Soñamos en colores?",
+    seoTitle: "¿Soñamos en colores? Los sentidos y los sueños de personas ciegas",
+    seoDescription:
+      "¿Se sueña en color o en blanco y negro? Qué encontraron los estudios, por qué la televisión cambió las respuestas, cómo aparecen sonido, tacto, olor y dolor, y cómo sueñan las personas ciegas.",
+    summary: "Color, sonido, olor y dolor en los sueños, y cómo sueñan las personas ciegas.",
+    intro: [
+      "Si preguntas apenas despiertan, la mayoría dice que sueña en colores. Sin embargo, a mediados del siglo XX mucha gente juraba soñar en blanco y negro. Ese vuelco es una de las historias más curiosas de la investigación sobre sueños y habla tanto de la memoria y la cultura como del cerebro dormido.",
+      "Esta guía repasa el color y los demás sentidos en los sueños: lo que vemos, oímos, tocamos, olemos y saboreamos, y cómo viven sus noches las personas ciegas. Si un color concreto te llamó la atención, la página de [colores](/dreams/colors) del diccionario reúne sus lecturas simbólicas.",
+    ],
+    sections: [
+      {
+        heading: "El enigma del blanco y negro",
+        paragraphs: [
+          "Encuestas de los años cuarenta y cincuenta encontraron que muchas personas —en algunos estudios, la mayoría— describían sus sueños casi siempre en blanco y negro. Desde los sesenta, la mayoría pasó a reportar color. No cambiaron los ojos ni el cerebro: cambió el mundo de imágenes alrededor, que durante décadas había sido el del cine y la televisión sin color.",
+          "Un estudio escocés de 2008 halló que los adultos mayores que crecieron con televisión en blanco y negro reportaban bastantes más sueños monocromos que los jóvenes criados frente a pantallas a color. Filósofos que estudian el tema recuerdan que el recuerdo de un sueño es frágil y que tal vez lo describimos con el lenguaje de los medios que nos resultan naturales. En cualquier caso, la lección es que el relato del sueño depende también de lo que esperamos.",
+        ],
+      },
+      {
+        heading: "Por qué el color a veces se desdibuja",
+        paragraphs: [
+          "Mucha gente no sabe decir si un sueño tuvo color. No es raro: despiertos tampoco registramos el color de casi nada salvo que importe. En el sueño pasa igual. Una puerta roja o un mar azul pueden verse intensos porque cargan sentido, mientras el resto simplemente «está», sin un tono claro.",
+          "Cuando el color impacta —un cielo [rojo](/dreams/seeing-red), una luz dorada, una habitación toda blanca— suele traer peso emocional. Los colores inusualmente intensos también son típicos de los [sueños vívidos](/dreams/vivid-dreams) y de los lúcidos, y hay quien los nota más saturados después de cambios en el dormir o en la medicación.",
+        ],
+      },
+      {
+        heading: "Oír, tocar, oler, saborear… y doler",
+        paragraphs: [
+          "La vista domina la mayoría de los relatos, pero el oído es frecuente: voces, música, alarmas, alguien que dice tu nombre. El tacto y el movimiento —caer, volar, correr, ser abrazado— también abundan, y por eso los sueños de [caer](/dreams/falling) y de [volar](/dreams/flying) pueden dejar un eco en el cuerpo al despertar.",
+          "El olfato y el gusto son mucho más raros: aparecen en una pequeña fracción de los relatos, a menudo en comidas o escenas muy emotivas. El dolor soñado también es poco común, pero está documentado y a veces coincide con molestias reales del cuerpo durante la noche. Si una sensación se siente demasiado física, vale la pena anotarla: a veces el cuerpo simplemente manda una señal al sueño.",
+        ],
+      },
+      {
+        heading: "Cómo sueñan las personas ciegas",
+        paragraphs: [
+          "Quienes nacieron ciegos o perdieron la vista muy temprano suelen contar sueños sin imágenes visuales, pero riquísimos en sonido, tacto, olor, sabor y sensación de espacio y movimiento. Un estudio danés encontró que las personas ciegas de nacimiento reportaban más pesadillas que las videntes, quizá porque su vida diaria incluye más situaciones de riesgo que sortear.",
+          "Quienes pierden la vista más tarde, sobre todo después de la primera infancia, a menudo conservan sueños visuales, aunque con los años las imágenes pueden apagarse o espaciarse. Todo indica que los sueños se construyen con el tipo de experiencia que cada persona realmente vive, la misma continuidad que describimos en [por qué soñamos](/dreams/why-we-dream).",
+        ],
+      },
+      {
+        heading: "Letras, relojes y otros detalles inestables",
+        paragraphs: [
+          "Algunos detalles se comportan raro en los sueños. Un texto cambia si lo vuelves a mirar, un reloj marca horas imposibles, un interruptor no altera la luz. Los soñadores lúcidos conocen bien estas fallas y las usan como «pruebas de realidad»; la guía de [sueños lúcidos](/dreams/lucid-dreams) explica cómo.",
+          "Los números que se repiten o se transforman son una experiencia cercana y tienen su propia entrada: [números repetidos](/dreams/repeating-numbers). Si quieres estudiar tus sentidos oníricos, suma una línea al diario cada mañana: qué sentidos estuvieron presentes y qué color o sonido se destacó. En [recordar los sueños](/dreams/remembering-dreams) verás cómo atrapar esos detalles antes de que se borren.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿La mayoría de la gente sueña en colores?",
+        answer:
+          "Sí. Hoy casi todos reportan color en la mayoría de sus sueños, aunque muchos no pueden asegurarlo porque el color pasa desapercibido cuando no importa.",
+      },
+      {
+        question: "¿Por qué algunas personas sueñan en blanco y negro?",
+        answer:
+          "Las investigaciones sugieren que haber crecido con cine y televisión en blanco y negro influyó en cómo se recuerdan y describen los sueños. Memoria y expectativa moldean el relato.",
+      },
+      {
+        question: "¿Se puede oler o saborear en sueños?",
+        answer:
+          "Sí, pero es poco frecuente. El olfato y el gusto aparecen en una parte pequeña de los relatos, muy por detrás de la vista, el oído y el movimiento.",
+      },
+      {
+        question: "¿Las personas ciegas sueñan?",
+        answer:
+          "Sí. Quienes son ciegos de nacimiento sueñan con sonidos, tacto, olores, sabores y movimiento en lugar de imágenes. Quienes pierden la vista más tarde suelen conservar algunos sueños visuales.",
+      },
+      {
+        question: "¿Se puede sentir dolor en un sueño?",
+        answer:
+          "Ocurre, aunque no es habitual. A veces se relaciona con una molestia real del cuerpo mientras dormimos.",
+      },
+    ],
+  },
+  "deja-vu-dreams": {
+    name: "Déjà vu y sueños",
+    title: "Déjà vu y sueños",
+    seoTitle: "Déjà vu de un sueño: qué es el déjà rêvé",
+    seoDescription:
+      "Por qué un momento puede sentirse como algo que ya soñaste. Qué son el déjà vu y el déjà rêvé, qué dice la investigación sobre la memoria, cuándo consultar y cómo poner a prueba la sensación.",
+    summary: "Cuando la vida parece un sueño que ya tuviste: memoria, familiaridad y cómo comprobarlo.",
+    intro: [
+      "Entras a un lugar, escuchas una frase o ves una esquina y tienes la certeza de haber soñado exactamente ese instante. Dura segundos, es inquietante y cuesta sacárselo de encima. El francés tiene nombre para esta variante: déjà rêvé, «ya soñado», pariente cercano del déjà vu, «ya visto».",
+      "Para muchas personas la experiencia abre una pregunta enorme: ¿el sueño anticipó el futuro? Esta guía explica qué es esa sensación, qué ha descubierto la investigación sobre la memoria, cómo ponerla a prueba con honestidad y en qué casos poco frecuentes conviene consultar. Para los sueños que parecen cumplirse, ve a [sueños proféticos](/dreams/prophetic-dreams).",
+    ],
+    sections: [
+      {
+        heading: "Qué es realmente el déjà vu",
+        paragraphs: [
+          "El déjà vu es la sensación de que el momento presente ya se vivió, junto con la conciencia de que eso no puede ser. Las encuestas sugieren que alrededor de dos tercios de las personas lo sintieron al menos una vez. Es más común en adultos jóvenes y tiende a espaciarse con la edad; el cansancio, el estrés y los viajes parecen favorecerlo.",
+          "Las explicaciones más aceptadas lo ven como un desajuste en la sensación de familiaridad. El cerebro tiene procesos distintos para «esto me resulta conocido» y «recuerdo de dónde lo conozco». Cuando el primero se enciende sin el segundo, aparece una familiaridad intensa sin fuente, y la mente echa mano de la explicación más a mano, que a menudo es «debo haberlo soñado».",
+        ],
+      },
+      {
+        heading: "Déjà rêvé: ya soñado",
+        paragraphs: [
+          "El déjà rêvé puede darse de dos maneras. A veces un fragmento de sueño real se parece de verdad a una situación posterior: los sueños usan lugares, personas y preocupaciones cotidianas, así que las coincidencias parciales son comunes. Otras veces no hubo ningún sueño concreto y el «esto lo soñé» es el mismo desajuste de familiaridad con sabor onírico.",
+          "La neurología estudia desde hace mucho un «estado de ensueño» en algunas epilepsias del lóbulo temporal, y un estudio francés con pacientes epilépticos halló que estimular suavemente ciertas regiones del cerebro podía provocar la sensación de haber soñado antes ese momento. Eso no convierte el déjà rêvé común en una crisis. Sí muestra que los circuitos de la memoria pueden fabricar la sensación sin que haya existido un sueño previo.",
+        ],
+      },
+      {
+        heading: "Por qué se siente como una premonición",
+        paragraphs: [
+          "Durante un déjà vu, mucha gente siente que sabe lo que va a pasar. Cuando se puso a prueba en experimentos, esa sensación no ayudó a adivinar lo siguiente mejor que el azar. La impresión de anticipar parece formar parte de la experiencia de familiaridad, no ser una prueba de ella.",
+          "Estudios con escenarios virtuales mostraron además que el déjà vu se vuelve más probable cuando un lugar nuevo comparte la distribución de otro que la persona vio pero no recuerda conscientemente. Un café nuevo ordenado como una cocina de la infancia olvidada puede disparar el «ya estuve aquí» y, si la persona sueña a menudo con cuartos antiguos, el «ya lo soñé». Las entradas de la [casa de la infancia](/dreams/childhood-house) y de [estar perdido](/dreams/being-lost) muestran cuánto aparecen esos espacios en los sueños.",
+        ],
+      },
+      {
+        heading: "Cómo comprobarlo",
+        paragraphs: [
+          "La única forma honesta de verificar un déjà rêvé es anotar los sueños antes de que ocurran los hechos. Lleva un diario con fecha —en papel o en el diario de Dreamly— y, cuando un momento te parezca ya soñado, revisa. Casi siempre encontrarás nada o un parecido vago. De vez en cuando aparecerá una coincidencia llamativa, y ahí conviene contar también cuántos sueños no coincidieron.",
+          "El diario mejora además el recuerdo, como explica [recordar los sueños](/dreams/remembering-dreams), y reduce la tendencia a reescribir la memoria después del hecho. Si la sensación viene con la impresión de estar atrapado en un bucle al despertar, lee sobre el [falso despertar](/dreams/false-awakening), que puede borrar la línea entre el sueño y la mañana.",
+        ],
+      },
+      {
+        heading: "Cuándo consultar",
+        paragraphs: [
+          "Un déjà vu ocasional es normal. Conviene hablar con un médico si los episodios se vuelven muy frecuentes, duran más de lo habitual o llegan con otros síntomas: un olor o sabor extraño, una sensación que sube desde el estómago, miedo, lagunas, confusión o no recordar qué pasó después. Pueden ser señales de crisis focales, que tienen tratamiento.",
+          "Los cambios bruscos de memoria o una catarata de déjà vu después de un golpe en la cabeza, de un medicamento nuevo o junto con otros síntomas neurológicos también merecen atención médica. Las páginas de Dreamly sirven para reflexionar, no para diagnosticar: un neurólogo puede distinguir una rareza normal de la memoria de algo que necesita cuidado.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Por qué siento que soñé algo antes de que pasara?",
+        answer:
+          "Casi siempre porque la sensación de familiaridad se activa sin un recuerdo claro detrás, y el sueño es la explicación más a mano. A veces un fragmento real se parecía un poco a ese momento.",
+      },
+      {
+        question: "¿El déjà vu es una señal de poderes psíquicos?",
+        answer:
+          "No hay evidencia confiable de eso. En experimentos, la sensación de saber lo que venía durante el déjà vu no mejoró las predicciones reales.",
+      },
+      {
+        question: "¿Qué es el déjà rêvé?",
+        answer:
+          "Una expresión francesa que significa «ya soñado»: la sensación de que el momento presente coincide con un sueño anterior. Es pariente cercano del déjà vu.",
+      },
+      {
+        question: "¿Es peligroso tener déjà vu seguido?",
+        answer:
+          "El déjà vu ocasional es normal. Si es muy frecuente o llega con olores raros, lagunas o confusión, conviene que lo revise un médico, porque puede relacionarse con crisis epilépticas.",
+      },
+      {
+        question: "¿Cómo demuestro que un sueño predijo algo?",
+        answer:
+          "Anota los sueños con fecha antes de que ocurran los hechos y cuenta los fallos con el mismo cuidado que los aciertos. Los recuerdos editados después no son evidencia confiable.",
+      },
+    ],
+  },
+  "sleepwalking-and-sleep-talking": {
+    name: "Sonambulismo y hablar dormido",
+    title: "Sonambulismo, hablar dormido y actuar los sueños",
+    seoTitle: "Sonambulismo y hablar dormido: causas, sueños y seguridad",
+    seoDescription:
+      "Por qué hay personas que hablan o caminan dormidas, en qué se diferencia de actuar los sueños en el trastorno de conducta del sueño REM, qué desencadena los episodios y cómo proteger a un sonámbulo.",
+    summary: "Hablar, caminar y moverse dormido: qué es común, qué es un trastorno y cómo cuidarse.",
+    intro: [
+      "Tu pareja suelta una frase completa a las dos de la mañana. Un niño aparece parado en el pasillo con los ojos abiertos y la mirada vacía. Alguien le pega a la almohada mientras grita contra un atacante que solo él ve. Las tres son conductas del dormir, pero salen de fases distintas y significan cosas distintas.",
+      "Esta guía separa el hablar dormido, el sonambulismo y la actuación de sueños, resume lo que se sabe de sus causas y reúne los pasos prácticos para que nadie salga lastimado. Para los gritos que salen del sueño profundo, ve a [terrores nocturnos](/dreams/night-terrors); para lo contrario —despierto pero sin poder moverte—, a [parálisis del sueño](/dreams/sleep-paralysis).",
+    ],
+    sections: [
+      {
+        heading: "Hablar dormido",
+        paragraphs: [
+          "Hablar dormido, o somniloquia, es muy común: las encuestas indican que la mayoría de los adultos lo hizo alguna vez, y en la infancia es todavía más frecuente. Puede pasar en cualquier fase. En el sueño ligero las palabras suelen ser claras, casi de conversación; en el profundo, murmullos o fragmentos. Quien habla casi nunca lo recuerda.",
+          "Un estudio francés que grabó a cientos de personas que hablan dormidas encontró que «no» era la palabra más repetida y que los insultos y el tono negativo o de discusión eran más comunes que despiertos, quizá porque muchos sueños giran alrededor de conflictos. Por sí solo rara vez preocupa. No es una confesión, y lo que alguien dice dormido no debería tomarse como prueba de nada.",
+        ],
+      },
+      {
+        heading: "Sonambulismo",
+        paragraphs: [
+          "El sonambulismo suele comenzar en el sueño profundo no REM, durante el primer tercio de la noche. El cerebro está en parte despierto —lo suficiente para caminar, abrir puertas o incluso comer— y en parte dormido, así que el juicio y la memoria están apagados. Es más frecuente en la infancia y muchas veces desaparece en la adolescencia, aunque una minoría de adultos lo mantiene o lo empieza.",
+          "Quien camina dormido casi nunca recuerda nada, o apenas un retazo, a veces de una amenaza de la que escapaba. Tiene componente familiar. Entre los desencadenantes frecuentes están la falta de sueño, el estrés, la fiebre, los horarios irregulares, el alcohol y los ruidos o la vejiga llena que despiertan a medias. Algunos somníferos, sobre todo los llamados fármacos Z, advierten sobre conductas complejas —caminar o incluso manejar— sin estar del todo despierto.",
+        ],
+      },
+      {
+        heading: "Actuar los sueños: el trastorno de conducta del sueño REM",
+        paragraphs: [
+          "Normalmente el cuerpo queda paralizado durante el REM, como explica la guía de [sueño REM](/dreams/rem-sleep). En el trastorno de conducta del sueño REM esa parálisis falla y la persona actúa físicamente lo que sueña: golpea, patea, grita o salta de la cama, muchas veces mientras sueña que la [persiguen](/dreams/being-chased) o la atacan. A diferencia del sonámbulo, suele recordar el sueño con claridad al despertar, y los movimientos encajan con la historia.",
+          "Aparece sobre todo después de los cincuenta años y puede lastimar a quien duerme o a su pareja. Merece una evaluación seria, con estudio de sueño nocturno, porque la investigación a largo plazo lo relaciona con un mayor riesgo posterior de ciertas enfermedades neurológicas como el Parkinson. Ese vínculo es motivo de seguimiento con especialistas, no de pánico. Algunos antidepresivos también pueden provocar conductas de este tipo.",
+        ],
+      },
+      {
+        heading: "Qué hacer durante un episodio",
+        paragraphs: [
+          "La creencia de que despertar a un sonámbulo es peligroso no es exacta, pero hacerlo de golpe puede causar confusión o una reacción de susto. Lo más seguro es acompañarlo de vuelta a la cama con voz tranquila y el mínimo contacto. No discutas, no lo sujetes ni lo interrogues. La mayoría de los episodios terminan solos en pocos minutos.",
+          "Prepara el entorno: puertas y ventanas con llave, alarmas o campanitas en las puertas, nada filoso o frágil a mano, escaleras con reja y, para los niños sonámbulos, nada de camas altas en litera. En la actuación de sueños, acolcha el piso, aleja la cama de ventanas y muebles y considera dormir por separado hasta que haya tratamiento.",
+        ],
+      },
+      {
+        heading: "Cuándo pedir ayuda",
+        paragraphs: [
+          "Consulta a un médico o a una clínica del sueño si los episodios son frecuentes, si alguien se lastimó, si la persona sale de la casa, si el sonambulismo empezó en la adultez o si hay actuación violenta de sueños. Menciona también ronquidos fuertes o pausas al respirar, porque la apnea puede disparar estas conductas. Un registro simple de horarios, conductas y posibles detonantes ayuda mucho más que la simbología.",
+          "El tratamiento suele empezar por el sueño mismo: horarios regulares, horas suficientes, menos alcohol y una revisión de los medicamentos con quien los recetó. En algunos niños funcionan los despertares programados antes de la hora habitual del episodio. El contenido del sueño puede seguir mereciendo reflexión —una [pesadilla](/dreams/nightmare) recurrente detrás de la conducta puede responder a lo que proponemos en [cómo dejar de tener pesadillas](/dreams/how-to-stop-nightmares)—, pero primero va la seguridad.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Hablar dormido es señal de un problema?",
+        answer:
+          "Casi nunca. Es muy común y en general inofensivo. Solo vale la pena comentarlo con un médico si viene con movimientos violentos, ronquidos fuertes o somnolencia de día.",
+      },
+      {
+        question: "¿Es peligroso despertar a un sonámbulo?",
+        answer:
+          "No es dañino en sí, pero un despertar brusco puede causar confusión o susto. Guiarlo con calma de vuelta a la cama suele ser lo más seguro.",
+      },
+      {
+        question: "¿Los sonámbulos actúan lo que sueñan?",
+        answer:
+          "No como se suele imaginar. El sonambulismo sale del sueño profundo no REM y casi no deja sueño recordado. Actuar un sueño vívido es típico del trastorno de conducta del sueño REM.",
+      },
+      {
+        question: "¿Qué causa el sonambulismo en adultos?",
+        answer:
+          "Entre los factores comunes están la falta de sueño, el estrés, el alcohol, los horarios irregulares, algunos medicamentos y otros trastornos como la apnea. Los antecedentes familiares también suman.",
+      },
+      {
+        question: "¿Lo que alguien dice dormido es verdad?",
+        answer:
+          "Sale de un cerebro medio soñando y medio confundido. No es un relato confiable de pensamientos o hechos y no debería tomarse como confesión.",
+      },
+    ],
+  },
+  "medication-and-dreams": {
+    name: "Medicamentos y sueños",
+    title: "Melatonina, medicamentos y sueños",
+    seoTitle: "Melatonina, medicamentos y sueños: por qué cambian tus noches",
+    seoDescription:
+      "Por qué la melatonina, los antidepresivos, los betabloqueantes, los tratamientos para dejar de fumar, el alcohol y la marihuana pueden traer sueños vívidos o pesadillas, y qué hablar con tu médico.",
+    summary: "Cómo la melatonina, los medicamentos, el alcohol y la marihuana cambian la intensidad y el recuerdo de los sueños.",
+    intro: [
+      "Varias de las preguntas más buscadas sobre sueños son, en el fondo, preguntas sobre fármacos: «¿por qué la melatonina me da sueños tan locos?», «¿por qué sueño tan intenso desde que empecé esta pastilla?», «¿por qué no paro de soñar desde que dejé la marihuana?». Las sustancias que tocan la química del dormir suelen cambiar también los sueños: su intensidad, su tono emocional y cuánto recuerdas.",
+      "Esta página es un panorama general, no un consejo médico ni un prospecto de ningún producto. Su objetivo es ayudarte a reconocer un posible patrón y llegar con buenas preguntas al médico o al farmacéutico. Si tus noches se volvieron de película, la guía de [sueños vívidos](/dreams/vivid-dreams) es buena compañía.",
+    ],
+    sections: [
+      {
+        heading: "Por qué una sustancia cambia lo que sueñas",
+        paragraphs: [
+          "Los sueños dependen de la arquitectura del dormir: cuánto REM hay, cuándo aparece y cuántas veces despiertas cerca de él. Muchas sustancias mueven esa arquitectura. Algunas suprimen el REM y, cuando se van o se suspenden, el cerebro compensa con periodos más largos y densos, el rebote que describimos en [sueño REM](/dreams/rem-sleep). Otras fragmentan el sueño, así que despiertas más veces en mitad de un sueño y recuerdas más.",
+          "La química también cuenta. Neurotransmisores como la serotonina, la noradrenalina, la acetilcolina y la dopamina regulan las fases del sueño y el tono emocional de lo que soñamos. Un medicamento que altera cualquiera de ellos puede cambiar cómo se siente la noche aunque duermas las mismas horas.",
+        ],
+      },
+      {
+        heading: "La melatonina",
+        paragraphs: [
+          "La melatonina es la hormona que le avisa al cuerpo que es de noche, y sus suplementos se usan mucho para el jet lag y para ajustar horarios. Muchas personas cuentan sueños vívidos o extraños al tomarla. Los estudios no son concluyentes; entre las explicaciones posibles están un sueño más largo o consolidado, más REM al final de la noche y más despertares recordados cuando se toma en horarios raros.",
+          "Las reglas cambian según el país —en algunos se vende libremente y en otros requiere receta— y las dosis de los productos varían muchísimo. Si los sueños te resultan desagradables, conviene revisar el horario y la dosis con un farmacéutico o un médico. No se recomienda como remedio casero para las pesadillas, y en niños su uso debe estar guiado por un profesional.",
+        ],
+      },
+      {
+        heading: "Medicamentos con receta que suelen cambiar los sueños",
+        paragraphs: [
+          "Muchos antidepresivos, incluidos los ISRS y los IRSN más comunes, suprimen el REM, y quienes los toman suelen reportar sueños muy vívidos, extraños o perturbadores, sobre todo al empezar, al cambiar la dosis o al dejarlos. Algunos betabloqueantes, usados para la presión arterial y el corazón, se asocian con sueños vívidos y pesadillas. La vareniclina, para dejar de fumar, incluye los sueños anormales entre sus efectos frecuentes, y los parches de nicotina usados de noche pueden provocar lo mismo.",
+          "Otros ejemplos: algunos medicamentos para el asma y la alergia, como el montelukast, que trae advertencias sobre cambios de ánimo y de sueño, pesadillas incluidas; fármacos para el Parkinson; y ciertos tratamientos para la demencia que a veces se pasan a la mañana por los sueños intensos. Algunos somníferos pueden provocar conductas complejas sin estar del todo despierto; lo vemos en [sonambulismo y hablar dormido](/dreams/sleepwalking-and-sleep-talking). Nunca suspendas ni cambies una receta por tu cuenta: pregunta a quien la indicó por el horario, la dosis o alternativas.",
+        ],
+      },
+      {
+        heading: "Alcohol, marihuana y abstinencia",
+        paragraphs: [
+          "El alcohol ayuda a quedarse dormido más rápido, pero suprime el REM en la primera mitad de la noche. Cuando se metaboliza, el sueño se vuelve liviano y cortado, y el REM rebota hacia la madrugada: una receta clásica para sueños intensos, fragmentados y despertares tempranos. El consumo fuerte y la abstinencia de alcohol pueden traer noches muy perturbadoras y requieren atención médica.",
+          "La marihuana con THC tiende a reducir el recuerdo de los sueños mientras se consume con regularidad. Al dejarla, muchas personas pasan semanas con sueños muy vívidos, a veces desagradables, porque el REM rebota. Es uno de los efectos de abstinencia más comunes y suele calmarse con el tiempo. La nicotina y la cafeína a última hora también fragmentan el sueño y aumentan el recuerdo.",
+        ],
+      },
+      {
+        heading: "Qué hacer si tus sueños cambiaron",
+        paragraphs: [
+          "Empieza un registro sencillo: sustancia o medicamento, dosis y horario, cuándo empezó el cambio y cómo se sienten las noches. Llévalo a tu médico o farmacéutico. A veces basta con mover la toma a la mañana, ajustar la dosis o cambiar a un fármaco parecido. Reducir de forma gradual y supervisada es más seguro que cortar de golpe, que puede causar sueños de rebote y otros efectos de abstinencia.",
+          "Si las noches dan miedo, las técnicas de [cómo dejar de tener pesadillas](/dreams/how-to-stop-nightmares) siguen sirviendo, y las pesadillas ligadas a un trauma tienen tratamientos específicos, incluidos medicamentos que los médicos a veces indican. El contenido de un sueño influido por un fármaco se puede leer igual —¿qué emoción eligió la noche?—, pero conviene tratar la intensidad primero como una señal del cuerpo y después como un mensaje.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Por qué la melatonina me da sueños tan vívidos?",
+        answer:
+          "Posiblemente porque cambia el horario y la consolidación del sueño, incluido más REM al final de la noche, y hace más probables los despertares que se recuerdan. La evidencia es mixta; si te molesta, revisa dosis y horario con un farmacéutico.",
+      },
+      {
+        question: "¿Los antidepresivos pueden causar pesadillas?",
+        answer:
+          "Algunos cambian los sueños y los vuelven más vívidos o perturbadores, sobre todo al empezar, ajustar o suspender. Habla con quien los recetó antes de dejarlos.",
+      },
+      {
+        question: "¿Por qué sueño tanto desde que dejé la marihuana?",
+        answer:
+          "El THC suprime el REM y el recuerdo de los sueños. Al dejarlo, el REM rebota y trae sueños vívidos que suelen aflojar en algunas semanas.",
+      },
+      {
+        question: "¿El alcohol afecta los sueños?",
+        answer:
+          "Sí. Suprime el REM al principio de la noche y luego provoca rebote y sueño cortado, lo que suele traer sueños intensos o desagradables de madrugada.",
+      },
+      {
+        question: "¿Dejo un medicamento que me da malos sueños?",
+        answer:
+          "No por tu cuenta. Háblalo primero con quien lo recetó: muchas veces se puede cambiar el horario, la dosis o el fármaco, y suspender de golpe puede generar otros problemas.",
+      },
+    ],
+  },
+  "dreams-and-creativity": {
+    name: "Sueños y creatividad",
+    title: "Sueños y creatividad",
+    seoTitle: "Sueños y creatividad: ideas nacidas al dormir y cómo atraparlas",
+    seoDescription:
+      "Ideas famosas que surgieron en sueños, lo que dice la ciencia del sueño sobre la intuición creativa, el «punto dulce» hipnagógico y formas prácticas de usar tus noches para crear.",
+    summary: "Cómo el dormir y los sueños alimentan las ideas: historias célebres, investigación y métodos.",
+    intro: [
+      "Artistas, científicos e inventores le han atribuido a los sueños algunas de sus mejores ideas. Ciertas historias están bien documentadas; otras crecieron de tanto contarse. Detrás hay una pregunta real que la ciencia del sueño empezó a responder: ¿dormir sobre un problema ayuda de verdad?, ¿se pueden usar los sueños a propósito?",
+      "Esta guía reúne la evidencia, separa leyenda de registro y propone métodos concretos. Combina bien con la [incubación de sueños](/dreams/dream-incubation), que consiste en hacerle una pregunta a la noche, y con [soñar despierto](/dreams/daydreaming), su pariente diurno.",
+    ],
+    sections: [
+      {
+        heading: "Ideas que nacieron durmiendo",
+        paragraphs: [
+          "El farmacólogo Otto Loewi contó que despertó de madrugada con el diseño de un experimento con corazones de rana, lo olvidó por la mañana y lo recuperó la noche siguiente. Ese experimento ayudó a demostrar que los nervios se comunican químicamente, y años después compartió el Premio Nobel. Mary Shelley escribió que la visión que dio origen a Frankenstein le llegó acostada, con los ojos cerrados, en un estado entre la vigilia y el sueño. Paul McCartney ha dicho que se despertó con la melodía de una de sus canciones más famosas ya en la cabeza.",
+          "Otras historias son más dudosas. El relato del químico August Kekulé —una serpiente que se muerde la cola antes de dar con la estructura en anillo del benceno— lo contó décadas después, y los historiadores lo discuten. Lo de Mendeléyev soñando la tabla periódica descansa en testimonios de segunda mano. Aun así, el patrón dice algo: las ideas llegan a menudo cuando se suelta el esfuerzo.",
+        ],
+      },
+      {
+        heading: "Lo que muestra la investigación",
+        paragraphs: [
+          "En un estudio de 2004, quienes durmieron después de practicar una tarea con números tuvieron muchas más probabilidades de descubrir un atajo oculto que quienes pasaron el mismo tiempo despiertos. Otros experimentos hallaron que el REM en particular ayudaba a encontrar conexiones lejanas entre palabras. Dormir parece aflojar y reordenar los recuerdos, y así las asociaciones inusuales quedan más a mano.",
+          "Los propios sueños también pueden trabajar un problema. En un estudio clásico de incubación dirigido por la psicóloga Deirdre Barrett, estudiantes que durante una semana se concentraron antes de dormir en un problema personal o académico soñaron a menudo con él, y una parte menor contó sueños que traían una solución. Los resultados son modestos, pero sugieren que la noche trabaja con lo que le llevamos.",
+        ],
+      },
+      {
+        heading: "El punto dulce hipnagógico",
+        paragraphs: [
+          "Se cuenta que Thomas Edison y Salvador Dalí dormían siestas sosteniendo un objeto que, al caer, los despertaba justo al adormecerse, para atrapar las imágenes del primer sueño. Un estudio de 2021 en París probó una versión de ese truco: quienes pasaron al menos un rato breve en la fase más ligera del sueño tuvieron casi el triple de probabilidades de descubrir una regla oculta en un problema matemático que quienes se mantuvieron despiertos.",
+          "Investigadores del MIT también crearon dispositivos que reproducen una consigna al quedarse dormido para orientar las imágenes [hipnagógicas](/dreams/hypnagogic-hallucinations) hacia un tema, y reportaron respuestas más creativas después. La enseñanza práctica: la frontera del sueño —no solo el soñar profundo— puede ser tierra fértil, siempre que no sacrifiques el descanso real para perseguirla.",
+        ],
+      },
+      {
+        heading: "Cómo invitar sueños creativos",
+        paragraphs: [
+          "Antes de dormir, dedica unos minutos al problema: mira el boceto inconcluso, relee el párrafo trabado o escribe la pregunta en una sola frase. Después suéltalo, sin intentar resolverlo en la cama. Deja un cuaderno o una grabadora al alcance y, al despertar, quédate quieto un momento y repasa lo que haya antes de agarrar el celular. En [recordar los sueños](/dreams/remembering-dreams) explicamos por qué ese primer minuto importa.",
+          "El material onírico rara vez llega como respuesta terminada. Suele traer una imagen, un clima, un color o una combinación extraña: una [casa](/dreams/house) con un cuarto imposible, [agua](/dreams/water) donde debería haber una pared, [volar](/dreams/flying) sobre tu ciudad. Tómalo como materia prima. Los artistas lo dibujan, los escritores lo usan de arranque, los científicos lo convierten en preguntas. Hay quien practica los [sueños lúcidos](/dreams/lucid-dreams) para explorar una escena a propósito.",
+        ],
+      },
+      {
+        heading: "Sin descuidar el descanso",
+        paragraphs: [
+          "Usar el sueño para crear funciona mejor cuando el sueño está protegido. Despertarse una y otra vez para anotar ideas, o quedarse en vela intentando forzar un sueño, desgasta justo el descanso que hace posible la intuición. Probar con siestas o con incubación de vez en cuando está bien; una rutina nocturna que te deja agotado, no.",
+          "Recuerda también que no toda idea deslumbrante de un sueño sobrevive a la luz del día: la edición de la mañana es parte del proceso. El diario de Dreamly es un buen lugar para guardar fragmentos, y la guía de [cómo interpretar los sueños](/dreams/how-to-interpret-dreams) te ayuda a ver qué tema personal trae un sueño creativo además de la idea.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "¿Los sueños pueden resolver problemas?",
+        answer:
+          "A veces. Los estudios muestran que dormir ayuda a encontrar patrones ocultos y conexiones lejanas, y algunas personas cuentan soluciones tras concentrarse en un problema antes de acostarse.",
+      },
+      {
+        question: "¿Qué inventos u obras famosas salieron de un sueño?",
+        answer:
+          "Entre los ejemplos bien documentados están el experimento de Otto Loewi con los nervios y la visión de Mary Shelley para Frankenstein. Otras historias populares, como el sueño de Mendeléyev, son menos confiables.",
+      },
+      {
+        question: "¿Qué es el estado hipnagógico y por qué ayuda a crear?",
+        answer:
+          "Es la transición adormilada hacia el sueño, llena de imágenes y asociaciones sueltas. La investigación sugiere que entrar brevemente en ese estado hace más probables las intuiciones.",
+      },
+      {
+        question: "¿Cómo recuerdo las ideas creativas de mis sueños?",
+        answer:
+          "Ten un cuaderno o grabadora junto a la cama, quédate quieto al despertar, repasa el sueño y anota imágenes o frases clave antes de hacer cualquier otra cosa.",
+      },
+      {
+        question: "¿Puedo usar mis sueños para crear todas las noches?",
+        answer:
+          "Practicar un poco está bien, pero cuida tu descanso. Los despertares frecuentes a propósito reducen el sueño y, con él, los beneficios que aporta a la creatividad.",
+      },
+    ],
+  },
 };

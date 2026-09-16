@@ -118,7 +118,7 @@ export const ES_MESSAGES: UiMessages = {
     popularSymbolsLead: "Temas principales y significados de cola larga",
     learnTitle: "Aprende sobre el soñar",
     learnLead:
-      "Guías sobre cómo interpretar sueños, por qué soñamos, pesadillas y terrores nocturnos, noches vívidas y de ansiedad, sueños de visita y compartidos, incubación, recuerdo, infancia y los teóricos de la interpretación.",
+      "Guías sobre cómo interpretar sueños, por qué soñamos, el sueño REM, pesadillas, terrores nocturnos y sonambulismo, noches vívidas y de ansiedad, soñar con alguien, arquetipos, soñar despierto, colores y sentidos, déjà vu, medicamentos, creatividad, sueños de visita y compartidos, incubación, recuerdo, infancia y los teóricos de la interpretación.",
     browseTheme: "Explorar por tema",
     seoClusters: "Grupos de símbolos",
     exploreCluster: "Ver el grupo",

@@ -118,7 +118,7 @@ export const DE_MESSAGES: UiMessages = {
     popularSymbolsLead: "Hauptthemen und Long-Tail-Bedeutungen",
     learnTitle: "Über das Träumen lernen",
     learnLead:
-      "Leitfäden: Träume deuten, warum wir träumen, Albträume und Pavor nocturnus, lebhafte und Angstnächte, Besuchsträume und geteilte Träume, Inkubation, Erinnern, Kindheit und die Theoretiker der Deutung.",
+      "Leitfäden: Träume deuten, warum wir träumen, REM-Schlaf, Albträume, Pavor nocturnus und Schlafwandeln, lebhafte und Angstnächte, Träume von bestimmten Menschen, Archetypen, Tagträume, Farben und Sinne, Déjà-vu, Medikamente, Kreativität, Besuchsträume und geteilte Träume, Inkubation, Erinnern, Kindheit und die Theoretiker der Deutung.",
     browseTheme: "Nach Thema stöbern",
     seoClusters: "Symbolgruppen",
     exploreCluster: "Gruppe öffnen",
