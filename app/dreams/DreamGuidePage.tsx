@@ -1,7 +1,6 @@
-import { Fragment } from "react";
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import type { DreamGuide } from "@/lib/dream-guides";
-import { guideTextPlain, isKnownGuideHref, parseGuideText } from "@/lib/guideLinks";
+import { guideTextPlain } from "@/lib/guideLinks";
 import type { Locale } from "@/lib/i18n/config";
 import { DEFAULT_LOCALE, SITE_URL } from "@/lib/i18n/config";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
@@ -10,26 +9,7 @@ import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import GuideLinkCards from "./GuideLinkCards";
-
-function GuideText({ text }: { text: string }) {
-  return (
-    <>
-      {parseGuideText(text).map((segment, index) =>
-        segment.kind === "link" && isKnownGuideHref(segment.href) ? (
-          <LocaleLink
-            key={index}
-            href={segment.href}
-            className="font-medium text-[var(--dd-accent-text)] underline decoration-[var(--dd-border-strong)] underline-offset-4 transition hover:decoration-current"
-          >
-            {segment.text}
-          </LocaleLink>
-        ) : (
-          <Fragment key={index}>{segment.text}</Fragment>
-        ),
-      )}
-    </>
-  );
-}
+import LinkedText from "./LinkedText";
 
 export default function DreamGuidePage({
   guide,
@@ -105,7 +85,7 @@ export default function DreamGuidePage({
           <div className="mt-5 max-w-3xl space-y-4 text-base leading-7 text-[var(--dd-muted)] sm:text-lg sm:leading-8">
             {guide.intro.map((paragraph) => (
               <p key={paragraph}>
-                <GuideText text={paragraph} />
+                <LinkedText text={paragraph} />
               </p>
             ))}
           </div>
@@ -117,7 +97,7 @@ export default function DreamGuidePage({
             <div className="mt-5 max-w-3xl space-y-4 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph}>
-                  <GuideText text={paragraph} />
+                  <LinkedText text={paragraph} />
                 </p>
               ))}
             </div>
@@ -137,7 +117,7 @@ export default function DreamGuidePage({
                   <span className="text-xl font-light text-[var(--dd-subtle)] transition group-open:rotate-45">+</span>
                 </summary>
                 <p className="mt-4 pr-6 text-sm leading-7 text-[var(--dd-muted)]">
-                  <GuideText text={answer} />
+                  <LinkedText text={answer} />
                 </p>
               </details>
             ))}

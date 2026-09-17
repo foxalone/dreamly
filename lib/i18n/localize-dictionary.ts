@@ -4,6 +4,7 @@ import {
   type DreamEntry,
 } from "@/lib/dream-dictionary";
 import type { Locale } from "./config";
+import { getEntryOverride } from "./entry-overrides";
 import { getSeedL10n } from "./seeds";
 import {
   localizedAliases,
@@ -36,23 +37,25 @@ function localizeOne(entry: DreamEntry, locale: Locale): DreamEntry {
     .filter((row): row is { name: string; focus: string } => Boolean(row));
 
   const hook = focus ?? summary;
+  const generated = makeLocalizedSections(locale, {
+    title,
+    name,
+    category: entry.category,
+    summary: parentSeed?.summary ?? summary,
+    focus,
+    parentName,
+    variationSeeds: variationSeeds.length ? variationSeeds : undefined,
+  });
+  const override = getEntryOverride(locale, entry.slug);
   return {
     ...entry,
     name,
     title,
     shortMeaning: localizedShortMeaning(locale, hook),
-    seoTitle: localizedSeoTitle(locale, name, hook),
-    seoDescription: localizedSeoDescription(locale, name, hook),
+    seoTitle: override?.seoTitle ?? localizedSeoTitle(locale, name, hook),
+    seoDescription: override?.seoDescription ?? localizedSeoDescription(locale, name, hook),
     aliases: localizedAliases(locale, name, seed?.aliases ?? []),
-    sections: makeLocalizedSections(locale, {
-      title,
-      name,
-      category: entry.category,
-      summary: parentSeed?.summary ?? summary,
-      focus,
-      parentName,
-      variationSeeds: variationSeeds.length ? variationSeeds : undefined,
-    }),
+    sections: override?.sections ? { ...generated, ...override.sections } : generated,
   };
 }
 

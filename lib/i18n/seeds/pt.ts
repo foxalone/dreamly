@@ -3546,4 +3546,104 @@ export const SEEDS_PT: Record<string, SeedL10n> = {
     name: "árvore e casa",
     focus: "crescimento vivo dentro dos alicerces privados, uma linhagem tomando os cômodos ou uma natureza que não aceita ficar fora do eu",
   },
+  "lion-and-tiger": {
+    name: "leão e tigre",
+    focus: "dois tipos de poder na mesma cena: autoridade à vista e intensidade escondida, orgulho e instinto, ou uma rivalidade entre forças grandes",
+    aliases: ["sonhar com leão e tigre", "leão e tigre juntos", "leão e tigre brigando"],
+  },
+  "cat-and-snake": {
+    name: "gato e cobra",
+    focus: "instinto independente diante de um perigo escondido: intuição em alerta, embate entre duas forças silenciosas ou proteção contra uma ameaça pressentida",
+    aliases: ["sonhar com gato e cobra", "gato brigando com cobra", "gato matando cobra", "cobra e gato juntos"],
+  },
+  "cat-and-rat": {
+    name: "gato e rato",
+    focus: "a perseguição entre controle e um problema que escapa: brincar de gato e rato com uma preocupação ou com outra pessoa",
+    aliases: ["sonhar com gato e rato", "gato caçando rato", "gato correndo atrás de rato", "gato e ratinho"],
+  },
+  "cat-and-bird": {
+    name: "gato e passarinho",
+    focus: "o instinto espreitando a liberdade: uma esperança ao alcance do perigo, ou a tensão entre ficar no chão e voar",
+    aliases: ["sonhar com gato e passarinho", "gato caçando pássaro", "gato correndo atrás de passarinho", "gato e pássaro"],
+  },
+  "snake-and-rat": {
+    name: "cobra e rato",
+    focus: "uma ameaça que se alimenta de um problema menor: traição e desonestidade no mesmo espaço, ou um perigo usado para resolver outro",
+    aliases: ["sonhar com cobra e rato", "cobra comendo rato", "cobra e ratazana", "rato e cobra juntos"],
+  },
+  "snake-and-crocodile": {
+    name: "cobra e jacaré",
+    focus: "perigo de dois lados: traição escondida e força bruta antiga, ou uma ameaça à espreita em águas emocionais",
+    aliases: ["sonhar com cobra e jacaré", "sucuri e jacaré", "cobra e crocodilo", "jacaré e cobra na água"],
+  },
+  "snake-and-frog": {
+    name: "cobra e sapo",
+    focus: "transformação diante do que é vulnerável: uma mudança que ameaça algo pequeno e sensível, ou uma renovação que precisa sobreviver a um predador",
+    aliases: ["sonhar com cobra e sapo", "cobra comendo sapo", "cobra e rã", "cobra engolindo sapo"],
+  },
+  "snake-and-fish": {
+    name: "cobra e peixe",
+    focus: "uma bênção com sombra: sustento e oportunidade perto do engano, ou um presente que não é o que parece",
+    aliases: ["sonhar com cobra e peixe", "cobra comendo peixe", "cobra e peixes na água", "peixe virando cobra"],
+  },
+  "snake-and-tiger": {
+    name: "cobra e tigre",
+    focus: "esperteza contra força bruta: uma ameaça silenciosa e outra escancarada, ou instinto e paixão disputando o controle",
+    aliases: ["sonhar com cobra e tigre", "tigre brigando com cobra", "tigre e cobra juntos"],
+  },
+  "snake-and-tree": {
+    name: "cobra e árvore",
+    focus: "tentação ou conhecimento no lugar do crescimento: um risco enrolado em algo enraizado, ou uma transformação subindo pela família e pela vida",
+    aliases: ["sonhar com cobra na árvore", "cobra pendurada na árvore", "cobra caindo da árvore", "cobra subindo na árvore", "cobra verde na árvore"],
+  },
+  "lion-and-snake": {
+    name: "leão e cobra",
+    focus: "coragem diante do perigo escondido: força aberta contra engano, autoridade desafiada por uma ameaça silenciosa ou proteção sob pressão",
+    aliases: ["sonhar com leão e cobra", "leão brigando com cobra", "cobra e leão juntos"],
+  },
+  "shark-and-dolphin": {
+    name: "tubarão e golfinho",
+    focus: "ameaça e resgate nas mesmas águas: perigo ao lado de bondade, ou profundezas emocionais onde convivem predadores e protetores",
+    aliases: ["sonhar com tubarão e golfinho", "golfinho protegendo de tubarão", "tubarões e golfinhos", "nadar com tubarões e golfinhos"],
+  },
+  "shark-and-crocodile": {
+    name: "tubarão e jacaré",
+    focus: "dois predadores em águas fundas: perigo emocional avassalador, gente implacável de mais de um lado ou medo sem lugar seguro para nadar",
+    aliases: ["sonhar com tubarão e jacaré", "tubarão e crocodilo", "jacaré e tubarão"],
+  },
+  "earthquake-and-tsunami": {
+    name: "terremoto e tsunami",
+    focus: "um tranco seguido de uma onda: instabilidade súbita que solta uma onda de emoção, ou uma crise que dispara a próxima",
+    aliases: ["sonhar com terremoto e tsunami", "tsunami depois de terremoto", "terremoto e onda gigante", "abalo e tsunami"],
+  },
+  "fish-and-water": {
+    name: "peixes e água",
+    focus: "vida que se move na emoção: fartura, ideias e oportunidades dentro do seu mundo interior, e quão limpo ou turvo esse mundo está",
+    aliases: ["sonhar com peixe na água", "peixes em água limpa", "peixes nadando", "peixe fora d'água", "sonhar com água e peixe"],
+  },
+  "storm-and-tree": {
+    name: "tempestade e árvore",
+    focus: "raízes postas à prova: estabilidade sob tempo ruim emocional, bases da família sacudidas ou uma força que enverga sem quebrar",
+    aliases: ["sonhar com tempestade e árvore caindo", "árvore caindo no temporal", "raio atingindo árvore", "vento derrubando árvores"],
+  },
+  "teeth-and-hair": {
+    name: "dentes e cabelo",
+    focus: "medo de perder o que mostra força e vitalidade: aparência, confiança, envelhecimento e controle escapando juntos",
+    aliases: ["sonhar com dente e cabelo caindo", "sonhar que caem os dentes e o cabelo", "perder dentes e cabelo em sonho", "queda de cabelo e dentes"],
+  },
+  "mother-and-father": {
+    name: "mãe e pai",
+    focus: "suas origens numa cena só: o vínculo com os pais, os padrões da família, cuidado e autoridade, e como a relação deles continua viva em você",
+    aliases: ["sonhar com meus pais", "sonhar com pai e mãe juntos", "sonhar com mãe e pai", "sonhar com pais falecidos", "pais brigando em sonho"],
+  },
+  "being-chased-and-flying": {
+    name: "ser perseguido e voar",
+    focus: "fugir da pressão subindo acima dela: escapar de uma ameaça, ganhar perspectiva ou evitar um problema que continua atrás",
+    aliases: ["sonhar que estou sendo perseguido e saio voando", "voar para fugir em sonho", "fugir voando", "sonho de voar e ser perseguido"],
+  },
+  "ghost-and-demon": {
+    name: "fantasma e demônio",
+    focus: "medo do passado encontrando uma ameaça mais escura: lembranças e culpas mal resolvidas, ansiedade espiritual ou uma noite que parece assombrada",
+    aliases: ["sonhar com fantasmas e demônios", "sonhar com assombração e demônio", "espíritos e demônios em sonho", "pisadeira"],
+  },
 };

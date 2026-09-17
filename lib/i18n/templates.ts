@@ -83,8 +83,11 @@ export type SectionInput = {
   variationSeeds?: { name: string; focus: string }[];
 };
 
+// Like /\b\w/ but aware of Latin accents, so "weiße" or "pequeña" never become "WeißE" or "PequeñA".
 function titleCase(value: string) {
-  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return value.replace(/(?<![A-Za-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF])[a-z\u00DF-\u00F6\u00F8-\u00FF]/g, (letter) =>
+    letter === "ß" ? letter : letter.toUpperCase(),
+  );
 }
 
 export function localizedTitle(locale: Locale, name: string): string {
@@ -94,7 +97,7 @@ export function localizedTitle(locale: Locale, name: string): string {
     case "pt":
       return `Significado de sonhar com ${name}`;
     case "de":
-      return `Traumdeutung: ${titleCase(name)}`;
+      return `Traumdeutung: ${titleCase(name).replace(/ Und /g, " und ")}`;
     case "ru":
       return `К чему снится ${name}`;
     case "ar":

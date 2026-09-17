@@ -3557,4 +3557,104 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "Baum und Haus",
     focus: "lebendiges Wachstum in privaten Fundamenten, eine Familienlinie, die die Zimmer einnimmt, oder Natur, die nicht außerhalb des Selbst bleiben will",
   },
+  "lion-and-tiger": {
+    name: "Löwe und Tiger",
+    focus: "zwei Arten von Macht in einer Szene: sichtbare Autorität und verborgene Intensität, Stolz und Instinkt oder eine Rivalität zwischen starken Kräften",
+    aliases: ["Traum von Löwe und Tiger", "Löwe und Tiger zusammen", "Löwe und Tiger kämpfen"],
+  },
+  "cat-and-snake": {
+    name: "Katze und Schlange",
+    focus: "unabhängiger Instinkt trifft verborgene Gefahr: wachsame Intuition, ein Duell zweier leiser Kräfte oder Schutz vor einer geahnten Bedrohung",
+    aliases: ["Traum von Katze und Schlange", "Katze kämpft mit Schlange", "Katze tötet Schlange", "Schlange und Katze"],
+  },
+  "cat-and-rat": {
+    name: "Katze und Ratte",
+    focus: "die Jagd zwischen Kontrolle und einem Problem, das entwischt: Katz-und-Maus-Spiel mit einer Sorge oder mit einem anderen Menschen",
+    aliases: ["Traum von Katze und Maus", "Katze fängt Ratte", "Katze jagt Maus", "Katz-und-Maus-Spiel Traum"],
+  },
+  "cat-and-bird": {
+    name: "Katze und Vogel",
+    focus: "Instinkt, der der Freiheit auflauert: eine Hoffnung in Reichweite der Gefahr oder die Spannung zwischen Bodenhaftung und Fliegen",
+    aliases: ["Traum von Katze und Vogel", "Katze fängt Vogel", "Katze jagt Vogel", "Vogel und Katze"],
+  },
+  "snake-and-rat": {
+    name: "Schlange und Ratte",
+    focus: "eine Bedrohung, die sich von einem kleineren Problem nährt: Verrat und Unehrlichkeit am selben Ort oder eine Gefahr, die eine andere beseitigen soll",
+    aliases: ["Traum von Schlange und Ratte", "Schlange frisst Ratte", "Schlange und Maus", "Ratte und Schlange"],
+  },
+  "snake-and-crocodile": {
+    name: "Schlange und Krokodil",
+    focus: "Gefahr von zwei Seiten: verborgener Verrat und uralte rohe Kraft oder eine Bedrohung, die in emotionalem Wasser lauert",
+    aliases: ["Traum von Schlange und Krokodil", "Schlange und Krokodil im Wasser", "Schlange und Alligator", "Krokodil und Schlange"],
+  },
+  "snake-and-frog": {
+    name: "Schlange und Frosch",
+    focus: "Wandlung trifft Verletzlichkeit: eine Veränderung, die etwas Kleines und Empfindsames bedroht, oder eine Erneuerung, die einen Räuber überleben muss",
+    aliases: ["Traum von Schlange und Frosch", "Schlange frisst Frosch", "Schlange und Kröte", "Frosch und Schlange"],
+  },
+  "snake-and-fish": {
+    name: "Schlange und Fisch",
+    focus: "ein Segen mit Schatten: Versorgung und Chance in der Nähe von Täuschung oder ein Geschenk, das nicht ist, wie es scheint",
+    aliases: ["Traum von Schlange und Fisch", "Schlange frisst Fische", "Schlange und Fische im Wasser", "Fisch wird zur Schlange"],
+  },
+  "snake-and-tiger": {
+    name: "Schlange und Tiger",
+    focus: "List gegen rohe Kraft: eine leise und eine offene Bedrohung oder Instinkt und Leidenschaft im Streit um die Kontrolle",
+    aliases: ["Traum von Schlange und Tiger", "Tiger kämpft mit Schlange", "Tiger und Schlange"],
+  },
+  "snake-and-tree": {
+    name: "Schlange und Baum",
+    focus: "Versuchung oder Erkenntnis am Ort des Wachstums: ein Risiko, das sich um etwas Verwurzeltes windet, oder Wandlung, die durch Familie und Leben nach oben klettert",
+    aliases: ["Traum von Schlange im Baum", "Schlange hängt vom Baum", "Schlange fällt vom Baum", "Schlange klettert auf Baum", "grüne Schlange im Baum"],
+  },
+  "lion-and-snake": {
+    name: "Löwe und Schlange",
+    focus: "Mut gegenüber verborgener Gefahr: offene Stärke gegen Täuschung, Autorität herausgefordert von einer leisen Bedrohung oder Schutz unter Druck",
+    aliases: ["Traum von Löwe und Schlange", "Löwe kämpft mit Schlange", "Schlange und Löwe"],
+  },
+  "shark-and-dolphin": {
+    name: "Hai und Delfin",
+    focus: "Bedrohung und Rettung im selben Wasser: Gefahr neben Freundlichkeit oder emotionale Tiefen, in denen Räuber und Beschützer leben",
+    aliases: ["Traum von Hai und Delfin", "Delfin schützt vor Hai", "Haie und Delfine", "mit Haien und Delfinen schwimmen"],
+  },
+  "shark-and-crocodile": {
+    name: "Hai und Krokodil",
+    focus: "zwei Räuber im tiefen Wasser: überwältigende emotionale Gefahr, rücksichtslose Menschen von mehreren Seiten oder Angst ohne sicheren Ort zum Schwimmen",
+    aliases: ["Traum von Hai und Krokodil", "Krokodil und Hai", "Hai und Alligator"],
+  },
+  "earthquake-and-tsunami": {
+    name: "Erdbeben und Tsunami",
+    focus: "ein Schock, dem eine Flut folgt: plötzliche Instabilität, die eine Welle von Gefühlen freisetzt, oder eine Krise, die die nächste auslöst",
+    aliases: ["Traum von Erdbeben und Tsunami", "Tsunami nach Erdbeben", "Erdbeben und Flutwelle", "Beben und Tsunami"],
+  },
+  "fish-and-water": {
+    name: "Fisch und Wasser",
+    focus: "Leben, das sich im Gefühl bewegt: Fülle, Ideen und Chancen in deiner Innenwelt und wie klar oder trüb diese Welt ist",
+    aliases: ["Traum von Fischen im Wasser", "Fische im klaren Wasser", "schwimmende Fische", "Fisch auf dem Trockenen", "Wasser und Fische Traum"],
+  },
+  "storm-and-tree": {
+    name: "Sturm und Baum",
+    focus: "Wurzeln auf dem Prüfstand: Stabilität bei emotionalem Unwetter, erschütterte Familienfundamente oder eine Kraft, die sich biegt, ohne zu brechen",
+    aliases: ["Traum von Sturm und umstürzenden Bäumen", "Baum fällt im Sturm", "Blitz schlägt in Baum ein", "Orkan knickt Bäume"],
+  },
+  "teeth-and-hair": {
+    name: "Zähne und Haare",
+    focus: "Angst, das zu verlieren, was Kraft und Lebendigkeit zeigt: Aussehen, Selbstvertrauen, Älterwerden und Kontrolle, die zugleich entgleiten",
+    aliases: ["Traum Zähne und Haare fallen aus", "Zähne und Haare verlieren", "Haarausfall und Zahnausfall im Traum"],
+  },
+  "mother-and-father": {
+    name: "Mutter und Vater",
+    focus: "deine Herkunft in einer Szene: die Bindung an die Eltern, Familienmuster, Fürsorge und Autorität und wie ihre Beziehung in dir weiterlebt",
+    aliases: ["Traum von meinen Eltern", "Mama und Papa im Traum", "Vater und Mutter zusammen", "verstorbene Eltern im Traum", "Eltern streiten im Traum"],
+  },
+  "being-chased-and-flying": {
+    name: "Verfolgung und Fliegen",
+    focus: "dem Druck entkommen, indem man sich darüber erhebt: Flucht vor einer Bedrohung, neue Perspektive oder ein Problem umgehen, das weiter folgt",
+    aliases: ["Traum verfolgt werden und wegfliegen", "im Traum fliegend fliehen", "davonfliegen vor Verfolger", "Verfolgungstraum Fliegen"],
+  },
+  "ghost-and-demon": {
+    name: "Geist und Dämon",
+    focus: "Angst aus der Vergangenheit trifft eine dunklere Bedrohung: unverarbeitete Erinnerung und Schuld, spirituelle Angst oder eine Nacht, die sich heimgesucht anfühlt",
+    aliases: ["Traum von Geistern und Dämonen", "Gespenster und Dämonen im Traum", "Nachtmahr", "Alb auf der Brust"],
+  },
 };

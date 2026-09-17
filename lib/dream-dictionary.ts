@@ -3369,6 +3369,26 @@ const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
 const UPDATED_AT_OVERRIDES: Record<string, string> = {
   "plane-crash": "2026-08-08",
+  "lion-and-tiger": "2026-09-16",
+  "cat-and-snake": "2026-09-16",
+  "cat-and-rat": "2026-09-16",
+  "cat-and-bird": "2026-09-16",
+  "snake-and-rat": "2026-09-16",
+  "snake-and-crocodile": "2026-09-16",
+  "snake-and-frog": "2026-09-16",
+  "snake-and-fish": "2026-09-16",
+  "snake-and-tiger": "2026-09-16",
+  "snake-and-tree": "2026-09-16",
+  "lion-and-snake": "2026-09-16",
+  "shark-and-dolphin": "2026-09-16",
+  "shark-and-crocodile": "2026-09-16",
+  "earthquake-and-tsunami": "2026-09-16",
+  "fish-and-water": "2026-09-16",
+  "storm-and-tree": "2026-09-16",
+  "teeth-and-hair": "2026-09-16",
+  "mother-and-father": "2026-09-16",
+  "being-chased-and-flying": "2026-09-16",
+  "ghost-and-demon": "2026-09-16",
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
@@ -5581,6 +5601,806 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What if I feel relieved that he is absent?", answer: "Relief may reflect freedom from pressure, criticism, or an unsafe dynamic. The dream can validate distance as well as longing." },
     ],
   },
+  "lion-and-tiger": {
+    introduction: [
+      "A lion and a tiger in the same dream put two very different kinds of strength side by side. The lion is the visible ruler: pride, status, protection of a group, courage that roars. The tiger is solitary power: focus, passion, stealth, and a force that does not need an audience. When both appear, the dream is usually asking how you relate to strength — your own, someone else's, or the pressure of two strong personalities in your life.",
+      "Most people remember this dream by what the animals did. Calm big cats walking together suggest that confidence and instinct are cooperating. A fight between them stages rivalry: a leadership struggle at work, two parents or partners pulling in different directions, or your public role competing with a private drive. Being chased by both usually means pressure is coming from more than one direction at once — see [being chased](/dreams/being-chased) for how pursuit dreams work.",
+    ],
+    general: [
+      "Start with the feeling. Awe and admiration point to power you are growing into; fear points to authority that feels overwhelming or to anger that has not found a safe outlet. Notice who the animals were watching. If they ignored you, the conflict may belong to people around you. If they looked at you, the question is personal.",
+      "The setting refines the reading. A zoo or enclosure hints at strength that is controlled or suppressed. Open savanna or jungle points to instinct running free. The individual pages for the [lion](/dreams/lion) and the [tiger](/dreams/tiger) cover single-animal scenes such as attacks, cubs, and white or black variants.",
+    ],
+    psychological: [
+      "Psychologically, the pair often mirrors two sides of assertiveness. The lion stands for socially approved power — leading, defending, being seen. The tiger stands for raw drive — desire, ambition, and anger that moves quietly. A dream that places them together can reflect a season where you are negotiating how much force to use and how visible to make it.",
+      "If one animal dominates the other, ask which part of you is winning. Many people dream of a tiger overpowering a lion when private frustration begins to outweigh the role they play in public. The reverse can mean responsibility is keeping a strong feeling in check. Neither outcome is a verdict; it is a snapshot of an internal balance that can be adjusted.",
+    ],
+    spiritual: [
+      "Spiritually, lions and tigers are guardians in many traditions — symbols of courage, royal dignity, and fierce protection. Seeing both can feel like being given permission to stand your ground, provided the strength is used to protect rather than to dominate.",
+      "A peaceful meeting of the two can be read as integration: courage and passion serving the same purpose. A violent meeting invites reflection on pride. The useful question is where you need more boldness and where boldness has turned into control of others.",
+    ],
+    islamic: [
+      "In Islamic dream literature the lion is commonly associated with a powerful person, often an authority whose strength can protect or oppress depending on the scene. Large predators in general are read with caution, as figures of force rather than as good or bad omens in themselves.",
+      "A dream in which you escape both animals is usually taken as relief from a hardship or a powerful opponent, while being harmed may reflect fear of injustice. Classical interpreters stress that such dreams are not certain knowledge. Seek refuge in Allah from a frightening dream, avoid retelling it widely, and let real decisions rest on counsel and evidence.",
+    ],
+    biblical: [
+      "The Bible uses the lion both for strength and for danger: the righteous are described as bold as a lion (Proverbs 28:1), Christ is called the Lion of the tribe of Judah (Revelation 5:5), and the adversary is pictured as a roaring lion seeking someone to devour (1 Peter 5:8). Tigers do not appear in scripture, so the second animal is best read by its behavior.",
+      "A biblical reflection might ask whether the power in your life is being used righteously. Daniel's night among lions (Daniel 6) is often remembered by people who feel surrounded by hostile strength yet kept safe. The [lion and snake](/dreams/lion-and-snake) page covers a related image from Psalm 91.",
+    ],
+    commonScenarios: [
+      { title: "Lion and tiger fighting", meaning: "A rivalry between two strong forces — people, roles, or your public confidence against a private drive — that has reached a head." },
+      { title: "Lion and tiger walking together", meaning: "Courage and passion cooperating; a season when different strengths in you or around you can work toward one goal." },
+      { title: "Being chased by a lion and a tiger", meaning: "Pressure from more than one direction, often authority and emotion at once, and a need to face one threat at a time." },
+      { title: "Taming or petting both animals", meaning: "Growing comfort with your own power, or trust that strong people around you are not a danger." },
+      { title: "A lion and tiger protecting you", meaning: "A sense of backing — supportive figures, inner resolve, or protection you did not expect." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of a lion and a tiger together?", answer: "It usually reflects two kinds of power meeting: visible authority and pride beside private intensity and instinct. The animals' behavior shows whether those forces cooperate or clash." },
+      { question: "What if the lion and tiger are fighting?", answer: "A fight often mirrors rivalry — between people, between roles, or between a public duty and a private drive. It points to a tension that needs a clear decision." },
+      { question: "Is a lion and tiger dream a bad sign?", answer: "Not by itself. Big cats can symbolize protection and courage as much as danger. The emotion in the dream matters more than the animals." },
+      { question: "What if they chase me?", answer: "Being chased by both suggests pressure from several sides at once. Naming each source of stress separately usually makes the waking situation easier to handle." },
+      { question: "What does a friendly lion and tiger mean?", answer: "Friendly big cats suggest integration: confidence and passion that you can trust, or strong people in your life who are on your side." },
+    ],
+  },
+  "cat-and-snake": {
+    introduction: [
+      "A cat and a snake in one dream bring together two creatures that both move quietly and trust their instincts. The cat is independence, sensitivity, and alert intuition; the snake is hidden risk, temptation, or a change working beneath the surface. Their meeting often appears when part of you has noticed something slightly wrong before you can explain it.",
+      "What happens between them shapes the reading. A cat stalking or killing a snake tends to mean your intuition is dealing with a threat. A snake overpowering a cat may reflect fear that your independence or sense of safety is being undermined. When they simply watch each other, the dream may be describing a standoff — a situation where neither trust nor suspicion has won yet. The [cat and dog](/dreams/cat-and-dog) page covers a different rivalry.",
+    ],
+    general: [
+      "Ask which animal felt closer to you. Many dreamers identify with the cat — watchful, self-reliant, not easily fooled. If the snake felt like a person, consider who in your life has recently seemed charming but hard to read, or which situation has hidden terms.",
+      "The location matters. Inside your home, the scene often concerns family or a private relationship. In a garden or yard, it may concern something growing — a project, a friendship, a new role — that carries an unseen cost. Single-animal readings are on the [cat](/dreams/cat) and [snake](/dreams/snake) pages.",
+    ],
+    psychological: [
+      "Psychologically, the cat and snake can represent two defensive styles. The cat withdraws, observes, and strikes only when certain. The snake hides, waits, and strikes suddenly. A dream staging both may reflect how you handle threat: calmly and selectively, or with anxiety that stays coiled until it bursts out.",
+      "If the fight is long and unresolved, it may mirror rumination — replaying a worry without acting on it. If the cat wins quickly, the dream may be rehearsing confidence in your own judgment. A cat that runs away from the snake is not cowardice; it can reflect a healthy decision to leave a situation that is not worth the risk.",
+    ],
+    spiritual: [
+      "Spiritually, cats are often seen as guardians of the home and of subtle perception, while snakes carry both danger and renewal. Together they can mark a time to trust your inner warning signals and protect your energy from influences that feel draining or deceptive.",
+      "A calm scene between the two can also point to balance: intuition and transformation working together. The invitation is discernment — noticing what feels off without becoming suspicious of everyone.",
+    ],
+    islamic: [
+      "Cats hold a gentle place in Islamic tradition: hadith describe them as not impure and as animals that live closely among people, and scholars cite the warning about a woman punished for imprisoning a cat. In dream literature, however, a cat can also stand for a person inside the household whose loyalty is uncertain, while the snake is widely read as an enemy.",
+      "A cat killing a snake is therefore often understood as protection from harm, sometimes through someone close to you. A snake harming a cat may reflect worry about hostility entering the home. Interpreters caution that these readings depend on the dreamer's circumstances. Seek refuge in Allah from a distressing dream and do not accuse anyone on the basis of a dream.",
+    ],
+    biblical: [
+      "Cats are almost absent from the Bible, while the serpent carries a strong association with deception from Genesis 3 onward. A biblical reflection can therefore focus on the snake as a warning about subtle temptation, and on the cat's behavior as a picture of vigilance.",
+      "Jesus told his disciples to be wise as serpents and harmless as doves (Matthew 10:16) — a reminder that alertness is not the same as hostility. If the dream leaves you uneasy, prayerful reflection about where you need wisdom, rather than fear, is a grounded response. See also [dog and snake](/dreams/dog-and-snake) for loyalty tested by threat.",
+    ],
+    commonScenarios: [
+      { title: "Cat killing a snake", meaning: "Intuition or a protective ally removing a hidden threat; confidence in your own judgment." },
+      { title: "Snake attacking a cat", meaning: "Fear that your independence, home, or sense of safety is being undermined by something deceptive." },
+      { title: "Cat and snake staring at each other", meaning: "A standoff between trust and suspicion; a decision you have not yet made about a person or situation." },
+      { title: "Cat and snake living together peacefully", meaning: "Balance between caution and openness, or a relationship that has settled after tension." },
+      { title: "Cat bringing you a snake", meaning: "A warning brought to your attention — something you need to look at directly rather than avoid." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of a cat and a snake?", answer: "It often shows intuition meeting hidden danger. The cat's alertness and the snake's secrecy together point to a situation you sense is not what it seems." },
+      { question: "What if the cat kills the snake?", answer: "It usually means protection or clear judgment overcoming a threat. Some traditions read it as help arriving from someone close to you." },
+      { question: "What if the snake bites the cat?", answer: "It can reflect worry that something deceptive is affecting your home or independence. Treat it as a prompt to check facts, not as proof." },
+      { question: "What does a cat and snake fighting mean in Islam?", answer: "Interpreters often read the snake as an enemy and the cat's victory as protection. The meaning depends on the dreamer's life, and no one should be accused because of a dream." },
+      { question: "Is a cat and snake dream a warning?", answer: "It can be an invitation to pay attention to your instincts. It is not a prediction of harm." },
+    ],
+  },
+  "cat-and-rat": {
+    introduction: [
+      "A cat and a rat — or a cat and a mouse — is one of the oldest chase pairs in human imagination. In dreams it tends to describe a hunt: you, or someone else, trying to catch a problem that keeps escaping, or a relationship where one person pursues and the other evades. The rat usually carries themes of contamination, worry, dishonesty, or small losses; the cat carries alertness and the instinct to deal with them.",
+      "The outcome is the key. A cat that catches the rat often signals that a nagging issue is finally being handled. A cat that fails, or a rat that outsmarts it, can reflect frustration with a problem that multiplies while you chase it. A rat chasing a cat turns the order upside down and often appears when something small has started to feel bigger than it should. For many rats in the house, see [rats in the house](/dreams/rats-in-the-house).",
+    ],
+    general: [
+      "Ask what in your life feels like a game of cat and mouse. It may be a bill, a rumor, clutter, an addiction, a colleague who avoids accountability, or your own habit of postponing a task. The dream compresses that ongoing pursuit into one scene.",
+      "Notice whether you were the cat, the rat, or a spectator. Being the rat can reflect feeling hunted by expectations or scrutiny. Watching from outside can mean you are observing a power game between others. The [rat](/dreams/rat) page covers bites, dead rats, and white rats in detail.",
+    ],
+    psychological: [
+      "Psychologically, this pair often shows how you handle persistent stressors. The cat represents vigilance and competence; the rat represents intrusive thoughts or small anxieties that come back through the cracks. Repeated dreams of chasing without catching can mirror rumination, where the mind keeps hunting the same worry.",
+      "The dream can also describe relationships with uneven power. Cat-and-mouse dynamics — teasing, testing, withholding — show up at work and in romance. If the chase felt playful, the tension may be manageable. If it felt cruel, the dream may be pointing to a pattern that deserves a direct conversation or a firmer boundary.",
+    ],
+    spiritual: [
+      "Spiritually, the cat is often a guardian of the home and the rat a symbol of what eats away quietly at resources or peace. The pair can suggest a time to clean up — practically and emotionally — and to deal with small leaks before they grow.",
+      "A peaceful cat beside a rat is unusual and memorable. It may point to making peace with an imperfection, or to recognizing that not every irritation needs a fight.",
+    ],
+    islamic: [
+      "In the hadith literature the mouse is listed among harmful creatures that may be killed even in the sacred precinct, and dream interpreters often associate it with a dishonest or harmful person, sometimes a thief within reach of the home. The cat, meanwhile, is treated kindly in hadith and may stand for a watchful member of the household.",
+      "A cat catching a rat is therefore commonly read as protection of the home and its provision. Many rats escaping may reflect worry about loss or gossip. As with all dreams, interpreters warn against naming culprits from a night image; the practical response is care with property and trust, together with du'a.",
+    ],
+    biblical: [
+      "Mice appear in the Bible among unclean creatures (Leviticus 11:29) and in the story of the Philistines, who sent golden images of mice when plague struck them (1 Samuel 6). They carry an association with spoiled provision and affliction.",
+      "A biblical reading of this dream might ask what is quietly consuming your resources, time, or peace — and whether you are responding with steady diligence or with anxious pursuit. Proverbs repeatedly praises the watchful household; the cat's vigilance can be read in that spirit.",
+    ],
+    commonScenarios: [
+      { title: "Cat catching a rat", meaning: "A lingering problem being resolved, or confidence that you can deal with a small but persistent threat." },
+      { title: "Cat chasing a rat that escapes", meaning: "Frustration with an issue that keeps slipping away; a sign to change method rather than chase harder." },
+      { title: "Rat chasing a cat", meaning: "A small worry that has grown out of proportion, or a reversal of power in a relationship." },
+      { title: "Cat and rat eating together", meaning: "An uneasy truce with a problem or person; tolerance that may or may not be healthy." },
+      { title: "Many rats and one cat", meaning: "Feeling outnumbered by small tasks, bills, or worries, with limited energy to handle them all." },
+    ],
+    faq: [
+      { question: "What does a cat and rat dream mean?", answer: "It usually describes a chase: your attempt to deal with a nagging problem, or a cat-and-mouse dynamic with another person." },
+      { question: "What if the cat catches the rat?", answer: "It often means a problem is being resolved or that your instincts are handling a small threat effectively." },
+      { question: "What does a cat and mouse dream mean?", answer: "Mouse and rat dreams read similarly: small worries, losses, or evasive behavior, with the cat as vigilance and control." },
+      { question: "What if the rat is bigger than the cat?", answer: "A small issue may have grown in your mind or in reality. Breaking it into manageable steps usually helps." },
+      { question: "Is this dream a warning about theft?", answer: "Some traditions link rats to dishonesty, but a dream is not evidence. Use it as a prompt to review practical safeguards." },
+    ],
+  },
+  "cat-and-bird": {
+    introduction: [
+      "A cat and a bird in the same dream stage a classic tension between the grounded hunter and the creature that can fly. The bird usually represents freedom, hope, news, or a light, fragile feeling. The cat represents instinct, patience, and sometimes the part of life that pulls high hopes back down to earth.",
+      "The emotional tone matters. If you wanted the bird to escape, the dream may be protecting a hope or a vulnerable plan. If you identified with the cat, it may reflect ambition focused on something that keeps flying out of reach. A cat and bird living peacefully together is rarer and often points to reconciliation between caution and optimism. Individual meanings are on the [cat](/dreams/cat) and [bird](/dreams/bird) pages.",
+    ],
+    general: [
+      "Look at who was in danger. A bird caught by a cat can mirror fear that something delicate — a relationship, a creative idea, a child's innocence — is exposed. A bird that flies away at the last second often reflects relief or a close call.",
+      "Details add nuance. A caged bird with a cat circling suggests security that feels confining. A bird singing above an unaware cat can point to joy you are not sharing for fear of attracting envy. The [singing bird](/dreams/singing-bird) and [flock of birds](/dreams/flock-of-birds) entries cover related scenes.",
+    ],
+    psychological: [
+      "Psychologically, the pair can represent two internal voices: the practical, sometimes predatory voice that evaluates risks and the hopeful, airy voice that wants to take off. Dreams that set them against each other often appear during decisions about change, when excitement and caution are both loud.",
+      "The dream may also reflect relationships where one person feels watched or hunted and the other feels restless. If the scene repeats, notice whether you tend to protect your hopes by hiding them, or whether you have been dismissing someone else's dreams too quickly.",
+    ],
+    spiritual: [
+      "Spiritually, birds are widely read as messengers and signs of the soul's freedom, while cats are linked to intuition and the threshold between seen and unseen. A bird escaping a cat can feel like a message reaching you despite obstacles.",
+      "A bird harmed by a cat invites gentleness toward fragile beginnings. The practice suggested is protection: guarding what is new and tender until it is strong enough to be shared.",
+    ],
+    islamic: [
+      "The Quran mentions that Sulayman was taught the speech of birds (27:16), and birds appear as signs of Allah's care. In dream interpretation, birds are often linked to news, travel, or people of status, and a caught bird may be read as a gain or a loss depending on who catches it.",
+      "A cat catching a bird may therefore be understood as someone taking hold of an opportunity or news — or, if the dreamer identifies with the bird, as fear of being trapped. Interpreters remind us that such meanings are uncertain; gratitude for good dreams and seeking refuge from distressing ones remain the core etiquette.",
+    ],
+    biblical: [
+      "Jesus pointed to birds as evidence of God's care: not one sparrow falls without the Father (Matthew 10:29), and the ravens are fed though they neither sow nor reap (Luke 12:24). A bird threatened by a predator can therefore be read as a question about trust under pressure.",
+      "A biblical reflection might ask where you are anxious about something vulnerable and how you can act wisely while resting in providence. Psalm 124 speaks of escaping 'as a bird out of the snare of the fowlers' — a fitting image when the bird flies free. Compare with [cat and rat](/dreams/cat-and-rat), where the chase concerns problems rather than hopes.",
+    ],
+    commonScenarios: [
+      { title: "Cat catching a bird", meaning: "A fragile hope or plan feeling exposed, or ambition seizing an opportunity; your sympathy in the dream shows which." },
+      { title: "Bird escaping from a cat", meaning: "A close call, relief, or a message and hope surviving despite pressure." },
+      { title: "Cat watching a caged bird", meaning: "Safety that feels confining, or a desire that is kept close but anxiously guarded." },
+      { title: "Cat and bird as friends", meaning: "Caution and optimism reconciled; a relationship between very different temperaments that works." },
+      { title: "Dead bird brought by a cat", meaning: "Grief for a lost opportunity, or instinct presenting a hard truth you would rather not see." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of a cat and a bird?", answer: "It usually shows tension between grounded instinct and freedom or hope — something delicate within reach of danger, or caution pulling against excitement." },
+      { question: "What if the cat catches the bird?", answer: "It can reflect fear for a vulnerable plan or relationship, or, if you identify with the cat, determination to seize a chance." },
+      { question: "What if the bird gets away?", answer: "Escape often signals relief, resilience, or news and hope reaching you despite obstacles." },
+      { question: "Is a cat and bird dream a bad omen?", answer: "No. It describes a tension to pay attention to, not a fixed outcome." },
+      { question: "What does a cat and bird together peacefully mean?", answer: "It suggests that caution and optimism, or two very different people, can coexist without harm." },
+    ],
+  },
+  "snake-and-rat": {
+    introduction: [
+      "A snake and a rat together combine two animals that many people instinctively avoid. The rat often stands for a nagging problem, contamination, dishonesty, or small losses; the snake for hidden danger, betrayal, or a change that strikes suddenly. In the natural order the snake eats the rat, so dreams of this pair are often about one problem swallowing another — or about which threat is the real one.",
+      "A snake catching a rat can feel oddly relieving: a larger force is dealing with a mess you could not manage. Rats and snakes sharing a room, a basement, or a bed feel very different — they suggest a space where several uncomfortable truths are living side by side. When the scene is set in your house, see [snake and house](/dreams/snake-and-house) for how domestic settings change the meaning.",
+    ],
+    general: [
+      "Ask what feels like 'vermin' in your life right now — clutter, debt, gossip, a habit — and what feels like the quiet, larger danger. The dream may be asking whether solving the small problem is creating a bigger one, or whether a person who helps you also carries risk.",
+      "Your role matters. Watching calmly suggests analysis; panic suggests overload. Killing both animals can reflect a wish to clear everything at once. For single-animal detail see the [snake](/dreams/snake) and [rat](/dreams/rat) pages, including [many snakes](/dreams/many-snakes).",
+    ],
+    psychological: [
+      "Psychologically, the rat often represents intrusive, repetitive worries and the snake a deeper fear that is harder to face. A dream in which the snake eats the rat may show the mind replacing many small anxieties with one big one — a common pattern when stress accumulates.",
+      "The pair can also reflect mistrust in a social circle: small lies or leaks (the rat) and a person whose motives feel hidden (the snake). The helpful response is to separate facts from impressions and to deal with each issue on its own terms rather than letting them merge into one cloud of suspicion.",
+    ],
+    spiritual: [
+      "Spiritually, both animals are associated with things that dwell in dark places. Their appearance together can be a call to cleanse your environment and your inner life — to stop tolerating what drains you and to face what you have been avoiding.",
+      "At the same time, the snake is a symbol of renewal. A snake removing rats can be read as transformation clearing away old decay, provided you cooperate with the change rather than fear it.",
+    ],
+    islamic: [
+      "In Islamic dream literature the snake is frequently associated with an enemy, and the mouse or rat with a dishonest or immoral person; the hadith list the mouse among harmful creatures that may be killed. A dream uniting them may therefore be read as hostility from more than one source, or as one harmful party undermining another.",
+      "Killing both is commonly interpreted as victory over those harms, while being bitten may reflect fear of loss. Interpreters emphasize humility: dreams are not accusations. Seek refuge in Allah, protect your household sensibly, and avoid suspicion without evidence.",
+    ],
+    biblical: [
+      "Scripture treats both creatures with caution: the serpent from Genesis 3 as the image of deception, and the mouse among unclean animals (Leviticus 11:29) and as part of the plague sent on the Philistines (1 Samuel 6). Together they can symbolize spiritual and practical corruption.",
+      "A biblical reflection might ask where small compromises are feeding a larger temptation. Ephesians 5:11 urges believers to have nothing to do with unfruitful works of darkness but rather to expose them — a fitting response when a dream shows hidden things gathered in one place. See also [spider and snake](/dreams/spider-and-snake) for another double-threat image.",
+    ],
+    commonScenarios: [
+      { title: "Snake eating a rat", meaning: "One problem swallowing another; a larger force dealing with a mess, possibly at a cost." },
+      { title: "Snakes and rats in the house", meaning: "Several uncomfortable truths or tensions sharing your private space and needing attention." },
+      { title: "Rat escaping a snake", meaning: "A small issue slipping past a larger danger; relief that may be temporary." },
+      { title: "Killing a snake and a rat", meaning: "Determination to clear out what harms you, all at once." },
+      { title: "Being bitten by both", meaning: "Feeling attacked from different sides — small annoyances and a deeper betrayal together." },
+    ],
+    faq: [
+      { question: "What does a snake and rat dream mean?", answer: "It often combines a nagging problem or dishonesty with a deeper hidden danger, and asks which threat really deserves your attention." },
+      { question: "What if a snake eats a rat in my dream?", answer: "It can mean one issue is absorbing or resolving another — sometimes a relief, sometimes a sign that a larger risk is growing." },
+      { question: "What does it mean in Islam?", answer: "Interpreters often read the snake as an enemy and the rat as a dishonest person, so the dream may reflect concern about harm from more than one source. It is not proof of anything." },
+      { question: "Are snakes and rats in the house a bad sign?", answer: "They point to tensions in your private life that need attention, not to a guaranteed misfortune." },
+      { question: "What if I kill both?", answer: "It usually reflects resolve to deal with what drains you and to clean up your environment." },
+    ],
+  },
+  "snake-and-crocodile": {
+    introduction: [
+      "Snakes and crocodiles are both ancient reptiles that wait, strike, and often hide in water. When they appear together, the dream tends to describe a situation with more than one kind of risk: the quiet, poisonous kind the snake represents and the heavy, crushing power of the crocodile. Many people dream this pair during conflicts where someone's words feel slippery and their power feels overwhelming.",
+      "Water is usually part of the scene, and it matters. Reptiles in murky water often point to emotions or relationships that are hard to read; in clear water they suggest a danger you can already see. If you were swimming, the dream may be asking how exposed you feel. The pages on [snake and water](/dreams/snake-and-water) and [crocodile in water](/dreams/crocodile-in-water) explore those settings.",
+    ],
+    general: [
+      "Separate the two threats. What in your life feels like venom — gossip, manipulation, a secret? What feels like jaws — authority, debt, a powerful person, a system that could swallow you? The dream may be pointing out that you are facing both at once and need different responses to each.",
+      "Escaping, freezing, or fighting all matter. Watching from a boat or bridge suggests you can still keep distance. The [crocodile](/dreams/crocodile) and [alligator](/dreams/alligator) pages cover single-reptile scenes, and [snake](/dreams/snake) covers colors and bites.",
+    ],
+    psychological: [
+      "Psychologically, reptiles are often linked to the most basic survival responses — freeze, fight, flee. A dream with two predators can reflect a nervous system on high alert, especially during prolonged stress. The more menacing the scene, the more likely it mirrors a feeling of being cornered rather than a specific event.",
+      "The snake can also represent your own defensive sharpness, and the crocodile your capacity for stubborn endurance. If you tame or calmly observe them, the dream may be showing that you can use those instincts without being ruled by them.",
+    ],
+    spiritual: [
+      "Spiritually, crocodiles often symbolize primal power and patience, and snakes transformation and hidden wisdom. Together they can call for discernment in a situation where danger is not obvious — a reminder to move slowly, watch the waters, and not be lured by appearances.",
+      "Surviving the scene can mark a passage through a testing season. The spiritual work is to keep your integrity while dealing with forces that are stronger or more cunning than you.",
+    ],
+    islamic: [
+      "Dream interpreters in the Islamic tradition often read the snake as an enemy and dangerous water creatures as powerful opponents or unjust people whose harm is difficult to escape. A dream combining them may therefore reflect concern about hostility or oppression from more than one side.",
+      "Escaping both, or seeing them killed, is generally read as deliverance, while being seized may express fear rather than foretell harm. Reciting protective verses, seeking refuge in Allah, and seeking practical help are the recommended responses, without building conclusions about specific people on the dream alone.",
+    ],
+    biblical: [
+      "The Bible's Leviathan unites serpent and sea monster: Isaiah 27:1 describes the Lord punishing 'leviathan the piercing serpent' and the dragon in the sea, and Job 41 portrays a creature no human can tame. Many readers connect crocodile imagery with Leviathan, a symbol of chaos that only God subdues.",
+      "A biblical reflection might ask where you feel outmatched and whether you are trying to fight chaos in your own strength. Psalm 91 promises protection over the lion and the adder; the [lion and snake](/dreams/lion-and-snake) page looks at that passage. See also [shark and crocodile](/dreams/shark-and-crocodile) for predators in deep water.",
+    ],
+    commonScenarios: [
+      { title: "Snake and crocodile in water", meaning: "Danger hidden inside an emotional situation, with both subtle and forceful elements." },
+      { title: "Crocodile eating a snake", meaning: "A bigger power swallowing a smaller threat; relief that may bring its own risk." },
+      { title: "Being chased by both", meaning: "Pressure from more than one direction; a need to address each threat separately." },
+      { title: "Escaping on land", meaning: "Reaching safety and perspective after a stressful period." },
+      { title: "Killing both reptiles", meaning: "Determination to confront manipulation and overwhelming pressure head-on." },
+    ],
+    faq: [
+      { question: "What does a snake and crocodile dream mean?", answer: "It usually points to two kinds of threat at once: subtle deception or hidden risk, and heavy, overwhelming force." },
+      { question: "What if they are in water?", answer: "Water suggests the danger lives inside emotions or relationships. Murky water means it is hard to read; clear water means you can already see it." },
+      { question: "Is this dream a warning about enemies?", answer: "It can mirror mistrust or pressure you already feel. It is not proof that someone intends harm." },
+      { question: "What does it mean if I escape?", answer: "Escape usually reflects resilience and the ability to create distance from a stressful situation." },
+      { question: "What is the biblical meaning?", answer: "Many readers connect the pair with Leviathan, the serpent-like sea creature symbolizing chaos that God alone subdues." },
+    ],
+  },
+  "snake-and-frog": {
+    introduction: [
+      "A snake and a frog together bring two symbols of transformation into one scene. The frog changes from tadpole to adult and lives between water and land; the snake sheds its skin. In nature the snake hunts the frog, so the dream often shows one change threatening another — or a sensitive, adaptable part of you facing a sharper, more dangerous force.",
+      "If the snake catches the frog, many dreamers feel sympathy for the smaller animal, which can reflect worry about something fragile: a new habit, a young relationship, a child, or a hopeful plan. If the frog escapes, the dream often celebrates adaptability. A snake and frog calmly side by side suggest that caution and openness have reached a truce. The [frog](/dreams/frog) page covers frogs on their own, including [frog turning into something](/dreams/frog-turning-into-something).",
+    ],
+    general: [
+      "Ask what in your life is in the middle of changing. The frog may be the part of you that adjusts easily and speaks up (frogs are loud); the snake may be pressure, criticism, or a person who seems to wait for a mistake.",
+      "Notice the environment. A pond or marsh points to emotional life; a garden to home and growth; a road to transition. A snake with a frog in its mouth is a vivid image of being caught mid-transformation — worth writing down with the events of the previous day. See also [snake and water](/dreams/snake-and-water).",
+    ],
+    psychological: [
+      "Psychologically, the frog can represent sensitivity and adaptability, and the snake a threat response or a critical inner voice. Dreams of the snake swallowing the frog sometimes appear when self-criticism is overwhelming a newer, gentler way of being.",
+      "The pair can also mirror a relationship where one person feels small and exposed. If the dream repeats, consider what would help the 'frog' feel safer — boundaries, support, or time — rather than trying to become a snake yourself.",
+    ],
+    spiritual: [
+      "Spiritually, frogs are associated with cleansing, rain, and renewal, and snakes with rebirth and hidden wisdom. Together they can indicate a deep season of transformation in which old forms are being consumed so new ones can emerge.",
+      "A frog escaping a snake can be read as grace in transition: the tender, renewing part of you survives. The practice suggested is patience with change and gentleness toward what is still forming.",
+    ],
+    islamic: [
+      "In Islamic tradition the frog has a protected status: a hadith reports that the Prophet forbade killing frogs, and the Quran mentions frogs among the signs sent upon Pharaoh's people (7:133). The snake, by contrast, is commonly read in dream literature as an enemy.",
+      "A snake attacking a frog may therefore be understood as harm threatening someone harmless or devout, and a frog escaping as protection of the innocent. These readings are cautious and depend on the dreamer's life. Gratitude for protection and seeking refuge from harm are the recommended responses.",
+    ],
+    biblical: [
+      "Both animals appear in the Exodus story: Aaron's staff becomes a serpent before Pharaoh (Exodus 7), and frogs cover the land in the second plague (Exodus 8). Revelation later describes unclean spirits 'like frogs' (Revelation 16:13). In scripture the pair is therefore connected with confrontation, judgment, and discernment of spirits.",
+      "A biblical reflection might ask whether a situation in your life is a contest of power, as before Pharaoh, and whether you are standing on truth rather than tricks. Compare with [snake and rat](/dreams/snake-and-rat) and [snake and fish](/dreams/snake-and-fish), other predator–prey pairings.",
+    ],
+    commonScenarios: [
+      { title: "Snake eating a frog", meaning: "A change or pressure swallowing something sensitive; worry about a fragile beginning." },
+      { title: "Frog escaping a snake", meaning: "Adaptability and quick thinking protecting you in a tense situation." },
+      { title: "Snake and frog in a pond", meaning: "Emotional transformation with both danger and renewal present." },
+      { title: "Frog turning into a snake", meaning: "Innocence hardening into defensiveness, or a person revealing a sharper side." },
+      { title: "Saving a frog from a snake", meaning: "A protective instinct toward someone vulnerable, or toward a new part of yourself." },
+    ],
+    faq: [
+      { question: "What does a snake and frog dream mean?", answer: "It often shows transformation meeting vulnerability — a sensitive, adaptable part of life facing pressure or danger." },
+      { question: "What if the snake eats the frog?", answer: "It can reflect worry that something fragile is being overwhelmed. Consider what needs more protection or time." },
+      { question: "What if the frog gets away?", answer: "Escape usually signals resilience and flexibility in the face of pressure." },
+      { question: "What do frogs and snakes mean in the Bible?", answer: "Both appear in Exodus — the serpent staff and the plague of frogs — and are linked with confrontation and discernment." },
+      { question: "Is killing a frog in a dream bad in Islam?", answer: "Hadith forbid killing frogs, so interpreters treat harm to a frog as harm to something innocent. The dream is a reflection, not a sin." },
+    ],
+  },
+  "snake-and-fish": {
+    introduction: [
+      "Fish in dreams often stand for nourishment, abundance, opportunity, or ideas rising from deep feeling. Snakes stand for hidden risk, temptation, or transformation. When both appear — swimming together, a snake hunting fish, or a fish that turns into a snake — the dream frequently asks whether something that looks like a gift carries a hidden cost.",
+      "Water is almost always involved, which places the question in the emotional realm. Clear water with both creatures suggests you can see the situation plainly. Muddy water suggests confusion about motives. If you were catching fish and found a snake instead, the dream may reflect disappointment or fear of being deceived. The [fish](/dreams/fish) and [snakes in water](/dreams/snakes-in-water) pages cover related scenes.",
+    ],
+    general: [
+      "Ask where you are expecting provision right now — a job offer, a deal, a relationship, support from family. The dream may be highlighting doubt about whether the offer is sincere. It may also be reminding you that opportunity and risk usually swim together.",
+      "The outcome matters. Fish escaping the snake suggests your resources are safe; a snake eating fish can reflect worry about losing income, energy, or ideas to someone else. See [catching fish](/dreams/catching-fish) and [snake and water](/dreams/snake-and-water) for related readings.",
+    ],
+    psychological: [
+      "Psychologically, fish often represent contents of the unconscious that are nourishing — insights, creativity, intuitive knowledge. The snake can represent anxiety or a defensive reflex. A dream combining them may show a helpful insight arriving with a sting of fear.",
+      "If a fish turns into a snake, the dream may be tracking a disillusionment: something you trusted revealing another side. It is worth asking whether the change is real or whether a past betrayal is making present gifts feel unsafe.",
+    ],
+    spiritual: [
+      "Spiritually, fish are ancient symbols of faith and abundance, and snakes of renewal and hidden knowledge. Together they can mark a time of receiving — and of discerning which gifts to accept.",
+      "A peaceful scene can suggest that prosperity and transformation are aligned. A predatory scene invites you to protect your blessings and to be honest about what you are willing to trade for them.",
+    ],
+    islamic: [
+      "In Islamic dream interpretation fish are commonly associated with lawful provision and wealth, and the snake with an enemy. The Quran recalls Yunus swallowed by the great fish and later delivered, and the fish that slipped into the sea in Musa's journey (18:61). A dream uniting fish and snake may therefore be read as provision that attracts envy or opposition.",
+      "Catching fish while avoiding a snake is often understood as gaining sustenance while being protected from harm. Interpreters stress that the dreamer's condition shapes the reading. Thankfulness, charity, and seeking refuge from envy are the recommended responses.",
+    ],
+    biblical: [
+      "Jesus used this exact pairing: 'If a son shall ask bread of any of you that is a father, will he give him a stone? or if he ask a fish, will he for a fish give him a serpent?' (Luke 11:11). The point is that a good father gives good gifts — how much more God.",
+      "A biblical reading of this dream can therefore address trust: are you afraid that what you asked for will turn out harmful? The passage invites confidence in the Giver while staying wise about human offers. Related images appear on [fish and water](/dreams/fish-and-water) and [snake and baby](/dreams/snake-and-baby).",
+    ],
+    commonScenarios: [
+      { title: "Snake eating fish", meaning: "Worry that resources, income, or ideas are being taken or spoiled." },
+      { title: "Fish turning into a snake", meaning: "Disillusionment — a gift or person revealing an unexpected side." },
+      { title: "Catching a snake instead of a fish", meaning: "Fear of being deceived or disappointed by an opportunity." },
+      { title: "Snake and fish swimming together", meaning: "Opportunity and risk coexisting; a need for discernment rather than fear." },
+      { title: "Fish escaping a snake", meaning: "Protection of your blessings; resources that remain safe despite threat." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of a snake and fish?", answer: "It often shows a blessing or opportunity near a hidden risk, asking you to discern whether an offer is what it seems." },
+      { question: "What if a fish turns into a snake?", answer: "It can reflect disillusionment or fear that something trusted will turn harmful. Check whether the fear comes from present facts or past experience." },
+      { question: "What is the biblical meaning of a fish and a serpent?", answer: "Jesus contrasted them in Luke 11:11 to show that a good father gives good gifts — the dream may touch on trust in what you receive." },
+      { question: "What does it mean in Islam?", answer: "Fish are often linked to provision and the snake to an enemy, so the dream may reflect sustenance that attracts envy or opposition." },
+      { question: "Is a snake eating fish a bad sign?", answer: "It highlights concern about loss, not a certain outcome. Use it to review how you protect your resources." },
+    ],
+  },
+  "snake-and-tiger": {
+    introduction: [
+      "A snake and a tiger in one dream set cunning beside strength. The tiger is visible power: courage, passion, anger, and the ability to act decisively. The snake is concealed power: patience, strategy, secrecy, and sudden change. Together they often appear when you are dealing with people or situations that combine open aggression with hidden maneuvering — or when your own passion and caution are in conflict.",
+      "A fight between them is the most common scene. Whoever wins suggests which kind of power is prevailing right now. If the tiger wins, directness may be the way forward. If the snake wins, subtlety or endurance may matter more than force. For a related pairing see [lion and snake](/dreams/lion-and-snake), and for big-cat rivalry see [lion and tiger](/dreams/lion-and-tiger).",
+    ],
+    general: [
+      "Ask which animal seemed to threaten you. A tiger chasing you points to pressure that is loud and obvious — deadlines, anger, confrontation. A snake near you points to worries that are harder to name. Both at once can reflect feeling hunted from all sides.",
+      "If you watched calmly, the dream may be showing that you understand the conflict well enough to choose your approach. Single-animal readings are on the [tiger](/dreams/tiger) page, including [tiger chasing you](/dreams/tiger-chasing-you), and on the [snake](/dreams/snake) page.",
+    ],
+    psychological: [
+      "Psychologically, the tiger often represents emotions such as anger or desire that want immediate expression, and the snake the strategies we use to manage or hide them. A struggle between them can reflect an inner debate: speak up now, or wait and plan?",
+      "The pair may also map onto two people — one openly dominant, one quietly influential. Dreams like this help rehearse how to respond to each style without becoming either a bully or a manipulator yourself.",
+    ],
+    spiritual: [
+      "Spiritually, the tiger is a symbol of courage and vitality, the snake of wisdom and renewal. Their meeting can point to a need to balance boldness with discernment, especially before a major decision.",
+      "A peaceful coexistence of the two suggests a mature integration: strength that knows when to wait, and wisdom that knows when to act.",
+    ],
+    islamic: [
+      "Dream interpreters in the Islamic tradition often read large predators as powerful people and the snake as an enemy. A dream placing a tiger and a snake together may therefore be understood as rivalry between strong opponents, or as the dreamer facing both open and hidden hostility.",
+      "Escaping or seeing both overcome is commonly taken as relief from such pressure. As always, interpreters warn against acting on dreams alone; seeking refuge in Allah and wise counsel are the grounded responses.",
+    ],
+    biblical: [
+      "Tigers do not appear in scripture, but the Bible contrasts different kinds of danger: the prowling lion and the subtle serpent both describe the adversary (1 Peter 5:8; Genesis 3). A biblical reading can use that contrast to ask whether the pressure you face is open intimidation or quiet temptation.",
+      "Scripture's counsel for both is the same: be sober and watchful, and resist in faith. Psalm 91:13 promises that the faithful will tread upon the lion and the adder, an image explored on the [lion and snake](/dreams/lion-and-snake) page.",
+    ],
+    commonScenarios: [
+      { title: "Tiger fighting a snake", meaning: "Open force against cunning; a conflict whose winner shows which approach is prevailing." },
+      { title: "Snake biting a tiger", meaning: "A hidden weakness or quiet opponent affecting someone powerful — possibly you." },
+      { title: "Tiger killing a snake", meaning: "Directness and courage overcoming a hidden threat." },
+      { title: "Being chased by both", meaning: "Feeling pressured by obvious demands and unspoken worries at the same time." },
+      { title: "Tiger and snake resting together", meaning: "Balance between boldness and patience." },
+    ],
+    faq: [
+      { question: "What does a snake and tiger dream mean?", answer: "It usually sets cunning against raw force — hidden threats beside open ones, or caution against passion." },
+      { question: "What if the tiger and snake are fighting?", answer: "The fight mirrors a conflict of styles. The winner suggests whether directness or subtlety is dominating your situation." },
+      { question: "What if a snake bites a tiger?", answer: "It can reflect a hidden vulnerability in someone strong, or a quiet influence undermining an open one." },
+      { question: "Is this a warning?", answer: "It points to competing pressures, not a certain outcome. Consider how to answer each kind of challenge on its own terms." },
+      { question: "What does it mean if they ignore me?", answer: "The conflict may belong to people around you, and you may be observing rather than participating." },
+    ],
+  },
+  "snake-and-tree": {
+    introduction: [
+      "A snake in a tree is one of the most recognizable images in human culture, and dreamers often search for it after waking with a sense of unease or fascination. The tree stands for growth, life, family roots, and stability; the snake for temptation, hidden knowledge, danger, or renewal. Together they ask what is coiled around something you depend on.",
+      "The snake's movement shapes the reading. A snake climbing a tree can suggest ambition or a change moving upward. A snake hanging from a branch points to a risk above your line of sight — something you have not yet noticed. A snake falling from a tree onto you often mirrors a sudden problem appearing from an unexpected place. The [tree](/dreams/tree) page covers trees alone, including [fruit trees](/dreams/fruit-tree).",
+    ],
+    general: [
+      "Ask what the tree represents for you now: your family, your career, a long project, your health. Then ask what feels like the snake: a temptation, a critic, a secret, or a transformation you cannot control. The dream often appears when growth has brought new exposure.",
+      "Color adds nuance. A green snake blends into leaves and suggests something hidden in plain sight; a black snake may intensify fear. A snake guarding fruit suggests a desire that carries consequences. For colors, see [green snake](/dreams/green-snake) and [black snake](/dreams/black-snake).",
+    ],
+    psychological: [
+      "Psychologically, trees often represent the self as it grows over time, with roots in the past and branches toward the future. A snake in the tree can be an image of anxiety or desire embedded in that growth — a doubt that climbs with each success, or a longing you have not integrated.",
+      "The dream can also point to insight. Jungian readings treat the serpent in the tree as knowledge that disrupts innocence. If the scene felt more intriguing than frightening, you may be ready to learn something that changes how you see your own story.",
+    ],
+    spiritual: [
+      "Spiritually, the tree is a symbol of life and connection between earth and heaven, and the serpent of both temptation and healing wisdom. The pairing invites honest reflection on what you are reaching for and why.",
+      "A snake that descends and leaves the tree can be read as release from a lingering temptation. A snake resting peacefully among branches may point to wisdom integrated into your growth rather than opposing it.",
+    ],
+    islamic: [
+      "The Quran describes Adam and his wife being forbidden to approach a tree and being misled by Shaytan's whispering (2:35–36, 7:20–22). It does not describe a serpent; the serpent appears in some later exegetical narrations that scholars classify as reports drawn from earlier traditions. Dream interpreters commonly read a snake as an enemy and a tree as a person or a family, with fruitful trees linked to goodness and benefit.",
+      "A snake in a tree may therefore be understood as hostility or envy near a family or a source of benefit, and killing it as protection. Such readings are tentative. The recommended response is seeking refuge in Allah, guarding what has been entrusted to you, and avoiding suspicion without evidence.",
+    ],
+    biblical: [
+      "The serpent in Eden spoke beside the tree of the knowledge of good and evil (Genesis 3), making this pairing the Bible's first image of temptation. Scripture also offers a healing counter-image: the bronze serpent lifted up in the wilderness (Numbers 21:8–9), which Jesus connected to his own lifting up (John 3:14).",
+      "A biblical reflection may ask where a desire is being presented as harmless when it is not, and where you need to trust God's boundaries. Psalm 1 pictures the righteous as a tree planted by streams of water; the [storm and tree](/dreams/storm-and-tree) page explores that image under pressure.",
+    ],
+    commonScenarios: [
+      { title: "Snake hanging from a tree", meaning: "A risk above your line of sight; something you have not noticed yet." },
+      { title: "Snake falling from a tree onto you", meaning: "A sudden problem from an unexpected direction, often within familiar surroundings." },
+      { title: "Snake climbing a tree", meaning: "Ambition, change, or a worry rising alongside your growth." },
+      { title: "Snake guarding fruit in a tree", meaning: "A desire or opportunity that carries consequences." },
+      { title: "Killing a snake in a tree", meaning: "Protecting your family, work, or values from a threat." },
+    ],
+    faq: [
+      { question: "What does a snake in a tree mean in a dream?", answer: "It often shows temptation, hidden risk, or new knowledge wrapped around something you depend on — family, work, or personal growth." },
+      { question: "What if a snake falls from a tree on me?", answer: "It usually reflects a sudden problem or revelation coming from an unexpected, familiar place." },
+      { question: "What is the biblical meaning of a snake in a tree?", answer: "It recalls the serpent in Eden and the temptation beside the tree of knowledge, prompting reflection on desire and boundaries." },
+      { question: "What does a green snake in a tree mean?", answer: "A green snake blends in, so it can point to something hidden in plain sight, or to growth mixed with envy or caution." },
+      { question: "What does it mean in Islam?", answer: "Interpreters often read the snake as an enemy and the tree as a person or family, so it may reflect envy or hostility near a source of benefit." },
+    ],
+  },
+  "lion-and-snake": {
+    introduction: [
+      "A lion and a snake in the same dream set bold courage against hidden danger. The lion represents leadership, pride, protection, and strength that shows itself. The snake represents deceit, fear, temptation, or change that moves quietly. The pairing often appears when someone confident is facing a problem that cannot be solved with force alone.",
+      "If the lion defeats the snake, the dream frequently mirrors confidence returning or authority setting a boundary. If the snake harms the lion, it can reflect worry that pride, reputation, or a strong position is vulnerable to something small but poisonous. The [lion](/dreams/lion) page covers lion attacks and cubs; [snake bite](/dreams/snake-bite) covers bites in detail.",
+    ],
+    general: [
+      "Ask where courage is being tested in your life and what kind of threat is involved. A rumor, a manipulative colleague, or a health worry can feel like a snake; your role, dignity, or determination can feel like the lion.",
+      "Where you stood matters. Standing behind the lion suggests you feel protected. Being between them suggests you are caught in someone else's conflict. For another predator pairing, see [snake and tiger](/dreams/snake-and-tiger).",
+    ],
+    psychological: [
+      "Psychologically, the lion can represent a healthy ego — self-respect, assertiveness, visible competence — and the snake the anxieties or temptations that undermine it. A dream battle between them may be the mind rehearsing how to stay confident while facing a threat that is hard to see.",
+      "When the snake wins, it may be useful to ask what small, repeated doubts have been wearing down your confidence. When the lion wins, the dream may be affirming that you can take a stand without becoming aggressive.",
+    ],
+    spiritual: [
+      "Spiritually, the lion is widely linked with courage and divine protection, and the snake with both danger and transformation. Their meeting can symbolize the triumph of courage over fear, or a call to add wisdom to bravery.",
+      "A calm lion watching a snake may be the most meaningful version: strength that does not need to strike, confident enough to let a threat pass while staying alert.",
+    ],
+    islamic: [
+      "In Islamic dream literature the lion is commonly associated with a powerful person or ruler, and the snake with an enemy. A dream uniting them may reflect conflict between a person of authority and a hidden opponent, or the dreamer's need for strength against hostility.",
+      "Seeing the lion overcome the snake is often read as victory with the help of someone powerful. Interpreters caution against drawing firm conclusions; the recommended response is reliance on Allah, protective remembrance, and practical wisdom.",
+    ],
+    biblical: [
+      "Psalm 91:13 unites these animals in a promise of protection: 'Thou shalt tread upon the lion and adder: the young lion and the dragon shalt thou trample under feet.' The verse follows assurances that God's angels guard those who make him their refuge.",
+      "A biblical reading therefore often frames this dream as encouragement: both open intimidation and hidden danger are within God's authority. The lion can also recall the Lion of Judah (Revelation 5:5). See [lion and tiger](/dreams/lion-and-tiger) and [snake and crocodile](/dreams/snake-and-crocodile) for related scripture themes.",
+    ],
+    commonScenarios: [
+      { title: "Lion killing a snake", meaning: "Courage or authority overcoming deception or fear." },
+      { title: "Snake biting a lion", meaning: "A small but poisonous problem threatening a strong position or reputation." },
+      { title: "Lion protecting you from a snake", meaning: "Support from a strong person, or your own confidence defending you." },
+      { title: "Lion and snake together calmly", meaning: "Strength and wisdom coexisting; confidence that does not need to strike." },
+      { title: "Being chased by a lion and a snake", meaning: "Feeling pressured by both open demands and hidden worries." },
+    ],
+    faq: [
+      { question: "What does a lion and snake dream mean?", answer: "It generally shows courage facing hidden danger — strength and authority meeting deceit, fear, or temptation." },
+      { question: "What if the lion kills the snake?", answer: "It often reflects confidence returning and a boundary being set against something harmful." },
+      { question: "What is the biblical meaning of a lion and snake?", answer: "Psalm 91:13 promises the faithful will tread upon the lion and the adder, so the dream is often read as protection over both open and hidden threats." },
+      { question: "What if the snake bites the lion?", answer: "It may point to a vulnerability in something strong — reputation, health, or confidence — that deserves attention." },
+      { question: "What does it mean in Islam?", answer: "Interpreters often see the lion as a powerful person and the snake as an enemy, so the dream may reflect conflict involving authority and hidden hostility." },
+    ],
+  },
+  "shark-and-dolphin": {
+    introduction: [
+      "Sharks and dolphins share the same waters but play opposite roles in the imagination. The shark stands for danger, aggression, ruthless competition, or fear lurking below the surface. The dolphin stands for intelligence, play, friendship, and rescue. A dream with both often describes an emotional or social environment where threat and support exist side by side.",
+      "Stories of dolphins driving sharks away from swimmers are widespread, and many dreamers experience that exact scene. It usually reflects help arriving — a friend, an instinct, or a moment of clarity — when you feel exposed. If the dolphins could not protect you, the dream may express worry that support is not enough. See [swimming with dolphins](/dreams/swimming-with-dolphins) and [swimming with sharks](/dreams/swimming-with-sharks) for single-animal scenes.",
+    ],
+    general: [
+      "Think about your 'waters' — your workplace, family, friendships, or online world. Who feels like a shark, circling for advantage? Who feels like a dolphin, playful and protective? The dream may be asking you to stay close to the latter.",
+      "It can also be about you: part of you may be competitive and guarded, another part generous and light. The balance between them affects how safe others feel around you. See [shark attack](/dreams/shark-attack) and [dolphin jumping](/dreams/dolphin-jumping) for related images.",
+    ],
+    psychological: [
+      "Psychologically, the ocean often represents the unconscious and deep emotion. Sharks can embody anxieties that suddenly surface; dolphins can embody resilience, humor, and social connection that help regulate fear. A dream with both may reflect how you cope: anxiety rises, and a supportive resource answers it.",
+      "If sharks dominate the scene, the dream may signal stress that needs more than willpower — rest, conversation, or professional help. If dolphins dominate, it may be affirming that your support system is working.",
+    ],
+    spiritual: [
+      "Spiritually, dolphins are frequently seen as guides and symbols of harmony, while sharks represent survival instinct and the dangers of the deep. Together they can suggest protection during a risky passage.",
+      "The practice suggested is gratitude for the helpers in your life and courage to swim on, rather than staying frozen on the shore out of fear.",
+    ],
+    islamic: [
+      "The Quran speaks of the sea as a sign of Allah's power and provision, from which people take fresh food and ornaments (16:14), and recalls Yunus delivered from the belly of the great fish. Dream interpreters often read dangerous sea creatures as powerful or harmful people and gentle ones as helpers.",
+      "A dolphin protecting the dreamer from a shark may therefore be understood as help and protection from harm, and being bitten as fear of an oppressor. These interpretations remain tentative; gratitude, du'a, and seeking practical help are the recommended responses.",
+    ],
+    biblical: [
+      "Scripture's sea is a place of both danger and deliverance: God created the great sea creatures (Genesis 1:21), prepared a great fish for Jonah (Jonah 1:17), and calmed the storm for frightened disciples (Mark 4:39). The sea's creatures are under God's authority.",
+      "A biblical reflection might ask where you feel surrounded by threat and where God has placed helpers beside you. Psalm 107 describes those who 'go down to the sea in ships' and are brought to their desired haven. See also [shark and crocodile](/dreams/shark-and-crocodile) and [fish and water](/dreams/fish-and-water).",
+    ],
+    commonScenarios: [
+      { title: "Dolphins protecting you from a shark", meaning: "Help arriving when you feel exposed; support from friends or your own resilience." },
+      { title: "Shark attacking a dolphin", meaning: "Fear that kindness or a supportive person is being harmed by aggression." },
+      { title: "Swimming with sharks and dolphins", meaning: "An environment that holds both risk and friendship; a call for awareness without panic." },
+      { title: "Dolphin turning into a shark", meaning: "A friendly situation or person revealing a competitive or hostile side." },
+      { title: "Watching both from a boat", meaning: "Perspective and safety while observing a complex emotional situation." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of sharks and dolphins?", answer: "It usually shows threat and support sharing the same space — danger alongside kindness in your emotional or social world." },
+      { question: "What if a dolphin saves me from a shark?", answer: "It often reflects help arriving at the right moment, from people or from your own inner resources." },
+      { question: "What if a shark attacks a dolphin?", answer: "It may express concern that aggression is harming someone kind, or that your lighter side is under pressure." },
+      { question: "Is a shark and dolphin dream good or bad?", answer: "It is mixed: it acknowledges danger but also shows protection and resilience." },
+      { question: "What does the sea represent here?", answer: "The sea usually stands for deep emotion or the unconscious, where both fears and helpers live." },
+    ],
+  },
+  "shark-and-crocodile": {
+    introduction: [
+      "A shark and a crocodile in the same dream double the sense of danger in the water. The shark belongs to the open sea and represents sudden, relentless threat; the crocodile belongs to rivers and swamps and represents patient, crushing power close to the shore. Together they often describe a situation where there seems to be no safe place to swim — trouble in deep waters and in the shallows.",
+      "People commonly dream this pair during intense stress: conflict at work and at home, financial pressure combined with health worries, or a relationship that feels hostile from several directions. If the two predators fight each other, the dream may be showing rivals whose conflict affects you. For single scenes see [shark attack](/dreams/shark-attack) and [crocodile attack](/dreams/crocodile-attack).",
+    ],
+    general: [
+      "Ask what the 'water' is: your emotions, your workplace, your finances, your family. Then ask whether the danger feels sudden (shark) or lurking (crocodile). Naming each makes it easier to plan a response.",
+      "Reaching land, a boat, or a bridge is significant; it suggests you can find distance and perspective. If you froze in the water, the dream may be mirroring overwhelm. Related pages: [snake and crocodile](/dreams/snake-and-crocodile) and [shark and dolphin](/dreams/shark-and-dolphin).",
+    ],
+    psychological: [
+      "Psychologically, water predators often embody fears that rise from beneath awareness. Two of them can reflect anxiety that has generalized — the sense that danger could come from anywhere. That pattern often follows prolonged stress or a shock.",
+      "The dream is not a prediction but a signal of arousal. Grounding practices, sleep, and sharing the load with someone trusted tend to reduce such dreams more than analysis alone. If they repeat with terror, see [how to stop nightmares](/dreams/how-to-stop-nightmares).",
+    ],
+    spiritual: [
+      "Spiritually, both animals are ancient symbols of primal force. Facing them can mark a test of faith or courage — a passage through chaos that asks you to hold on to what steadies you.",
+      "Surviving the dream, or seeing the predators turn away, can be read as protection and as a sign that you are stronger than the chaos around you.",
+    ],
+    islamic: [
+      "Islamic dream interpreters often read dangerous water creatures as oppressive or powerful people, and the sea as a place of trials as well as provision. A shark and crocodile together may therefore reflect fear of harm from powerful opponents or a situation that feels beyond one's control.",
+      "Escaping them is commonly understood as deliverance, recalling how Allah delivered Yunus from the depths. Seeking refuge, reciting the supplication of Yunus, and taking practical steps toward safety are the recommended responses.",
+    ],
+    biblical: [
+      "Scripture describes Leviathan, a monster of the waters that no human can subdue (Job 41), and God's victory over the sea's chaos (Psalm 74:13–14). Many readers see crocodiles and great sea creatures through that lens: forces beyond human control that are still under God's hand.",
+      "A biblical reflection might draw on Isaiah 43:2: 'When thou passest through the waters, I will be with thee.' The dream can be a prompt to bring overwhelming circumstances into prayer and wise counsel rather than to face them alone.",
+    ],
+    commonScenarios: [
+      { title: "Shark and crocodile attacking you", meaning: "Overwhelm from multiple directions; a need to find one safe step at a time." },
+      { title: "Shark fighting a crocodile", meaning: "Rivals in conflict whose struggle affects you, or two fears competing for attention." },
+      { title: "Escaping onto land", meaning: "Recovering perspective and safety after intense stress." },
+      { title: "Watching them from a boat", meaning: "Awareness of danger while remaining protected." },
+      { title: "Both predators swimming away", meaning: "Relief; a threatening period passing." },
+    ],
+    faq: [
+      { question: "What does a shark and crocodile dream mean?", answer: "It usually reflects danger from more than one direction — sudden threats and lurking ones — often within an emotional situation." },
+      { question: "What if they fight each other?", answer: "It can point to rivals whose conflict affects you, or to two worries competing for your energy." },
+      { question: "Is this dream a bad omen?", answer: "It reflects stress and fear rather than predicting harm. It is a signal to reduce pressure and seek support." },
+      { question: "What if I escape?", answer: "Escape suggests resilience and the ability to create distance from what threatens you." },
+      { question: "What is the spiritual meaning?", answer: "Many traditions see such predators as chaos or trials, with escape symbolizing protection and strength." },
+    ],
+  },
+  "earthquake-and-tsunami": {
+    introduction: [
+      "An earthquake followed by a tsunami is one of the most intense disaster dreams. The earthquake shakes the foundations — security, identity, home, plans. The tsunami follows with overwhelming water — emotion, consequences, or change arriving too fast to outrun. The pairing often appears after a real shock, such as a breakup, job loss, diagnosis, or family conflict, when the first blow has passed but the emotional wave is still coming.",
+      "People frequently search this dream after news of real disasters, and that context matters: the mind often processes collective fear through personal scenes. If you have recently seen such images, the dream may be less a message and more a way of digesting them. For each element alone, see [earthquake](/dreams/earthquake) and [tsunami](/dreams/tsunami).",
+    ],
+    general: [
+      "Pay attention to sequence. Surviving the quake but facing the wave suggests you coped with the initial shock but have not processed its emotional aftermath. Seeing the wave from high ground suggests awareness and preparation. Being swept away points to overwhelm.",
+      "Family often appears in these dreams. Trying to save loved ones reflects responsibility; losing them reflects fear. See [tsunami and family](/dreams/tsunami-and-family), [running from a tsunami](/dreams/running-from-tsunami), and [building collapsing](/dreams/building-collapsing).",
+    ],
+    psychological: [
+      "Psychologically, earthquakes often represent a disruption of basic security, while tsunamis represent emotional overwhelm. The combination may mirror a cascade: when stability breaks, suppressed feelings rush in. Anxiety and trauma responses commonly produce this kind of imagery.",
+      "The dream can also be anticipatory: part of you may sense that a change underway will bring strong feelings later. Preparing — talking, resting, simplifying — is a reasonable waking response. If the dream repeats with terror, [anxiety dreams](/dreams/anxiety-dreams) and [how to stop nightmares](/dreams/how-to-stop-nightmares) offer practical tools.",
+    ],
+    spiritual: [
+      "Spiritually, great upheavals are often read as endings that clear space for renewal. The shaking and the flood may signal that an old structure is being removed, painfully but not pointlessly.",
+      "Survival in the dream, or finding calm after the wave, can be read as a promise of resilience. The spiritual task is to hold on to what is truly foundational while letting go of what the wave carries away.",
+    ],
+    islamic: [
+      "The Quran describes the great quaking of the earth in Surah Az-Zalzalah and recounts the flood in the time of Nuh. In dream interpretation, earthquakes are often read as trials, upheaval, or fear affecting a place or community, and floods as calamity or overwhelming events — though a flood that harms no one may be read more lightly.",
+      "Surviving both is commonly understood as deliverance and a reminder to turn back to Allah. Interpreters caution against treating such dreams as predictions of specific disasters. Seek refuge in Allah, give charity, and focus on practical preparation and good deeds.",
+    ],
+    biblical: [
+      "In 1 Kings 19 Elijah experiences wind, an earthquake, and fire, yet God speaks afterward in 'a still small voice.' Noah's flood (Genesis 6–9) and Jesus' parable of the house on the rock that withstood the floods (Matthew 7:24–27) add further layers to this pairing.",
+      "A biblical reflection might ask what foundation you are standing on and whether you are listening for God's quiet guidance amid noise. See [storm and tree](/dreams/storm-and-tree) for another image of being tested and remaining rooted.",
+    ],
+    commonScenarios: [
+      { title: "Surviving the earthquake but seeing the wave", meaning: "You have survived an initial shock, but its emotional consequences are still approaching." },
+      { title: "Running from a tsunami after a quake", meaning: "Trying to outpace feelings or consequences; a need for rest and processing." },
+      { title: "Watching from high ground", meaning: "Perspective and preparation; you can see the change coming." },
+      { title: "Saving family from both", meaning: "Strong responsibility for loved ones during a turbulent time." },
+      { title: "Calm after the disaster", meaning: "Recovery and renewal after upheaval." },
+    ],
+    faq: [
+      { question: "What does an earthquake and tsunami dream mean?", answer: "It often reflects a sudden shock to your stability followed by an emotional wave — one crisis setting off another." },
+      { question: "Does it predict a real disaster?", answer: "No. Such dreams reflect stress, fear, or news you have absorbed. They are not forecasts." },
+      { question: "What if I survive both?", answer: "Survival usually reflects resilience and the ability to recover after major change." },
+      { question: "What does it mean in Islam?", answer: "Earthquakes and floods are often read as trials or upheaval, and survival as deliverance and a call to turn back to Allah." },
+      { question: "Why do I dream this after watching the news?", answer: "The mind processes vivid images and collective fear through dreams, often placing you inside the scene." },
+    ],
+  },
+  "fish-and-water": {
+    introduction: [
+      "Fish and water together form one of the most common and most hopeful dream pairs. Water represents emotion, intuition, and the state of your inner life; fish represent what lives and moves within it — ideas, opportunities, abundance, fertility, or insights rising to the surface. The condition of both tells the story: healthy fish in clear water often feel like a sign of flow and well-being.",
+      "Murky or low water changes the picture. Fish struggling in dirty water can reflect creativity or relationships suffering in a confusing emotional environment. A fish out of water — a phrase in many languages — mirrors feeling out of place. For water alone, see [clear water](/dreams/clear-water) and [dirty water](/dreams/dirty-water).",
+    ],
+    general: [
+      "Ask what is 'swimming' in your life right now: a new project, a pregnancy or wish for a child, a business idea, a friendship. Then look at the water: is your emotional environment supporting it? Many fish often suggest abundance or many options; a single large fish can suggest one significant opportunity.",
+      "Your action matters. Catching fish reflects taking hold of opportunity; releasing them suggests generosity or letting go; dead fish point to disappointment. See [catching fish](/dreams/catching-fish), [fish in clear water](/dreams/fish-in-clear-water), and [dead fish](/dreams/dead-fish).",
+    ],
+    psychological: [
+      "Psychologically, water is a classic image of the unconscious and fish of its contents — impulses, memories, and ideas that are alive but not yet fully conscious. Watching fish in clear water can reflect growing self-understanding.",
+      "Dreams in which fish leap from water can mark insights breaking through. When the water is dark and the fish unseen, the mind may be signaling that something important is present but not yet available to reflection. A journal is a practical way to invite it up.",
+    ],
+    spiritual: [
+      "Spiritually, fish are among the oldest symbols of faith, abundance, and nourishment, and water of cleansing and renewal. Together they often signal blessing and flow — a time when effort and grace work together.",
+      "If the water is troubled, the invitation is to clear what muddies your inner life — resentment, overwork, distraction — so that what is good can grow.",
+    ],
+    islamic: [
+      "The Quran describes water as the origin of every living thing (21:30) and the sea as a source of fresh food (16:14). In dream interpretation fish are commonly associated with lawful provision and wealth, and clear water with purity and ease; catching fish in clear water is often read as blessing.",
+      "Fish in murky water, or dead fish, may be read as provision mixed with difficulty. Interpreters note that the dreamer's circumstances shape the meaning. Gratitude, honest earning, and charity are the recommended responses to such dreams.",
+    ],
+    biblical: [
+      "Fish and water run through the Gospels: Jesus calls fishermen to be 'fishers of men' (Mark 1:17), multiplies loaves and fish, and tells Peter where to cast the net for a great catch (John 21:6). Living water is also a central image for the Spirit (John 7:38).",
+      "A biblical reading may therefore connect this dream with provision, calling, and fruitful work. If the water is clear and fish abundant, it can be received as encouragement. The [snake and fish](/dreams/snake-and-fish) page explores Luke 11:11, where a fish is contrasted with a serpent.",
+    ],
+    commonScenarios: [
+      { title: "Fish swimming in clear water", meaning: "Emotional clarity and healthy growth; opportunities developing in a supportive environment." },
+      { title: "Fish in dirty water", meaning: "Good ideas or relationships affected by confusion, stress, or mixed motives." },
+      { title: "Fish out of water", meaning: "Feeling out of place, or an opportunity that needs the right conditions to survive." },
+      { title: "Catching many fish", meaning: "Abundance, success, or a period of productive effort." },
+      { title: "Fish jumping out of water", meaning: "Insight or excitement breaking through to awareness." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of fish in water?", answer: "It usually reflects life and opportunity moving through your emotional world. Clear water and healthy fish often mean flow and well-being." },
+      { question: "What does fish in clear water mean?", answer: "It commonly signals clarity, good fortune, and growth in a supportive environment." },
+      { question: "What if the water is dirty?", answer: "It may point to confusion or stress affecting something valuable, such as a project or relationship." },
+      { question: "What does it mean in Islam?", answer: "Fish are often linked to lawful provision and clear water to purity, so the dream is frequently read as blessing, depending on details." },
+      { question: "What does a fish out of water mean?", answer: "It often mirrors feeling out of place or a situation lacking what it needs to thrive." },
+    ],
+  },
+  "storm-and-tree": {
+    introduction: [
+      "A storm bending or breaking trees is a vivid picture of pressure meeting stability. The storm represents conflict, emotional turbulence, or sudden change; the tree represents roots, family, health, growth, and what has taken years to build. The dream asks how well your foundations are holding while the weather is rough.",
+      "What happens to the tree is the heart of the reading. A tree that bends and stays standing suggests resilience. A tree uprooted or snapped often reflects fear of losing something established — a relationship, a job, a family structure. A tree struck by lightning can point to a sudden shock. See [falling tree](/dreams/falling-tree) and [thunder and lightning](/dreams/thunder-and-lightning).",
+    ],
+    general: [
+      "Ask what storm you are in: an argument, a workload, a health scare, grief. Then ask which tree it is shaking. If the tree is near your house, the issue may be domestic. If it falls on something, notice what — a car, a home, a path — because that shows what you fear the disruption will damage.",
+      "Sheltering under a tree during a storm can suggest reliance on family or tradition for protection. Watching the storm pass and the tree remain is often a hopeful sign. Related pages: [tree](/dreams/tree), [storm](/dreams/storm), and [tree and house](/dreams/tree-and-house).",
+    ],
+    psychological: [
+      "Psychologically, trees often symbolize the self across time and storms the intensity of current emotion. A dream in which a tree survives the storm can reflect ego strength — the ability to feel strongly without losing your center.",
+      "A falling tree may point to a belief or support you have leaned on that no longer holds. That can be painful, but it can also open space. It helps to ask what new support you need rather than trying to prop up what has already fallen.",
+    ],
+    spiritual: [
+      "Spiritually, the tree is a symbol of rootedness in what is true, and the storm of testing. Many traditions teach that deep roots allow a tree to bend without breaking; the dream may be inviting you to deepen practices that ground you.",
+      "After a storm, fallen branches clear space for new growth. If the dream ends in calm, it can be read as renewal following a difficult season.",
+    ],
+    islamic: [
+      "The Quran compares a good word to a good tree whose roots are firm and whose branches reach the sky, and an evil word to a tree uprooted from the earth with no stability (14:24–26). It also describes winds as bearers of mercy as well as instruments of punishment. In dream interpretation trees are often read as people or families.",
+      "A tree standing firm in a storm is therefore often understood as steadfast faith or a family holding together through trial, while an uprooted tree may reflect fear of loss. Such dreams invite reliance on Allah, patience, and strengthening good deeds.",
+    ],
+    biblical: [
+      "Psalm 1 describes the righteous as a tree planted by rivers of water, whose leaf does not wither, and Jesus tells of a house built on rock that the storm could not destroy (Matthew 7:24–27). Scripture repeatedly links stability in storms with deep roots in God's word.",
+      "A biblical reflection may ask what your roots are drawing from. Jesus calming the storm (Mark 4:35–41) adds a reminder that storms are not beyond God's authority. See also [earthquake and tsunami](/dreams/earthquake-and-tsunami) for another image of foundations tested.",
+    ],
+    commonScenarios: [
+      { title: "Tree bending but not breaking", meaning: "Resilience under pressure; flexibility that protects your core." },
+      { title: "Tree uprooted by wind", meaning: "Fear of losing something established, or a support that no longer holds." },
+      { title: "Tree falling on your house", meaning: "Worry that outside turbulence will damage family or private life." },
+      { title: "Tree struck by lightning", meaning: "A sudden shock or revelation affecting something stable." },
+      { title: "Sheltering under a tree in a storm", meaning: "Seeking protection from family, tradition, or faith during a hard time." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of a storm and trees falling?", answer: "It often reflects pressure testing your foundations — relationships, work, health, or family — and fear of losing something established." },
+      { question: "What if the tree survives the storm?", answer: "A surviving tree usually signals resilience and deep roots that can withstand change." },
+      { question: "What does a tree falling on a house mean?", answer: "It can show concern that external stress will affect your home or private life." },
+      { question: "What is the Islamic meaning?", answer: "The Quran contrasts a firmly rooted good tree with an uprooted one, so steadfastness in a storm is often read as strong faith." },
+      { question: "Is this dream a bad sign?", answer: "It highlights stress and the need for grounding, not a certain loss." },
+    ],
+  },
+  "teeth-and-hair": {
+    introduction: [
+      "Dreams in which both teeth and hair fall out are among the most distressing body dreams, and among the most searched. Teeth are linked to confidence, communication, and the ability to 'bite into' life; hair to vitality, identity, attractiveness, and how others see you. When both are lost together, the dream often reflects a sweeping fear of losing strength, control, or youth.",
+      "These dreams frequently appear during transitions — a birthday, a breakup, a new job, a period of illness or exhaustion — and during times of social scrutiny. They are rarely about actual dental or hair health, although it is sensible to rule out real concerns. See [teeth falling out](/dreams/teeth-falling-out) and [hair falling out](/dreams/hair-falling-out) for each image alone.",
+    ],
+    general: [
+      "Notice what you did. Looking in a mirror suggests self-image is central. Trying to hide the loss points to fear of judgment. Calmly collecting teeth or hair can suggest acceptance of change. Pain or blood intensifies the sense of cost.",
+      "Consider the audience. Losing teeth and hair in public often mirrors fear of embarrassment at work or among peers. In private, the dream may be more about how you see yourself. The [mirror](/dreams/mirror) page covers reflection dreams that often accompany this scene, and [teeth and blood](/dreams/teeth-and-blood) covers bleeding.",
+    ],
+    psychological: [
+      "Psychologically, this combination is a strong image of vulnerability. Many researchers link teeth dreams with stress and anxiety about self-presentation, and hair dreams with identity and attractiveness. Together they suggest a moment when you feel your usual defenses and signals of competence are failing.",
+      "The dream can also track aging and mortality, especially at milestones. Rather than trying to suppress it, it helps to name the change you fear and the support you need. If the dream repeats, [anxiety dreams](/dreams/anxiety-dreams) and [recurring dreams](/dreams/recurring-dreams) explain why.",
+    ],
+    spiritual: [
+      "Spiritually, losing hair and teeth can symbolize shedding — letting go of old strength, pride, or identity so that something new can emerge. It can be humbling, but humility is often the doorway to growth.",
+      "The dream may also invite gentleness toward the body and acceptance of its seasons. What you are losing may be making room for a different kind of strength.",
+    ],
+    islamic: [
+      "In classical Islamic dream interpretation teeth are often associated with members of the family — upper and lower teeth with different relatives — and hair with wealth, status, or lifespan, depending on the details. Losing them is therefore sometimes read as concern about family or resources, and sometimes as relief from debt or worry.",
+      "Because these readings vary widely with context, interpreters advise against alarm. A distressing dream should be met by seeking refuge in Allah and not retelling it widely; a reassuring interpretation should be received with gratitude. Decisions should rest on real circumstances.",
+    ],
+    biblical: [
+      "Hair carries weight in scripture: Samson's strength was tied to his uncut hair (Judges 16), and Jesus reassured his followers that even the hairs of their heads are numbered (Matthew 10:30). Teeth appear in images of strength and of anguish ('weeping and gnashing of teeth').",
+      "A biblical reflection might ask where you feel your strength has been taken, and whether you can trust God's care in that vulnerability. Samson's hair grew back (Judges 16:22) — a quiet image of restoration. See also [hair](/dreams/hair) and [teeth](/dreams/teeth).",
+    ],
+    commonScenarios: [
+      { title: "Teeth and hair falling out together", meaning: "A broad fear of losing confidence, attractiveness, or control during change." },
+      { title: "Seeing the loss in a mirror", meaning: "Concern about self-image and how you are perceived." },
+      { title: "Hiding lost teeth and hair", meaning: "Fear of judgment or embarrassment in a social or work setting." },
+      { title: "Teeth and hair growing back", meaning: "Recovery, renewed confidence, and restoration after a hard period." },
+      { title: "Someone else losing teeth and hair", meaning: "Worry about a loved one's health, aging, or wellbeing." },
+    ],
+    faq: [
+      { question: "What does it mean to dream teeth and hair fall out?", answer: "It usually reflects fear of losing strength, confidence, or youth during a stressful change or period of scrutiny." },
+      { question: "Is this dream about my health?", answer: "It is usually symbolic, but if you have real symptoms, check them with a professional rather than relying on the dream." },
+      { question: "What does it mean in Islam?", answer: "Teeth are often linked to family and hair to wealth or status, so the dream's meaning depends heavily on the details and your circumstances." },
+      { question: "Why do I keep having this dream?", answer: "Recurring loss dreams often track ongoing stress, insecurity, or a transition you have not fully processed." },
+      { question: "What if the teeth and hair grow back?", answer: "Regrowth usually signals recovery and renewed confidence." },
+    ],
+  },
+  "mother-and-father": {
+    introduction: [
+      "Dreaming of your mother and father together brings your origins into one frame. Parents represent care and authority, safety and rules, and the first model of how two people relate. Seeing them side by side often appears when you are dealing with family decisions, forming your own partnership, becoming a parent, or reassessing where you come from.",
+      "The mood of the scene carries the meaning. Parents together and at peace may reflect a longing for stability or gratitude for what they gave you. Parents fighting often replays tension you absorbed as a child or mirrors conflict in your current relationships. Deceased parents appearing together can be deeply comforting and often relate to grief — see [visitation dreams](/dreams/visitation-dreams).",
+    ],
+    general: [
+      "Ask what you needed from them in the dream: protection, approval, permission, or reconciliation. The answer often points to a present need. If they did not notice you, the dream may reflect feeling unseen in a current situation.",
+      "Their actions matter. Parents leaving, being in danger, or divorcing can reflect fear of change in your support system; see [parents divorcing](/dreams/parents-divorcing). The individual pages for [mother](/dreams/mother) and [father](/dreams/father) cover scenes with each parent alone.",
+    ],
+    psychological: [
+      "Psychologically, parents in dreams often represent internalized voices — the caring voice and the guiding or critical voice. When both appear, the dream may be showing how those voices interact inside you: supportive, conflicted, or silent.",
+      "Many people dream of their parents when they begin to resemble them — in a relationship pattern, a way of parenting, or a reaction under stress. Such dreams can be an opportunity to choose which patterns to keep. The [dream archetypes](/dreams/dream-archetypes) guide discusses the mother and father as larger archetypal figures.",
+    ],
+    spiritual: [
+      "Spiritually, parents represent lineage and blessing. A dream of both parents can invite honoring what you have received and releasing what you do not wish to carry forward.",
+      "Dreams of reconciliation between parents, or between you and them, often feel like healing. Even when the real relationship is complicated, the dream may point to inner peace that is possible without denying the past.",
+    ],
+    islamic: [
+      "Islam places great weight on kindness to parents: the Quran commands excellence toward them, especially in their old age, and teaches the prayer asking Allah to have mercy on them as they raised us when we were small (17:23–24). Seeing parents in a dream is often read as a reminder of this duty, and a pleased parent as a good sign.",
+      "Seeing deceased parents may prompt du'a and charity on their behalf. Parents who appear upset may invite reflection on one's conduct or on obligations toward them. Interpreters advise responding with prayer and good deeds rather than anxiety.",
+    ],
+    biblical: [
+      "'Honour thy father and thy mother' (Exodus 20:12) is repeated in the New Testament as the first commandment with a promise (Ephesians 6:2). Scripture also describes God's care in both maternal and paternal images (Isaiah 66:13; Psalm 103:13).",
+      "A biblical reflection might ask where honor, forgiveness, or boundaries are needed in your family story. Psalm 27:10 offers comfort for those who feel abandoned: 'When my father and my mother forsake me, then the LORD will take me up.' See also [dreaming about someone](/dreams/dreaming-about-someone).",
+    ],
+    commonScenarios: [
+      { title: "Parents together and happy", meaning: "A longing for stability, gratitude, or peace with your origins." },
+      { title: "Parents fighting", meaning: "Old family tension resurfacing, or conflict in your current relationships." },
+      { title: "Deceased mother and father together", meaning: "Grief, comfort, and the ongoing bond with those you have lost." },
+      { title: "Parents ignoring you", meaning: "Feeling unseen or unsupported in a present situation." },
+      { title: "Protecting your parents", meaning: "Growing responsibility for them, or role reversal as they age." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of my mother and father together?", answer: "It often reflects your origins, family patterns, and the care and authority you carry inside, especially during family or relationship changes." },
+      { question: "What if my parents are fighting in the dream?", answer: "It may replay tension you absorbed as a child or mirror conflict in your current relationships." },
+      { question: "What does it mean to dream of deceased parents together?", answer: "It is often part of grief and can bring comfort. Many traditions encourage prayer or charity on their behalf." },
+      { question: "What does it mean in Islam?", answer: "It is often read as a reminder of kindness and duty to parents, with a pleased parent seen as a good sign." },
+      { question: "Why do I dream of my parents when I am stressed?", answer: "Parents represent safety and guidance, so the mind often turns to them when you need support." },
+    ],
+  },
+  "being-chased-and-flying": {
+    introduction: [
+      "Being chased and then taking off into the air is one of the most memorable dream sequences. The chase represents pressure, fear, or something you are avoiding; the flight represents escape, freedom, and the ability to see the situation from above. Many dreamers wake from it relieved, and some with the sense that they found a new power.",
+      "The quality of the flight tells a lot. Flying high and steady suggests confidence and a real change in perspective. Struggling to stay airborne, or being pursued even in the sky, suggests that avoidance is not solving the problem. Some people become lucid at this moment — see [lucid dreams](/dreams/lucid-dreams), which often begin with flight.",
+    ],
+    general: [
+      "Ask who or what was chasing you. A known person points to a specific relationship; a faceless figure or animal points to a more general stress. Then ask what the flight means for you in waking life: a creative solution, a boundary, a trip, or simply distraction.",
+      "If the pursuer grabs you as you rise, the dream may be showing an issue that cannot be escaped without confrontation. See [being chased](/dreams/being-chased), [flying](/dreams/flying), and [flying without wings](/dreams/flying-without-wings) for each element.",
+    ],
+    psychological: [
+      "Psychologically, chase dreams are among the most common anxiety dreams, and flight is one of the most common ways dreamers resolve them. The combination can reflect a healthy coping skill — shifting perspective — or a pattern of avoidance.",
+      "A useful exercise is to rewrite the dream while awake: turn around in the air and look at the pursuer. Imagery rehearsal of this kind is used for recurring nightmares, as described in [how to stop nightmares](/dreams/how-to-stop-nightmares).",
+    ],
+    spiritual: [
+      "Spiritually, flight often symbolizes transcendence — rising above fear through faith, insight, or surrender. The chase can represent what binds you to fear.",
+      "A dream in which you fly calmly above the pursuer may be read as liberation. One in which you keep fleeing may invite you to face what follows you with courage and prayer.",
+    ],
+    islamic: [
+      "Islamic dream interpretation often associates flying with travel, elevation in status, or the fulfilment of an aim, depending on the direction and ease of flight, while being pursued is commonly linked to fear of an enemy or of consequences. Escaping by flight may therefore be read as relief and rising above a difficulty.",
+      "Interpreters also note that frightening pursuit dreams can come from Shaytan and should not be retold widely. Seeking refuge in Allah, turning to the other side, and continuing with trust are the recommended responses.",
+    ],
+    biblical: [
+      "The psalmist, pursued by enemies, cries: 'Oh that I had wings like a dove! for then would I fly away, and be at rest' (Psalm 55:6). Isaiah promises that those who wait on the Lord 'shall mount up with wings as eagles' (Isaiah 40:31).",
+      "A biblical reflection may hold both verses: the longing to escape and the strength that comes from waiting on God. The dream can invite honest prayer about what pursues you. See also [anxiety dreams](/dreams/anxiety-dreams).",
+    ],
+    commonScenarios: [
+      { title: "Flying away from a pursuer", meaning: "Escaping pressure with a new perspective or solution." },
+      { title: "Unable to fly high enough", meaning: "Avoidance that is not working; the problem needs direct attention." },
+      { title: "Pursuer flying after you", meaning: "An issue that follows you wherever you go." },
+      { title: "Looking down at the chaser", meaning: "Gaining perspective and power over a fear." },
+      { title: "Landing and facing the pursuer", meaning: "Readiness to confront what you have been avoiding." },
+    ],
+    faq: [
+      { question: "What does it mean to fly away when being chased in a dream?", answer: "It often reflects escaping pressure by rising above it, gaining perspective, or avoiding a problem." },
+      { question: "Is flying away from danger a good sign?", answer: "It often shows resilience and creativity, though repeated escape may mean the underlying issue still needs attention." },
+      { question: "What if I can't fly high enough?", answer: "It may reflect feeling that avoidance is failing and a more direct approach is needed." },
+      { question: "What is the biblical meaning?", answer: "Psalm 55:6 expresses the wish to fly away from enemies, and Isaiah 40:31 promises renewed strength like eagles." },
+      { question: "Can I control this dream?", answer: "Some people become lucid when they start to fly and can then turn to face the pursuer." },
+    ],
+  },
+  "ghost-and-demon": {
+    introduction: [
+      "Ghosts and demons appearing in the same dream create one of the most frightening kinds of nightmare. The ghost usually represents the past — memory, grief, guilt, or something unfinished. The demon represents a more active threat — intense fear, temptation, shame, or a sense of spiritual attack. Together they often appear during periods of stress, poor sleep, or unresolved emotional pain.",
+      "It is important to know that such dreams are common and often linked to the physiology of sleep. Many 'presence' experiences happen at the edge of sleep, during [sleep paralysis](/dreams/sleep-paralysis) or [hypnagogic hallucinations](/dreams/hypnagogic-hallucinations). Recognizing that can reduce fear without dismissing the meaning.",
+    ],
+    general: [
+      "Ask what the ghost might be: a person you have lost, a past relationship, a mistake you replay. Then ask what the demon might be: an addiction, anger, fear, or a situation that feels dark. The dream may be showing how the past and present fears feed each other.",
+      "Your response in the dream matters. Praying, calling for help, or turning on a light often reflects inner resources. Being unable to move points to sleep paralysis. See [ghost](/dreams/ghost), [demon](/dreams/demon), and [angel and demon together](/dreams/angel-and-demon-together).",
+    ],
+    psychological: [
+      "Psychologically, ghosts can represent unprocessed memories and demons the intense emotions we disown. A dream with both may reflect guilt and fear reinforcing each other — for example, after a loss or a decision you regret.",
+      "Nightmares like this respond well to practical steps: consistent sleep, less late-night stimulation, and rewriting the dream while awake. If they are frequent or linked to trauma, speaking with a professional is wise. The [how to stop nightmares](/dreams/how-to-stop-nightmares) and [night terrors](/dreams/night-terrors) guides explain the differences.",
+    ],
+    spiritual: [
+      "Spiritually, such dreams are often interpreted as a call for protection, cleansing, and courage. Many traditions recommend prayer, blessing the home, and turning away from what feeds fear.",
+      "At the same time, not every frightening image is a spiritual attack. Discernment means taking the feeling seriously while also caring for sleep, stress, and relationships.",
+    ],
+    islamic: [
+      "In Islam, disturbing dreams are commonly understood as coming from Shaytan, and the prescribed etiquette is to seek refuge in Allah, spit lightly to the left three times, turn to the other side, and not recount the dream. Belief in jinn is part of Islamic teaching, and recitation of Ayat al-Kursi and the last three surahs before sleep is a widely practiced protection.",
+      "A dream of ghosts and demons is therefore often treated as a reason to strengthen remembrance and prayer rather than as a message to decode. Persistent fear, especially with sleep paralysis, is also worth discussing with a trusted scholar and a medical professional.",
+    ],
+    biblical: [
+      "The Gospels record the disciples crying out in fear, thinking Jesus was a ghost, and his reply: 'Be of good cheer; it is I; be not afraid' (Matthew 14:26–27). Paul writes that the struggle is not against flesh and blood but against spiritual forces (Ephesians 6:12), and that God has not given a spirit of fear (2 Timothy 1:7).",
+      "A biblical reflection often focuses on protection and peace: praying before sleep, meditating on Psalm 4:8, and seeking pastoral support when fear persists. See also [nightmares](/dreams/nightmares) for the wider collection of frightening dream themes.",
+    ],
+    commonScenarios: [
+      { title: "Ghost and demon in your bedroom", meaning: "Fear entering your most private space; often linked to sleep paralysis or stress." },
+      { title: "Demon possessing a ghost", meaning: "A memory or grief turning into something darker, such as guilt or despair." },
+      { title: "Fighting off both", meaning: "Inner strength and resolve against fear." },
+      { title: "Praying and seeing them disappear", meaning: "Faith and calm overcoming anxiety." },
+      { title: "Unable to move while they are present", meaning: "A classic sign of sleep paralysis rather than a literal visitation." },
+    ],
+    faq: [
+      { question: "What does it mean to dream of ghosts and demons?", answer: "It often reflects unresolved memories combined with intense fear or guilt, especially during stress or poor sleep." },
+      { question: "Are ghost and demon dreams spiritual attacks?", answer: "Some traditions interpret them that way, but many are linked to sleep physiology. Taking both protection and sleep health seriously is wise." },
+      { question: "What should I do after such a dream in Islam?", answer: "Seek refuge in Allah, spit lightly to the left, turn to your other side, and do not recount the dream." },
+      { question: "Why can't I move when I see them?", answer: "That is typical of sleep paralysis, when the body remains in REM atonia while awareness returns." },
+      { question: "How can I stop these nightmares?", answer: "Regular sleep, less late stimulation, imagery rehearsal, and professional help for frequent or trauma-linked nightmares are effective steps." },
+    ],
+  },
 };
 
 /**
@@ -6094,6 +6914,106 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "Dreams about being ignored track a voice that does not land — a friend, family, partner, or crowd that will not turn toward you.",
   },
+  "lion-and-tiger": {
+    seoTitle: "Lion and Tiger Dream Meaning: Power, Rivalry & Courage",
+    seoDescription:
+      "Dreaming of a lion and a tiger together: open authority beside hidden intensity. What fighting, calm, or chasing big cats reveal about power in your life.",
+  },
+  "cat-and-snake": {
+    seoTitle: "Cat and Snake Dream Meaning: Intuition vs Hidden Danger",
+    seoDescription:
+      "Dreaming of a cat and a snake — fighting, killing, or staring each other down: intuition facing hidden risk, with psychological, Islamic, and biblical readings.",
+  },
+  "cat-and-rat": {
+    seoTitle: "Cat and Rat (Mouse) Dream Meaning: The Chase Explained",
+    seoDescription:
+      "Dreaming of a cat and a rat or mouse: a hunt for a nagging problem, cat-and-mouse dynamics, and what catching, escaping, or a reversed chase means.",
+  },
+  "cat-and-bird": {
+    seoTitle: "Cat and Bird Dream Meaning: Instinct, Freedom & Fragile Hope",
+    seoDescription:
+      "Dreaming of a cat and a bird: a fragile hope within reach of danger. What a cat catching, chasing, or befriending a bird means, with faith readings.",
+  },
+  "snake-and-rat": {
+    seoTitle: "Snake and Rat Dream Meaning: Hidden Threats in One Place",
+    seoDescription:
+      "Dreaming of a snake and a rat — a snake eating a rat, or both in the house: small problems meeting deeper danger, with Islamic and biblical readings.",
+  },
+  "snake-and-crocodile": {
+    seoTitle: "Snake and Crocodile Dream Meaning: Danger From Two Sides",
+    seoDescription:
+      "Dreaming of a snake and a crocodile together, often in water: hidden deception beside crushing force. Psychological, Islamic, and biblical (Leviathan) readings.",
+  },
+  "snake-and-frog": {
+    seoTitle: "Snake and Frog Dream Meaning: Change Meets Vulnerability",
+    seoDescription:
+      "Dreaming of a snake and a frog — a snake eating or chasing a frog: transformation threatening something sensitive, with Exodus and Islamic readings.",
+  },
+  "snake-and-fish": {
+    seoTitle: "Snake and Fish Dream Meaning: A Gift With a Hidden Cost",
+    seoDescription:
+      "Dreaming of a snake and fish: provision close to deception. What a snake eating fish or a fish turning into a snake means, with Luke 11:11 and Islamic views.",
+  },
+  "snake-and-tiger": {
+    seoTitle: "Snake and Tiger Dream Meaning: Cunning vs Raw Power",
+    seoDescription:
+      "Dreaming of a snake and a tiger — fighting, biting, or chasing you: hidden cunning against open force, and what the winner reveals about your situation.",
+  },
+  "snake-and-tree": {
+    seoTitle: "Snake in a Tree Dream Meaning: Temptation, Growth & Risk",
+    seoDescription:
+      "Dreaming of a snake in a tree — hanging, climbing, or falling on you: temptation and hidden risk around growth, with Eden, Quran, and psychological readings.",
+  },
+  "lion-and-snake": {
+    seoTitle: "Lion and Snake Dream Meaning: Courage vs Hidden Danger",
+    seoDescription:
+      "Dreaming of a lion and a snake: open courage against hidden deceit. What a lion killing a snake or a snake biting a lion means, including Psalm 91:13.",
+  },
+  "shark-and-dolphin": {
+    seoTitle: "Shark and Dolphin Dream Meaning: Danger and Rescue",
+    seoDescription:
+      "Dreaming of sharks and dolphins together: threat and kindness in the same waters. What a dolphin protecting you from a shark means, with faith readings.",
+  },
+  "shark-and-crocodile": {
+    seoTitle: "Shark and Crocodile Dream Meaning: Danger in Deep Water",
+    seoDescription:
+      "Dreaming of a shark and a crocodile together: threat from every side of the water. What attacks, fights, and escapes mean, with Leviathan and Islamic readings.",
+  },
+  "earthquake-and-tsunami": {
+    seoTitle: "Earthquake and Tsunami Dream Meaning: Shock, Then the Wave",
+    seoDescription:
+      "Dreaming of an earthquake followed by a tsunami: a shock to your foundations and an emotional wave after it. Surviving, running, and faith readings.",
+  },
+  "fish-and-water": {
+    seoTitle: "Fish in Water Dream Meaning: Flow, Abundance & Clarity",
+    seoDescription:
+      "Dreaming of fish and water — fish in clear or dirty water, catching fish, a fish out of water: abundance and emotion, with Islamic and biblical readings.",
+  },
+  "storm-and-tree": {
+    seoTitle: "Storm and Tree Dream Meaning: Roots Under Pressure",
+    seoDescription:
+      "Dreaming of a storm and trees — bending, falling, or struck by lightning: stability tested by pressure, with Psalm 1 and Quran 14 readings.",
+  },
+  "teeth-and-hair": {
+    seoTitle: "Teeth and Hair Falling Out Dream Meaning: Losing Control",
+    seoDescription:
+      "Dreaming of teeth and hair falling out together: fear of losing strength, looks, and control. What mirrors, hiding, and regrowth mean, plus faith readings.",
+  },
+  "mother-and-father": {
+    seoTitle: "Mother and Father Dream Meaning: Parents Together in Dreams",
+    seoDescription:
+      "Dreaming of your mother and father together — happy, fighting, or deceased: family patterns, care, and authority, with Quran 17:23 and Exodus 20:12.",
+  },
+  "being-chased-and-flying": {
+    seoTitle: "Being Chased and Flying Away Dream Meaning",
+    seoDescription:
+      "Dreaming of flying away when someone is chasing you: escape, new perspective, or avoidance. What struggling to fly means, with Psalm 55:6 and Islamic readings.",
+  },
+  "ghost-and-demon": {
+    seoTitle: "Ghost and Demon Dream Meaning: Fear, Guilt & Protection",
+    seoDescription:
+      "Dreaming of ghosts and demons together: unresolved memory meeting intense fear. What it means, sleep paralysis links, and Islamic and Christian protection.",
+  },
 };
 
 /**
@@ -6106,6 +7026,8 @@ type ComboSeed = {
   secondary: string;
   focus: string;
   aliases?: string[];
+  /** Display name when a parent name carries an article ("a crocodile"); defaults to "{a} and {b}". */
+  name?: string;
 };
 
 const COMBINATIONS: ComboSeed[] = [
@@ -6155,6 +7077,132 @@ const COMBINATIONS: ComboSeed[] = [
   { primary: "divorce", secondary: "wedding", focus: "a covenant unmade beside the image of how it began: ending and vow in the same night" },
   { primary: "fighting", secondary: "blood", focus: "conflict that has already cost vitality: a struggle no longer only verbal, or anger that left a mark" },
   { primary: "tree", secondary: "house", focus: "living growth inside private foundations, a family line taking the rooms, or nature refusing to stay outside the self" },
+  {
+    primary: "lion",
+    secondary: "tiger",
+    focus: "two kinds of power in one scene: open authority and hidden intensity, pride and instinct, or a rivalry between strong forces",
+    aliases: ["lion and tiger together", "dreaming of a lion and a tiger", "lion and tiger dream", "tiger and lion in a dream"],
+  },
+  {
+    primary: "cat",
+    secondary: "snake",
+    focus: "independent instinct facing hidden danger: intuition on guard, a clash between two quiet forces, or protection from a threat you sense but cannot see",
+    aliases: ["cat and snake together", "cat and snake fighting", "dream of cat and snake", "snake and cat dream", "cat killing a snake"],
+  },
+  {
+    primary: "cat",
+    secondary: "rat",
+    focus: "the chase between control and a nagging problem: dealing with something that keeps slipping away, a small threat, or cat-and-mouse dynamics with another person",
+    aliases: ["cat and mouse dream", "cat catching a rat", "cat chasing a mouse", "dream of cat and mouse", "rat and cat dream"],
+  },
+  {
+    primary: "cat",
+    secondary: "bird",
+    focus: "instinct stalking freedom: a hope or message within reach of danger, tension between staying grounded and flying, or fragile joy that feels exposed",
+    aliases: ["cat catching a bird", "cat and bird together", "dream of cat and bird", "cat chasing a bird", "bird and cat dream"],
+  },
+  {
+    primary: "snake",
+    secondary: "rat",
+    focus: "a threat feeding on a smaller problem: betrayal and dishonesty in the same space, or one danger being used to deal with another",
+    aliases: ["snake eating a rat", "snake and rat together", "dream of snake and rat", "snake and mouse dream", "rat and snake dream"],
+  },
+  {
+    primary: "snake",
+    secondary: "crocodile",
+    name: "snake and crocodile",
+    focus: "danger from two directions at once: hidden betrayal and raw, ancient force, or a threat lurking in emotional waters",
+    aliases: ["snake and crocodile together", "dream of snake and crocodile", "crocodile and snake dream", "snakes and crocodiles in water", "snake and alligator"],
+  },
+  {
+    primary: "snake",
+    secondary: "frog",
+    name: "snake and frog",
+    focus: "transformation meeting vulnerability: a change that threatens something small and sensitive, or renewal that has to survive a predator",
+    aliases: ["snake eating a frog", "snake and frog together", "dream of snake and frog", "frog and snake dream", "snake catching a frog"],
+  },
+  {
+    primary: "snake",
+    secondary: "fish",
+    focus: "a blessing shadowed by risk: provision and opportunity close to deception, or a gift that is not what it seems",
+    aliases: ["snake and fish together", "dream of snake and fish", "fish and snake dream", "snake eating fish", "snake and fish in water"],
+  },
+  {
+    primary: "snake",
+    secondary: "tiger",
+    focus: "cunning against raw force: a quiet threat and an open one, or instinct and passion competing for control",
+    aliases: ["snake and tiger together", "dream of snake and tiger", "tiger and snake fighting", "tiger and snake dream"],
+  },
+  {
+    primary: "snake",
+    secondary: "tree",
+    name: "snake and tree",
+    focus: "temptation or knowledge in the place of growth: a risk wrapped around something rooted, or transformation climbing through family and life",
+    aliases: ["snake in a tree", "snake hanging from a tree", "snake climbing a tree", "snake falling from a tree", "dream of snake and tree", "green snake in tree"],
+  },
+  {
+    primary: "lion",
+    secondary: "snake",
+    focus: "courage facing hidden danger: open strength against deceit, authority challenged by a quiet threat, or protection under pressure",
+    aliases: ["lion and snake together", "dream of lion and snake", "lion fighting a snake", "snake and lion dream"],
+  },
+  {
+    primary: "shark",
+    secondary: "dolphin",
+    name: "shark and dolphin",
+    focus: "threat and rescue in the same waters: danger alongside kindness, or emotional depths that hold both predators and protectors",
+    aliases: ["sharks and dolphins", "dream of shark and dolphin", "dolphin protecting from shark", "dolphin and shark dream", "swimming with sharks and dolphins"],
+  },
+  {
+    primary: "shark",
+    secondary: "crocodile",
+    name: "shark and crocodile",
+    focus: "two predators in deep water: overwhelming emotional danger, ruthless people on more than one side, or fear with nowhere safe to swim",
+    aliases: ["shark and crocodile together", "dream of shark and crocodile", "crocodile and shark dream", "shark and alligator dream"],
+  },
+  {
+    primary: "earthquake",
+    secondary: "tsunami",
+    focus: "a shock followed by a flood: sudden instability that releases a wave of emotion, or one crisis triggering the next",
+    aliases: ["earthquake and tsunami dream", "dream of earthquake then tsunami", "tsunami after earthquake", "earthquake and flood dream", "tsunami and earthquake"],
+  },
+  {
+    primary: "fish",
+    secondary: "water",
+    focus: "life moving through emotion: abundance, ideas, and opportunity inside your inner world, and how clear or troubled that world feels",
+    aliases: ["fish in water dream", "dream of water and fish", "fish swimming in water", "fish in clear water", "fish out of water dream"],
+  },
+  {
+    primary: "storm",
+    secondary: "tree",
+    name: "storm and tree",
+    focus: "roots tested by pressure: stability under emotional weather, family or life foundations shaken, or strength that bends without breaking",
+    aliases: ["storm and trees falling", "tree falling in a storm", "storm knocking down trees", "dream of storm and tree", "tree struck by lightning"],
+  },
+  {
+    primary: "teeth",
+    secondary: "hair",
+    focus: "fear of losing what shows strength and vitality: appearance, confidence, aging, and control slipping away together",
+    aliases: ["teeth and hair falling out", "dream of teeth and hair falling out", "losing teeth and hair", "hair and teeth falling out dream", "teeth and hair loss dream"],
+  },
+  {
+    primary: "mother",
+    secondary: "father",
+    focus: "your origins in one scene: the parental bond, family patterns, care and authority, and how your parents' relationship lives on in you",
+    aliases: ["mother and father together", "dream of mother and father", "parents in a dream", "dreaming of my parents", "deceased mother and father dream", "parents fighting dream"],
+  },
+  {
+    primary: "being-chased",
+    secondary: "flying",
+    focus: "escaping pressure by rising above it: flight from a threat, finding a new perspective, or avoiding a problem that keeps following",
+    aliases: ["flying away from someone chasing me", "dream of flying and being chased", "being chased and flying away", "flying to escape in a dream", "running and flying dream"],
+  },
+  {
+    primary: "ghost",
+    secondary: "demon",
+    focus: "fear from the past meeting a darker threat: unresolved memory and guilt, spiritual anxiety, or a night that feels haunted from several sides",
+    aliases: ["ghosts and demons in dreams", "dream of ghost and demon", "demon and ghost dream", "seeing ghosts and demons at night", "haunted by ghosts and demons"],
+  },
 ];
 
 function buildDictionary() {
@@ -6226,8 +7274,10 @@ function buildDictionary() {
     const a = bySlug.get(combo.primary);
     const b = bySlug.get(combo.secondary);
     if (!a || !b) throw new Error(`Combination references missing parent: ${combo.primary} + ${combo.secondary}`);
-    const name = `${a.name} and ${b.name}`;
-    const title = `Dreaming of ${titleCase(a.name)} and ${titleCase(b.name)}`;
+    const name = combo.name ?? `${a.name} and ${b.name}`;
+    const title = combo.name
+      ? `Dreaming of ${titleCase(combo.name).replace(/ And /g, " and ")}`
+      : `Dreaming of ${titleCase(a.name)} and ${titleCase(b.name)}`;
     entries.push({
       slug: `${combo.primary}-and-${combo.secondary}`,
       canonicalSlug: `${combo.primary}-and-${combo.secondary}`,

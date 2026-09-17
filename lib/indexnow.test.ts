@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  INDEXNOW_BATCH_LIMIT,
   INDEXNOW_ENDPOINT,
   INDEXNOW_HOST,
   INDEXNOW_KEY,
@@ -29,7 +30,9 @@ test("recent collect always includes localized home and dictionary hubs", () => 
   assert.ok(urls.includes("https://dreamly.art/dreams"));
   assert.ok(urls.includes("https://dreamly.art/es/dreams"));
   assert.ok(urls.includes("https://dreamly.art/ru"));
-  assert.ok(urls.length < 2000);
+  // The recent window is a real filter (smaller than the full inventory) and fits one IndexNow request.
+  assert.ok(urls.length < collectIndexNowUrls("all").urls.length);
+  assert.ok(urls.length <= INDEXNOW_BATCH_LIMIT);
 });
 
 test("all collect covers every locale of a known symbol", () => {

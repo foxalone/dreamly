@@ -16,6 +16,7 @@ import { notFound } from "next/navigation";
 import SectionJumpNav from "./SectionJumpNav";
 import { DreamPageImageFrame, DreamPageImagePickerButton, DreamPageImageProvider } from "./DreamPageImage";
 import GuideLinkCards from "./GuideLinkCards";
+import LinkedText from "./LinkedText";
 import {
   getCategorySiblings,
   getCombosForSymbol,
@@ -64,7 +65,11 @@ function InterpretationSection({
           <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-[var(--dd-text)]">{title}</h2>
         </div>
         <div className="space-y-5 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
-          {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph}>
+              <LinkedText text={paragraph} />
+            </p>
+          ))}
         </div>
       </div>
     </section>
@@ -284,7 +289,11 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
               <div>
                 <DreamPageImageFrame />
                 <div className="space-y-5 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
-                  {[...entry.sections.introduction, ...entry.sections.general].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                  {[...entry.sections.introduction, ...entry.sections.general].map((paragraph) => (
+                    <p key={paragraph}>
+                      <LinkedText text={paragraph} />
+                    </p>
+                  ))}
                 </div>
                 <h3 className="mt-9 text-sm font-semibold uppercase tracking-[0.15em] text-[var(--dd-subtle)]">{t.chrome.commonScenarios}</h3>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
