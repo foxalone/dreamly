@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { hostname, homedir } from "node:os";
 import path from "node:path";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
@@ -1258,6 +1258,19 @@ async function retryTelegram(job, reference, directory) {
   });
 }
 
+// The per-job work folder (.ai-video-work/<jobId>) only exists to build the
+// final MP4. Once the video and thumbnail are in Firebase Storage nothing reads
+// it again (a Telegram retry re-downloads from Storage), so it is removed.
+async function removeWorkDirectory(directory, jobId) {
+  if (!jobId || path.basename(directory) !== jobId || path.dirname(directory) !== workRoot()) return;
+  try {
+    await rm(directory, { recursive: true, force: true });
+    console.log(`[ai-video-worker] removed local work folder for ${jobId}`);
+  } catch (error) {
+    console.warn(`[ai-video-worker] could not remove work folder for ${jobId}: ${cleanError(error)}`);
+  }
+}
+
 async function processJob(job) {
   const reference = db.collection(JOBS_COLLECTION).doc(job.id);
   const directory = path.join(workRoot(), job.id);
@@ -1267,6 +1280,7 @@ async function processJob(job) {
     await heartbeat("processing", job.id);
     if (job.retryTelegramOnly) {
       await retryTelegram(job, reference, directory);
+      await removeWorkDirectory(directory, job.id);
       return;
     }
     if (job.costConfirmed !== true) throw new Error("Job is missing server-validated paid-generation confirmation");
@@ -1335,6 +1349,7 @@ async function processJob(job) {
       retryTelegramOnly: false, error: "", failedSceneIndex: null, leaseOwner: "", leaseExpiresAt: null,
       finalDurationSeconds: rendered.duration,
     });
+    await removeWorkDirectory(directory, job.id);
   } catch (error) {
     const message = cleanError(error);
     console.error(`[ai-video-worker] job ${job.id} failed: ${message}`);

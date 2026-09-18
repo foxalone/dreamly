@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { randomUUID } from "node:crypto";
-import { createWriteStream, existsSync, readFileSync, readdirSync } from "node:fs";
+import { createWriteStream, existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { hostname, homedir } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -332,6 +332,49 @@ function parseMixedMaterialsResult(stdout) {
   throw new Error("Free Mix completed without returning stock materials");
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CLI_MATERIAL_PREFIX = "cli-material-";
+
+// Local disk hygiene. Once the final MP4 is in Firebase Storage nothing reads the
+// MoneyPrinterTurbo scratch again (the app, every social publisher and the
+// Telegram retry all use videoUrl), so the task folders, the Free Mix material
+// folder and the `cli-material-*` copies that cli.py drops into
+// storage/local_videos are pure leftovers. Everything removed here is regenerable.
+function listCliMaterials(root) {
+  const directory = path.join(root, "storage", "local_videos");
+  if (!existsSync(directory)) return new Set();
+  return new Set(readdirSync(directory).filter((name) => name.startsWith(CLI_MATERIAL_PREFIX)));
+}
+
+function removeQuietly(target, label) {
+  try {
+    rmSync(target, { recursive: true, force: true });
+    return true;
+  } catch (error) {
+    console.warn(`[oneiro-video-worker] could not remove ${label}: ${cleanError(error)}`);
+    return false;
+  }
+}
+
+function cleanupLocalScratch({ root, taskIds = [], materialsBefore = new Set() }) {
+  const removed = [];
+  const tasksDirectory = path.join(root, "storage", "tasks");
+  for (const taskId of taskIds) {
+    // Only folders this worker created (random UUIDs) are ever touched.
+    if (!UUID_PATTERN.test(String(taskId ?? ""))) continue;
+    const directory = path.join(tasksDirectory, taskId);
+    if (existsSync(directory) && removeQuietly(directory, `task folder ${taskId}`)) removed.push(directory);
+  }
+  const localVideos = path.join(root, "storage", "local_videos");
+  for (const name of listCliMaterials(root)) {
+    if (materialsBefore.has(name)) continue;
+    const file = path.join(localVideos, name);
+    if (removeQuietly(file, `material copy ${name}`)) removed.push(file);
+  }
+  if (removed.length) console.log(`[oneiro-video-worker] cleaned ${removed.length} local scratch item(s)`);
+  return removed;
+}
+
 function moneyPrinterRuntime() {
   const root = env("MONEYPRINTERTURBO_ROOT") || path.join(homedir(), "MoneyPrinterTurbo");
   const uv = env("UV_BIN") || path.join(homedir(), ".local", "bin", "uv");
@@ -362,7 +405,7 @@ async function renderVideo(job, script, searchTerms) {
     logPath,
     env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
   });
-  return { ...parseCliResult(result.stdout), root, logPath };
+  return { ...parseCliResult(result.stdout), root, logPath, localTaskIds: [taskId] };
 }
 
 async function renderMixedVideo(job, script, searchTerms) {
@@ -406,7 +449,14 @@ async function renderMixedVideo(job, script, searchTerms) {
     logPath,
     env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
   });
-  return { ...parseCliResult(rendered.stdout), root, logPath, materialSources: mixed.sources };
+  return {
+    ...parseCliResult(rendered.stdout),
+    root,
+    logPath,
+    materialSources: mixed.sources,
+    localTaskIds: [materialsTaskId, taskId],
+    materialsTaskId,
+  };
 }
 
 async function enforceDuration(jobId, rendered) {
@@ -460,6 +510,10 @@ async function processJob(job) {
   const keepAlive = setInterval(() => {
     void heartbeat("processing", job.id);
   }, 20_000);
+  let runtime = null;
+  try { runtime = moneyPrinterRuntime(); } catch {}
+  const materialsBefore = runtime ? listCliMaterials(runtime.root) : new Set();
+  let rendered = null;
   try {
     await heartbeat("processing", job.id);
     const generated = await createScript(job.topic);
@@ -471,7 +525,7 @@ async function processJob(job) {
       searchTerms: generated.searchTerms,
       youtubeMetadata: generated.youtubeMetadata,
     });
-    const rendered = job.mode === "mixed"
+    rendered = job.mode === "mixed"
       ? await renderMixedVideo(job, generated.script, generated.searchTerms)
       : await renderVideo(job, generated.script, generated.searchTerms);
     if (job.mode === "mixed") {
@@ -492,6 +546,10 @@ async function processJob(job) {
       try { telegramMessageId = await sendTelegram(finalPath, `${job.topic} — English`); }
       catch (error) { telegramError = cleanError(error); }
     }
+    // The upload succeeded and Telegram has read the file, so the local render
+    // (task folders + downloaded stock clips) is no longer needed by anything.
+    await reference.update({ stage: "cleaning-local-files" });
+    const removed = cleanupLocalScratch({ root: rendered.root, taskIds: rendered.localTaskIds, materialsBefore });
     await reference.update({
       status: "completed",
       stage: "completed",
@@ -500,12 +558,22 @@ async function processJob(job) {
       videoUrl,
       telegramMessageId,
       telegramError,
-      localVideoPath: finalPath,
+      localVideoPath: "",
+      localCleanup: { removedCount: removed.length, cleanedAt: new Date().toISOString() },
       error: "",
     });
   } catch (error) {
     const message = cleanError(error);
     console.error(`[oneiro-video-worker] job ${job.id} failed: ${message}`);
+    // A failed job still drops the downloaded stock material; the render folder
+    // (if any) is kept so a failed upload can be inspected or re-uploaded by hand.
+    if (runtime) {
+      cleanupLocalScratch({
+        root: runtime.root,
+        taskIds: rendered?.materialsTaskId ? [rendered.materialsTaskId] : [],
+        materialsBefore,
+      });
+    }
     await reference.update({
       status: "failed",
       stage: "failed",
