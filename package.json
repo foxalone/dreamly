@@ -2,6 +2,9 @@
   "name": "oneiro",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "test": "tsx --test lib/*.test.ts && node --test scripts/socialSchedule.test.mjs",
     "typecheck": "tsc --noEmit",
