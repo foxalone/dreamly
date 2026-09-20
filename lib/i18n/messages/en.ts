@@ -156,7 +156,7 @@ export const EN_MESSAGES: UiMessages = {
   symbolPrompt: {
     cta: "Dreamed about this? Write the dream in your journal and get an interpretation right away.",
     title: "Tell us what you dreamed",
-    lead: "Write it the way you remember it. The first reading is free, and it is saved to your journal.",
+    lead: "Write it the way you remember it — the reading is saved to your journal.",
     placeholder: "I dreamed that…",
     close: "Close",
     saved: "Your reading is ready. Save it to keep it with the rest of your dreams.",

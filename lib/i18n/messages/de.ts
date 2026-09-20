@@ -156,7 +156,7 @@ export const DE_MESSAGES: UiMessages = {
   symbolPrompt: {
     cta: "Davon geträumt? Schreib den Traum in dein Tagebuch und bekomme sofort eine Deutung.",
     title: "Erzähl uns, was du geträumt hast",
-    lead: "Schreib es so auf, wie du dich erinnerst. Die erste Deutung ist kostenlos und landet in deinem Traumtagebuch.",
+    lead: "Schreib es so auf, wie du dich erinnerst – die Deutung landet in deinem Traumtagebuch.",
     placeholder: "Ich habe geträumt, dass…",
     close: "Schließen",
     saved: "Deine Deutung ist fertig. Speichere sie, damit sie bei deinen anderen Träumen bleibt.",

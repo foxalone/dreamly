@@ -156,7 +156,7 @@ export const PT_MESSAGES: UiMessages = {
   symbolPrompt: {
     cta: "Sonhou com isso? Escreva o sonho no seu diário e receba a interpretação na hora.",
     title: "Conte o que você sonhou",
-    lead: "Escreva do jeito que lembra. A primeira interpretação é grátis e fica guardada no seu diário.",
+    lead: "Escreva do jeito que lembra — a interpretação fica guardada no seu diário.",
     placeholder: "Sonhei que…",
     close: "Fechar",
     saved: "Sua interpretação está pronta. Salve para guardá-la junto com os outros sonhos.",

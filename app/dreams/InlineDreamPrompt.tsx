@@ -209,8 +209,7 @@ export default function InlineDreamPrompt({
                   tabIndex={open ? 0 : -1}
                   className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3.5 py-3 text-[15px] leading-6 text-[var(--dd-text)] outline-none transition placeholder:text-[var(--dd-faint)] focus:border-[var(--cta)] disabled:opacity-70"
                 />
-                <div className="flex items-center justify-between gap-3 text-[11px] font-medium tabular-nums text-[var(--dd-subtle)]">
-                  <span>{analysis ? null : t.home.askHint}</span>
+                <div className="flex items-center justify-end text-[11px] font-medium tabular-nums text-[var(--dd-subtle)]">
                   <span className={text.length >= ask.maxChars ? "text-amber-500" : ""}>
                     {text.length}/{ask.maxChars}
                   </span>
