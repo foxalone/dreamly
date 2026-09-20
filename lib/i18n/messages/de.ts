@@ -153,6 +153,14 @@ export const DE_MESSAGES: UiMessages = {
       "Traumbedeutungen dienen der Reflexion, nicht der Vorhersage oder Diagnose. Religiöse Abschnitte fassen breite Traditionen zusammen und sind keine religiösen Urteile.",
     aToZ: "A–Z-Index",
   },
+  symbolPrompt: {
+    cta: "Davon geträumt? Schreib den Traum in dein Tagebuch und bekomme sofort eine Deutung.",
+    title: "Erzähl uns, was du geträumt hast",
+    lead: "Schreib es so auf, wie du dich erinnerst. Die erste Deutung ist kostenlos und landet in deinem Traumtagebuch.",
+    placeholder: "Ich habe geträumt, dass…",
+    close: "Schließen",
+    saved: "Deine Deutung ist fertig. Speichere sie, damit sie bei deinen anderen Träumen bleibt.",
+  },
   guide: {
     learn: "Über das Träumen lernen",
     howDreamingWorks: "Wie Träumen funktioniert",

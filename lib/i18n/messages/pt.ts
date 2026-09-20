@@ -153,6 +153,14 @@ export const PT_MESSAGES: UiMessages = {
       "Os significados são uma ferramenta de reflexão, não previsão nem diagnóstico. As seções religiosas resumem tradições amplas e não são pareceres religiosos.",
     aToZ: "Índice A–Z",
   },
+  symbolPrompt: {
+    cta: "Sonhou com isso? Escreva o sonho no seu diário e receba a interpretação na hora.",
+    title: "Conte o que você sonhou",
+    lead: "Escreva do jeito que lembra. A primeira interpretação é grátis e fica guardada no seu diário.",
+    placeholder: "Sonhei que…",
+    close: "Fechar",
+    saved: "Sua interpretação está pronta. Salve para guardá-la junto com os outros sonhos.",
+  },
   guide: {
     learn: "Aprenda sobre o sonhar",
     howDreamingWorks: "Como o sonhar funciona",

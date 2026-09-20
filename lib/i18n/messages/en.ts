@@ -153,6 +153,14 @@ export const EN_MESSAGES: UiMessages = {
       "Dream meanings are a tool for reflection, not prediction or diagnosis. Religious sections summarize broad interpretive traditions and are not religious rulings.",
     aToZ: "A–Z index",
   },
+  symbolPrompt: {
+    cta: "Dreamed about this? Write the dream in your journal and get an interpretation right away.",
+    title: "Tell us what you dreamed",
+    lead: "Write it the way you remember it. The first reading is free, and it is saved to your journal.",
+    placeholder: "I dreamed that…",
+    close: "Close",
+    saved: "Your reading is ready. Save it to keep it with the rest of your dreams.",
+  },
   guide: {
     learn: "Learn about dreaming",
     howDreamingWorks: "How dreaming works",

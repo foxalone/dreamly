@@ -16,6 +16,7 @@ import { notFound } from "next/navigation";
 import SectionJumpNav from "./SectionJumpNav";
 import { DreamPageImageFrame, DreamPageImagePickerButton, DreamPageImageProvider } from "./DreamPageImage";
 import GuideLinkCards from "./GuideLinkCards";
+import InlineDreamPrompt from "./InlineDreamPrompt";
 import LinkedText from "./LinkedText";
 import {
   getCategorySiblings,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/dream-dictionary";
 import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamPageImage } from "@/lib/getDreamPageImage";
+import { splitLeadSentences } from "@/lib/leadSentences";
 import type { Locale } from "@/lib/i18n/config";
 import { SITE_URL } from "@/lib/i18n/config";
 import { getCategoryCopy } from "@/lib/i18n/categories";
@@ -200,6 +202,10 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
     ...(entry.parentSlug ? [{ name: parent.title, url: absoluteLocaleUrl(`/dreams/${parent.slug}`, locale) }] : []),
     { name: entry.title, url: pageUrl },
   ];
+  // The opening paragraph carries the inline "Dreamed about this?" prompt after its first two sentences.
+  const [openingParagraph, ...remainingParagraphs] = [...entry.sections.introduction, ...entry.sections.general];
+  const opening = splitLeadSentences(openingParagraph ?? "", 2);
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -289,7 +295,15 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
               <div>
                 <DreamPageImageFrame />
                 <div className="space-y-5 text-[15px] leading-7 text-[var(--dd-text-soft)] sm:text-base sm:leading-8">
-                  {[...entry.sections.introduction, ...entry.sections.general].map((paragraph) => (
+                  {openingParagraph ? (
+                    <InlineDreamPrompt
+                      accent={entry.accent}
+                      symbolSlug={entry.slug}
+                      lead={<LinkedText text={opening.lead} />}
+                      rest={opening.rest ? <LinkedText text={opening.rest} /> : null}
+                    />
+                  ) : null}
+                  {remainingParagraphs.map((paragraph) => (
                     <p key={paragraph}>
                       <LinkedText text={paragraph} />
                     </p>

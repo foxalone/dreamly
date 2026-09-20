@@ -109,6 +109,14 @@ export type UiMessages = {
     disclaimer: string;
     aToZ: string;
   };
+  symbolPrompt: {
+    cta: string;
+    title: string;
+    lead: string;
+    placeholder: string;
+    close: string;
+    saved: string;
+  };
   guide: {
     learn: string;
     howDreamingWorks: string;
