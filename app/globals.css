@@ -118,6 +118,8 @@
 /* Inline "Dreamed about this?" sentence inside dictionary prose. --cta is the symbol accent. */
 .dream-dictionary .dd-inline-cta {
   display: inline;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   padding: 0.08em 0.45em;
   border-radius: 0.5rem;
   font-weight: 600;

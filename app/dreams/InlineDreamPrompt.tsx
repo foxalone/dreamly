@@ -120,22 +120,33 @@ export default function InlineDreamPrompt({
     <div style={accentVars}>
       <p>
         {lead}{" "}
-        <button
-          type="button"
+        {/* A <span>, not a <button>: browsers render buttons as inline-block, which would break
+            the sentence out of the paragraph flow. */}
+        <span
+          role="button"
+          tabIndex={0}
           onMouseEnter={onEnter}
           onMouseLeave={onLeave}
           onFocus={onEnter}
           onBlur={onLeave}
           onClick={onTriggerClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onTriggerClick();
+            }
+          }}
           aria-expanded={open}
           aria-controls={panelId}
-          className="dd-inline-cta cursor-pointer text-start leading-[inherit]"
+          className="dd-inline-cta cursor-pointer select-none"
         >
           <Sparkles size={14} strokeWidth={2.2} className="me-1 inline-block align-[-2px]" aria-hidden="true" />
           {t.symbolPrompt.cta}
           <ArrowRight size={14} strokeWidth={2.2} className="dd-inline-cta__arrow ms-1 inline-block align-[-2px] rtl:rotate-180" aria-hidden="true" />
-        </button>
-        {rest ? <> {rest}</> : null}
+        </span>
+        {/* Closed: the paragraph carries on right after the sentence. Open: the panel sits
+            directly under the sentence and the rest of the paragraph resumes below it. */}
+        {rest && !open ? <> {rest}</> : null}
       </p>
 
       <div
@@ -148,7 +159,7 @@ export default function InlineDreamPrompt({
       >
         <div className="overflow-hidden">
           <div
-            className={`relative mt-5 overflow-hidden rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-4 transition-opacity duration-300 sm:p-5 ${open ? "opacity-100" : "opacity-0"}`}
+            className={`relative mt-4 overflow-hidden rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-4 transition-opacity duration-300 sm:p-5 ${open ? "opacity-100" : "opacity-0"}`}
             {...(open ? {} : { inert: true })}
           >
             <div
@@ -262,6 +273,7 @@ export default function InlineDreamPrompt({
           </div>
         </div>
       </div>
+      {rest && open ? <p className="mt-5">{rest}</p> : null}
     </div>
   );
 }
