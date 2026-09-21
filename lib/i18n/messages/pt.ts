@@ -198,7 +198,7 @@ export const PT_MESSAGES: UiMessages = {
     limitsNote: "Até 5 sonhos por dia — inclusive no teste.",
     accessFeatures: "Diário, mapa, fotos e mais.",
     useFor: "A assinatura libera salvar sonhos e interpretações com IA no aplicativo.",
-    freeNote: "O dicionário, a galeria, o mapa e a primeira interpretação continuam grátis.",
+    freeNote: "O dicionário, a galeria, o mapa, o primeiro sonho salvo e a primeira interpretação continuam grátis.",
     refundNote: "Cancele no teste e você não é cobrado. Veja a Política de reembolso.",
     seoTitle: "Preços da Dreamly — interpretação de sonhos com IA mensal e anual",
     seoDescription:
@@ -300,6 +300,7 @@ export const PT_MESSAGES: UiMessages = {
     noDreams: "Ainda não há sonhos. Adicione o primeiro.",
     noStories: "Ainda não há histórias. Adicione a primeira.",
     subscriptionRequired: "É preciso uma assinatura Dreamly.",
+    firstDreamFree: "Primeiro sonho grátis",
     dailyLimitReached: "Limite diário atingido (5 sonhos). Tente amanhã.",
     dreamTooLong: "Texto longo demais. Máximo {n} caracteres.",
     writeDream: "Escreva seu sonho…",
@@ -320,8 +321,8 @@ export const PT_MESSAGES: UiMessages = {
   plansModal: {
     translateTitle: "Você já usou a tradução gratuita de hoje",
     translateBody: "Todos têm uma tradução gratuita por dia, e cada tradução fica salva para sempre. Assine para traduzir quantos sonhos quiser.",
-    saveTitle: "Salvar este sonho no seu diário",
-    saveBody: "Salvar sonhos faz parte da assinatura Dreamly. Comece um teste gratuito de 3 dias para guardar este sonho e todos os próximos.",
+    saveTitle: "Seu primeiro sonho foi salvo de graça",
+    saveBody: "Guardar mais sonhos no diário faz parte da assinatura Dreamly. Comece um teste gratuito de 3 dias para salvar este e todos os próximos.",
     unlimitedNote: "Traduções ilimitadas, diário, leituras com IA e mais.",
     choosePlan: "Escolha um plano",
     notNow: "Agora não",

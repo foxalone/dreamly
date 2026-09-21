@@ -198,7 +198,7 @@ export const DE_MESSAGES: UiMessages = {
     limitsNote: "Bis zu 5 Träume pro Tag — auch in der Testphase.",
     accessFeatures: "Tagebuch, Karte, Fotos und mehr.",
     useFor: "Das Abo schaltet Speichern und KI-Deutungen in der App frei.",
-    freeNote: "Lexikon, Galerie, Karte und die erste Deutung bleiben kostenlos.",
+    freeNote: "Lexikon, Galerie, Karte, dein erster gespeicherter Traum und die erste Deutung bleiben kostenlos.",
     refundNote: "Kündigst du in der Testphase, wird nichts berechnet. Siehe die Erstattungsrichtlinie.",
     seoTitle: "Dreamly-Preise — monatliche und jährliche KI-Traumdeutung",
     seoDescription:
@@ -300,6 +300,7 @@ export const DE_MESSAGES: UiMessages = {
     noDreams: "Noch keine Träume. Füge den ersten hinzu.",
     noStories: "Noch keine Geschichten. Füge die erste hinzu.",
     subscriptionRequired: "Ein Dreamly-Abo ist erforderlich.",
+    firstDreamFree: "Erster Traum gratis",
     dailyLimitReached: "Tageslimit erreicht (5 Träume). Versuch es morgen.",
     dreamTooLong: "Zu lang. Maximal {n} Zeichen.",
     writeDream: "Schreib deinen Traum…",
@@ -320,8 +321,8 @@ export const DE_MESSAGES: UiMessages = {
   plansModal: {
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
-    saveTitle: "Diesen Traum im Tagebuch speichern",
-    saveBody: "Das Speichern von Träumen ist Teil des Dreamly-Abos. Starte eine 3-tägige kostenlose Testphase, um diesen und alle weiteren Träume zu behalten.",
+    saveTitle: "Dein erster Traum wurde kostenlos gespeichert",
+    saveBody: "Weitere Träume im Tagebuch zu behalten ist Teil des Dreamly-Abos. Starte eine 3-tägige kostenlose Testphase, um diesen und alle weiteren Träume zu speichern.",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
     choosePlan: "Plan wählen",
     notNow: "Jetzt nicht",

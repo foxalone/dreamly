@@ -1,4 +1,4 @@
-import { DREAMS_PER_DAY } from "./plans";
+import { DREAMS_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -16,6 +16,8 @@ export type UserBillingFields = {
   trialEndsAtMs?: number | null;
   dreamsDayKey?: string | null;
   dreamsTodayCount?: number | null;
+  /** Lifetime count of diary saves made without a subscription. */
+  freeDreamSavesUsed?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -41,4 +43,20 @@ export function dreamsUsedToday(data: UserBillingFields | null | undefined, now 
 
 export function remainingDreamsToday(data: UserBillingFields | null | undefined, now = new Date()) {
   return Math.max(0, DREAMS_PER_DAY - dreamsUsedToday(data, now));
+}
+
+export function freeDreamSavesUsed(data: UserBillingFields | null | undefined) {
+  const used = Number(data?.freeDreamSavesUsed ?? 0);
+  return Number.isFinite(used) ? Math.max(0, Math.floor(used)) : 0;
+}
+
+/** True when a non-subscriber still has a free diary save left. */
+export function hasFreeDreamSave(data: UserBillingFields | null | undefined) {
+  return freeDreamSavesUsed(data) < FREE_DREAM_SAVES_TOTAL;
+}
+
+/** Can this user save a dream right now — subscription, or the free first save. */
+export function canSaveDream(data: UserBillingFields | null | undefined, now = Date.now()) {
+  if (hasPaidAccess(data, now)) return remainingDreamsToday(data, new Date(now)) > 0;
+  return hasFreeDreamSave(data);
 }

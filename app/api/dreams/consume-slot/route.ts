@@ -9,7 +9,8 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    const slot = await consumeDreamSlot(auth.uid);
+    // Diary save: subscribers use a daily slot, others get one free save ever.
+    const slot = await consumeDreamSlot(auth.uid, { allowFreeSave: true });
     if ("error" in slot) return slot.error;
     return NextResponse.json({ ok: true, ...slot });
   } catch (e: unknown) {

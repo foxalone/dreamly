@@ -20,6 +20,7 @@ import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
 import {
+  hasFreeDreamSave,
   hasPaidAccess,
   remainingDreamsToday,
   type UserBillingFields,
@@ -1030,12 +1031,15 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-    if (!hasPaidAccess(billing)) {
+    const paid = hasPaidAccess(billing);
+    if (!paid && !hasFreeDreamSave(billing)) {
       // Save is always visible; the paywall shows up only when it is pressed.
+      // A signed-in user without a subscription gets one free save, ever
+      // (FREE_DREAM_SAVES_TOTAL) — the server enforces it in consume-slot.
       setPlansOpen(true);
       return;
     }
-    if (remainingDreamsToday(billing) < 1) {
+    if (paid && remainingDreamsToday(billing) < 1) {
       setError(t.app.dailyLimitReached);
       return;
     }
@@ -1106,6 +1110,7 @@ export default function DreamsPage() {
           content_type: type,
           input_method: payload.source,
           word_count: payload.wordCount,
+          free_save: slotData?.free === true,
         });
       } catch (e) {
         if (slotTaken) {
@@ -1562,7 +1567,9 @@ export default function DreamsPage() {
   >
     {canAccess
       ? formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })
-      : t.profile.subscribe}
+      : !billingLoading && hasFreeDreamSave(billing)
+        ? t.app.firstDreamFree
+        : t.profile.subscribe}
   </button>
 </div>
 

@@ -198,7 +198,7 @@ export const EN_MESSAGES: UiMessages = {
     limitsNote: "Up to 5 dreams per day — including during the trial.",
     accessFeatures: "Journal, map, photos, and more.",
     useFor: "Subscription unlocks saving dreams and AI interpretations in the app.",
-    freeNote: "The dictionary, gallery, map, and your first interpretation stay free.",
+    freeNote: "The dictionary, gallery, map, your first saved dream, and your first interpretation stay free.",
     refundNote: "Cancel during the trial and you are not charged. See the Refund Policy.",
     seoTitle: "Dreamly Pricing — Monthly and Yearly AI Dream Interpretation",
     seoDescription:
@@ -300,6 +300,7 @@ export const EN_MESSAGES: UiMessages = {
     noDreams: "No dreams yet. Add your first one.",
     noStories: "No stories yet. Add your first one.",
     subscriptionRequired: "A Dreamly subscription is required.",
+    firstDreamFree: "First dream free",
     dailyLimitReached: "Daily limit reached (5 dreams). Try again tomorrow.",
     dreamTooLong: "Too long. Max {n} characters.",
     writeDream: "Write your dream…",
@@ -320,8 +321,8 @@ export const EN_MESSAGES: UiMessages = {
   plansModal: {
     translateTitle: "You've used today's free translation",
     translateBody: "Everyone gets one free translation a day, and every translation is saved forever. Subscribe to translate as many dreams as you like.",
-    saveTitle: "Save this dream to your journal",
-    saveBody: "Saving dreams is part of the Dreamly subscription. Start a 3-day free trial to keep this dream and every one after it.",
+    saveTitle: "Your first dream was saved for free",
+    saveBody: "Keeping more dreams in your journal is part of the Dreamly subscription. Start a 3-day free trial to save this one and every dream after it.",
     unlimitedNote: "Unlimited translations, journal, AI readings and more.",
     choosePlan: "Choose a plan",
     notNow: "Not now",

@@ -253,6 +253,7 @@ export type UiMessages = {
     noDreams: string;
     noStories: string;
     subscriptionRequired: string;
+    firstDreamFree: string;
     dailyLimitReached: string;
     dreamTooLong: string;
     writeDream: string;

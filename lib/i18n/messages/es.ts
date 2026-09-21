@@ -198,7 +198,7 @@ export const ES_MESSAGES: UiMessages = {
     limitsNote: "Hasta 5 sueños al día — también durante la prueba.",
     accessFeatures: "Diario, mapa, fotos y más.",
     useFor: "La suscripción desbloquea guardar sueños e interpretaciones con IA en la app.",
-    freeNote: "El diccionario, la galería, el mapa y tu primera interpretación siguen siendo gratis.",
+    freeNote: "El diccionario, la galería, el mapa, tu primer sueño guardado y tu primera interpretación siguen siendo gratis.",
     refundNote: "Si cancelas durante la prueba, no se cobra. Consulta la Política de reembolso.",
     seoTitle: "Precios de Dreamly — Interpretación de sueños con IA mensual y anual",
     seoDescription:
@@ -300,6 +300,7 @@ export const ES_MESSAGES: UiMessages = {
     noDreams: "Aún no hay sueños. Añade el primero.",
     noStories: "Aún no hay historias. Añade la primera.",
     subscriptionRequired: "Se necesita una suscripción de Dreamly.",
+    firstDreamFree: "Primer sueño gratis",
     dailyLimitReached: "Límite diario alcanzado (5 sueños). Prueba mañana.",
     dreamTooLong: "Demasiado largo. Máximo {n} caracteres.",
     writeDream: "Escribe tu sueño…",
@@ -320,8 +321,8 @@ export const ES_MESSAGES: UiMessages = {
   plansModal: {
     translateTitle: "Ya usaste tu traducción gratuita de hoy",
     translateBody: "Todos tienen una traducción gratuita al día, y cada traducción se guarda para siempre. Suscríbete para traducir todos los sueños que quieras.",
-    saveTitle: "Guardar este sueño en tu diario",
-    saveBody: "Guardar sueños forma parte de la suscripción a Dreamly. Empieza una prueba gratuita de 3 días para conservar este sueño y todos los siguientes.",
+    saveTitle: "Tu primer sueño se guardó gratis",
+    saveBody: "Guardar más sueños en tu diario forma parte de la suscripción a Dreamly. Empieza una prueba gratuita de 3 días para guardar este y todos los siguientes.",
     unlimitedNote: "Traducciones ilimitadas, diario, lecturas con IA y más.",
     choosePlan: "Elige un plan",
     notNow: "Ahora no",

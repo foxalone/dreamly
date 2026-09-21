@@ -13,7 +13,9 @@ service cloud.firestore {
     function forbiddenUserKeys() {
       return [
         'openaiFreeDayKey', 'openaiFreeUsed', 'openaiFreeUpdatedAt',
-        'totalPurchasedCredits', 'welcomeBonusGranted', 'isAdmin'
+        'totalPurchasedCredits', 'welcomeBonusGranted', 'isAdmin',
+        // один бесплатный сон без подписки — пишет только consume-slot (admin SDK)
+        'freeDreamSavesUsed', 'freeDreamSaveAt'
       ];
     }
     function noForbiddenUserKeys() {
