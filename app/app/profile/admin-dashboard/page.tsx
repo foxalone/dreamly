@@ -41,6 +41,7 @@ import VideoLibraryPanel from "./VideoLibraryPanel";
 import AiImageAdminPanel from "./AiImageAdminPanel";
 import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
+import DreamTranslationsInfo from "./DreamTranslationsInfo";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -77,6 +78,10 @@ type DreamAdmin = {
   country?: string | null;
   admin1?: string | null;
   citySource?: string | null;
+
+  // shared_dreams only — see app/api/dreams/_lib/translationLedger.ts
+  translations?: Record<string, unknown> | null;
+  translationCount?: number;
 };
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
@@ -398,6 +403,10 @@ export default function AdminDashboardPage() {
               country: data.country ?? null,
               admin1: data.admin1 ?? null,
               citySource: data.citySource ?? null,
+
+              translations: data.translations ?? null,
+              translationCount:
+                typeof data.translationCount === "number" ? data.translationCount : undefined,
             };
           }
 
@@ -1273,6 +1282,17 @@ async function loadUsers() {
                         </span>
                       ) : null}
                     </div>
+
+                    {d.shared ? (
+                      <DreamTranslationsInfo
+                        sharedDreamId={sharedDocIdFor(d, onlyShared)}
+                        // users/*/dreams rows don't carry the shared doc — the
+                        // component fetches it lazily when this is undefined
+                        translations={onlyShared ? d.translations : undefined}
+                        translationCount={onlyShared ? d.translationCount : undefined}
+                        mutedText={mutedText}
+                      />
+                    ) : null}
 
                     {d.emojis?.length ? (
                       <div className="mt-2 flex flex-wrap gap-1">

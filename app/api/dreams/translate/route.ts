@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { FieldValue } from "firebase-admin/firestore";
 import {
   getMissingOneiroOpenAiKeyMessage,
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
-import { adminDb } from "../../admin/_lib/firebaseAdmin";
+import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundFreeTranslation } from "../_lib/translationQuota";
+import {
+  recordTranslationServe,
+  readTranslationUnlock,
+  type TranslationSource,
+} from "../_lib/translationLedger";
 
 export const runtime = "nodejs";
 
@@ -68,6 +72,18 @@ function extractOutputText(resp: unknown): string {
   return chunks.join("\n").trim();
 }
 
+async function lookupUser(uid: string): Promise<{ name: string | null; email: string | null }> {
+  try {
+    const u = await adminAuth().getUser(uid);
+    return {
+      name: (u.displayName ?? "").trim() || null,
+      email: (u.email ?? "").trim() || null,
+    };
+  } catch {
+    return { name: null, email: null };
+  }
+}
+
 export async function POST(req: Request) {
   let uid: string | null = null;
 
@@ -89,24 +105,27 @@ export async function POST(req: Request) {
       );
     }
 
-    // Cache hit — free, does not consume daily free OpenAI slot
-    if (sharedDreamId) {
+    // Access model (see _lib/translationLedger.ts):
+    //  - a user who already unlocked this dream+lang gets it again for free;
+    //  - otherwise every request spends the daily free slot / requires Pro,
+    //    even when the text is already cached — the cache only saves the
+    //    OpenAI call, never the charge.
+    const db = adminDb();
+    const ref = sharedDreamId ? db.doc(`shared_dreams/${sharedDreamId}`) : null;
+    let cached = "";
+    let cachedModel: string | null = null;
+    let cachedEntry: Record<string, unknown> | null = null;
+
+    if (ref) {
       try {
-        const db = adminDb();
-        const ref = db.doc(`shared_dreams/${sharedDreamId}`);
         const snap = await ref.get();
         if (snap.exists) {
           const data = snap.data() as any;
-          const cached = translationText(data?.translations?.[targetLang]);
+          const raw = data?.translations?.[targetLang];
+          cached = translationText(raw);
           if (cached) {
-            return NextResponse.json({
-              translation: cached,
-              cached: true,
-              cost: 0,
-              usedDailyFree: false,
-              model: data?.translations?.[targetLang]?.model ?? null,
-              targetLang,
-            });
+            cachedEntry = isRecord(raw) ? raw : { text: cached, legacy: true };
+            cachedModel = typeof cachedEntry.model === "string" ? cachedEntry.model : null;
           }
           if (!text) text = String(data?.text ?? "").trim();
         }
@@ -115,23 +134,68 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!text) {
+    if (ref && cached) {
+      const unlock = await readTranslationUnlock(uid, sharedDreamId, targetLang);
+      if (unlock) {
+        return NextResponse.json({
+          translation: cached,
+          cached: true,
+          source: "unlocked" satisfies TranslationSource,
+          cost: 0,
+          usedDailyFree: false,
+          model: cachedModel,
+          targetLang,
+        });
+      }
+    }
+
+    if (!text && !cached) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
+    }
+
+    // Subscribers: unlimited. Everyone else: one translation per day,
+    // otherwise 402 SUBSCRIPTION_REQUIRED (client opens the plans modal).
+    const access = await consumeTranslationAccess(uid);
+    if ("error" in access) return access.error;
+    const usedDailyFree = access.usedDailyFree;
+    const paid = access.paid;
+
+    const who = await lookupUser(uid);
+
+    // Cache hit: no OpenAI call, but the slot above is already spent.
+    if (ref && cached && cachedEntry) {
+      await recordTranslationServe({
+        db,
+        dreamRef: ref,
+        sharedDreamId,
+        uid,
+        who,
+        targetLang,
+        source: "cache",
+        model: cachedModel,
+        usedDailyFree,
+        paid,
+        cachedEntry,
+      });
+      return NextResponse.json({
+        translation: cached,
+        cached: true,
+        source: "cache" satisfies TranslationSource,
+        cost: 0,
+        usedDailyFree,
+        model: cachedModel,
+        targetLang,
+      });
     }
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
+      if (usedDailyFree) await refundFreeTranslation(uid);
       return NextResponse.json(
         { error: getMissingOneiroOpenAiKeyMessage() },
         { status: 500 }
       );
     }
-
-    // Subscribers: unlimited. Everyone else: one fresh translation per day,
-    // otherwise 402 SUBSCRIPTION_REQUIRED (client opens the plans modal).
-    const access = await consumeTranslationAccess(uid);
-    if ("error" in access) return access.error;
-    const usedDailyFree = access.usedDailyFree;
 
     const model = process.env.OPENAI_TRANSLATE_MODEL?.trim() || "gpt-5-nano";
     const openai = new OpenAI({ apiKey });
@@ -160,26 +224,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Empty translation" }, { status: 500 });
     }
 
-    if (sharedDreamId) {
-      try {
-        const db = adminDb();
-        const ref = db.doc(`shared_dreams/${sharedDreamId}`);
-        await ref.update({
-          [`translations.${targetLang}`]: {
-            text: translation,
-            model,
-            atMs: Date.now(),
-          },
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-      } catch (e: any) {
-        console.warn("translate cache write failed:", e?.message ?? e);
-      }
+    if (ref) {
+      await recordTranslationServe({
+        db,
+        dreamRef: ref,
+        sharedDreamId,
+        uid,
+        who,
+        targetLang,
+        source: "ai",
+        model,
+        usedDailyFree,
+        paid,
+        translation,
+      });
     }
 
     return NextResponse.json({
       translation,
       cached: false,
+      source: "ai" satisfies TranslationSource,
       cost: 0,
       usedDailyFree,
       model,

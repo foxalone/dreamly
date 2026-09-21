@@ -238,6 +238,9 @@ export default function SharedPage() {
     Record<string, string>
   >({});
   const [translateBusyId, setTranslateBusyId] = useState<string | null>(null);
+  // dream ids + langs this user already paid for ("<dreamId>:<lang>") — the
+  // cached text on shared_dreams is shared, but each user unlocks it once.
+  const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set());
   const [plansOpen, setPlansOpen] = useState(false);
   const t = useMessages();
 
@@ -280,6 +283,30 @@ export default function SharedPage() {
 
     return () => unsub();
   }, []);
+
+  // ✅ my translation unlocks (only when signed in). Read-only optimisation:
+  // the server is the authority, so a rules error here just means one extra
+  // API round-trip per click.
+  useEffect(() => {
+    if (!uid) {
+      setUnlocked(new Set());
+      return;
+    }
+    const unsub = onSnapshot(
+      collection(firestore, "users", uid, "translationUnlocks"),
+      (snap) => {
+        const next = new Set<string>();
+        snap.docs.forEach((d) => {
+          const langs = (d.data() as any)?.langs;
+          if (!langs || typeof langs !== "object") return;
+          Object.keys(langs).forEach((l) => next.add(`${d.id}:${l}`));
+        });
+        setUnlocked(next);
+      },
+      (err) => console.warn("translationUnlocks onSnapshot error:", err?.message ?? err)
+    );
+    return () => unsub();
+  }, [uid]);
 
   // ✅ my reactions (only when signed in)
   useEffect(() => {
@@ -426,8 +453,11 @@ export default function SharedPage() {
     // Same language as the viewer — never spend a translation on it.
     if (dreamLang(d) === lang) return;
 
+    // Cached text is shared by everyone, but only shown for free to a user
+    // who already unlocked it; everyone else goes through the API (daily free
+    // slot / Pro), which serves the cache without another OpenAI call.
     const cached = getCachedTranslation(d, lang);
-    if (cached) {
+    if (cached && unlocked.has(`${d.id}:${lang}`)) {
       setShowingTranslation((prev) => ({ ...prev, [d.id]: cached }));
       return;
     }
@@ -465,6 +495,11 @@ export default function SharedPage() {
       if (!translation) throw new Error("Empty translation");
 
       setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
+      setUnlocked((prev) => {
+        const next = new Set(prev);
+        next.add(`${d.id}:${lang}`);
+        return next;
+      });
 
       const entry = {
         text: translation,
@@ -488,7 +523,7 @@ export default function SharedPage() {
       );
 
       // client fallback write if API couldn't persist (permissions / admin env)
-      if (!data?.cached && uid) {
+      if (data?.source === "ai" && uid) {
         try {
           await updateDoc(doc(firestore, "shared_dreams", d.id), {
             [`translations.${lang}`]: entry,
@@ -633,13 +668,15 @@ export default function SharedPage() {
 
                       const isShowing = !!showingTranslation[d.id];
                       const isBusy = translateBusyId === d.id;
-                      const hasCache = !!getCachedTranslation(d, targetLang);
+                      const hasMine =
+                        !!getCachedTranslation(d, targetLang) &&
+                        unlocked.has(`${d.id}:${targetLang}`);
                       const label = isBusy
                         ? "Translating…"
                         : isShowing
                           ? "Show original"
                           : `Translate to ${targetLang.toUpperCase()}`;
-                      const title = isBusy || isShowing || hasCache
+                      const title = isBusy || isShowing || hasMine
                         ? label
                         : `${label} (free once a day, unlimited with a subscription)`;
 
@@ -650,7 +687,7 @@ export default function SharedPage() {
                           aria-label={label}
                           className={[
                             "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
-                            isShowing || hasCache ? "react-btn--translate-on" : "",
+                            isShowing || hasMine ? "react-btn--translate-on" : "",
                             isBusy ? "opacity-70 cursor-wait" : "",
                           ]
                             .filter(Boolean)

@@ -9,8 +9,10 @@ import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
  *  - Subscribers ("Pro" = trial / active / cancelled-with-time-left): unlimited.
  *  - Everyone else who is signed in: FREE_TRANSLATIONS_PER_DAY fresh translations
  *    per UTC day, tracked on users/{uid} (translateDayKey / translateFreeCount).
- *  - Cache hits (shared_dreams.translations.<lang>) never reach this code and are
- *    free for all — the daily counter is only spent on a real OpenAI call.
+ *  - Cache hits (shared_dreams.translations.<lang>) go through this code too:
+ *    the cache saves the OpenAI call, not the charge. Only a user who already
+ *    unlocked that dream+lang (users/{uid}/translationUnlocks) skips it — see
+ *    translationLedger.ts.
  *
  * Over the limit → 402 SUBSCRIPTION_REQUIRED with reason FREE_TRANSLATION_USED,
  * so the client can open the plans modal instead of a plain error.
