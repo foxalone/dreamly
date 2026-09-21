@@ -35,6 +35,9 @@ type Row = {
   importedUid?: string | null;
   importedDreamId?: string | null;
   analysis?: string;
+  analysisModel?: string | null;
+  analysisLens?: string | null;
+  analysisAtMs?: number;
   storyId?: string;
   title?: string;
   text?: string;
@@ -102,6 +105,9 @@ function toGuestRow(id: string, data: any): Row {
     title: undefined,
     text: typeof data?.text === "string" ? data.text : undefined,
     analysis: typeof data?.analysis === "string" ? data.analysis : undefined,
+    analysisModel: "home_ask",
+    analysisLens: data?.lens ?? null,
+    analysisAtMs: num(data?.createdAtMs),
     createdAtMs: num(data?.createdAtMs),
     shared: false,
     deleted: !!data?.deleted,
@@ -130,6 +136,10 @@ function toRow(path: string, id: string, data: any, sourceType: "dream" | "story
     storyId: sourceType === "story" ? id : undefined,
     title: typeof data?.title === "string" ? data.title : undefined,
     text: typeof data?.text === "string" ? data.text : undefined,
+    analysis: typeof data?.analysisText === "string" ? data.analysisText : undefined,
+    analysisModel: data?.analysisModel ?? null,
+    analysisLens: data?.analysisLens ?? null,
+    analysisAtMs: num(data?.analysisAtMs),
     createdAtMs: num(data?.createdAtMs),
     shared: !!data?.shared,
     sharedAtMs: num(data?.sharedAtMs),
@@ -194,6 +204,8 @@ export async function GET(req: Request) {
         userId,
         data?.title,
         data?.text,
+        data?.analysisText,
+        data?.analysis,
         data?.cityId,
         data?.city,
         data?.country,

@@ -55,9 +55,15 @@ type DreamAdmin = {
   storyId?: string;
   sourceType?: "dream" | "story" | "guest";
 
+  // AI interpretation: users/*/dreams store analysisText (+model/lens/at);
+  // guest_dreams store `analysis` — normalised into `analysis` here.
+  analysis?: string;
+  analysisModel?: string | null;
+  analysisLens?: string | null;
+  analysisAtMs?: number;
+
   // guest_dreams only (homepage Ask without sign-in, pinned to the map)
   guestId?: string;
-  analysis?: string;
   imported?: boolean;
   importedUid?: string | null;
   importedDreamId?: string | null;
@@ -142,7 +148,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
     return (d.emojis ?? []).some((e) => set.has(normEmoji(String(e?.native ?? ""))));
   }
   const needle = q.toLowerCase();
-  return [d.id, d.userId, d.title, d.text, d.cityId, d.city, d.country, d.authorEmail, d.authorName]
+  return [d.id, d.userId, d.title, d.text, d.analysis, d.cityId, d.city, d.country, d.authorEmail, d.authorName]
     .map((x) => String(x ?? "").toLowerCase())
     .some((x) => x.includes(needle));
 }
@@ -181,6 +187,9 @@ function guestRowFromDoc(id: string, data: any): DreamAdmin {
     guestId,
     text: data?.text,
     analysis: data?.analysis,
+    analysisModel: "home_ask",
+    analysisLens: data?.lens ?? null,
+    analysisAtMs: data?.createdAtMs,
     createdAtMs: data?.createdAtMs,
     dateKey: data?.dateKey,
     shared: false,
@@ -524,6 +533,11 @@ export default function AdminDashboardPage() {
 
             title: data.title,
             text: data.text,
+
+            analysis: typeof data.analysisText === "string" ? data.analysisText : undefined,
+            analysisModel: data.analysisModel ?? null,
+            analysisLens: data.analysisLens ?? null,
+            analysisAtMs: data.analysisAtMs,
 
             createdAtMs: data.createdAtMs,
             shared: !!data.shared,
@@ -1586,11 +1600,18 @@ async function loadUsers() {
                       </div>
                     ) : null}
 
-                    {isGuestRow(d) && d.analysis ? (
+                    {d.analysis ? (
                       <details className={`mt-2 text-xs ${mutedText}`}>
-                        <summary className="cursor-pointer">analysis</summary>
+                        <summary className="cursor-pointer">
+                          AI analysis
+                          {d.analysisLens ? ` · ${d.analysisLens}` : ""}
+                          {d.analysisModel ? ` · ${d.analysisModel}` : ""}
+                          {d.analysisAtMs ? ` · ${safeDate(d.analysisAtMs)}` : ""}
+                        </summary>
                         <div className="mt-1 whitespace-pre-wrap break-words">{d.analysis}</div>
                       </details>
+                    ) : !onlyShared ? (
+                      <div className={`mt-2 text-xs ${mutedText} opacity-70`}>no AI analysis saved</div>
                     ) : null}
                   </div>
 
