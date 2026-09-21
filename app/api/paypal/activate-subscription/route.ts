@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       subscriptionId: subscriptionID,
       uid: auth.uid,
       raw: sub,
+      strict: true,
     });
 
     const pending = !SETTLED.has(String(sub.status ?? "").toUpperCase());

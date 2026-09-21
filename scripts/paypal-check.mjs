@@ -204,7 +204,9 @@ async function main() {
       console.log(`  ${mine ? "→" : " "} ${h.id}  ${h.url}`);
       console.log(`      events: ${all ? "* (all)" : types.join(", ") || "(none)"}`);
       if (mine) {
-        /\/api\/paypal\/webhook\/?$/.test(h.url) ? ok("webhook URL points at /api/paypal/webhook") : bad(`webhook URL is ${h.url}, expected …/api/paypal/webhook`);
+        /^https:\/\/(www\.)?dreamly\.art\/api\/paypal\/webhook\/?$/.test(h.url)
+          ? ok("webhook URL is https://dreamly.art/api/paypal/webhook")
+          : bad(`webhook URL is ${h.url} — that is another site's webhook; Dreamly never receives PayPal events. Run: npm run paypal-setup -- --apply`);
         h.url.startsWith("https://") ? ok("https") : bad("webhook URL must be https");
         const missing = all ? [] : WANTED_EVENTS.filter((e) => !types.includes(e));
         missing.length ? bad(`webhook is missing events: ${missing.join(", ")}`) : ok("subscribed to all subscription lifecycle events");

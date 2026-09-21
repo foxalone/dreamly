@@ -72,6 +72,8 @@ export async function syncPaypalSubscriptionToUser(opts: {
   subscriptionId: string;
   uid?: string;
   raw?: unknown;
+  /** Throw instead of silently ignoring a subscription on a plan we don't own. */
+  strict?: boolean;
 }) {
   const sub = await fetchPaypalSubscription(opts.subscriptionId);
   const uid = String(opts.uid || sub.custom_id || "").trim();
@@ -84,6 +86,17 @@ export async function syncPaypalSubscriptionToUser(opts: {
   const status = mapStatus(paypalStatus, trial);
   const accessUntilMs = msFromPaypalTime(sub.billing_info?.next_billing_time);
   const plan: PlanId | null = sub.plan_id ? await planIdFromPaypalPlan(sub.plan_id) : null;
+
+  // The PayPal app is shared with other sites (lottopredictor), and PayPal
+  // fans every event out to every webhook of the app. A subscription on a
+  // plan we do not own must never be written into Dreamly's users/{uid}.
+  if (!plan) {
+    if (opts.strict) {
+      throw new Error(`Subscription ${opts.subscriptionId} is on a foreign PayPal plan (${sub.plan_id ?? "?"}).`);
+    }
+    console.warn("paypal sync: ignoring subscription on foreign plan", opts.subscriptionId, sub.plan_id);
+    return { uid, status, plan: null, accessUntilMs: null, ignored: true as const };
+  }
 
   const db = adminDb();
   const userRef = db.collection("users").doc(uid);
