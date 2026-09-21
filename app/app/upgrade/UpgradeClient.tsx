@@ -55,6 +55,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   const [status, setStatus] = useState<UIStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [busyCancel, setBusyCancel] = useState(false);
+  // Which action produced status === "success", so the banner does not flash
+  // the "cancelled" text while the users/{uid} snapshot is still catching up.
+  const [lastAction, setLastAction] = useState<"subscribe" | "cancel" | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUid(u?.uid ?? null));
@@ -107,6 +110,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
       });
       const j = await r.json().catch(() => ({} as Record<string, unknown>));
       if (!r.ok || !j?.ok) throw new Error(String(j?.error ?? t.upgrade.cancelled));
+      setLastAction("cancel");
       setStatus("success");
     } catch (e: unknown) {
       setStatus("error");
@@ -198,6 +202,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
               });
               const j = await r.json().catch(() => ({} as Record<string, unknown>));
               if (!r.ok || !j?.ok) throw new Error(String(j?.error ?? t.upgrade.paying));
+              setLastAction("subscribe");
               trackEvent("purchase", {
                 transaction_id: subscriptionID,
                 currency: plan.currency,
@@ -308,7 +313,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
 
       {uid && status === "success" && (
         <div className="mt-6 rounded-2xl border border-green-500/30 bg-green-600/15 px-4 py-4 text-sm text-green-200">
-          {subscribed ? t.upgrade.success : t.upgrade.cancelled}
+          {lastAction === "cancel" ? t.upgrade.cancelled : t.upgrade.success}
         </div>
       )}
 

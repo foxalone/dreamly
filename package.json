@@ -22,7 +22,8 @@
     "auto-dictionary-daily": "bash scripts/auto-dictionary-daily.sh",
     "notion-backfill": "npx --yes tsx scripts/backfill-notion-publishes.ts",
     "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts",
-    "repair-welcome-credits": "node --env-file=.env.local scripts/repair-welcome-credits.mjs"
+    "repair-welcome-credits": "node --env-file=.env.local scripts/repair-welcome-credits.mjs",
+    "paypal-check": "node --env-file=.env.local scripts/paypal-check.mjs"
   },
   "dependencies": {
     "@atproto/api": "^0.19.19",
