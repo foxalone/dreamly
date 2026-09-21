@@ -166,6 +166,19 @@ function getUserTargetLang(): TargetLang {
   return "en";
 }
 
+// Script-based guess of the dream's own language, so the translate button can be
+// hidden when it would only "translate" a text into the language it is already in
+// (that call still costs the user's one free daily translation).
+function detectLang(text: string): TargetLang {
+  const s = text ?? "";
+  const cyr = (s.match(/[\u0400-\u04FF]/g) ?? []).length;
+  const heb = (s.match(/[\u0590-\u05FF]/g) ?? []).length;
+  const lat = (s.match(/[A-Za-z]/g) ?? []).length;
+  if (cyr > heb && cyr > lat) return "ru";
+  if (heb > cyr && heb > lat) return "he";
+  return "en";
+}
+
 function getCachedTranslation(
   d: SharedDream,
   lang: TargetLang
@@ -394,6 +407,9 @@ export default function SharedPage() {
     const lang = getUserTargetLang();
     setTargetLang(lang);
 
+    // Same language as the viewer — never spend a translation on it.
+    if (detectLang(original) === lang) return;
+
     const cached = getCachedTranslation(d, lang);
     if (cached) {
       setShowingTranslation((prev) => ({ ...prev, [d.id]: cached }));
@@ -595,6 +611,10 @@ export default function SharedPage() {
                     </div>
 
                     {(() => {
+                      const text = (d.text ?? "").trim();
+                      // Already in the viewer's language — nothing to translate.
+                      if (!text || detectLang(text) === targetLang) return null;
+
                       const isShowing = !!showingTranslation[d.id];
                       const isBusy = translateBusyId === d.id;
                       const hasCache = !!getCachedTranslation(d, targetLang);
@@ -610,7 +630,7 @@ export default function SharedPage() {
                       return (
                         <button
                           onClick={() => translateDream(d)}
-                          disabled={isBusy || !(d.text ?? "").trim()}
+                          disabled={isBusy}
                           aria-label={label}
                           className={[
                             "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
