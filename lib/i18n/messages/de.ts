@@ -221,6 +221,7 @@ export const DE_MESSAGES: UiMessages = {
     paypalMissing: "PayPal ist nicht konfiguriert.",
     cancelCta: "Abo kündigen",
     cancelling: "Wird gekündigt…",
+    openPaypalPage: "Probleme mit dem PayPal-Fenster? Auf der PayPal-Seite fortfahren",
   },
   profile: {
     title: "Profil",

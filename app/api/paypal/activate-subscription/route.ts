@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "@/app/api/dreams/_lib/requireUser";
 import { fetchPaypalSubscription, syncPaypalSubscriptionToUser } from "@/lib/paypal/syncSubscription";
+import { logPaypal } from "@/lib/paypal/server";
 
 type Body = { subscriptionID?: unknown; idToken?: unknown };
 
@@ -19,13 +20,21 @@ export async function POST(req: Request) {
     // ACTIVE (APPROVAL_PENDING / APPROVED). Re-read a few times so the user
     // does not land in Firestore as "none" and get bounced back to the paywall.
     const SETTLED = new Set(["ACTIVE", "CANCELLED", "SUSPENDED", "EXPIRED"]);
+    logPaypal("info", "activate-subscription.start", { uid: auth.uid, subscriptionID });
     let sub = await fetchPaypalSubscription(subscriptionID);
-    for (let attempt = 0; attempt < 4 && !SETTLED.has(String(sub.status ?? "").toUpperCase()); attempt += 1) {
+    let attempts = 0;
+    for (; attempts < 4 && !SETTLED.has(String(sub.status ?? "").toUpperCase()); attempts += 1) {
       await new Promise((r) => setTimeout(r, 1500));
       sub = await fetchPaypalSubscription(subscriptionID);
     }
     const owner = String(sub.custom_id ?? "").trim();
     if (owner && owner !== auth.uid) {
+      logPaypal("warn", "activate-subscription.wrong-owner", {
+        uid: auth.uid,
+        subscriptionID,
+        ownerUid: owner,
+        paypalStatus: sub.status ?? null,
+      });
       return NextResponse.json({ error: "Subscription does not belong to this account." }, { status: 403 });
     }
 
@@ -37,12 +46,21 @@ export async function POST(req: Request) {
     });
 
     const pending = !SETTLED.has(String(sub.status ?? "").toUpperCase());
-    if (pending) {
-      console.warn("activate-subscription: still", sub.status, "after retries", subscriptionID);
-    }
+    logPaypal(pending ? "warn" : "info", "activate-subscription.synced", {
+      uid: auth.uid,
+      subscriptionID,
+      paypalStatus: sub.status ?? null,
+      paypalPlanId: sub.plan_id ?? null,
+      status: synced.status,
+      plan: synced.plan,
+      accessUntilMs: synced.accessUntilMs,
+      pending,
+      retries: attempts,
+    });
     return NextResponse.json({ ok: true, pending, paypalStatus: sub.status ?? null, ...synced });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
+    logPaypal("error", "activate-subscription.exception", { message });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

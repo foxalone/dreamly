@@ -221,6 +221,7 @@ export const AR_MESSAGES: UiMessages = {
     paypalMissing: "PayPal غير مُعدّ.",
     cancelCta: "إلغاء الاشتراك",
     cancelling: "جارٍ الإلغاء…",
+    openPaypalPage: "هل واجهت مشكلة في نافذة PayPal؟ تابع على صفحة PayPal",
   },
   profile: {
     title: "الملف",

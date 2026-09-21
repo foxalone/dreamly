@@ -53,3 +53,74 @@ export async function paypalFetch(path: string, init?: RequestInit) {
   const json = await r.json().catch(() => ({} as Record<string, unknown>));
   return { ok: r.ok, status: r.status, json };
 }
+
+/** First 6 chars of an id, enough to tell two PayPal apps apart in logs without leaking the id. */
+export function fingerprint(v: string | undefined | null) {
+  const s = String(v ?? "").trim();
+  return s ? `${s.slice(0, 6)}…(${s.length})` : "(empty)";
+}
+
+/**
+ * Server-side sanity check of the PayPal configuration. The JS SDK in the
+ * browser is loaded with NEXT_PUBLIC_PAYPAL_CLIENT_ID, while subscriptions
+ * are created with PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET. When those belong
+ * to different PayPal apps (or one is sandbox and the other live) PayPal's
+ * checkout shows only a generic "something went wrong" page, so we refuse to
+ * start a checkout that cannot succeed and say why in the server log.
+ */
+export function paypalConfigProblems(): string[] {
+  const problems: string[] = [];
+  const serverId = (process.env.PAYPAL_CLIENT_ID || "").trim();
+  const publicId = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "").trim();
+  const secret = (process.env.PAYPAL_CLIENT_SECRET || "").trim();
+  const env = (process.env.PAYPAL_ENV || "").trim();
+
+  if (!serverId) problems.push("PAYPAL_CLIENT_ID is empty");
+  if (!secret) problems.push("PAYPAL_CLIENT_SECRET is empty");
+  if (!publicId) problems.push("NEXT_PUBLIC_PAYPAL_CLIENT_ID is empty");
+  if (serverId && publicId && serverId !== publicId) {
+    problems.push(
+      `PAYPAL_CLIENT_ID (${fingerprint(serverId)}) and NEXT_PUBLIC_PAYPAL_CLIENT_ID (${fingerprint(
+        publicId
+      )}) are different PayPal apps`
+    );
+  }
+  if (env && env !== "live" && env !== "sandbox") {
+    problems.push(`PAYPAL_ENV must be "live" or "sandbox", got "${env}"`);
+  }
+  return problems;
+}
+
+/**
+ * Structured server log for the PayPal flow. Never pass tokens, secrets or
+ * full PayPal payloads — ids, statuses and PayPal's `debug_id` are enough to
+ * look an incident up in the PayPal dashboard.
+ */
+export function logPaypal(
+  level: "info" | "warn" | "error",
+  step: string,
+  fields: Record<string, unknown>
+) {
+  const line = `[paypal] ${step} ${JSON.stringify({ env: process.env.PAYPAL_ENV || "live", ...fields })}`;
+  if (level === "error") console.error(line);
+  else if (level === "warn") console.warn(line);
+  else console.log(line);
+}
+
+/** Pull the fields worth logging out of a PayPal error response. */
+export function paypalErrorSummary(json: unknown) {
+  const j = (json && typeof json === "object" ? json : {}) as Record<string, unknown>;
+  const details = Array.isArray(j.details)
+    ? (j.details as Array<Record<string, unknown>>).map((d) => ({
+        issue: d.issue,
+        field: d.field,
+        description: d.description,
+      }))
+    : undefined;
+  return {
+    name: j.name ?? j.error ?? null,
+    message: j.message ?? j.error_description ?? null,
+    debug_id: j.debug_id ?? null,
+    details,
+  };
+}

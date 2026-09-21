@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { paypalFetch } from "@/lib/paypal/server";
+import { logPaypal, paypalFetch } from "@/lib/paypal/server";
 import { subscriptionIdFromWebhook, syncPaypalSubscriptionToUser } from "@/lib/paypal/syncSubscription";
 
 function header(req: Request, name: string) {
@@ -34,21 +34,39 @@ async function verifyWebhook(req: Request, event: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const event = await req.json().catch(() => ({}));
+    const event = (await req.json().catch(() => ({}))) as { id?: unknown; event_type?: unknown };
+    const eventId = String(event?.id ?? "");
+    const eventType = String(event?.event_type ?? "");
     const ok = await verifyWebhook(req, event);
     if (!ok) {
+      logPaypal("warn", "webhook.bad-signature", {
+        eventId,
+        eventType,
+        transmissionId: header(req, "PAYPAL-TRANSMISSION-ID"),
+      });
       return NextResponse.json({ error: "Invalid PayPal webhook signature." }, { status: 400 });
     }
 
     const subscriptionId = subscriptionIdFromWebhook(event);
     if (subscriptionId) {
-      await syncPaypalSubscriptionToUser({ subscriptionId, raw: event });
+      const synced = await syncPaypalSubscriptionToUser({ subscriptionId, raw: event });
+      logPaypal("info", "webhook.synced", {
+        eventId,
+        eventType,
+        subscriptionId,
+        uid: synced.uid,
+        status: synced.status,
+        plan: synced.plan,
+        ignored: "ignored" in synced ? synced.ignored : false,
+      });
+    } else {
+      logPaypal("info", "webhook.no-subscription-id", { eventId, eventType });
     }
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error("paypal webhook failed:", e);
+    logPaypal("error", "webhook.exception", { message });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

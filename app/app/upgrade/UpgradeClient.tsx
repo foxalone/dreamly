@@ -58,6 +58,13 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   // Which action produced status === "success", so the banner does not flash
   // the "cancelled" text while the users/{uid} snapshot is still catching up.
   const [lastAction, setLastAction] = useState<"subscribe" | "cancel" | null>(null);
+  // PayPal's own approval page for the last subscription we created. Shown as
+  // a fallback when the Buttons popup ends on PayPal's generic error page:
+  // the redirect flow comes back to /app/upgrade?subscribed=1&subscription_id=I-…
+  const [approveUrl, setApproveUrl] = useState<string | null>(null);
+  // subscription_id picked up from the URL after the redirect flow; activated
+  // once the user is known.
+  const [returnedSubscriptionId, setReturnedSubscriptionId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUid(u?.uid ?? null));
@@ -74,6 +81,27 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
     });
     return () => unsub();
   }, [uid]);
+
+  // Redirect-flow return: PayPal sends the user back to
+  // /app/upgrade?subscribed=1&subscription_id=I-…&ba_token=BA-…&token=…
+  // (or ?cancelled=1). Read it once and scrub the query so a reload does not
+  // re-run activation.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const sp = url.searchParams;
+    const subscribedFlag = sp.get("subscribed") === "1";
+    const cancelledFlag = sp.get("cancelled") === "1";
+    const sid = (sp.get("subscription_id") || "").trim();
+    if (!subscribedFlag && !cancelledFlag) return;
+    if (subscribedFlag && sid) {
+      setReturnedSubscriptionId(sid);
+      setStatus("paying");
+    } else if (subscribedFlag) {
+      console.error("[paypal] returned with subscribed=1 but no subscription_id");
+    }
+    for (const k of ["subscribed", "cancelled", "subscription_id", "ba_token", "token"]) sp.delete(k);
+    window.history.replaceState(window.history.state, "", `${url.pathname}${sp.toString() ? `?${sp}` : ""}`);
+  }, []);
 
   const subscribed = hasPaidAccess(billing);
   const paypalClientId = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "").trim();
@@ -97,6 +125,52 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
     if (!token) throw new Error(t.app.signInRequired);
     return token;
   }
+
+  async function activateSubscription(subscriptionID: string, planId: PlanId | null) {
+    setStatus("paying");
+    setError(null);
+    console.info("[paypal] activate", { subscriptionID, plan: planId });
+    const idToken = await getIdTokenOrThrow();
+    const r = await fetch("/api/paypal/activate-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscriptionID, idToken }),
+    });
+    const j = await r.json().catch(() => ({} as Record<string, unknown>));
+    if (!r.ok || !j?.ok) {
+      console.error("[paypal] activate failed", { subscriptionID, httpStatus: r.status, error: j?.error });
+      throw new Error(String(j?.error ?? t.upgrade.paying));
+    }
+    console.info("[paypal] activated", {
+      subscriptionID,
+      paypalStatus: j?.paypalStatus,
+      status: j?.status,
+      pending: j?.pending,
+    });
+    setLastAction("subscribe");
+    setApproveUrl(null);
+    const plan = planId ? SUBSCRIPTION_PLANS[planId] : null;
+    trackEvent("purchase", {
+      transaction_id: subscriptionID,
+      currency: plan?.currency ?? "USD",
+      value: plan ? Number(plan.price) : 0,
+      items: planId && plan ? [subscriptionItem(planId, plan.price)] : [],
+    });
+    setStatus("success");
+  }
+
+  // Finish the redirect flow once we know who is signed in.
+  useEffect(() => {
+    if (!returnedSubscriptionId || !uid) return;
+    const sid = returnedSubscriptionId;
+    setReturnedSubscriptionId(null);
+    const planId: PlanId | null = selected === "monthly" || selected === "yearly" ? selected : null;
+    activateSubscription(sid, planId).catch((e: unknown) => {
+      setStatus("error");
+      setError(e instanceof Error ? e.message : t.upgrade.paying);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returnedSubscriptionId, uid]);
 
   async function cancelSubscription() {
     try {
@@ -163,6 +237,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
           createSubscription={async () => {
             setSelected(planId);
             setError(null);
+            setApproveUrl(null);
             setStatus("creating");
             trackEvent("begin_checkout", {
               currency: plan.currency,
@@ -179,49 +254,65 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
               const j = await r.json().catch(() => ({} as Record<string, unknown>));
               const subscriptionID = String(j?.subscriptionID ?? "").trim();
               if (!r.ok || !subscriptionID) {
+                console.error("[paypal] create-subscription failed", {
+                  plan: planId,
+                  httpStatus: r.status,
+                  code: j?.code,
+                  error: j?.error,
+                  paypal: j?.paypal,
+                });
                 throw new Error(String(j?.error ?? t.upgrade.creating));
               }
+              console.info("[paypal] subscription created", { plan: planId, subscriptionID });
+              setApproveUrl(typeof j?.approveUrl === "string" && j.approveUrl ? j.approveUrl : null);
               setStatus("idle");
               return subscriptionID;
             } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : t.upgrade.creating;
               setStatus("error");
-              setError(e instanceof Error ? e.message : t.upgrade.creating);
-              return "";
+              setError(message);
+              // Rethrow so the SDK aborts the popup and calls onError instead
+              // of opening PayPal with an empty subscription id.
+              throw e instanceof Error ? e : new Error(message);
             }
           }}
           onApprove={async (data) => {
             try {
-              setStatus("paying");
               const subscriptionID = String(data?.subscriptionID ?? "").trim();
+              console.info("[paypal] onApprove", {
+                plan: planId,
+                subscriptionID,
+                orderID: data?.orderID ?? null,
+              });
               if (!subscriptionID) throw new Error("Missing subscriptionID from PayPal.");
-              const idToken = await getIdTokenOrThrow();
-              const r = await fetch("/api/paypal/activate-subscription", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subscriptionID, idToken }),
-              });
-              const j = await r.json().catch(() => ({} as Record<string, unknown>));
-              if (!r.ok || !j?.ok) throw new Error(String(j?.error ?? t.upgrade.paying));
-              setLastAction("subscribe");
-              trackEvent("purchase", {
-                transaction_id: subscriptionID,
-                currency: plan.currency,
-                value: Number(plan.price),
-                items: [subscriptionItem(planId, plan.price)],
-              });
-              setStatus("success");
+              await activateSubscription(subscriptionID, planId);
             } catch (e: unknown) {
               setStatus("error");
               setError(e instanceof Error ? e.message : t.upgrade.paying);
             }
           }}
-          onCancel={() => setStatus("idle")}
+          onCancel={(data) => {
+            console.info("[paypal] onCancel", { plan: planId, subscriptionID: data?.subscriptionID ?? null });
+            setStatus("idle");
+          }}
           onError={(err) => {
-            console.error("PayPal error:", err);
+            const message = err instanceof Error ? err.message : String(err ?? "");
+            console.error("[paypal] onError", { plan: planId, message, hasApproveUrl: !!approveUrl });
             setStatus("error");
-            setError("PayPal error. Please try again.");
+            // Keep the more specific message set by createSubscription, if any.
+            setError((prev) => prev ?? "PayPal error. Please try again.");
           }}
         />
+        {status === "error" && approveUrl && selected === planId ? (
+          <a
+            href={approveUrl}
+            rel="noopener"
+            onClick={() => console.info("[paypal] redirect fallback", { plan: planId })}
+            className="dream-btn dream-btn--neutral mt-3 block w-full text-center text-sm no-underline"
+          >
+            {t.upgrade.openPaypalPage}
+          </a>
+        ) : null}
         {status === "creating" && selected === planId ? (
           <div className="mt-3 text-sm text-[var(--muted)]">{t.upgrade.creating}</div>
         ) : null}
