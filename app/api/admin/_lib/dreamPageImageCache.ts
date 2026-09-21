@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { adminDb } from "./firebaseAdmin";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { changedDreamPageImages, dreamPageImageFingerprint, dreamPageImagePaths } from "@/lib/dreamPageImageCache";
+import { notifyIndexNow } from "@/lib/indexnow";
 
 const STATE_DOCUMENT = "cache_revalidation/dreamPageImages";
 
@@ -13,9 +14,14 @@ const STATE_DOCUMENT = "cache_revalidation/dreamPageImages";
  */
 export async function refreshDreamPageImageCache(
   slugs?: string[],
-  dependencies: { db: Firestore; invalidate: (path: string) => void } = { db: adminDb(), invalidate: revalidatePath },
+  dependencies: {
+    db: Firestore;
+    invalidate: (path: string) => void;
+    /** IndexNow ping for the public pages that just changed. Secondary: must never throw into the caller. */
+    notify?: (paths: string[]) => Promise<unknown>;
+  } = { db: adminDb(), invalidate: revalidatePath },
 ) {
-  const { db, invalidate } = dependencies;
+  const { db, invalidate, notify = (paths) => notifyIndexNow(paths, { reason: "page-image" }) } = dependencies;
   const stateRef = db.doc(STATE_DOCUMENT);
   const state = await stateRef.get();
   const previous = (state.data()?.hashes || {}) as Record<string, string | null>;
@@ -45,6 +51,12 @@ export async function refreshDreamPageImageCache(
     const hashes = Object.fromEntries(changed.map((slug) => [slug, current[slug] ?? null]));
     // Merge per-slug acknowledgements; a racing source update is detected next tick.
     await stateRef.set({ hashes }, { merge: true });
+    // The pages now render the new image: tell IndexNow (it drops /sitemap.xml itself). Failures only log.
+    try {
+      await notify(paths);
+    } catch (error) {
+      console.warn("[indexnow:page-image] notification failed", error instanceof Error ? error.message : error);
+    }
   }
   return { changed: changed.length, paths: paths.length };
 }

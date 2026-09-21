@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   // Allows CI/sandbox builds to write to an alternate dist dir (defaults to .next).
   distDir: process.env.NEXT_DIST_DIR || ".next",
 
+  async rewrites() {
+    // IndexNow key verification: serve /{INDEXNOW_KEY}.txt from the env var (see app/api/indexnow/key).
+    // Same validation as INDEXNOW_KEY_PATTERN in lib/indexnow.ts; kept inline so the config stays dependency-free.
+    const indexNowKey = (process.env.INDEXNOW_KEY || "").trim();
+    const beforeFiles = /^[a-zA-Z0-9-]{8,128}$/.test(indexNowKey)
+      ? [{ source: `/${indexNowKey}.txt`, destination: "/api/indexnow/key" }]
+      : [];
+    return { beforeFiles, afterFiles: [], fallback: [] };
+  },
+
   async redirects() {
     return [
       // Canonical host: www → apex (belt-and-suspenders; Vercel domain redirect should also do this).
