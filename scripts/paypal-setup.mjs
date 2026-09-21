@@ -40,7 +40,16 @@ const log = (m) => console.log(`  ${m}`);
 
 function env(name) {
   const v = process.env[name];
-  return typeof v === "string" && v.trim() ? v.trim() : "";
+  if (typeof v === "string" && v.trim()) return v.trim();
+  // node --env-file (esp. Node 24) can swallow the lines that follow the
+  // multi-line FIREBASE_SERVICE_ACCOUNT_JSON block; fall back to the raw file.
+  try {
+    const src = readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
+    const m = src.match(new RegExp(`^${name}=(.*)$`, "m"));
+    return m ? m[1].trim().replace(/^["']|["']$/g, "") : "";
+  } catch {
+    return "";
+  }
 }
 function serviceAccount() {
   const inline = env("FIREBASE_SERVICE_ACCOUNT_JSON");
