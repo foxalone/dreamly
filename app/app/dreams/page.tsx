@@ -26,6 +26,7 @@ import {
 } from "@/lib/subscriptions/status";
 import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
+import PlansModal from "@/app/components/PlansModal";
 import { isDreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
@@ -475,6 +476,7 @@ export default function DreamsPage() {
   const [usedVoice, setUsedVoice] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [dreams, setDreams] = useState<Dream[]>([]);
@@ -1029,8 +1031,8 @@ export default function DreamsPage() {
     const u = auth.currentUser;
     if (!u) return;
     if (!hasPaidAccess(billing)) {
-      setError(t.app.subscriptionRequired);
-      router.push(localePath("/app/upgrade", locale));
+      // Save is always visible; the paywall shows up only when it is pressed.
+      setPlansOpen(true);
       return;
     }
     if (remainingDreamsToday(billing) < 1) {
@@ -1123,9 +1125,8 @@ export default function DreamsPage() {
       }, 50);
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-        setError(t.app.subscriptionRequired);
         setSaving(false);
-        router.push(localePath("/app/upgrade", locale));
+        setPlansOpen(true);
         return;
       }
       if (e?.message === "DAILY_LIMIT") {
@@ -1417,7 +1418,7 @@ export default function DreamsPage() {
 
   const canAccess = hasPaidAccess(billing);
   const canSave = useMemo(
-    () => !!text.trim() && !saving && canAccess && remainingDreamsToday(billing) > 0,
+    () => !!text.trim() && !saving && (!canAccess || remainingDreamsToday(billing) > 0),
     [text, saving, canAccess, billing]
   );
 
@@ -1603,26 +1604,16 @@ export default function DreamsPage() {
                 className="min-h-11 min-w-0 flex-1"
               />
             ) : null}
-            {canAccess ? (
-              <button
-                type="button"
-                onClick={() => {
-                  void save();
-                }}
-                disabled={!canSave}
-                className={["dream-primary-btn h-11 shrink-0 sm:w-full", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
-              >
-                {saving ? t.app.saving : t.app.save}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => router.push(localePath("/app/upgrade", locale))}
-                className="dream-primary-btn h-11 shrink-0 sm:w-full"
-              >
-                {t.profile.subscribe}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                void save();
+              }}
+              disabled={!canSave}
+              className={["dream-primary-btn h-11 shrink-0 sm:w-full", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
+            >
+              {saving ? t.app.saving : t.app.save}
+            </button>
           </div>
         </div>
       </div>
@@ -1995,19 +1986,13 @@ export default function DreamsPage() {
                     Cancel
                   </button>
 
-                  {canAccess ? (
-                    <button
-                      onClick={save}
-                      disabled={!canSave}
-                      className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
-                    >
-                      {saving ? t.app.saving : t.app.save}
-                    </button>
-                  ) : (
-                  <button onClick={() => router.push(localePath("/app/upgrade", locale))} className={["dream-primary-btn"].join(" ")} type="button">
-  {t.profile.subscribe}
-</button>
-                  )}
+                  <button
+                    onClick={save}
+                    disabled={!canSave}
+                    className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
+                  >
+                    {saving ? t.app.saving : t.app.save}
+                  </button>
                 </div>
               </div>
             </div>
@@ -2060,6 +2045,13 @@ export default function DreamsPage() {
         })()}
       </div>
 
+      <PlansModal
+        open={plansOpen}
+        onClose={() => setPlansOpen(false)}
+        source="diary_save"
+        title={t.plansModal.saveTitle}
+        body={t.plansModal.saveBody}
+      />
     </main>
   );
 }

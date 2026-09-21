@@ -320,6 +320,8 @@ export const DE_MESSAGES: UiMessages = {
   plansModal: {
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
+    saveTitle: "Diesen Traum im Tagebuch speichern",
+    saveBody: "Das Speichern von Träumen ist Teil des Dreamly-Abos. Starte eine 3-tägige kostenlose Testphase, um diesen und alle weiteren Träume zu behalten.",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
     choosePlan: "Plan wählen",
     notNow: "Jetzt nicht",

@@ -281,6 +281,8 @@ export type UiMessages = {
   plansModal: {
     translateTitle: string;
     translateBody: string;
+    saveTitle: string;
+    saveBody: string;
     unlimitedNote: string;
     choosePlan: string;
     notNow: string;
