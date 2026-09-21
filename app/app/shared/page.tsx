@@ -169,14 +169,20 @@ function getUserTargetLang(): TargetLang {
 // Script-based guess of the dream's own language, so the translate button can be
 // hidden when it would only "translate" a text into the language it is already in
 // (that call still costs the user's one free daily translation).
-function detectLang(text: string): TargetLang {
+// Returns null when the script is none of the three supported targets (Arabic,
+// CJK, ...) — such a dream can always be translated.
+function detectLang(text: string): TargetLang | null {
   const s = text ?? "";
   const cyr = (s.match(/[\u0400-\u04FF]/g) ?? []).length;
   const heb = (s.match(/[\u0590-\u05FF]/g) ?? []).length;
   const lat = (s.match(/[A-Za-z]/g) ?? []).length;
-  if (cyr > heb && cyr > lat) return "ru";
-  if (heb > cyr && heb > lat) return "he";
-  return "en";
+  const other = (s.match(/\p{L}/gu) ?? []).length - cyr - heb - lat;
+  const max = Math.max(cyr, heb, lat, other);
+  if (max === 0) return null;
+  if (max === cyr) return "ru";
+  if (max === heb) return "he";
+  if (max === lat) return "en";
+  return null;
 }
 
 function getCachedTranslation(
