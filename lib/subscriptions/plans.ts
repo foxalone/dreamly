@@ -1,8 +1,9 @@
 export const DREAM_MAX_CHARS = 400;
 export const DREAMS_PER_DAY = 5;
 export const TRIAL_DAYS = 3;
-// Non-subscribers get this many fresh (non-cached) translations per UTC day.
-// Cached translations on shared dreams stay free for everyone, forever.
+// Non-subscribers get this many feed translations per UTC day (cached or not —
+// the shared cache only saves the OpenAI call). A dream+lang a user already
+// paid for stays free for that user forever. See app/api/dreams/_lib/translationLedger.ts.
 export const FREE_TRANSLATIONS_PER_DAY = 1;
 
 export const SUBSCRIPTION_PLANS = {

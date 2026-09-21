@@ -3,26 +3,100 @@ import { FieldValue, type DocumentReference, type Firestore } from "firebase-adm
 /**
  * Translation ledger.
  *
- * Text cache lives on shared_dreams/{id}.translations.{lang} and is shared by
- * everyone — it only saves the OpenAI call. Who is allowed to *see* it is
- * tracked per user:
+ * shared_dreams/{id} is publicly readable, so the translated text must NOT
+ * live on it (anyone could read the cache without paying). It lives in
+ *
+ *   shared_dreams/{id}/private/translations
+ *     { [lang]: { text, model, atMs, byUid, byName, byEmail,
+ *                 aiCalls, cacheHits, unlockCount, lastServedAtMs, lastServedByUid, lastSource } }
+ *
+ * which Firestore rules expose to the admin only; users get the text through
+ * POST /api/dreams/translate. The cache is shared by everyone (it only saves
+ * the OpenAI call); who may *see* it is tracked per user:
  *
  *   users/{uid}/translationUnlocks/{sharedDreamId}
  *     { sharedDreamId, langs: { en: { atMs, source, usedDailyFree, paid } } }
  *
  * A user pays (daily free slot or Pro) once per dream+lang, then it is theirs
- * forever. Every paid serve is also logged for the admin dashboard:
+ * forever. Every paid serve is logged for the admin dashboard:
  *
  *   shared_dreams/{id}/translationEvents/{auto}
  *     { uid, name, email, lang, source: "ai" | "cache", model, usedDailyFree, paid, atMs }
  *
- * and summarised on the dream itself:
+ * The public dream doc only carries `translatedLangs` and `translationCount`.
  *
- *   shared_dreams/{id}.translations.{lang}
- *     { text, model, atMs, byUid, byName, byEmail, aiCalls, cacheHits, unlockCount, lastServedAtMs, lastServedByUid }
+ * Legacy: before 2026-09-21 the text sat on shared_dreams/{id}.translations.{lang}
+ * (string or {text, model, atMs}). readCachedTranslation still falls back to
+ * it and the first paid serve moves it into the private doc;
+ * scripts/migrate-translations-private.mjs does the same in bulk.
  */
 
 export type TranslationSource = "ai" | "cache" | "unlocked";
+
+export type TranslationEntry = {
+  text: string;
+  model: string | null;
+  atMs: number | null;
+  byUid?: string | null;
+  byName?: string | null;
+  byEmail?: string | null;
+  aiCalls?: number;
+  cacheHits?: number;
+  unlockCount?: number;
+  lastServedAtMs?: number;
+  lastServedByUid?: string | null;
+  lastSource?: string | null;
+};
+
+export const PRIVATE_TRANSLATIONS_DOC = "private/translations";
+
+export function privateTranslationsRef(dreamRef: DocumentReference) {
+  return dreamRef.collection("private").doc("translations");
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+function entryFromRaw(raw: unknown): TranslationEntry | null {
+  if (typeof raw === "string") {
+    const text = raw.trim();
+    return text ? { text, model: null, atMs: null } : null;
+  }
+  if (!isRecord(raw)) return null;
+  const text = String(raw.text ?? "").trim();
+  if (!text) return null;
+  return {
+    ...(raw as Partial<TranslationEntry>),
+    text,
+    model: typeof raw.model === "string" ? raw.model : null,
+    atMs: typeof raw.atMs === "number" ? raw.atMs : null,
+  };
+}
+
+/**
+ * Returns the cached translation for a language, looking first in the private
+ * doc and then in the legacy public field. `legacy` tells the caller the entry
+ * still has to be moved.
+ */
+export async function readCachedTranslation(
+  dreamRef: DocumentReference,
+  publicData: Record<string, unknown> | null,
+  lang: string
+): Promise<{ entry: TranslationEntry; legacy: boolean } | null> {
+  try {
+    const snap = await privateTranslationsRef(dreamRef).get();
+    if (snap.exists) {
+      const entry = entryFromRaw((snap.data() as any)?.[lang]);
+      if (entry) return { entry, legacy: false };
+    }
+  } catch (e: any) {
+    console.warn("private translations read failed:", e?.message ?? e);
+  }
+  const legacyRaw = isRecord(publicData?.translations) ? publicData!.translations[lang] : undefined;
+  const entry = entryFromRaw(legacyRaw);
+  return entry ? { entry, legacy: true } : null;
+}
 
 export async function readTranslationUnlock(
   uid: string,
@@ -55,16 +129,15 @@ export async function recordTranslationServe(args: {
   paid: boolean;
   /** fresh OpenAI output (source === "ai") */
   translation?: string;
-  /** existing translations.{lang} entry (source === "cache") */
-  cachedEntry?: Record<string, unknown>;
+  /** existing entry (source === "cache") */
+  cached?: { entry: TranslationEntry; legacy: boolean };
 }) {
   const { db, dreamRef, sharedDreamId, uid, who, targetLang, source, model, usedDailyFree, paid } = args;
   const now = Date.now();
-
-  const prev: Record<string, unknown> = args.cachedEntry ?? {};
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  const prev: Partial<TranslationEntry> = args.cached?.entry ?? {};
 
-  const entry: Record<string, unknown> =
+  const entry: TranslationEntry =
     source === "ai"
       ? {
           text: args.translation ?? "",
@@ -81,8 +154,9 @@ export async function recordTranslationServe(args: {
           lastSource: "ai",
         }
       : {
-          ...prev,
+          text: prev.text ?? "",
           model: prev.model ?? model ?? null,
+          atMs: prev.atMs ?? null,
           byUid: prev.byUid ?? null,
           byName: prev.byName ?? null,
           byEmail: prev.byEmail ?? null,
@@ -93,15 +167,19 @@ export async function recordTranslationServe(args: {
           lastServedByUid: uid,
           lastSource: "cache",
         };
-  delete entry.legacy; // the whole map is rewritten, so the synthetic marker must not persist
 
   const batch = db.batch();
 
-  batch.update(dreamRef, {
-    [`translations.${targetLang}`]: entry,
+  batch.set(privateTranslationsRef(dreamRef), { [targetLang]: entry, updatedAtMs: now }, { merge: true });
+
+  const publicUpdate: Record<string, unknown> = {
+    translatedLangs: FieldValue.arrayUnion(targetLang),
     translationCount: FieldValue.increment(1),
     updatedAt: FieldValue.serverTimestamp(),
-  });
+  };
+  // Moving a legacy entry: drop the public copy of the text.
+  if (args.cached?.legacy) publicUpdate[`translations.${targetLang}`] = FieldValue.delete();
+  batch.update(dreamRef, publicUpdate);
 
   batch.set(dreamRef.collection("translationEvents").doc(), {
     uid,

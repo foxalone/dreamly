@@ -13,7 +13,6 @@ import {
   query,
   runTransaction,
   serverTimestamp,
-  updateDoc,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -63,11 +62,10 @@ type SharedDream = {
   charCount?: number;
   langGuess?: string;
 
-  // cached translations by target lang (en/ru/he)
-  translations?: Record<
-    string,
-    string | { text?: string; model?: string; atMs?: number }
-  >;
+  // languages a paid translation exists for (text itself is private — see
+  // app/api/dreams/_lib/translationLedger.ts)
+  translatedLangs?: string[];
+  translationCount?: number;
 
   reactions?: {
     heart?: number;
@@ -195,16 +193,6 @@ function detectLangByScript(text: string): TargetLang | null {
   return null;
 }
 
-function getCachedTranslation(
-  d: SharedDream,
-  lang: TargetLang
-): string {
-  const v = d.translations?.[lang];
-  if (!v) return "";
-  if (typeof v === "string") return v.trim();
-  return String(v.text ?? "").trim();
-}
-
 /** Google Translate–style icon (A + 文) */
 function TranslateIcon({ className }: { className?: string }) {
   return (
@@ -241,6 +229,9 @@ export default function SharedPage() {
   // dream ids + langs this user already paid for ("<dreamId>:<lang>") — the
   // cached text on shared_dreams is shared, but each user unlocks it once.
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set());
+  // translations fetched in this session ("<dreamId>:<lang>" → text) so a
+  // second click doesn't hit the API again
+  const [fetchedTranslations, setFetchedTranslations] = useState<Record<string, string>>({});
   const [plansOpen, setPlansOpen] = useState(false);
   const t = useMessages();
 
@@ -453,12 +444,14 @@ export default function SharedPage() {
     // Same language as the viewer — never spend a translation on it.
     if (dreamLang(d) === lang) return;
 
-    // Cached text is shared by everyone, but only shown for free to a user
-    // who already unlocked it; everyone else goes through the API (daily free
-    // slot / Pro), which serves the cache without another OpenAI call.
-    const cached = getCachedTranslation(d, lang);
-    if (cached && unlocked.has(`${d.id}:${lang}`)) {
-      setShowingTranslation((prev) => ({ ...prev, [d.id]: cached }));
+    // The translated text is never in the public dream doc: it always comes
+    // from the API, which serves it free to a user who already unlocked this
+    // dream+lang, and otherwise spends the daily free slot / requires Pro
+    // (reusing the cache instead of calling OpenAI when it exists).
+    const key = `${d.id}:${lang}`;
+    const already = fetchedTranslations[key];
+    if (already) {
+      setShowingTranslation((prev) => ({ ...prev, [d.id]: already }));
       return;
     }
 
@@ -495,44 +488,12 @@ export default function SharedPage() {
       if (!translation) throw new Error("Empty translation");
 
       setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
+      setFetchedTranslations((prev) => ({ ...prev, [key]: translation }));
       setUnlocked((prev) => {
         const next = new Set(prev);
-        next.add(`${d.id}:${lang}`);
+        next.add(key);
         return next;
       });
-
-      const entry = {
-        text: translation,
-        model: data?.model ?? undefined,
-        atMs: Date.now(),
-      };
-
-      // optimistic local cache so re-clicks don't re-fetch before snapshot updates
-      setItems((prev) =>
-        prev.map((x) =>
-          x.id === d.id
-            ? {
-                ...x,
-                translations: {
-                  ...(x.translations ?? {}),
-                  [lang]: entry,
-                },
-              }
-            : x
-        )
-      );
-
-      // client fallback write if API couldn't persist (permissions / admin env)
-      if (data?.source === "ai" && uid) {
-        try {
-          await updateDoc(doc(firestore, "shared_dreams", d.id), {
-            [`translations.${lang}`]: entry,
-            updatedAt: serverTimestamp(),
-          });
-        } catch (e) {
-          console.warn("client translate cache write failed:", e);
-        }
-      }
     } catch (e: any) {
       setError(e?.message ?? "Failed to translate.");
     } finally {
@@ -668,9 +629,8 @@ export default function SharedPage() {
 
                       const isShowing = !!showingTranslation[d.id];
                       const isBusy = translateBusyId === d.id;
-                      const hasMine =
-                        !!getCachedTranslation(d, targetLang) &&
-                        unlocked.has(`${d.id}:${targetLang}`);
+                      // this viewer already paid for this dream+lang
+                      const hasMine = unlocked.has(`${d.id}:${targetLang}`);
                       const label = isBusy
                         ? "Translating…"
                         : isShowing

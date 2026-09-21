@@ -1,0 +1,113 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.uid == 'sGbA77TlcsatEMrgEvCv7Shjrj32';
+    }
+
+    // Временно credits можно (иначе сломается Save).
+    // НЕЛЬЗЯ трогать: openaiFree*, totalPurchasedCredits, welcomeBonusGranted
+    function forbiddenUserKeys() {
+      return [
+        'openaiFreeDayKey', 'openaiFreeUsed', 'openaiFreeUpdatedAt',
+        'totalPurchasedCredits', 'welcomeBonusGranted', 'isAdmin'
+      ];
+    }
+    function noForbiddenUserKeys() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(forbiddenUserKeys());
+    }
+    function noForbiddenOnCreate() {
+      return !request.resource.data.keys().hasAny(forbiddenUserKeys());
+    }
+
+    match /users/{uid} {
+      // invite page читает чужой профиль без логина
+      allow get: if true;
+      allow list: if isAdmin();
+
+      allow create: if isOwner(uid) && noForbiddenOnCreate();
+      allow update: if (isOwner(uid) && noForbiddenUserKeys()) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /dreams/{id} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow create, update: if isOwner(uid) || isAdmin();
+        allow delete: if isAdmin(); // soft-delete у owner через update
+      }
+      match /stories/{id} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow create, update: if isOwner(uid) || isAdmin();
+        allow delete: if isAdmin();
+      }
+
+      // Переводы в ленте, которые этот юзер уже оплатил (дневной слот / Pro).
+      // Пишет только сервер (admin SDK) — app/api/dreams/_lib/translationLedger.ts
+      match /translationUnlocks/{sharedDreamId} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow write: if false;
+      }
+
+      match /creditLedger/{docId} { allow read, write: if false; }
+      match /stats/{docId} { allow read, write: if false; }
+      match /emoji_daily/{docId} { allow read, write: if false; }
+    }
+
+    // admin collectionGroup("dreams")
+    match /{path=**}/dreams/{id} {
+      allow list: if isAdmin();
+    }
+
+    match /shared_dreams/{id} {
+      allow read: if true; // публичная лента
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      // 'translations' убрано: текст перевода больше не лежит в публичном доке
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.ownerUid == request.auth.uid)
+        || (isSignedIn()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['reactions', 'updatedAt']));
+
+      allow delete: if isAdmin();
+
+      match /reactions/{reactorUid} {
+        allow read, create, update: if isSignedIn() && request.auth.uid == reactorUid;
+        allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == reactorUid);
+      }
+
+      // Текст переводов + статистика — только админ; юзеры получают текст
+      // через POST /api/dreams/translate после оплаты.
+      match /private/{docId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+
+      // Журнал выдач переводов (кто, язык, ai|cache, чем оплачено).
+      match /translationEvents/{eventId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+    }
+
+    match /city_emoji_stats/{cityId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /transactions/{id} { allow read, write: if false; }
+    match /quick_symbol_queries/{id} { allow read, write: if false; }
+    match /map_ingested/{id} { allow read, write: if false; }
+    match /cities/{id} { allow read, write: if false; }
+    match /city_emoji_daily/{id} { allow read, write: if false; }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

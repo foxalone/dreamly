@@ -24,6 +24,7 @@
     "notion-views": "npx --yes tsx scripts/ensure-notion-views.ts",
     "repair-welcome-credits": "node --env-file=.env.local scripts/repair-welcome-credits.mjs",
     "backfill-shared-lang": "node --env-file=.env.local scripts/backfill-shared-lang.mjs",
+    "migrate-translations-private": "node --env-file=.env.local scripts/migrate-translations-private.mjs",
     "paypal-check": "node --env-file=.env.local scripts/paypal-check.mjs",
     "paypal-setup": "node --env-file=.env.local scripts/paypal-setup.mjs"
   },

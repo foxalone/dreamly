@@ -8,8 +8,10 @@ import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundFreeTranslation } from "../_lib/translationQuota";
 import {
+  readCachedTranslation,
   recordTranslationServe,
   readTranslationUnlock,
+  type TranslationEntry,
   type TranslationSource,
 } from "../_lib/translationLedger";
 
@@ -38,15 +40,6 @@ function normalizeTargetLang(v: unknown): TargetLang | null {
   if (l === "ru" || l.startsWith("ru-") || l === "ru-ru") return "ru";
   if (l === "he" || l.startsWith("he-") || l === "iw" || l === "he-il") return "he";
   return null;
-}
-
-function translationText(v: unknown): string {
-  if (!v) return "";
-  if (typeof v === "string") return v.trim();
-  if (typeof v === "object" && v) {
-    return String((v as any).text ?? "").trim();
-  }
-  return "";
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -112,21 +105,14 @@ export async function POST(req: Request) {
     //    OpenAI call, never the charge.
     const db = adminDb();
     const ref = sharedDreamId ? db.doc(`shared_dreams/${sharedDreamId}`) : null;
-    let cached = "";
-    let cachedModel: string | null = null;
-    let cachedEntry: Record<string, unknown> | null = null;
+    let cached: { entry: TranslationEntry; legacy: boolean } | null = null;
 
     if (ref) {
       try {
         const snap = await ref.get();
         if (snap.exists) {
-          const data = snap.data() as any;
-          const raw = data?.translations?.[targetLang];
-          cached = translationText(raw);
-          if (cached) {
-            cachedEntry = isRecord(raw) ? raw : { text: cached, legacy: true };
-            cachedModel = typeof cachedEntry.model === "string" ? cachedEntry.model : null;
-          }
+          const data = (snap.data() as Record<string, unknown>) ?? {};
+          cached = await readCachedTranslation(ref, data, targetLang);
           if (!text) text = String(data?.text ?? "").trim();
         }
       } catch (e: any) {
@@ -138,12 +124,12 @@ export async function POST(req: Request) {
       const unlock = await readTranslationUnlock(uid, sharedDreamId, targetLang);
       if (unlock) {
         return NextResponse.json({
-          translation: cached,
+          translation: cached.entry.text,
           cached: true,
           source: "unlocked" satisfies TranslationSource,
           cost: 0,
           usedDailyFree: false,
-          model: cachedModel,
+          model: cached.entry.model,
           targetLang,
         });
       }
@@ -163,7 +149,7 @@ export async function POST(req: Request) {
     const who = await lookupUser(uid);
 
     // Cache hit: no OpenAI call, but the slot above is already spent.
-    if (ref && cached && cachedEntry) {
+    if (ref && cached) {
       await recordTranslationServe({
         db,
         dreamRef: ref,
@@ -172,18 +158,18 @@ export async function POST(req: Request) {
         who,
         targetLang,
         source: "cache",
-        model: cachedModel,
+        model: cached.entry.model,
         usedDailyFree,
         paid,
-        cachedEntry,
+        cached,
       });
       return NextResponse.json({
-        translation: cached,
+        translation: cached.entry.text,
         cached: true,
         source: "cache" satisfies TranslationSource,
         cost: 0,
         usedDailyFree,
-        model: cachedModel,
+        model: cached.entry.model,
         targetLang,
       });
     }

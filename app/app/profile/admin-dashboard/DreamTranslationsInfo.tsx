@@ -8,6 +8,10 @@ import { firestore } from "@/lib/firebase";
  * Admin view of a shared dream's translations: who paid for the first (AI)
  * translation per language, how many times the cached text was re-sold, and
  * the full serve log (shared_dreams/{id}/translationEvents).
+ *
+ * Text + stats live in shared_dreams/{id}/private/translations (admin-only
+ * read); legacy entries may still sit on the public doc's `translations`
+ * field until their first paid serve or scripts/migrate-translations-private.mjs.
  * Written by app/api/dreams/_lib/translationLedger.ts.
  */
 
@@ -64,13 +68,16 @@ function normalize(v: unknown): TranslationEntry | null {
 
 export default function DreamTranslationsInfo({
   sharedDreamId,
-  translations,
+  translatedLangs,
   translationCount,
+  legacyTranslations,
   mutedText,
 }: {
   sharedDreamId: string;
-  translations?: Record<string, unknown> | null;
+  /** from the public doc when the row already is a shared_dreams row */
+  translatedLangs?: string[];
   translationCount?: number;
+  legacyTranslations?: Record<string, unknown> | null;
   mutedText: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -78,45 +85,60 @@ export default function DreamTranslationsInfo({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showText, setShowText] = useState<string | null>(null);
-  // lazily fetched shared doc when the parent row came from users/*/dreams
-  const [fetched, setFetched] = useState<{ translations: Record<string, unknown> | null; count?: number } | null>(
+  // private doc (text + stats) is only loaded when details are opened; the
+  // summary line uses the public doc's translatedLangs / translationCount.
+  const [priv, setPriv] = useState<Record<string, unknown> | null | undefined>(undefined);
+  // public doc fetched lazily when the row came from users/*/dreams
+  const [pub, setPub] = useState<{ langs: string[]; count?: number; legacy: Record<string, unknown> | null } | null>(
     null
   );
 
-  const needsFetch = translations === undefined;
+  const needsPublic = translatedLangs === undefined && legacyTranslations === undefined;
   useEffect(() => {
-    if (!needsFetch || !sharedDreamId) return;
+    if (!needsPublic || !sharedDreamId) return;
     let cancelled = false;
     (async () => {
       try {
         const snap = await getDoc(doc(firestore, "shared_dreams", sharedDreamId));
         if (cancelled) return;
         const data = snap.exists() ? (snap.data() as any) : null;
-        setFetched({
-          translations: data?.translations ?? null,
+        setPub({
+          langs: Array.isArray(data?.translatedLangs) ? data.translatedLangs : [],
           count: typeof data?.translationCount === "number" ? data.translationCount : undefined,
+          legacy: data?.translations ?? null,
         });
       } catch {
-        if (!cancelled) setFetched({ translations: null });
+        if (!cancelled) setPub({ langs: [], legacy: null });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [needsFetch, sharedDreamId]);
+  }, [needsPublic, sharedDreamId]);
 
-  const effTranslations = needsFetch ? fetched?.translations : translations;
-  const effCount = needsFetch ? fetched?.count : translationCount;
+  const effLangs = needsPublic ? pub?.langs ?? [] : translatedLangs ?? [];
+  const effCount = needsPublic ? pub?.count : translationCount;
+  const effLegacy = needsPublic ? pub?.legacy : legacyTranslations;
 
-  if (needsFetch && !fetched) {
+  if (needsPublic && !pub) {
     return <div className={`mt-2 text-xs ${mutedText}`}>translations: …</div>;
   }
 
-  const langs = Object.entries(effTranslations ?? {})
+  // summary: private langs (once loaded) ∪ public translatedLangs ∪ legacy keys
+  const summaryLangs = Array.from(
+    new Set([
+      ...effLangs,
+      ...Object.keys(effLegacy ?? {}),
+      ...Object.keys(priv ?? {}).filter((k) => k !== "updatedAtMs"),
+    ])
+  );
+
+  const langs = Object.entries({ ...(effLegacy ?? {}), ...(priv ?? {}) })
+    .filter(([k]) => k !== "updatedAtMs")
     .map(([lang, raw]) => [lang, normalize(raw)] as const)
     .filter((x): x is readonly [string, TranslationEntry] => !!x[1]);
 
-  if (!langs.length) {
+  if (!summaryLangs.length) {
     return (
       <div className={`mt-2 text-xs ${mutedText}`}>
         translations: <b>none</b>
@@ -124,17 +146,23 @@ export default function DreamTranslationsInfo({
     );
   }
 
-  async function loadEvents() {
-    if (events || loading) return;
+  async function loadDetails() {
+    if (loading) return;
     setLoading(true);
     setErr(null);
     try {
-      const snap = await getDocs(
-        query(collection(firestore, "shared_dreams", sharedDreamId, "translationEvents"), orderBy("atMs", "desc"))
-      );
-      setEvents(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+      if (priv === undefined) {
+        const snap = await getDoc(doc(firestore, "shared_dreams", sharedDreamId, "private", "translations"));
+        setPriv(snap.exists() ? (snap.data() as Record<string, unknown>) : null);
+      }
+      if (!events) {
+        const snap = await getDocs(
+          query(collection(firestore, "shared_dreams", sharedDreamId, "translationEvents"), orderBy("atMs", "desc"))
+        );
+        setEvents(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+      }
     } catch (e: any) {
-      setErr(e?.message ?? "Failed to load translation events");
+      setErr(e?.message ?? "Failed to load translation details");
     } finally {
       setLoading(false);
     }
@@ -144,14 +172,14 @@ export default function DreamTranslationsInfo({
     <div className="mt-2 text-xs">
       <div className={`${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
         <span>
-          translations: <b>{langs.map(([l]) => l.toUpperCase()).join(", ")}</b>
+          translations: <b>{summaryLangs.map((l) => l.toUpperCase()).join(", ")}</b>
           {typeof effCount === "number" ? ` · served ${effCount}×` : ""}
         </span>
         <button
           type="button"
           onClick={() => {
             setOpen((v) => !v);
-            if (!open) void loadEvents();
+            if (!open) void loadDetails();
           }}
           className="underline underline-offset-2 hover:opacity-80"
         >
@@ -161,6 +189,7 @@ export default function DreamTranslationsInfo({
 
       {open ? (
         <div className="mt-2 space-y-2">
+          {loading && priv === undefined ? <div className={mutedText}>loading…</div> : null}
           {langs.map(([lang, t]) => {
             const hasStats = t.aiCalls != null || t.cacheHits != null || t.byUid;
             return (
@@ -197,7 +226,7 @@ export default function DreamTranslationsInfo({
                       ) : null}
                     </>
                   ) : (
-                    <span>(no stats — translated before the ledger existed)</span>
+                    <span>(no stats — legacy entry on the public doc, moves to private on next paid serve)</span>
                   )}
                   <button
                     type="button"
