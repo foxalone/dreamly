@@ -36,7 +36,26 @@ function env(name) {
 
 function serviceAccount() {
   const inline = env("FIREBASE_SERVICE_ACCOUNT_JSON");
-  if (inline) return JSON.parse(inline);
+  if (inline) {
+    try {
+      return JSON.parse(inline);
+    } catch {
+      // Multi-line JSON in .env.local: --env-file only yields the first line.
+      // Re-read the raw file and cut out the balanced {...} block (same as
+      // scripts/paypal-setup.mjs).
+      const src = readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
+      const m = src.match(/^FIREBASE_SERVICE_ACCOUNT_JSON=/m);
+      if (m) {
+        const rest = src.slice(m.index + m[0].length).trimStart();
+        let depth = 0, inStr = false, esc = false;
+        for (let i = 0; i < rest.length; i++) {
+          const c = rest[i];
+          if (inStr) { if (esc) esc = false; else if (c === "\\") esc = true; else if (c === '"') inStr = false; continue; }
+          if (c === '"') inStr = true; else if (c === "{") depth++; else if (c === "}" && --depth === 0) return JSON.parse(rest.slice(0, i + 1));
+        }
+      }
+    }
+  }
 
   const configuredPath = env("FIREBASE_SERVICE_ACCOUNT_PATH");
   if (!configuredPath) {
