@@ -20,6 +20,8 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
+import PlansModal from "@/app/components/PlansModal";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
 
@@ -207,6 +209,8 @@ export default function SharedPage() {
     Record<string, string>
   >({});
   const [translateBusyId, setTranslateBusyId] = useState<string | null>(null);
+  const [plansOpen, setPlansOpen] = useState(false);
+  const t = useMessages();
 
   useEffect(() => {
     setTargetLang(getUserTargetLang());
@@ -417,7 +421,10 @@ export default function SharedPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
-          throw new Error("A Dreamly subscription is required.");
+          // Daily free translation already used and no subscription:
+          // show the plans picker instead of a red error banner.
+          setPlansOpen(true);
+          return;
         }
         throw new Error(data?.error ?? "Translate failed");
       }
@@ -476,6 +483,14 @@ export default function SharedPage() {
             {error}
           </div>
         )}
+
+        <PlansModal
+          open={plansOpen}
+          onClose={() => setPlansOpen(false)}
+          source="feed_translate"
+          title={t.plansModal.translateTitle}
+          body={t.plansModal.translateBody}
+        />
 
         {list.length === 0 ? (
           <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
@@ -590,7 +605,7 @@ export default function SharedPage() {
                           : `Translate to ${targetLang.toUpperCase()}`;
                       const title = isBusy || isShowing || hasCache
                         ? label
-                        : `${label} (free once/day, then 1 credit)`;
+                        : `${label} (free once a day, unlimited with a subscription)`;
 
                       return (
                         <button

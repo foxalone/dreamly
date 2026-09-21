@@ -317,4 +317,12 @@ export const EN_MESSAGES: UiMessages = {
     buddhist: "Buddhist",
     jewish: "Jewish",
   },
+  plansModal: {
+    translateTitle: "You've used today's free translation",
+    translateBody: "Everyone gets one free translation a day, and every translation is saved forever for the whole community. Subscribe to translate as many dreams as you like.",
+    unlimitedNote: "Unlimited translations, journal, AI readings and more.",
+    choosePlan: "Choose a plan",
+    notNow: "Not now",
+    subscribeCta: "Subscribe",
+  },
 };

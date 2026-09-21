@@ -317,4 +317,12 @@ export const DE_MESSAGES: UiMessages = {
     buddhist: "Buddhistisch",
     jewish: "Jüdisch",
   },
+  plansModal: {
+    translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
+    translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft für die ganze Community gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
+    unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
+    choosePlan: "Plan wählen",
+    notNow: "Jetzt nicht",
+    subscribeCta: "Abonnieren",
+  },
 };

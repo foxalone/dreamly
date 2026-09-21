@@ -1,6 +1,9 @@
 export const DREAM_MAX_CHARS = 400;
 export const DREAMS_PER_DAY = 5;
 export const TRIAL_DAYS = 3;
+// Non-subscribers get this many fresh (non-cached) translations per UTC day.
+// Cached translations on shared dreams stay free for everyone, forever.
+export const FREE_TRANSLATIONS_PER_DAY = 1;
 
 export const SUBSCRIPTION_PLANS = {
   monthly: {

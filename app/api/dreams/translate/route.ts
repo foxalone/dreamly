@@ -7,7 +7,7 @@ import {
 } from "@/lib/openaiEnv";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { requirePaidAccess } from "../_lib/subscription";
+import { consumeTranslationAccess, refundFreeTranslation } from "../_lib/translationQuota";
 
 export const runtime = "nodejs";
 
@@ -119,9 +119,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    const access = await requirePaidAccess(uid);
-    if ("error" in access) return access.error;
-
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
       return NextResponse.json(
@@ -129,6 +126,12 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+
+    // Subscribers: unlimited. Everyone else: one fresh translation per day,
+    // otherwise 402 SUBSCRIPTION_REQUIRED (client opens the plans modal).
+    const access = await consumeTranslationAccess(uid);
+    if ("error" in access) return access.error;
+    const usedDailyFree = access.usedDailyFree;
 
     const model = process.env.OPENAI_TRANSLATE_MODEL?.trim() || "gpt-5-nano";
     const openai = new OpenAI({ apiKey });
@@ -145,6 +148,7 @@ export async function POST(req: Request) {
       });
       translation = extractOutputText(resp);
     } catch (e: any) {
+      if (usedDailyFree) await refundFreeTranslation(uid);
       return NextResponse.json(
         { error: e?.message ?? "Translate failed" },
         { status: 500 }
@@ -152,6 +156,7 @@ export async function POST(req: Request) {
     }
 
     if (!translation) {
+      if (usedDailyFree) await refundFreeTranslation(uid);
       return NextResponse.json({ error: "Empty translation" }, { status: 500 });
     }
 
@@ -176,7 +181,7 @@ export async function POST(req: Request) {
       translation,
       cached: false,
       cost: 0,
-      usedDailyFree: false,
+      usedDailyFree,
       model,
       targetLang,
     });

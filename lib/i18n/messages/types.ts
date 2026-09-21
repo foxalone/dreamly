@@ -278,4 +278,12 @@ export type UiMessages = {
     signIn: string;
     interpret: string;
   };
+  plansModal: {
+    translateTitle: string;
+    translateBody: string;
+    unlimitedNote: string;
+    choosePlan: string;
+    notNow: string;
+    subscribeCta: string;
+  };
 };
