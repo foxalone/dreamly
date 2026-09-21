@@ -319,7 +319,7 @@ export const ES_MESSAGES: UiMessages = {
   },
   plansModal: {
     translateTitle: "Ya usaste tu traducción gratuita de hoy",
-    translateBody: "Todos tienen una traducción gratuita al día, y cada traducción se guarda para siempre para toda la comunidad. Suscríbete para traducir todos los sueños que quieras.",
+    translateBody: "Todos tienen una traducción gratuita al día, y cada traducción se guarda para siempre. Suscríbete para traducir todos los sueños que quieras.",
     unlimitedNote: "Traducciones ilimitadas, diario, lecturas con IA y más.",
     choosePlan: "Elige un plan",
     notNow: "Ahora no",

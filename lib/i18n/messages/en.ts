@@ -319,7 +319,7 @@ export const EN_MESSAGES: UiMessages = {
   },
   plansModal: {
     translateTitle: "You've used today's free translation",
-    translateBody: "Everyone gets one free translation a day, and every translation is saved forever for the whole community. Subscribe to translate as many dreams as you like.",
+    translateBody: "Everyone gets one free translation a day, and every translation is saved forever. Subscribe to translate as many dreams as you like.",
     unlimitedNote: "Unlimited translations, journal, AI readings and more.",
     choosePlan: "Choose a plan",
     notNow: "Not now",
