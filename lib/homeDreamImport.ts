@@ -4,6 +4,7 @@ import { firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
+import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
   HOME_DREAM_MAX_CHARS,
   takeHomeDreamPending,
@@ -134,6 +135,8 @@ async function shareImportedDream(user: User, dreamId: string, pending: HomeDrea
         }
       : {}),
   });
+
+  requestSharedDreamLang(user, sharedId);
 
   trackEvent("share", { method: "home_ask_map", content_type: "dream" });
 }

@@ -42,6 +42,8 @@ type SharedDream = {
 
   title?: string;
   text?: string;
+  // ISO 639-1 code detected server-side at share time (see /api/dreams/detect-lang)
+  lang?: string;
 
   dateKey?: string;
   timeKey?: string;
@@ -166,12 +168,20 @@ function getUserTargetLang(): TargetLang {
   return "en";
 }
 
-// Script-based guess of the dream's own language, so the translate button can be
-// hidden when it would only "translate" a text into the language it is already in
-// (that call still costs the user's one free daily translation).
+// The dream's own language: the server-detected `lang` when present, otherwise a
+// script-based guess. Used to hide the translate button when it would only
+// "translate" a text into the language it is already in (that call still costs
+// the user's one free daily translation).
+function dreamLang(d: SharedDream): string | null {
+  const stored = (d.lang ?? "").trim().toLowerCase();
+  if (stored) return stored;
+  return detectLangByScript(d.text ?? "");
+}
+
+// Fallback for dreams shared before server-side detection existed.
 // Returns null when the script is none of the three supported targets (Arabic,
 // CJK, ...) — such a dream can always be translated.
-function detectLang(text: string): TargetLang | null {
+function detectLangByScript(text: string): TargetLang | null {
   const s = text ?? "";
   const cyr = (s.match(/[\u0400-\u04FF]/g) ?? []).length;
   const heb = (s.match(/[\u0590-\u05FF]/g) ?? []).length;
@@ -414,7 +424,7 @@ export default function SharedPage() {
     setTargetLang(lang);
 
     // Same language as the viewer — never spend a translation on it.
-    if (detectLang(original) === lang) return;
+    if (dreamLang(d) === lang) return;
 
     const cached = getCachedTranslation(d, lang);
     if (cached) {
@@ -619,7 +629,7 @@ export default function SharedPage() {
                     {(() => {
                       const text = (d.text ?? "").trim();
                       // Already in the viewer's language — nothing to translate.
-                      if (!text || detectLang(text) === targetLang) return null;
+                      if (!text || dreamLang(d) === targetLang) return null;
 
                       const isShowing = !!showingTranslation[d.id];
                       const isBusy = translateBusyId === d.id;

@@ -27,6 +27,7 @@ import {
 import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
 import { isDreamLens } from "@/lib/dream-lenses";
+import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
   addDoc,
   collection,
@@ -1214,6 +1215,9 @@ export default function DreamsPage() {
             }
           : {}),
       });
+
+      // Detect + store the dream's language for the feed (one tiny model call, no credits).
+      requestSharedDreamLang(u, sharedId);
 
       if (Array.isArray((item as any).emojis) && (item as any).emojis.some((em: { native?: string }) => em?.native)) {
         try {
