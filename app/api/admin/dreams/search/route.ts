@@ -28,8 +28,13 @@ export const maxDuration = 120;
 type Row = {
   id: string;
   userId: string;
-  sourceType: "dream" | "story";
+  sourceType: "dream" | "story" | "guest";
   dreamId?: string;
+  guestId?: string;
+  imported?: boolean;
+  importedUid?: string | null;
+  importedDreamId?: string | null;
+  analysis?: string;
   storyId?: string;
   title?: string;
   text?: string;
@@ -85,6 +90,32 @@ function extractEmojis(q: string): string[] {
 function num(v: unknown): number | undefined {
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function toGuestRow(id: string, data: any): Row {
+  const guestId = s(data?.guestId);
+  return {
+    id,
+    userId: guestId ? `guest:${guestId}` : "guest",
+    sourceType: "guest",
+    guestId,
+    title: undefined,
+    text: typeof data?.text === "string" ? data.text : undefined,
+    analysis: typeof data?.analysis === "string" ? data.analysis : undefined,
+    createdAtMs: num(data?.createdAtMs),
+    shared: false,
+    deleted: !!data?.deleted,
+    deletedAtMs: num(data?.deletedAtMs),
+    emojis: Array.isArray(data?.emojis) ? data.emojis : [],
+    cityId: data?.cityId ?? null,
+    city: data?.city ?? null,
+    country: data?.country ?? null,
+    admin1: data?.admin1 ?? null,
+    citySource: data?.citySource ?? "ip",
+    imported: !!data?.imported,
+    importedUid: data?.importedUid ?? null,
+    importedDreamId: data?.importedDreamId ?? null,
+  };
 }
 
 function toRow(path: string, id: string, data: any, sourceType: "dream" | "story"): Row {
@@ -177,7 +208,7 @@ export async function GET(req: Request) {
 
     const db = adminDb();
     const rows: Row[] = [];
-    const scanned = { dreams: 0, stories: 0 };
+    const scanned = { dreams: 0, stories: 0, guests: 0 };
     let truncated = false;
 
     for (const group of ["dreams", "stories"] as const) {
@@ -213,6 +244,31 @@ export async function GET(req: Request) {
       }
 
       scanned[group] = read;
+      if (read >= scanCap || rows.length >= limit) truncated = true;
+    }
+
+    // guest pins (homepage Ask without sign-in) — flat collection guest_dreams
+    if (rows.length < limit) {
+      let last: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+      let read = 0;
+      while (read < scanCap && rows.length < limit) {
+        let query = db.collection("guest_dreams").orderBy(FieldPath.documentId()).limit(500);
+        if (last) query = query.startAfter(last);
+        const snap = await query.get();
+        if (snap.empty) break;
+        for (const docSnap of snap.docs) {
+          read += 1;
+          const data = docSnap.data();
+          const row = toGuestRow(docSnap.id, data);
+          if (matches(data, docSnap.id, row.userId)) {
+            rows.push(row);
+            if (rows.length >= limit) break;
+          }
+        }
+        last = snap.docs[snap.docs.length - 1];
+        if (snap.size < 500) break;
+      }
+      scanned.guests = read;
       if (read >= scanCap || rows.length >= limit) truncated = true;
     }
 

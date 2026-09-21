@@ -196,7 +196,15 @@ export function useDreamAsk({
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ emojis: visuals.emojis }),
+            body: JSON.stringify({
+              emojis: visuals.emojis,
+              text: dream,
+              analysis: next,
+              lang: locale,
+              lens,
+              iconsEn: visuals.iconsEn,
+              rootsEn: visuals.rootsEn,
+            }),
           });
           const pin = await pinRes.json().catch(() => ({}));
           const cityId = String(pin?.cityId ?? "").trim();

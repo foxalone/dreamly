@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
+import { readGuestId } from "@/app/api/dreams/_lib/guestQuota";
 
 type SourceType = "dream" | "story";
 type Body = { uid: string; dreamId: string; sourceType?: SourceType; skipCity?: boolean };
@@ -323,6 +324,39 @@ export async function POST(req: Request) {
     });
 
     if (resolvedCity.cityId) resolveCityCoordsIfNeeded(req, resolvedCity.cityId);
+
+    // skipCity === true means this dream was first pinned as a guest (homepage
+    // Ask before sign-in) and is now being imported into users/{uid}/dreams.
+    // Link the guest_dreams snapshot to the real document so the admin list
+    // does not show the same dream twice.
+    if (skipCity && sourceType === "dream") {
+      const guestId = readGuestId(req);
+      if (guestId) {
+        try {
+          const snap = await db
+            .collection("guest_dreams")
+            .where("guestId", "==", guestId)
+            .where("imported", "==", false)
+            .get();
+          const newest = snap.docs
+            .map((d) => ({ ref: d.ref, createdAtMs: Number(d.data()?.createdAtMs ?? 0) }))
+            .sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
+          if (newest) {
+            await newest.ref.set(
+              {
+                imported: true,
+                importedUid: uid,
+                importedDreamId: itemId,
+                importedAtMs: Date.now(),
+              },
+              { merge: true }
+            );
+          }
+        } catch (e) {
+          console.warn("guest_dreams link failed", e);
+        }
+      }
+    }
 
     return NextResponse.json({
       ok: true,

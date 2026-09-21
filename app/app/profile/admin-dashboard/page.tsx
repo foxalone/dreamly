@@ -53,7 +53,14 @@ type DreamAdmin = {
   // ✅ для shared_dreams
   dreamId?: string; // original dream id
   storyId?: string;
-  sourceType?: "dream" | "story";
+  sourceType?: "dream" | "story" | "guest";
+
+  // guest_dreams only (homepage Ask without sign-in, pinned to the map)
+  guestId?: string;
+  analysis?: string;
+  imported?: boolean;
+  importedUid?: string | null;
+  importedDreamId?: string | null;
 
   authorName?: string | null;
   authorEmail?: string | null;
@@ -99,7 +106,7 @@ type DreamSearchResponse = {
   mode: "emoji" | "text";
   tokens: string[];
   matches: DreamAdmin[];
-  scanned: { dreams: number; stories: number };
+  scanned: { dreams: number; stories: number; guests?: number };
   truncated: boolean;
   mapCities: DreamSearchMapCity[];
   error?: string;
@@ -159,6 +166,36 @@ function pickUserIdFromPath(refPath: string) {
   const i = parts.indexOf("users");
   if (i >= 0 && parts[i + 1]) return parts[i + 1];
   return "unknown";
+}
+
+function isGuestRow(d: DreamAdmin) {
+  return d.sourceType === "guest";
+}
+
+function guestRowFromDoc(id: string, data: any): DreamAdmin {
+  const guestId = String(data?.guestId ?? "").trim();
+  return {
+    id,
+    userId: guestId ? `guest:${guestId}` : "guest",
+    sourceType: "guest",
+    guestId,
+    text: data?.text,
+    analysis: data?.analysis,
+    createdAtMs: data?.createdAtMs,
+    dateKey: data?.dateKey,
+    shared: false,
+    deleted: !!data?.deleted,
+    deletedAtMs: data?.deletedAtMs,
+    emojis: Array.isArray(data?.emojis) ? data.emojis : [],
+    cityId: data?.cityId ?? null,
+    city: data?.city ?? null,
+    country: data?.country ?? null,
+    admin1: data?.admin1 ?? null,
+    citySource: data?.citySource ?? "ip",
+    imported: !!data?.imported,
+    importedUid: data?.importedUid ?? null,
+    importedDreamId: data?.importedDreamId ?? null,
+  };
 }
 
 function sourceCollection(d: DreamAdmin) {
@@ -342,6 +379,8 @@ export default function AdminDashboardPage() {
 
   // DREAMS
   const [items, setItems] = useState<DreamAdmin[]>([]);
+  const [guestItems, setGuestItems] = useState<DreamAdmin[]>([]);
+  const [guestErr, setGuestErr] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [showDeleted, setShowDeleted] = useState(true);
   const [onlyShared, setOnlyShared] = useState(false);
@@ -511,6 +550,27 @@ export default function AdminDashboardPage() {
     return () => unsub();
   }, [user?.uid, isAdmin, pageSize, onlyShared]);
 
+  // ✅ Live guest pins (guest_dreams). Not part of collectionGroup("dreams"):
+  // a guest has no users/{uid}, so the server stores the snapshot flat.
+  useEffect(() => {
+    setGuestErr(null);
+    if (!user || !isAdmin || onlyShared) {
+      setGuestItems([]);
+      return;
+    }
+    const q = query(
+      collection(firestore, "guest_dreams"),
+      orderBy("createdAtMs", "desc"),
+      limit(pageSize),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => setGuestItems(snap.docs.map((d) => guestRowFromDoc(d.id, d.data()))),
+      (e) => setGuestErr(e?.message ?? "Failed to load guest_dreams"),
+    );
+    return () => unsub();
+  }, [user?.uid, isAdmin, pageSize, onlyShared]);
+
   // ✅ RTDB: live load config JSON
   useEffect(() => {
     if (!user || !isAdmin) return;
@@ -664,16 +724,20 @@ export default function AdminDashboardPage() {
   const filtered = useMemo(() => {
     // while a search is active, prefer the server scan (whole collection groups);
     // fall back to filtering the live page until it arrives
-    let r: DreamAdmin[] = dreamSearchQ
-      ? dreamSearchRes?.matches ?? items.filter((x) => dreamMatchesQuery(x, dreamSearchQ))
+    const live = guestItems.length
+      ? [...items, ...guestItems].sort((a, b) => (b.createdAtMs ?? 0) - (a.createdAtMs ?? 0))
       : items;
+    let r: DreamAdmin[] = dreamSearchQ
+      ? dreamSearchRes?.matches ?? live.filter((x) => dreamMatchesQuery(x, dreamSearchQ))
+      : live;
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);
     return r;
-  }, [items, showDeleted, onlyShared, dreamSearchQ, dreamSearchRes]);
+  }, [items, guestItems, showDeleted, onlyShared, dreamSearchQ, dreamSearchRes]);
 
   async function hideFromShared(d: DreamAdmin) {
     if (!isAdmin) return;
+    if (isGuestRow(d)) return; // guest pins are never in shared_dreams
     if (!confirm("Hide this dream from Shared?")) return;
 
     // 1) убрать флаг в оригинале
@@ -691,6 +755,14 @@ export default function AdminDashboardPage() {
     if (!isAdmin) return;
     if (!confirm("Soft delete this dream?")) return;
 
+    if (isGuestRow(d)) {
+      await updateDoc(doc(firestore, "guest_dreams", d.id), {
+        deleted: true,
+        deletedAtMs: Date.now(),
+      });
+      return;
+    }
+
     const ref = doc(firestore, "users", d.userId, sourceCollection(d), sourceDocId(d));
 
     await updateDoc(ref, {
@@ -706,6 +778,12 @@ export default function AdminDashboardPage() {
   async function hardDelete(d: DreamAdmin) {
     if (!isAdmin) return;
     if (!confirm("HARD DELETE? Permanently remove document?")) return;
+
+    if (isGuestRow(d)) {
+      // note: city_emoji_stats counters are not decremented (same as for user dreams)
+      await deleteDoc(doc(firestore, "guest_dreams", d.id));
+      return;
+    }
 
     const ref = doc(firestore, "users", d.userId, sourceCollection(d), sourceDocId(d));
 
@@ -1053,7 +1131,8 @@ async function loadUsers() {
           <div className={`mt-2 text-sm ${mutedText}`}>
             {tab === "DREAMS" ? (
               <>
-                All dreams (collectionGroup: <span className="font-mono">dreams</span>)
+                All dreams (collectionGroup: <span className="font-mono">dreams</span> + guest pins:{" "}
+                <span className="font-mono">guest_dreams</span>)
               </>
             ) : tab === "EMOJIS" ? (
               <>
@@ -1376,7 +1455,8 @@ async function loadUsers() {
                       Server search ({dreamSearchRes.mode}): <b>{dreamSearchRes.matches.length}</b> found
                     </span>
                     <span>
-                      scanned dreams: {dreamSearchRes.scanned.dreams}, stories: {dreamSearchRes.scanned.stories}
+                      scanned dreams: {dreamSearchRes.scanned.dreams}, stories: {dreamSearchRes.scanned.stories},
+                      guests: {dreamSearchRes.scanned.guests ?? 0}
                       {dreamSearchRes.truncated ? " (truncated)" : ""}
                     </span>
                   </>
@@ -1409,9 +1489,10 @@ async function loadUsers() {
                   <div className={`mt-1 ${mutedText}`}>Not counted in any city.</div>
                 )}
                 <div className={`mt-2 ${mutedText}`}>
-                  Map counters also include guest dreams (homepage Ask without sign-in): they
-                  increment the city but create no document, so they can never appear in this
-                  list. Counters are not decremented when a dream is deleted.
+                  Guest dreams (homepage Ask without sign-in) appear here as <b>guest</b> rows
+                  from guest_dreams. Pins made before that collection existed only incremented
+                  the city counter and have no row. Counters are not decremented when a dream
+                  is deleted.
                 </div>
               </div>
             ) : null}
@@ -1421,6 +1502,15 @@ async function loadUsers() {
             <div className={`${card} mt-6 p-4`}>
               <div className={`font-semibold ${titleText}`}>Error</div>
               <div className={`mt-2 text-sm ${mutedText}`}>{err}</div>
+            </div>
+          ) : null}
+          {guestErr ? (
+            <div className={`${card} mt-6 p-4`}>
+              <div className={`font-semibold ${titleText}`}>guest_dreams error</div>
+              <div className={`mt-2 text-sm ${mutedText}`}>
+                {guestErr} — deploy firestore.rules (./deploy-firestore-rules.sh) if this is a
+                permission error.
+              </div>
             </div>
           ) : null}
 
@@ -1438,6 +1528,14 @@ async function loadUsers() {
                       </span>
                       {d.sourceType === "story" ? (
                         <span className="px-1.5 rounded bg-[rgba(127,127,127,0.18)] font-semibold">story</span>
+                      ) : null}
+                      {isGuestRow(d) ? (
+                        <span className="px-1.5 rounded bg-[rgba(234,179,8,0.25)] font-semibold">guest</span>
+                      ) : null}
+                      {isGuestRow(d) && d.imported ? (
+                        <span title={`${d.importedUid ?? ""}/${d.importedDreamId ?? ""}`}>
+                          imported → <span className="font-mono">{d.importedUid}</span>
+                        </span>
                       ) : null}
                       {d.createdAtMs ? <span>{safeDate(d.createdAtMs)}</span> : null}
                       {d.dateKey ? <span>{d.dateKey}</span> : null}
@@ -1486,6 +1584,13 @@ async function loadUsers() {
                       <div className={`mt-3 text-sm ${mutedText} whitespace-pre-wrap break-words`}>
                         {d.text}
                       </div>
+                    ) : null}
+
+                    {isGuestRow(d) && d.analysis ? (
+                      <details className={`mt-2 text-xs ${mutedText}`}>
+                        <summary className="cursor-pointer">analysis</summary>
+                        <div className="mt-1 whitespace-pre-wrap break-words">{d.analysis}</div>
+                      </details>
                     ) : null}
                   </div>
 

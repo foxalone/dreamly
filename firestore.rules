@@ -61,6 +61,14 @@ service cloud.firestore {
       allow list: if isAdmin();
     }
 
+    // Guest pins from the homepage Ask (no sign-in). Written only by the
+    // server (app/api/map/ingest-guest); the admin dashboard lists them next
+    // to users/*/dreams and may soft/hard delete them.
+    match /guest_dreams/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if false;
+    }
+
     match /shared_dreams/{id} {
       allow read: if true; // публичная лента
 

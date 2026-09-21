@@ -15,8 +15,23 @@ export const runtime = "nodejs";
 const GUEST_MAP_IP_DAILY_LIMIT = 8;
 
 type Body = {
-  emojis?: { native?: string }[];
+  emojis?: { native?: string; id?: string; name?: string }[];
+  // Optional snapshot of the guest dream itself, so the admin dashboard can
+  // show guest pins as rows (collection: guest_dreams, doc id = ingestId).
+  text?: string;
+  analysis?: string;
+  lang?: string;
+  lens?: string;
+  iconsEn?: string[];
+  rootsEn?: string[];
 };
+
+const GUEST_TEXT_MAX = 4000;
+const GUEST_ANALYSIS_MAX = 12000;
+
+function strList(v: unknown, max = 12): string[] {
+  return (Array.isArray(v) ? v : []).map((x) => s(x)).filter(Boolean).slice(0, max);
+}
 
 function hashIp(ip: string) {
   const salt = process.env.GUEST_IP_SALT?.trim() || "dreamly-guest";
@@ -38,10 +53,15 @@ export async function POST(req: Request) {
 
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
-    const natives = (Array.isArray(body?.emojis) ? body.emojis : [])
-      .map((item) => s(item?.native))
-      .filter(Boolean)
+    const emojiObjs = (Array.isArray(body?.emojis) ? body.emojis : [])
+      .map((item) => ({
+        native: s(item?.native),
+        ...(s(item?.id) ? { id: s(item?.id) } : {}),
+        ...(s(item?.name) ? { name: s(item?.name) } : {}),
+      }))
+      .filter((item) => item.native)
       .slice(0, 6);
+    const natives = emojiObjs.map((item) => item.native);
 
     if (natives.length === 0) {
       return finish(NextResponse.json({ ok: false, error: "Missing emojis" }, { status: 400 }));
@@ -76,6 +96,8 @@ export async function POST(req: Request) {
 
     const cityStatsRef = db.collection("city_emoji_stats").doc(geo.cityId);
     const cityDailyRef = db.collection("city_emoji_daily").doc(`${geo.cityId}_${dateKey}`);
+    const guestDreamRef = db.collection("guest_dreams").doc(ingestId);
+    const nowMs = Date.now();
 
     await db.runTransaction(async (tx) => {
       const ing = await tx.get(ingestRef);
@@ -125,12 +147,41 @@ export async function POST(req: Request) {
         uid: null,
         guestId,
         dreamId: null,
+        guestDreamId: ingestId,
         sourceType: "dream",
         cityId: geo.cityId,
         dateKey,
-        createdAtMs: Date.now(),
+        createdAtMs: nowMs,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         emojisCount: natives.length,
+      });
+
+      // Admin-visible snapshot of the guest dream. Before this existed a guest
+      // pin only bumped city counters and could never be traced back.
+      tx.set(guestDreamRef, {
+        guestId,
+        sourceType: "guest",
+        text: s(body?.text).slice(0, GUEST_TEXT_MAX),
+        analysis: s(body?.analysis).slice(0, GUEST_ANALYSIS_MAX),
+        lang: s(body?.lang) || null,
+        lens: s(body?.lens) || null,
+        emojis: emojiObjs,
+        iconsEn: strList(body?.iconsEn),
+        rootsEn: strList(body?.rootsEn),
+        cityId: geo.cityId,
+        city: geo.city ?? null,
+        country: geo.country ?? null,
+        admin1: geo.admin1 ?? null,
+        citySource: "ip",
+        dateKey,
+        createdAtMs: nowMs,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        shared: false,
+        deleted: false,
+        imported: false,
+        importedUid: null,
+        importedDreamId: null,
+        importedAtMs: null,
       });
 
       tx.set(
