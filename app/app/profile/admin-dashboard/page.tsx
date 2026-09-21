@@ -85,6 +85,61 @@ type DreamAdmin = {
   legacyTranslations?: Record<string, unknown> | null;
 };
 
+type DreamSearchMapCity = {
+  cityId: string;
+  city?: string;
+  admin1?: string;
+  country?: string;
+  dreams: number;
+  stories: number;
+};
+
+type DreamSearchResponse = {
+  ok: boolean;
+  mode: "emoji" | "text";
+  tokens: string[];
+  matches: DreamAdmin[];
+  scanned: { dreams: number; stories: number };
+  truncated: boolean;
+  mapCities: DreamSearchMapCity[];
+  error?: string;
+};
+
+/** Strip variation selectors / skin tones so a pasted 🚢️ matches a stored 🚢. */
+function normEmoji(v: string) {
+  return v.replace(/[\uFE0E\uFE0F]/g, "").replace(/[\u{1F3FB}-\u{1F3FF}]/gu, "");
+}
+
+function queryEmojis(q: string): string[] {
+  const seg = (Intl as any).Segmenter
+    ? new (Intl as any).Segmenter(undefined, { granularity: "grapheme" })
+    : null;
+  const parts: string[] = seg
+    ? Array.from(seg.segment(q), (x: any) => String(x.segment))
+    : Array.from(q);
+  const out = new Set<string>();
+  for (const part of parts) {
+    if (/\p{Extended_Pictographic}/u.test(part) || /\p{Regional_Indicator}/u.test(part)) {
+      const n = normEmoji(part);
+      if (n) out.add(n);
+    }
+  }
+  return Array.from(out);
+}
+
+/** Client-side match used on the already-loaded live rows (instant feedback). */
+function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
+  const emojis = queryEmojis(q);
+  if (emojis.length) {
+    const set = new Set(emojis);
+    return (d.emojis ?? []).some((e) => set.has(normEmoji(String(e?.native ?? ""))));
+  }
+  const needle = q.toLowerCase();
+  return [d.id, d.userId, d.title, d.text, d.cityId, d.city, d.country, d.authorEmail, d.authorName]
+    .map((x) => String(x ?? "").toLowerCase())
+    .some((x) => x.includes(needle));
+}
+
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
 type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
@@ -291,6 +346,14 @@ export default function AdminDashboardPage() {
   const [showDeleted, setShowDeleted] = useState(true);
   const [onlyShared, setOnlyShared] = useState(false);
   const [pageSize, setPageSize] = useState(50);
+
+  // DREAMS: search (paste an emoji or type text). The live list only holds the
+  // newest `pageSize` docs from users/*/dreams, so a non-empty query also runs a
+  // server-side scan over dreams + stories via /api/admin/dreams/search.
+  const [dreamSearch, setDreamSearch] = useState("");
+  const [dreamSearchRes, setDreamSearchRes] = useState<DreamSearchResponse | null>(null);
+  const [dreamSearchLoading, setDreamSearchLoading] = useState(false);
+  const [dreamSearchErr, setDreamSearchErr] = useState<string | null>(null);
 
   // CONFIG
   const [hintsPath, setHintsPath] = useState("/app_config/dreamly/emojiHints/en");
@@ -555,12 +618,59 @@ export default function AdminDashboardPage() {
     };
   }, [tab]);
 
+  // ✅ server-side search over dreams + stories (debounced)
+  const dreamSearchQ = dreamSearch.trim();
+  useEffect(() => {
+    if (tab !== "DREAMS" || !user || !isAdmin) return;
+    if (!dreamSearchQ) {
+      setDreamSearchRes(null);
+      setDreamSearchErr(null);
+      setDreamSearchLoading(false);
+      return;
+    }
+    // text needs 2+ chars; a single emoji is enough
+    if (!queryEmojis(dreamSearchQ).length && dreamSearchQ.length < 2) return;
+
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      setDreamSearchLoading(true);
+      setDreamSearchErr(null);
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch(
+          `/api/admin/dreams/search?q=${encodeURIComponent(dreamSearchQ)}&limit=200`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const json = (await res.json().catch(() => ({}))) as DreamSearchResponse;
+        if (cancelled) return;
+        if (!res.ok || !json?.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
+        setDreamSearchRes(json);
+      } catch (e: any) {
+        if (!cancelled) {
+          setDreamSearchRes(null);
+          setDreamSearchErr(e?.message ?? "Search failed");
+        }
+      } finally {
+        if (!cancelled) setDreamSearchLoading(false);
+      }
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [tab, user?.uid, isAdmin, dreamSearchQ]);
+
   const filtered = useMemo(() => {
-    let r = items;
+    // while a search is active, prefer the server scan (whole collection groups);
+    // fall back to filtering the live page until it arrives
+    let r: DreamAdmin[] = dreamSearchQ
+      ? dreamSearchRes?.matches ?? items.filter((x) => dreamMatchesQuery(x, dreamSearchQ))
+      : items;
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);
     return r;
-  }, [items, showDeleted, onlyShared]);
+  }, [items, showDeleted, onlyShared, dreamSearchQ, dreamSearchRes]);
 
   async function hideFromShared(d: DreamAdmin) {
     if (!isAdmin) return;
@@ -1249,6 +1359,64 @@ async function loadUsers() {
             </button>
           </div>
 
+          <div className="mt-4">
+            <input
+              value={dreamSearch}
+              onChange={(e) => setDreamSearch(e.target.value)}
+              placeholder="Search: paste an emoji (🚢) or type text / uid / id / city"
+              className="w-full h-11 px-4 rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--border)]"
+            />
+            {dreamSearchQ ? (
+              <div className={`mt-2 text-xs ${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
+                {dreamSearchLoading ? (
+                  <span>Scanning all dreams + stories…</span>
+                ) : dreamSearchRes ? (
+                  <>
+                    <span>
+                      Server search ({dreamSearchRes.mode}): <b>{dreamSearchRes.matches.length}</b> found
+                    </span>
+                    <span>
+                      scanned dreams: {dreamSearchRes.scanned.dreams}, stories: {dreamSearchRes.scanned.stories}
+                      {dreamSearchRes.truncated ? " (truncated)" : ""}
+                    </span>
+                  </>
+                ) : dreamSearchErr ? (
+                  <span className="text-red-500">Server search failed: {dreamSearchErr}</span>
+                ) : (
+                  <span>Filtering the loaded page only.</span>
+                )}
+                <button onClick={() => setDreamSearch("")} className="underline">
+                  clear
+                </button>
+              </div>
+            ) : null}
+
+            {dreamSearchRes?.mode === "emoji" ? (
+              <div className={`${card} mt-3 p-3 text-xs`}>
+                <div className={`font-semibold ${titleText}`}>
+                  {dreamSearchRes.tokens.join(" ")} on the map (city_emoji_stats)
+                </div>
+                {dreamSearchRes.mapCities.length ? (
+                  <ul className={`mt-1 space-y-0.5 ${mutedText}`}>
+                    {dreamSearchRes.mapCities.slice(0, 30).map((c) => (
+                      <li key={c.cityId} title={c.cityId}>
+                        {[c.city, c.admin1, c.country].filter(Boolean).join(", ") || c.cityId}
+                        {" — "}dreams: <b>{c.dreams}</b>, stories: <b>{c.stories}</b>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className={`mt-1 ${mutedText}`}>Not counted in any city.</div>
+                )}
+                <div className={`mt-2 ${mutedText}`}>
+                  Map counters also include guest dreams (homepage Ask without sign-in): they
+                  increment the city but create no document, so they can never appear in this
+                  list. Counters are not decremented when a dream is deleted.
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           {err ? (
             <div className={`${card} mt-6 p-4`}>
               <div className={`font-semibold ${titleText}`}>Error</div>
@@ -1268,6 +1436,9 @@ async function loadUsers() {
                       <span>
                         id: <span className="font-mono">{d.id}</span>
                       </span>
+                      {d.sourceType === "story" ? (
+                        <span className="px-1.5 rounded bg-[rgba(127,127,127,0.18)] font-semibold">story</span>
+                      ) : null}
                       {d.createdAtMs ? <span>{safeDate(d.createdAtMs)}</span> : null}
                       {d.dateKey ? <span>{d.dateKey}</span> : null}
                       {d.timeKey ? <span>{d.timeKey}</span> : null}
@@ -1344,19 +1515,27 @@ async function loadUsers() {
 
             {!filtered.length ? (
               <div className={`${card} p-6 text-center`}>
-                <div className={`text-sm ${mutedText}`}>No dreams found for current filters.</div>
+                <div className={`text-sm ${mutedText}`}>
+                  {dreamSearchQ
+                    ? dreamSearchLoading
+                      ? "Searching…"
+                      : "No dreams or stories match this search."
+                    : "No dreams found for current filters."}
+                </div>
               </div>
             ) : null}
           </div>
 
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={() => setPageSize((s) => Math.min(300, s + 50))}
-              className={`${pillBase} ${pillSurface}`}
-            >
-              Load more
-            </button>
-          </div>
+          {!dreamSearchQ ? (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setPageSize((s) => Math.min(300, s + 50))}
+                className={`${pillBase} ${pillSurface}`}
+              >
+                Load more
+              </button>
+            </div>
+          ) : null}
         </>
       )}
 
