@@ -228,6 +228,7 @@ export const AR_MESSAGES: UiMessages = {
     copyUuid: "نسخ UUID",
     copied: "تم النسخ!",
     subscribe: "اشترك",
+    manageSubscription: "إدارة الاشتراك",
     remainingToday: "{n} متبقية اليوم",
     signOut: "خروج",
     notSignedIn: "غير مسجّل",

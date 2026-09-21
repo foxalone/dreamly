@@ -228,6 +228,7 @@ export const RU_MESSAGES: UiMessages = {
     copyUuid: "Скопировать UUID",
     copied: "Скопировано!",
     subscribe: "Подписка",
+    manageSubscription: "Управлять подпиской",
     remainingToday: "{n} сегодня",
     signOut: "Выйти",
     notSignedIn: "Не выполнен вход",

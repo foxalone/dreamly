@@ -228,6 +228,7 @@ export const EN_MESSAGES: UiMessages = {
     copyUuid: "Copy UUID",
     copied: "Copied!",
     subscribe: "Subscribe",
+    manageSubscription: "Manage subscription",
     remainingToday: "{n} left today",
     signOut: "Sign out",
     notSignedIn: "Not signed in",

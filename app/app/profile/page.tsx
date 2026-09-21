@@ -134,7 +134,7 @@ export default function ProfilePage() {
           disabled={!user}
           className={`${pillBase} ${pillSurface} ${pillDisabled}`}
         >
-          {t.profile.subscribe}
+          {user && hasPaidAccess(billing) ? t.profile.manageSubscription : t.profile.subscribe}
         </button>
 
         {user && hasPaidAccess(billing) ? (

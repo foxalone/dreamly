@@ -182,6 +182,7 @@ export type UiMessages = {
     copyUuid: string;
     copied: string;
     subscribe: string;
+    manageSubscription: string;
     remainingToday: string;
     signOut: string;
     notSignedIn: string;
