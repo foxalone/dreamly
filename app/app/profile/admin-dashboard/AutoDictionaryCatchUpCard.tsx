@@ -25,6 +25,8 @@ type CatchUpPair = {
   scheduled?: boolean;
   scheduling?: boolean;
   youtubeScheduled?: boolean;
+  imageScheduled?: boolean;
+  imageError?: string;
   scheduleAttempts?: number;
   scheduleError?: string;
   error?: string;
@@ -46,7 +48,11 @@ function slotLabel(publishAt: string) {
 
 function pairLine(pair: CatchUpPair) {
   if (pair.error) return pair.error;
-  if (pair.scheduled) return pair.youtubeScheduled === false ? "в слоте, YouTube не ушёл" : "поставлено в слот";
+  if (pair.scheduled) {
+    const video = pair.youtubeScheduled === false ? "в слоте, YouTube не ушёл" : "поставлено в слот";
+    const image = pair.imageScheduled ? "картинка +5ч" : pair.imageError ? `картинка: ${pair.imageError}` : "";
+    return image ? `${video}, ${image}` : video;
+  }
   if (pair.scheduling) return "ставим в слот…";
   if (pair.scheduleError) {
     return `слот не встал (${pair.scheduleError}), попытка ${pair.scheduleAttempts ?? 1}/${MAX_SCHEDULE_ATTEMPTS} — повторим…`;
@@ -176,6 +182,8 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
             const bookedPayload = (await booked.json().catch(() => ({}))) as {
               youtubeScheduled?: boolean;
               youtubeError?: string;
+              imageScheduled?: boolean;
+              imageError?: string;
               error?: string;
             };
             if (!booked.ok) {
@@ -189,6 +197,8 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
               scheduled: true,
               scheduleError: "",
               youtubeScheduled: bookedPayload.youtubeScheduled !== false,
+              imageScheduled: bookedPayload.imageScheduled === true,
+              imageError: bookedPayload.imageError || "",
               error: bookedPayload.youtubeError || "",
             });
             continue;

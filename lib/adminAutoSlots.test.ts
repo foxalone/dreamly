@@ -7,6 +7,7 @@ import {
   nextEmptyPublishDay,
   nextEmptyPublishDays,
   nextFreePublishSlots,
+  imagePublishAtForSlot,
   occupiedSlotKeys,
   publishSlotsForDay,
   publishSlotsForDays,
@@ -70,4 +71,10 @@ test("refills the holes left by failed pairs before opening a new day", () => {
     new Date("2026-09-23T10:00:00.000Z"),
   );
   assert.deepEqual(later.map((slot) => `${slot.dateKey}|${slot.hour}`), ["2026-10-08|15", "2026-10-09|5"]);
+});
+
+test("images follow their video five hours later and never block a video slot", () => {
+  assert.equal(imagePublishAtForSlot("2026-10-08T02:00:00.000Z"), "2026-10-08T07:00:00.000Z");
+  assert.equal(imagePublishAtForSlot("2026-10-08T12:00:00.000Z"), "2026-10-08T17:00:00.000Z");
+  assert.equal(imagePublishAtForSlot("nope"), "");
 });

@@ -26,11 +26,19 @@ import { MAX_SHORT_DURATION_SECONDS } from "@/lib/adminVideo";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { aiImageConfig, utcBudgetDate } from "../ai-image/_lib";
-import { AUTO_HORIZON_DAYS, AUTO_PAIR_COUNT, occupiedSlotKeys, nextEmptyPublishDays, nextFreePublishSlots, publishSlotsForDays } from "@/lib/adminAutoSlots";
+import {
+  AUTO_HORIZON_DAYS,
+  AUTO_PAIR_COUNT,
+  imagePublishAtForSlot,
+  occupiedSlotKeys,
+  nextEmptyPublishDays,
+  nextFreePublishSlots,
+  publishSlotsForDays,
+} from "@/lib/adminAutoSlots";
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
-import { scheduleLibraryVideoPublish } from "./socialSchedule";
+import { scheduleLibraryImagePublish, scheduleLibraryVideoPublish } from "./socialSchedule";
 import { scheduleAutoYouTube } from "./youtubeRemote";
 import { QUEUED_SCHEDULE_PLATFORMS } from "@/lib/adminVideoLibrary";
 
@@ -314,18 +322,21 @@ export async function notifyAutoDictionaryContentDone(input: {
 
 async function scheduledAtValues() {
   const values: string[] = [];
-  const [videos, aiVideos, images, queue] = await Promise.all([
+  // Only videos occupy the 05:00/15:00 grid: auto-pair images are queued at
+  // +AUTO_IMAGE_OFFSET_HOURS and would otherwise mark the whole day as taken.
+  const [videos, aiVideos, queue] = await Promise.all([
     loadCollectionDocs(FREE_VIDEO_COLLECTION),
     loadCollectionDocs(AI_VIDEO_COLLECTION),
-    loadCollectionDocs(AI_IMAGE_COLLECTION),
     adminRtdb().ref(SOCIAL_SCHEDULE_ASSETS_NODE).get(),
   ]);
-  for (const doc of [...videos, ...aiVideos, ...images]) {
+  for (const doc of [...videos, ...aiVideos]) {
     values.push(String(doc.get("socialScheduledAt") || ""));
     values.push(String(doc.get("youtubeScheduledAt") || ""));
   }
   queue.forEach((child) => {
-    const scheduledAt = String(child.val()?.socialSchedule?.scheduledAt || "");
+    const node = child.val() as { libraryId?: string; socialSchedule?: { scheduledAt?: string } } | null;
+    if (String(node?.libraryId || child.key || "").startsWith("image")) return false;
+    const scheduledAt = String(node?.socialSchedule?.scheduledAt || "");
     if (scheduledAt) values.push(scheduledAt);
     return false;
   });
@@ -400,10 +411,13 @@ export async function scheduleReadyAutoDictionaryPair(input: {
 
   const videoSnap = await adminDb().collection(FREE_VIDEO_COLLECTION).doc(input.videoJobId).get();
   if (String(videoSnap.get("socialScheduledAt") || "")) {
+    // The video made it earlier; still queue the image (idempotent) so a retried pair gets both.
+    const imageBooking = await scheduleAutoPairImage(input.imageJobId, input.publishAt, input.createdBy);
     return {
       alreadyScheduled: true,
       youtubeScheduled: String(videoSnap.get("youtubeStatus") || "") === "scheduled",
       youtubeError: String(videoSnap.get("youtubeError") || ""),
+      ...imageBooking,
       video,
       image,
     };
@@ -418,6 +432,29 @@ export async function scheduleReadyAutoDictionaryPair(input: {
   return { alreadyScheduled: false, ...booked, video, image };
 }
 
+/**
+ * Queue the pair's image for Instagram/Facebook/Threads five hours after the video.
+ * Never throws — a missing or failed image must not undo the video booking.
+ */
+async function scheduleAutoPairImage(imageJobId: string, videoPublishAt: string, createdBy: string) {
+  const imagePublishAt = imagePublishAtForSlot(videoPublishAt);
+  if (!imagePublishAt) return { imageScheduled: false, imagePublishAt: "", imageError: "Bad publishAt" };
+  try {
+    const snapshot = await adminDb().collection(AI_IMAGE_COLLECTION).doc(imageJobId).get();
+    const scheduledAt = String(snapshot.get("socialScheduledAt") || "");
+    if (scheduledAt) return { imageScheduled: true, imagePublishAt: scheduledAt, imageError: "" };
+    if (String(snapshot.get("socialScheduleStatus") || "") === "done") {
+      return { imageScheduled: true, imagePublishAt: "", imageError: "" };
+    }
+    await scheduleLibraryImagePublish(imageJobId, imagePublishAt, createdBy);
+    return { imageScheduled: true, imagePublishAt, imageError: "" };
+  } catch (error) {
+    const imageError = error instanceof Error ? error.message : "Image schedule error";
+    console.error("[auto-content] image schedule", imageJobId, imageError);
+    return { imageScheduled: false, imagePublishAt, imageError };
+  }
+}
+
 export async function scheduleAutoDictionaryPair(input: {
   videoJobId: string;
   imageJobId: string;
@@ -430,11 +467,12 @@ export async function scheduleAutoDictionaryPair(input: {
     input.publishAt,
     input.createdBy,
   );
+  const imageBooking = await scheduleAutoPairImage(input.imageJobId, input.publishAt, input.createdBy);
   try {
     await scheduleAutoYouTube(`free:${input.videoJobId}`, input.publishAt, input.createdBy);
-    return { video, youtubeScheduled: true, youtubeError: "" };
+    return { video, youtubeScheduled: true, youtubeError: "", ...imageBooking };
   } catch (error) {
     const youtubeError = error instanceof Error ? error.message : "YouTube error";
-    return { video, youtubeScheduled: false, youtubeError };
+    return { video, youtubeScheduled: false, youtubeError, ...imageBooking };
   }
 }

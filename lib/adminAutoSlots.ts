@@ -138,3 +138,12 @@ export function nextFreePublishSlots(occupied: Iterable<string>, count: number, 
   if (slots.length < count) throw new Error("NO_EMPTY_PUBLISH_DAY");
   return slots;
 }
+
+/** The dream-page image of an auto pair goes to socials this many hours after its video (05:00 → 10:00, 15:00 → 20:00). */
+export const AUTO_IMAGE_OFFSET_HOURS = 5;
+
+export function imagePublishAtForSlot(videoPublishAt: string) {
+  const parsed = Date.parse(videoPublishAt);
+  if (!Number.isFinite(parsed)) return "";
+  return new Date(parsed + AUTO_IMAGE_OFFSET_HOURS * 3_600_000).toISOString();
+}

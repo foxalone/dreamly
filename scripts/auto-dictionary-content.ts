@@ -65,13 +65,17 @@ async function main() {
     scheduledAt: string;
     youtubeScheduled: boolean;
     youtubeError: string;
+    imageScheduled: boolean;
+    imageError: string;
   }> = [];
   for (const [index, pair] of pairs.entries()) {
     const result = await waitForAutoDictionaryContent(pair);
     const slot = slots.slots[index];
-    let scheduledAt = slot?.publishAt || "";
+    const scheduledAt = slot?.publishAt || "";
     let youtubeScheduled = false;
     let youtubeError = "";
+    let imageScheduled = false;
+    let imageError = "";
     if (schedule && result.ok && slot) {
       const booked = await scheduleAutoDictionaryPair({
         videoJobId: pair.videoJobId,
@@ -81,6 +85,8 @@ async function main() {
       });
       youtubeScheduled = booked.youtubeScheduled;
       youtubeError = booked.youtubeError;
+      imageScheduled = booked.imageScheduled;
+      imageError = booked.imageError;
     }
     results.push({
       ...pair,
@@ -90,6 +96,8 @@ async function main() {
       scheduledAt,
       youtubeScheduled,
       youtubeError,
+      imageScheduled,
+      imageError,
     });
   }
 
@@ -104,7 +112,10 @@ async function main() {
         : item.youtubeError
           ? `YouTube: ${item.youtubeError}`
           : "YouTube не ставили";
-      return `${hour}:00 · ${item.title} · видео ${item.video.status} · картинка ${item.image.status} · ${youtubeLine}`;
+      const imageLine = item.imageScheduled ? "картинка в соцсети +5ч" : item.imageError ? `картинка: ${item.imageError}` : "";
+      return [`${hour}:00 · ${item.title} · видео ${item.video.status} · картинка ${item.image.status} · ${youtubeLine}`, imageLine]
+        .filter(Boolean)
+        .join(" · ");
     }),
   ].join("\n");
   await notifyAutoDictionaryContentDone({
