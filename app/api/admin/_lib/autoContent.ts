@@ -68,29 +68,66 @@ async function loadCollectionDocs(collection: string) {
   return docs;
 }
 
+/**
+ * A symbol is "used" once it has a video (or an auto reservation). An existing
+ * image alone does not count: the pair then generates only the video and reuses
+ * that image (see findReusableDreamImage).
+ */
 export async function listUsedDictionarySlugs() {
-  const [reserved, freeVideos, aiVideos, images, pageImages] = await Promise.all([
+  const [reserved, freeVideos, aiVideos] = await Promise.all([
     loadCollectionDocs(AUTO_USED_SLUGS_COLLECTION),
     loadCollectionDocs(FREE_VIDEO_COLLECTION),
     loadCollectionDocs(AI_VIDEO_COLLECTION),
-    loadCollectionDocs(AI_IMAGE_COLLECTION),
-    loadCollectionDocs(DREAM_PAGE_IMAGE_COLLECTION),
   ]);
 
   return collectUsedSlugs({
     slugs: [
       ...reserved.map((doc) => doc.id),
-      ...pageImages.map((doc) => String(doc.get("slug") || doc.id)),
       ...freeVideos.map((doc) => String(doc.get("dreamSlug") || "")),
       ...aiVideos.map((doc) => String(doc.get("dreamSlug") || "")),
-      ...images.map((doc) => String(doc.get("dreamSlug") || "")),
     ],
     topics: [
       ...freeVideos.map((doc) => String(doc.get("topic") || "")),
       ...aiVideos.map((doc) => String(doc.get("topic") || "")),
     ],
-    subjects: images.map((doc) => String(doc.get("subject") || "")),
   });
+}
+
+type ReusableImage = { imageJobId: string; imageUrl: string; subject: string; source: "page" | "job" };
+
+/** The image already attached to the dream page, else the newest completed AI image generated for that slug. */
+export async function findReusableDreamImage(slug: string): Promise<ReusableImage | null> {
+  const db = adminDb();
+  const completedJob = async (jobId: string) => {
+    if (!jobId) return null;
+    const snapshot = await db.collection(AI_IMAGE_COLLECTION).doc(jobId).get();
+    const data = snapshot.data() as { status?: string; imageUrl?: string; subject?: string } | undefined;
+    if (!snapshot.exists || data?.status !== "completed" || !String(data.imageUrl || "").trim()) return null;
+    return { imageJobId: jobId, imageUrl: String(data.imageUrl), subject: String(data.subject || "") };
+  };
+
+  const page = (await db.collection(DREAM_PAGE_IMAGE_COLLECTION).doc(slug).get()).data() as
+    | { imageJobId?: string }
+    | undefined;
+  const fromPage = await completedJob(String(page?.imageJobId || "").trim());
+  if (fromPage) return { ...fromPage, source: "page" };
+
+  const jobs = await db.collection(AI_IMAGE_COLLECTION).where("dreamSlug", "==", slug).get();
+  const completed = jobs.docs
+    .filter((doc) => doc.get("status") === "completed" && String(doc.get("imageUrl") || "").trim())
+    .sort((left, right) => {
+      const l = left.get("createdAt")?.toMillis?.() ?? 0;
+      const r = right.get("createdAt")?.toMillis?.() ?? 0;
+      return r - l;
+    });
+  const newest = completed[0];
+  if (!newest) return null;
+  return {
+    imageJobId: newest.id,
+    imageUrl: String(newest.get("imageUrl")),
+    subject: String(newest.get("subject") || ""),
+    source: "job",
+  };
 }
 
 export async function previewAutoDictionaryContent() {
@@ -116,16 +153,20 @@ export async function enqueueAutoDictionaryContent(options: {
   const subjectSource = imageSubjectForEntry(entry);
   const promptSnapshot = await db.doc(AI_IMAGE_PROMPT_DOCUMENT).get();
   const promptTemplate = normalizePromptTemplate(promptSnapshot.data()?.template);
-  const { subject, prompt } = resolveImageGenerationPrompt(subjectSource, promptTemplate);
+  const { subject: generatedSubject, prompt } = resolveImageGenerationPrompt(subjectSource, promptTemplate);
   const config = aiImageConfig(promptTemplate);
-  if (!config.paidGenerationEnabled) {
+  // A page that already has an image keeps it: only the video is generated and
+  // the existing image is what gets published.
+  const reusable = await findReusableDreamImage(entry.slug);
+  if (!reusable && !config.paidGenerationEnabled) {
     throw new Error("PAID_IMAGE_DISABLED");
   }
-  const estimatedCostUsd = config.prices[imageProvider];
+  const subject = reusable?.subject || generatedSubject;
+  const estimatedCostUsd = reusable ? 0 : config.prices[imageProvider];
   const budgetDate = utcBudgetDate();
   const reservedRef = db.collection(AUTO_USED_SLUGS_COLLECTION).doc(entry.slug);
   const videoRef = db.collection(FREE_VIDEO_COLLECTION).doc();
-  const imageRef = db.collection(AI_IMAGE_COLLECTION).doc();
+  const imageRef = reusable ? db.collection(AI_IMAGE_COLLECTION).doc(reusable.imageJobId) : db.collection(AI_IMAGE_COLLECTION).doc();
   const budgetRef = db.collection("adminAiImageBudgets").doc(budgetDate);
   const createdAt = new Date();
 
@@ -135,18 +176,20 @@ export async function enqueueAutoDictionaryContent(options: {
       transaction.get(budgetRef),
     ]);
     if (reservedSnapshot.exists) throw new Error("SLUG_ALREADY_RESERVED");
-    const budget = budgetSnapshot.data() as { reservedUsd?: number; jobsCount?: number } | undefined;
-    const reservedUsd = Number(budget?.reservedUsd ?? 0);
-    const jobsCount = Number(budget?.jobsCount ?? 0);
-    if (jobsCount >= config.maxJobsPerDay) throw new Error("DAILY_JOB_LIMIT");
-    if (reservedUsd + estimatedCostUsd > config.dailyBudgetUsd + 0.000001) throw new Error("DAILY_BUDGET_LIMIT");
+    if (!reusable) {
+      const budget = budgetSnapshot.data() as { reservedUsd?: number; jobsCount?: number } | undefined;
+      const reservedUsd = Number(budget?.reservedUsd ?? 0);
+      const jobsCount = Number(budget?.jobsCount ?? 0);
+      if (jobsCount >= config.maxJobsPerDay) throw new Error("DAILY_JOB_LIMIT");
+      if (reservedUsd + estimatedCostUsd > config.dailyBudgetUsd + 0.000001) throw new Error("DAILY_BUDGET_LIMIT");
 
-    transaction.set(budgetRef, {
-      date: budgetDate,
-      reservedUsd: reservedUsd + estimatedCostUsd,
-      jobsCount: jobsCount + 1,
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
+      transaction.set(budgetRef, {
+        date: budgetDate,
+        reservedUsd: reservedUsd + estimatedCostUsd,
+        jobsCount: jobsCount + 1,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
 
     transaction.create(reservedRef, {
       slug: entry.slug,
@@ -154,6 +197,8 @@ export async function enqueueAutoDictionaryContent(options: {
       subject,
       videoJobId: videoRef.id,
       imageJobId: imageRef.id,
+      imageReused: Boolean(reusable),
+      imageReusedFrom: reusable?.source || "",
       status: "queued",
       createdBy: options.createdBy || AUTO_CONTENT_CREATED_BY,
       createdAt: FieldValue.serverTimestamp(),
@@ -181,6 +226,7 @@ export async function enqueueAutoDictionaryContent(options: {
       error: "",
     });
 
+    if (reusable) return;
     transaction.create(imageRef, {
       subject,
       prompt,
@@ -224,6 +270,7 @@ export async function enqueueAutoDictionaryContent(options: {
     entry: autoContentPreview(entry),
     videoJobId: videoRef.id,
     imageJobId: imageRef.id,
+    imageReused: Boolean(reusable),
     createdAt: createdAt.toISOString(),
   };
 }
