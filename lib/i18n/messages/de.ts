@@ -225,6 +225,7 @@ export const DE_MESSAGES: UiMessages = {
     accessUntil: "Abo gekündigt – Zugang bis {date}.",
     resubscribeNote: "Du kannst jetzt erneut abonnieren – das neue Abo beginnt am {date}, ohne weitere Testphase.",
     successResubscribe: "Abo verlängert. Es beginnt am {date}; dein Zugang läuft ohne Unterbrechung weiter.",
+    resubscribeCta: "Erneut abonnieren",
   },
   profile: {
     title: "Profil",

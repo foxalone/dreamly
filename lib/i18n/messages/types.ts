@@ -179,6 +179,7 @@ export type UiMessages = {
     accessUntil: string;
     resubscribeNote: string;
     successResubscribe: string;
+    resubscribeCta: string;
   };
   profile: {
     title: string;

@@ -117,10 +117,24 @@ export async function syncPaypalSubscriptionToUser(opts: {
   const existingData = (existing.data() ?? {}) as UserBillingFields & { pendingPaypalSubscriptionId?: string | null };
   const currentSubId = String(existingData.paypalSubscriptionId ?? "").trim();
   const pendingSubId = String(existingData.pendingPaypalSubscriptionId ?? "").trim();
-  const isCurrent = !currentSubId || currentSubId === opts.subscriptionId || pendingSubId === opts.subscriptionId;
+  const stillHasAccess = hasPaidAccess(existingData);
+  // A subscription may take over the user doc when it is the current/pending
+  // one, or when the current one no longer grants access (expired/cancelled
+  // and past accessUntil) — then the old id is dead and the new one wins.
+  const isCurrent =
+    !currentSubId ||
+    currentSubId === opts.subscriptionId ||
+    pendingSubId === opts.subscriptionId ||
+    !stillHasAccess;
   const unsettled = status === "none";
-  const parkAsPending = unsettled && !isCurrent && hasPaidAccess(existingData);
-  const touchUser = !parkAsPending && (!!opts.uid || isCurrent);
+  // An APPROVED / APPROVAL_PENDING subscription (scheduled start, or the
+  // buyer has not finished yet) must never turn a still-valid access into
+  // "none" — park it, whoever asked (webhook or activate route).
+  const parkAsPending = unsettled && stillHasAccess && currentSubId !== opts.subscriptionId;
+  // Webhook path (no explicit uid): custom_id is untrusted — never create a
+  // users/{custom_id} doc for an id that is not one of our users.
+  const knownUser = !!opts.uid || existing.exists;
+  const touchUser = knownUser && !parkAsPending && (!!opts.uid || isCurrent);
 
   await db.runTransaction(async (tx) => {
     tx.set(
@@ -166,8 +180,12 @@ export async function syncPaypalSubscriptionToUser(opts: {
   }
   if (!touchUser) {
     console.warn(
-      "paypal sync: subscription is not the user's current one, user doc left alone",
+      knownUser
+        ? "paypal sync: subscription is not the user's current one, user doc left alone"
+        : "paypal sync: custom_id is not a known user, user doc not created",
       opts.subscriptionId,
+      "uid:",
+      uid,
       "current:",
       currentSubId
     );

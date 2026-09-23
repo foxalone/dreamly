@@ -225,6 +225,7 @@ export const PT_MESSAGES: UiMessages = {
     accessUntil: "Subscrição cancelada — acesso até {date}.",
     resubscribeNote: "Podes subscrever de novo agora — a nova subscrição começa a {date}, sem novo período de teste.",
     successResubscribe: "Subscrição renovada. Começa a {date}; o teu acesso continua sem interrupção.",
+    resubscribeCta: "Subscrever de novo",
   },
   profile: {
     title: "Perfil",

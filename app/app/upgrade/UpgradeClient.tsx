@@ -178,12 +178,57 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
     const sid = returnedSubscriptionId;
     setReturnedSubscriptionId(null);
     const planId: PlanId | null = selected === "monthly" || selected === "yearly" ? selected : null;
+    if (billing?.subscriptionStatus === "cancelled") {
+      setResubStart(billing?.accessUntilMs ? new Date(Number(billing.accessUntilMs)).toISOString() : null);
+    }
     activateSubscription(sid, planId).catch((e: unknown) => {
       setStatus("error");
       setError(e instanceof Error ? e.message : t.upgrade.paying);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returnedSubscriptionId, uid]);
+
+  // Redirect flow: create the subscription, then hand the browser to PayPal's
+  // approve page. PayPal returns to /app/upgrade?subscribed=1&subscription_id=…
+  // (handled by the effect above).
+  async function resubscribe(planId: PlanId) {
+    const plan = SUBSCRIPTION_PLANS[planId];
+    setSelected(planId);
+    setError(null);
+    setStatus("creating");
+    trackEvent("begin_checkout", {
+      currency: plan.currency,
+      value: Number(plan.price),
+      items: [subscriptionItem(planId, plan.price)],
+    });
+    try {
+      const idToken = await getIdTokenOrThrow();
+      const r = await fetch("/api/paypal/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planId, idToken }),
+      });
+      const j = await r.json().catch(() => ({} as Record<string, unknown>));
+      const subscriptionID = String(j?.subscriptionID ?? "").trim();
+      const url = typeof j?.approveUrl === "string" ? j.approveUrl : "";
+      if (!r.ok || !subscriptionID || !url) {
+        console.error("[paypal] resubscribe create failed", {
+          plan: planId,
+          httpStatus: r.status,
+          code: j?.code,
+          error: j?.error,
+          hasApproveUrl: !!url,
+        });
+        throw new Error(String(j?.error ?? t.upgrade.creating));
+      }
+      console.info("[paypal] resubscribe redirect", { plan: planId, subscriptionID, startTime: j?.startTime });
+      setStatus("paying");
+      window.location.assign(url);
+    } catch (e: unknown) {
+      setStatus("error");
+      setError(e instanceof Error ? e.message : t.upgrade.creating);
+    }
+  }
 
   async function cancelSubscription() {
     try {
@@ -244,6 +289,28 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
     }
     if (!mounted) {
       return <div className="text-sm text-[var(--muted)]">{t.upgrade.creating}</div>;
+    }
+    if (isCancelled) {
+      // Re-subscribe (no-trial plan, start_time = end of current access).
+      // PayPal's Smart Buttons popup ends on "genericError?code=RETRY" for a
+      // subscription with a future start, while PayPal's own approve page
+      // (rel=approve link) renders it fine — so this path skips the popup.
+      const busy = status === "creating" || status === "paying";
+      return (
+        <div className="w-full">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void resubscribe(planId)}
+            className="dream-primary-btn w-full disabled:opacity-60"
+          >
+            {status === "creating" && selected === planId ? t.upgrade.creating : t.upgrade.resubscribeCta}
+          </button>
+          {status === "paying" && selected === planId ? (
+            <div className="mt-3 text-sm text-[var(--muted)]">{t.upgrade.paying}</div>
+          ) : null}
+        </div>
+      );
     }
     return (
       <div className={`w-full ${status === "paying" ? "opacity-70 pointer-events-none" : ""}`}>

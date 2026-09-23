@@ -225,6 +225,7 @@ export const RU_MESSAGES: UiMessages = {
     accessUntil: "Подписка отменена — доступ до {date}.",
     resubscribeNote: "Можно оформить подписку заново уже сейчас — новая подписка начнётся {date}, без повторного пробного периода.",
     successResubscribe: "Подписка продлена. Она начнётся {date}, доступ не прервётся.",
+    resubscribeCta: "Подписаться снова",
   },
   profile: {
     title: "Профиль",
