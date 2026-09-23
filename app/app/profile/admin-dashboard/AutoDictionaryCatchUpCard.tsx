@@ -8,6 +8,8 @@ import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
 import { useAdminActivePolling } from "./useAdminActivePolling";
 
 const STORAGE_KEY = "dreamly.autoCatchUp";
+/** Booking a slot uploads to YouTube and can take minutes; timeouts and dropped fetches are retried on the next poll. */
+const MAX_SCHEDULE_ATTEMPTS = 6;
 
 type Slot = { dateKey: string; hour: number; publishAt: string };
 type CatchUpPair = {
@@ -23,6 +25,8 @@ type CatchUpPair = {
   scheduled?: boolean;
   scheduling?: boolean;
   youtubeScheduled?: boolean;
+  scheduleAttempts?: number;
+  scheduleError?: string;
   error?: string;
 };
 
@@ -44,6 +48,9 @@ function pairLine(pair: CatchUpPair) {
   if (pair.error) return pair.error;
   if (pair.scheduled) return pair.youtubeScheduled === false ? "в слоте, YouTube не ушёл" : "поставлено в слот";
   if (pair.scheduling) return "ставим в слот…";
+  if (pair.scheduleError) {
+    return `слот не встал (${pair.scheduleError}), попытка ${pair.scheduleAttempts ?? 1}/${MAX_SCHEDULE_ATTEMPTS} — повторим…`;
+  }
   if (pair.videoStatus === "failed" || pair.imageStatus === "failed") return "ошибка генерации";
   if (pair.videoStatus === "completed" && pair.imageStatus === "completed") return "готово, ставим в слот…";
   if (pair.videoStatus === "processing" || pair.imageStatus === "processing") return "генерация";
@@ -58,6 +65,24 @@ function readStoredPairs() {
   } catch {
     return [];
   }
+}
+
+/** A pair whose generation succeeded but whose slot booking failed — safe to retry, the API is idempotent. */
+export function isRetryablePair(pair: CatchUpPair) {
+  return !pair.scheduled && pair.videoStatus !== "failed" && pair.imageStatus !== "failed" && Boolean(pair.error || pair.scheduling);
+}
+
+/** Clear stale "scheduling" flags (a reload killed that request) and optionally give failed bookings another go. */
+export function revivePairs(pairs: CatchUpPair[], retryErrors: boolean) {
+  return pairs.map((pair) => {
+    if (!isRetryablePair(pair)) return pair;
+    if (pair.error && !retryErrors) return pair;
+    return { ...pair, scheduling: false, error: "", scheduleError: "", scheduleAttempts: 0 };
+  });
+}
+
+function isTransientScheduleFailure(status: number) {
+  return status === 0 || status === 408 || status === 409 || status === 429 || status >= 500;
 }
 
 export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
@@ -108,56 +133,73 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
           next.push(pair);
           continue;
         }
-        const response = await fetch(
-          `/api/admin/auto-content/schedule?videoJobId=${encodeURIComponent(pair.videoJobId)}&imageJobId=${encodeURIComponent(pair.imageJobId)}`,
-          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-        );
-        const payload = (await response.json()) as {
-          video?: { status?: string; error?: string };
-          image?: { status?: string; error?: string };
-          error?: string;
-        };
-        if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Ошибка генерации");
-        const videoStatus = payload.video?.status || pair.videoStatus || "queued";
-        const imageStatus = payload.image?.status || pair.imageStatus || "queued";
-        if (videoStatus === "failed" || imageStatus === "failed") {
-          next.push({
-            ...pair,
-            videoStatus,
-            imageStatus,
-            error: payload.video?.error || payload.image?.error || "Ошибка генерации",
-          });
-          continue;
-        }
-        if (videoStatus === "completed" && imageStatus === "completed") {
-          const remaining = current.slice(next.length + 1);
-          persist([...next, { ...pair, videoStatus, imageStatus, scheduling: true }, ...remaining]);
-          const booked = await fetch("/api/admin/auto-content/schedule", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              slug: pair.slug,
-              videoJobId: pair.videoJobId,
-              imageJobId: pair.imageJobId,
-              publishAt: pair.publishAt,
-            }),
-          });
-          const bookedPayload = (await booked.json()) as { youtubeScheduled?: boolean; youtubeError?: string; error?: string };
-          if (!booked.ok) {
-            next.push({ ...pair, videoStatus, imageStatus, error: bookedPayload.error || "Не удалось поставить в слот" });
+        try {
+          const response = await fetch(
+            `/api/admin/auto-content/schedule?videoJobId=${encodeURIComponent(pair.videoJobId)}&imageJobId=${encodeURIComponent(pair.imageJobId)}`,
+            { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+          );
+          const payload = (await response.json()) as {
+            video?: { status?: string; error?: string };
+            image?: { status?: string; error?: string };
+            error?: string;
+          };
+          if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Ошибка генерации");
+          const videoStatus = payload.video?.status || pair.videoStatus || "queued";
+          const imageStatus = payload.image?.status || pair.imageStatus || "queued";
+          if (videoStatus === "failed" || imageStatus === "failed") {
+            next.push({
+              ...pair,
+              videoStatus,
+              imageStatus,
+              error: payload.video?.error || payload.image?.error || "Ошибка генерации",
+            });
             continue;
           }
-          next.push({
-            ...pair,
-            videoStatus,
-            imageStatus,
-            scheduled: true,
-            youtubeScheduled: bookedPayload.youtubeScheduled !== false,
-            error: bookedPayload.youtubeError || "",
-          });
-          continue;
+          if (videoStatus === "completed" && imageStatus === "completed") {
+            const remaining = current.slice(next.length + 1);
+            persist([...next, { ...pair, videoStatus, imageStatus, scheduling: true }, ...remaining]);
+            const booked = await fetch("/api/admin/auto-content/schedule", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                slug: pair.slug,
+                videoJobId: pair.videoJobId,
+                imageJobId: pair.imageJobId,
+                publishAt: pair.publishAt,
+              }),
+            });
+            const bookedPayload = (await booked.json().catch(() => ({}))) as {
+              youtubeScheduled?: boolean;
+              youtubeError?: string;
+              error?: string;
+            };
+            if (!booked.ok) {
+              throw new AdminPollingError(booked.status, bookedPayload.error || "Не удалось поставить в слот");
+            }
+            next.push({
+              ...pair,
+              videoStatus,
+              imageStatus,
+              scheduling: false,
+              scheduled: true,
+              scheduleError: "",
+              youtubeScheduled: bookedPayload.youtubeScheduled !== false,
+              error: bookedPayload.youtubeError || "",
+            });
+            continue;
+          }
+          next.push({ ...pair, videoStatus, imageStatus });
+        } catch (error) {
+          const status = error instanceof AdminPollingError ? error.status : 0;
+          if (status === 401 || status === 403) throw error;
+          const message = error instanceof Error ? error.message : "Ошибка";
+          const attempts = (pair.scheduleAttempts ?? 0) + 1;
+          if (isTransientScheduleFailure(status) && attempts < MAX_SCHEDULE_ATTEMPTS) {
+            next.push({ ...pair, scheduling: false, scheduleAttempts: attempts, scheduleError: message });
+          } else {
+            next.push({ ...pair, scheduling: false, scheduleAttempts: attempts, scheduleError: "", error: message });
+          }
         }
-        next.push({ ...pair, videoStatus, imageStatus });
       }
       persist(next);
       pairPollGate.current.success();
@@ -177,9 +219,18 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
 
   useEffect(() => {
     const stored = readStoredPairs();
-    if (stored.length) setPairs(stored);
+    if (stored.length) persist(revivePairs(stored, false));
     void loadPreview();
-  }, [loadPreview]);
+  }, [loadPreview, persist]);
+
+  const retryable = pairs.some((pair) => isRetryablePair(pair) && Boolean(pair.error));
+  function retryFailedSlots() {
+    setNotice(null);
+    pairPollGate.current.success();
+    const revived = revivePairs(readStoredPairs().length ? readStoredPairs() : pairs, true);
+    persist(revived);
+    void refreshPairs(revived);
+  }
   useAdminActivePolling(active, pollCatchUp, 8_000, { pauseWhenHidden: false });
 
   async function waitForWorkers(token: string) {
@@ -254,6 +305,15 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
       >
         {running ? "Запускаем воркеры и очередь…" : active ? "Пропущенная ночь уже идёт" : "Запустить пропущенную ночь"}
       </button>
+      {retryable && (
+        <button
+          type="button"
+          onClick={retryFailedSlots}
+          className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10"
+        >
+          Повторить постановку в слот
+        </button>
+      )}
       {pairs.length > 0 && (
         <ul className="space-y-1.5 text-sm text-[var(--text)]">
           {pairs.map((pair) => (
