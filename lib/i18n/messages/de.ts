@@ -222,6 +222,7 @@ export const DE_MESSAGES: UiMessages = {
     cancelCta: "Abo kündigen",
     cancelling: "Wird gekündigt…",
     openPaypalPage: "Probleme mit dem PayPal-Fenster? Auf der PayPal-Seite fortfahren",
+    accessUntil: "Abo gekündigt – Zugang bis {date}.",
   },
   profile: {
     title: "Profil",

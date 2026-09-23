@@ -13,6 +13,7 @@ import { subscriptionItem, trackEvent } from "@/lib/analytics";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import CheckoutLegalConsent from "@/app/components/CheckoutLegalConsent";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { formatMessage } from "@/lib/i18n/messages";
 import { localePath } from "@/lib/i18n/path";
 
 type UIStatus = "idle" | "creating" | "paying" | "success" | "error";
@@ -26,6 +27,12 @@ function fmtMoney(price: string, currency: string) {
     currency: String(currency || "USD").toUpperCase(),
     maximumFractionDigits: 2,
   }).format(v);
+}
+
+function fmtDate(ms: number | null | undefined) {
+  const v = Number(ms);
+  if (!Number.isFinite(v) || v <= 0) return "";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(v));
 }
 
 function toInitialPlan(initialPkg: string | null): UiPlanId {
@@ -104,6 +111,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   }, []);
 
   const subscribed = hasPaidAccess(billing);
+  // Cancelled but still inside the paid period: nothing left to cancel, so the
+  // button gives way to an "access until …" note.
+  const isCancelled = billing?.subscriptionStatus === "cancelled";
   const paypalClientId = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "").trim();
   const paypalEnabled = !!paypalClientId;
 
@@ -414,16 +424,22 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
         planGrid
       )}
 
-      {uid && subscribed ? (
+      {uid && subscribed && !isCancelled ? (
         <div className="mt-5">
           <button
             type="button"
             onClick={() => void cancelSubscription()}
-            disabled={busyCancel || billing?.subscriptionStatus === "cancelled"}
+            disabled={busyCancel}
             className="dream-btn dream-btn--neutral disabled:opacity-60"
           >
             {busyCancel ? t.upgrade.cancelling : t.upgrade.cancelCta}
           </button>
+        </div>
+      ) : null}
+
+      {uid && subscribed && isCancelled ? (
+        <div className="mt-5 text-sm text-[var(--muted)]">
+          {formatMessage(t.upgrade.accessUntil, { date: fmtDate(billing?.accessUntilMs) })}
         </div>
       ) : null}
 

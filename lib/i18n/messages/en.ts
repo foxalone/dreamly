@@ -222,6 +222,7 @@ export const EN_MESSAGES: UiMessages = {
     cancelCta: "Cancel subscription",
     cancelling: "Cancelling…",
     openPaypalPage: "Trouble with the PayPal window? Continue on PayPal’s page",
+    accessUntil: "Subscription cancelled — access until {date}.",
   },
   profile: {
     title: "Profile",

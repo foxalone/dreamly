@@ -176,6 +176,7 @@ export type UiMessages = {
     cancelCta: string;
     cancelling: string;
     openPaypalPage: string;
+    accessUntil: string;
   };
   profile: {
     title: string;

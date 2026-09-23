@@ -222,6 +222,7 @@ export const AR_MESSAGES: UiMessages = {
     cancelCta: "إلغاء الاشتراك",
     cancelling: "جارٍ الإلغاء…",
     openPaypalPage: "هل واجهت مشكلة في نافذة PayPal؟ تابع على صفحة PayPal",
+    accessUntil: "تم إلغاء الاشتراك — الوصول متاح حتى {date}.",
   },
   profile: {
     title: "الملف",

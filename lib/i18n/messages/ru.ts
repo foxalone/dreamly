@@ -222,6 +222,7 @@ export const RU_MESSAGES: UiMessages = {
     cancelCta: "Отменить подписку",
     cancelling: "Отменяем…",
     openPaypalPage: "Окно PayPal не открылось? Продолжить на странице PayPal",
+    accessUntil: "Подписка отменена — доступ до {date}.",
   },
   profile: {
     title: "Профиль",
