@@ -58,6 +58,8 @@ export function indexNowKeyLocation(key: string = indexNowKey()): string {
 
 /** Unprefixed path prefixes that are noindex and/or disallowed in robots.txt. */
 const EXCLUDED_PATH_PREFIXES = ["/signin", "/app", "/payment-success"];
+/** Exceptions inside an excluded prefix: public, indexable pages (see app/app/map/mapSeo.tsx). */
+const INDEXABLE_EXCEPTIONS = ["/app/map"];
 
 /** Public, canonical, indexable page path (locale prefix allowed, never `/en`). */
 export function isIndexNowEligiblePath(pathname: string): boolean {
@@ -65,6 +67,7 @@ export function isIndexNowEligiblePath(pathname: string): boolean {
   if (isLocaleExemptPath(pathname)) return false; // /api/, /_next/, admin dashboard, *.xml/*.txt …
   if (pathname === "/en" || pathname.startsWith("/en/")) return false;
   const { path } = stripLocalePrefix(pathname);
+  if (INDEXABLE_EXCEPTIONS.includes(path)) return true;
   return !EXCLUDED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 

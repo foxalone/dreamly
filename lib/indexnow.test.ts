@@ -90,6 +90,9 @@ test("private, API, noindex and robots-disallowed paths are never submitted", ()
     const disallow = Array.isArray(rule.disallow) ? rule.disallow : [rule.disallow];
     for (const path of disallow) if (path) assert.equal(isIndexNowEligiblePath(path), false, path);
   }
+  // /app/map is the one public page under /app.
+  for (const path of ["/app/map", "/es/app/map"]) assert.equal(isIndexNowEligiblePath(path), true, path);
+  assert.equal(isIndexNowEligiblePath("/app/map/anything"), false);
   const { urls, skipped } = collectIndexNowUrls([
     "/dreams/snake", "https://dreamly.art/dreams/snake", "/dreams/snake/", "/app/dreams", "https://evil.example/x",
   ]);

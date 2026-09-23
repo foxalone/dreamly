@@ -1,1 +1,1 @@
-export { default } from "../../app/layout";
+export { default, metadata } from "../../app/layout";

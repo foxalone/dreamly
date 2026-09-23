@@ -93,6 +93,12 @@ export function listPublicPages(): PublicPage[] {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    // The only public page under /app (homepage feature, no sign-in); see app/app/map/mapSeo.tsx.
+    ...localizedUrls("/app/map").map((url) => ({
+      url,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
     ...localizedUrls("/privacy").map((url) => ({
       url,
       lastModified: LEGAL_UPDATED_AT,
