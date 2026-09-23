@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       imageProvider?: unknown;
       catchUp?: unknown;
       count?: unknown;
+      fillGaps?: unknown;
     };
     const options = {
       createdBy: uid,
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       const result = await enqueueAutoDictionaryBatch({
         ...options,
         count: Number.isFinite(count) && count > 0 ? count : AUTO_PAIR_COUNT,
+        fillGaps: payload.fillGaps === true,
       });
       return NextResponse.json(result, { status: 201 });
     }

@@ -6,6 +6,7 @@ import {
   jerusalemWallTimeToIso,
   nextEmptyPublishDay,
   nextEmptyPublishDays,
+  nextFreePublishSlots,
   occupiedSlotKeys,
   publishSlotsForDay,
   publishSlotsForDays,
@@ -47,4 +48,26 @@ test("keeps a two-day horizon with four 05:00/15:00 slots", () => {
   const days = nextEmptyPublishDays(occupied, 2, new Date("2026-09-09T05:12:00.000Z"));
   assert.deepEqual(days, ["2026-09-11", "2026-09-13"]);
   assert.equal(publishSlotsForDays(days).length, 4);
+});
+
+test("refills the holes left by failed pairs before opening a new day", () => {
+  const occupied = occupiedSlotKeys([
+    "2026-10-08T02:00:00.000Z", // 08.10 05:00 booked, 15:00 free
+    "2026-10-09T12:00:00.000Z", // 09.10 15:00 booked, 05:00 free
+  ]);
+  const slots = nextFreePublishSlots(occupied, 3, new Date("2026-09-23T10:00:00.000Z"));
+  assert.deepEqual(
+    slots.map((slot) => `${slot.dateKey}|${slot.hour}`),
+    ["2026-09-23|15", "2026-09-24|5", "2026-09-24|15"],
+  );
+  const fullDays = [
+    ...Array.from({ length: 8 }, (_, i) => `2026-09-${23 + i}`),
+    ...Array.from({ length: 7 }, (_, i) => `2026-10-0${1 + i}`),
+  ].flatMap((day) => [`${day}T02:00:00.000Z`, `${day}T12:00:00.000Z`]);
+  const later = nextFreePublishSlots(
+    occupiedSlotKeys([...fullDays, "2026-10-08T02:00:00.000Z", "2026-10-09T12:00:00.000Z"]),
+    2,
+    new Date("2026-09-23T10:00:00.000Z"),
+  );
+  assert.deepEqual(later.map((slot) => `${slot.dateKey}|${slot.hour}`), ["2026-10-08|15", "2026-10-09|5"]);
 });

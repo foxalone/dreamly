@@ -26,7 +26,7 @@ import { MAX_SHORT_DURATION_SECONDS } from "@/lib/adminVideo";
 import { DREAM_PAGE_IMAGE_COLLECTION, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import { aiImageConfig, utcBudgetDate } from "../ai-image/_lib";
-import { AUTO_HORIZON_DAYS, AUTO_PAIR_COUNT, occupiedSlotKeys, nextEmptyPublishDays, publishSlotsForDays } from "@/lib/adminAutoSlots";
+import { AUTO_HORIZON_DAYS, AUTO_PAIR_COUNT, occupiedSlotKeys, nextEmptyPublishDays, nextFreePublishSlots, publishSlotsForDays } from "@/lib/adminAutoSlots";
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
@@ -342,9 +342,16 @@ export async function enqueueAutoDictionaryBatch(options: {
   sendToTelegram?: boolean;
   imageProvider?: AiImageProvider;
   count?: number;
+  /** Take the earliest free slots (holes in partially booked days first) instead of whole empty days. */
+  fillGaps?: boolean;
 }) {
-  const slots = await nextAutoPublishSlots();
   const count = Math.min(Math.max(options.count ?? AUTO_PAIR_COUNT, 1), AUTO_PAIR_COUNT);
+  const slots = options.fillGaps
+    ? await (async () => {
+        const free = nextFreePublishSlots(occupiedSlotKeys(await scheduledAtValues()), count);
+        return { dateKey: free[0]?.dateKey, dateKeys: [...new Set(free.map((slot) => slot.dateKey))], slots: free, pairCount: count };
+      })()
+    : await nextAutoPublishSlots();
   const pairs = [];
   for (let index = 0; index < count; index += 1) {
     const queued = await enqueueAutoDictionaryContent(options);

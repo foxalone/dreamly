@@ -81,6 +81,11 @@ export function revivePairs(pairs: CatchUpPair[], retryErrors: boolean) {
   });
 }
 
+/** Generation failed (video or image) — the slot is still empty and needs a fresh pair. */
+export function isFailedGeneration(pair: CatchUpPair) {
+  return !pair.scheduled && (pair.videoStatus === "failed" || pair.imageStatus === "failed");
+}
+
 function isTransientScheduleFailure(status: number) {
   return status === 0 || status === 408 || status === 409 || status === 429 || status >= 500;
 }
@@ -252,23 +257,36 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     return false;
   }
 
-  async function startCatchUp() {
+  const failedCount = pairs.filter(isFailedGeneration).length;
+
+  /** `fillGaps` re-queues only as many pairs as failed, into the earliest free slots (the holes they left). */
+  async function startCatchUp(fillGaps = false) {
     setRunning(true);
     setNotice(null);
     try {
       const token = await user.getIdToken();
-      setNotice({ type: "ok", text: "Поднимаем воркеры на этом Mac и ставим ночной цикл в очередь…" });
+      const stored = readStoredPairs().length ? readStoredPairs() : pairs;
+      const gaps = fillGaps ? stored.filter(isFailedGeneration).length : 0;
+      if (fillGaps && !gaps) throw new Error("Нет проваленных пар — заполнять нечего");
+      setNotice({
+        type: "ok",
+        text: fillGaps
+          ? `Поднимаем воркеры и ставим ${gaps} новых пар в освободившиеся слоты…`
+          : "Поднимаем воркеры на этом Mac и ставим ночной цикл в очередь…",
+      });
       const response = await fetch("/api/admin/auto-content", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ catchUp: true, sendToTelegram: true }),
+        body: JSON.stringify(fillGaps ? { catchUp: true, fillGaps: true, count: gaps, sendToTelegram: true } : { catchUp: true, sendToTelegram: true }),
       });
       const payload = (await response.json()) as { pairs?: CatchUpPair[]; slots?: { slots?: Slot[] }; error?: string };
       if (!response.ok || !payload.pairs?.length) throw new Error(payload.error || "Не удалось запустить пропущенную ночь");
-      if (payload.slots?.slots) setSlots(payload.slots.slots);
-      persist(payload.pairs);
+      if (payload.slots?.slots && !fillGaps) setSlots(payload.slots.slots);
+      // Refill keeps the pairs that made it and swaps the failed ones for the new batch.
+      const next = fillGaps ? [...stored.filter((pair) => !isFailedGeneration(pair)), ...payload.pairs] : payload.pairs;
+      persist(next);
       const woke = await waitForWorkers(token);
-      void refreshPairs(payload.pairs);
+      void refreshPairs(next);
       setNotice({
         type: woke ? "ok" : "error",
         text: woke
@@ -312,6 +330,16 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
           className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10"
         >
           Повторить постановку в слот
+        </button>
+      )}
+      {failedCount > 0 && !running && (
+        <button
+          type="button"
+          disabled={running}
+          onClick={() => void startCatchUp(true)}
+          className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10 disabled:opacity-50"
+        >
+          Перегенерировать {failedCount} в свободные слоты
         </button>
       )}
       {pairs.length > 0 && (

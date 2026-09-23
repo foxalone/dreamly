@@ -115,3 +115,26 @@ export function nextEmptyPublishDays(occupied: Iterable<string>, count = AUTO_HO
 export function publishSlotsForDays(dateKeys: string[]) {
   return dateKeys.flatMap((dateKey) => publishSlotsForDay(dateKey));
 }
+
+/**
+ * The earliest free 05:00/15:00 slots in chronological order, partially booked days
+ * included — used to refill the holes a failed catch-up pair left behind.
+ */
+export function nextFreePublishSlots(occupied: Iterable<string>, count: number, now = new Date()): AutoPublishSlot[] {
+  const taken = new Set(occupied);
+  const nowMs = now.getTime();
+  const slots: AutoPublishSlot[] = [];
+  let dateKey = jerusalemDateKey(now);
+  for (let index = 0; index < 400 && slots.length < count; index += 1) {
+    if (!taken.has(dateKey)) {
+      for (const slot of publishSlotsForDay(dateKey)) {
+        if (slots.length >= count) break;
+        const when = Date.parse(slot.publishAt);
+        if (when > nowMs + 60_000 && !taken.has(slotKey(dateKey, slot.hour))) slots.push(slot);
+      }
+    }
+    dateKey = addJerusalemDay(dateKey, 1);
+  }
+  if (slots.length < count) throw new Error("NO_EMPTY_PUBLISH_DAY");
+  return slots;
+}
