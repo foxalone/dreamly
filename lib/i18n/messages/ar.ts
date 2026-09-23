@@ -223,6 +223,8 @@ export const AR_MESSAGES: UiMessages = {
     cancelling: "جارٍ الإلغاء…",
     openPaypalPage: "هل واجهت مشكلة في نافذة PayPal؟ تابع على صفحة PayPal",
     accessUntil: "تم إلغاء الاشتراك — الوصول متاح حتى {date}.",
+    resubscribeNote: "يمكنك الاشتراك مجددًا الآن — يبدأ الاشتراك الجديد في {date} دون فترة تجريبية أخرى.",
+    successResubscribe: "تم تجديد الاشتراك. يبدأ في {date}، ويستمر وصولك دون انقطاع.",
   },
   profile: {
     title: "الملف",

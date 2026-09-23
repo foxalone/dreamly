@@ -223,6 +223,8 @@ export const RU_MESSAGES: UiMessages = {
     cancelling: "Отменяем…",
     openPaypalPage: "Окно PayPal не открылось? Продолжить на странице PayPal",
     accessUntil: "Подписка отменена — доступ до {date}.",
+    resubscribeNote: "Можно оформить подписку заново уже сейчас — новая подписка начнётся {date}, без повторного пробного периода.",
+    successResubscribe: "Подписка продлена. Она начнётся {date}, доступ не прервётся.",
   },
   profile: {
     title: "Профиль",

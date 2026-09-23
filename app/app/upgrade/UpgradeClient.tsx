@@ -64,7 +64,10 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
   const [busyCancel, setBusyCancel] = useState(false);
   // Which action produced status === "success", so the banner does not flash
   // the "cancelled" text while the users/{uid} snapshot is still catching up.
-  const [lastAction, setLastAction] = useState<"subscribe" | "cancel" | null>(null);
+  const [lastAction, setLastAction] = useState<"subscribe" | "resubscribe" | "cancel" | null>(null);
+  // Scheduled start of a re-subscription (ISO from create-subscription), for
+  // the success banner.
+  const [resubStart, setResubStart] = useState<string | null>(null);
   // PayPal's own approval page for the last subscription we created. Shown as
   // a fallback when the Buttons popup ends on PayPal's generic error page:
   // the redirect flow comes back to /app/upgrade?subscribed=1&subscription_id=I-…
@@ -157,7 +160,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
       status: j?.status,
       pending: j?.pending,
     });
-    setLastAction("subscribe");
+    setLastAction(resubStart ? "resubscribe" : "subscribe");
     setApproveUrl(null);
     const plan = planId ? SUBSCRIPTION_PLANS[planId] : null;
     trackEvent("purchase", {
@@ -219,7 +222,10 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
 
   function renderPaypal(planId: PlanId) {
     const plan = SUBSCRIPTION_PLANS[planId];
-    if (subscribed) {
+    // Active/trial: nothing to buy. Cancelled-with-access: allow buying again —
+    // the server schedules the new subscription for the end of the current
+    // access (no second trial).
+    if (subscribed && !isCancelled) {
       return null;
     }
     if (!uid) {
@@ -273,8 +279,14 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
                 });
                 throw new Error(String(j?.error ?? t.upgrade.creating));
               }
-              console.info("[paypal] subscription created", { plan: planId, subscriptionID });
+              console.info("[paypal] subscription created", {
+                plan: planId,
+                subscriptionID,
+                withTrial: j?.withTrial,
+                startTime: j?.startTime,
+              });
               setApproveUrl(typeof j?.approveUrl === "string" && j.approveUrl ? j.approveUrl : null);
+              setResubStart(typeof j?.startTime === "string" && j.startTime ? j.startTime : null);
               setStatus("idle");
               return subscriptionID;
             } catch (e: unknown) {
@@ -414,7 +426,11 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
 
       {uid && status === "success" && (
         <div className="mt-6 rounded-2xl border border-green-500/30 bg-green-600/15 px-4 py-4 text-sm text-green-200">
-          {lastAction === "cancel" ? t.upgrade.cancelled : t.upgrade.success}
+          {lastAction === "cancel"
+            ? t.upgrade.cancelled
+            : lastAction === "resubscribe"
+              ? formatMessage(t.upgrade.successResubscribe, { date: fmtDate(Date.parse(resubStart ?? "")) })
+              : t.upgrade.success}
         </div>
       )}
 
@@ -438,8 +454,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
       ) : null}
 
       {uid && subscribed && isCancelled ? (
-        <div className="mt-5 text-sm text-[var(--muted)]">
-          {formatMessage(t.upgrade.accessUntil, { date: fmtDate(billing?.accessUntilMs) })}
+        <div className="mt-5 space-y-1 text-sm text-[var(--muted)]">
+          <div>{formatMessage(t.upgrade.accessUntil, { date: fmtDate(billing?.accessUntilMs) })}</div>
+          <div>{formatMessage(t.upgrade.resubscribeNote, { date: fmtDate(billing?.accessUntilMs) })}</div>
         </div>
       ) : null}
 

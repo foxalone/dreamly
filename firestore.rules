@@ -15,7 +15,13 @@ service cloud.firestore {
         'openaiFreeDayKey', 'openaiFreeUsed', 'openaiFreeUpdatedAt',
         'totalPurchasedCredits', 'welcomeBonusGranted', 'isAdmin',
         // один бесплатный сон без подписки — пишет только consume-slot (admin SDK)
-        'freeDreamSavesUsed', 'freeDreamSaveAt'
+        'freeDreamSavesUsed', 'freeDreamSaveAt',
+        // подписка и лимиты — пишет только сервер (lib/paypal/syncSubscription.ts,
+        // consume-slot, translationLedger); иначе клиент мог бы выдать себе Pro
+        'subscriptionStatus', 'subscriptionPlan', 'paypalSubscriptionId',
+        'pendingPaypalSubscriptionId', 'paypalSubscriptionStatus', 'paypalSubscriptionRaw',
+        'accessUntilMs', 'trialEndsAtMs', 'subscriptionUpdatedAt',
+        'dreamsDayKey', 'dreamsTodayCount', 'translateDayKey', 'translateFreeCount'
       ];
     }
     function noForbiddenUserKeys() {

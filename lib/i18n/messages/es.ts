@@ -223,6 +223,8 @@ export const ES_MESSAGES: UiMessages = {
     cancelling: "Cancelando…",
     openPaypalPage: "¿Problemas con la ventana de PayPal? Continuar en la página de PayPal",
     accessUntil: "Suscripción cancelada: acceso hasta {date}.",
+    resubscribeNote: "Puedes volver a suscribirte ahora: la nueva suscripción empieza el {date}, sin otro periodo de prueba.",
+    successResubscribe: "Suscripción renovada. Empieza el {date}; tu acceso continúa sin interrupción.",
   },
   profile: {
     title: "Perfil",

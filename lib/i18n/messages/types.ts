@@ -177,6 +177,8 @@ export type UiMessages = {
     cancelling: string;
     openPaypalPage: string;
     accessUntil: string;
+    resubscribeNote: string;
+    successResubscribe: string;
   };
   profile: {
     title: string;

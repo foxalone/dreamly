@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "@/app/api/dreams/_lib/requireUser";
 import { isPlanId } from "@/lib/subscriptions/plans";
-import { getPaypalPlanIds } from "@/lib/paypal/plans";
+import { getNoTrialPlanId, getPaypalPlanIds } from "@/lib/paypal/plans";
+import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
+import { hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
 import {
   fingerprint,
   getSiteBaseUrl,
@@ -39,8 +41,39 @@ export async function POST(req: Request) {
       );
     }
 
+    // Re-subscribing: a user whose subscription is cancelled but still inside
+    // the paid/trial period may buy again. The new subscription is scheduled
+    // to start when the current access ends (PayPal `start_time`), and uses
+    // the no-trial plan — the trial is granted once per account.
+    const userSnap = await adminDb().collection("users").doc(auth.uid).get();
+    const billing = (userSnap.data() ?? {}) as UserBillingFields;
+    const currentStatus = String(billing.subscriptionStatus ?? "none");
+    if (currentStatus === "trial" || currentStatus === "active") {
+      logPaypal("warn", "create-subscription.already-subscribed", {
+        uid: auth.uid,
+        status: currentStatus,
+        subscriptionID: billing.paypalSubscriptionId ?? null,
+      });
+      return NextResponse.json(
+        { error: "You already have an active subscription.", code: "ALREADY_SUBSCRIBED" },
+        { status: 409 }
+      );
+    }
+    const hadSubscription = !!String(billing.paypalSubscriptionId ?? "").trim();
+    const accessUntilMs = Number(billing.accessUntilMs ?? 0);
+    const now = Date.now();
+    // PayPal rejects a start_time that is not safely in the future.
+    const startTime =
+      hasPaidAccess(billing, now) && accessUntilMs > now + 5 * 60_000
+        ? new Date(accessUntilMs).toISOString()
+        : null;
+
     const ids = await getPaypalPlanIds();
-    const planId = body.plan === "yearly" ? ids.yearlyPlanId : ids.monthlyPlanId;
+    const planId = hadSubscription
+      ? await getNoTrialPlanId(body.plan)
+      : body.plan === "yearly"
+        ? ids.yearlyPlanId
+        : ids.monthlyPlanId;
     const base = getSiteBaseUrl(req);
     // PayPal appends ?subscription_id=I-…&ba_token=BA-…&token=… to return_url.
     // UpgradeClient reads subscription_id when the redirect fallback is used.
@@ -51,6 +84,8 @@ export async function POST(req: Request) {
       uid: auth.uid,
       plan: body.plan,
       paypalPlanId: planId,
+      withTrial: !hadSubscription,
+      startTime,
       clientId: fingerprint(process.env.PAYPAL_CLIENT_ID),
       base,
     });
@@ -61,6 +96,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         plan_id: planId,
         custom_id: auth.uid,
+        ...(startTime ? { start_time: startTime } : {}),
         application_context: {
           brand_name: "Dreamly",
           locale: "en-US",
@@ -105,7 +141,13 @@ export async function POST(req: Request) {
       hasApproveUrl: !!approveUrl,
     });
 
-    return NextResponse.json({ subscriptionID, plan: body.plan, approveUrl: approveUrl || null });
+    return NextResponse.json({
+      subscriptionID,
+      plan: body.plan,
+      approveUrl: approveUrl || null,
+      withTrial: !hadSubscription,
+      startTime,
+    });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
     logPaypal("error", "create-subscription.exception", { message });

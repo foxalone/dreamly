@@ -223,6 +223,8 @@ export const DE_MESSAGES: UiMessages = {
     cancelling: "Wird gekündigt…",
     openPaypalPage: "Probleme mit dem PayPal-Fenster? Auf der PayPal-Seite fortfahren",
     accessUntil: "Abo gekündigt – Zugang bis {date}.",
+    resubscribeNote: "Du kannst jetzt erneut abonnieren – das neue Abo beginnt am {date}, ohne weitere Testphase.",
+    successResubscribe: "Abo verlängert. Es beginnt am {date}; dein Zugang läuft ohne Unterbrechung weiter.",
   },
   profile: {
     title: "Profil",

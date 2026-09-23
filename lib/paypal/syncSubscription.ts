@@ -1,7 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import type { PlanId } from "@/lib/subscriptions/plans";
-import type { SubscriptionStatus } from "@/lib/subscriptions/status";
+import { hasPaidAccess, type SubscriptionStatus, type UserBillingFields } from "@/lib/subscriptions/status";
 import { paypalFetch } from "./server";
 import { planIdFromPaypalPlan } from "./plans";
 
@@ -107,6 +107,21 @@ export async function syncPaypalSubscriptionToUser(opts: {
   const nextUntil =
     accessUntilMs ?? (status === "cancelled" && Number.isFinite(prevUntil) && prevUntil > 0 ? prevUntil : null);
 
+  // After a re-subscribe the user document follows the NEW subscription id.
+  // Webhooks for the previous (cancelled/expired) subscription still keep
+  // paypalSubscriptions/{id} current but must not overwrite users/{uid}.
+  // An explicit uid (activate / cancel routes) takes over — except while the
+  // new subscription is still APPROVED/APPROVAL_PENDING (scheduled start) and
+  // the user still has access from the old one: then only remember it as
+  // pending, and let the ACTIVATED webhook finish the takeover.
+  const existingData = (existing.data() ?? {}) as UserBillingFields & { pendingPaypalSubscriptionId?: string | null };
+  const currentSubId = String(existingData.paypalSubscriptionId ?? "").trim();
+  const pendingSubId = String(existingData.pendingPaypalSubscriptionId ?? "").trim();
+  const isCurrent = !currentSubId || currentSubId === opts.subscriptionId || pendingSubId === opts.subscriptionId;
+  const unsettled = status === "none";
+  const parkAsPending = unsettled && !isCurrent && hasPaidAccess(existingData);
+  const touchUser = !parkAsPending && (!!opts.uid || isCurrent);
+
   await db.runTransaction(async (tx) => {
     tx.set(
       mapRef,
@@ -120,9 +135,19 @@ export async function syncPaypalSubscriptionToUser(opts: {
       },
       { merge: true }
     );
+    if (parkAsPending) {
+      tx.set(
+        userRef,
+        { pendingPaypalSubscriptionId: opts.subscriptionId, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+      return;
+    }
+    if (!touchUser) return;
 
     const patch: Record<string, unknown> = {
       paypalSubscriptionId: opts.subscriptionId,
+      pendingPaypalSubscriptionId: null,
       subscriptionStatus: status,
       subscriptionPlan: plan,
       paypalSubscriptionStatus: paypalStatus,
@@ -134,6 +159,20 @@ export async function syncPaypalSubscriptionToUser(opts: {
     if (opts.raw) patch.paypalSubscriptionRaw = opts.raw;
     tx.set(userRef, patch, { merge: true });
   });
+
+  if (parkAsPending) {
+    console.warn("paypal sync: new subscription not active yet, parked as pending", opts.subscriptionId, paypalStatus);
+    return { uid, status, plan, accessUntilMs: nextUntil, pending: true as const };
+  }
+  if (!touchUser) {
+    console.warn(
+      "paypal sync: subscription is not the user's current one, user doc left alone",
+      opts.subscriptionId,
+      "current:",
+      currentSubId
+    );
+    return { uid, status, plan, accessUntilMs: nextUntil, staleSubscription: true as const };
+  }
 
   return { uid, status, plan, accessUntilMs: nextUntil };
 }
