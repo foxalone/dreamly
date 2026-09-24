@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
-import { enqueueAutoDictionaryBatch, enqueueAutoDictionaryContent, nextAutoPublishSlots, previewAutoDictionaryContent, requestLocalWorkerWake } from "@/app/api/admin/_lib/autoContent";
+import {
+  backfillAutoPairImages,
+  enqueueAutoDictionaryBatch,
+  enqueueAutoDictionaryContent,
+  nextAutoPublishSlots,
+  previewAutoDictionaryContent,
+  requestLocalWorkerWake,
+} from "@/app/api/admin/_lib/autoContent";
 import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The image backfill reads every reservation; give it the same room as the schedule route.
+export const maxDuration = 300;
 
 function apiError(error: unknown) {
   const message = error instanceof Error ? error.message : "UNKNOWN";
@@ -47,7 +56,12 @@ export async function POST(request: Request) {
       catchUp?: unknown;
       count?: unknown;
       fillGaps?: unknown;
+      backfillImages?: unknown;
     };
+    // Book the +5h image for every already-scheduled pair that has none (pairs booked before 2026-09-23).
+    if (payload.backfillImages === true) {
+      return NextResponse.json(await backfillAutoPairImages(uid));
+    }
     const options = {
       createdBy: uid,
       sendToTelegram: payload.sendToTelegram !== false,

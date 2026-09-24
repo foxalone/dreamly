@@ -102,6 +102,7 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
   const [videoWorker, setVideoWorker] = useState<WorkerStatus>({ online: false });
   const [imageWorker, setImageWorker] = useState<WorkerStatus>({ online: false });
   const [running, setRunning] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   const [notice, setNotice] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   const slotText = useMemo(
@@ -310,6 +311,46 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     }
   }
 
+  /** Pairs booked before 2026-09-23 have a video slot but no image: queue the image +5h after the video. */
+  async function backfillImages() {
+    setBackfilling(true);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/auto-content", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ backfillImages: true }),
+      });
+      const payload = (await response.json()) as {
+        booked?: number;
+        already?: number;
+        missed?: number;
+        errors?: number;
+        items?: Array<{ slug: string; outcome: string; imagePublishAt: string; error: string }>;
+        error?: string;
+      };
+      if (!response.ok) throw new Error(payload.error || "Не удалось добронировать картинки");
+      const booked = (payload.items || []).filter((item) => item.outcome === "booked");
+      const failed = (payload.items || []).filter((item) => item.outcome === "error");
+      const text = [
+        booked.length
+          ? `Картинки поставлены: ${booked.map((item) => `${item.slug} → ${slotLabel(item.imagePublishAt)}`).join(", ")}`
+          : "Новых картинок ставить нечего",
+        `уже стояло ${payload.already ?? 0}`,
+        payload.missed ? `время +5ч уже прошло у ${payload.missed}` : "",
+        failed.length ? `ошибки: ${failed.map((item) => `${item.slug} — ${item.error}`).join("; ")}` : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      setNotice({ type: failed.length ? "error" : "ok", text });
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка добронирования" });
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Ночная автоматизация</p>
@@ -352,6 +393,15 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
           Перегенерировать {failedCount} в свободные слоты
         </button>
       )}
+      <button
+        type="button"
+        disabled={backfilling}
+        onClick={() => void backfillImages()}
+        title="Для каждой уже запланированной пары без картинки ставит картинку в соцсети через 5 часов после видео"
+        className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10 disabled:opacity-50"
+      >
+        {backfilling ? "Ставим картинки…" : "Добронировать картинки +5ч"}
+      </button>
       {pairs.length > 0 && (
         <ul className="space-y-1.5 text-sm text-[var(--text)]">
           {pairs.map((pair) => (

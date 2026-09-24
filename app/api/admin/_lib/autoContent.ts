@@ -429,6 +429,74 @@ export async function enqueueAutoDictionaryBatch(options: {
   return { slots, pairs };
 }
 
+export type AutoPairImageBackfillItem = {
+  slug: string;
+  imageJobId: string;
+  videoPublishAt: string;
+  imagePublishAt: string;
+  outcome: "booked" | "already" | "missed" | "error";
+  error: string;
+};
+
+/**
+ * Pairs booked before 2026-09-23 (commit 574723d) got a video slot but no image
+ * booking. Walk every reservation whose video is scheduled or already published
+ * and queue its image five hours after the video, unless that moment has passed.
+ * Idempotent: an image that is already queued or published is reported as "already".
+ */
+export async function backfillAutoPairImages(createdBy: string) {
+  const db = adminDb();
+  const now = Date.now();
+  const items: AutoPairImageBackfillItem[] = [];
+  const reservations = await loadCollectionDocs(AUTO_USED_SLUGS_COLLECTION);
+  for (const reservation of reservations) {
+    const imageJobId = String(reservation.get("imageJobId") || "").trim();
+    const videoJobId = String(reservation.get("videoJobId") || "").trim();
+    if (!imageJobId || !videoJobId) continue;
+    const video = await db.collection(FREE_VIDEO_COLLECTION).doc(videoJobId).get();
+    if (!video.exists) continue;
+    // Pending publishes keep socialScheduledAt; finished ones only the moment they went out.
+    const videoPublishAt = String(video.get("socialScheduledAt") || "").trim()
+      || (String(video.get("socialScheduleStatus") || "") === "done" ? String(video.get("socialScheduleFinishedAt") || "").trim() : "");
+    if (!videoPublishAt) continue;
+    const imagePublishAt = imagePublishAtForSlot(videoPublishAt);
+    const base = { slug: reservation.id, imageJobId, videoPublishAt, imagePublishAt, error: "" };
+    if (!imagePublishAt) {
+      items.push({ ...base, outcome: "error", error: "Bad publishAt" });
+      continue;
+    }
+    try {
+      const image = await db.collection(AI_IMAGE_COLLECTION).doc(imageJobId).get();
+      if (!image.exists) {
+        items.push({ ...base, outcome: "error", error: "Image not found" });
+        continue;
+      }
+      if (String(image.get("socialScheduledAt") || "") || String(image.get("socialScheduleStatus") || "") === "done") {
+        items.push({ ...base, outcome: "already" });
+        continue;
+      }
+      if (Date.parse(imagePublishAt) <= now) {
+        items.push({ ...base, outcome: "missed" });
+        continue;
+      }
+      await scheduleLibraryImagePublish(imageJobId, imagePublishAt, createdBy);
+      items.push({ ...base, outcome: "booked" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Image schedule error";
+      console.error("[auto-content] image backfill", reservation.id, message);
+      items.push({ ...base, outcome: "error", error: message });
+    }
+  }
+  const count = (outcome: AutoPairImageBackfillItem["outcome"]) => items.filter((item) => item.outcome === outcome).length;
+  return {
+    booked: count("booked"),
+    already: count("already"),
+    missed: count("missed"),
+    errors: count("error"),
+    items,
+  };
+}
+
 export async function readAutoPairState(videoJobId: string, imageJobId: string) {
   const [video, image] = await Promise.all([
     readJobState(FREE_VIDEO_COLLECTION, videoJobId),

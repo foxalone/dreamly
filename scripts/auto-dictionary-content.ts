@@ -1,4 +1,5 @@
 import {
+  backfillAutoPairImages,
   enqueueAutoDictionaryContent,
   nextAutoPublishSlots,
   notifyAutoDictionaryContentDone,
@@ -30,6 +31,12 @@ function parseExistingPairs() {
 }
 
 async function main() {
+  // `--backfill-images` only books the +5h image for already-scheduled pairs that have none, then exits.
+  if (process.argv.includes("--backfill-images")) {
+    const backfill = await backfillAutoPairImages(AUTO_CONTENT_CREATED_BY);
+    console.log(JSON.stringify(backfill, null, 2));
+    process.exit(backfill.errors ? 1 : 0);
+  }
   const wait = process.argv.includes("--wait");
   const schedule = process.argv.includes("--schedule") || wait;
   const extra = Math.max(0, Number(readFlag("--enqueue-more") || (parseExistingPairs().length ? "0" : String(AUTO_PAIR_COUNT))) || 0);
@@ -101,6 +108,22 @@ async function main() {
     });
   }
 
+  // Pairs booked before the +5h image booking existed have a video slot but no image;
+  // pick those up every night so a missed image only costs one day, not the whole horizon.
+  let backfillLine = "";
+  if (schedule) {
+    try {
+      const backfill = await backfillAutoPairImages(AUTO_CONTENT_CREATED_BY);
+      const errors = backfill.items.filter((item) => item.outcome === "error");
+      backfillLine = [
+        `добронировано картинок: ${backfill.booked}`,
+        errors.length ? `ошибки: ${errors.map((item) => `${item.slug} — ${item.error}`).join("; ")}` : "",
+      ].filter(Boolean).join(" · ");
+    } catch (error) {
+      backfillLine = `добронирование картинок: ${error instanceof Error ? error.message : "ошибка"}`;
+    }
+  }
+
   const ok = results.every((item) => item.ok);
   const summary = [
     ok ? "Dreamly авто готово" : "Dreamly авто: есть ошибки",
@@ -117,7 +140,8 @@ async function main() {
         .filter(Boolean)
         .join(" · ");
     }),
-  ].join("\n");
+    backfillLine,
+  ].filter(Boolean).join("\n");
   await notifyAutoDictionaryContentDone({
     title: summary,
     slug: results[0]?.slug || "",
