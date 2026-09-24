@@ -46,17 +46,17 @@ const LENSES: Record<Locale, Record<DreamCategory, Lens>> = {
     spiritual: { psychological: "unverarbeitete Erinnerung, Furcht vor dem Unbekannten, Gewissen, das Verlangen nach Schutz und inneren Konflikt, der Gestalt annimmt", spiritual: "Unterscheidung zwischen Furcht und Führung, Schutz, geistliche Aufmerksamkeit und die Suche nach Sinn jenseits des Stofflichen", biblical: "geistliche Unterscheidung, Schutz, Boten, Versuchung und das Prüfen jedes Eindrucks an Weisheit und Schrift" },
   },
   ru: {
-    animals: { psychological: "инстинкт, привязанность, доверие, чуткость к угрозе и реакции, что приходят раньше мысли", spiritual: "различение, природную мудрость, защиту и уважительный контакт с диким в жизни", biblical: "мудрость, попечение, влечение, защиту и нравственный смысл поведения животного" },
-    body: { psychological: "образ себя, речь, внимание к здоровью, уязвимость и желание оставаться способным", spiritual: "воплощённость, цельность, смирение и заботу о теле, через которое выражается смысл", biblical: "тело как прожитую ответственность, силу слова, человеческую хрупкость и силу, употреблённую с мудростью" },
-    water: { psychological: "чувство, память, регуляцию, неопределённость и переживания, которые легче увидеть, чем объяснить", spiritual: "очищение, обновление, доверие, глубину и переход через меняющийся сезон", biblical: "творение, очищение, живую воду, хаос, испытание, убежище и обновлённую жизнь" },
-    "life-events": { psychological: "становление «я», привязанность, ответственность, горе, надежду и напряжение между концом и началом", spiritual: "переход, предание, обновление, смысл и терпеливую заботу о том, что рождается или уходит", biblical: "обещание, смертность, верную ответственность, новую жизнь, горе и надежду с рассуждением" },
-    "fear-nightmares": { psychological: "стресс, избегание, потерю контроля, возбуждение нервной системы и задачи, что растут, пока на них не смотрят", spiritual: "мужество, убежище, границы, честность и разницу между мудрой осторожностью и действием из страха", biblical: "страх, убежище, мужество, испытание, стойкость и доверие, связанное с практическим смыслом" },
-    places: { psychological: "память, принадлежность, частное, семейные узоры, идентичность и внутренние структуры, что дают безопасность", spiritual: "основание, гостеприимство, святилище, унаследованное и внутреннее пространство, готовящееся к росту", biblical: "дом, основание, убежище, попечение, наследие и качество того, на чём строится жизнь" },
-    movement: { psychological: "субъектность, амбицию, направление, бегство, умение и уверенность в переменах", spiritual: "призвание, перспективу, свободу, земной шаг вперёд и согласие импульса и дела", biblical: "путь, ведение, обновлённую силу, смирение и мудрость выбрать здравую дорогу" },
-    objects: { psychological: "ценность, безопасность, возможность, самооценку, нехватку и смысл, который придаётся средствам", spiritual: "попечение, благодарность, привязанность, щедрость и различение того, что действительно ценно", biblical: "попечение, пропитание, сокровище, справедливость, довольство и связь средств и характера" },
-    people: { psychological: "привязанность, тоску, незакрытую историю, проекцию и то, как отношения формируют образ себя", spiritual: "любовь, прощение, верность, отпускание старых уз и честное внимание к тому, как живёт связь", biblical: "завет, верность, почитание семьи, примирение и любовь, ставшую обязательным действием" },
-    nature: { psychological: "переполнение, внезапную перемену, силы вне контроля и эмоциональную погоду сезона жизни", spiritual: "изумление, предание, очищение, обновление после слома и уважение к тому, чем нельзя повелеть", biblical: "творение, суд и милость, испытание, кров и доверие посреди бури" },
-    spiritual: { psychological: "непереработанную память, страх неизвестного, совесть, жажду защиты и внутренний конфликт, ставший образом", spiritual: "различение страха и ведения, защиту, духовное внимание и поиск смысла за пределами вещественного", biblical: "духовное различение, защиту, вестников, искушение и проверку каждого впечатления мудростью и Писанием" },
+    animals: { psychological: "инстинкт, привязанность, доверие, чутьё на угрозу и реакции, которые опережают мысль", spiritual: "рассудительность, природная мудрость, защита и уважение к тому дикому, что есть в жизни", biblical: "мудрость, забота о вверенном, желание, защита и нравственный урок, который несёт поведение животного" },
+    body: { psychological: "образ себя, способность высказаться, внимание к здоровью, уязвимость и желание оставаться дееспособным", spiritual: "телесность, цельность, смирение и забота о теле, через которое проявляется смысл", biblical: "тело как ответственность, сила слова, человеческая хрупкость и сила, употреблённая с мудростью" },
+    water: { psychological: "чувства, память, умение справляться с эмоциями, неопределённость и переживания, которые легче увидеть, чем объяснить", spiritual: "очищение, обновление, доверие, глубина и переход через полосу перемен", biblical: "творение, очищение, живая вода, хаос, испытание, убежище и обновлённая жизнь" },
+    "life-events": { psychological: "становление личности, привязанность, ответственность, горе, надежда и напряжение между концом и началом", spiritual: "переход, доверие к происходящему, обновление, смысл и терпеливая забота о том, что рождается или уходит", biblical: "обетование, смертность, верность в ответственности, новая жизнь, скорбь и надежда, соединённые с рассуждением" },
+    "fear-nightmares": { psychological: "стресс, избегание, потеря контроля, перевозбуждение нервной системы и проблемы, которые растут, пока на них не смотрят", spiritual: "мужество, убежище, границы, честность и разница между мудрой осторожностью и поступком из страха", biblical: "страх, прибежище, мужество, испытание, стойкость и доверие Богу, соединённое с практическим разумом" },
+    places: { psychological: "память, чувство принадлежности, личное пространство, семейные сценарии, самоощущение и внутренние опоры, которые дают безопасность", spiritual: "основание, гостеприимство, святое место, наследие и внутреннее пространство, которое готовится к росту", biblical: "дом, основание, убежище, ответственность за вверенное, наследие и то, на чём в итоге строится жизнь" },
+    movement: { psychological: "самостоятельность, честолюбие, направление, бегство, умелость и уверенность посреди перемен", spiritual: "призвание, широкий взгляд, свобода, движение вперёд с опорой на землю и согласие порыва с делом", biblical: "путь, водительство, обновлённые силы, смирение и мудрость выбрать здравую дорогу" },
+    objects: { psychological: "ценность, безопасность, возможности, самооценка, нехватка и смысл, который мы вкладываем в вещи и средства", spiritual: "ответственность за вверенное, благодарность, привязанность, щедрость и умение отличать по-настоящему ценное", biblical: "верное распоряжение, пропитание, сокровище, справедливость, довольство и связь между достатком и характером" },
+    people: { psychological: "привязанность, тоска, незавершённая история, проекция и то, как отношения формируют образ себя", spiritual: "любовь, прощение, верность, освобождение от старых уз и честный взгляд на то, как живёт близость", biblical: "завет, верность, почитание семьи, примирение и любовь, которая становится делом" },
+    nature: { psychological: "перегрузка, внезапная перемена, силы, которыми не управляешь, и эмоциональная погода целого периода жизни", spiritual: "изумление, смирение перед большим, очищение, обновление после потрясения и уважение к тому, чем нельзя повелевать", biblical: "творение, суд и милость, испытание, кров и доверие посреди бури" },
+    spiritual: { psychological: "непрожитая память, страх неизвестного, совесть, потребность в защите и внутренний конфликт, который принял зримую форму", spiritual: "умение отличить страх от водительства, защита, духовная внимательность и поиск смысла за пределами вещественного", biblical: "духовное рассуждение, защита, вестники, искушение и проверка каждого впечатления мудростью и Писанием" },
   },
   ar: {
     animals: { psychological: "الغريزة والتعلق والثقة ورصد التهديد وردودًا تأتي قبل التفكير الواعي", spiritual: "التمييز والحكمة الطبيعية والحماية ومقاربة محترمة لما هو جامح في الحياة", biblical: "الحكمة والرعاية والشهوة والحماية والمعنى الأخلاقي الذي يخلقه سلوك الحيوان" },
@@ -84,6 +84,21 @@ export type SectionInput = {
 };
 
 // Like /\b\w/ but aware of Latin accents, so "weiße" or "pequeña" never become "WeißE" or "PequeñA".
+// Russian titles carry the verb form: "К чему снится лошадь" / "К чему снятся зубы" / "К чему снится, что лошадь гонится за вами".
+// Reuse that clause inside sentences ("Когда снятся зубы, …") instead of gluing the bare name to "снится".
+function ruDreamPhrase(title: string, name: string): string {
+  const match = title.match(/^К чему (сн\S+.*)$/u);
+  return match ? match[1] : `снится ${name}`;
+}
+
+function ruIsClause(title: string): boolean {
+  return /^К чему снится, что /u.test(title);
+}
+
+function capitalizeFirst(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function titleCase(value: string) {
   return value.replace(/(?<![A-Za-z0-9_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF])[a-z\u00DF-\u00F6\u00F8-\u00FF]/g, (letter) =>
     letter === "ß" ? letter : letter.toUpperCase(),
@@ -107,34 +122,44 @@ export function localizedTitle(locale: Locale, name: string): string {
   }
 }
 
-export function localizedSeoTitle(locale: Locale, name: string, hook: string): string {
-  const title = localizedTitle(locale, name);
-  const short = hook.split(",")[0]?.trim() || hook;
+export function localizedSeoTitle(locale: Locale, name: string, hook: string, titleOverride?: string): string {
+  const title = titleOverride ?? localizedTitle(locale, name);
+  const parts = hook.split(",").map((part) => part.trim()).filter(Boolean);
+  const short = parts[0] || hook;
+  if (locale === "ru") {
+    // Russian: "К чему снится лошадь — сила, влечение" reads better than a colon and a single word.
+    const two = parts.slice(0, 2).join(", ");
+    const withTwo = `${title} — ${two}`;
+    if (parts.length > 1 && withTwo.length <= 70) return withTwo;
+    const withOne = `${title} — ${short}`;
+    return withOne.length <= 70 ? withOne : title;
+  }
   const full = `${title}: ${short}`;
   return full.length <= 70 ? full : title;
 }
 
-export function localizedSeoDescription(locale: Locale, name: string, meaning: string): string {
+export function localizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
   const clean = meaning.replace(/\.+$/, "").trim();
+  const ruTitle = titleOverride ?? localizedTitle("ru", name);
   const map: Record<Locale, string> = {
     en: `Dreams about ${name} often point to ${clean} — not a prediction. Psychological, spiritual, Islamic, and biblical readings.`,
     es: `Soñar con ${name} suele apuntar a ${clean} — no es una predicción. Lecturas psicológica, espiritual, islámica y bíblica.`,
     pt: `Sonhar com ${name} costuma apontar para ${clean} — não é previsão. Leituras psicológica, espiritual, islâmica e bíblica.`,
     de: `Träume von ${name} deuten oft auf ${clean} — keine Vorhersage. Psychologische, spirituelle, islamische und biblische Lesarten.`,
-    ru: `Сны про ${name} часто указывают на ${clean} — это не прогноз. Психологическое, духовное, исламское и библейское чтение.`,
+    ru: `${ruTitle}: чаще всего это ${clean}. Психологическое, духовное, исламское и библейское толкование — без предсказаний.`,
     ar: `حلم ${name} كثيرًا ما يشير إلى ${clean} — وليس نبوءة. قراءات نفسية وروحية وإسلامية وكتابية.`,
   };
   const text = map[locale];
   return text.length <= 170 ? text : text.slice(0, 167).trimEnd() + "…";
 }
 
-export function localizedAliases(locale: Locale, name: string, extra: string[] = []): string[] {
+export function localizedAliases(locale: Locale, name: string, extra: string[] = [], titleOverride?: string): string[] {
   const core: Record<Locale, string[]> = {
     en: [name, `dream about ${name}`, `${name} in a dream`, `${name} dream meaning`],
     es: [name, `soñar con ${name}`, `sueño de ${name}`, `significado de soñar con ${name}`],
     pt: [name, `sonhar com ${name}`, `sonho com ${name}`, `significado de sonhar com ${name}`],
     de: [name, `Traum von ${name}`, `${name} Traumdeutung`, `Bedeutung Traum ${name}`],
-    ru: [name, `к чему снится ${name}`, `сон про ${name}`, `значение сна ${name}`],
+    ru: [name, (titleOverride ?? localizedTitle("ru", name)).toLowerCase(), `${name} во сне`, `сонник ${name}`, `толкование сна ${name}`],
     ar: [name, `تفسير حلم ${name}`, `حلم ${name}`, `رؤية ${name} في المنام`],
   };
   return Array.from(new Set([...core[locale], ...extra]));
@@ -157,7 +182,8 @@ export function makeLocalizedSections(locale: Locale, input: SectionInput): Drea
     ? parentLine(locale, input.parentName, input.focus ?? theme)
     : coreThemes(locale, input.summary);
 
-  const introduction = intro(locale, input.title, parentContext, subject);
+  const phrase = locale === "ru" ? ruDreamPhrase(input.title, subject) : subject;
+  const introduction = intro(locale, input.title, parentContext, subject, phrase);
   const general = generalBlock(locale, input.title, theme, subject);
   const psychological = psychBlock(locale, input.title, lens.psychological, subject);
   const spiritual = spiritBlock(locale, input.title, lens.spiritual);
@@ -166,12 +192,12 @@ export function makeLocalizedSections(locale: Locale, input: SectionInput): Drea
 
   const commonScenarios: DreamScenario[] = input.variationSeeds?.length
     ? input.variationSeeds.slice(0, 6).map((variation) => ({
-        title: titleCase(variation.name),
+        title: locale === "ru" ? capitalizeFirst(variation.name) : titleCase(variation.name),
         meaning: variationLine(locale, input.title, variation.focus),
       }))
     : defaultScenarios(locale, input.title, subject);
 
-  const faq: DreamFaq[] = faqBlock(locale, input.title, subject, theme, lens);
+  const faq: DreamFaq[] = faqBlock(locale, input.title, subject, theme, lens, phrase);
 
   return { introduction, general, psychological, spiritual, islamic, biblical, commonScenarios, faq };
 }
@@ -185,7 +211,7 @@ function parentLine(locale: Locale, parent: string, focus: string): string {
     case "de":
       return `Es verdichtet das weitere Symbol ${parent} auf ein bestimmtes Bild: ${focus}.`;
     case "ru":
-      return `Это сужает более широкий символ «${parent}» до одного образа: ${focus}.`;
+      return `Это частный случай более широкого символа «${parent}», и здесь на первом плане — ${focus}.`;
     case "ar":
       return `يضيّق رمز ${parent} الأوسع إلى صورة واحدة: ${focus}.`;
     default:
@@ -202,7 +228,7 @@ function coreThemes(locale: Locale, summary: string): string {
     case "de":
       return `Zu den Kernthemen gehören ${summary}.`;
     case "ru":
-      return `В ядре темы — ${summary}.`;
+      return `Главные темы здесь — ${summary}.`;
     case "ar":
       return `من موضوعاته الأساسية ${summary}.`;
     default:
@@ -210,7 +236,7 @@ function coreThemes(locale: Locale, summary: string): string {
   }
 }
 
-function intro(locale: Locale, title: string, parentContext: string, subject: string): string[] {
+function intro(locale: Locale, title: string, parentContext: string, subject: string, phrase: string = subject): string[] {
   switch (locale) {
     case "es":
       return [
@@ -229,8 +255,8 @@ function intro(locale: Locale, title: string, parentContext: string, subject: st
       ];
     case "ru":
       return [
-        `${title} лучше читать от сцены, от чувства, которое осталось, и от того, что в кадре менялось. ${parentContext} Полезное толкование связывает эти детали с нынешней жизнью, а не делает из сна жёсткий прогноз.`,
-        `Сон про ${subject} может быть тёплым, пугающим или странно ровным. Тон меняет чтение: любопытство говорит о готовности понять; паника — о давлении, избегании или нужде в защите. Личная история и вера остаются важным контекстом для «${title}».`,
+        `Когда ${phrase}, важен не столько сам образ, сколько сцена вокруг него: что происходило, какое чувство осталось после пробуждения и что менялось по ходу сна. ${parentContext} Хорошее толкование связывает эти детали с тем, что происходит наяву, и не превращает сон в предсказание.`,
+        `Такой сон может быть спокойным, тревожным или странно безразличным — и тон многое меняет. Любопытство обычно говорит о готовности разобраться, паника — о давлении, избегании или потребности в защите. Личная история, культура и вера остаются важным контекстом: один и тот же образ для разных людей значит разное.`,
       ];
     case "ar":
       return [
@@ -261,8 +287,8 @@ function generalBlock(locale: Locale, title: string, theme: string, subject: str
       ];
     case "ru":
       return [
-        `В целом ${title} указывает на ${theme}. Сон может привлекать внимание к тому, что уже движется наяву, особенно там, где есть та же неясность, влечение, ответственность или срочность.`,
-        `Детали уточняют «${title}». Заметьте, где появился образ ${subject}, кто ещё был рядом, что изменилось и действовали вы или только смотрели. Спокойный финал часто говорит о сборке; открытый — о вопросе, который ещё ждёт внимания.`,
+        `Если коротко: главное, о чём говорит ${ruIsClause(title) ? "такая сцена" : `образ «${subject}»`}, — ${theme}. Сон нередко подсвечивает то, что уже происходит наяву, — там, где есть та же неясность, то же притяжение, та же ответственность или спешка.`,
+        `Детали уточняют смысл. Обратите внимание, где появился образ, кто был рядом, что изменилось по ходу сна и действовали ли вы сами или только наблюдали. Спокойная развязка чаще говорит о том, что внутри что-то улеглось; оборванный или тревожный финал — о вопросе, который ещё ждёт внимания.`,
       ];
     case "ar":
       return [
@@ -293,8 +319,8 @@ function psychBlock(locale: Locale, title: string, lens: string, subject: string
       ];
     case "ru":
       return [
-        `Психологически ${title} может дать видимую форму тому, что связано с ${lens}. Сон часто превращает сложное внутреннее состояние в одну запоминающуюся сцену — чтобы ум мог репетировать ответ, не утверждая, что сцена случится буквально.`,
-        `Для личного чтения сравните самое сильное чувство сна с недавним. Если образ ${subject} повторялся, повтор может отражать нерешённый выбор, узор отношений, стресс или нужду, которой ещё нет прямого выражения.`,
+        `С точки зрения психологии за таким сном обычно стоит что-то из этого ряда: ${lens}. Сон умеет свернуть сложное внутреннее состояние в одну запоминающуюся сцену — так психика словно репетирует ответ, не обещая, что сцена случится наяву.`,
+        `Чтобы прочитать сон лично для себя, сравните самое сильное чувство из сна с тем, что вы переживали в последние дни. Если такой сон приходит не в первый раз, повтор часто указывает на нерешённый выбор, привычный сценарий в отношениях, затянувшийся стресс или потребность, которой пока не нашлось прямого выражения.`,
       ];
     case "ar":
       return [
@@ -325,8 +351,8 @@ function spiritBlock(locale: Locale, title: string, lens: string): string[] {
       ];
     case "ru":
       return [
-        `Духовно ${title} может звать взглянуть на ${lens}. Образ может отметить сезон внимания или перехода; ценность — в честности, которую он просит, а не в уверенности насчёт будущего.`,
-        `Трезвый духовный ответ на «${title}» спрашивает, какое качество практиковать сейчас: терпение, мужество, отпускание, защиту, благодарность или различение. Полезное толкование углубляет ответственность, не страх.`,
+        `В духовном прочтении такой сон приглашает присмотреться к тому, что за ним стоит: ${lens}. Образ может отмечать время повышенного внимания или перехода, и его ценность — в честности, которой он требует, а не в уверенности насчёт будущего.`,
+        `Трезвый духовный ответ — спросить себя, какое качество сейчас стоит воспитывать: терпение, смелость, умение отпускать, защиту своих границ, благодарность или рассудительность. Полезное толкование прибавляет ответственности, а не страха.`,
       ];
     case "ar":
       return [
@@ -357,8 +383,8 @@ function islamBlock(locale: Locale, title: string, theme: string): string[] {
       ];
     case "ru":
       return [
-        `В исламском контексте к «${title}» подходят со смирением. Предание отличает утешительные или значимые сны от обычной работы ума и от тягостных сновидений, поэтому образ можно соотнести с ${theme}, не делая из него достоверного знания о сокрытом.`,
-        `Тревожный сон не доказательство против другого человека и не повод предсказывать вред. Ищите защиты у Аллаха, делайте дуа и делитесь сном только с тем, кому доверяете, если нужна опора. Утешительный сон принимают с благодарностью; решения остаются в вере, нраве и реальных обстоятельствах.`,
+        `В исламской традиции к любому сну подходят с осторожностью и смирением. Толкователи различают благие и значимые видения, обычную работу ума и тягостные сны. Образ можно сопоставить с его обычным значением (${theme}), но нельзя принимать сон за достоверное знание о сокрытом.`,
+        `Тревожный сон — не улика против другого человека и не повод предсказывать беду. После дурного сна принято искать защиты у Аллаха, читать дуа и не пересказывать его всем подряд, а делиться только с тем, кому доверяете. Добрый сон принимают с благодарностью, а решения по-прежнему опираются на веру, характер и реальные обстоятельства.`,
       ];
     case "ar":
       return [
@@ -389,8 +415,8 @@ function bibleBlock(locale: Locale, title: string, lens: string): string[] {
       ];
     case "ru":
       return [
-        `Библейское размышление о «${title}» может начаться с тем ${lens}. Писание не даёт жёсткого кода на каждый современный образ, поэтому символ взвешивают вместе с его поведением во сне, обстоятельствами, молитвой и более широким советом Писания.`,
-        `Спросите, выделяет ли «${title}» мудрость, искушение, попечение, страх, надежду или нужную перемену в поступках. Яркий сон может подвигнуть к честному размышлению, но его не стоит автоматически звать божественным посланием и решать по нему тяжёлое дело без рассуждения.`,
+        `Библейское размышление о таком сне можно начать с тем, которые Писание связывает с этим образом: ${lens}. Библия не даёт готового ключа к каждому современному символу, поэтому образ взвешивают вместе с тем, как он вёл себя во сне, с обстоятельствами жизни, молитвой и общим советом Писания.`,
+        `Спросите себя, о чём этот сон говорит громче всего — о мудрости, искушении, ответственности, страхе, надежде или о поступке, который пора изменить. Яркий сон может подтолкнуть к честному размышлению, но не стоит автоматически считать его посланием свыше и принимать по нему серьёзные решения без рассуждения.`,
       ];
     case "ar":
       return [
@@ -411,7 +437,7 @@ function variationLine(locale: Locale, title: string, focus: string): string {
     case "de":
       return `Innerhalb von ${title} betont diese Variante ${focus}.`;
     case "ru":
-      return `Внутри «${title}» эта вариация выделяет ${focus}.`;
+      return `В этой версии сна главное — ${focus}.`;
     case "ar":
       return `داخل ${title} تبرز هذه الصورة ${focus}.`;
     default:
@@ -437,9 +463,9 @@ function defaultScenarios(locale: Locale, title: string, subject: string): Dream
       { title: `Wiederkehrender Traum von ${subject}`, meaning: `Wiederholung deutet darauf, dass die Frage von ${title} noch aktiv oder emotional offen ist.` },
     ],
     ru: [
-      { title: `Спокойствие рядом с ${subject}`, meaning: `Спокойствие в «${title}» может говорить о растущем принятии, взгляде со стороны или уверенности в теме.` },
-      { title: `Страх перед ${subject}`, meaning: `Страх в «${title}» может усиливать тревогу об опасности, перемене, суждении, уязвимости или потере контроля.` },
-      { title: `Повторяющийся сон про ${subject}`, meaning: `Повтор значит, что вопрос «${title}» ещё жив или эмоционально не закрыт.` },
+      { title: `Спокойная сцена`, meaning: `Если сцена спокойная, это может говорить о растущем принятии, о взгляде со стороны или об уверенности в том, что стоит за образом.` },
+      { title: `Страх и бегство`, meaning: `Страх во сне усиливает тревогу: об опасности, переменах, чужой оценке, уязвимости или потере контроля.` },
+      { title: `Сон повторяется`, meaning: `Повтор значит, что вопрос, который поднимает этот образ, ещё не закрыт — эмоционально или практически.` },
     ],
     ar: [
       { title: `هدوء مع ${subject}`, meaning: `الهدوء في ${title} قد يظهر قبولًا متزايدًا أو منظورًا أو ثقة بالموضوع.` },
@@ -450,7 +476,7 @@ function defaultScenarios(locale: Locale, title: string, subject: string): Dream
   return rows[locale as Exclude<Locale, "en">] ?? [];
 }
 
-function faqBlock(locale: Locale, title: string, subject: string, theme: string, lens: Lens): DreamFaq[] {
+function faqBlock(locale: Locale, title: string, subject: string, theme: string, lens: Lens, phrase: string = subject): DreamFaq[] {
   switch (locale) {
     case "es":
       return [
@@ -478,11 +504,11 @@ function faqBlock(locale: Locale, title: string, subject: string, theme: string,
       ];
     case "ru":
       return [
-        { question: `К чему снится ${subject}?`, answer: `${title} обычно связано с ${theme}. Чувство, место и то, что было сразу до и после символа, дают самые личные подсказки.` },
-        { question: `Сон про ${subject} — плохая примета?`, answer: `Нет. ${title} само по себе не добро и не зло и не предсказывает событие надёжно. Пугающая версия может отражать стресс; спокойная — понимание или рост.` },
-        { question: `Какое психологическое значение у ${subject}?`, answer: `Психологический смысл «${title}» часто касается ${lens.psychological}. Сверьте это с нынешними отношениями, решениями, давлением и телесными ощущениями.` },
-        { question: `Какое духовное значение у ${subject}?`, answer: `Духовный смысл «${title}» может затрагивать ${lens.spiritual}. Это приглашение подумать и поступить здраво, не доказательство сверхъестественного прогноза.` },
-        { question: `Почему мне снова и снова снится ${subject}?`, answer: `Повторяющееся «${title}» может вести незакрытое чувство, повторный стресс, меняющееся «я» или важную нужду. Записывайте каждую версию и ищите повторяющиеся чувства, людей, места и исходы.` },
+        { question: `${title}?`, answer: `Чаще всего это ${theme}. Самые точные подсказки дают чувство во сне, место действия и то, что происходило прямо до и после появления образа.` },
+        { question: `Если ${phrase} — это плохой знак?`, answer: `Нет. Сам по себе такой сон не хороший и не плохой и не предсказывает событий. Пугающая версия часто отражает стресс, спокойная — понимание или рост.` },
+        { question: `Что говорит об этом сне психология?`, answer: `За образом обычно стоит что-то из этого ряда: ${lens.psychological}. Сверьте это с тем, что сейчас происходит у вас в отношениях, решениях, нагрузке и самочувствии.` },
+        { question: `Есть ли у этого сна духовное значение?`, answer: `В духовном прочтении сон может касаться того, что за ним стоит: ${lens.spiritual}. Это приглашение подумать и поступить разумно, а не доказательство сверхъестественного предсказания.` },
+        { question: `Почему этот сон повторяется снова и снова?`, answer: `Повторяющийся сон обычно держится на незакрытом чувстве, хроническом стрессе, переменах в самоощущении или важной потребности. Записывайте каждую версию и ищите, что повторяется: чувства, люди, места, развязка.` },
       ];
     case "ar":
       return [

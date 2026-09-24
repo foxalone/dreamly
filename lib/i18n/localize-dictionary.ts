@@ -24,7 +24,7 @@ function localizeOne(entry: DreamEntry, locale: Locale): DreamEntry {
   const name = seed?.name ?? entry.name;
   const summary = seed?.summary ?? seed?.focus ?? entry.shortMeaning.replace(/\.+$/, "");
   const focus = seed?.focus;
-  const title = localizedTitle(locale, name);
+  const title = seed?.title ?? localizedTitle(locale, name);
   const parentName = parentSeed?.name ?? (entry.parentSlug ? DREAM_DICTIONARY[entry.parentSlug]?.name : undefined);
 
   const variationSeeds = (entry.parentSlug ? [] : entry.variationSlugs)
@@ -52,9 +52,9 @@ function localizeOne(entry: DreamEntry, locale: Locale): DreamEntry {
     name,
     title,
     shortMeaning: localizedShortMeaning(locale, hook),
-    seoTitle: override?.seoTitle ?? localizedSeoTitle(locale, name, hook),
-    seoDescription: override?.seoDescription ?? localizedSeoDescription(locale, name, hook),
-    aliases: localizedAliases(locale, name, seed?.aliases ?? []),
+    seoTitle: override?.seoTitle ?? localizedSeoTitle(locale, name, hook, seed?.title),
+    seoDescription: override?.seoDescription ?? localizedSeoDescription(locale, name, hook, seed?.title),
+    aliases: localizedAliases(locale, name, seed?.aliases ?? [], seed?.title),
     sections: override?.sections ? { ...generated, ...override.sections } : generated,
   };
 }
