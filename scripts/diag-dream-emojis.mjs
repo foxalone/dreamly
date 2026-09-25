@@ -70,6 +70,8 @@ async function inspect(uid, dreamId) {
   const ing = await db.doc(`map_ingested/${uid}_${dreamId}`).get();
   show("map_ingested (user)", ing);
   show("users/stats/emoji", await db.doc(`users/${uid}/stats/emoji`).get(), (d) => ({ emojis: d.emojis ?? {}, totalDreams: d.totalDreams }));
+  const dk = ing.data()?.dateKey;
+  if (dk) show(`users/emoji_daily/${dk}`, await db.doc(`users/${uid}/emoji_daily/${dk}`).get(), (d) => ({ emojis: d.emojis ?? {}, totalDreams: d.totalDreams }));
 
   const linked = await db.collection("guest_dreams").where("importedUid", "==", uid).where("importedDreamId", "==", dreamId).get();
   console.log(`guest_dreams linked by importedDreamId: ${linked.size}`);
@@ -90,7 +92,11 @@ async function inspect(uid, dreamId) {
   for (const cityId of cityIds) {
     const c = await db.doc(`city_emoji_stats/${cityId}`).get();
     const em = c.data()?.emojis ?? {};
-    console.log(`city_emoji_stats/${cityId}: totalDreams=${c.data()?.totalDreams}`, JSON.stringify(Object.fromEntries([...allEmojis].map((e) => [e, em[e] ?? 0]))));
+    console.log(`city_emoji_stats/${cityId}: totalDreams=${c.data()?.totalDreams} totalStories=${c.data()?.totalStories ?? 0}`);
+    console.log("  emojis (full map):", JSON.stringify(em));
+    console.log("  storyEmojis:", JSON.stringify(c.data()?.storyEmojis ?? {}));
+    const daily = await db.collection("city_emoji_daily").where("cityId", "==", cityId).get();
+    for (const d of daily.docs) console.log(`  ${d.ref.path}:`, JSON.stringify({ totalDreams: d.data()?.totalDreams, emojis: d.data()?.emojis ?? {} }));
   }
 }
 
