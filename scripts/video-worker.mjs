@@ -8,6 +8,21 @@ import { spawn } from "node:child_process";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import {
+  buildPickPrompt,
+  buildPool,
+  downloadCandidate,
+  expandSearchTerms,
+  fileDigest,
+  gatherCandidates,
+  heuristicPick,
+  loadHistory,
+  normalizeProviders,
+  POOL_PICK_SCHEMA,
+  resolvePicks,
+  saveHistory,
+  words,
+} from "./stockPool.mjs";
 
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;
@@ -15,6 +30,8 @@ const JOBS_COLLECTION = "adminVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/videoWorker";
 const ENGLISH_VOICE = "en-US-AriaNeural-Female";
 const SCRIPT_GENERATION_ATTEMPTS = 3;
+const POOL_CLIP_COUNT = 10;
+const POOL_SHORTLIST_SIZE = 30;
 const YOUTUBE_SITE_URL = "https://dreamly.art/";
 const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning → ${YOUTUBE_SITE_URL}`;
 
@@ -459,6 +476,153 @@ async function renderMixedVideo(job, script, searchTerms) {
   };
 }
 
+function moneyPrinterConfigKey(root, name) {
+  const configPath = path.join(root, "config.toml");
+  if (!existsSync(configPath)) return "";
+  const match = readFileSync(configPath, "utf8").match(new RegExp(`^${name}\\s*=\\s*\\[\\s*["']([^"']+)["']`, "m"));
+  return match?.[1]?.trim() ?? "";
+}
+
+function stockKeys(root) {
+  return {
+    pexels: env("PEXELS_API_KEY") || env("VIDEO_PEXELS_API_KEY") || moneyPrinterConfigKey(root, "pexels_api_keys"),
+    pixabay: env("PIXABAY_API_KEY") || moneyPrinterConfigKey(root, "pixabay_api_keys"),
+    coverr: env("COVERR_API_KEY"),
+  };
+}
+
+// Stock Pool: the model sees the whole cross-library shortlist and edits the
+// sequence; if the call fails the heuristic ranking alone is used.
+async function pickPoolClips(script, shortlist, count) {
+  const apiKey = env("ONEIRO_OPENAI_API_KEY") || env("OPENAI_API_KEY");
+  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
+  const usage = { prompt: 0, completion: 0, total: 0 };
+  if (!apiKey) return { ...resolvePicks([], shortlist, count), usage, pickError: "no OpenAI key" };
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        response_format: { type: "json_schema", json_schema: POOL_PICK_SCHEMA },
+        messages: buildPickPrompt(script, shortlist, count),
+      }),
+      signal: AbortSignal.timeout(90_000),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(`OpenAI ${response.status}: ${payload?.error?.message ?? "pick failed"}`);
+    usage.prompt = Number(payload?.usage?.prompt_tokens ?? 0);
+    usage.completion = Number(payload?.usage?.completion_tokens ?? 0);
+    usage.total = Number(payload?.usage?.total_tokens ?? usage.prompt + usage.completion);
+    const parsed = JSON.parse(String(payload?.choices?.[0]?.message?.content ?? "{}"));
+    return { ...resolvePicks(parsed.picks, shortlist, count), usage, pickError: "" };
+  } catch (error) {
+    console.warn(`[oneiro-video-worker] stock pool AI pick failed, using ranking: ${cleanError(error)}`);
+    return { ...resolvePicks([], shortlist, count), usage, pickError: cleanError(error) };
+  }
+}
+
+async function renderPoolVideo(job, script, searchTerms, onStage) {
+  const { root, uv } = moneyPrinterRuntime();
+  const logPath = path.join(root, ".agent-logs", "moneyprinterturbo-video", `oneiro-${job.id}.log`);
+  const providers = normalizeProviders(job.stockProviders);
+  const keys = stockKeys(root);
+  const missing = providers.filter((provider) => !keys[provider]);
+  const active = providers.filter((provider) => keys[provider]);
+  if (!active.length) throw new Error(`No API key for ${missing.join(", ")}`);
+  const terms = expandSearchTerms(searchTerms, job.topic);
+  const log = (line) => console.log(`[oneiro-video-worker] ${line}`);
+
+  await onStage("searching-stock-pool", { stockProviders: providers, poolSearchTerms: terms });
+  const { candidates, stats } = await gatherCandidates({ providers: active, terms, keys, root, log });
+  for (const provider of missing) stats[provider] = { searches: 0, cached: 0, found: 0, error: "no API key" };
+  const history = loadHistory(root);
+  const scriptWords = new Set([...words(script), ...words(job.topic)]);
+  const pool = buildPool(candidates, { scriptWords, clipDuration: 5, history });
+  if (pool.length < 3) throw new Error(`Stock pool found only ${pool.length} usable portrait clips`);
+  const shortlist = heuristicPick(pool, POOL_SHORTLIST_SIZE);
+
+  await onStage("picking-best-clips", { poolStats: stats, poolSize: pool.length });
+  const count = Math.min(POOL_CLIP_COUNT, shortlist.length);
+  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count);
+
+  await onStage("downloading-best-clips", {});
+  const materialsTaskId = randomUUID();
+  const directory = path.join(root, "storage", "tasks", materialsTaskId);
+  const materials = [];
+  const sources = [];
+  const digests = new Set();
+  // Walk the chosen order first, then the rest of the shortlist as backups for failed downloads.
+  const queue = [...chosen, ...shortlist.filter((item) => !chosen.some((pick) => pick.key === item.key))];
+  for (const candidate of queue) {
+    if (materials.length >= count) break;
+    try {
+      const file = await downloadCandidate(candidate, directory, { keys });
+      const digest = fileDigest(file);
+      if (digests.has(digest)) { rmSync(file, { force: true }); continue; }
+      digests.add(digest);
+      materials.push(file);
+      const now = Date.now() / 1000;
+      history[candidate.key] = now;
+      history[digest] = now;
+      sources.push({
+        provider: candidate.provider,
+        assetId: candidate.assetId,
+        sourcePage: candidate.sourcePage,
+        searchTerm: candidate.term,
+        score: candidate.score,
+        reason: candidate.reason || "",
+        localFile: path.basename(file),
+      });
+    } catch (error) {
+      log(`stock pool download failed ${candidate.key}: ${cleanError(error)}`);
+    }
+  }
+  if (materials.length < 2) {
+    rmSync(directory, { recursive: true, force: true });
+    throw new Error(`Stock pool downloaded only ${materials.length} clips`);
+  }
+  saveHistory(root, history);
+
+  await onStage("rendering-stock-pool", {
+    materialSources: sources,
+    poolPick: { aiPicked: aiCount, total: materials.length, error: pickError },
+  });
+  const taskId = randomUUID();
+  const rendered = await runProcess(uv, [
+    "run", "python", "cli.py",
+    "--video-script", script,
+    "--video-language", "en-US",
+    "--voice-name", ENGLISH_VOICE,
+    "--video-source", "local",
+    "--video-materials", materials.join(","),
+    "--video-aspect", "9:16",
+    "--video-count", "1",
+    "--video-clip-duration", "5",
+    "--video-concat-mode", "sequential",
+    "--bgm-type", "random",
+    "--subtitle-enabled",
+    "--task-id", taskId,
+  ], {
+    cwd: root,
+    logPath,
+    env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` },
+  }).catch((error) => {
+    rmSync(directory, { recursive: true, force: true });
+    throw error;
+  });
+  return {
+    ...parseCliResult(rendered.stdout),
+    root,
+    logPath,
+    materialSources: sources,
+    pickUsage: usage,
+    localTaskIds: [materialsTaskId, taskId],
+    materialsTaskId,
+  };
+}
+
 async function enforceDuration(jobId, rendered) {
   const ffmpeg = resolveFfmpeg(rendered.root);
   const output = path.join(path.dirname(rendered.video), `oneiro-${jobId}-max-${MAX_DURATION_SECONDS}s.mp4`);
@@ -519,7 +683,7 @@ async function processJob(job) {
     const generated = await createScript(job.topic);
     usage = generated.usage;
     await reference.update({
-      stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : "rendering",
+      stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : job.mode === "pool" ? "searching-stock-pool" : "rendering",
       tokenUsage: usage,
       script: generated.script,
       searchTerms: generated.searchTerms,
@@ -527,7 +691,17 @@ async function processJob(job) {
     });
     rendered = job.mode === "mixed"
       ? await renderMixedVideo(job, generated.script, generated.searchTerms)
-      : await renderVideo(job, generated.script, generated.searchTerms);
+      : job.mode === "pool"
+        ? await renderPoolVideo(job, generated.script, generated.searchTerms, (stage, fields) => reference.update({ stage, ...fields }))
+        : await renderVideo(job, generated.script, generated.searchTerms);
+    if (rendered.pickUsage?.total) {
+      usage = {
+        ...usage,
+        prompt: usage.prompt + rendered.pickUsage.prompt,
+        completion: usage.completion + rendered.pickUsage.completion,
+        total: usage.total + rendered.pickUsage.total,
+      };
+    }
     if (job.mode === "mixed") {
       await reference.update({
         stage: "rendering-mixed-stock",

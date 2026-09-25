@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import {
   MAX_SHORT_DURATION_SECONDS,
   type AdminVideoJob,
+  type AdminVideoMaterialSource,
   type AdminVideoMode,
+  adminVideoModeFrom,
+  normalizeStockPoolProviders,
   type AdminVideoTokenUsage,
   type AdminVideoYouTubeMetadata,
 } from "@/lib/adminVideo";
@@ -14,6 +17,9 @@ export const runtime = "nodejs";
 
 type StoredVideoJob = {
   mode?: AdminVideoMode;
+  stockProviders?: string[];
+  materialSources?: AdminVideoMaterialSource[];
+  poolPick?: AdminVideoJob["poolPick"];
   topic?: string;
   language?: "en-US";
   status?: AdminVideoJob["status"];
@@ -41,7 +47,10 @@ function serializeJob(snapshot: DocumentSnapshot): AdminVideoJob | null {
   if (!data) return null;
   return {
     id: snapshot.id,
-    mode: data.mode === "mixed" ? "mixed" : "free",
+    mode: adminVideoModeFrom(data.mode),
+    stockProviders: data.mode === "pool" ? normalizeStockPoolProviders(data.stockProviders) : [],
+    materialSources: Array.isArray(data.materialSources) ? data.materialSources.slice(0, 20) : [],
+    poolPick: data.poolPick ?? null,
     topic: data.topic ?? "",
     language: "en-US",
     status: data.status ?? "queued",
@@ -96,16 +105,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const uid = await requireAdmin(request);
-    const payload = (await request.json()) as { topic?: unknown; mode?: unknown; sendToTelegram?: unknown };
+    const payload = (await request.json()) as { topic?: unknown; mode?: unknown; sendToTelegram?: unknown; stockProviders?: unknown };
     const topic = typeof payload.topic === "string" ? payload.topic.trim().slice(0, 300) : "";
     if (topic.length < 5) {
       return NextResponse.json({ error: "Enter a video topic" }, { status: 400 });
     }
     const sendToTelegram = payload.sendToTelegram !== false;
-    const mode: AdminVideoMode = payload.mode === "mixed" ? "mixed" : "free";
+    const mode: AdminVideoMode = adminVideoModeFrom(payload.mode);
+    const stockProviders = mode === "pool" ? normalizeStockPoolProviders(payload.stockProviders) : [];
     const createdAt = new Date();
     const reference = await adminDb().collection("adminVideoJobs").add({
       mode,
+      ...(mode === "pool" ? { stockProviders } : {}),
       topic,
       language: "en-US",
       status: "queued",
@@ -126,6 +137,9 @@ export async function POST(request: Request) {
     const job: AdminVideoJob = {
       id: reference.id,
       mode,
+      stockProviders,
+      materialSources: [],
+      poolPick: null,
       topic,
       language: "en-US",
       status: "queued",

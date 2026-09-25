@@ -201,7 +201,7 @@ export async function GET(request: Request) {
       };
       const videoUrl = String(data.videoUrl || "");
       if (data.status !== "completed" || !videoUrl) continue;
-      const source: AdminVideoLibrarySource = data.mode === "mixed" ? "free-mix" : "free";
+      const source: AdminVideoLibrarySource = data.mode === "mixed" ? "free-mix" : data.mode === "pool" ? "stock-pool" : "free";
       items.push({
         id: `free:${doc.id}`,
         title: titleFrom(String(data.topic || ""), data.youtubeMetadata?.title),

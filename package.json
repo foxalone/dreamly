@@ -6,13 +6,14 @@
     "node": "24.x"
   },
   "scripts": {
-    "test": "tsx --test lib/*.test.ts && node --test scripts/socialSchedule.test.mjs",
+    "test": "tsx --test lib/*.test.ts && node --test scripts/socialSchedule.test.mjs scripts/stockPool.test.mjs",
     "typecheck": "tsc --noEmit",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "video-worker": "node --env-file=.env.local scripts/video-worker.mjs",
+    "stock-pool-check": "node --env-file=.env.local scripts/stock-pool-check.mjs",
     "ai-video-worker": "node --env-file=.env.local scripts/ai-video-worker.mjs",
     "ai-video-check": "node --env-file=.env.local scripts/ai-video-worker.mjs --check",
     "ai-video-synthetic-test": "node --env-file=.env.local scripts/ai-video-worker.mjs --synthetic-test",

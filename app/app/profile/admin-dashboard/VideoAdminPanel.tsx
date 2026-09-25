@@ -4,7 +4,13 @@ import { AdminPollingError, AdminPollingGate } from "@/lib/adminPolling";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
-import { MAX_SHORT_DURATION_SECONDS, type AdminVideoJob } from "@/lib/adminVideo";
+import {
+  MAX_SHORT_DURATION_SECONDS,
+  STOCK_POOL_PROVIDERS,
+  STOCK_POOL_PROVIDER_LABELS,
+  type AdminVideoJob,
+  type StockPoolProvider,
+} from "@/lib/adminVideo";
 import AutoDictionaryCatchUpCard from "./AutoDictionaryCatchUpCard";
 import { isAdminJobActive, useAdminActivePolling } from "./useAdminActivePolling";
 
@@ -18,8 +24,26 @@ function statusLabel(status: AdminVideoJob["status"]) {
   return { queued: "В очереди", processing: "Обработка", completed: "Готово", failed: "Ошибка" }[status];
 }
 
-export default function VideoAdminPanel({ user, studio = "free" }: { user: User; studio?: "free" | "mixed" }) {
+const POOL_PROVIDER_NOTES: Record<StockPoolProvider, string> = {
+  pexels: "Много вертикальных клипов, люди и природа",
+  pixabay: "Большой архив, часто другие авторы",
+  coverr: "Атмосферные lifestyle-клипы · демо-лимит 50 запросов/час",
+};
+
+function providerLabel(provider: string) {
+  return STOCK_POOL_PROVIDER_LABELS[provider as StockPoolProvider] ?? provider;
+}
+
+function modeLabel(job: AdminVideoJob) {
+  if (job.mode === "mixed") return "Pexels + Pixabay";
+  if (job.mode === "pool") return `Stock Pool · ${(job.stockProviders.length ? job.stockProviders : [...STOCK_POOL_PROVIDERS]).map(providerLabel).join(" + ")}`;
+  return "English";
+}
+
+export default function VideoAdminPanel({ user, studio = "free" }: { user: User; studio?: "free" | "mixed" | "pool" }) {
   const isMixed = studio === "mixed";
+  const isPool = studio === "pool";
+  const [poolProviders, setPoolProviders] = useState<StockPoolProvider[]>([...STOCK_POOL_PROVIDERS]);
   const [topic, setTopic] = useState("");
   const [sendToTelegram, setSendToTelegram] = useState(true);
   const [jobs, setJobs] = useState<AdminVideoJob[]>([]);
@@ -47,7 +71,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       });
       const payload = (await response.json()) as { jobs?: AdminVideoJob[]; worker?: WorkerStatus; error?: string };
       if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Не удалось загрузить задания");
-      setJobs((payload.jobs ?? []).filter((job) => (isMixed ? job.mode === "mixed" : job.mode !== "mixed")));
+      setJobs((payload.jobs ?? []).filter((job) => job.mode === studio));
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "" });
       if (isMixed && !quiet) {
         const autoResponse = await fetch("/api/admin/auto-content", {
@@ -65,7 +89,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
-  }, [isMixed, user]);
+  }, [isMixed, studio, user]);
 
   const quietReload = useCallback(() => {
     return loadJobs(true);
@@ -115,6 +139,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (topic.trim().length < 5) return;
+    if (isPool && poolProviders.length === 0) return;
     setSubmitting(true);
     setNotice(null);
     try {
@@ -122,13 +147,13 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       const response = await fetch("/api/admin/videos", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, mode: studio, sendToTelegram }),
+        body: JSON.stringify({ topic, mode: studio, sendToTelegram, ...(isPool ? { stockProviders: poolProviders } : {}) }),
       });
       const payload = (await response.json()) as { job?: AdminVideoJob; error?: string };
       if (!response.ok || !payload.job) throw new Error(payload.error || "Не удалось добавить видео в очередь");
       setJobs((current) => [payload.job!, ...current]);
       setTopic("");
-      setNotice({ type: "ok", text: isMixed ? "Pexels + Pixabay видео добавлено в очередь." : "Видео добавлено в очередь генерации." });
+      setNotice({ type: "ok", text: isPool ? `Stock Pool (${poolProviders.map(providerLabel).join(" + ")}) добавлен в очередь.` : isMixed ? "Pexels + Pixabay видео добавлено в очередь." : "Видео добавлено в очередь генерации." });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
     } finally {
@@ -177,9 +202,9 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <form onSubmit={submit} className={`${card} p-6 space-y-5`}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isMixed ? "Free Mix Studio" : "Video Studio"}</p>
-            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isPool ? "Stock Pool Studio" : isMixed ? "Free Mix Studio" : "Video Studio"}</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isPool ? "Лучшие клипы из всех библиотек" : isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isPool ? "Ищет по одним и тем же запросам во всех выбранных библиотеках, складывает клипы в общий пул, AI выбирает лучшие под текст и собирает Short." : isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
           {isMixed && (
             <div className="space-y-3">
@@ -202,6 +227,35 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
               </div>
             </div>
           )}
+          {isPool && (
+            <fieldset className="space-y-2">
+              <legend className="mb-2 text-sm font-semibold text-[var(--text)]">Библиотеки для пула</legend>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {STOCK_POOL_PROVIDERS.map((provider) => {
+                  const checked = poolProviders.includes(provider);
+                  return (
+                    <label key={provider} className={`flex cursor-pointer gap-3 rounded-xl border p-3 ${checked ? "border-violet-500/60 bg-violet-500/[.06]" : "border-[var(--border)]"}`}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) =>
+                          setPoolProviders((current) =>
+                            STOCK_POOL_PROVIDERS.filter((item) => (item === provider ? event.target.checked : current.includes(item))),
+                          )
+                        }
+                        className="mt-1 h-4 w-4 accent-violet-500"
+                      />
+                      <span>
+                        <span className="block text-sm font-bold text-[var(--text)]">{STOCK_POOL_PROVIDER_LABELS[provider]}</span>
+                        <span className="mt-0.5 block text-xs leading-5 text-[var(--muted)]">{POOL_PROVIDER_NOTES[provider]}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {poolProviders.length === 0 && <p className="text-xs font-semibold text-red-500">Выберите хотя бы одну библиотеку.</p>}
+            </fieldset>
+          )}
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-[var(--text)]">Тема видео</span>
             <textarea value={topic} onChange={(event) => setTopic(event.target.value)} className={`${input} min-h-28 resize-y`} placeholder="Например: What does dreaming about flying mean?" minLength={5} maxLength={300} required />
@@ -212,16 +266,16 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
               <p className="mt-1 font-bold text-[var(--text)]">English · en-US</p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{isMixed ? "Источники" : "Формат"}</p>
-              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{isMixed ? "Источники" : isPool ? "Выбор клипов" : "Формат"}</p>
+              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : isPool ? "AI из общего пула · 9:16" : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
             </div>
           </div>
           <label className="flex cursor-pointer gap-3 rounded-xl border border-[var(--border)] p-4">
             <input type="checkbox" checked={sendToTelegram} onChange={(event) => setSendToTelegram(event.target.checked)} className="mt-1 h-4 w-4 accent-violet-500" />
             <span><span className="block text-sm font-semibold text-[var(--text)]">Отправить в Telegram</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">После генерации ролик будет отправлен в настроенный приватный Telegram-чат.</span></span>
           </label>
-          <button type="submit" disabled={submitting || topic.trim().length < 5} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50">
-            {submitting ? "Добавляем в очередь…" : isMixed ? "Создать Free Mix" : "Создать видео"}
+          <button type="submit" disabled={submitting || topic.trim().length < 5 || (isPool && poolProviders.length === 0)} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:opacity-50">
+            {submitting ? "Добавляем в очередь…" : isPool ? "Создать из пула" : isMixed ? "Создать Free Mix" : "Создать видео"}
           </button>
         </form>
 
@@ -262,7 +316,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-bold text-violet-500">{statusLabel(job.status)}</span>
-                        <span className="text-xs text-[var(--muted)]">{job.mode === "mixed" ? "Pexels + Pixabay" : "English"} · до {job.maxDurationSeconds} сек.</span>
+                        <span className="text-xs text-[var(--muted)]">{modeLabel(job)} · до {job.maxDurationSeconds} сек.</span>
                       </div>
                       <h3 className="mt-3 text-lg font-bold text-[var(--text)]">{job.topic}</h3>
                       <p className="mt-1 text-xs text-[var(--muted)]">{dateFormatter.format(new Date(job.createdAt))}{job.status === "processing" ? ` · ${job.stage}` : ""}</p>
@@ -283,6 +337,28 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                   </div>
                   {job.tokenUsage && <div className="mt-4 grid gap-2 sm:grid-cols-4">{[["Промпт", job.tokenUsage.prompt], ["Ответ", job.tokenUsage.completion], ["Всего", job.tokenUsage.total]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{label}</p><p className="mt-1 font-bold text-[var(--text)]">{numberFormatter.format(Number(value))}</p></div>)}<div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Модель</p><p className="mt-1 truncate text-sm font-bold text-[var(--text)]">{job.tokenUsage.model}</p></div></div>}
                   {metadata && <div className="mt-5 rounded-2xl border border-violet-500/20 bg-violet-500/[.035] p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Пакет для YouTube</p><h4 className="mt-1 text-lg font-bold text-[var(--text)]">Готово к публикации</h4></div><button type="button" onClick={() => copy(`${job.id}:all`, allMetadata)} className="rounded-full bg-violet-600 px-4 py-2 text-xs font-bold text-white">{copied === `${job.id}:all` ? "Скопировано" : "Скопировать всё"}</button></div><div className="mt-4 space-y-3">{[["Заголовок", metadata.title, "title"], ["Описание", metadata.description, "description"], ["Теги", tags, "tags"], ["Хэштеги", hashtags, "hashtags"], ["Текст для обложки", metadata.thumbnailText, "thumbnail"], ["Закреплённый комментарий", metadata.pinnedComment, "pinned"], ["Категория", metadata.category, "category"]].map(([label, value, key]) => <div key={String(key)} className="rounded-xl bg-[var(--card)] p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>{copyButton(String(key), String(value))}</div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{value}</p></div>)}</div></div>}
+                  {job.mode === "pool" && job.materialSources.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Выбранные клипы</p>
+                        <p className="text-xs text-[var(--muted)]">
+                          {Object.entries(job.materialSources.reduce<Record<string, number>>((acc, item) => ({ ...acc, [item.provider]: (acc[item.provider] ?? 0) + 1 }), {}))
+                            .map(([provider, count]) => `${providerLabel(provider)} ${count}`)
+                            .join(" · ")}
+                          {job.poolPick ? ` · AI выбрал ${job.poolPick.aiPicked}/${job.poolPick.total}` : ""}
+                        </p>
+                      </div>
+                      <ol className="mt-3 space-y-1.5 text-xs text-[var(--muted)]">
+                        {job.materialSources.map((item, index) => (
+                          <li key={`${item.provider}:${item.assetId}`} className="flex gap-2">
+                            <span className="w-5 shrink-0 text-right font-bold text-[var(--text)]">{index + 1}.</span>
+                            <a href={item.sourcePage} target="_blank" rel="noreferrer" className="shrink-0 font-semibold text-violet-500 underline">{providerLabel(item.provider)}</a>
+                            <span className="truncate">«{item.searchTerm}»{item.reason ? ` — ${item.reason}` : ""}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
                   {job.telegramMessageId && <p className="mt-3 text-xs font-semibold text-emerald-500">Отправлено в Telegram · сообщение {job.telegramMessageId}</p>}
                   {job.telegramError && <p className="mt-3 rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-600">Telegram: {job.telegramError}</p>}
                   {job.error && <p className="mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-500">{job.error}</p>}
