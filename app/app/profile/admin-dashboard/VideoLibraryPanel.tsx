@@ -1734,7 +1734,7 @@ export default function VideoLibraryPanel({
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Video library</p>
           <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Все сгенерированные видео</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Free Video · Free Mix · Stock Pool · Sora · Combined · Veo · {items.length} готовых
+            Free Video · Free Mix · Stock Pool · YouTube 16:9 · Sora · Combined · Veo · {items.length} готовых
           </p>
         </div>
         <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">

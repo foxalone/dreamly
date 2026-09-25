@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
 import {
   MAX_SHORT_DURATION_SECONDS,
+  MAX_WIDE_DURATION_SECONDS,
   STOCK_POOL_PROVIDERS,
   STOCK_POOL_PROVIDER_LABELS,
   type AdminVideoJob,
@@ -27,7 +28,7 @@ function statusLabel(status: AdminVideoJob["status"]) {
 const POOL_PROVIDER_NOTES: Record<StockPoolProvider, string> = {
   pexels: "Много вертикальных клипов, люди и природа",
   pixabay: "Большой архив, часто другие авторы",
-  coverr: "Атмосферные lifestyle-клипы · демо-лимит 50 запросов/час",
+  coverr: "Атмосферные lifestyle-клипы, почти все горизонтальные · 50 запросов/час",
 };
 
 function providerLabel(provider: string) {
@@ -36,13 +37,14 @@ function providerLabel(provider: string) {
 
 function modeLabel(job: AdminVideoJob) {
   if (job.mode === "mixed") return "Pexels + Pixabay";
-  if (job.mode === "pool") return `Stock Pool · ${(job.stockProviders.length ? job.stockProviders : [...STOCK_POOL_PROVIDERS]).map(providerLabel).join(" + ")}`;
+  if (job.mode === "pool" || job.mode === "pool_wide") return `${job.mode === "pool_wide" ? "YouTube 16:9" : "Stock Pool"} · ${(job.stockProviders.length ? job.stockProviders : [...STOCK_POOL_PROVIDERS]).map(providerLabel).join(" + ")}`;
   return "English";
 }
 
-export default function VideoAdminPanel({ user, studio = "free" }: { user: User; studio?: "free" | "mixed" | "pool" }) {
+export default function VideoAdminPanel({ user, studio = "free" }: { user: User; studio?: "free" | "mixed" | "pool" | "pool_wide" }) {
   const isMixed = studio === "mixed";
-  const isPool = studio === "pool";
+  const isWide = studio === "pool_wide";
+  const isPool = studio === "pool" || isWide;
   const [poolProviders, setPoolProviders] = useState<StockPoolProvider[]>([...STOCK_POOL_PROVIDERS]);
   const [topic, setTopic] = useState("");
   const [sendToTelegram, setSendToTelegram] = useState(true);
@@ -153,7 +155,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       if (!response.ok || !payload.job) throw new Error(payload.error || "Не удалось добавить видео в очередь");
       setJobs((current) => [payload.job!, ...current]);
       setTopic("");
-      setNotice({ type: "ok", text: isPool ? `Stock Pool (${poolProviders.map(providerLabel).join(" + ")}) добавлен в очередь.` : isMixed ? "Pexels + Pixabay видео добавлено в очередь." : "Видео добавлено в очередь генерации." });
+      setNotice({ type: "ok", text: isPool ? `${isWide ? "YouTube 16:9" : "Stock Pool"} (${poolProviders.map(providerLabel).join(" + ")}) добавлен в очередь.` : isMixed ? "Pexels + Pixabay видео добавлено в очередь." : "Видео добавлено в очередь генерации." });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
     } finally {
@@ -202,9 +204,9 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <form onSubmit={submit} className={`${card} p-6 space-y-5`}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isPool ? "Stock Pool Studio" : isMixed ? "Free Mix Studio" : "Video Studio"}</p>
-            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isPool ? "Лучшие клипы из всех библиотек" : isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isPool ? "Ищет по одним и тем же запросам во всех выбранных библиотеках, складывает клипы в общий пул, AI выбирает лучшие под текст и собирает Short." : isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isWide ? "YouTube 16:9 Studio" : isPool ? "Stock Pool Studio" : isMixed ? "Free Mix Studio" : "Video Studio"}</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isWide ? "Горизонтальное видео для YouTube" : isPool ? "Лучшие клипы из всех библиотек" : isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isWide ? `Обычное видео 16:9 до ${MAX_WIDE_DURATION_SECONDS} секунд (не Short). Горизонтальные клипы из всех выбранных библиотек в одном пуле — здесь Coverr в своей стихии. AI выбирает лучшие под текст. Публикуется только в YouTube.` : isPool ? "Ищет по одним и тем же запросам во всех выбранных библиотеках, складывает клипы в общий пул, AI выбирает лучшие под текст и собирает Short." : isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
           {isMixed && (
             <div className="space-y-3">
@@ -267,7 +269,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{isMixed ? "Источники" : isPool ? "Выбор клипов" : "Формат"}</p>
-              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : isPool ? "AI из общего пула · 9:16" : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
+              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : isPool ? `AI из общего пула · ${isWide ? "16:9" : "9:16"}` : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
             </div>
           </div>
           <label className="flex cursor-pointer gap-3 rounded-xl border border-[var(--border)] p-4">
@@ -337,7 +339,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                   </div>
                   {job.tokenUsage && <div className="mt-4 grid gap-2 sm:grid-cols-4">{[["Промпт", job.tokenUsage.prompt], ["Ответ", job.tokenUsage.completion], ["Всего", job.tokenUsage.total]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{label}</p><p className="mt-1 font-bold text-[var(--text)]">{numberFormatter.format(Number(value))}</p></div>)}<div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Модель</p><p className="mt-1 truncate text-sm font-bold text-[var(--text)]">{job.tokenUsage.model}</p></div></div>}
                   {metadata && <div className="mt-5 rounded-2xl border border-violet-500/20 bg-violet-500/[.035] p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Пакет для YouTube</p><h4 className="mt-1 text-lg font-bold text-[var(--text)]">Готово к публикации</h4></div><button type="button" onClick={() => copy(`${job.id}:all`, allMetadata)} className="rounded-full bg-violet-600 px-4 py-2 text-xs font-bold text-white">{copied === `${job.id}:all` ? "Скопировано" : "Скопировать всё"}</button></div><div className="mt-4 space-y-3">{[["Заголовок", metadata.title, "title"], ["Описание", metadata.description, "description"], ["Теги", tags, "tags"], ["Хэштеги", hashtags, "hashtags"], ["Текст для обложки", metadata.thumbnailText, "thumbnail"], ["Закреплённый комментарий", metadata.pinnedComment, "pinned"], ["Категория", metadata.category, "category"]].map(([label, value, key]) => <div key={String(key)} className="rounded-xl bg-[var(--card)] p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>{copyButton(String(key), String(value))}</div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{value}</p></div>)}</div></div>}
-                  {job.mode === "pool" && job.materialSources.length > 0 && (
+                  {(job.mode === "pool" || job.mode === "pool_wide") && job.materialSources.length > 0 && (
                     <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Выбранные клипы</p>

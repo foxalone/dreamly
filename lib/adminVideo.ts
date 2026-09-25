@@ -1,7 +1,9 @@
 export const MAX_SHORT_DURATION_SECONDS = 45;
+/** Stock Pool · YouTube 16:9 — a regular horizontal video, not a Short. */
+export const MAX_WIDE_DURATION_SECONDS = 60;
 
 export type AdminVideoJobStatus = "queued" | "processing" | "completed" | "failed";
-export type AdminVideoMode = "free" | "mixed" | "pool";
+export type AdminVideoMode = "free" | "mixed" | "pool" | "pool_wide";
 
 /** Libraries the Stock Pool studio can search; keep in sync with scripts/stockPool.mjs. */
 export const STOCK_POOL_PROVIDERS = ["pexels", "pixabay", "coverr"] as const;
@@ -28,7 +30,11 @@ export type AdminVideoMaterialSource = {
 };
 
 export function adminVideoModeFrom(value: unknown): AdminVideoMode {
-  return value === "mixed" || value === "pool" ? value : "free";
+  return value === "mixed" || value === "pool" || value === "pool_wide" ? value : "free";
+}
+
+export function isStockPoolMode(mode: AdminVideoMode) {
+  return mode === "pool" || mode === "pool_wide";
 }
 
 export type AdminVideoTokenUsage = {

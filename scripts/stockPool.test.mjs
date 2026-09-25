@@ -127,3 +127,49 @@ test("gatherCandidates pools every provider and survives a failing one", async (
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("landscape mode (YouTube 16:9) keeps horizontal clips and drops vertical ones", () => {
+  const wideCoverr = { ...coverrHit, is_vertical: false, max_width: 1920, max_height: 1080 };
+  assert.equal(normalizeCoverr(wideCoverr, "snake", "landscape").width, 1920);
+  assert.equal(normalizeCoverr(coverrHit, "snake", "landscape"), null, "vertical Coverr clip is not used in 16:9");
+  assert.equal(normalizeCoverr(wideCoverr, "snake"), null, "portrait mode is unchanged: no landscape clips");
+
+  const widePexels = normalizePexels({
+    ...pexelsVideo,
+    video_files: [
+      { file_type: "video/mp4", width: 1280, height: 720, link: "https://p/720.mp4" },
+      { file_type: "video/mp4", width: 1920, height: 1080, link: "https://p/1080.mp4" },
+      { file_type: "video/mp4", width: 3840, height: 2160, link: "https://p/4k.mp4" },
+      { file_type: "video/mp4", width: 1080, height: 1920, link: "https://p/vertical.mp4" },
+    ],
+  }, "snake", "landscape");
+  assert.equal(widePexels.downloadUrl, "https://p/1080.mp4");
+
+  const widePixabay = normalizePixabay({
+    ...pixabayHit,
+    videos: { large: { url: "https://x/4k.mp4", width: 3840, height: 2160 }, medium: { url: "https://x/hd.mp4", width: 1920, height: 1080 } },
+  }, "snake", "landscape");
+  assert.equal(widePixabay.downloadUrl, "https://x/hd.mp4", "4K large rendition is skipped");
+  assert.equal(normalizePixabay(pixabayHit, "snake", "landscape"), null);
+
+  const pool = buildPool([normalizeCoverr(wideCoverr, "snake", "landscape"), widePexels], {
+    scriptWords: new Set(["snake"]), clipDuration: 5, history: {},
+  });
+  assert.equal(pool.length, 2, "1920x1080 passes the size floor");
+  assert.match(buildPickPrompt("n", pool, 2, "landscape")[0].content, /horizontal 16:9 YouTube video/);
+});
+
+test("portrait and landscape searches are cached separately", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "stockpool-"));
+  let calls = 0;
+  const fakeFetch = async () => { calls += 1; return new Response(JSON.stringify({ videos: [] })); };
+  try {
+    const args = { providers: ["pexels"], terms: ["snake"], keys: { pexels: "p" }, root, fetchImpl: fakeFetch };
+    await gatherCandidates(args);
+    await gatherCandidates({ ...args, orientation: "landscape" });
+    await gatherCandidates({ ...args, orientation: "landscape" });
+    assert.equal(calls, 2);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

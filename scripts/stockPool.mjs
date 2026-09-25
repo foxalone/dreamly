@@ -15,7 +15,8 @@ export const PROVIDER_LABELS = { pexels: "Pexels", pixabay: "Pixabay", coverr: "
 const SEARCH_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // Pixabay asks for 24h result caching
 const RECENT_DAYS = 60;
 const MAX_HISTORY_ITEMS = 5_000;
-const MIN_PORTRAIT_HEIGHT = 960;
+// Short side of the frame: 540 = 960x540 either way round. Orientation-agnostic.
+const MIN_SHORT_SIDE = 540;
 const COVERR_BASE = "https://api.coverr.co";
 
 const ABSTRACT_WORDS = new Set([
@@ -62,18 +63,26 @@ export function expandSearchTerms(terms, topic = "", limit = 6) {
 }
 
 // ---------- normalization (one shape for all three libraries) ----------
+// orientation: "portrait" (9:16 Shorts) or "landscape" (16:9 YouTube videos).
+
+export function matchesOrientation(width, height, orientation = "portrait") {
+  return orientation === "landscape" ? Number(width) > Number(height) : Number(height) > Number(width);
+}
+
+const shortSide = (item) => Math.min(Number(item.width), Number(item.height));
 
 function slugText(url) {
   const match = /\/video\/([^/]+?)(?:-\d+)?\/?$/.exec(String(url ?? ""));
   return match ? match[1].replace(/-/g, " ") : "";
 }
 
-export function normalizePexels(video, term) {
+export function normalizePexels(video, term, orientation = "portrait") {
   const files = (video?.video_files ?? []).filter((file) =>
-    String(file.file_type ?? "").includes("mp4") && Number(file.height) > Number(file.width) && file.link);
+    String(file.file_type ?? "").includes("mp4") && matchesOrientation(file.width, file.height, orientation) && file.link);
   if (!files.length) return null;
-  const sorted = [...files].sort((a, b) => a.height - b.height);
-  const file = sorted.find((item) => item.height >= 1280) ?? sorted[sorted.length - 1];
+  const sorted = [...files].sort((a, b) => shortSide(a) - shortSide(b));
+  // Smallest rendition that is at least 720x1280 (portrait) / 1920x1080 (landscape), else the largest.
+  const file = sorted.find((item) => shortSide(item) >= (orientation === "landscape" ? 1080 : 720)) ?? sorted[sorted.length - 1];
   return {
     provider: "pexels",
     assetId: String(video.id),
@@ -88,11 +97,12 @@ export function normalizePexels(video, term) {
   };
 }
 
-export function normalizePixabay(hit, term) {
+export function normalizePixabay(hit, term, orientation = "portrait") {
   const variants = ["large", "medium", "small"].map((size) => hit?.videos?.[size]).filter((item) => item?.url);
-  const portrait = variants.filter((item) => Number(item.height) > Number(item.width));
-  if (!portrait.length) return null;
-  const file = portrait.find((item) => item.height >= 1280 && item.height <= 2160) ?? portrait[0];
+  const fitting = variants.filter((item) => matchesOrientation(item.width, item.height, orientation));
+  if (!fitting.length) return null;
+  // large → medium → small; skip 4K "large" files (slow to download, no gain in a 1080p render).
+  const file = fitting.find((item) => shortSide(item) >= 720 && Math.max(item.width, item.height) <= 2560) ?? fitting[0];
   return {
     provider: "pixabay",
     assetId: String(hit.id),
@@ -107,12 +117,12 @@ export function normalizePixabay(hit, term) {
   };
 }
 
-export function normalizeCoverr(hit, term) {
+export function normalizeCoverr(hit, term, orientation = "portrait") {
   const width = Number(hit?.max_width) || 0;
   const height = Number(hit?.max_height) || 0;
   const vertical = hit?.is_vertical === true || height > width;
   const url = hit?.urls?.mp4;
-  if (!vertical || !url) return null;
+  if (!url || vertical !== (orientation === "portrait")) return null;
   return {
     provider: "coverr",
     assetId: String(hit.id),
@@ -140,7 +150,8 @@ export function scoreCandidate(candidate, { scriptWords, clipDuration = 5, histo
   const termHits = termWords.filter((word) => text.has(word)).length;
   const scriptHits = [...scriptWords].filter((word) => text.has(word)).length;
   const relevance = Math.min(4, termHits * 1.5 + scriptHits * 0.75) + (text.size ? 0 : -0.5);
-  const quality = Math.min(1, candidate.height / 1920) * 2.5 + (candidate.height >= 1280 ? 0.5 : 0);
+  // Short side vs 1080: 1080x1920 and 1920x1080 both score full marks.
+  const quality = Math.min(1, shortSide(candidate) / 1080) * 2.5 + (shortSide(candidate) >= 720 ? 0.5 : 0);
   const fit = candidate.duration >= clipDuration ? Math.min(1.5, 0.75 + (candidate.duration - clipDuration) / 20) : -3;
   const recent = history[candidateKey(candidate)] ? -4 : 0;
   return Math.round((relevance + quality + fit + recent) * 100) / 100;
@@ -155,7 +166,7 @@ export function buildPool(candidates, options) {
     const key = candidateKey(candidate);
     if (seen.has(key)) continue;
     seen.add(key);
-    if (candidate.height < MIN_PORTRAIT_HEIGHT || candidate.duration < (options.clipDuration ?? 5)) continue;
+    if (shortSide(candidate) < MIN_SHORT_SIDE || candidate.duration < (options.clipDuration ?? 5)) continue;
     pool.push({ ...candidate, key, score: scoreCandidate(candidate, options) });
   }
   return pool.sort((a, b) => b.score - a.score);
@@ -200,7 +211,8 @@ export const POOL_PICK_SCHEMA = {
   },
 };
 
-export function buildPickPrompt(script, shortlist, count) {
+export function buildPickPrompt(script, shortlist, count, orientation = "portrait") {
+  const format = orientation === "landscape" ? "horizontal 16:9 YouTube video" : "vertical YouTube Short";
   const lines = shortlist.map((candidate, index) =>
     `c${index + 1} | ${PROVIDER_LABELS[candidate.provider]} | ${Math.round(candidate.duration)}s | ${candidate.width}x${candidate.height} | ` +
     `found by "${candidate.term}" | ${String(candidate.text || "(no description)").slice(0, 160)}`);
@@ -208,7 +220,7 @@ export function buildPickPrompt(script, shortlist, count) {
     {
       role: "system",
       content:
-        "You are a Shorts video editor. From a pool of vertical stock clips gathered from several free libraries, " +
+        `You are the editor of a ${format}. From a pool of stock clips in that orientation gathered from several free libraries, ` +
         `choose exactly ${count} different clips and put them in the order they should appear under the narration. ` +
         "Judge each clip only by its description, resolution and length. Prefer clips that literally show what the narration " +
         "says at that moment, then higher resolution. Keep the sequence visually varied (no near-duplicates back to back). " +
@@ -262,13 +274,15 @@ export function saveHistory(root, history) {
   renameSync(temporary, target);
 }
 
-function cachePath(root, provider, term) {
-  const digest = createHash("sha256").update(`${provider}:${term}`).digest("hex").slice(0, 24);
+function cachePath(root, provider, term, orientation = "portrait") {
+  // Portrait keeps the original key so existing Stock Pool caches stay valid.
+  const key = orientation === "portrait" ? `${provider}:${term}` : `${provider}:${orientation}:${term}`;
+  const digest = createHash("sha256").update(key).digest("hex").slice(0, 24);
   return path.join(root, "storage", "stock_pool_cache", `${provider}-${digest}.json`);
 }
 
-function readCache(root, provider, term) {
-  const file = cachePath(root, provider, term);
+function readCache(root, provider, term, orientation) {
+  const file = cachePath(root, provider, term, orientation);
   try {
     if (Date.now() - statSync(file).mtimeMs > SEARCH_CACHE_TTL_MS) return null;
     return JSON.parse(readFileSync(file, "utf8"));
@@ -277,8 +291,8 @@ function readCache(root, provider, term) {
   }
 }
 
-function writeCache(root, provider, term, items) {
-  const file = cachePath(root, provider, term);
+function writeCache(root, provider, term, orientation, items) {
+  const file = cachePath(root, provider, term, orientation);
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(items));
 }
@@ -295,24 +309,24 @@ async function getJson(fetchImpl, url, headers = {}) {
   return response.json();
 }
 
-export async function searchProvider(provider, term, { keys, fetchImpl = fetch }) {
+export async function searchProvider(provider, term, { keys, fetchImpl = fetch, orientation = "portrait" }) {
   const q = encodeURIComponent(term);
   if (provider === "pexels") {
     const payload = await getJson(fetchImpl,
-      `https://api.pexels.com/videos/search?query=${q}&orientation=portrait&size=medium&per_page=40`,
+      `https://api.pexels.com/videos/search?query=${q}&orientation=${orientation}&size=medium&per_page=40`,
       { Authorization: keys.pexels });
-    return (payload.videos ?? []).map((video) => normalizePexels(video, term)).filter(Boolean);
+    return (payload.videos ?? []).map((video) => normalizePexels(video, term, orientation)).filter(Boolean);
   }
   if (provider === "pixabay") {
     const payload = await getJson(fetchImpl,
       `https://pixabay.com/api/videos/?key=${encodeURIComponent(keys.pixabay)}&q=${q}&per_page=50&safesearch=true`);
-    return (payload.hits ?? []).map((hit) => normalizePixabay(hit, term)).filter(Boolean);
+    return (payload.hits ?? []).map((hit) => normalizePixabay(hit, term, orientation)).filter(Boolean);
   }
   if (provider === "coverr") {
     const payload = await getJson(fetchImpl,
       `${COVERR_BASE}/videos?query=${q}&page_size=50&urls=true`,
       { Authorization: `Bearer ${keys.coverr}` });
-    return (payload.hits ?? []).map((hit) => normalizeCoverr(hit, term)).filter(Boolean);
+    return (payload.hits ?? []).map((hit) => normalizeCoverr(hit, term, orientation)).filter(Boolean);
   }
   throw new Error(`Unknown stock provider ${provider}`);
 }
@@ -321,7 +335,9 @@ export async function searchProvider(provider, term, { keys, fetchImpl = fetch }
  * Search every enabled provider for every term. A failing provider (bad key,
  * Coverr's 50 req/h demo limit) is logged and skipped, never fatal on its own.
  */
-export async function gatherCandidates({ providers, terms, keys, root, log = () => {}, fetchImpl = fetch, coverrSearchBudget = 5 }) {
+export async function gatherCandidates({
+  providers, terms, keys, root, log = () => {}, fetchImpl = fetch, coverrSearchBudget = 5, orientation = "portrait",
+}) {
   const all = [];
   const stats = Object.fromEntries(providers.map((provider) => [provider, { searches: 0, cached: 0, found: 0, error: "" }]));
   let coverrLeft = coverrSearchBudget;
@@ -329,15 +345,15 @@ export async function gatherCandidates({ providers, terms, keys, root, log = () 
     for (const provider of providers) {
       const stat = stats[provider];
       if (!keys[provider] || stat.error.startsWith("stop:")) continue;
-      let items = root ? readCache(root, provider, term) : null;
+      let items = root ? readCache(root, provider, term, orientation) : null;
       if (items) stat.cached += 1;
       else {
         if (provider === "coverr" && coverrLeft <= 0) continue;
         try {
           if (provider === "coverr") coverrLeft -= 1;
           stat.searches += 1;
-          items = await searchProvider(provider, term, { keys, fetchImpl });
-          if (root) writeCache(root, provider, term, items);
+          items = await searchProvider(provider, term, { keys, fetchImpl, orientation });
+          if (root) writeCache(root, provider, term, orientation, items);
         } catch (error) {
           const status = error?.status;
           stat.error = `${[401, 403, 429].includes(status) ? "stop:" : ""}${error.message}`;
@@ -347,7 +363,7 @@ export async function gatherCandidates({ providers, terms, keys, root, log = () 
       }
       stat.found += items.length;
       all.push(...items);
-      log(`stock pool ${provider} "${term}" → ${items.length} portrait clips`);
+      log(`stock pool ${provider} "${term}" → ${items.length} ${orientation} clips`);
     }
   }
   return { candidates: all, stats };

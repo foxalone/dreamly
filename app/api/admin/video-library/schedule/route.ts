@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { QUEUED_SCHEDULE_PLATFORMS, type AdminVideoPlatform } from "@/lib/adminVideoLibrary";
 import { requireAdmin } from "@/app/api/admin/_lib/auth";
+import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { cancelLibraryVideoSchedule, scheduleLibraryVideoPublish } from "@/app/api/admin/_lib/socialSchedule";
 
 export const runtime = "nodejs";
@@ -9,6 +10,14 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const ALL_PLATFORMS: AdminVideoPlatform[] = [...QUEUED_SCHEDULE_PLATFORMS, "youtube"];
+
+// A 16:9 Stock Pool video would be cropped or rejected by TikTok/Reels/Shorts-style
+// feeds, so the "All" batch only ever sends it to YouTube.
+async function isWideLibraryVideo(libraryId: string) {
+  if (!libraryId.startsWith("free:")) return false;
+  const snapshot = await adminDb().collection("adminVideoJobs").doc(libraryId.slice("free:".length)).get();
+  return snapshot.get("mode") === "pool_wide";
+}
 
 export async function POST(request: Request) {
   try {
@@ -30,11 +39,15 @@ export async function POST(request: Request) {
     }
 
     const requested = Array.isArray(body.platforms) ? body.platforms.map((entry) => String(entry)) : [];
+    const wide = await isWideLibraryVideo(libraryId);
     const platforms = (requested.length ? requested : ALL_PLATFORMS).filter((entry): entry is AdminVideoPlatform =>
-      ALL_PLATFORMS.includes(entry as AdminVideoPlatform),
+      ALL_PLATFORMS.includes(entry as AdminVideoPlatform) && (!wide || entry === "youtube"),
     );
     if (!platforms.length) {
-      return NextResponse.json({ error: "No platforms to schedule" }, { status: 400 });
+      return NextResponse.json(
+        { error: wide ? "Видео 16:9 публикуется только в YouTube" : "No platforms to schedule" },
+        { status: 400 },
+      );
     }
 
     const result = await scheduleLibraryVideoPublish(libraryId, platforms, String(body.publishAt || ""), adminUid);

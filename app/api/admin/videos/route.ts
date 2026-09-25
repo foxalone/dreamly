@@ -2,6 +2,8 @@ import { FieldValue, type DocumentSnapshot } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import {
   MAX_SHORT_DURATION_SECONDS,
+  MAX_WIDE_DURATION_SECONDS,
+  isStockPoolMode,
   type AdminVideoJob,
   type AdminVideoMaterialSource,
   type AdminVideoMode,
@@ -48,7 +50,7 @@ function serializeJob(snapshot: DocumentSnapshot): AdminVideoJob | null {
   return {
     id: snapshot.id,
     mode: adminVideoModeFrom(data.mode),
-    stockProviders: data.mode === "pool" ? normalizeStockPoolProviders(data.stockProviders) : [],
+    stockProviders: isStockPoolMode(adminVideoModeFrom(data.mode)) ? normalizeStockPoolProviders(data.stockProviders) : [],
     materialSources: Array.isArray(data.materialSources) ? data.materialSources.slice(0, 20) : [],
     poolPick: data.poolPick ?? null,
     topic: data.topic ?? "",
@@ -112,16 +114,17 @@ export async function POST(request: Request) {
     }
     const sendToTelegram = payload.sendToTelegram !== false;
     const mode: AdminVideoMode = adminVideoModeFrom(payload.mode);
-    const stockProviders = mode === "pool" ? normalizeStockPoolProviders(payload.stockProviders) : [];
+    const stockProviders = isStockPoolMode(mode) ? normalizeStockPoolProviders(payload.stockProviders) : [];
+    const maxDurationSeconds = mode === "pool_wide" ? MAX_WIDE_DURATION_SECONDS : MAX_SHORT_DURATION_SECONDS;
     const createdAt = new Date();
     const reference = await adminDb().collection("adminVideoJobs").add({
       mode,
-      ...(mode === "pool" ? { stockProviders } : {}),
+      ...(isStockPoolMode(mode) ? { stockProviders } : {}),
       topic,
       language: "en-US",
       status: "queued",
       stage: "queued",
-      maxDurationSeconds: MAX_SHORT_DURATION_SECONDS,
+      maxDurationSeconds,
       sendToTelegram,
       createdAt: FieldValue.serverTimestamp(),
       startedAt: null,
@@ -144,7 +147,7 @@ export async function POST(request: Request) {
       language: "en-US",
       status: "queued",
       stage: "queued",
-      maxDurationSeconds: MAX_SHORT_DURATION_SECONDS,
+      maxDurationSeconds,
       sendToTelegram,
       createdAt: createdAt.toISOString(),
       startedAt: null,

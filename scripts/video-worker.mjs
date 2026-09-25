@@ -31,6 +31,9 @@ const WORKER_DOCUMENT = "adminSystem/videoWorker";
 const ENGLISH_VOICE = "en-US-AriaNeural-Female";
 const SCRIPT_GENERATION_ATTEMPTS = 3;
 const POOL_CLIP_COUNT = 10;
+// Stock Pool · YouTube 16:9 (mode "pool_wide"): a regular horizontal YouTube video.
+const WIDE_MAX_DURATION_SECONDS = 60;
+const WIDE_CLIP_COUNT = 13;
 const POOL_SHORTLIST_SIZE = 30;
 const YOUTUBE_SITE_URL = "https://dreamly.art/";
 const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning → ${YOUTUBE_SITE_URL}`;
@@ -215,7 +218,8 @@ function parseJsonContent(content) {
   return { script, searchTerms, youtubeMetadata };
 }
 
-async function createScript(topic) {
+async function createScript(topic, format = "short") {
+  const wide = format === "wide";
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -233,7 +237,9 @@ async function createScript(topic) {
           {
             role: "system",
             content:
-              "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. " +
+              (wide
+                ? "Create a concise English script for a horizontal 16:9 YouTube video (not a Short) and a complete English YouTube publishing package. Do not use #Shorts. "
+                : "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. ") +
               "The narration must be natural, engaging, and accurate, with no markdown, scene labels, unsupported certainty, " +
               "or misleading clickbait. searchTerms must contain 5 to 8 short English stock-footage queries of 1 to 3 visual words, " +
               "such as \"sleeping dog\", \"puppy close up\", or \"person sleeping\". Never use abstract phrases like " +
@@ -247,7 +253,9 @@ async function createScript(topic) {
             role: "user",
             content:
               `Topic: ${topic}\nLanguage: English only.\n` +
-              "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail.",
+              (wide
+                ? "Write 130 to 150 spoken words designed to finish comfortably within 60 seconds. Open with the strongest useful detail."
+                : "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail."),
           },
         ],
       }),
@@ -493,7 +501,7 @@ function stockKeys(root) {
 
 // Stock Pool: the model sees the whole cross-library shortlist and edits the
 // sequence; if the call fails the heuristic ranking alone is used.
-async function pickPoolClips(script, shortlist, count) {
+async function pickPoolClips(script, shortlist, count, orientation) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || env("OPENAI_API_KEY");
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -506,7 +514,7 @@ async function pickPoolClips(script, shortlist, count) {
       body: JSON.stringify({
         model,
         response_format: { type: "json_schema", json_schema: POOL_PICK_SCHEMA },
-        messages: buildPickPrompt(script, shortlist, count),
+        messages: buildPickPrompt(script, shortlist, count, orientation),
       }),
       signal: AbortSignal.timeout(90_000),
     });
@@ -526,6 +534,8 @@ async function pickPoolClips(script, shortlist, count) {
 async function renderPoolVideo(job, script, searchTerms, onStage) {
   const { root, uv } = moneyPrinterRuntime();
   const logPath = path.join(root, ".agent-logs", "moneyprinterturbo-video", `oneiro-${job.id}.log`);
+  const wide = job.mode === "pool_wide";
+  const orientation = wide ? "landscape" : "portrait";
   const providers = normalizeProviders(job.stockProviders);
   const keys = stockKeys(root);
   const missing = providers.filter((provider) => !keys[provider]);
@@ -535,17 +545,17 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
   const log = (line) => console.log(`[oneiro-video-worker] ${line}`);
 
   await onStage("searching-stock-pool", { stockProviders: providers, poolSearchTerms: terms });
-  const { candidates, stats } = await gatherCandidates({ providers: active, terms, keys, root, log });
+  const { candidates, stats } = await gatherCandidates({ providers: active, terms, keys, root, log, orientation });
   for (const provider of missing) stats[provider] = { searches: 0, cached: 0, found: 0, error: "no API key" };
   const history = loadHistory(root);
   const scriptWords = new Set([...words(script), ...words(job.topic)]);
   const pool = buildPool(candidates, { scriptWords, clipDuration: 5, history });
-  if (pool.length < 3) throw new Error(`Stock pool found only ${pool.length} usable portrait clips`);
+  if (pool.length < 3) throw new Error(`Stock pool found only ${pool.length} usable ${orientation} clips`);
   const shortlist = heuristicPick(pool, POOL_SHORTLIST_SIZE);
 
   await onStage("picking-best-clips", { poolStats: stats, poolSize: pool.length });
-  const count = Math.min(POOL_CLIP_COUNT, shortlist.length);
-  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count);
+  const count = Math.min(wide ? WIDE_CLIP_COUNT : POOL_CLIP_COUNT, shortlist.length);
+  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count, orientation);
 
   await onStage("downloading-best-clips", {});
   const materialsTaskId = randomUUID();
@@ -597,7 +607,7 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
     "--voice-name", ENGLISH_VOICE,
     "--video-source", "local",
     "--video-materials", materials.join(","),
-    "--video-aspect", "9:16",
+    "--video-aspect", wide ? "16:9" : "9:16",
     "--video-count", "1",
     "--video-clip-duration", "5",
     "--video-concat-mode", "sequential",
@@ -623,11 +633,11 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
   };
 }
 
-async function enforceDuration(jobId, rendered) {
+async function enforceDuration(jobId, rendered, maxSeconds = MAX_DURATION_SECONDS) {
   const ffmpeg = resolveFfmpeg(rendered.root);
-  const output = path.join(path.dirname(rendered.video), `oneiro-${jobId}-max-${MAX_DURATION_SECONDS}s.mp4`);
+  const output = path.join(path.dirname(rendered.video), `oneiro-${jobId}-max-${maxSeconds}s.mp4`);
   await runProcess(ffmpeg, [
-    "-y", "-i", rendered.video, "-t", String(MAX_DURATION_SECONDS),
+    "-y", "-i", rendered.video, "-t", String(maxSeconds),
     "-c:v", "libx264", "-preset", "medium", "-crf", "25",
     "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", output,
   ], { cwd: rendered.root, logPath: rendered.logPath });
@@ -680,10 +690,12 @@ async function processJob(job) {
   let rendered = null;
   try {
     await heartbeat("processing", job.id);
-    const generated = await createScript(job.topic);
+    const isPool = job.mode === "pool" || job.mode === "pool_wide";
+    const maxSeconds = job.mode === "pool_wide" ? WIDE_MAX_DURATION_SECONDS : MAX_DURATION_SECONDS;
+    const generated = await createScript(job.topic, job.mode === "pool_wide" ? "wide" : "short");
     usage = generated.usage;
     await reference.update({
-      stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : job.mode === "pool" ? "searching-stock-pool" : "rendering",
+      stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : isPool ? "searching-stock-pool" : "rendering",
       tokenUsage: usage,
       script: generated.script,
       searchTerms: generated.searchTerms,
@@ -691,7 +703,7 @@ async function processJob(job) {
     });
     rendered = job.mode === "mixed"
       ? await renderMixedVideo(job, generated.script, generated.searchTerms)
-      : job.mode === "pool"
+      : isPool
         ? await renderPoolVideo(job, generated.script, generated.searchTerms, (stage, fields) => reference.update({ stage, ...fields }))
         : await renderVideo(job, generated.script, generated.searchTerms);
     if (rendered.pickUsage?.total) {
@@ -709,8 +721,8 @@ async function processJob(job) {
         materialSources: rendered.materialSources,
       });
     }
-    await reference.update({ stage: "enforcing-45-second-limit", localTaskId: rendered.taskId });
-    const finalPath = await enforceDuration(job.id, rendered);
+    await reference.update({ stage: `enforcing-${maxSeconds}-second-limit`, localTaskId: rendered.taskId });
+    const finalPath = await enforceDuration(job.id, rendered, maxSeconds);
     await reference.update({ stage: "uploading" });
     const videoUrl = await uploadVideo(job.id, finalPath);
     let telegramMessageId = null;

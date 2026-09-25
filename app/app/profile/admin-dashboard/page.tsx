@@ -155,7 +155,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -364,6 +364,7 @@ export default function AdminDashboardPage() {
       requested === "FREE_VIDEOS" ||
       requested === "FREE_MIX_VIDEOS" ||
       requested === "STOCK_POOL_VIDEOS" ||
+      requested === "STOCK_POOL_WIDE_VIDEOS" ||
       requested === "VIDEOS" ||
       requested === "COMBINED_VIDEOS" ||
       requested === "VEO_VIDEOS" ||
@@ -1260,6 +1261,8 @@ async function loadUsers() {
               <>Free Mix · alternating Pexels + Pixabay footage · recent-repeat protection</>
             ) : tab === "STOCK_POOL_VIDEOS" ? (
               <>Stock Pool · Pexels + Pixabay + Coverr in one pool · AI picks the best clips for the script</>
+            ) : tab === "STOCK_POOL_WIDE_VIDEOS" ? (
+              <>YouTube 16:9 · horizontal video from Pexels + Pixabay + Coverr · AI picks the best clips · YouTube only</>
             ) : tab === "VIDEOS" ? (
               <>Sora 2 Slow · Batch API · English Shorts · private admin studio</>
             ) : tab === "COMBINED_VIDEOS" ? (
@@ -1419,6 +1422,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Stock Pool
+        </button>
+
+        <button
+          onClick={() => setTab("STOCK_POOL_WIDE_VIDEOS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "STOCK_POOL_WIDE_VIDEOS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          YouTube 16:9
         </button>
 
         <button
@@ -2165,6 +2180,8 @@ async function loadUsers() {
       {tab === "FREE_MIX_VIDEOS" && user && <VideoAdminPanel user={user} studio="mixed" />}
 
       {tab === "STOCK_POOL_VIDEOS" && user && <VideoAdminPanel user={user} studio="pool" />}
+
+      {tab === "STOCK_POOL_WIDE_VIDEOS" && user && <VideoAdminPanel user={user} studio="pool_wide" />}
 
       {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} studio="sora" />}
 

@@ -1,4 +1,4 @@
-export type AdminVideoLibrarySource = "free" | "free-mix" | "stock-pool" | "sora-preview" | "sora-standard" | "combined" | "veo";
+export type AdminVideoLibrarySource = "free" | "free-mix" | "stock-pool" | "stock-pool-wide" | "sora-preview" | "sora-standard" | "combined" | "veo";
 
 export type AdminVideoPlatform =
   | "tiktok"
@@ -97,6 +97,7 @@ export function sourceLabelFor(source: AdminVideoLibrarySource) {
     free: "Free Video",
     "free-mix": "Free Mix",
     "stock-pool": "Stock Pool",
+    "stock-pool-wide": "YouTube 16:9",
     "sora-preview": "Sora 2 · Preview",
     "sora-standard": "Sora 2 · Slow",
     combined: "Combined",
