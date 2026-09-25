@@ -25,6 +25,7 @@ export type AdminVideoMaterialSource = {
   searchTerm: string;
   score?: number;
   reason?: string;
+  cropped?: boolean;
 };
 
 export function adminVideoModeFrom(value: unknown): AdminVideoMode {

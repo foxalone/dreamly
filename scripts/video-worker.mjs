@@ -9,13 +9,14 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import {
+  balancedShortlist,
   buildPickPrompt,
   buildPool,
   downloadCandidate,
+  ensureProviderMix,
   expandSearchTerms,
   fileDigest,
   gatherCandidates,
-  heuristicPick,
   loadHistory,
   normalizeProviders,
   POOL_PICK_SCHEMA,
@@ -523,6 +524,19 @@ async function pickPoolClips(script, shortlist, count) {
   }
 }
 
+// Landscape Coverr/Pixabay clips: centre crop to 9:16 so MoneyPrinterTurbo
+// doesn't letterbox them. Capped at 15s — the Short only uses ~5s per clip.
+async function cropToPortrait(root, file, logPath) {
+  const output = file.replace(/\.mp4$/, "-9x16.mp4");
+  await runProcess(resolveFfmpeg(root), [
+    "-y", "-i", file, "-t", "15",
+    "-vf", "crop=trunc(ih*9/16/2)*2:ih,scale=1080:1920:flags=lanczos,setsar=1",
+    "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", output,
+  ], { cwd: root, logPath });
+  rmSync(file, { force: true });
+  return output;
+}
+
 async function renderPoolVideo(job, script, searchTerms, onStage) {
   const { root, uv } = moneyPrinterRuntime();
   const logPath = path.join(root, ".agent-logs", "moneyprinterturbo-video", `oneiro-${job.id}.log`);
@@ -541,11 +555,13 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
   const scriptWords = new Set([...words(script), ...words(job.topic)]);
   const pool = buildPool(candidates, { scriptWords, clipDuration: 5, history });
   if (pool.length < 3) throw new Error(`Stock pool found only ${pool.length} usable portrait clips`);
-  const shortlist = heuristicPick(pool, POOL_SHORTLIST_SIZE);
+  const shortlist = balancedShortlist(pool, POOL_SHORTLIST_SIZE);
 
   await onStage("picking-best-clips", { poolStats: stats, poolSize: pool.length });
   const count = Math.min(POOL_CLIP_COUNT, shortlist.length);
-  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count);
+  const picked = await pickPoolClips(script, shortlist, count);
+  const { aiCount, usage, pickError } = picked;
+  const chosen = ensureProviderMix(picked.chosen, shortlist);
 
   await onStage("downloading-best-clips", {});
   const materialsTaskId = randomUUID();
@@ -558,7 +574,8 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
   for (const candidate of queue) {
     if (materials.length >= count) break;
     try {
-      const file = await downloadCandidate(candidate, directory, { keys });
+      let file = await downloadCandidate(candidate, directory, { keys });
+      if (candidate.crop) file = await cropToPortrait(root, file, logPath);
       const digest = fileDigest(file);
       if (digests.has(digest)) { rmSync(file, { force: true }); continue; }
       digests.add(digest);
@@ -573,6 +590,7 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
         searchTerm: candidate.term,
         score: candidate.score,
         reason: candidate.reason || "",
+        cropped: Boolean(candidate.crop),
         localFile: path.basename(file),
       });
     } catch (error) {

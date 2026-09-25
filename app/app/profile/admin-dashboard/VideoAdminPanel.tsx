@@ -353,7 +353,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                           <li key={`${item.provider}:${item.assetId}`} className="flex gap-2">
                             <span className="w-5 shrink-0 text-right font-bold text-[var(--text)]">{index + 1}.</span>
                             <a href={item.sourcePage} target="_blank" rel="noreferrer" className="shrink-0 font-semibold text-violet-500 underline">{providerLabel(item.provider)}</a>
-                            <span className="truncate">«{item.searchTerm}»{item.reason ? ` — ${item.reason}` : ""}</span>
+                            <span className="truncate">«{item.searchTerm}»{item.cropped ? " · кроп 9:16" : ""}{item.reason ? ` — ${item.reason}` : ""}</span>
                           </li>
                         ))}
                       </ol>
