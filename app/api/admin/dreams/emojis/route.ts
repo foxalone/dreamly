@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
+import { FieldPath } from "firebase-admin/firestore";
 import type { DocumentReference, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
 import { requireAdmin } from "../../_lib/auth";
 import { adminDb } from "../../_lib/firebaseAdmin";
@@ -62,8 +63,15 @@ function toEmojiObjs(list: DreamEmojiEntry[]): EmojiObj[] {
 
 /**
  * Re-point per-emoji counters from `oldNatives` to `newNatives` on a stats doc.
- * Reads happened before (snap); counts are clamped at zero and zero fields are
- * removed so the admin emoji search and the map never see stale keys.
+ *
+ * The ingest routes write counters with `set({ ["emojis.🐍"]: increment }, {merge})`,
+ * which the Admin SDK stores as a LITERAL top-level field named "emojis.🐍"
+ * (set() does not split dotted keys); the map and the admin search read both
+ * that shape and a nested `emojis: { "🐍": n }` map. So each emoji is looked
+ * up in both places, decremented where it actually lives, and new emojis go
+ * to the literal shape the ingests use. Writes go through FieldPath objects so
+ * neither dots nor emoji characters are ever parsed as paths. Counts are
+ * clamped at zero and zero fields are deleted.
  */
 function adjustCounters(
   tx: Transaction,
@@ -75,35 +83,55 @@ function adjustCounters(
 ) {
   if (!snap.exists) return;
   const data = snap.data() ?? {};
-  const counts: Record<string, number> = { ...(data?.[prefix] && typeof data[prefix] === "object" ? data[prefix] : {}) };
-  // Stored keys may differ from the doc's natives by a variation selector
-  // (🖊 vs 🖊️); match old emojis against the keys that actually exist.
-  const keyFor = (em: string) => {
-    if (em in counts) return em;
-    const norm = normalizeEmojiKey(em);
-    return Object.keys(counts).find((k) => normalizeEmojiKey(k) === norm) ?? em;
+  const nested: Record<string, unknown> =
+    data?.[prefix] && typeof data[prefix] === "object" && !Array.isArray(data[prefix]) ? data[prefix] : {};
+  const literalPrefix = `${prefix}.`;
+
+  type Slot = { path: FieldPath; count: number };
+  // key → where this emoji is counted (literal field wins, then nested)
+  const slots = new Map<string, Slot>();
+  const norm = (k: string) => normalizeEmojiKey(k);
+  const findSlot = (em: string): Slot | null => {
+    const want = norm(em);
+    for (const [k, v] of Object.entries(data)) {
+      if (k.startsWith(literalPrefix) && norm(k.slice(literalPrefix.length)) === want) {
+        return { path: new FieldPath(k), count: Number(v) || 0 };
+      }
+    }
+    for (const [k, v] of Object.entries(nested)) {
+      if (norm(k) === want) return { path: new FieldPath(prefix, k), count: Number(v) || 0 };
+    }
+    return null;
   };
-  const delta = new Map<string, number>();
+  const slotFor = (em: string): Slot => {
+    const id = norm(em);
+    let slot = slots.get(id);
+    if (!slot) {
+      slot = findSlot(em) ?? { path: new FieldPath(`${prefix}.${em}`), count: 0 };
+      slots.set(id, slot);
+    }
+    return slot;
+  };
+
+  const delta = new Map<Slot, number>();
   for (const em of oldNatives) {
-    const k = keyFor(em);
-    delta.set(k, (delta.get(k) ?? 0) - 1);
+    const sl = slotFor(em);
+    delta.set(sl, (delta.get(sl) ?? 0) - 1);
   }
   for (const em of newNatives) {
-    const k = keyFor(em);
-    delta.set(k, (delta.get(k) ?? 0) + 1);
+    const sl = slotFor(em);
+    delta.set(sl, (delta.get(sl) ?? 0) + 1);
   }
 
-  // Nested map + merge (not dotted paths) so emoji characters never go
-  // through field-path parsing; FieldValue.delete() drops zeroed keys.
-  const patch: Record<string, unknown> = {};
-  for (const [em, d] of delta) {
+  const args: unknown[] = [];
+  for (const [sl, d] of delta) {
     if (d === 0) continue;
-    const cur = Number(counts[em] ?? 0);
-    const next = Math.max(0, (Number.isFinite(cur) ? cur : 0) + d);
-    patch[em] = next > 0 ? next : admin.firestore.FieldValue.delete();
+    const next = Math.max(0, sl.count + d);
+    args.push(sl.path, next > 0 ? next : admin.firestore.FieldValue.delete());
   }
-  if (!Object.keys(patch).length) return;
-  tx.set(ref, { [prefix]: patch, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  if (!args.length) return;
+  args.push(new FieldPath("updatedAt"), admin.firestore.FieldValue.serverTimestamp());
+  (tx.update as any)(ref, ...args);
 }
 
 export async function POST(req: Request) {
