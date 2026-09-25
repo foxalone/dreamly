@@ -47,6 +47,7 @@ import {
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
+import { hasEnoughDreamEmojis, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
 
 // ------------------------
 // types
@@ -963,11 +964,19 @@ export default function DreamsPage() {
       const iconsEnRaw = pickDreamIconsEn(normalizedEn, counts.icons) as DreamIconKey[];
       const iconsEn = filterIconsEn(iconsEnRaw, counts.icons);
 
-      const picked = await Promise.all(
-        rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
-      );
-
-      const emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
+      // Server-side AI pick (validated against emoji-mart) wins; the per-root
+      // emoji-mart lookup stays as the fallback when the pick is missing/short.
+      let emojis: DreamEmoji[];
+      if (hasEnoughDreamEmojis(data2?.emojis)) {
+        emojis = data2.emojis
+          .map((e: DreamEmojiEntry) => ({ native: e.native, id: e.id, name: e.name }))
+          .slice(0, Math.max(counts.emojis, 2));
+      } else {
+        const picked = await Promise.all(
+          rootsEnMajor.map((r: string) => pickEmojiForOneRoot_AI(normalizeRootForEmojiLive(r, "en"), "en"))
+        );
+        emojis = (picked.filter(Boolean) as DreamEmoji[]).slice(0, counts.emojis);
+      }
 
       await updateDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId), {
         roots: rootsMajor,

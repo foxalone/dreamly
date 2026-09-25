@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
+import { hasEnoughDreamEmojis, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
 import {
   HOME_DREAM_MAX_CHARS,
   readHomeDreamPending,
@@ -178,7 +179,16 @@ export function useDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
-      const visuals = shareToMap ? await pickDreamMapVisuals(dream).catch(() => null) : null;
+      let visuals = shareToMap ? await pickDreamMapVisuals(dream).catch(() => null) : null;
+      // Prefer the server-side AI pick (validated against emoji-mart); the
+      // keyword picker only supplies iconsEn/rootsEn and the emoji fallback.
+      if (shareToMap && hasEnoughDreamEmojis(data?.emojis)) {
+        visuals = {
+          emojis: data.emojis.map((e: DreamEmojiEntry) => ({ native: e.native, id: e.id, name: e.name })),
+          iconsEn: visuals?.iconsEn ?? [],
+          rootsEn: visuals?.rootsEn ?? [],
+        };
+      }
       writeHomeDreamPending(dream, {
         analysis: next,
         shareToMap,

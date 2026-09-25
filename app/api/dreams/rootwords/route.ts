@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { requirePaidAccess } from "../_lib/subscription";
 
@@ -62,6 +63,10 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey });
+
+    // Emoji pick runs alongside the root-word call; empty on failure so the
+    // journal falls back to its per-root emoji-mart lookup.
+    const emojiPromise = pickDreamEmojisAi(apiKey, text).catch(() => null);
 
     let resp: any;
     try {
@@ -201,6 +206,8 @@ Rules:
       }
     }
 
+    const emojiPick = await emojiPromise;
+
     return NextResponse.json({
       lang: lang || "unknown",
       core,
@@ -208,6 +215,7 @@ Rules:
       themes,
       roots,
       rootsEn,
+      emojis: emojiPick?.emojis ?? [],
       cost: 0,
       usedDailyFree: false,
     });

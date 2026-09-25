@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { HOME_DREAM_MAX_CHARS } from "@/lib/homeDreamPending";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeDreamSlot, refundDreamSlot, requirePaidAccess } from "../_lib/subscription";
@@ -157,6 +158,9 @@ Keep it under ~1000 characters.
     const model = process.env.OPENAI_DREAM_MODEL || "gpt-4o-mini";
     const openai = new OpenAI({ apiKey });
 
+    // Emoji pick runs alongside the analysis call; it never fails the request.
+    const emojiPromise = pickDreamEmojisAi(apiKey, text).catch(() => null);
+
     let analysis = "";
     try {
       const resp = await openai.chat.completions.create({
@@ -180,6 +184,8 @@ Keep it under ~1000 characters.
       return finish(NextResponse.json({ error: "Empty analysis" }, { status: 500 }));
     }
 
+    const emojiPick = await emojiPromise;
+
     return finish(
       NextResponse.json({
         analysis,
@@ -187,6 +193,8 @@ Keep it under ~1000 characters.
         lens,
         guest: isGuest,
         cost: 0,
+        emojis: emojiPick?.emojis ?? [],
+        emojiModel: emojiPick?.model ?? null,
       })
     );
   } catch (e: any) {

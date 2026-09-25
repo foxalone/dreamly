@@ -91,18 +91,24 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
   try {
     const cleaned = text.trim();
     if (!cleaned) return;
-    const prev = readHomeDreamPending();
+    const nextText = cleaned.slice(0, HOME_DREAM_MAX_CHARS);
+    const prevRaw = readHomeDreamPending();
+    // Visuals, analysis and the map-pin flag belong to a specific text. When the
+    // visitor submits a different dream they must not leak from the previous one
+    // (that is how a snake dream once got the lotus/pen emojis of an earlier text).
+    const sameText = !!prevRaw && prevRaw.text === nextText;
+    const prev = sameText ? prevRaw : undefined;
     const next: HomeDreamPending = {
-      text: cleaned.slice(0, HOME_DREAM_MAX_CHARS),
+      text: nextText,
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
-      shareToMap: extra?.shareToMap ?? prev?.shareToMap ?? true,
-      lang: extra?.lang || prev?.lang,
-      lens: extra?.lens || prev?.lens,
+      shareToMap: extra?.shareToMap ?? prevRaw?.shareToMap ?? true,
+      lang: extra?.lang || prevRaw?.lang,
+      lens: extra?.lens || prevRaw?.lens,
       createdAtMs: extra?.createdAtMs || prev?.createdAtMs || Date.now(),
       emojis: extra?.emojis ?? prev?.emojis,
       iconsEn: extra?.iconsEn ?? prev?.iconsEn,
       rootsEn: extra?.rootsEn ?? prev?.rootsEn,
-      city: extra && "city" in extra ? extra.city : prev?.city,
+      city: extra && "city" in extra ? extra.city : prevRaw?.city,
       guestMapIngested: extra?.guestMapIngested ?? prev?.guestMapIngested,
     };
     storage()?.setItem(HOME_DREAM_PENDING_KEY, JSON.stringify(next));
