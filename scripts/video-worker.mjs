@@ -975,7 +975,7 @@ async function main() {
     }));
     return;
   }
-  console.log(`[oneiro-video-worker] ready on ${hostname()}, English only, max ${MAX_DURATION_SECONDS}s`);
+  console.log(`[oneiro-video-worker] ready on ${hostname()}, English only · Shorts max ${MAX_DURATION_SECONDS}s · YouTube 16:9 max ${WIDE_MAX_DURATION_SECONDS / 60} min · Stock Pool: Pexels + Pixabay + Coverr${env("COVERR_API_KEY") ? "" : " (no COVERR_API_KEY!)"}`);
   await heartbeat();
   while (!stopping) {
     const job = await claimNextJob();
