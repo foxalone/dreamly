@@ -73,6 +73,12 @@ export type UiMessages = {
     searchPlaceholder: string;
     askPlaceholder: string;
     askLabel: string;
+    dreamTextTitle: string;
+    dreamTextLead: string;
+    dreamTextCta: string;
+    noMatchAsk: string;
+    dreamTextPanelLabel: string;
+    dreamTextClose: string;
     popularSymbols: string;
     popularSymbolsLead: string;
     learnTitle: string;
