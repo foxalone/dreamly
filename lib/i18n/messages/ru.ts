@@ -255,6 +255,8 @@ export const RU_MESSAGES: UiMessages = {
     coreSymbol: "Суть символа",
     generalMeaning: "Общий смысл",
     commonScenarios: "Частые сюжеты",
+    watchVideo: "Смотреть видео",
+    watchVideoMinutes: "Смотреть видео · {minutes} мин",
     siblingPages: "Родственные страницы",
     longTail: "Частные случаи",
     relatedVariations: "Вариации «{name}»",

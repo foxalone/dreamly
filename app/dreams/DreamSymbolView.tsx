@@ -15,6 +15,9 @@ import {
 import { notFound } from "next/navigation";
 import SectionJumpNav from "./SectionJumpNav";
 import { DreamPageImageFrame, DreamPageImagePickerButton, DreamPageImageProvider } from "./DreamPageImage";
+import { DreamPageVideoAdminDot, DreamPageVideoPlayer, DreamPageVideoProvider, DreamPageVideoWatchButton } from "./DreamPageVideo";
+import { getDreamPageVideo } from "@/lib/getDreamPageVideo";
+import { isoDurationSeconds, youtubeThumbnail, youtubeWatchPageUrl } from "@/lib/dreamPageVideo";
 import GuideLinkCards from "./GuideLinkCards";
 import InlineDreamPrompt from "./InlineDreamPrompt";
 import LinkedText from "./LinkedText";
@@ -153,6 +156,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
   );
   const relatedGuides = getLocalizedGuidesForSymbol(english.parentSlug ?? english.slug, locale);
   const pageImage = await getDreamPageImage(entry.slug);
+  const pageVideo = await getDreamPageVideo(entry.slug);
   const pageUrl = absoluteLocaleUrl(`/dreams/${entry.canonicalSlug}`, locale);
   const articleImage = pageImage?.imageUrl
     ? {
@@ -211,6 +215,23 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
   const [openingParagraph, ...remainingParagraphs] = [...entry.sections.introduction, ...entry.sections.general];
   const opening = splitLeadSentences(openingParagraph ?? "", 2);
 
+  // VideoObject for the attached YouTube video (the page's main content stays the article).
+  const videoJsonLd = pageVideo
+    ? {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name: pageVideo.title || entry.title,
+        description: (pageVideo.description || entry.seoDescription).slice(0, 500),
+        thumbnailUrl: [pageVideo.thumbnailUrl || youtubeThumbnail(pageVideo.youtubeId)],
+        uploadDate: pageVideo.uploadDate,
+        ...(isoDurationSeconds(pageVideo.duration) ? { duration: pageVideo.duration } : {}),
+        embedUrl: `https://www.youtube.com/embed/${pageVideo.youtubeId}`,
+        url: youtubeWatchPageUrl(pageVideo.youtubeId),
+        inLanguage: "en",
+        publisher: { "@type": "Organization", name: "Dreamly", url: SITE_URL },
+      }
+    : null;
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -227,6 +248,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {faqJsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      {videoJsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }} /> : null}
 
       <article className="mx-auto max-w-5xl px-5 pb-12 pt-8 sm:px-8 sm:pt-12">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--dd-subtle)] sm:text-sm">
@@ -286,6 +308,11 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
 
         <section id="meaning" className="scroll-mt-24 py-12 sm:py-16">
           <DreamPageImageProvider slug={entry.slug} accent={entry.accent} initialImage={pageImage}>
+          <DreamPageVideoProvider
+            slug={entry.slug}
+            initialVideo={pageVideo}
+            labels={{ watch: t.chrome.watchVideo, watchMinutes: t.chrome.watchVideoMinutes }}
+          >
             <div className="grid gap-6 md:grid-cols-[190px_1fr] md:gap-12">
               <div>
                 <span className="grid size-11 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
@@ -296,6 +323,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                   <h2 className="text-xl font-semibold tracking-tight">{t.chrome.generalMeaning}</h2>
                   <DreamPageImagePickerButton />
                 </div>
+                <DreamPageVideoWatchButton />
               </div>
               <div>
                 <DreamPageImageFrame />
@@ -314,7 +342,11 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                     </p>
                   ))}
                 </div>
-                <h3 className="mt-9 text-sm font-semibold uppercase tracking-[0.15em] text-[var(--dd-subtle)]">{t.chrome.commonScenarios}</h3>
+                <DreamPageVideoPlayer />
+                <div className="mt-9 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-[var(--dd-subtle)]">{t.chrome.commonScenarios}</h3>
+                  <DreamPageVideoAdminDot />
+                </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {entry.sections.commonScenarios.map((scenario) => (
                     <div key={scenario.title} className="rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface-soft)] p-4">
@@ -325,6 +357,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                 </div>
               </div>
             </div>
+          </DreamPageVideoProvider>
           </DreamPageImageProvider>
         </section>
 

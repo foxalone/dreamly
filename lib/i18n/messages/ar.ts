@@ -255,6 +255,8 @@ export const AR_MESSAGES: UiMessages = {
     coreSymbol: "جوهر الرمز",
     generalMeaning: "المعنى العام",
     commonScenarios: "مشاهد شائعة",
+    watchVideo: "شاهد الفيديو",
+    watchVideoMinutes: "شاهد الفيديو ({minutes} د)",
     siblingPages: "صفحات شقيقة",
     longTail: "معانٍ تفصيلية",
     relatedVariations: "تنويعات {name}",

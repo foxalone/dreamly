@@ -255,6 +255,8 @@ export const EN_MESSAGES: UiMessages = {
     coreSymbol: "Core symbol",
     generalMeaning: "General meaning",
     commonScenarios: "Common scenarios",
+    watchVideo: "Watch the video",
+    watchVideoMinutes: "Watch the {minutes}-min video",
     siblingPages: "Sibling pages",
     longTail: "Long-tail meanings",
     relatedVariations: "Related {name} variations",

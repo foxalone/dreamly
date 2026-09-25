@@ -209,6 +209,9 @@ export type UiMessages = {
     coreSymbol: string;
     generalMeaning: string;
     commonScenarios: string;
+    /** YouTube button under "General meaning"; the second one gets "{minutes}". */
+    watchVideo: string;
+    watchVideoMinutes: string;
     siblingPages: string;
     longTail: string;
     relatedVariations: string;

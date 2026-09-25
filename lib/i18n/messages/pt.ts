@@ -255,6 +255,8 @@ export const PT_MESSAGES: UiMessages = {
     coreSymbol: "Símbolo central",
     generalMeaning: "Significado geral",
     commonScenarios: "Cenas frequentes",
+    watchVideo: "Assistir ao vídeo",
+    watchVideoMinutes: "Assistir ao vídeo de {minutes} min",
     siblingPages: "Páginas irmãs",
     longTail: "Significados de cauda longa",
     relatedVariations: "Variações de {name}",

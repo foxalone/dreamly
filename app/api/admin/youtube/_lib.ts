@@ -256,6 +256,48 @@ async function getValidYouTubeAuth(): Promise<YouTubeAuthRecord> {
   }
 }
 
+export type YouTubeVideoDetails = {
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  publishedAt: string;
+  duration: string;
+};
+
+/**
+ * Title, publish date, duration and best thumbnail of any public video, via the
+ * connected channel's youtube.readonly token. Null when YouTube isn't connected
+ * or the call fails; the caller falls back to oEmbed.
+ */
+export async function fetchYouTubeVideoDetails(youtubeId: string): Promise<YouTubeVideoDetails | null> {
+  try {
+    const { accessToken } = await getValidYouTubeAuth();
+    const response = await fetch(
+      `${YOUTUBE_API_URL}/videos?part=snippet,contentDetails&id=${encodeURIComponent(youtubeId)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store", signal: AbortSignal.timeout(15_000) },
+    );
+    if (!response.ok) return null;
+    const payload = (await response.json()) as {
+      items?: Array<{
+        snippet?: { title?: string; description?: string; publishedAt?: string; thumbnails?: Record<string, { url?: string }> };
+        contentDetails?: { duration?: string };
+      }>;
+    };
+    const item = payload.items?.[0];
+    if (!item) return null;
+    const thumbs = item.snippet?.thumbnails ?? {};
+    return {
+      title: String(item.snippet?.title || ""),
+      description: String(item.snippet?.description || ""),
+      thumbnailUrl: String(thumbs.maxres?.url || thumbs.standard?.url || thumbs.high?.url || ""),
+      publishedAt: String(item.snippet?.publishedAt || ""),
+      duration: String(item.contentDetails?.duration || ""),
+    };
+  } catch {
+    return null;
+  }
+}
+
 // YouTube rejects angle brackets in title and description.
 function sanitize(value: string) {
   return String(value || "").replace(/[<>]/g, "").trim();
