@@ -5,7 +5,7 @@ import { requireAdmin } from "../../_lib/auth";
 import { adminDb } from "../../_lib/firebaseAdmin";
 import { getOneiroOpenAiApiKey, getMissingOneiroOpenAiKeyMessage } from "@/lib/openaiEnv";
 import { getDreamEmojiResolver, pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
-import { DREAM_EMOJI_MAX, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
+import { DREAM_EMOJI_MAX, normalizeEmojiKey, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
 
 /**
  * POST /api/admin/dreams/emojis   (admin only, Bearer id token)
@@ -76,9 +76,22 @@ function adjustCounters(
   if (!snap.exists) return;
   const data = snap.data() ?? {};
   const counts: Record<string, number> = { ...(data?.[prefix] && typeof data[prefix] === "object" ? data[prefix] : {}) };
+  // Stored keys may differ from the doc's natives by a variation selector
+  // (🖊 vs 🖊️); match old emojis against the keys that actually exist.
+  const keyFor = (em: string) => {
+    if (em in counts) return em;
+    const norm = normalizeEmojiKey(em);
+    return Object.keys(counts).find((k) => normalizeEmojiKey(k) === norm) ?? em;
+  };
   const delta = new Map<string, number>();
-  for (const em of oldNatives) delta.set(em, (delta.get(em) ?? 0) - 1);
-  for (const em of newNatives) delta.set(em, (delta.get(em) ?? 0) + 1);
+  for (const em of oldNatives) {
+    const k = keyFor(em);
+    delta.set(k, (delta.get(k) ?? 0) - 1);
+  }
+  for (const em of newNatives) {
+    const k = keyFor(em);
+    delta.set(k, (delta.get(k) ?? 0) + 1);
+  }
 
   // Nested map + merge (not dotted paths) so emoji characters never go
   // through field-path parsing; FieldValue.delete() drops zeroed keys.
