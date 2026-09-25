@@ -805,6 +805,89 @@ export default function AdminDashboardPage() {
     await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
   }
 
+  // ---- Regenerate emojis (admin) ----
+  // Preview from the AI picker, then apply everywhere the dream's emojis live
+  // (journal doc, shared_dreams, linked guest snapshot, user/city counters).
+  type EmojiRegenState = {
+    loading?: boolean;
+    applying?: boolean;
+    proposed?: Array<{ native: string; id?: string; name?: string }>;
+    model?: string | null;
+    error?: string | null;
+    applied?: boolean;
+  };
+  const [emojiRegen, setEmojiRegen] = useState<Record<string, EmojiRegenState>>({});
+
+  function regenKey(d: DreamAdmin) {
+    return `${d.userId}_${d.id}`;
+  }
+
+  function regenTarget(d: DreamAdmin) {
+    if (isGuestRow(d)) return { kind: "guest", guestDreamId: d.id };
+    return {
+      kind: "user",
+      uid: d.userId,
+      itemId: sourceDocId(d),
+      sourceType: d.sourceType === "story" ? "story" : "dream",
+    };
+  }
+
+  function patchRegen(key: string, patch: EmojiRegenState) {
+    setEmojiRegen((prev) => ({ ...prev, [key]: { ...(prev[key] ?? {}), ...patch } }));
+  }
+
+  async function regenerateEmojis(d: DreamAdmin) {
+    if (!isAdmin) return;
+    const key = regenKey(d);
+    patchRegen(key, { loading: true, error: null, proposed: undefined, applied: false });
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/dreams/emojis", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "preview", target: regenTarget(d) }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
+      patchRegen(key, { loading: false, proposed: json.emojis ?? [], model: json.model ?? null });
+    } catch (e: any) {
+      patchRegen(key, { loading: false, error: e?.message ?? "Regenerate failed" });
+    }
+  }
+
+  async function applyRegeneratedEmojis(d: DreamAdmin) {
+    if (!isAdmin) return;
+    const key = regenKey(d);
+    const proposed = emojiRegen[key]?.proposed ?? [];
+    if (!proposed.length) return;
+    if (!confirm(`Replace emojis with ${proposed.map((e) => e.native).join(" ")} everywhere (journal, shared, map)?`)) return;
+    patchRegen(key, { applying: true, error: null });
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/dreams/emojis", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "apply",
+          target: regenTarget(d),
+          emojis: proposed.map((e) => e.native),
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
+      const applied = (json.emojis ?? proposed) as DreamAdmin["emojis"];
+      // Live lists refresh via onSnapshot; server search results are patched here.
+      setDreamSearchRes((prev) =>
+        prev
+          ? { ...prev, matches: prev.matches.map((m) => (regenKey(m) === key ? { ...m, emojis: applied } : m)) }
+          : prev
+      );
+      patchRegen(key, { applying: false, applied: true, proposed: undefined });
+    } catch (e: any) {
+      patchRegen(key, { applying: false, error: e?.message ?? "Apply failed" });
+    }
+  }
+
   async function saveHints() {
     if (!isAdmin) return;
 
@@ -1594,6 +1677,48 @@ async function loadUsers() {
                       </div>
                     ) : null}
 
+                    {(() => {
+                      const st = emojiRegen[regenKey(d)];
+                      if (!st || (!st.loading && !st.proposed && !st.error && !st.applied)) return null;
+                      return (
+                        <div className={`mt-2 text-xs ${mutedText} flex flex-wrap items-center gap-2`}>
+                          {st.loading ? <span>Picking emojis…</span> : null}
+                          {st.error ? <span className="text-red-400">{st.error}</span> : null}
+                          {st.applied ? <span className="text-emerald-400">Emojis replaced everywhere.</span> : null}
+                          {st.proposed?.length ? (
+                            <>
+                              <span>
+                                new{st.model ? ` (${st.model})` : ""}:
+                              </span>
+                              {st.proposed.map((e, i) => (
+                                <span
+                                  key={`${d.id}_p_${i}`}
+                                  className="text-sm px-2 py-1 rounded-full border border-emerald-500/60 bg-emerald-500/10"
+                                  title={e.name ?? e.id ?? ""}
+                                >
+                                  {e.native}
+                                </span>
+                              ))}
+                              <button
+                                onClick={() => applyRegeneratedEmojis(d)}
+                                disabled={!!st.applying}
+                                className="h-8 px-3 rounded-full font-semibold border border-transparent bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
+                              >
+                                {st.applying ? "Applying…" : "Apply everywhere"}
+                              </button>
+                              <button
+                                onClick={() => patchRegen(regenKey(d), { proposed: undefined })}
+                                disabled={!!st.applying}
+                                className={`h-8 px-3 rounded-full font-semibold border ${pillSurface} disabled:opacity-50`}
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    })()}
+
                     {d.text ? (
                       <div className={`mt-3 text-sm ${mutedText} whitespace-pre-wrap break-words`}>
                         {d.text}
@@ -1616,6 +1741,15 @@ async function loadUsers() {
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">
+                    <button
+                      onClick={() => regenerateEmojis(d)}
+                      disabled={!d.text || !!emojiRegen[regenKey(d)]?.loading || !!emojiRegen[regenKey(d)]?.applying}
+                      className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+                      title="Ask the AI picker for new emojis, then apply them to the journal, shared feed and map"
+                    >
+                      {emojiRegen[regenKey(d)]?.loading ? "Picking…" : "Regenerate emojis"}
+                    </button>
+
                     <button
                       onClick={() => hideFromShared(d)}
                       disabled={!d.shared}

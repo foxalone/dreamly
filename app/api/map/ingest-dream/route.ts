@@ -316,6 +316,9 @@ export async function POST(req: Request) {
         itemId,
         sourceType,
         cityId: resolvedCity.cityId || null,
+        // false when the city was already counted by the guest pin (skipCity);
+        // the admin emoji re-pick uses this to know which counters to move.
+        cityCounted: !!resolvedCity.cityId && !skipCity,
         dateKey,
         createdAtMs,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
