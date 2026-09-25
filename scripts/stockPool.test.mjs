@@ -5,9 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   buildPickPrompt,
-  balancedShortlist,
   buildPool,
-  ensureProviderMix,
   expandSearchTerms,
   gatherCandidates,
   heuristicPick,
@@ -57,11 +55,8 @@ test("normalizers keep only portrait mp4s and pick a ≥1280 rendition", () => {
   assert.equal(pexels.text, "black snake in the grass");
   assert.equal(normalizePixabay(pixabayHit, "snake").height, 1920);
   assert.equal(normalizeCoverr(coverrHit, "snake").provider, "coverr");
-  const landscape = normalizeCoverr({ ...coverrHit, is_vertical: false, max_width: 1920, max_height: 1080 }, "snake");
-  assert.deepEqual([landscape.crop, landscape.width, landscape.height], [true, 608, 1080], "landscape Coverr is kept for a 9:16 crop");
-  assert.equal(normalizeCoverr({ ...coverrHit, is_vertical: false, max_width: 1280, max_height: 720 }, "snake"), null, "too small to crop");
-  assert.equal(normalizePixabay({ ...pixabayHit, videos: { large: { url: "u", width: 1920, height: 1080 } } }, "x").crop, true);
-  assert.equal(normalizePixabay({ ...pixabayHit, videos: { medium: { url: "u", width: 1280, height: 720 } } }, "x"), null);
+  assert.equal(normalizeCoverr({ ...coverrHit, is_vertical: false, max_width: 1920, max_height: 1080 }, "snake"), null);
+  assert.equal(normalizePixabay({ ...pixabayHit, videos: { large: { url: "u", width: 1920, height: 1080 } } }, "x"), null);
 });
 
 test("providers default to all three and keep canonical order", () => {
@@ -131,24 +126,4 @@ test("gatherCandidates pools every provider and survives a failing one", async (
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
-});
-
-const clip = (provider, n, score, term = `t${n}`) => ({ key: `${provider}:${n}`, provider, term, score, text: "", width: 1080, height: 1920, duration: 8 });
-
-test("balanced shortlist gives a small library its share next to a big one", () => {
-  const pool = [
-    ...Array.from({ length: 20 }, (_, n) => clip("pexels", n, 9 - n * 0.1, `p${n}`)),
-    clip("coverr", 1, 4), clip("coverr", 2, 3.5),
-  ].sort((a, b) => b.score - a.score);
-  const shortlist = balancedShortlist(pool, 10);
-  assert.equal(shortlist.length, 10);
-  assert.equal(shortlist.filter((item) => item.provider === "coverr").length, 2);
-});
-
-test("provider mix swaps in a competitive missing library, never a weak one", () => {
-  const chosen = [clip("pexels", 1, 7), clip("pexels", 2, 6), clip("pexels", 3, 5.5)];
-  const shortlist = [...chosen, clip("coverr", 9, 4.5), clip("pixabay", 8, 1)];
-  const mixed = ensureProviderMix(chosen, shortlist);
-  assert.deepEqual(mixed.map((item) => item.key), ["pexels:1", "pexels:2", "coverr:9"]);
-  assert.ok(!mixed.some((item) => item.provider === "pixabay"), "a clip 4.5 points worse stays out");
 });

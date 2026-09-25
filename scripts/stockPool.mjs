@@ -16,8 +16,6 @@ const SEARCH_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // Pixabay asks for 24h result 
 const RECENT_DAYS = 60;
 const MAX_HISTORY_ITEMS = 5_000;
 const MIN_PORTRAIT_HEIGHT = 960;
-const MIN_CROP_SOURCE_HEIGHT = 1080; // landscape clips are centre-cropped to 9:16
-const CACHE_VERSION = "v2";
 const COVERR_BASE = "https://api.coverr.co";
 
 const ABSTRACT_WORDS = new Set([
@@ -93,20 +91,14 @@ export function normalizePexels(video, term) {
 export function normalizePixabay(hit, term) {
   const variants = ["large", "medium", "small"].map((size) => hit?.videos?.[size]).filter((item) => item?.url);
   const portrait = variants.filter((item) => Number(item.height) > Number(item.width));
-  let file = portrait.find((item) => item.height >= 1280 && item.height <= 2160) ?? portrait[0];
-  let crop = false;
-  if (!file) {
-    // Mostly-landscape library: take the sharpest ≤4K rendition and crop it to 9:16.
-    file = variants.find((item) => item.height >= MIN_CROP_SOURCE_HEIGHT && item.height <= 2160);
-    if (!file) return null;
-    crop = true;
-  }
+  if (!portrait.length) return null;
+  const file = portrait.find((item) => item.height >= 1280 && item.height <= 2160) ?? portrait[0];
   return {
     provider: "pixabay",
     assetId: String(hit.id),
     text: String(hit.tags ?? ""),
-    ...croppedSize(Number(file.width), Number(file.height), crop),
-    crop,
+    width: Number(file.width),
+    height: Number(file.height),
     duration: Number(hit.duration) || 0,
     downloadUrl: String(file.url),
     sourcePage: String(hit.pageURL ?? "https://pixabay.com"),
@@ -120,27 +112,19 @@ export function normalizeCoverr(hit, term) {
   const height = Number(hit?.max_height) || 0;
   const vertical = hit?.is_vertical === true || height > width;
   const url = hit?.urls?.mp4;
-  if (!url) return null;
-  // Coverr is ~95% landscape; without cropping it contributes almost nothing.
-  const crop = !vertical;
-  if (crop && height < MIN_CROP_SOURCE_HEIGHT) return null;
+  if (!vertical || !url) return null;
   return {
     provider: "coverr",
     assetId: String(hit.id),
     text: [hit.title, hit.description, ...(Array.isArray(hit.tags) ? hit.tags : [])].filter(Boolean).join(" · "),
-    ...croppedSize(width, height, crop),
-    crop,
+    width,
+    height,
     duration: Number(hit.duration) || 0,
     downloadUrl: String(url),
     sourcePage: `https://coverr.co/videos/${hit.id}`,
     author: "",
     term,
   };
-}
-
-/** Size of the 9:16 frame we actually get (a centre crop keeps the full height). */
-export function croppedSize(width, height, crop) {
-  return crop ? { width: Math.round((height * 9) / 16), height } : { width, height };
 }
 
 export function candidateKey(candidate) {
@@ -159,8 +143,7 @@ export function scoreCandidate(candidate, { scriptWords, clipDuration = 5, histo
   const quality = Math.min(1, candidate.height / 1920) * 2.5 + (candidate.height >= 1280 ? 0.5 : 0);
   const fit = candidate.duration >= clipDuration ? Math.min(1.5, 0.75 + (candidate.duration - clipDuration) / 20) : -3;
   const recent = history[candidateKey(candidate)] ? -4 : 0;
-  const cropCost = candidate.crop ? -0.75 : 0; // crop loses the frame edges and some sharpness
-  return Math.round((relevance + quality + fit + recent + cropCost) * 100) / 100;
+  return Math.round((relevance + quality + fit + recent) * 100) / 100;
 }
 
 /** Dedupe, drop unusable clips, score, sort best first. */
@@ -196,50 +179,6 @@ export function heuristicPick(pool, count) {
   return picked;
 }
 
-/**
- * Shortlist for the model: every library gets a fair share of slots (its own
- * best clips) so one big library can't crowd the others out, then the rest is
- * filled by overall score.
- */
-export function balancedShortlist(pool, size) {
-  const providers = [...new Set(pool.map((item) => item.provider))];
-  const share = Math.max(1, Math.floor(size / Math.max(1, providers.length)));
-  const picked = [];
-  for (const provider of providers) {
-    picked.push(...heuristicPick(pool.filter((item) => item.provider === provider), share));
-  }
-  for (const candidate of pool) {
-    if (picked.length >= size) break;
-    if (!picked.includes(candidate)) picked.push(candidate);
-  }
-  return picked.slice(0, size).sort((a, b) => b.score - a.score);
-}
-
-/**
- * Every library that has a competitive clip gets at least one slot: its best
- * shortlisted clip replaces the weakest pick of the most-used library.
- */
-export function ensureProviderMix(chosen, shortlist, { tolerance = 1.5 } = {}) {
-  const result = [...chosen];
-  if (!result.length) return result;
-  const providers = [...new Set(shortlist.map((item) => item.provider))];
-  for (const provider of providers) {
-    if (result.some((item) => item.provider === provider)) continue;
-    const best = shortlist.find((item) => item.provider === provider && !result.some((pick) => pick.key === item.key));
-    if (!best) continue;
-    const counts = result.reduce((acc, item) => ({ ...acc, [item.provider]: (acc[item.provider] ?? 0) + 1 }), {});
-    const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-    if (!dominant || dominant[1] < 2) continue;
-    let weakest = -1;
-    result.forEach((item, index) => {
-      if (item.provider === dominant[0] && (weakest < 0 || item.score < result[weakest].score)) weakest = index;
-    });
-    if (weakest < 0 || best.score < result[weakest].score - tolerance) continue;
-    result[weakest] = { ...best, reason: best.reason || "mixed in: best clip from this library" };
-  }
-  return result;
-}
-
 export const POOL_PICK_SCHEMA = {
   name: "stock_pool_pick",
   strict: true,
@@ -264,7 +203,7 @@ export const POOL_PICK_SCHEMA = {
 export function buildPickPrompt(script, shortlist, count) {
   const lines = shortlist.map((candidate, index) =>
     `c${index + 1} | ${PROVIDER_LABELS[candidate.provider]} | ${Math.round(candidate.duration)}s | ${candidate.width}x${candidate.height} | ` +
-    `found by "${candidate.term}"${candidate.crop ? " | landscape, will be cropped to 9:16" : ""} | ${String(candidate.text || "(no description)").slice(0, 160)}`);
+    `found by "${candidate.term}" | ${String(candidate.text || "(no description)").slice(0, 160)}`);
   return [
     {
       role: "system",
@@ -273,8 +212,7 @@ export function buildPickPrompt(script, shortlist, count) {
         `choose exactly ${count} different clips and put them in the order they should appear under the narration. ` +
         "Judge each clip only by its description, resolution and length. Prefer clips that literally show what the narration " +
         "says at that moment, then higher resolution. Keep the sequence visually varied (no near-duplicates back to back). " +
-        "The pool mixes several libraries: when a library has a clip that fits, use at least one clip from it so the Short " +
-        "does not look like one stock site. Never pick an off-topic clip just for variety. Reasons: max 12 words.",
+        "Do not favour a library for its own sake — pick the best clips wherever they come from. Reasons: max 12 words.",
     },
     { role: "user", content: `Narration:\n${script}\n\nPool:\n${lines.join("\n")}` },
   ];
@@ -325,7 +263,7 @@ export function saveHistory(root, history) {
 }
 
 function cachePath(root, provider, term) {
-  const digest = createHash("sha256").update(`${CACHE_VERSION}:${provider}:${term}`).digest("hex").slice(0, 24);
+  const digest = createHash("sha256").update(`${provider}:${term}`).digest("hex").slice(0, 24);
   return path.join(root, "storage", "stock_pool_cache", `${provider}-${digest}.json`);
 }
 
