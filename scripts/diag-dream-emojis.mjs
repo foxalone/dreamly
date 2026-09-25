@@ -88,6 +88,16 @@ async function inspect(uid, dreamId) {
     show(`  map_ingested/${g.id}`, await db.doc(`map_ingested/${g.id}`).get());
     if (d.cityId) cityIds.add(d.cityId);
   }
+  // Other city docs for the same city name (a second doc at the same coords
+  // would show its emojis on the map right next to this one).
+  const cityName = String(item.data()?.city ?? item.data()?.cityName ?? "").trim() || String([...cityIds][0] ?? "").split("|").pop();
+  if (cityName) {
+    const sameName = await db.collection("city_emoji_stats").where("city", "==", cityName).get();
+    for (const c of sameName.docs) cityIds.add(c.id);
+    console.log(`city_emoji_stats docs named "${cityName}": ${sameName.docs.map((c) => c.id).join(", ") || "(none)"}`);
+  }
+  const ingByCity = await db.collection("map_ingested").where("cityId", "in", [...cityIds].slice(0, 10)).get();
+  for (const r of ingByCity.docs) console.log(`  map_ingested/${r.id}:`, JSON.stringify(r.data()));
   const allEmojis = new Set([...natives(item.data()?.emojis), ...guestDocs.flatMap((g) => natives(g.data()?.emojis))]);
   for (const cityId of cityIds) {
     const c = await db.doc(`city_emoji_stats/${cityId}`).get();
