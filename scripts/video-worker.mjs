@@ -26,6 +26,7 @@ import {
   sectionSearchPlan,
   words,
 } from "./stockPool.mjs";
+import { buildYoutubeKit } from "./youtubeKit.mjs";
 
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;
@@ -775,6 +776,7 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
     materialSources: sources,
     pickUsage: usage,
     subtitlePath: path.join(root, "storage", "tasks", taskId, "subtitle.srt"),
+    thumbnailSource: materials[0],
     localTaskIds: [materialsTaskId, taskId],
     materialsTaskId,
   };
@@ -789,6 +791,63 @@ async function enforceDuration(jobId, rendered, maxSeconds = MAX_DURATION_SECOND
     "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", output,
   ], { cwd: rendered.root, logPath: rendered.logPath });
   return output;
+}
+
+// YouTube 16:9 thumbnail: a frame of the opening clip (no burned-in subtitles)
+// + the thumbnail text, rendered by scripts/youtube-thumbnail.py in MoneyPrinterTurbo's venv.
+async function makeThumbnail(root, uv, clipPath, text, logPath) {
+  const directory = path.dirname(clipPath);
+  const frame = path.join(directory, "thumbnail-frame.jpg");
+  const output = path.join(directory, "youtube-thumbnail.jpg");
+  await runProcess(resolveFfmpeg(root), ["-y", "-ss", "2", "-i", clipPath, "-frames:v", "1", "-q:v", "2", frame], { cwd: root, logPath });
+  const fonts = path.join(root, "resource", "fonts");
+  const font = ["BeVietnamPro-Bold.ttf", "MicrosoftYaHeiBold.ttc"].map((name) => path.join(fonts, name)).find(existsSync);
+  if (!font) throw new Error(`No thumbnail font in ${fonts}`);
+  await runProcess(uv, [
+    "run", "python", path.join(process.cwd(), "scripts", "youtube-thumbnail.py"),
+    "--frame", frame, "--text", text, "--out", output, "--font", font,
+  ], { cwd: root, logPath, env: { ...process.env, PATH: `${path.dirname(uv)}:${process.env.PATH ?? ""}` } });
+  return output;
+}
+
+async function uploadThumbnail(jobId, filePath) {
+  const destination = `admin-videos/${jobId}-thumbnail.jpg`;
+  const downloadToken = randomUUID();
+  await bucket.upload(filePath, {
+    destination,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      cacheControl: "private, max-age=3600",
+      contentDisposition: `attachment; filename="youtube-thumbnail-${jobId}.jpg"`,
+      metadata: { firebaseStorageDownloadTokens: downloadToken },
+    },
+  });
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(destination)}?alt=media&token=${downloadToken}`;
+}
+
+async function sendTelegramText(text) {
+  const token = env("TELEGRAM_BOT_TOKEN");
+  const chatId = env("TELEGRAM_PERSONAL_CHAT_ID");
+  if (!token || !chatId) throw new Error("Telegram credentials are not configured");
+  // Telegram messages max out at 4096 characters: split on blank lines.
+  const chunks = [];
+  let current = "";
+  for (const part of text.split("\n\n")) {
+    if (current && current.length + part.length + 2 > 3_900) { chunks.push(current); current = ""; }
+    current = current ? `${current}\n\n${part}` : part.slice(0, 3_900);
+  }
+  if (current) chunks.push(current);
+  for (const chunk of chunks) {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: chunk, disable_web_page_preview: true }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload?.ok) throw new Error(`Telegram ${response.status}: ${payload?.description ?? "send failed"}`);
+  }
 }
 
 async function uploadVideo(jobId, filePath) {
@@ -894,12 +953,39 @@ async function processJob(job) {
           description: `${generated.youtubeMetadata.description}\n\nChapters:\n${chapters}`.slice(0, 5_000),
         };
         await reference.update({ youtubeMetadata, chapters });
+        generated.youtubeMetadata = youtubeMetadata;
+      }
+    }
+    let thumbnailPath = "";
+    let thumbnailError = "";
+    if (job.mode === "pool_wide" && rendered.thumbnailSource) {
+      await reference.update({ stage: "making-thumbnail" });
+      try {
+        thumbnailPath = await makeThumbnail(
+          rendered.root,
+          moneyPrinterRuntime().uv,
+          rendered.thumbnailSource,
+          generated.youtubeMetadata.thumbnailText || job.topic,
+          rendered.logPath,
+        );
+      } catch (error) {
+        thumbnailError = cleanError(error);
+        console.warn(`[oneiro-video-worker] thumbnail failed: ${thumbnailError}`);
       }
     }
     await reference.update({ stage: `enforcing-${maxSeconds}-second-limit`, localTaskId: rendered.taskId });
     const finalPath = await enforceDuration(job.id, rendered, maxSeconds);
     await reference.update({ stage: "uploading" });
     const videoUrl = await uploadVideo(job.id, finalPath);
+    let thumbnailUrl = "";
+    if (thumbnailPath) {
+      try { thumbnailUrl = await uploadThumbnail(job.id, thumbnailPath); }
+      catch (error) { thumbnailError = cleanError(error); }
+    }
+    const youtubeKit = job.mode === "pool_wide"
+      ? buildYoutubeKit({ topic: job.topic, metadata: generated.youtubeMetadata, videoUrl, thumbnailUrl })
+      : "";
+    if (youtubeKit) await reference.update({ youtubeKit, thumbnailUrl, thumbnailError });
     let telegramMessageId = null;
     let telegramError = "";
     if (job.sendToTelegram !== false) {
@@ -908,6 +994,7 @@ async function processJob(job) {
         telegramMessageId = statSync(finalPath).size > TELEGRAM_BOT_VIDEO_LIMIT_BYTES
           ? await sendTelegramLink(videoUrl, `${job.topic} — English`)
           : await sendTelegram(finalPath, `${job.topic} — English`);
+        if (youtubeKit) await sendTelegramText(youtubeKit);
       }
       catch (error) { telegramError = cleanError(error); }
     }

@@ -163,6 +163,18 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
     }
   }
 
+  function downloadKit(job: AdminVideoJob) {
+    const blob = new Blob([job.youtubeKit], { type: "text/plain;charset=utf-8" });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = `youtube-kit-${job.id}.txt`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+  }
+
   async function downloadMp4(job: AdminVideoJob) {
     if (!job.videoUrl) return;
     setBusyJob(`${job.id}:download`);
@@ -338,6 +350,30 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                     )}
                   </div>
                   {job.tokenUsage && <div className="mt-4 grid gap-2 sm:grid-cols-4">{[["Промпт", job.tokenUsage.prompt], ["Ответ", job.tokenUsage.completion], ["Всего", job.tokenUsage.total]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{label}</p><p className="mt-1 font-bold text-[var(--text)]">{numberFormatter.format(Number(value))}</p></div>)}<div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Модель</p><p className="mt-1 truncate text-sm font-bold text-[var(--text)]">{job.tokenUsage.model}</p></div></div>}
+                  {job.youtubeKit && (
+                    <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/[.04] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">YouTube Kit · ручная загрузка</p>
+                          <h4 className="mt-1 text-lg font-bold text-[var(--text)]">Видео, обложка и все поля YouTube Studio</h4>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button type="button" onClick={() => copy(`${job.id}:kit`, job.youtubeKit)} className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-black">{copied === `${job.id}:kit` ? "Скопировано" : "Скопировать kit"}</button>
+                          <button type="button" onClick={() => downloadKit(job)} className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-bold text-[var(--text)]">Скачать kit (.txt)</button>
+                        </div>
+                      </div>
+                      {job.thumbnailUrl ? (
+                        <div className="mt-4 flex flex-wrap items-end gap-4">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={job.thumbnailUrl} alt="YouTube thumbnail" width={320} height={180} className="aspect-video w-full max-w-[320px] rounded-xl border border-[var(--border)] object-cover" />
+                          <a href={job.thumbnailUrl} target="_blank" rel="noreferrer" download className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-bold text-[var(--text)]">Скачать обложку 1280×720</a>
+                        </div>
+                      ) : job.thumbnailError ? (
+                        <p className="mt-3 rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-600">Обложка не получилась: {job.thumbnailError}</p>
+                      ) : null}
+                      <p className="mt-3 text-xs leading-5 text-[var(--muted)]">В kit: название, описание с главами, теги (до 500 символов), хэштеги, закреплённый комментарий, категория и настройки загрузки. Он же приходит в Telegram после видео.</p>
+                    </div>
+                  )}
                   {metadata && <div className="mt-5 rounded-2xl border border-violet-500/20 bg-violet-500/[.035] p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Пакет для YouTube</p><h4 className="mt-1 text-lg font-bold text-[var(--text)]">Готово к публикации</h4></div><button type="button" onClick={() => copy(`${job.id}:all`, allMetadata)} className="rounded-full bg-violet-600 px-4 py-2 text-xs font-bold text-white">{copied === `${job.id}:all` ? "Скопировано" : "Скопировать всё"}</button></div><div className="mt-4 space-y-3">{[["Заголовок", metadata.title, "title"], ["Описание", metadata.description, "description"], ["Теги", tags, "tags"], ["Хэштеги", hashtags, "hashtags"], ["Текст для обложки", metadata.thumbnailText, "thumbnail"], ["Закреплённый комментарий", metadata.pinnedComment, "pinned"], ["Категория", metadata.category, "category"]].map(([label, value, key]) => <div key={String(key)} className="rounded-xl bg-[var(--card)] p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>{copyButton(String(key), String(value))}</div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{value}</p></div>)}</div></div>}
                   {job.mode === "pool_wide" && job.outline.length > 0 && (
                     <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">

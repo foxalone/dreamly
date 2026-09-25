@@ -23,6 +23,9 @@ type StoredVideoJob = {
   materialSources?: AdminVideoMaterialSource[];
   poolPick?: AdminVideoJob["poolPick"];
   outline?: string[];
+  youtubeKit?: string;
+  thumbnailUrl?: string;
+  thumbnailError?: string;
   topic?: string;
   language?: "en-US";
   status?: AdminVideoJob["status"];
@@ -55,6 +58,9 @@ function serializeJob(snapshot: DocumentSnapshot): AdminVideoJob | null {
     materialSources: Array.isArray(data.materialSources) ? data.materialSources.slice(0, 20) : [],
     poolPick: data.poolPick ?? null,
     outline: Array.isArray(data.outline) ? data.outline.map(String).slice(0, 12) : [],
+    youtubeKit: data.youtubeKit ?? "",
+    thumbnailUrl: data.thumbnailUrl ?? "",
+    thumbnailError: data.thumbnailError ?? "",
     topic: data.topic ?? "",
     language: "en-US",
     status: data.status ?? "queued",
@@ -146,6 +152,9 @@ export async function POST(request: Request) {
       materialSources: [],
       poolPick: null,
       outline: [],
+      youtubeKit: "",
+      thumbnailUrl: "",
+      thumbnailError: "",
       topic,
       language: "en-US",
       status: "queued",

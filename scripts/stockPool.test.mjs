@@ -218,3 +218,19 @@ test("chapters come from subtitle timings, start at 0:00 and need 3+", () => {
   assert.equal(chaptersFromSrt(srt, outline), "0:00 Why it matters\n1:05 Psychology\n2:30 Cultures");
   assert.equal(chaptersFromSrt(srt, outline.slice(0, 2)), "");
 });
+
+test("YouTube kit: tags fit the 500-char field and every upload field is present", async () => {
+  const { buildYoutubeKit, youtubeTagsLine } = await import("./youtubeKit.mjs");
+  const tags = Array.from({ length: 60 }, (_, index) => `dream tag number ${index}`);
+  const line = youtubeTagsLine([...tags, "dream tag number 1"]);
+  assert.ok(line.length <= 500);
+  assert.equal(new Set(line.split(", ")).size, line.split(", ").length);
+  const kit = buildYoutubeKit({
+    topic: "Snake dreams",
+    metadata: { title: "T", description: "D\n\nChapters:\n0:00 Intro", tags: ["a", "b"], hashtags: ["x"], pinnedComment: "P", category: "Education", thumbnailText: "SNAKE" },
+    videoUrl: "https://v", thumbnailUrl: "https://t", durationSeconds: 263,
+  });
+  for (const part of ["(4:23)", "TITLE\nT", "0:00 Intro", "TAGS (paste into the Tags field)\na, b", "#x", "THUMBNAIL (1280x720 JPG)\nhttps://t", "not made for kids"]) {
+    assert.ok(kit.includes(part), part);
+  }
+});

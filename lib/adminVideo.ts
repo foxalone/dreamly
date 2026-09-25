@@ -62,6 +62,10 @@ export type AdminVideoJob = {
   poolPick: { aiPicked: number; total: number; error: string } | null;
   /** YouTube 16:9 only: section titles (become YouTube chapters). */
   outline: string[];
+  /** YouTube 16:9 only: everything for a manual YouTube Studio upload, as one text block. */
+  youtubeKit: string;
+  thumbnailUrl: string;
+  thumbnailError: string;
   topic: string;
   language: "en-US";
   status: AdminVideoJobStatus;
