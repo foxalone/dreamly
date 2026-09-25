@@ -206,7 +206,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isWide ? "YouTube 16:9 Studio" : isPool ? "Stock Pool Studio" : isMixed ? "Free Mix Studio" : "Video Studio"}</p>
             <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isWide ? "Горизонтальное видео для YouTube" : isPool ? "Лучшие клипы из всех библиотек" : isMixed ? "Создать Short из Pexels + Pixabay" : "Создать английский Short"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isWide ? `Обычное видео 16:9 до ${MAX_WIDE_DURATION_SECONDS} секунд (не Short). Горизонтальные клипы из всех выбранных библиотек в одном пуле — здесь Coverr в своей стихии. AI выбирает лучшие под текст. Публикуется только в YouTube.` : isPool ? "Ищет по одним и тем же запросам во всех выбранных библиотеках, складывает клипы в общий пул, AI выбирает лучшие под текст и собирает Short." : isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isWide ? `Обычное видео 16:9 до ${MAX_WIDE_DURATION_SECONDS / 60} минут (не Short): тема раскрывается по 6–7 разделам — толкования, психология, эмоции, варианты сна, культура, что делать. Разделы становятся главами YouTube. Горизонтальные клипы из всех выбранных библиотек в одном пуле, AI подбирает их по разделам. Публикуется только в YouTube.` : isPool ? "Ищет по одним и тем же запросам во всех выбранных библиотеках, складывает клипы в общий пул, AI выбирает лучшие под текст и собирает Short." : isMixed ? "Чередует бесплатные клипы из двух библиотек и избегает недавних повторов." : "Вертикальное видео 9:16, английская озвучка и субтитры, максимум 45 секунд."}</p>
           </div>
           {isMixed && (
             <div className="space-y-3">
@@ -269,7 +269,7 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">{isMixed ? "Источники" : isPool ? "Выбор клипов" : "Формат"}</p>
-              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : isPool ? `AI из общего пула · ${isWide ? "16:9" : "9:16"}` : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
+              <p className="mt-1 font-bold text-[var(--text)]">{isMixed ? "Pexels + Pixabay" : isPool ? (isWide ? `16:9 · до ${MAX_WIDE_DURATION_SECONDS / 60} минут · главы` : "AI из общего пула · 9:16") : `9:16 · до ${MAX_SHORT_DURATION_SECONDS} секунд`}</p>
             </div>
           </div>
           <label className="flex cursor-pointer gap-3 rounded-xl border border-[var(--border)] p-4">
@@ -339,6 +339,14 @@ export default function VideoAdminPanel({ user, studio = "free" }: { user: User;
                   </div>
                   {job.tokenUsage && <div className="mt-4 grid gap-2 sm:grid-cols-4">{[["Промпт", job.tokenUsage.prompt], ["Ответ", job.tokenUsage.completion], ["Всего", job.tokenUsage.total]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{label}</p><p className="mt-1 font-bold text-[var(--text)]">{numberFormatter.format(Number(value))}</p></div>)}<div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Модель</p><p className="mt-1 truncate text-sm font-bold text-[var(--text)]">{job.tokenUsage.model}</p></div></div>}
                   {metadata && <div className="mt-5 rounded-2xl border border-violet-500/20 bg-violet-500/[.035] p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Пакет для YouTube</p><h4 className="mt-1 text-lg font-bold text-[var(--text)]">Готово к публикации</h4></div><button type="button" onClick={() => copy(`${job.id}:all`, allMetadata)} className="rounded-full bg-violet-600 px-4 py-2 text-xs font-bold text-white">{copied === `${job.id}:all` ? "Скопировано" : "Скопировать всё"}</button></div><div className="mt-4 space-y-3">{[["Заголовок", metadata.title, "title"], ["Описание", metadata.description, "description"], ["Теги", tags, "tags"], ["Хэштеги", hashtags, "hashtags"], ["Текст для обложки", metadata.thumbnailText, "thumbnail"], ["Закреплённый комментарий", metadata.pinnedComment, "pinned"], ["Категория", metadata.category, "category"]].map(([label, value, key]) => <div key={String(key)} className="rounded-xl bg-[var(--card)] p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>{copyButton(String(key), String(value))}</div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{value}</p></div>)}</div></div>}
+                  {job.mode === "pool_wide" && job.outline.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Разделы · главы YouTube</p>
+                      <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-[var(--text)]">
+                        {job.outline.map((title, index) => <li key={`${index}:${title}`}>{title}</li>)}
+                      </ol>
+                    </div>
+                  )}
                   {(job.mode === "pool" || job.mode === "pool_wide") && job.materialSources.length > 0 && (
                     <div className="mt-4 rounded-2xl border border-[var(--border)] p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">

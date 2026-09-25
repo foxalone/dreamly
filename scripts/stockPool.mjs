@@ -62,6 +62,111 @@ export function expandSearchTerms(terms, topic = "", limit = 6) {
   return out.slice(0, limit);
 }
 
+/** One GPT search term → a clean visual query ("" if nothing visual is left). */
+export function visualTerm(term) {
+  return clean(term).split(" ").filter((word) => !STOPWORDS.has(word) && !ABSTRACT_WORDS.has(word)).join(" ");
+}
+
+/**
+ * Long-form (YouTube 16:9) outline: clean each section's terms and interleave
+ * them (1st term of every section, then 2nd, …) so that a search budget that
+ * runs out — Coverr's — still covers every section.
+ */
+export function sectionSearchPlan(sections, limit = 18) {
+  const cleaned = sections.map((section) => {
+    const terms = [];
+    for (const term of section.searchTerms ?? []) {
+      const visual = visualTerm(term);
+      if (visual && !terms.includes(visual)) terms.push(visual);
+    }
+    return { title: String(section.title ?? ""), narration: String(section.narration ?? ""), terms };
+  });
+  const order = [];
+  const longest = Math.max(0, ...cleaned.map((section) => section.terms.length));
+  for (let index = 0; index < longest; index += 1) {
+    for (const section of cleaned) {
+      const term = section.terms[index];
+      if (term && !order.includes(term)) order.push(term);
+    }
+  }
+  return { sections: cleaned, terms: order.slice(0, limit) };
+}
+
+/** Split `count` clip slots across sections in proportion to their narration length. */
+export function allocateSlots(sections, count) {
+  const lengths = sections.map((section) => Math.max(1, words(section.narration).length));
+  const total = lengths.reduce((sum, value) => sum + value, 0);
+  const slots = lengths.map((value) => Math.max(1, Math.floor((value / total) * count)));
+  let index = 0;
+  while (slots.reduce((sum, value) => sum + value, 0) < count) {
+    slots[index % slots.length] += 1;
+    index += 1;
+  }
+  while (slots.reduce((sum, value) => sum + value, 0) > count) {
+    const largest = slots.indexOf(Math.max(...slots));
+    slots[largest] -= 1;
+  }
+  return slots;
+}
+
+/**
+ * Ranking-only order for a long video: each section gets its share of slots,
+ * filled with the best unused clips found by that section's own terms, then by
+ * the best clips overall. Used as the fallback and top-up for the AI pick.
+ */
+export function sectionedPick(pool, sections, count) {
+  const slots = allocateSlots(sections, count);
+  const used = new Set();
+  const picked = [];
+  sections.forEach((section, sectionIndex) => {
+    const own = pool.filter((item) => section.terms.includes(item.term) && !used.has(item.key));
+    const rest = pool.filter((item) => !used.has(item.key) && !own.includes(item));
+    for (const candidate of [...own, ...rest].slice(0, slots[sectionIndex])) {
+      used.add(candidate.key);
+      picked.push({ ...candidate, section: sectionIndex + 1 });
+    }
+  });
+  return picked;
+}
+
+function countWords(text) {
+  return String(text ?? "").split(/\s+/).filter(Boolean).length;
+}
+
+/**
+ * YouTube chapters from the TTS subtitles: section k starts at the cue that
+ * contains its first word (cumulative word count). First chapter is 0:00; YouTube
+ * needs at least 3 chapters, so fewer means "no chapters".
+ */
+export function chaptersFromSrt(srt, sections, maxSeconds = 300) {
+  if (!Array.isArray(sections) || sections.length < 3) return "";
+  const cues = String(srt ?? "").split(/\r?\n\s*\r?\n/).map((block) => {
+    const lines = block.trim().split(/\r?\n/);
+    const timeIndex = lines.findIndex((line) => line.includes("-->"));
+    const time = /(\d+):(\d+):(\d+)[,.]\d+\s*-->/.exec(lines[timeIndex] ?? "");
+    if (!time) return null;
+    return {
+      seconds: Number(time[1]) * 3600 + Number(time[2]) * 60 + Number(time[3]),
+      words: countWords(lines.slice(timeIndex + 1).join(" ")),
+    };
+  }).filter(Boolean);
+  if (!cues.length) return "";
+  const lines = [];
+  let startWord = 0;
+  let previous = Number.NEGATIVE_INFINITY;
+  for (const section of sections) {
+    let seen = 0;
+    const cue = cues.find((item) => { seen += item.words; return seen > startWord; });
+    startWord += countWords(section.narration);
+    if (!cue) break;
+    const seconds = lines.length === 0 ? 0 : cue.seconds;
+    if (seconds > maxSeconds || seconds - previous < 10) continue; // YouTube: chapters ≥10 s apart
+    previous = seconds;
+    lines.push(`${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} ${section.title}`);
+  }
+  return lines.length >= 3 ? lines.join("\n") : "";
+}
+
 // ---------- normalization (one shape for all three libraries) ----------
 // orientation: "portrait" (9:16 Shorts) or "landscape" (16:9 YouTube videos).
 
@@ -211,8 +316,15 @@ export const POOL_PICK_SCHEMA = {
   },
 };
 
-export function buildPickPrompt(script, shortlist, count, orientation = "portrait") {
+export function buildPickPrompt(script, shortlist, count, orientation = "portrait", sections = null) {
   const format = orientation === "landscape" ? "horizontal 16:9 YouTube video" : "vertical YouTube Short";
+  const narration = sections?.length
+    ? sections.map((section, index) => `[Section ${index + 1}: ${section.title}]\n${section.narration}`).join("\n\n")
+    : script;
+  const sectionRule = sections?.length
+    ? `The narration has ${sections.length} sections; walk through them in order and give each section a share of clips ` +
+      "roughly proportional to its length, choosing clips that show that section's subject. "
+    : "";
   const lines = shortlist.map((candidate, index) =>
     `c${index + 1} | ${PROVIDER_LABELS[candidate.provider]} | ${Math.round(candidate.duration)}s | ${candidate.width}x${candidate.height} | ` +
     `found by "${candidate.term}" | ${String(candidate.text || "(no description)").slice(0, 160)}`);
@@ -222,16 +334,17 @@ export function buildPickPrompt(script, shortlist, count, orientation = "portrai
       content:
         `You are the editor of a ${format}. From a pool of stock clips in that orientation gathered from several free libraries, ` +
         `choose exactly ${count} different clips and put them in the order they should appear under the narration. ` +
+        sectionRule +
         "Judge each clip only by its description, resolution and length. Prefer clips that literally show what the narration " +
         "says at that moment, then higher resolution. Keep the sequence visually varied (no near-duplicates back to back). " +
         "Do not favour a library for its own sake — pick the best clips wherever they come from. Reasons: max 12 words.",
     },
-    { role: "user", content: `Narration:\n${script}\n\nPool:\n${lines.join("\n")}` },
+    { role: "user", content: `Narration:\n${narration}\n\nPool:\n${lines.join("\n")}` },
   ];
 }
 
 /** Map model output back to candidates; fill gaps from the heuristic order. */
-export function resolvePicks(picks, shortlist, count) {
+export function resolvePicks(picks, shortlist, count, fallback = null) {
   const chosen = [];
   for (const pick of Array.isArray(picks) ? picks : []) {
     const match = /^c(\d+)$/i.exec(String(pick?.id ?? "").trim());
@@ -242,7 +355,7 @@ export function resolvePicks(picks, shortlist, count) {
     if (chosen.length >= count) break;
   }
   const aiCount = chosen.length;
-  for (const candidate of heuristicPick(shortlist, shortlist.length)) {
+  for (const candidate of fallback ?? heuristicPick(shortlist, shortlist.length)) {
     if (chosen.length >= count) break;
     if (!chosen.some((item) => item.key === candidate.key)) chosen.push({ ...candidate, reason: "" });
   }

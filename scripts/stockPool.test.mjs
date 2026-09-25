@@ -4,7 +4,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
+  allocateSlots,
   buildPickPrompt,
+  chaptersFromSrt,
   buildPool,
   expandSearchTerms,
   gatherCandidates,
@@ -14,6 +16,8 @@ import {
   normalizePixabay,
   normalizeProviders,
   resolvePicks,
+  sectionedPick,
+  sectionSearchPlan,
 } from "./stockPool.mjs";
 
 const pexelsVideo = {
@@ -172,4 +176,45 @@ test("portrait and landscape searches are cached separately", async () => {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+const clip = (provider, n, score, term = `t${n}`) => ({ key: `${provider}:${n}`, provider, term, score, text: "", width: 1920, height: 1080, duration: 10 });
+
+const outline = [
+  { title: "Why it matters", narration: "one two three four five six seven eight nine ten", searchTerms: ["Stormy Sea", "dream meaning"] },
+  { title: "Psychology", narration: "one two three four five", searchTerms: ["woman journaling", "stormy sea"] },
+  { title: "Cultures", narration: "one two three four five", searchTerms: ["ancient temple", "old map"] },
+];
+
+test("long-form search plan cleans terms and interleaves sections", () => {
+  const plan = sectionSearchPlan(outline);
+  assert.deepEqual(plan.terms, ["stormy sea", "woman journaling", "ancient temple", "old map"]);
+  assert.deepEqual(plan.sections[1].terms, ["woman journaling", "stormy sea"]);
+});
+
+test("slots follow narration length and always add up", () => {
+  assert.deepEqual(allocateSlots(sectionSearchPlan(outline).sections, 8), [4, 2, 2]);
+  assert.equal(allocateSlots(sectionSearchPlan(outline).sections, 3).reduce((a, b) => a + b, 0), 3);
+});
+
+test("sectioned pick fills each section with its own clips in section order", () => {
+  const plan = sectionSearchPlan(outline);
+  const pool = [
+    clip("pexels", 1, 9, "ancient temple"), clip("coverr", 2, 8, "stormy sea"), clip("pixabay", 3, 7, "woman journaling"),
+    clip("coverr", 4, 6, "stormy sea"), clip("pexels", 5, 5, "old map"),
+  ];
+  const picked = sectionedPick(pool, plan.sections, 4);
+  assert.deepEqual(picked.map((item) => item.key), ["coverr:2", "coverr:4", "pixabay:3", "pexels:1"]);
+  assert.deepEqual(picked.map((item) => item.section), [1, 1, 2, 3]);
+});
+
+test("chapters come from subtitle timings, start at 0:00 and need 3+", () => {
+  const srt = [
+    "1\n00:00:00,000 --> 00:00:04,000\none two three four five",
+    "2\n00:00:04,000 --> 00:00:08,000\nsix seven eight nine ten",
+    "3\n00:01:05,500 --> 00:01:08,000\none two three four five",
+    "4\n00:02:30,000 --> 00:02:33,000\none two three four five",
+  ].join("\n\n");
+  assert.equal(chaptersFromSrt(srt, outline), "0:00 Why it matters\n1:05 Psychology\n2:30 Cultures");
+  assert.equal(chaptersFromSrt(srt, outline.slice(0, 2)), "");
 });

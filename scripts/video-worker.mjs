@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { randomUUID } from "node:crypto";
-import { createWriteStream, existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { createWriteStream, existsSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { hostname, homedir } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -10,6 +10,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import {
   buildPickPrompt,
+  chaptersFromSrt,
   buildPool,
   downloadCandidate,
   expandSearchTerms,
@@ -21,6 +22,8 @@ import {
   POOL_PICK_SCHEMA,
   resolvePicks,
   saveHistory,
+  sectionedPick,
+  sectionSearchPlan,
   words,
 } from "./stockPool.mjs";
 
@@ -31,9 +34,12 @@ const WORKER_DOCUMENT = "adminSystem/videoWorker";
 const ENGLISH_VOICE = "en-US-AriaNeural-Female";
 const SCRIPT_GENERATION_ATTEMPTS = 3;
 const POOL_CLIP_COUNT = 10;
-// Stock Pool · YouTube 16:9 (mode "pool_wide"): a regular horizontal YouTube video.
-const WIDE_MAX_DURATION_SECONDS = 60;
-const WIDE_CLIP_COUNT = 13;
+// Stock Pool · YouTube 16:9 (mode "pool_wide"): a regular horizontal YouTube
+// video that explores one topic section by section, up to 5 minutes.
+const WIDE_MAX_DURATION_SECONDS = 300;
+const WIDE_CLIP_SECONDS = 8;
+const WIDE_WORDS_PER_SECOND = 2.5; // edge-tts AriaNeural at normal rate
+const TELEGRAM_BOT_VIDEO_LIMIT_BYTES = 49 * 1024 * 1024;
 const POOL_SHORTLIST_SIZE = 30;
 const YOUTUBE_SITE_URL = "https://dreamly.art/";
 const YOUTUBE_SITE_LINK_LINE = `Get your dream meaning → ${YOUTUBE_SITE_URL}`;
@@ -218,8 +224,7 @@ function parseJsonContent(content) {
   return { script, searchTerms, youtubeMetadata };
 }
 
-async function createScript(topic, format = "short") {
-  const wide = format === "wide";
+async function createScript(topic) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
@@ -237,9 +242,7 @@ async function createScript(topic, format = "short") {
           {
             role: "system",
             content:
-              (wide
-                ? "Create a concise English script for a horizontal 16:9 YouTube video (not a Short) and a complete English YouTube publishing package. Do not use #Shorts. "
-                : "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. ") +
+              "Create a concise English vertical-video script and a complete English YouTube Shorts publishing package. " +
               "The narration must be natural, engaging, and accurate, with no markdown, scene labels, unsupported certainty, " +
               "or misleading clickbait. searchTerms must contain 5 to 8 short English stock-footage queries of 1 to 3 visual words, " +
               "such as \"sleeping dog\", \"puppy close up\", or \"person sleeping\". Never use abstract phrases like " +
@@ -253,9 +256,7 @@ async function createScript(topic, format = "short") {
             role: "user",
             content:
               `Topic: ${topic}\nLanguage: English only.\n` +
-              (wide
-                ? "Write 130 to 150 spoken words designed to finish comfortably within 60 seconds. Open with the strongest useful detail."
-                : "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail."),
+              "Write 75 to 90 spoken words designed to finish comfortably within 45 seconds. Open with the strongest useful detail.",
           },
         ],
       }),
@@ -288,6 +289,140 @@ async function createScript(topic, format = "short") {
   }
 
   throw new Error(`${validationError} after ${SCRIPT_GENERATION_ATTEMPTS} attempts`);
+}
+
+const WIDE_VIDEO_PACKAGE_SCHEMA = {
+  name: "oneiro_wide_video_package",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      sections: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string" },
+            narration: { type: "string" },
+            searchTerms: { type: "array", items: { type: "string" } },
+          },
+          required: ["title", "narration", "searchTerms"],
+        },
+      },
+      youtube: VIDEO_PACKAGE_SCHEMA.schema.properties.youtube,
+    },
+    required: ["sections", "youtube"],
+  },
+};
+
+function wordCount(text) {
+  return String(text ?? "").split(/\s+/).filter(Boolean).length;
+}
+
+function parseWideContent(content) {
+  const text = String(content ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const parsed = JSON.parse(text);
+  const sections = (Array.isArray(parsed.sections) ? parsed.sections : [])
+    .map((section) => ({
+      title: String(section?.title ?? "").trim().slice(0, 80),
+      narration: String(section?.narration ?? "").trim(),
+      searchTerms: Array.isArray(section?.searchTerms)
+        ? section.searchTerms.map((term) => String(term).trim()).filter(Boolean).slice(0, 4)
+        : [],
+    }))
+    .filter((section) => section.narration);
+  const script = sections.map((section) => section.narration).join("\n\n");
+  const spokenWords = wordCount(script);
+  // Reuse the Shorts validator for the YouTube block by handing it a stub script/terms.
+  const { youtubeMetadata } = parseJsonContent(JSON.stringify({
+    script: "stub",
+    searchTerms: ["a", "b", "c"],
+    youtube: parsed.youtube,
+  }));
+  const missing = [];
+  if (sections.length < 5) missing.push("at least 5 sections");
+  if (spokenWords < 450) missing.push(`450+ spoken words (got ${spokenWords})`);
+  if (spokenWords > 760) missing.push(`at most 760 spoken words (got ${spokenWords})`);
+  if (sections.some((section) => section.searchTerms.length < 2)) missing.push("2+ search terms per section");
+  if (missing.length) throw new Error(`Incomplete long-form response: ${missing.join(", ")}`);
+  return { script, sections, searchTerms: sections.flatMap((section) => section.searchTerms), youtubeMetadata };
+}
+
+async function createWideScript(topic) {
+  const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
+  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
+  const usage = { prompt: 0, completion: 0, total: 0, model };
+  let validationError = "The model did not return a usable response";
+
+  for (let attempt = 1; attempt <= SCRIPT_GENERATION_ATTEMPTS; attempt += 1) {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        response_format: { type: "json_schema", json_schema: WIDE_VIDEO_PACKAGE_SCHEMA },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You write English narration for a horizontal 16:9 YouTube video (a regular video, not a Short) for Dreamly, " +
+              "a dream-interpretation site, plus its complete YouTube publishing package. The video must truly open up the topic " +
+              "from many angles instead of repeating one idea. Structure it as 6 or 7 sections: a hook section that opens with the " +
+              "strongest, most specific detail and says what the viewer will learn; then separate sections for different aspects, " +
+              "for example the most common interpretations, the psychological view, emotions and life situations it often reflects, " +
+              "common variations of the dream and how their meaning shifts, cultural and historical perspectives, and what the dreamer " +
+              "can reflect on or do next; and a short closing section with a question for the viewer. Each section title is a short " +
+              "chapter name (2 to 5 words). Narration must be natural spoken English, accurate, without markdown, lists, scene labels, " +
+              "unsupported certainty or medical claims, and must flow from section to section. Each section has 2 to 4 searchTerms: " +
+              "short English stock-footage queries of 1 to 3 concrete visual words that show that section's subject (\"stormy sea\", " +
+              "\"woman journaling\", \"ancient temple\"); never abstract phrases like \"dream meaning\", \"interpretation\", " +
+              "\"symbolism\" or \"analysis\". YouTube package: accurate title of at most 70 characters, a description that summarizes " +
+              "what each part covers with natural search phrases and ends with 3 hashtags (never #Shorts), no website URLs anywhere " +
+              "(the publishing system adds the site link), 10 to 15 comma-free tags, 3 to 5 hashtags without #, thumbnail text of 2 " +
+              "to 4 words, a short pinned question, and the best YouTube category.",
+          },
+          {
+            role: "user",
+            content:
+              `Topic: ${topic}\nLanguage: English only.\n` +
+              "Total narration: 550 to 700 spoken words, so the video runs about 4 to 4.5 minutes and never exceeds 5 minutes.",
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(180_000),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(`OpenAI ${response.status}: ${payload?.error?.message ?? "generation failed"}`);
+    const prompt = Number(payload?.usage?.prompt_tokens ?? 0);
+    const completion = Number(payload?.usage?.completion_tokens ?? 0);
+    usage.prompt += prompt;
+    usage.completion += completion;
+    usage.total += Number(payload?.usage?.total_tokens ?? prompt + completion);
+    usage.model = String(payload?.model ?? model);
+    const choice = payload?.choices?.[0];
+    try {
+      if (choice?.message?.refusal) throw new Error(`The model refused the request: ${choice.message.refusal}`);
+      if (choice?.finish_reason && choice.finish_reason !== "stop") {
+        throw new Error(`The model stopped with finish reason: ${choice.finish_reason}`);
+      }
+      return { ...parseWideContent(choice?.message?.content), usage };
+    } catch (error) {
+      validationError = cleanError(error);
+      if (attempt < SCRIPT_GENERATION_ATTEMPTS) {
+        console.warn(`[oneiro-video-worker] incomplete long-form package; retrying (${attempt}/${SCRIPT_GENERATION_ATTEMPTS}): ${validationError}`);
+      }
+    }
+  }
+  throw new Error(`${validationError} after ${SCRIPT_GENERATION_ATTEMPTS} attempts`);
+}
+
+/** "0:00 Title" lines from the rendered subtitles, so YouTube shows real chapters. */
+function chaptersFromSubtitles(srtPath, sections) {
+  if (!existsSync(srtPath)) return "";
+  return chaptersFromSrt(readFileSync(srtPath, "utf8"), sections, WIDE_MAX_DURATION_SECONDS);
 }
 
 function runProcess(command, args, options = {}) {
@@ -501,12 +636,12 @@ function stockKeys(root) {
 
 // Stock Pool: the model sees the whole cross-library shortlist and edits the
 // sequence; if the call fails the heuristic ranking alone is used.
-async function pickPoolClips(script, shortlist, count, orientation) {
+async function pickPoolClips(script, shortlist, count, orientation, sections = null, fallback = null) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || env("OPENAI_API_KEY");
   const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0 };
-  if (!apiKey) return { ...resolvePicks([], shortlist, count), usage, pickError: "no OpenAI key" };
+  if (!apiKey) return { ...resolvePicks([], shortlist, count, fallback), usage, pickError: "no OpenAI key" };
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -514,7 +649,7 @@ async function pickPoolClips(script, shortlist, count, orientation) {
       body: JSON.stringify({
         model,
         response_format: { type: "json_schema", json_schema: POOL_PICK_SCHEMA },
-        messages: buildPickPrompt(script, shortlist, count, orientation),
+        messages: buildPickPrompt(script, shortlist, count, orientation, sections),
       }),
       signal: AbortSignal.timeout(90_000),
     });
@@ -524,10 +659,10 @@ async function pickPoolClips(script, shortlist, count, orientation) {
     usage.completion = Number(payload?.usage?.completion_tokens ?? 0);
     usage.total = Number(payload?.usage?.total_tokens ?? usage.prompt + usage.completion);
     const parsed = JSON.parse(String(payload?.choices?.[0]?.message?.content ?? "{}"));
-    return { ...resolvePicks(parsed.picks, shortlist, count), usage, pickError: "" };
+    return { ...resolvePicks(parsed.picks, shortlist, count, fallback), usage, pickError: "" };
   } catch (error) {
     console.warn(`[oneiro-video-worker] stock pool AI pick failed, using ranking: ${cleanError(error)}`);
-    return { ...resolvePicks([], shortlist, count), usage, pickError: cleanError(error) };
+    return { ...resolvePicks([], shortlist, count, fallback), usage, pickError: cleanError(error) };
   }
 }
 
@@ -541,21 +676,32 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
   const missing = providers.filter((provider) => !keys[provider]);
   const active = providers.filter((provider) => keys[provider]);
   if (!active.length) throw new Error(`No API key for ${missing.join(", ")}`);
-  const terms = expandSearchTerms(searchTerms, job.topic);
+  const plan = wide && job.sections?.length ? sectionSearchPlan(job.sections) : null;
+  const terms = plan ? plan.terms : expandSearchTerms(searchTerms, job.topic);
+  const clipSeconds = wide ? WIDE_CLIP_SECONDS : 5;
   const log = (line) => console.log(`[oneiro-video-worker] ${line}`);
 
   await onStage("searching-stock-pool", { stockProviders: providers, poolSearchTerms: terms });
-  const { candidates, stats } = await gatherCandidates({ providers: active, terms, keys, root, log, orientation });
+  const { candidates, stats } = await gatherCandidates({
+    providers: active, terms, keys, root, log, orientation, coverrSearchBudget: wide ? 8 : 5,
+  });
   for (const provider of missing) stats[provider] = { searches: 0, cached: 0, found: 0, error: "no API key" };
   const history = loadHistory(root);
   const scriptWords = new Set([...words(script), ...words(job.topic)]);
-  const pool = buildPool(candidates, { scriptWords, clipDuration: 5, history });
+  const pool = buildPool(candidates, { scriptWords, clipDuration: clipSeconds, history });
   if (pool.length < 3) throw new Error(`Stock pool found only ${pool.length} usable ${orientation} clips`);
-  const shortlist = heuristicPick(pool, POOL_SHORTLIST_SIZE);
+  // Long video: enough distinct clips to cover the narration once (MoneyPrinterTurbo loops if short).
+  const neededClips = wide
+    ? Math.min(40, Math.max(12, Math.ceil(wordCount(script) / WIDE_WORDS_PER_SECOND / clipSeconds) + 2))
+    : POOL_CLIP_COUNT;
+  const shortlist = plan
+    ? sectionedPick(pool, plan.sections, Math.min(pool.length, Math.max(60, neededClips * 2)))
+    : heuristicPick(pool, POOL_SHORTLIST_SIZE);
 
   await onStage("picking-best-clips", { poolStats: stats, poolSize: pool.length });
-  const count = Math.min(wide ? WIDE_CLIP_COUNT : POOL_CLIP_COUNT, shortlist.length);
-  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count, orientation);
+  const count = Math.min(neededClips, shortlist.length);
+  const fallback = plan ? sectionedPick(shortlist, plan.sections, count) : null;
+  const { chosen, aiCount, usage, pickError } = await pickPoolClips(script, shortlist, count, orientation, plan?.sections ?? null, fallback);
 
   await onStage("downloading-best-clips", {});
   const materialsTaskId = randomUUID();
@@ -609,7 +755,7 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
     "--video-materials", materials.join(","),
     "--video-aspect", wide ? "16:9" : "9:16",
     "--video-count", "1",
-    "--video-clip-duration", "5",
+    "--video-clip-duration", String(clipSeconds),
     "--video-concat-mode", "sequential",
     "--bgm-type", "random",
     "--subtitle-enabled",
@@ -628,6 +774,7 @@ async function renderPoolVideo(job, script, searchTerms, onStage) {
     logPath,
     materialSources: sources,
     pickUsage: usage,
+    subtitlePath: path.join(root, "storage", "tasks", taskId, "subtitle.srt"),
     localTaskIds: [materialsTaskId, taskId],
     materialsTaskId,
   };
@@ -657,6 +804,22 @@ async function uploadVideo(jobId, filePath) {
     },
   });
   return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(destination)}?alt=media&token=${downloadToken}`;
+}
+
+// Bots can upload at most 50 MB; a 5-minute 1080p video is usually bigger.
+async function sendTelegramLink(videoUrl, caption) {
+  const token = env("TELEGRAM_BOT_TOKEN");
+  const chatId = env("TELEGRAM_PERSONAL_CHAT_ID");
+  if (!token || !chatId) throw new Error("Telegram credentials are not configured");
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text: `${caption}\n(видео больше 50 МБ — ссылка)\n${videoUrl}`.slice(0, 4_000) }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload?.ok) throw new Error(`Telegram ${response.status}: ${payload?.description ?? "send failed"}`);
+  return Number(payload?.result?.message_id ?? 0);
 }
 
 async function sendTelegram(filePath, caption) {
@@ -692,7 +855,8 @@ async function processJob(job) {
     await heartbeat("processing", job.id);
     const isPool = job.mode === "pool" || job.mode === "pool_wide";
     const maxSeconds = job.mode === "pool_wide" ? WIDE_MAX_DURATION_SECONDS : MAX_DURATION_SECONDS;
-    const generated = await createScript(job.topic, job.mode === "pool_wide" ? "wide" : "short");
+    const generated = job.mode === "pool_wide" ? await createWideScript(job.topic) : await createScript(job.topic);
+    if (generated.sections) job.sections = generated.sections;
     usage = generated.usage;
     await reference.update({
       stage: job.mode === "mixed" ? "downloading-pexels-and-pixabay" : isPool ? "searching-stock-pool" : "rendering",
@@ -700,6 +864,7 @@ async function processJob(job) {
       script: generated.script,
       searchTerms: generated.searchTerms,
       youtubeMetadata: generated.youtubeMetadata,
+      ...(generated.sections ? { outline: generated.sections.map((section) => section.title) } : {}),
     });
     rendered = job.mode === "mixed"
       ? await renderMixedVideo(job, generated.script, generated.searchTerms)
@@ -721,6 +886,16 @@ async function processJob(job) {
         materialSources: rendered.materialSources,
       });
     }
+    if (generated.sections) {
+      const chapters = chaptersFromSubtitles(rendered.subtitlePath, generated.sections);
+      if (chapters) {
+        const youtubeMetadata = {
+          ...generated.youtubeMetadata,
+          description: `${generated.youtubeMetadata.description}\n\nChapters:\n${chapters}`.slice(0, 5_000),
+        };
+        await reference.update({ youtubeMetadata, chapters });
+      }
+    }
     await reference.update({ stage: `enforcing-${maxSeconds}-second-limit`, localTaskId: rendered.taskId });
     const finalPath = await enforceDuration(job.id, rendered, maxSeconds);
     await reference.update({ stage: "uploading" });
@@ -729,7 +904,11 @@ async function processJob(job) {
     let telegramError = "";
     if (job.sendToTelegram !== false) {
       await reference.update({ stage: "sending-telegram" });
-      try { telegramMessageId = await sendTelegram(finalPath, `${job.topic} — English`); }
+      try {
+        telegramMessageId = statSync(finalPath).size > TELEGRAM_BOT_VIDEO_LIMIT_BYTES
+          ? await sendTelegramLink(videoUrl, `${job.topic} — English`)
+          : await sendTelegram(finalPath, `${job.topic} — English`);
+      }
       catch (error) { telegramError = cleanError(error); }
     }
     // The upload succeeded and Telegram has read the file, so the local render

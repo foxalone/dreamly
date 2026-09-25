@@ -22,6 +22,7 @@ type StoredVideoJob = {
   stockProviders?: string[];
   materialSources?: AdminVideoMaterialSource[];
   poolPick?: AdminVideoJob["poolPick"];
+  outline?: string[];
   topic?: string;
   language?: "en-US";
   status?: AdminVideoJob["status"];
@@ -53,6 +54,7 @@ function serializeJob(snapshot: DocumentSnapshot): AdminVideoJob | null {
     stockProviders: isStockPoolMode(adminVideoModeFrom(data.mode)) ? normalizeStockPoolProviders(data.stockProviders) : [],
     materialSources: Array.isArray(data.materialSources) ? data.materialSources.slice(0, 20) : [],
     poolPick: data.poolPick ?? null,
+    outline: Array.isArray(data.outline) ? data.outline.map(String).slice(0, 12) : [],
     topic: data.topic ?? "",
     language: "en-US",
     status: data.status ?? "queued",
@@ -143,6 +145,7 @@ export async function POST(request: Request) {
       stockProviders,
       materialSources: [],
       poolPick: null,
+      outline: [],
       topic,
       language: "en-US",
       status: "queued",

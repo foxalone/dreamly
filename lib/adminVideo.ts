@@ -1,6 +1,6 @@
 export const MAX_SHORT_DURATION_SECONDS = 45;
-/** Stock Pool · YouTube 16:9 — a regular horizontal video, not a Short. */
-export const MAX_WIDE_DURATION_SECONDS = 60;
+/** Stock Pool · YouTube 16:9 — a regular horizontal video that explores the topic section by section. */
+export const MAX_WIDE_DURATION_SECONDS = 300;
 
 export type AdminVideoJobStatus = "queued" | "processing" | "completed" | "failed";
 export type AdminVideoMode = "free" | "mixed" | "pool" | "pool_wide";
@@ -60,6 +60,8 @@ export type AdminVideoJob = {
   stockProviders: StockPoolProvider[];
   materialSources: AdminVideoMaterialSource[];
   poolPick: { aiPicked: number; total: number; error: string } | null;
+  /** YouTube 16:9 only: section titles (become YouTube chapters). */
+  outline: string[];
   topic: string;
   language: "en-US";
   status: AdminVideoJobStatus;
