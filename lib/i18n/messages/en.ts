@@ -111,7 +111,7 @@ export const EN_MESSAGES: UiMessages = {
     badge: "{count} meanings across {clusters} dream clusters",
     h1: "Dream Dictionary",
     lead: "Search a symbol or explore connected variations through psychological, spiritual, Islamic, and biblical perspectives.",
-    searchPlaceholder: "Search symbols…",
+    searchPlaceholder: "Look up a dream meaning: snake, water, falling…",
     askPlaceholder: "Ask AI about a dream…",
     askLabel: "Ask AI about a dream symbol",
     popularSymbols: "Popular symbols",

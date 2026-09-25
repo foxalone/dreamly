@@ -111,7 +111,7 @@ export const RU_MESSAGES: UiMessages = {
     badge: "{count} значений в {clusters} гнёздах",
     h1: "Сонник",
     lead: "Найдите символ или его вариации — с психологическим, духовным, исламским и библейским толкованием.",
-    searchPlaceholder: "Искать символы…",
+    searchPlaceholder: "Узнать значение сна: змея, вода, падение…",
     askPlaceholder: "Спросите ИИ о сне…",
     askLabel: "Спросить ИИ о символе сна",
     popularSymbols: "Популярные символы",

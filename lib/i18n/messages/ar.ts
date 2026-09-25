@@ -111,7 +111,7 @@ export const AR_MESSAGES: UiMessages = {
     badge: "{count} معنى عبر {clusters} مجموعة",
     h1: "قاموس الأحلام",
     lead: "ابحث عن رمز أو استكشف تنويعات متصلة من زوايا نفسية وروحية وإسلامية وكتابية.",
-    searchPlaceholder: "ابحث عن رموز…",
+    searchPlaceholder: "ابحث عن معنى حلم: ثعبان، ماء، سقوط…",
     askPlaceholder: "اسأل الذكاء الاصطناعي عن حلم…",
     askLabel: "اسأل الذكاء الاصطناعي عن رمز حلم",
     popularSymbols: "رموز شائعة",

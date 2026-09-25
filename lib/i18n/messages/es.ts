@@ -111,7 +111,7 @@ export const ES_MESSAGES: UiMessages = {
     badge: "{count} significados en {clusters} grupos",
     h1: "Diccionario de sueños",
     lead: "Busca un símbolo o explora variaciones conectadas desde perspectivas psicológica, espiritual, islámica y bíblica.",
-    searchPlaceholder: "Buscar símbolos…",
+    searchPlaceholder: "Busca el significado de un sueño: serpiente, agua, caída…",
     askPlaceholder: "Pregunta a la IA sobre un sueño…",
     askLabel: "Preguntar a la IA por un símbolo",
     popularSymbols: "Símbolos populares",

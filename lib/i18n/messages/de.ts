@@ -111,7 +111,7 @@ export const DE_MESSAGES: UiMessages = {
     badge: "{count} Bedeutungen in {clusters} Traumgruppen",
     h1: "Traumlexikon",
     lead: "Suche ein Symbol oder erkunde verbundene Varianten aus psychologischer, spiritueller, islamischer und biblischer Sicht.",
-    searchPlaceholder: "Symbole suchen…",
+    searchPlaceholder: "Traumbedeutung nachschlagen: Schlange, Wasser, Fallen…",
     askPlaceholder: "Frage die KI zu einem Traum…",
     askLabel: "KI zu einem Traumsymbol fragen",
     popularSymbols: "Beliebte Symbole",
