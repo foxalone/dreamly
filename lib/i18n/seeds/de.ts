@@ -3657,4 +3657,37 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     focus: "Angst aus der Vergangenheit trifft eine dunklere Bedrohung: unverarbeitete Erinnerung und Schuld, spirituelle Angst oder eine Nacht, die sich heimgesucht anfühlt",
     aliases: ["Traum von Geistern und Dämonen", "Gespenster und Dämonen im Traum", "Nachtmahr", "Alb auf der Brust"],
   },
+  pope: {
+    name: "Papst",
+    summary: "moralische Autorität, Gewissen, Vergebung, der Wunsch nach einem Segen und die Frage, wie du zu den Regeln stehst, mit denen du aufgewachsen bist",
+    aliases: ["der Papst", "Pontifex", "Heiliger Vater", "Vatikan", "vom Papst träumen", "Papst im Traum sehen"],
+  },
+  "meeting-the-pope": {
+    name: "den Papst treffen",
+    focus: "von einer Autorität gesehen werden, die du achtest, ein Wunsch nach Zustimmung oder eine Frage, die jemand Weiseres klären soll",
+  },
+  "talking-to-the-pope": {
+    name: "mit dem Papst sprechen",
+    focus: "ein Gespräch mit dem eigenen Gewissen, ein Rat, für den du bereit bist, oder ein Geständnis, das du noch nicht laut ausgesprochen hast",
+  },
+  "pope-blessing": {
+    name: "Segen vom Papst",
+    focus: "Erleichterung, Erlaubnis weiterzugehen oder das Gefühl, von einem Maßstab vergeben zu bekommen, den du ernst genommen hast",
+  },
+  "pope-dying": {
+    name: "der Papst stirbt",
+    focus: "das Ende einer Ära der Autorität, ein erschüttertes Fundament oder ein Führungswechsel, nach dem du nicht weißt, wem du folgen sollst",
+  },
+  "becoming-the-pope": {
+    name: "Papst werden",
+    focus: "eine Verantwortung, die größer ist als erbeten, plötzliche Sichtbarkeit oder die Angst, alle Antworten haben zu müssen",
+  },
+  "pope-visiting-your-home": {
+    name: "der Papst besucht dein Zuhause",
+    focus: "dein Privatleben wird beurteilt oder geehrt, der Wunsch nach Versöhnung in der Familie oder Werte, die ins Haus zurückkehren",
+  },
+  "angry-pope": {
+    name: "ein zorniger Papst",
+    focus: "Schuld, Angst vor Verurteilung, eine gebrochene Regel oder eine Autorität, an deren Zustimmung du nicht mehr glaubst und die du trotzdem suchst",
+  },
 };

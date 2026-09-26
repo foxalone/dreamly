@@ -3681,4 +3681,37 @@ export const SEEDS_ES: Record<string, SeedL10n> = {
     focus: "miedo del pasado que se cruza con una amenaza más oscura: recuerdos y culpas sin resolver, ansiedad espiritual o una noche que se siente embrujada",
     aliases: ["soñar con fantasmas y demonios", "espíritus y demonios en sueños", "soñar con espantos y demonios", "se me subió el muerto"],
   },
+  pope: {
+    name: "el papa",
+    summary: "autoridad moral, conciencia, perdón, el deseo de una bendición y cómo te paras frente a las reglas con las que creciste",
+    aliases: ["papa", "el sumo pontífice", "el santo padre", "el vaticano", "soñar con el papa", "ver al papa en sueños"],
+  },
+  "meeting-the-pope": {
+    name: "conocer al papa",
+    focus: "ser visto por una autoridad que respetas, un deseo de aprobación o una pregunta que quieres que alguien más sabio resuelva",
+  },
+  "talking-to-the-pope": {
+    name: "hablar con el papa",
+    focus: "una conversación con tu propia conciencia, un consejo que ya estás listo para oír o una confesión que no has hecho en voz alta",
+  },
+  "pope-blessing": {
+    name: "la bendición del papa",
+    focus: "alivio, permiso para seguir adelante o la sensación de ser perdonado por una norma que tomabas en serio",
+  },
+  "pope-dying": {
+    name: "la muerte del papa",
+    focus: "el fin de una era de autoridad, un cimiento que tiembla o un cambio de liderazgo que te deja sin saber a quién seguir",
+  },
+  "becoming-the-pope": {
+    name: "ser el papa",
+    focus: "una responsabilidad más grande de la que pediste, visibilidad repentina o el miedo a que esperen que tengas todas las respuestas",
+  },
+  "pope-visiting-your-home": {
+    name: "el papa visitando tu casa",
+    focus: "tu vida privada juzgada u honrada, el deseo de reconciliar a la familia o valores que vuelven a entrar en la casa",
+  },
+  "angry-pope": {
+    name: "un papa enojado",
+    focus: "culpa, miedo a la condena, una regla que rompiste o una autoridad cuya aprobación dejaste de creer pero sigues buscando",
+  },
 };

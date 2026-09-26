@@ -220,6 +220,7 @@ const CLUSTERS: ClusterSeed[] = [
       "tree",
       "heaven",
       "fighting",
+      "pope",
     ],
     variations: [
       { slug: "someone-dying", name: "someone dying", focus: "fear of separation, a changing relationship, grief, or recognition that another person is changing" },
@@ -670,7 +671,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#a855f7",
     summary: "faith, community, conscience, ritual, and the search for meaning, forgiveness, or moral clarity",
     aliases: ["chapel", "cathedral", "dream about church", "church in a dream"],
-    relatedSymbols: ["house", "death", "cemetery", "castle", "wedding", "angel", "god", "heaven"],
+    relatedSymbols: ["house", "death", "cemetery", "castle", "wedding", "angel", "god", "heaven", "pope"],
     variations: [
       { slug: "praying-in-church", name: "praying in church", focus: "sincere reflection, a need for guidance, or surrender of a burden too heavy to carry alone" },
       { slug: "empty-church", name: "an empty church", focus: "spiritual loneliness, doubt, or a quiet space waiting to be filled with renewed meaning" },
@@ -770,7 +771,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#facc15",
     summary: "status, ambition, protection, isolation, and the distance that power or achievement can create",
     aliases: ["palace", "fortress", "dream about castle", "castle in a dream"],
-    relatedSymbols: ["house", "church", "forest", "hotel", "horse", "money"],
+    relatedSymbols: ["house", "church", "forest", "hotel", "horse", "money", "pope"],
     variations: [
       { slug: "old-castle", name: "an old castle", focus: "inherited status, history, tradition, or a legacy that still shapes your identity" },
       { slug: "haunted-castle", name: "a haunted castle", focus: "unresolved family history, lingering fear, or grandeur shadowed by something unfinished" },
@@ -1340,7 +1341,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0284c7",
     summary: "authority, guidance, protection, expectation, and the earliest template of structure and approval",
     aliases: ["dad", "dream about father", "father in a dream", "dreaming of your dad"],
-    relatedSymbols: ["mother", "brother", "sister", "death", "house", "work", "grandparents", "child"],
+    relatedSymbols: ["mother", "brother", "sister", "death", "house", "work", "grandparents", "child", "pope"],
     variations: [
       { slug: "father-dying", name: "your father dying", focus: "fear of losing guidance, a changing relationship with authority, or a shift in your own protective role" },
       { slug: "deceased-father", name: "a deceased father", focus: "grief, continued bond, unfinished conversations, or guidance associated with his memory" },
@@ -1394,7 +1395,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#eab308",
     summary: "meaning, conscience, surrender, accountability, and the longing for guidance larger than the self",
     aliases: ["dream about god", "god in a dream", "seeing god in a dream"],
-    relatedSymbols: ["angel", "demon", "church", "ghost", "moon", "colors", "sun", "heaven"],
+    relatedSymbols: ["angel", "demon", "church", "ghost", "moon", "colors", "sun", "heaven", "pope"],
     variations: [
       { slug: "talking-to-god", name: "talking to god", focus: "a search for direction, an inner dialogue with conscience, or a question too large to carry alone" },
       { slug: "seeing-god", name: "seeing god", focus: "awe, a need for reassurance, or contact with the deepest source of meaning in your life" },
@@ -1473,7 +1474,7 @@ const CLUSTERS: ClusterSeed[] = [
       "angel dream meaning",
       "angels dream meaning",
     ],
-    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god", "moon", "heaven"],
+    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god", "moon", "heaven", "pope"],
     variations: [
       { slug: "angel-visiting-you", name: "an angel visiting you", focus: "a need for reassurance, a sense of being guided, or hope during uncertainty" },
       { slug: "guardian-angel", name: "a guardian angel", focus: "protection, support you may be underestimating, or a wish for someone to watch over you" },
@@ -2140,7 +2141,7 @@ const CLUSTERS: ClusterSeed[] = [
       "celebrity dream meaning",
       "dreaming of a famous person",
     ],
-    relatedSymbols: ["kissing", "sex", "work", "ex", "being-ignored", "wedding"],
+    relatedSymbols: ["kissing", "sex", "work", "ex", "being-ignored", "wedding", "pope"],
     updatedAt: "2026-09-05",
     variations: [
       {
@@ -2266,7 +2267,7 @@ const CLUSTERS: ClusterSeed[] = [
       "keys dream meaning",
       "dreaming of keys",
     ],
-    relatedSymbols: ["car", "house", "money", "prison", "door"],
+    relatedSymbols: ["car", "house", "money", "prison", "door", "pope"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "lost-keys", name: "lost keys", focus: "access delayed: a plan you can see but cannot start, or permission that has gone missing" },
@@ -3096,7 +3097,7 @@ const CLUSTERS: ClusterSeed[] = [
       "gates of heaven dream",
       "going to heaven dream",
     ],
-    relatedSymbols: ["god", "angel", "death", "church", "cemetery"],
+    relatedSymbols: ["god", "angel", "death", "church", "cemetery", "pope"],
     updatedAt: "2026-09-09",
     variations: [
       { slug: "gates-of-heaven", name: "the gates of heaven", focus: "a threshold after death-feeling, judgment at the door, or the last permission before rest" },
@@ -3104,6 +3105,39 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "loved-one-in-heaven", name: "a loved one in heaven", focus: "reunion after loss, comfort that grief is not the last word, or a visit from a bond that death did not cancel" },
       { slug: "denied-entry-to-heaven", name: "denied entry to heaven", focus: "unworthiness, a standard you fear you missed, or a rest that will not open until something is repaired" },
       { slug: "falling-from-heaven", name: "falling from heaven", focus: "lost innocence, exile from a peace you had, or the shock of returning to ordinary weather" },
+    ],
+  },
+  {
+    slug: "pope",
+    name: "pope",
+    category: "spiritual",
+    icon: "✝️",
+    accent: "#fde68a",
+    summary: "moral authority, conscience, forgiveness, the wish for a blessing, and how you stand toward the rules you were raised with",
+    aliases: [
+      "the pope",
+      "papa",
+      "pontiff",
+      "holy father",
+      "the holy father",
+      "vatican",
+      "dream about the pope",
+      "dreaming of the pope",
+      "seeing the pope in a dream",
+      "pope in a dream",
+      "pope dream meaning",
+      "dream of pope",
+    ],
+    relatedSymbols: ["church", "god", "angel", "heaven", "father", "death", "celebrity", "keys", "castle"],
+    updatedAt: "2026-09-26",
+    variations: [
+      { slug: "meeting-the-pope", name: "meeting the pope", focus: "being seen by an authority you respect, a wish for approval, or a question you want settled by someone wiser" },
+      { slug: "talking-to-the-pope", name: "talking to the pope", focus: "a conversation with your own conscience, advice you are ready to hear, or a confession you have not made out loud" },
+      { slug: "pope-blessing", name: "a blessing from the pope", focus: "reassurance, permission to move forward, or the relief of being forgiven by a standard you took seriously" },
+      { slug: "pope-dying", name: "the pope dying", focus: "the end of an era of authority, a shaken foundation, or a change in leadership that leaves you unsure who to follow" },
+      { slug: "becoming-the-pope", name: "becoming the pope", focus: "a responsibility larger than you asked for, sudden visibility, or the fear of being expected to have all the answers" },
+      { slug: "pope-visiting-your-home", name: "the pope visiting your home", focus: "your private life being judged or honored, a wish for the family to be reconciled, or values entering the house" },
+      { slug: "angry-pope", name: "an angry pope", focus: "guilt, fear of condemnation, a rule you broke, or an authority whose approval you have stopped believing in" },
     ],
   },
 ];
@@ -3392,6 +3426,50 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  pope: {
+    introduction: [
+      "The pope is one of the few figures on earth whom almost everyone recognizes and almost no one has met, which makes him ideal material for a dream. He arrives as the human face of an institution: white cassock, the balcony, the crowd, the sense that the person in front of you speaks for something enormous. Catholics, lapsed Catholics, people of other faiths, and people of none all report this dream, and it appears far more often in the weeks around a papal death, a conclave, or a widely televised visit, when the figure is simply more available in memory.",
+      "In the dream the pope is rarely about the Vatican. He is the dreaming mind's shorthand for the highest moral authority you can imagine, and the plot shows where you stand with that authority right now: waiting for a blessing, arguing with it, hiding from it, or being handed its keys. Related pages on [church](/dreams/church) and [god](/dreams/god) cover the building and the source; this one is about the man in the middle, and what it means when he looks at you.",
+    ],
+    general: [
+      "Start with the distance between you and him. A pope glimpsed from a crowd usually stands for authority as a public fact, something you accept or resent from afar. A pope who turns toward you, calls your name, or sits down across a table brings the question home: what would the strictest fair judge you can imagine say about the thing you are carrying? Note his mood, because it is your own conscience wearing a costume. A warm pope means the verdict you fear is kinder than you think; a stern one means you have already passed sentence on yourself.",
+      "Then check what he does with his hands. Blessing, absolving, and handing you something are dreams of permission and relief, and they cluster around decisions you want a sign for. Turning away, refusing, or scolding tracks guilt or a rule you broke and have not put down. A dream in which the pope dies or is replaced often has nothing to do with the Church: it tends to appear when a parent, a boss, or a mentor is fading from your life, and the mind reaches for the largest available image of a father figure leaving. If the figure was your actual father in a white robe, read the page on [father](/dreams/father) alongside this one.",
+    ],
+    psychological: [
+      "Psychologically the pope is a superego in vestments. Freud's term for the internalized voice of parents and culture, the part of you that says 'you should' and 'you ought to be ashamed', fits the figure almost too neatly: a man whose entire role is to judge, forgive, and set the standard. When that voice appears as a person in a dream, you get to see how you relate to it. People raised in strict religious households, or by parents who withheld approval, often dream of the pope during periods when they are seeking permission for a life choice, a career change, a divorce, or a belief they no longer hold.",
+      "Jung would add that the pope is also a wise-old-man archetype, a figure of accumulated wisdom who appears when a person needs guidance they cannot yet give themselves. In that reading the dream is not punitive at all. It is your psyche staging a consultation. What did he say? If nothing, that silence is the point: you already know what the wise version of you would advise, and the dream is asking whether you will listen. The pope's celebrity also matters; like a dream about a [celebrity](/dreams/celebrity), it can carry a plain wish to be noticed by someone whose attention would settle your worth.",
+    ],
+    spiritual: [
+      "Spiritually the pope is a shepherd image: the one who keeps the flock together, feeds it, and answers for it. A dream of being found or gathered by him can be a felt sense of belonging to something larger than your own effort, especially during a lonely stretch. Many dreamers describe a pope dream as unexpectedly tender, a feeling of being forgiven before they had finished the apology, and that quality is worth trusting more than any doctrine about the man.",
+      "For dreamers outside the Catholic tradition, the figure still works as a symbol of ordered faith, hierarchy, and tradition. Orthodox and Protestant dreamers sometimes wake uneasy, wondering whether the dream is a criticism of their own path; it is not. It is more likely a question about whether you want more structure, more ritual, or more accountability in your spiritual life than you currently have. A pope standing in a [church](/dreams/church) that looks like your childhood one is usually about the inherited version of faith you are deciding what to do with.",
+    ],
+    islamic: [
+      "Islamic dream interpretation has no separate entry for the pope, but classical interpreters such as Ibn Sirin and al-Nabulsi discuss priests, monks, and the leaders of other religious communities. The readings are mixed and depend on context: such a figure may stand for a person of knowledge and ascetic devotion, for the affairs of the Christians the dreamer deals with in waking life, or, when the dreamer joins him in worship, for a warning against innovation and against drifting from one's own path. The interpreters pay close attention to what the dreamer actually did, not merely whom he saw.",
+      "A Muslim who dreams of the pope should first ask what the figure means to him personally: a head of state, a symbol of interfaith dialogue, a face from the news, or simply authority. Dreams built from daily impressions, hadith an-nafs, carry no message and require no response. If the dream was calm and the figure respectful, many interpreters would read it as encountering a person of standing, or as a sign that the dreamer's affairs touch people of another faith. If the dream disturbed you, follow the Sunnah for troubling dreams: seek refuge in Allah, do not narrate it widely, and let it pass. The one whose word settles matters remains Allah, as the page on [god](/dreams/god) explains from the Islamic side.",
+    ],
+    biblical: [
+      "Catholic teaching traces the papacy to Peter, and the verses behind the office give a pope dream its biblical vocabulary. Jesus tells Peter, 'You are Peter, and on this rock I will build my church', and then, 'I will give you the keys of the kingdom of heaven' (Matthew 16:18-19). After the resurrection the same Peter, who had denied him three times, is asked three times 'Do you love me?' and told 'Feed my sheep' (John 21:15-17). The pope in a dream often carries exactly these two themes: keys, meaning authority to open or close, and a shepherd who was himself forgiven first.",
+      "That second theme is the pastoral heart of the dream. The Bible's great religious authority is a man with a failure on his record, restored by grace and told to look after others. If the pope in your dream forgave you, blessed you, or simply knew your name, the scriptural echo is Peter's own restoration, and the invitation is to accept forgiveness rather than keep earning it. If he was cold or condemning, remember that Scripture itself warns leaders against lording it over the flock (1 Peter 5:2-3); a harsh pope is your fear of judgment, not the judgment itself. Christians outside the Catholic Church need not read the dream as a statement about papal primacy at all: the [keys](/dreams/keys) and the shepherd belong to the whole story, and the question the dream asks, whom do you let speak for God in your life, is one every believer has to answer.",
+    ],
+    commonScenarios: [
+      { title: "Meeting the Pope", meaning: "The most common version. Being received by him usually reflects a wish for approval from the highest authority you recognize, or a decision you want someone wiser to confirm. Notice whether he was expecting you." },
+      { title: "The Pope Blessing You", meaning: "Relief, permission, and forgiveness. These dreams cluster before weddings, moves, career changes, and reconciliations, and they often feel like a weight lifting. Take the permission; the dream was yours to give." },
+      { title: "Talking to the Pope", meaning: "A conversation with your conscience or with the wisest version of yourself. What he said matters far more than the fact of him. If he was silent, you already know the advice." },
+      { title: "The Pope Dying or a Funeral", meaning: "An era of authority ending: a parent aging, a mentor leaving, a belief system you can no longer hold. Frequently reported in the weeks around a real papal death, when it means little beyond the news." },
+      { title: "Becoming the Pope", meaning: "A responsibility bigger than you asked for, or a fear of being expected to have all the answers. Common in new managers, new parents, and anyone recently made the family's decision-maker." },
+      { title: "The Pope Visiting Your Home", meaning: "Your private life brought under a standard: the house judged or honored. Often about wanting a divided family reconciled, or about values you are trying to bring back into the household." },
+      { title: "An Angry or Disapproving Pope", meaning: "Guilt with a face. A rule you broke, a promise you did not keep, or an authority whose approval you have stopped believing in but cannot stop wanting. The anger is your own sentence." },
+    ],
+    faq: [
+      { question: "What does it mean to dream about the pope?", answer: "Usually the pope stands for the highest moral authority you can picture, and the dream shows where you stand with it: seeking a blessing, fearing judgment, arguing, or being handed responsibility. It is rarely about religion itself and almost never a prophecy." },
+      { question: "Is dreaming of the pope a good sign?", answer: "It depends on the scene. A blessing, a kind word, or being welcomed points to reassurance and forgiveness. A stern or distant pope tracks guilt or a rule you have not made peace with. Neither predicts anything; both describe how you are treating yourself." },
+      { question: "I'm not Catholic. Why did I dream about the pope?", answer: "Because he is the most recognizable image of religious authority on earth, and dreams use whatever image is available. The news, a film, or a conversation is often enough. The dream is about authority, conscience, and tradition in your own life, not a comment on your beliefs." },
+      { question: "What does it mean if the pope blesses me in a dream?", answer: "Permission and relief. The mind stages a blessing when you are waiting for a sign to proceed with something, or when you need to feel forgiven. Since the figure came from you, so did the blessing." },
+      { question: "What does it mean to dream that the pope died?", answer: "Most often that a source of authority in your life is fading: a parent, a mentor, a boss, or a belief. In the weeks after a real papal death the dream is usually just the news being processed." },
+      { question: "What does Islam say about seeing the pope in a dream?", answer: "There is no specific ruling. Classical interpreters read priests and leaders of other faiths by context, sometimes as people of knowledge, sometimes as a caution about drifting from one's path. Dreams built from news and daily impressions carry no message." },
+      { question: "Is there a biblical meaning to dreaming of the pope?", answer: "The office is tied to Peter, the disciple given the keys of the kingdom and told to feed the sheep after he had been forgiven. A pope dream often carries those themes: authority to open or close, and a shepherd who was restored before he was trusted." },
+    ],
+  },
   sex: {
     introduction: [
       "Sex dreams are among the most common dreams people never discuss. Content studies find explicitly sexual dreams in a small but steady share of everyone's dream life, in every age group and every relationship status, and the casting is frequently inconvenient: a coworker, a friend, an ex, a public figure, someone you actively dislike, someone whose gender is not who you are usually attracted to. The distress these dreams cause is almost never about the dream itself. It is about the assumption that the dream is a confession.",
@@ -6409,6 +6487,11 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  pope: {
+    seoTitle: "Pope Dream Meaning: Authority, Blessing & Conscience",
+    seoDescription:
+      "Met, blessed, or scolded by the pope in a dream? What it says about authority, guilt and forgiveness, plus psychological, Islamic and biblical readings and 7 scenarios.",
+  },
   sex: {
     seoTitle: "Sex Dream Meaning: Desire, Power & Self-Integration",
     seoDescription:

@@ -3646,4 +3646,37 @@ export const SEEDS_PT: Record<string, SeedL10n> = {
     focus: "medo do passado encontrando uma ameaça mais escura: lembranças e culpas mal resolvidas, ansiedade espiritual ou uma noite que parece assombrada",
     aliases: ["sonhar com fantasmas e demônios", "sonhar com assombração e demônio", "espíritos e demônios em sonho", "pisadeira"],
   },
+  pope: {
+    name: "o papa",
+    summary: "autoridade moral, consciência, perdão, o desejo de uma bênção e como você se coloca diante das regras com que foi criado",
+    aliases: ["papa", "o sumo pontífice", "o santo padre", "o vaticano", "sonhar com o papa", "ver o papa em sonho"],
+  },
+  "meeting-the-pope": {
+    name: "conhecer o papa",
+    focus: "ser visto por uma autoridade que você respeita, um desejo de aprovação ou uma pergunta que você quer que alguém mais sábio resolva",
+  },
+  "talking-to-the-pope": {
+    name: "falar com o papa",
+    focus: "uma conversa com a própria consciência, um conselho que você já está pronto para ouvir ou uma confissão que ainda não fez em voz alta",
+  },
+  "pope-blessing": {
+    name: "a bênção do papa",
+    focus: "alívio, permissão para seguir em frente ou a sensação de ser perdoado por uma regra que você levava a sério",
+  },
+  "pope-dying": {
+    name: "a morte do papa",
+    focus: "o fim de uma era de autoridade, um alicerce abalado ou uma troca de liderança que deixa você sem saber quem seguir",
+  },
+  "becoming-the-pope": {
+    name: "virar papa",
+    focus: "uma responsabilidade maior do que você pediu, visibilidade repentina ou o medo de que esperem que você tenha todas as respostas",
+  },
+  "pope-visiting-your-home": {
+    name: "o papa visitando sua casa",
+    focus: "sua vida privada julgada ou honrada, o desejo de reconciliar a família ou valores voltando a entrar na casa",
+  },
+  "angry-pope": {
+    name: "um papa bravo",
+    focus: "culpa, medo de condenação, uma regra que você quebrou ou uma autoridade em cuja aprovação você deixou de acreditar mas ainda procura",
+  },
 };
