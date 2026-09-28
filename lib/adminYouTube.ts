@@ -11,9 +11,13 @@ export const YOUTUBE_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/
 // added only so the admin UI can display which channel is connected
 // (channels.list?mine=true); drop it from YOUTUBE_SCOPES if the channel name is
 // not worth the extra scope.
+// youtube.force-ssl lets videos.update move the publishAt of an already uploaded,
+// still-private scheduled video (re-timing the queue, 2026-09-28). A token granted
+// before that has no such right: YouTube answers 403 and the admin must reconnect.
 export const YOUTUBE_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
+  "https://www.googleapis.com/auth/youtube.force-ssl",
 ].join(" ");
 
 // YouTube metadata limits.

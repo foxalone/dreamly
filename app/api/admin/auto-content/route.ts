@@ -7,8 +7,9 @@ import {
   nextAutoPublishSlots,
   previewAutoDictionaryContent,
   requestLocalWorkerWake,
+  respaceBookedPublishes,
 } from "@/app/api/admin/_lib/autoContent";
-import { AUTO_PAIR_COUNT } from "@/lib/adminAutoSlots";
+import { AUTO_IMAGE_HOUR, AUTO_PAIR_COUNT, AUTO_SLOT_HOURS, AUTO_SLOT_TIME_ZONE } from "@/lib/adminAutoSlots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +42,12 @@ export async function GET(request: Request) {
   try {
     await requireAdmin(request);
     const [preview, slots] = await Promise.all([previewAutoDictionaryContent(), nextAutoPublishSlots()]);
-    return NextResponse.json({ preview, slots });
+    // `cadence` also tells the Mac-side respace script that this deploy understands `respace`.
+    return NextResponse.json({
+      preview,
+      slots,
+      cadence: { timeZone: AUTO_SLOT_TIME_ZONE, videoHours: AUTO_SLOT_HOURS, imageHour: AUTO_IMAGE_HOUR },
+    });
   } catch (error) {
     return apiError(error);
   }
@@ -57,8 +63,16 @@ export async function POST(request: Request) {
       count?: unknown;
       fillGaps?: unknown;
       backfillImages?: unknown;
+      respace?: unknown;
+      dryRun?: unknown;
     };
-    // Book the +5h image for every already-scheduled pair that has none (pairs booked before 2026-09-23).
+    // One video + one image a day from tomorrow: re-time everything already booked.
+    if (payload.respace === true) {
+      return NextResponse.json(
+        await respaceBookedPublishes({ createdBy: uid, dryRun: payload.dryRun === true, deadlineMs: Date.now() + 240_000 }),
+      );
+    }
+    // Book the 19:00 ET image for every already-scheduled pair that has none (pairs booked before 2026-09-23).
     if (payload.backfillImages === true) {
       return NextResponse.json(await backfillAutoPairImages(uid));
     }

@@ -33,12 +33,20 @@ import {
   occupiedSlotKeys,
   nextEmptyPublishDays,
   nextFreePublishSlots,
+  planOnePerDay,
   publishSlotsForDays,
+  startOfTomorrowInJerusalem,
 } from "@/lib/adminAutoSlots";
 import { SOCIAL_SCHEDULE_ASSETS_NODE } from "@/lib/socialScheduleQueue";
 import { adminDb, adminRtdb } from "./firebaseAdmin";
 import { notifyTelegram } from "./telegram";
-import { scheduleLibraryImagePublish, scheduleLibraryVideoPublish } from "./socialSchedule";
+import {
+  rescheduleLibraryImagePublish,
+  rescheduleLibraryVideoPublish,
+  scheduleLibraryImagePublish,
+  scheduleLibraryVideoPublish,
+} from "./socialSchedule";
+import { rescheduleYouTubeVideo } from "@/app/api/admin/youtube/_lib";
 import { scheduleAutoYouTube } from "./youtubeRemote";
 import { QUEUED_SCHEDULE_PLATFORMS } from "@/lib/adminVideoLibrary";
 
@@ -369,8 +377,8 @@ export async function notifyAutoDictionaryContentDone(input: {
 
 async function scheduledAtValues() {
   const values: string[] = [];
-  // Only videos occupy the 05:00/15:00 grid: auto-pair images are queued at
-  // +AUTO_IMAGE_OFFSET_HOURS and would otherwise mark the whole day as taken.
+  // Only videos occupy the daily video slot: auto-pair images are queued at
+  // AUTO_IMAGE_HOUR and would otherwise mark the whole day as taken.
   const [videos, aiVideos, queue] = await Promise.all([
     loadCollectionDocs(FREE_VIDEO_COLLECTION),
     loadCollectionDocs(AI_VIDEO_COLLECTION),
@@ -403,7 +411,8 @@ export async function enqueueAutoDictionaryBatch(options: {
   /** Take the earliest free slots (holes in partially booked days first) instead of whole empty days. */
   fillGaps?: boolean;
 }) {
-  const count = Math.min(Math.max(options.count ?? AUTO_PAIR_COUNT, 1), AUTO_PAIR_COUNT);
+  // Refilling holes may need several days' worth of pairs; a normal catch-up is one night.
+  const count = Math.min(Math.max(options.count ?? AUTO_PAIR_COUNT, 1), options.fillGaps ? 7 : AUTO_PAIR_COUNT);
   const slots = options.fillGaps
     ? await (async () => {
         const free = nextFreePublishSlots(occupiedSlotKeys(await scheduledAtValues()), count);
@@ -441,7 +450,7 @@ export type AutoPairImageBackfillItem = {
 /**
  * Pairs booked before 2026-09-23 (commit 574723d) got a video slot but no image
  * booking. Walk every reservation whose video is scheduled or already published
- * and queue its image five hours after the video, unless that moment has passed.
+ * and queue its image at 19:00 ET on the video day, unless that moment has passed.
  * Idempotent: an image that is already queued or published is reported as "already".
  */
 export async function backfillAutoPairImages(createdBy: string) {
@@ -548,7 +557,7 @@ export async function scheduleReadyAutoDictionaryPair(input: {
 }
 
 /**
- * Queue the pair's image for Instagram/Facebook/Threads five hours after the video.
+ * Queue the pair's image for Instagram/Facebook/Threads the same day at 19:00 ET (see imagePublishAtForSlot).
  * Never throws — a missing or failed image must not undo the video booking.
  */
 async function scheduleAutoPairImage(imageJobId: string, videoPublishAt: string, createdBy: string) {
@@ -590,4 +599,155 @@ export async function scheduleAutoDictionaryPair(input: {
     const youtubeError = error instanceof Error ? error.message : "YouTube error";
     return { video, youtubeScheduled: false, youtubeError, ...imageBooking };
   }
+}
+
+export type RespaceVideoResult = {
+  libraryId: string;
+  slug: string;
+  title: string;
+  from: string;
+  to: string;
+  social: "moved" | "same" | "kept" | "error";
+  youtube: "moved" | "same" | "booked" | "none" | "later" | "error";
+  image: "moved" | "same" | "booked" | "kept" | "none" | "error";
+  imageAt: string;
+  errors: string[];
+};
+
+/**
+ * dima's rule since 2026-09-29: one video and one image a day, 12:00 / 19:00 ET.
+ * Every video still pending in the social queue from tomorrow (Jerusalem) on is
+ * re-timed to consecutive days in its current order: the queue entry, the YouTube
+ * publishAt (or a fresh YouTube booking where none went up) and the paired image.
+ * Idempotent — run it again after reconnecting YouTube or after a timeout.
+ */
+export async function respaceBookedPublishes(options: { createdBy: string; dryRun?: boolean; deadlineMs?: number }) {
+  const cutoff = startOfTomorrowInJerusalem();
+  const deadlineMs = options.deadlineMs ?? Date.now() + 240_000;
+  const db = adminDb();
+  const [videos, aiVideos, reservations] = await Promise.all([
+    loadCollectionDocs(FREE_VIDEO_COLLECTION),
+    loadCollectionDocs(AI_VIDEO_COLLECTION),
+    loadCollectionDocs(AUTO_USED_SLUGS_COLLECTION),
+  ]);
+  const imageByVideo = new Map<string, { imageJobId: string; slug: string }>();
+  for (const reservation of reservations) {
+    const videoJobId = String(reservation.get("videoJobId") || "").trim();
+    const imageJobId = String(reservation.get("imageJobId") || "").trim();
+    if (videoJobId && imageJobId) imageByVideo.set(videoJobId, { imageJobId, slug: reservation.id });
+  }
+  const candidates = [
+    ...videos.map((doc) => ({ doc, libraryId: `free:${doc.id}` })),
+    ...aiVideos.map((doc) => ({ doc, libraryId: `ai:${doc.id}` })),
+  ].filter(({ doc }) => {
+    const at = Date.parse(String(doc.get("socialScheduledAt") || ""));
+    return String(doc.get("socialScheduleStatus") || "") === "pending" && Number.isFinite(at) && at >= cutoff.getTime();
+  });
+  const byId = new Map(candidates.map((item) => [item.libraryId, item]));
+  const plan = planOnePerDay(
+    candidates.map(({ doc, libraryId }) => ({ id: libraryId, at: String(doc.get("socialScheduledAt")) })),
+    cutoff,
+  );
+
+  const results: RespaceVideoResult[] = [];
+  const pairedImages = new Set<string>();
+  for (const move of plan) {
+    const { doc } = byId.get(move.id)!;
+    const pair = move.id.startsWith("free:") ? imageByVideo.get(doc.id) : undefined;
+    if (pair) pairedImages.add(pair.imageJobId);
+    const result: RespaceVideoResult = {
+      libraryId: move.id,
+      slug: pair?.slug || String(doc.get("dreamSlug") || ""),
+      title: String(doc.get("youtubeMetadata")?.title || doc.get("topic") || ""),
+      from: move.at,
+      to: move.publishAt,
+      social: move.changed ? "moved" : "same",
+      youtube: "none",
+      image: pair ? "moved" : "none",
+      imageAt: pair ? move.imagePublishAt : "",
+      errors: [],
+    };
+    const youtubeStatus = String(doc.get("youtubeStatus") || "");
+    const youtubeAt = String(doc.get("youtubeScheduledAt") || "");
+    const youtubePublished = Boolean(doc.get("youtubePublishedAt")) || youtubeStatus === "published";
+    if (youtubeStatus === "scheduled") {
+      result.youtube = Date.parse(youtubeAt) === Date.parse(move.publishAt) ? "same" : "moved";
+    } else if (!youtubePublished && youtubeStatus !== "uploading" && youtubeStatus !== "publishing") {
+      result.youtube = "booked";
+    }
+
+    if (options.dryRun) {
+      results.push(result);
+      continue;
+    }
+
+    if (move.changed) {
+      try {
+        const moved = await rescheduleLibraryVideoPublish(move.id, move.publishAt);
+        if (!moved.moved) result.social = "kept";
+      } catch (error) {
+        result.social = "error";
+        result.errors.push(`соцсети: ${error instanceof Error ? error.message : "ошибка"}`);
+      }
+    }
+
+    if (result.youtube === "moved") {
+      try {
+        await rescheduleYouTubeVideo(move.id, move.publishAt);
+      } catch (error) {
+        result.youtube = "error";
+        result.errors.push(`YouTube: ${error instanceof Error ? error.message : "ошибка"}`);
+      }
+    } else if (result.youtube === "booked") {
+      // A fresh upload is slow; leave the rest for the next run rather than time out mid-upload.
+      if (Date.now() > deadlineMs - 60_000) {
+        result.youtube = "later";
+      } else {
+        try {
+          await scheduleAutoYouTube(move.id, move.publishAt, options.createdBy);
+        } catch (error) {
+          result.youtube = "error";
+          result.errors.push(`YouTube: ${error instanceof Error ? error.message : "ошибка"}`);
+        }
+      }
+    }
+
+    if (pair) {
+      try {
+        const image = await db.collection(AI_IMAGE_COLLECTION).doc(pair.imageJobId).get();
+        const sameTime = Date.parse(String(image.get("socialScheduledAt") || "")) === Date.parse(move.imagePublishAt);
+        if (!image.exists || image.get("status") !== "completed") result.image = "none";
+        else if (sameTime && String(image.get("socialScheduleStatus") || "") === "pending") result.image = "same";
+        else result.image = await rescheduleLibraryImagePublish(pair.imageJobId, move.imagePublishAt, options.createdBy);
+      } catch (error) {
+        result.image = "error";
+        result.errors.push(`картинка: ${error instanceof Error ? error.message : "ошибка"}`);
+      }
+    }
+    results.push(result);
+  }
+
+  // Images booked from tomorrow on that belong to none of the moved videos: reported, never touched.
+  const queue = await adminRtdb().ref(SOCIAL_SCHEDULE_ASSETS_NODE).get();
+  const strayImages: Array<{ libraryId: string; title: string; scheduledAt: string }> = [];
+  queue.forEach((child) => {
+    const node = child.val() as { libraryId?: string; title?: string; socialSchedule?: { scheduledAt?: string; status?: string } } | null;
+    const libraryId = String(node?.libraryId || "");
+    const scheduledAt = String(node?.socialSchedule?.scheduledAt || "");
+    if (!libraryId.startsWith("image:") || node?.socialSchedule?.status !== "pending") return false;
+    if (Date.parse(scheduledAt) < cutoff.getTime() || pairedImages.has(libraryId.slice("image:".length))) return false;
+    strayImages.push({ libraryId, title: String(node?.title || ""), scheduledAt });
+    return false;
+  });
+
+  return {
+    dryRun: Boolean(options.dryRun),
+    cutoff: cutoff.toISOString(),
+    count: results.length,
+    lastDay: plan.at(-1)?.dateKey || "",
+    errors: results.filter((item) => item.errors.length).length,
+    youtubeLater: results.filter((item) => item.youtube === "later").length,
+    moves: results,
+    strayImages,
+  };
 }

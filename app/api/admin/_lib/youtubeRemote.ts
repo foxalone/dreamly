@@ -5,7 +5,7 @@ import { publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
 
 const PRODUCTION_YOUTUBE_PUBLISH_URL = "https://dreamly.art/api/admin/youtube/publish";
 
-async function mintAdminIdToken() {
+export async function mintAdminIdToken() {
   const apiKey = String(process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "").trim();
   if (!apiKey) throw new Error("Missing NEXT_PUBLIC_FIREBASE_API_KEY");
   const customToken = await adminAuth().createCustomToken(PRIMARY_ADMIN_UID);

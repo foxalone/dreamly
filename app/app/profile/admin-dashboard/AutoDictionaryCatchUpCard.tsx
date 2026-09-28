@@ -34,23 +34,44 @@ type CatchUpPair = {
 
 type WorkerStatus = { online: boolean };
 
+type RespaceMove = {
+  libraryId: string;
+  slug: string;
+  title: string;
+  from: string;
+  to: string;
+  youtube: string;
+  image: string;
+  imageAt: string;
+  errors: string[];
+};
+
+const RESPACE_YOUTUBE_LABEL: Record<string, string> = {
+  moved: "переносится",
+  same: "уже вовремя",
+  booked: "загрузим",
+  none: "—",
+  later: "позже",
+  error: "ошибка",
+};
+
 function slotLabel(publishAt: string) {
   const when = new Date(publishAt);
   if (!Number.isFinite(when.getTime())) return publishAt;
   return new Intl.DateTimeFormat("ru-RU", {
-    timeZone: "Asia/Jerusalem",
+    timeZone: "America/New_York",
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(when);
+  }).format(when) + " ET";
 }
 
 function pairLine(pair: CatchUpPair) {
   if (pair.error) return pair.error;
   if (pair.scheduled) {
     const video = pair.youtubeScheduled === false ? "в слоте, YouTube не ушёл" : "поставлено в слот";
-    const image = pair.imageScheduled ? "картинка +5ч" : pair.imageError ? `картинка: ${pair.imageError}` : "";
+    const image = pair.imageScheduled ? "картинка в 19:00 ET" : pair.imageError ? `картинка: ${pair.imageError}` : "";
     return image ? `${video}, ${image}` : video;
   }
   if (pair.scheduling) return "ставим в слот…";
@@ -103,10 +124,12 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
   const [imageWorker, setImageWorker] = useState<WorkerStatus>({ online: false });
   const [running, setRunning] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
+  const [respacing, setRespacing] = useState(false);
+  const [respacePreview, setRespacePreview] = useState<RespaceMove[] | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   const slotText = useMemo(
-    () => (slots.length ? slots.map((slot) => slotLabel(slot.publishAt)).join(" · ") : "свободные 05:00 и 15:00"),
+    () => (slots.length ? slots.map((slot) => slotLabel(slot.publishAt)).join(" · ") : "свободный день, 12:00 ET"),
     [slots],
   );
   const active = pairs.some(
@@ -311,7 +334,50 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     }
   }
 
-  /** Pairs booked before 2026-09-23 have a video slot but no image: queue the image +5h after the video. */
+  /** One video + one image a day: preview first, then re-time everything booked from tomorrow on. */
+  async function respace(dryRun: boolean) {
+    setRespacing(true);
+    setNotice(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/admin/auto-content", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ respace: true, dryRun }),
+      });
+      const payload = (await response.json()) as {
+        moves?: RespaceMove[];
+        count?: number;
+        lastDay?: string;
+        errors?: number;
+        youtubeLater?: number;
+        strayImages?: Array<{ title: string; scheduledAt: string }>;
+        error?: string;
+      };
+      if (!response.ok) throw new Error(payload.error || "Не удалось перенести публикации");
+      const moves = payload.moves || [];
+      if (dryRun) {
+        setRespacePreview(moves);
+        setNotice({ type: "ok", text: `Будет ${moves.length} видео по одному в день, последнее — ${payload.lastDay || "—"}. Проверьте список и нажмите «Применить».` });
+        return;
+      }
+      setRespacePreview(moves);
+      const failed = moves.filter((move) => move.errors.length);
+      const text = [
+        `Перенесено: ${moves.length} видео, по одному в день до ${payload.lastDay || "—"}`,
+        payload.youtubeLater ? `YouTube ещё не загружен у ${payload.youtubeLater} — нажмите «Применить» ещё раз` : "",
+        payload.strayImages?.length ? `картинок без пары оставлено как было: ${payload.strayImages.length}` : "",
+        failed.length ? `ошибки: ${failed.map((move) => `${move.slug || move.libraryId} — ${move.errors.join(", ")}`).join("; ")}` : "",
+      ].filter(Boolean).join(" · ");
+      setNotice({ type: failed.length ? "error" : "ok", text });
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка переноса" });
+    } finally {
+      setRespacing(false);
+    }
+  }
+
+  /** Pairs booked before 2026-09-23 have a video slot but no image: queue the image at 19:00 ET the same day. */
   async function backfillImages() {
     setBackfilling(true);
     setNotice(null);
@@ -338,7 +404,7 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
           ? `Картинки поставлены: ${booked.map((item) => `${item.slug} → ${slotLabel(item.imagePublishAt)}`).join(", ")}`
           : "Новых картинок ставить нечего",
         `уже стояло ${payload.already ?? 0}`,
-        payload.missed ? `время +5ч уже прошло у ${payload.missed}` : "",
+        payload.missed ? `время картинки уже прошло у ${payload.missed}` : "",
         failed.length ? `ошибки: ${failed.map((item) => `${item.slug} — ${item.error}`).join("; ")}` : "",
       ]
         .filter(Boolean)
@@ -355,7 +421,7 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Ночная автоматизация</p>
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Если ночной запуск в 02:00 пропущен — одна кнопка. Она сама поднимает воркеры на этом Mac и повторяет цикл: {AUTO_PAIR_COUNT} Free Mix + {AUTO_PAIR_COUNT} Veo на два свободных дня (05:00 и 15:00). Терминал открывать не нужно.
+        Каждый день — одно видео во все соцсети в 12:00 ET и одна картинка (Instagram, Facebook, Threads) в 19:00 ET. Если ночной запуск в 02:00 пропущен — одна кнопка. Она сама поднимает воркеры на этом Mac и повторяет цикл: {AUTO_PAIR_COUNT} Free Mix + {AUTO_PAIR_COUNT} Veo на ближайший свободный день. Терминал открывать не нужно.
       </p>
       <p className="text-sm font-semibold text-[var(--text)]">Ближайшие слоты: {slotText}</p>
       <div className="flex flex-wrap gap-2 text-xs font-semibold">
@@ -397,16 +463,42 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
         type="button"
         disabled={backfilling}
         onClick={() => void backfillImages()}
-        title="Для каждой уже запланированной пары без картинки ставит картинку в соцсети через 5 часов после видео"
+        title="Для каждой уже запланированной пары без картинки ставит картинку в соцсети в 19:00 ET того же дня"
         className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10 disabled:opacity-50"
       >
-        {backfilling ? "Ставим картинки…" : "Добронировать картинки +5ч"}
+        {backfilling ? "Ставим картинки…" : "Добронировать картинки 19:00 ET"}
       </button>
+      <button
+        type="button"
+        disabled={respacing}
+        onClick={() => void respace(respacePreview === null)}
+        title="Всё, что уже стоит в очереди с завтрашнего дня, разносится по одному видео в день (12:00 ET) и одной картинке (19:00 ET): соцсети, YouTube и Positioner"
+        className="ml-2 rounded-full border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-500 hover:bg-violet-500/10 disabled:opacity-50"
+      >
+        {respacing ? "Переносим…" : respacePreview === null ? "1 видео в день: показать перенос" : "Применить перенос"}
+      </button>
+      {respacePreview && respacePreview.length > 0 && (
+        <ul className="max-h-64 space-y-1 overflow-y-auto text-xs text-[var(--text)]">
+          {respacePreview.map((move) => (
+            <li key={move.libraryId}>
+              <span className="text-[var(--muted)]">{slotLabel(move.from)}</span>
+              {" → "}
+              <span className="font-semibold">{slotLabel(move.to)}</span>
+              {" · "}
+              {move.title || move.slug}
+              {" · YouTube "}
+              {RESPACE_YOUTUBE_LABEL[move.youtube] || move.youtube}
+              {move.imageAt ? ` · картинка ${slotLabel(move.imageAt)}` : " · без картинки"}
+              {move.errors.length ? <span className="text-red-500"> · {move.errors.join(", ")}</span> : null}
+            </li>
+          ))}
+        </ul>
+      )}
       {pairs.length > 0 && (
         <ul className="space-y-1.5 text-sm text-[var(--text)]">
           {pairs.map((pair) => (
             <li key={`${pair.videoJobId}:${pair.imageJobId}`}>
-              <span className="font-semibold">{pair.hour ? `${String(pair.hour).padStart(2, "0")}:00` : slotLabel(pair.publishAt)}</span>
+              <span className="font-semibold">{slotLabel(pair.publishAt)}</span>
               {" · "}
               {pair.title}
               {" · "}

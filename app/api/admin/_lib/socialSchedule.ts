@@ -38,6 +38,7 @@ import { publishLibraryVideoToTikTok } from "@/app/api/admin/tiktok/_lib";
 import { publishLibraryVideoToTumblr } from "@/app/api/admin/tumblr/_lib";
 import { normalizePublishAt, publishLibraryVideoToYouTube } from "@/app/api/admin/youtube/_lib";
 
+
 const SCHEDULE_BUDGET_MS = 240 * 1000;
 const META_PLATFORM_BUDGET_MS = 35 * 1000;
 
@@ -502,6 +503,67 @@ export async function cancelLibraryImageSchedule(jobId: string) {
     await trackImageScheduled(jobId, String(data.subject || "Untitled image"), scheduledAt, "Отменено");
   }
   return { ok: true as const, cancelled: schedule?.platforms || [] };
+}
+
+/**
+ * Move a still-pending queue entry to a new moment. Anything running, finished or
+ * gone is left alone (returns null) — the cron owns it from that point on.
+ */
+async function moveQueue(queueId: string, publishAt: string): Promise<SocialScheduleNode | null> {
+  let moved: SocialScheduleNode | null = null;
+  const result = await scheduleRef(queueId).transaction((current) => {
+    moved = null;
+    if (current === null) return null;
+    const schedule = readScheduleNode(current);
+    if (!schedule?.scheduledAt || schedule.status !== "pending") return undefined;
+    moved = schedule;
+    return { ...(current as Record<string, unknown>), scheduledAt: publishAt };
+  });
+  return result.committed ? moved : null;
+}
+
+/** Re-time a pending video booking (queue + Firestore mirror + Positioner). YouTube is separate. */
+export async function rescheduleLibraryVideoPublish(libraryId: string, publishAtInput: string) {
+  const publishAt = normalizePublishAt(publishAtInput);
+  if (!publishAt) throw new Error("Scheduled time is required");
+  const { rawId, collection } = parseLibraryId(libraryId);
+  const ref = adminDb().collection(collection).doc(rawId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) throw new Error("Video not found");
+  const schedule = await moveQueue(queueIdForLibraryId(libraryId), publishAt);
+  if (!schedule) return { moved: false as const, platforms: [] as SocialSchedulePlatform[] };
+  await ref.set({ socialScheduledAt: publishAt }, { merge: true });
+  await trackScheduled(
+    libraryId,
+    schedule.platforms as AdminVideoPlatform[],
+    videoTitle(snapshot.data() as ScheduleJobData),
+    publishAt,
+    "Запланировано",
+  );
+  return { moved: true as const, platforms: schedule.platforms };
+}
+
+/**
+ * Re-time an image booking; an image that was never booked (and is not published)
+ * gets booked at that moment. Returns what happened.
+ */
+export async function rescheduleLibraryImagePublish(jobId: string, publishAtInput: string, adminUid: string) {
+  const publishAt = normalizePublishAt(publishAtInput);
+  if (!publishAt) throw new Error("Scheduled time is required");
+  const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) throw new Error("Image not found");
+  const status = String(snapshot.get("socialScheduleStatus") || "");
+  if (status === "done" || status === "running") return "kept" as const;
+  if (status === "pending") {
+    const schedule = await moveQueue(queueIdForLibraryId(`image:${jobId}`), publishAt);
+    if (!schedule) return "kept" as const;
+    await ref.set({ socialScheduledAt: publishAt }, { merge: true });
+    await trackImageScheduled(jobId, String(snapshot.get("subject") || "Untitled image"), publishAt, "Запланировано");
+    return "moved" as const;
+  }
+  await scheduleLibraryImagePublish(jobId, publishAt, adminUid);
+  return "booked" as const;
 }
 
 async function runDueImageJob(item: DueSchedule, deadlineMs: number) {

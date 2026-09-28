@@ -20,6 +20,7 @@ import {
   type YouTubeAuthRecord,
   type YouTubeConnectionStatus,
 } from "@/lib/adminYouTube";
+import { AI_VIDEO_COLLECTION } from "@/lib/adminAiVideo";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { loadLibraryVideo } from "@/app/api/admin/_lib/libraryVideo";
 import { trackDreamlyPublish } from "@/app/api/admin/_lib/notionPublishLog";
@@ -502,4 +503,59 @@ export async function publishLibraryVideoToYouTube(
       .catch(() => undefined);
     throw error;
   }
+}
+
+/**
+ * Move an already uploaded, still-private scheduled video to a new publishAt.
+ * Needs the youtube.force-ssl scope; a token without it gets a "reconnect" error.
+ */
+export async function rescheduleYouTubeVideo(libraryId: string, publishAtInput: string) {
+  const publishAt = normalizePublishAt(publishAtInput);
+  if (!publishAt) throw new Error("Scheduled time is required");
+  const [kind, rawId] = libraryId.split(":");
+  if (!rawId || (kind !== "free" && kind !== "ai")) throw new Error("Invalid video id");
+  const jobRef = adminDb().collection(kind === "free" ? "adminVideoJobs" : AI_VIDEO_COLLECTION).doc(rawId);
+  const snapshot = await jobRef.get();
+  const data = (snapshot.data() || {}) as {
+    youtubeStatus?: string;
+    youtubeVideoId?: string;
+    youtubePublishedAt?: string;
+    youtubeScheduledAt?: string;
+    youtubeMetadata?: { title?: string };
+    topic?: string;
+  };
+  const videoId = String(data.youtubeVideoId || "").trim();
+  if (data.youtubeStatus !== "scheduled" || !videoId || data.youtubePublishedAt) {
+    throw new Error("This video is not scheduled on YouTube");
+  }
+  if (Date.parse(String(data.youtubeScheduledAt || "")) === Date.parse(publishAt)) return { videoId, publishAt, changed: false };
+  const auth = await getValidYouTubeAuth();
+  const response = await fetch(`${YOUTUBE_API_URL}/videos?part=status`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${auth.accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: videoId,
+      status: { privacyStatus: "private", publishAt, selfDeclaredMadeForKids: false },
+    }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
+  });
+  const payload = (await response.json().catch(() => ({}))) as unknown;
+  if (!response.ok) {
+    const message = googleError(payload, `YouTube HTTP ${response.status}`);
+    if (response.status === 403) throw new Error(`${message}. Reconnect YouTube to grant the new permission.`);
+    throw new Error(message);
+  }
+  await jobRef.set({ youtubeScheduledAt: publishAt, youtubeError: "" }, { merge: true });
+  await trackDreamlyPublish({
+    kind: "video",
+    assetId: libraryId,
+    platform: "youtube",
+    title: buildYouTubeTitle(String(data.youtubeMetadata?.title || data.topic || ""), String(data.topic || "")),
+    publishedAt: publishAt,
+    status: "Запланировано",
+    url: youtubeWatchUrl(videoId),
+    notes: `video ${libraryId} rescheduled`,
+  });
+  return { videoId, publishAt, changed: true };
 }
