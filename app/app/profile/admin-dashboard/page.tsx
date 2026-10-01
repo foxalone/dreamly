@@ -807,6 +807,44 @@ export default function AdminDashboardPage() {
     await deleteDoc(doc(firestore, "shared_dreams", sharedDocIdFor(d, onlyShared)));
   }
 
+  // ---- Pin city (admin) ----
+  // For journal dreams that never got a city: item → user's profile city →
+  // the user's other dreams; the server also counts it on the map.
+  const [cityPin, setCityPin] = useState<Record<string, { loading?: boolean; msg?: string | null; ok?: boolean }>>({});
+
+  async function pinCity(d: DreamAdmin) {
+    if (!isAdmin || isGuestRow(d)) return;
+    const key = `${d.userId}_${d.id}`;
+    setCityPin((p) => ({ ...p, [key]: { loading: true, msg: null } }));
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/dreams/pin-city", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target: { uid: d.userId, itemId: sourceDocId(d), sourceType: d.sourceType === "story" ? "story" : "dream" },
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
+      const c = json.city as { cityId: string; city: string; country: string; admin1: string; citySource: string } | null;
+      if (c) {
+        const patch = { cityId: c.cityId, city: c.city, country: c.country, admin1: c.admin1, citySource: c.citySource };
+        setDreamSearchRes((prev) =>
+          prev ? { ...prev, matches: prev.matches.map((m) => (`${m.userId}_${m.id}` === key ? { ...m, ...patch } : m)) } : prev
+        );
+        setCityPin((p) => ({
+          ...p,
+          [key]: { ok: true, msg: `City pinned: ${fmtUserCity(c.city, c.country, c.admin1)}` },
+        }));
+      } else {
+        setCityPin((p) => ({ ...p, [key]: { ok: false, msg: "No city known for this user" } }));
+      }
+    } catch (e: any) {
+      setCityPin((p) => ({ ...p, [key]: { ok: false, msg: e?.message ?? "Pin city failed" } }));
+    }
+  }
+
   // ---- Regenerate emojis (admin) ----
   // Preview from the AI picker, then apply everywhere the dream's emojis live
   // (journal doc, shared_dreams, linked guest snapshot, user/city counters).
@@ -1797,6 +1835,28 @@ async function loadUsers() {
                     >
                       {emojiRegen[regenKey(d)]?.loading ? "Picking…" : "Regenerate emojis"}
                     </button>
+
+                    {!isGuestRow(d) && !dreamCityLabel(d) ? (
+                      <>
+                        <button
+                          onClick={() => pinCity(d)}
+                          disabled={!!cityPin[`${d.userId}_${d.id}`]?.loading}
+                          className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+                          title="Give this dream the user's city (profile city or another dream's) and count it on the map"
+                        >
+                          {cityPin[`${d.userId}_${d.id}`]?.loading ? "Pinning…" : "Pin city"}
+                        </button>
+                      </>
+                    ) : null}
+                    {cityPin[`${d.userId}_${d.id}`]?.msg ? (
+                      <div
+                        className={`max-w-[220px] text-xs ${
+                          cityPin[`${d.userId}_${d.id}`]?.ok ? "text-emerald-400" : "text-amber-300"
+                        }`}
+                      >
+                        {cityPin[`${d.userId}_${d.id}`]?.msg}
+                      </div>
+                    ) : null}
 
                     <button
                       onClick={() => hideFromShared(d)}

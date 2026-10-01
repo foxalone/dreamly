@@ -479,3 +479,54 @@ export async function pinMissingCity(params: {
   resolveCityCoordsIfNeeded(params.baseUrl, city.cityId);
   return { ok: true, cityId: city.cityId };
 }
+
+/**
+ * Admin "Pin city": give a journal item a city with no request IP at hand.
+ * Not on the map yet → full ingest (city from item → profile → other dreams);
+ * on the map without a city → pinMissingCity; no emojis at all → city on the
+ * item only. Returns the city now on the item, or why there is none.
+ */
+export async function pinCityForItem(params: {
+  uid: string;
+  itemId: string;
+  sourceType: SourceType;
+  baseUrl: string | null;
+}): Promise<{ city: ResolvedCity | null; reason?: string }> {
+  const { uid, itemId, sourceType } = params;
+  const db = adminFirestore();
+  const userRef = db.collection("users").doc(uid);
+  const itemRef = userRef.collection(sourceType === "story" ? "stories" : "dreams").doc(itemId);
+  const ingestId = sourceType === "story" ? `${uid}_story_${itemId}` : `${uid}_${itemId}`;
+
+  const readItemCity = async () => {
+    const snap = await itemRef.get();
+    if (!snap.exists) throw new IngestNotFoundError("Item not found");
+    const c = getItemCity(snap.data());
+    return c.cityId ? { ...c, source: (s(snap.data()?.citySource) || "item") as CitySource } : null;
+  };
+
+  const existing = await readItemCity();
+  const ingSnap = await db.collection("map_ingested").doc(ingestId).get();
+
+  if (ingSnap.exists) {
+    if (!s(ingSnap.data()?.cityId)) {
+      const r = await pinMissingCity(params);
+      if (!r.cityId) return { city: null, reason: r.reason };
+    }
+    return { city: await readItemCity() };
+  }
+
+  const r = await ingestDreamServer({ ...params, ipCity: null, guestId: null, requireCity: true });
+  if (!r.skipped) return { city: await readItemCity() };
+  if (r.reason === "no_city") return { city: null, reason: "no_city" };
+
+  // No emojis yet: put the city on the item only (no counters, no marker), so a
+  // later emoji fix can still ingest it fully.
+  if (existing) return { city: existing };
+  const userSnap = await userRef.get();
+  let city = getUserCity(userSnap.exists ? userSnap.data() : {});
+  if (!city.cityId) city = await cityFromHistory(userRef, itemId);
+  if (!city.cityId) return { city: null, reason: "no_city" };
+  await itemRef.set(cityWriteFields(city), { merge: true });
+  return { city };
+}
