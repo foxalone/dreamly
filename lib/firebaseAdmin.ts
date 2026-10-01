@@ -29,7 +29,11 @@ function getServiceAccount() {
 }
 
 function ensureAdmin() {
-  if (admin.apps.length) return;
+  // Only the DEFAULT app counts: app/api/admin/_lib/firebaseAdmin.ts creates a
+  // named app ("project-server"), and if that one came first in the same
+  // lambda, admin.firestore() below would throw "The default Firebase app
+  // does not exist".
+  if (admin.apps.some((a) => a?.name === "[DEFAULT]")) return;
 
   admin.initializeApp({
     credential: admin.credential.cert(getServiceAccount()),

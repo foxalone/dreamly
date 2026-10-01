@@ -6,7 +6,7 @@
 // user closes the tab right after pressing Save.
 import { after, NextResponse } from "next/server";
 import admin from "firebase-admin";
-import { adminFirestore } from "@/lib/firebaseAdmin";
+import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
 import { countWords } from "@/lib/dreamVisuals";

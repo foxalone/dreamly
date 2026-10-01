@@ -5,7 +5,7 @@
 // depends on the subscription or on the browser tab staying open.
 import admin from "firebase-admin";
 import emojiData from "@emoji-mart/data";
-import { adminFirestore } from "@/lib/firebaseAdmin";
+import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { hasEnoughDreamEmojis } from "@/lib/dreamEmojiResolve";

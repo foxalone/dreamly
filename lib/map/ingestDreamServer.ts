@@ -4,7 +4,7 @@
 // /api/map/ingest-dream, by the server-side enrichment after a diary save, and
 // by the admin emoji regenerate for items that were never ingested.
 import admin from "firebase-admin";
-import { adminFirestore } from "@/lib/firebaseAdmin";
+import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
 import type { IpCity } from "@/lib/geo/resolveIpCity";
 
 export type SourceType = "dream" | "story";
