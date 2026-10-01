@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ingestDreamServer } from "@/lib/map/ingestDreamServer";
 import admin from "firebase-admin";
 import { FieldPath } from "firebase-admin/firestore";
 import type { DocumentReference, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
@@ -351,10 +352,36 @@ export async function POST(req: Request) {
         if (guestIngestRef) tx.update(guestIngestRef, { emojisCount: nextNatives.length });
       }
 
-      return { touched };
+      return { touched, needsIngest: !ingest };
     });
 
-    return NextResponse.json({ ok: true, mode, emojis: nextObjs, previous: current, touched: result.touched });
+    // A journal item that never reached the map (e.g. a save whose emojis were
+    // never picked) has no city and no counters yet: ingest it now. There is no
+    // user request here, so the city comes from the item or the user's last city.
+    let ingested: { cityId?: string | null } | null = null;
+    if (target.kind !== "guest" && (result as { needsIngest?: boolean }).needsIngest) {
+      try {
+        ingested = await ingestDreamServer({
+          uid: target.uid,
+          itemId: target.itemId,
+          sourceType: target.sourceType === "story" ? "story" : "dream",
+          ipCity: null,
+          baseUrl: req.url,
+          guestId: null,
+        });
+      } catch (e) {
+        console.warn("admin emojis: map ingest failed", e);
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      mode,
+      emojis: nextObjs,
+      previous: current,
+      touched: result.touched,
+      ...(ingested ? { cityId: ingested.cityId ?? null } : {}),
+    });
   } catch (e: any) {
     console.error("admin dreams/emojis error:", e);
     return NextResponse.json({ ok: false, error: e?.message ?? "Server error" }, { status: 500 });

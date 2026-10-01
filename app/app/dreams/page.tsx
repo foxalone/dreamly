@@ -31,7 +31,6 @@ import PlansModal from "@/app/components/PlansModal";
 import { isDreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
-  addDoc,
   collection,
   limit,
   onSnapshot,
@@ -48,6 +47,7 @@ import {
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
 import { hasEnoughDreamEmojis, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
+import { countWords, desiredCountsFromText, normalizeForIconsEn } from "@/lib/dreamVisuals";
 
 // ------------------------
 // types
@@ -135,21 +135,11 @@ function toDateKeyLocal(d: Date) {
 function toTimeKeyLocal(d: Date) {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
-function countWords(text: string) {
-  const t = (text ?? "").trim();
-  if (!t) return 0;
-  return t.split(/\s+/).filter(Boolean).length;
-}
 function norm(s: any) {
   return String(s ?? "").toLowerCase().trim();
 }
 function toNative(r: any) {
   return r?.skins?.[0]?.native || r?.native || "";
-}
-function makeTitle(text: string) {
-  const t = (text ?? "").trim().replace(/\s+/g, " ");
-  if (!t) return "";
-  return t.length <= 60 ? t : t.slice(0, 60) + "…";
 }
 function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   const t = text ?? "";
@@ -191,53 +181,6 @@ function textForIconPicker(text: string, lang?: string) {
   }
 
   return t;
-}
-
-// ------------------------
-// icon normalization (plural handling)
-// ------------------------
-const IRREGULAR_SINGULAR: Record<string, string> = {
-  mice: "mouse",
-  geese: "goose",
-  teeth: "tooth",
-  feet: "foot",
-  children: "child",
-  people: "person",
-  men: "man",
-  women: "woman",
-};
-
-function singularizeEnWord(w: string) {
-  const s = (w ?? "").toLowerCase();
-  if (!s) return s;
-
-  if (IRREGULAR_SINGULAR[s]) return IRREGULAR_SINGULAR[s];
-  if (s.length <= 3) return s;
-
-  if (
-    s.endsWith("ches") ||
-    s.endsWith("shes") ||
-    s.endsWith("xes") ||
-    s.endsWith("ses") ||
-    s.endsWith("zes")
-  )
-    return s.slice(0, -2);
-
-  if (s.endsWith("ies") && s.length > 4) return s.slice(0, -3) + "y";
-  if (s.endsWith("ves") && s.length > 4) return s.slice(0, -3) + "f";
-  if (s.endsWith("s") && !s.endsWith("ss")) return s.slice(0, -1);
-
-  return s;
-}
-
-function normalizeForIconsEn(input: string) {
-  return (input ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(singularizeEnWord)
-    .join(" ");
 }
 
 // ------------------------
@@ -325,18 +268,6 @@ function scoreCandidateForToken(token: string, r: any, allTokens: string[]) {
   return s;
 }
 
-function desiredCountsFromText(text: string) {
-  const wc = countWords(text);
-  const cc = (text ?? "").trim().length;
-
-  if (!wc && !cc) return { roots: 2, emojis: 1, icons: 1 };
-
-  const roots = Math.min(8, Math.max(2, Math.ceil(wc / 22)));
-  const emojis = Math.min(6, Math.max(1, Math.ceil(wc / 24)));
-  const icons = Math.min(5, Math.max(1, Math.ceil(wc / 30)));
-
-  return { roots, emojis, icons };
-}
 
 const STOP = new Set([
   "i",
@@ -537,7 +468,7 @@ export default function DreamsPage() {
           }
           if (result.shared) setTab("SHARED");
           setTimeout(() => {
-            extractRootsForItem(result.dreamId, "dream").catch(() => {});
+            extractRootsForItem(result.dreamId, "dream", { auto: true }).catch(() => {});
           }, 80);
           return;
         }
@@ -901,7 +832,7 @@ export default function DreamsPage() {
     setOpen(false);
   }
 
-  async function extractRootsForItem(itemId: string, type: ContentType) {
+  async function extractRootsForItem(itemId: string, type: ContentType, opts: { auto?: boolean } = {}) {
     const u = auth.currentUser;
     if (!u) return;
 
@@ -1016,6 +947,9 @@ export default function DreamsPage() {
       else setDreams((prev) => prev.map(apply));
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "DAILY_LIMIT") {
+        // Automatic top-up after a homepage import: never bounce the user to
+        // /app/upgrade for something they did not ask for.
+        if (opts.auto) return;
         setError(e.message === "DAILY_LIMIT" ? dailyLimitCopy : subscriptionRequiredCopy);
         router.push(localePath("/app/upgrade", locale));
       } else {
@@ -1054,89 +988,46 @@ export default function DreamsPage() {
     }
 
     const now = new Date();
-    const payload = {
-      uid: u.uid,
-
-      text: v,
-      title: makeTitle(v),
-
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      createdAtMs: Date.now(),
-      dateKey: toDateKeyLocal(now),
-      timeKey: toTimeKeyLocal(now),
-      tzOffsetMin: now.getTimezoneOffset(),
-
-      wordCount: countWords(v),
-      charCount: v.length,
-      langGuess: guessLang(v),
-
-      tags: [] as string[],
-      summary: "",
-      source: usedVoice || recording ? ("voice" as const) : ("manual" as const),
-
-      deleted: false,
-
-      emojis: [] as DreamEmoji[],
-      iconsEn: [] as DreamIconKey[],
-
-      shared: false,
-      sharedAtMs: null as any,
-      sharedAt: null as any,
-
-      roots: [] as string[],
-      rootsTop: [] as any[],
-      rootsEn: [] as string[],
-      rootsLang: null as any,
-      rootsUpdatedAt: null as any,
-
-      sourceType: type,
-      ownerUid: u.uid,
-      authorName: (u.displayName ?? "").trim() || null,
-      authorEmail: (u.email ?? "").trim() || null,
-    };
+    const source = usedVoice || recording ? ("voice" as const) : ("manual" as const);
 
     setSaving(true);
-    let slotTaken = false;
     try {
+      // The server takes the slot, writes the item and then fills in roots,
+      // emojis, icons and the city by itself (also for the free first save).
+      // The new item and its visuals arrive through the onSnapshot listener.
       const idToken = await u.getIdToken();
-      const slotRes = await fetch("/api/dreams/consume-slot", {
+      const res = await fetch("/api/dreams/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({
+          idToken,
+          text: v,
+          type,
+          source,
+          dateKey: toDateKeyLocal(now),
+          timeKey: toTimeKeyLocal(now),
+          tzOffsetMin: now.getTimezoneOffset(),
+        }),
       });
-      const slotData = await slotRes.json().catch(() => ({}));
-      if (!slotRes.ok) {
-        if (slotData?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
-        throw new Error("SUBSCRIPTION_REQUIRED");
+      const saved = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (saved?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
+        if (saved?.code === "SUBSCRIPTION_REQUIRED" || res.status === 402) throw new Error("SUBSCRIPTION_REQUIRED");
+        if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: MAX_DREAM_CHARS }));
+        throw new Error(saved?.error ?? `Failed to save ${type}.`);
       }
-      slotTaken = true;
 
-      let docRef: any;
-      try {
-        docRef = await addDoc(collection(firestore, "users", u.uid, getCollectionNameByType(type)), payload);
-        trackEvent("journal_entry_saved", {
-          content_type: type,
-          input_method: payload.source,
-          word_count: payload.wordCount,
-          free_save: slotData?.free === true,
-        });
-      } catch (e) {
-        if (slotTaken) {
-          // Slot already consumed server-side; keep it so abuse can't retry forever.
-        }
-        throw e;
-      }
+      trackEvent("journal_entry_saved", {
+        content_type: type,
+        input_method: source,
+        word_count: countWords(v),
+        free_save: saved?.free === true,
+      });
 
       setOpen(false);
       setSaving(false);
       setText("");
       setUsedVoice(false);
-
-      const createdType = type;
-      setTimeout(() => {
-        extractRootsForItem(docRef.id, createdType).catch(() => {});
-      }, 50);
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_SAVE") {
         setSaving(false);
