@@ -221,7 +221,10 @@ export function useDreamAsk({
           const city = String(pin?.city ?? "").trim();
           const country = String(pin?.country ?? "").trim();
           if (cityId && city && country) {
-            pinnedToMap = pin?.ok === true;
+            // "skipped" = this guest already pinned a dream today (one pin per
+            // guest per day) — THIS dream was not counted for the city, so the
+            // import after sign-in must count it (no skipCity).
+            pinnedToMap = pin?.ok === true && pin?.skipped !== true;
             writeHomeDreamPending(dream, {
               analysis: next,
               shareToMap,
