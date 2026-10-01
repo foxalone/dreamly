@@ -1,6 +1,10 @@
 import {
   DREAM_PAGE_IMAGE_HEIGHT,
   DREAM_PAGE_IMAGE_WIDTH,
+  GALLERY_THUMB_DEFAULT_WIDTH,
+  GALLERY_THUMB_SIZES,
+  galleryThumbSrcSet,
+  galleryThumbUrl,
   sortDreamPageImages,
   type DreamPageImageAssignment,
 } from "@/lib/dreamPageImage";
@@ -70,7 +74,7 @@ export default function GalleryView({
       ) : (
         <GalleryHeartsProvider initialCounts={heartCounts}>
         <section className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-label={t.gallery.h1}>
-          {items.map((item) => (
+          {items.map((item, index) => (
             <article
               key={item.slug}
               className="group relative overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
@@ -78,11 +82,16 @@ export default function GalleryView({
               <LocaleLink href={`/dreams/${item.slug}`} className="block">
                 <span className="relative block">
                   <img
-                    src={item.imageUrl}
+                    src={galleryThumbUrl(item, GALLERY_THUMB_DEFAULT_WIDTH)}
+                    srcSet={galleryThumbSrcSet(item)}
+                    sizes={GALLERY_THUMB_SIZES}
                     alt={item.alt}
                     width={DREAM_PAGE_IMAGE_WIDTH}
                     height={DREAM_PAGE_IMAGE_HEIGHT}
-                    loading="lazy"
+                    // First row is above the fold on phones and desktop: fetch it right away.
+                    loading={index < 4 ? "eager" : "lazy"}
+                    fetchPriority={index < 2 ? "high" : "auto"}
+                    decoding="async"
                     className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
                   <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
