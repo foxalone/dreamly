@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ingestDreamServer } from "@/lib/map/ingestDreamServer";
+import { ingestDreamServer, pinMissingCity } from "@/lib/map/ingestDreamServer";
 import admin from "firebase-admin";
 import { FieldPath } from "firebase-admin/firestore";
 import type { DocumentReference, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
@@ -352,13 +352,18 @@ export async function POST(req: Request) {
         if (guestIngestRef) tx.update(guestIngestRef, { emojisCount: nextNatives.length });
       }
 
-      return { touched, needsIngest: !ingest };
+      return {
+        touched,
+        needsIngest: !ingest,
+        // Ingested earlier but with no city at all (e.g. the user had none yet).
+        needsCity: !!ingest && !s(ingest?.cityId) && !s(fresh.cityId),
+      };
     });
 
     // A journal item that never reached the map (e.g. a save whose emojis were
     // never picked) has no city and no counters yet: ingest it now. There is no
     // user request here, so the city comes from the item or the user's last city.
-    let ingested: { cityId?: string | null } | null = null;
+    let ingested: { cityId?: string | null; skipped?: boolean; reason?: string } | null = null;
     if (target.kind !== "guest" && (result as { needsIngest?: boolean }).needsIngest) {
       try {
         ingested = await ingestDreamServer({
@@ -368,9 +373,38 @@ export async function POST(req: Request) {
           ipCity: null,
           baseUrl: req.url,
           guestId: null,
+          requireCity: true,
         });
       } catch (e) {
         console.warn("admin emojis: map ingest failed", e);
+      }
+    }
+
+    if (target.kind !== "guest" && (result as { needsCity?: boolean }).needsCity) {
+      try {
+        const pinned = await pinMissingCity({
+          uid: target.uid,
+          itemId: target.itemId,
+          sourceType: target.sourceType === "story" ? "story" : "dream",
+          baseUrl: req.url,
+        });
+        ingested = pinned.cityId ? { cityId: pinned.cityId } : { skipped: true, reason: pinned.reason };
+      } catch (e) {
+        console.warn("admin emojis: city repair failed", e);
+      }
+    }
+
+    let cityAfter: { cityId: string; city: string; country: string; admin1: string; citySource: string } | null = null;
+    if (ingested && !ingested.skipped && target.kind !== "guest") {
+      const itemNow = (await itemRef.get()).data() ?? {};
+      if (s(itemNow.cityId)) {
+        cityAfter = {
+          cityId: s(itemNow.cityId),
+          city: s(itemNow.city),
+          country: s(itemNow.country),
+          admin1: s(itemNow.admin1),
+          citySource: s(itemNow.citySource),
+        };
       }
     }
 
@@ -380,7 +414,8 @@ export async function POST(req: Request) {
       emojis: nextObjs,
       previous: current,
       touched: result.touched,
-      ...(ingested ? { cityId: ingested.cityId ?? null } : {}),
+      // What happened to the city, so the admin row can say it out loud.
+      ...(ingested ? { city: cityAfter, cityNote: ingested.skipped ? ingested.reason ?? "skipped" : "pinned" } : {}),
     });
   } catch (e: any) {
     console.error("admin dreams/emojis error:", e);

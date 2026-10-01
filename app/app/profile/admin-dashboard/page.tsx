@@ -817,6 +817,8 @@ export default function AdminDashboardPage() {
     model?: string | null;
     error?: string | null;
     applied?: boolean;
+    /** City outcome of the apply for items that had never reached the map. */
+    cityMsg?: string | null;
   };
   const [emojiRegen, setEmojiRegen] = useState<Record<string, EmojiRegenState>>({});
 
@@ -879,12 +881,27 @@ export default function AdminDashboardPage() {
       if (!res.ok || !json?.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
       const applied = (json.emojis ?? proposed) as DreamAdmin["emojis"];
       // Live lists refresh via onSnapshot; server search results are patched here.
+      const city = json.city as
+        | { cityId: string; city: string; country: string; admin1: string; citySource: string }
+        | null
+        | undefined;
+      const cityPatch = city
+        ? { cityId: city.cityId, city: city.city, country: city.country, admin1: city.admin1, citySource: city.citySource }
+        : {};
       setDreamSearchRes((prev) =>
         prev
-          ? { ...prev, matches: prev.matches.map((m) => (regenKey(m) === key ? { ...m, emojis: applied } : m)) }
+          ? {
+              ...prev,
+              matches: prev.matches.map((m) => (regenKey(m) === key ? { ...m, emojis: applied, ...cityPatch } : m)),
+            }
           : prev
       );
-      patchRegen(key, { applying: false, applied: true, proposed: undefined });
+      const cityMsg = city
+        ? `City pinned: ${fmtUserCity(city.city, city.country, city.admin1)} (${city.citySource}).`
+        : json.cityNote === "no_city"
+          ? "No city known for this user (no IP city on the profile, no other dream with a city) — left off the map."
+          : null;
+      patchRegen(key, { applying: false, applied: true, proposed: undefined, cityMsg });
     } catch (e: any) {
       patchRegen(key, { applying: false, error: e?.message ?? "Apply failed" });
     }
@@ -1715,6 +1732,7 @@ async function loadUsers() {
                           {st.loading ? <span>Picking emojis…</span> : null}
                           {st.error ? <span className="text-red-400">{st.error}</span> : null}
                           {st.applied ? <span className="text-emerald-400">Emojis replaced everywhere.</span> : null}
+                          {st.applied && st.cityMsg ? <span className="text-amber-300">{st.cityMsg}</span> : null}
                           {st.proposed?.length ? (
                             <>
                               <span>

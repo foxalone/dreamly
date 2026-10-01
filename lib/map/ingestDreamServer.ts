@@ -9,7 +9,7 @@ import type { IpCity } from "@/lib/geo/resolveIpCity";
 
 export type SourceType = "dream" | "story";
 type DreamEmoji = { native: string; id?: string; name?: string };
-type CitySource = "ip" | "item" | "user";
+type CitySource = "ip" | "item" | "user" | "history";
 
 export type ResolvedCity = {
   cityId: string;
@@ -114,6 +114,23 @@ function totalField(sourceType: SourceType) {
   return sourceType === "story" ? "totalStories" : "totalDreams";
 }
 
+async function cityFromHistory(
+  userRef: admin.firestore.DocumentReference,
+  exceptItemId: string
+): Promise<ResolvedCity> {
+  try {
+    const snap = await userRef.collection("dreams").orderBy("createdAtMs", "desc").limit(25).get();
+    for (const d of snap.docs) {
+      if (d.id === exceptItemId) continue;
+      const c = getItemCity(d.data());
+      if (c.cityId && c.city) return { ...c, source: "history" };
+    }
+  } catch (e) {
+    console.warn("cityFromHistory failed", e);
+  }
+  return emptyCity("history");
+}
+
 export class IngestNotFoundError extends Error {}
 
 export type IngestResult = {
@@ -136,6 +153,8 @@ export async function ingestDreamServer(params: {
   /** Origin used to kick /api/map/resolve-city for missing coords. */
   baseUrl: string | null;
   guestId?: string | null;
+  /** Skip (no marker, no counters) when no city can be found anywhere. */
+  requireCity?: boolean;
 }): Promise<IngestResult> {
     const { uid, itemId, sourceType } = params;
     const skipCity = params.skipCity === true;
@@ -189,7 +208,7 @@ export async function ingestDreamServer(params: {
 
     // Always pin by current IP. If this dream was already counted as a guest
     // pin, keep that snapshot so the journal row matches the map.
-    const resolvedCity: ResolvedCity =
+    let resolvedCity: ResolvedCity =
       skipCity && fromItem.cityId
         ? fromItem
         : ipCity.cityId
@@ -199,6 +218,18 @@ export async function ingestDreamServer(params: {
             : fromUser.cityId
               ? fromUser
               : emptyCity("ip");
+
+    // Last resort (no request IP, e.g. an admin fix): the city of the user's
+    // most recent other dream that has one.
+    if (!resolvedCity.cityId) {
+      resolvedCity = await cityFromHistory(userRef, itemId);
+    }
+
+    // Callers without a request IP ask not to ingest a dream with no city at
+    // all: the map_ingested marker would lock it out of a later, better ingest.
+    if (!resolvedCity.cityId && params.requireCity) {
+      return { ok: true, skipped: true, reason: "no_city", sourceType };
+    }
 
     const emojiPrefix = emojiFieldPrefix(sourceType);
     const totalKey = totalField(sourceType);
@@ -376,4 +407,75 @@ export async function ingestDreamServer(params: {
       sourceType,
       citySource: resolvedCity.source,
     };
+}
+
+/**
+ * Repair for an item that was ingested without any city (map_ingested.cityId
+ * empty): find a city (item → user's current city → user's other dreams), pin
+ * it on the item and count the item's emojis for that city, once.
+ */
+export async function pinMissingCity(params: {
+  uid: string;
+  itemId: string;
+  sourceType: SourceType;
+  baseUrl: string | null;
+}): Promise<{ ok: true; cityId: string | null; reason?: string }> {
+  const { uid, itemId, sourceType } = params;
+  const db = adminFirestore();
+  const ingestId = sourceType === "story" ? `${uid}_story_${itemId}` : `${uid}_${itemId}`;
+  const ingestRef = db.collection("map_ingested").doc(ingestId);
+  const userRef = db.collection("users").doc(uid);
+  const itemRef = userRef.collection(sourceType === "story" ? "stories" : "dreams").doc(itemId);
+
+  const [ingSnap, itemSnap, userSnap] = await Promise.all([ingestRef.get(), itemRef.get(), userRef.get()]);
+  if (!ingSnap.exists || !itemSnap.exists) return { ok: true, cityId: null, reason: "not_ingested" };
+  if (s(ingSnap.data()?.cityId)) return { ok: true, cityId: s(ingSnap.data()?.cityId), reason: "already" };
+
+  const item = itemSnap.data() ?? {};
+  let city = getItemCity(item);
+  if (!city.cityId) city = getUserCity(userSnap.exists ? userSnap.data() : {});
+  if (!city.cityId) city = await cityFromHistory(userRef, itemId);
+  if (!city.cityId) return { ok: true, cityId: null, reason: "no_city" };
+
+  const natives = (Array.isArray(item.emojis) ? item.emojis : [])
+    .map((e: any) => s(e?.native))
+    .filter(Boolean);
+  const dateKey = s(ingSnap.data()?.dateKey) || s(item.dateKey) || todayKeyUTC(Number(item.createdAtMs ?? Date.now()));
+  const emojiPrefix = emojiFieldPrefix(sourceType);
+  const totalKey = totalField(sourceType);
+  const inc = admin.firestore.FieldValue.increment;
+  const now = admin.firestore.FieldValue.serverTimestamp();
+
+  await db.runTransaction(async (tx) => {
+    const ing = await tx.get(ingestRef);
+    if (!ing.exists || s(ing.data()?.cityId)) return;
+
+    tx.set(itemRef, cityWriteFields(city), { merge: true });
+
+    const cityStatsRef = db.collection("city_emoji_stats").doc(city.cityId);
+    const cityDailyRef = db.collection("city_emoji_daily").doc(`${city.cityId}_${dateKey}`);
+    tx.set(
+      cityStatsRef,
+      {
+        cityId: city.cityId,
+        city: city.city,
+        country: city.country,
+        admin1: city.admin1,
+        [totalKey]: inc(1),
+        updatedAt: now,
+        ...(typeof city.lat === "number" ? { lat: city.lat } : {}),
+        ...(typeof city.lng === "number" ? { lng: city.lng } : {}),
+      },
+      { merge: true }
+    );
+    tx.set(cityDailyRef, { cityId: city.cityId, dateKey, [totalKey]: inc(1), updatedAt: now }, { merge: true });
+    for (const em of natives) {
+      tx.set(cityStatsRef, { [`${emojiPrefix}.${em}`]: inc(1) }, { merge: true });
+      tx.set(cityDailyRef, { [`${emojiPrefix}.${em}`]: inc(1) }, { merge: true });
+    }
+    tx.update(ingestRef, { cityId: city.cityId, cityCounted: true, cityPinnedLaterAtMs: Date.now() });
+  });
+
+  resolveCityCoordsIfNeeded(params.baseUrl, city.cityId);
+  return { ok: true, cityId: city.cityId };
 }
