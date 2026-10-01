@@ -32,6 +32,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DictionarySearchQueries from "./DictionarySearchQueries";
+import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import GscQueriesPanel from "./GscQueriesPanel";
 import IndexNowPanel from "./IndexNowPanel";
 import QuickSymbolQueries from "./QuickSymbolQueries";
@@ -155,7 +156,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -359,6 +360,7 @@ export default function AdminDashboardPage() {
       requested === "CONFIG" ||
       requested === "USERS" ||
       requested === "QUERIES" ||
+      requested === "SYMBOL_CLICKS" ||
       requested === "GSC" ||
       requested === "DOCS" ||
       requested === "FREE_VIDEOS" ||
@@ -1302,6 +1304,12 @@ async function loadUsers() {
                 <span className="font-mono">dictionary_search_queries</span> +{" "}
                 <span className="font-mono">quick_symbol_queries</span>)
               </>
+            ) : tab === "SYMBOL_CLICKS" ? (
+              <>
+                Symbol icon clicks (Firestore:{" "}
+                <span className="font-mono">dictionary_symbol_clicks</span> +{" "}
+                <span className="font-mono">dictionary_symbol_clicks_daily</span>)
+              </>
             ) : tab === "GSC" ? (
               <>
                 Google Search Console queries (Firestore:{" "}
@@ -1417,6 +1425,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Queries
+        </button>
+
+        <button
+          onClick={() => setTab("SYMBOL_CLICKS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "SYMBOL_CLICKS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Icon clicks
         </button>
 
         <button
@@ -2242,6 +2262,8 @@ async function loadUsers() {
           <QuickSymbolQueries />
         </>
       )}
+
+      {tab === "SYMBOL_CLICKS" && <DictionarySymbolClicks />}
 
       {tab === "GSC" && (
         <>

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans, Noto_Sans_Arabic } from "next/font/google
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
+import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
 import AppI18n from "@/lib/i18n/AppI18n";
 
@@ -79,6 +80,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         <FirebaseAnalytics />
+        <SymbolClickTracker />
         <GoogleRedirectHandler />
         <AppI18n>
           {children}
