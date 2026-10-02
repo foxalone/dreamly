@@ -1282,9 +1282,19 @@ export default function DreamsPage() {
       });
 
       const sharedId = getSharedDocId(uid2, type, itemId);
+      // The public copy loses everything that is the dream itself (text,
+      // title, author) and drops out of the feed. Emojis / iconsEn / city stay:
+      // they don't identify the user and keep feeding the map and symbol stats.
+      // The full dream stays in users/{uid}/... (soft delete) for the admin.
       await updateDoc(doc(firestore, "shared_dreams", sharedId), {
         deleted: true,
         deletedAtMs: nowMs,
+        title: "",
+        text: "",
+        wordCount: null,
+        charCount: null,
+        authorName: null,
+        authorEmail: null,
         updatedAt: serverTimestamp(),
       }).catch(() => {});
     } catch (e: any) {

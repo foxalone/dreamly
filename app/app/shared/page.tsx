@@ -260,10 +260,13 @@ export default function SharedPage() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const next: SharedDream[] = snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as any),
-        }));
+        // Author-deleted dreams keep a stripped doc (emojis/city only) — never show it.
+        const next: SharedDream[] = snap.docs
+          .filter((d) => d.data()?.deleted !== true)
+          .map((d) => ({
+            id: d.id,
+            ...(d.data() as any),
+          }));
         setItems(next);
       },
       (err) => {
