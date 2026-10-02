@@ -147,6 +147,30 @@ function weightByCount(count: number) {
   return 0.85 + Math.log(count + 1) * 0.22;
 }
 
+// Маркер на обратной стороне глобуса? Публичного API у Mapbox нет, поэтому
+// делаем round-trip: точка за горизонтом проецируется на экран, но unproject
+// этого пикселя возвращает ближнюю поверхность — далеко от исходной точки.
+// Нужно только для стартовой прозрачности нового маркера: сам Mapbox
+// проверяет окклюзию лишь через ~60 мс после addTo, и до этого маркер
+// с той стороны Земли успевает мелькнуть.
+function isBehindGlobe(map: mapboxgl.Map, lng: number, lat: number) {
+  const ll = new mapboxgl.LngLat(lng, lat);
+  const p = map.project(ll);
+  const { width, height } = map.getCanvas().getBoundingClientRect();
+  if (p.x < 0 || p.y < 0 || p.x > width || p.y > height) return false;
+  const back = map.unproject(p);
+  const metersPerPx =
+    (40075016 * Math.cos((lat * Math.PI) / 180)) / (512 * Math.pow(2, map.getZoom()));
+  return back.distanceTo(ll) > Math.max(metersPerPx * 6, 2000);
+}
+
+type MarkerEntry = {
+  marker: mapboxgl.Marker;
+  el: HTMLDivElement;
+  // данные для попапа — обновляются при повторном использовании маркера
+  info: { emoji: string; count: number; filter: MapFilter; place: string; lngLat: [number, number] };
+};
+
 // ---------- theme helpers ----------
 type ThemeMode = "light" | "dark";
 
@@ -193,7 +217,7 @@ export default function MapPage() {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
 
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersRef = useRef<Map<string, MarkerEntry>>(new Map());
   const dataRef = useRef<CityRow[]>([]);
   const filterRef = useRef<MapFilter>("all");
   const [filter, setFilter] = useState<MapFilter>("all");
@@ -259,17 +283,50 @@ export default function MapPage() {
   }
 
   function clearMarkers() {
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+    markersRef.current.forEach((m) => m.marker.remove());
+    markersRef.current.clear();
   }
 
-  function renderMarkers(map: mapboxgl.Map) {
-    clearMarkers();
+  function openPopup(map: mapboxgl.Map, info: MarkerEntry["info"]) {
+    const kindLabel =
+      info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : "All";
 
+    const html = `
+      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
+        <div style="font-size: 18px; line-height: 1.2;">
+          ${info.emoji} <b>${info.count}</b>
+        </div>
+        <div style="opacity: .7; margin-top: 4px; font-size: 11px;">
+          ${kindLabel}
+        </div>
+        <div style="opacity: .85; margin-top: 6px;">
+          ${info.place}
+        </div>
+      </div>
+    `;
+
+    if (!popupRef.current) {
+      popupRef.current = new mapboxgl.Popup({
+        closeButton: true,
+        closeOnClick: true,
+        maxWidth: "240px",
+      });
+    }
+
+    popupRef.current.setLngLat(info.lngLat).setHTML(html).addTo(map);
+  }
+
+  // Диффим маркеры вместо пересоздания: те, что уже на карте, только меняют
+  // размер, новые добавляются, лишние удаляются. Пересоздание всех маркеров
+  // на каждом zoomend и было причиной мелькания эмодзи с другой стороны Земли.
+  function renderMarkers(map: mapboxgl.Map) {
     const z = map.getZoom();
     const maxRank = maxRankByZoom(z);
     const base = baseSizeByZoom(z);
     const activeFilter = filterRef.current;
+
+    const existing = markersRef.current;
+    const next = new Map<string, MarkerEntry>();
 
     for (const city of dataRef.current) {
       const items = itemsForFilter(city, activeFilter);
@@ -277,13 +334,28 @@ export default function MapPage() {
       if (visible.length === 0) continue;
 
       const n = visible.length;
+      const place = [city.city, city.admin1, city.country].filter(Boolean).join(", ");
 
       visible.forEach((it, idx) => {
         const { ox, oy } = offsetForIndex(idx, n);
         const rMeters = it.rank === 0 ? 0 : 1200 + it.rank * 260;
         const { dLat, dLng } = metersToLngLatOffset(rMeters, city.lat, ox, oy);
+        const lngLat: [number, number] = [city.lng + dLng, city.lat + dLat];
 
         const size = base * weightByCount(it.count);
+        const info = { emoji: it.emoji, count: it.count, filter: activeFilter, place, lngLat };
+        const key = `${city.cityId}|${it.emoji}`;
+
+        const prev = existing.get(key);
+        if (prev) {
+          existing.delete(key);
+          prev.el.style.fontSize = `${size}px`;
+          prev.info = info;
+          const cur = prev.marker.getLngLat();
+          if (cur.lng !== lngLat[0] || cur.lat !== lngLat[1]) prev.marker.setLngLat(lngLat);
+          next.set(key, prev);
+          return;
+        }
 
         const el = document.createElement("div");
         el.textContent = it.emoji;
@@ -291,53 +363,29 @@ export default function MapPage() {
         el.style.lineHeight = "1";
         el.style.userSelect = "none";
         el.style.cursor = "pointer";
-        el.style.transform = "translate(-50%, -50%)";
+        // Стартовая прозрачность выставляется до addTo — без этого маркер
+        // за глобусом виден, пока Mapbox не проверит окклюзию.
+        if (isBehindGlobe(map, lngLat[0], lngLat[1])) {
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+        }
 
         const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
-          .setLngLat([city.lng + dLng, city.lat + dLat])
+          .setLngLat(lngLat)
           .addTo(map);
 
+        const entry: MarkerEntry = { marker, el, info };
         el.addEventListener("click", (ev) => {
           ev.stopPropagation();
-
-          const kindLabel =
-            activeFilter === "dreams"
-              ? "Dreams"
-              : activeFilter === "stories"
-                ? "Stories"
-                : "All";
-
-          const html = `
-            <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
-              <div style="font-size: 18px; line-height: 1.2;">
-                ${it.emoji} <b>${it.count}</b>
-              </div>
-              <div style="opacity: .7; margin-top: 4px; font-size: 11px;">
-                ${kindLabel}
-              </div>
-              <div style="opacity: .85; margin-top: 6px;">
-                ${[city.city, city.admin1, city.country].filter(Boolean).join(", ")}
-              </div>
-            </div>
-          `;
-
-          if (!popupRef.current) {
-            popupRef.current = new mapboxgl.Popup({
-              closeButton: true,
-              closeOnClick: true,
-              maxWidth: "240px",
-            });
-          }
-
-          popupRef.current
-            .setLngLat([city.lng + dLng, city.lat + dLat])
-            .setHTML(html)
-            .addTo(map);
+          openPopup(map, entry.info);
         });
 
-        markersRef.current.push(marker);
+        next.set(key, entry);
       });
     }
+
+    existing.forEach((m) => m.marker.remove());
+    markersRef.current = next;
   }
 
   useEffect(() => {
