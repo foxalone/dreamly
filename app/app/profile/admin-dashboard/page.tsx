@@ -398,6 +398,8 @@ export default function AdminDashboardPage() {
   const [showDeleted, setShowDeleted] = useState(true);
   const [onlyShared, setOnlyShared] = useState(false);
   const [pageSize, setPageSize] = useState(50);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvErr, setCsvErr] = useState<string | null>(null);
 
   // DREAMS: search (paste an emoji or type text). The live list only holds the
   // newest `pageSize` docs from users/*/dreams, so a non-empty query also runs a
@@ -697,6 +699,39 @@ export default function AdminDashboardPage() {
   }, [tab]);
 
   // ✅ server-side search over dreams + stories (debounced)
+  // DREAMS: CSV export of everything from the last 7 days (server-side, not just the live page)
+  async function downloadDreamsCsv() {
+    setCsvErr(null);
+    setCsvLoading(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/dreams/export?days=7", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error ?? `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get("content-disposition") ?? "";
+      const name =
+        /filename="([^"]+)"/.exec(cd)?.[1] ??
+        `dreams-last-7d-${new Date().toISOString().slice(0, 10)}.csv`;
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(href), 1000);
+    } catch (e: any) {
+      setCsvErr(e?.message ?? "CSV export failed");
+    } finally {
+      setCsvLoading(false);
+    }
+  }
+
   const dreamSearchQ = dreamSearch.trim();
   useEffect(() => {
     if (tab !== "DREAMS" || !user || !isAdmin) return;
@@ -1638,6 +1673,16 @@ async function loadUsers() {
             >
               Page size: {pageSize}
             </button>
+
+            <button
+              onClick={downloadDreamsCsv}
+              disabled={csvLoading}
+              className={`${pillBase} ${pillSurface} ${pillDisabled}`}
+              title="All dreams + guest dreams from the last 7 days (deleted included)"
+            >
+              {csvLoading ? "Preparing CSV…" : "Download CSV (7 days)"}
+            </button>
+            {csvErr ? <span className="text-sm text-red-500">{csvErr}</span> : null}
           </div>
 
           <div className="mt-4">
