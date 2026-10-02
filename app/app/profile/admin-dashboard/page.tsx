@@ -68,6 +68,11 @@ type DreamAdmin = {
   imported?: boolean;
   importedUid?: string | null;
   importedDreamId?: string | null;
+  importedAtMs?: number;
+
+  // users/*/dreams row that came from a homepage-Ask guest dream: the guest
+  // snapshot is folded in here so the admin sees the dream once, with one history
+  guestOrigin?: DreamAdmin;
 
   authorName?: string | null;
   authorEmail?: string | null;
@@ -84,6 +89,7 @@ type DreamAdmin = {
 
   deleted?: boolean;
   deletedAtMs?: number;
+  deletedBy?: "user" | "admin" | null;
 
   emojis?: Array<{ id?: string; name?: string; native?: string }>;
 
@@ -205,6 +211,7 @@ function guestRowFromDoc(id: string, data: any): DreamAdmin {
     imported: !!data?.imported,
     importedUid: data?.importedUid ?? null,
     importedDreamId: data?.importedDreamId ?? null,
+    importedAtMs: data?.importedAtMs ?? undefined,
   };
 }
 
@@ -263,6 +270,61 @@ type UserRow = {
 function fmtUserCity(city: string, country: string, admin1: string) {
   const parts = [city, admin1, country].map((x) => String(x ?? "").trim()).filter(Boolean);
   return parts.length ? parts.join(", ") : "—";
+}
+
+/**
+ * Fold imported guest rows into the users/{uid}/dreams row they became, so one
+ * dream = one card. A guest row whose account copy is not in the list (older
+ * than the page, or filtered out) stays on its own.
+ */
+function mergeGuestOrigins(rows: DreamAdmin[]): DreamAdmin[] {
+  const byKey = new Map<string, number>();
+  rows.forEach((r, i) => {
+    if (!isGuestRow(r) && r.sourceType !== "story") byKey.set(`${r.userId}/${r.dreamId || r.id}`, i);
+  });
+  const out = rows.slice();
+  const drop = new Set<number>();
+  rows.forEach((g, i) => {
+    if (!isGuestRow(g) || !g.imported || !g.importedUid || !g.importedDreamId) return;
+    const j = byKey.get(`${g.importedUid}/${g.importedDreamId}`);
+    if (j === undefined) return;
+    out[j] = { ...out[j], guestOrigin: g };
+    drop.add(i);
+  });
+  return out.filter((_, i) => !drop.has(i));
+}
+
+type DreamEvent = { atMs: number; label: string };
+
+/** Everything that happened to one dream, newest first. */
+function dreamEvents(d: DreamAdmin): DreamEvent[] {
+  const ev: DreamEvent[] = [];
+  const add = (atMs: number | undefined | null, label: string) => {
+    if (atMs && Number.isFinite(atMs)) ev.push({ atMs, label });
+  };
+  const lens = (l?: string | null) => (l ? ` · ${l}` : "");
+  const deletedLabel = (x: DreamAdmin) => `Deleted${x.deletedBy ? ` by ${x.deletedBy}` : ""}`;
+
+  if (isGuestRow(d)) {
+    add(d.createdAtMs, `Homepage Ask as guest — AI analysis${lens(d.analysisLens)}`);
+    add(d.importedAtMs, `Signed up → imported to account ${d.importedUid ?? ""}`.trim());
+    if (d.deleted) add(d.deletedAtMs, deletedLabel(d));
+    return ev.sort((a, b) => b.atMs - a.atMs);
+  }
+
+  const g = d.guestOrigin;
+  const fromHome = !!g || String(d.dreamId || d.id).startsWith("home_");
+  add(d.createdAtMs, fromHome ? "Typed on homepage (Ask)" : d.sourceType === "story" ? "Story written" : "Written in journal");
+  if (g) {
+    add(g.createdAtMs, `AI analysis as guest${lens(g.analysisLens)}`);
+    add(g.importedAtMs, "Signed up → imported to account");
+  }
+  if (d.analysis || d.analysisLens) {
+    add(d.analysisAtMs, `AI analysis saved${lens(d.analysisLens)}${d.analysisModel ? ` · ${d.analysisModel}` : ""}`);
+  }
+  add(d.sharedAtMs, d.shared ? "Published to feed" : "Published to feed (since unpublished)");
+  if (d.deleted) add(d.deletedAtMs, deletedLabel(d));
+  return ev.sort((a, b) => b.atMs - a.atMs);
 }
 
 function dreamCityLabel(d: DreamAdmin) {
@@ -510,6 +572,7 @@ export default function AdminDashboardPage() {
 
               deleted: !!data.deleted,
               deletedAtMs: data.deletedAtMs,
+              deletedBy: data.deletedBy ?? null,
 
               emojis: Array.isArray(data.emojis) ? data.emojis : [],
 
@@ -551,6 +614,7 @@ export default function AdminDashboardPage() {
 
             deleted: !!data.deleted,
             deletedAtMs: data.deletedAtMs,
+            deletedBy: data.deletedBy ?? null,
 
             emojis: Array.isArray(data.emojis) ? data.emojis : [],
 
@@ -783,6 +847,7 @@ export default function AdminDashboardPage() {
     let r: DreamAdmin[] = dreamSearchQ
       ? dreamSearchRes?.matches ?? live.filter((x) => dreamMatchesQuery(x, dreamSearchQ))
       : live;
+    r = mergeGuestOrigins(r);
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);
     return r;
@@ -812,6 +877,7 @@ export default function AdminDashboardPage() {
       await updateDoc(doc(firestore, "guest_dreams", d.id), {
         deleted: true,
         deletedAtMs: Date.now(),
+        deletedBy: "admin",
       });
       return;
     }
@@ -821,6 +887,7 @@ export default function AdminDashboardPage() {
     await updateDoc(ref, {
       deleted: true,
       deletedAtMs: Date.now(),
+      deletedBy: "admin",
       shared: false,
       sharedAtMs: null,
     });
@@ -1779,20 +1846,20 @@ async function loadUsers() {
                       {isGuestRow(d) ? (
                         <span className="px-1.5 rounded bg-[rgba(234,179,8,0.25)] font-semibold">guest</span>
                       ) : null}
-                      {isGuestRow(d) && d.imported ? (
-                        <span title={`${d.importedUid ?? ""}/${d.importedDreamId ?? ""}`}>
-                          imported → <span className="font-mono">{d.importedUid}</span>
+                      {d.guestOrigin ? (
+                        <span
+                          className="px-1.5 rounded bg-[rgba(234,179,8,0.25)] font-semibold"
+                          title={`guest row ${d.guestOrigin.id}`}
+                        >
+                          from guest {d.guestOrigin.guestId?.slice(0, 8)}
                         </span>
                       ) : null}
-                      {d.createdAtMs ? <span>{safeDate(d.createdAtMs)}</span> : null}
-                      {d.dateKey ? <span>{d.dateKey}</span> : null}
-                      {d.timeKey ? <span>{d.timeKey}</span> : null}
-                      <span>
-                        shared: <b>{d.shared ? "yes" : "no"}</b>
-                      </span>
-                      <span>
-                        deleted: <b>{d.deleted ? "yes" : "no"}</b>
-                      </span>
+                      {d.shared ? (
+                        <span className="px-1.5 rounded bg-[rgba(16,185,129,0.22)] font-semibold">in feed</span>
+                      ) : null}
+                      {d.deleted ? (
+                        <span className="px-1.5 rounded bg-[rgba(239,68,68,0.25)] font-semibold">deleted</span>
+                      ) : null}
                       {dreamCityLabel(d) ? (
                         <span title={d.cityId ?? ""}>
                           city: <b>{dreamCityLabel(d)}</b>
@@ -1876,19 +1943,32 @@ async function loadUsers() {
                       </div>
                     ) : null}
 
-                    {d.analysis ? (
+                    {d.analysis || d.guestOrigin?.analysis ? (
                       <details className={`mt-2 text-xs ${mutedText}`}>
                         <summary className="cursor-pointer">
                           AI analysis
-                          {d.analysisLens ? ` · ${d.analysisLens}` : ""}
-                          {d.analysisModel ? ` · ${d.analysisModel}` : ""}
-                          {d.analysisAtMs ? ` · ${safeDate(d.analysisAtMs)}` : ""}
+                          {(d.analysisLens ?? d.guestOrigin?.analysisLens) ? ` · ${d.analysisLens ?? d.guestOrigin?.analysisLens}` : ""}
                         </summary>
-                        <div className="mt-1 whitespace-pre-wrap break-words">{d.analysis}</div>
+                        <div className="mt-1 whitespace-pre-wrap break-words">{d.analysis || d.guestOrigin?.analysis}</div>
                       </details>
                     ) : !onlyShared ? (
                       <div className={`mt-2 text-xs ${mutedText} opacity-70`}>no AI analysis saved</div>
                     ) : null}
+
+                    {(() => {
+                      const ev = dreamEvents(d);
+                      if (!ev.length) return null;
+                      return (
+                        <div className={`mt-3 border-t border-[var(--border)] pt-2 text-xs ${mutedText} space-y-0.5`}>
+                          {ev.map((e, i) => (
+                            <div key={`${d.id}_ev_${i}`} className="flex gap-3">
+                              <span className="font-mono shrink-0 opacity-80">{safeDate(e.atMs)}</span>
+                              <span className="break-words">{e.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">

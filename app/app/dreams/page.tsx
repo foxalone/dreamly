@@ -1280,6 +1280,7 @@ export default function DreamsPage() {
       await updateDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId), {
         deleted: true,
         deletedAtMs: nowMs,
+        deletedBy: "user",
         deletedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -1292,6 +1293,7 @@ export default function DreamsPage() {
       await updateDoc(doc(firestore, "shared_dreams", sharedId), {
         deleted: true,
         deletedAtMs: nowMs,
+        deletedBy: "user",
         title: "",
         text: "",
         wordCount: null,

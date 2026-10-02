@@ -34,6 +34,8 @@ type Row = {
   imported?: boolean;
   importedUid?: string | null;
   importedDreamId?: string | null;
+  importedAtMs?: number;
+  deletedBy?: string | null;
   analysis?: string;
   analysisModel?: string | null;
   analysisLens?: string | null;
@@ -112,6 +114,7 @@ function toGuestRow(id: string, data: any): Row {
     shared: false,
     deleted: !!data?.deleted,
     deletedAtMs: num(data?.deletedAtMs),
+    deletedBy: data?.deletedBy ?? null,
     emojis: Array.isArray(data?.emojis) ? data.emojis : [],
     cityId: data?.cityId ?? null,
     city: data?.city ?? null,
@@ -121,6 +124,7 @@ function toGuestRow(id: string, data: any): Row {
     imported: !!data?.imported,
     importedUid: data?.importedUid ?? null,
     importedDreamId: data?.importedDreamId ?? null,
+    importedAtMs: num(data?.importedAtMs),
   };
 }
 
@@ -145,6 +149,7 @@ function toRow(path: string, id: string, data: any, sourceType: "dream" | "story
     sharedAtMs: num(data?.sharedAtMs),
     deleted: !!data?.deleted,
     deletedAtMs: num(data?.deletedAtMs),
+    deletedBy: data?.deletedBy ?? null,
     emojis: Array.isArray(data?.emojis) ? data.emojis : [],
     cityId: data?.cityId ?? null,
     city: data?.city ?? null,
