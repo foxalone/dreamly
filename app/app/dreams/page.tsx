@@ -42,6 +42,7 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
+import { authorInitials } from "@/lib/authorInitials";
 
 
 import data from "@emoji-mart/data";
@@ -1085,8 +1086,10 @@ export default function DreamsPage() {
         ownerStoryId: type === "story" ? itemId : null,
         sourceType: type,
 
-        authorName: (u.displayName ?? "").trim() || null,
-        authorEmail: (u.email ?? "").trim() || null,
+        // Public doc: initials only, never the email/name (every field is world-readable).
+        authorName: null,
+        authorEmail: null,
+        authorInitials: authorInitials(u.email, u.displayName),
 
         title: item.title ?? "",
         text: item.text ?? "",

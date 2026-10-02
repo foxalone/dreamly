@@ -55,6 +55,7 @@ type SharedDream = {
   // author fields (saved when sharing)
   authorName?: string | null;
   authorEmail?: string | null;
+  authorInitials?: string | null;
 
   emojis?: DreamEmoji[] | any;
 
@@ -127,8 +128,11 @@ function normalizeEmojis(v: any): DreamEmoji[] {
   return [];
 }
 
-// ✅ initials from email (preferred), fallback to name; NEVER use ownerUid/uuid
+// ✅ initials stored at share time; legacy docs fall back to email/name; NEVER use ownerUid/uuid
 function authorLabel(d: SharedDream) {
+  const initials = (d.authorInitials ?? "").trim();
+  if (initials) return initials;
+
   const email = (d.authorEmail ?? "").trim();
   if (email) return email;
 
