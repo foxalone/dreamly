@@ -87,6 +87,12 @@ const RULES: Rule[] = [
     decided: "2026-10-03",
   },
   {
+    rule: "Лестница зданий (этап 1)",
+    value: "1-е: 15 → 1/мин · 2-е: 200 → 3/мин · 3-е: 1 000 → 5/мин",
+    note: "Каждое следующее здание дороже и приносит больше. Доход всех зданий суммируется (все три = 9 существ в минуту), офлайн тоже.",
+    decided: "2026-10-03",
+  },
+  {
     rule: "Существо → символ в словаре",
     value: "входит в этап 1",
     note: "Нажатие на существо открывает карточку «🐍 Змея во сне означает…» со ссылкой на страницу символа в словаре.",
@@ -101,13 +107,9 @@ const RULES: Rule[] = [
 ];
 
 const BUILDINGS = [
-  { name: "Шалаш", cost: "50", prod: "0.2 / сек" },
-  { name: "Домик", cost: "500", prod: "2 / сек" },
-  { name: "Башня", cost: "5 000", prod: "20 / сек" },
-  { name: "Замок", cost: "50 000", prod: "200 / сек" },
-  { name: "Дворец", cost: "500 000", prod: "2 000 / сек" },
-  { name: "Небесная цитадель", cost: "5 000 000", prod: "20 000 / сек" },
-  { name: "Дворец Онейроса", cost: "50 000 000", prod: "200 000 / сек" },
+  { name: "Здание 1", cost: "15", prod: "1 / мин" },
+  { name: "Здание 2", cost: "200", prod: "3 / мин" },
+  { name: "Здание 3", cost: "1 000", prod: "5 / мин" },
 ] as const;
 
 const RARITY = [
@@ -267,14 +269,14 @@ export default function DreamKingdomsDoc() {
               </tbody>
             </table>
           </div>
-          <h4 className="mt-5 text-sm font-semibold">Лестница построек (черновой баланс, ×10 за ступень)</h4>
+          <h4 className="mt-5 text-sm font-semibold">Лестница построек — этап 1 (решено)</h4>
           <div className="mt-2 overflow-x-auto rounded-xl border border-[var(--border)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className={thead}>
                   <th className={th}>Здание</th>
                   <th className={th}>Цена (существ)</th>
-                  <th className={th}>Производство</th>
+                  <th className={th}>Приносит</th>
                 </tr>
               </thead>
               <tbody>
