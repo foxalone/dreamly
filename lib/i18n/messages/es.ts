@@ -398,7 +398,7 @@ export const ES_MESSAGES: UiMessages = {
     rulesTitle: "Cómo jugar",
     rulesOpen: "Cómo jugar",
     rules: [
-      "🪶 Toca el atrapasueños y saldrán criaturas de los sueños (3 por toque como invitado, 5 con sesión iniciada).",
+      "🪶 Toca el atrapasueños y saldrán criaturas de los sueños.",
       "🏠 Gasta criaturas en construcciones. Cada una aparece en el mapa, en tu ciudad.",
       "🧺 Las construcciones siguen atrapando criaturas aunque no estés, hasta 8 horas. Toca una para recogerlas.",
       "➕ Compra más de la misma construcción: te dará todavía más.",

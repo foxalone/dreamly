@@ -398,7 +398,7 @@ export const EN_MESSAGES: UiMessages = {
     rulesTitle: "How to play",
     rulesOpen: "How to play",
     rules: [
-      "🪶 Tap the dream catcher — dream creatures fly out (3 per tap as a guest, 5 when signed in).",
+      "🪶 Tap the dream catcher — dream creatures fly out.",
       "🏠 Spend creatures on buildings. Each one stands on the map in your city.",
       "🧺 Buildings keep catching creatures even while you're away, up to 8 hours. Tap a building to collect them.",
       "➕ Buy more of the same building — it brings even more.",

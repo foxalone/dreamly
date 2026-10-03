@@ -398,7 +398,7 @@ export const PT_MESSAGES: UiMessages = {
     rulesTitle: "Como jogar",
     rulesOpen: "Como jogar",
     rules: [
-      "🪶 Toque no filtro dos sonhos e criaturas dos sonhos vão sair voando (3 por toque como visitante, 5 depois de entrar).",
+      "🪶 Toque no filtro dos sonhos e criaturas dos sonhos vão sair voando.",
       "🏠 Gaste criaturas em construções. Cada uma aparece no mapa, na sua cidade.",
       "🧺 As construções continuam capturando criaturas mesmo quando você não está, por até 8 horas. Toque nelas para coletar.",
       "➕ Compre mais da mesma construção — ela rende ainda mais.",

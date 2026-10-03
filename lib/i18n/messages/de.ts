@@ -398,7 +398,7 @@ export const DE_MESSAGES: UiMessages = {
     rulesTitle: "So wird gespielt",
     rulesOpen: "Spielregeln",
     rules: [
-      "🪶 Tippe auf den Traumfänger – Traumwesen fliegen heraus (als Gast 3 pro Tipp, angemeldet 5).",
+      "🪶 Tippe auf den Traumfänger – Traumwesen fliegen heraus.",
       "🏠 Gib Wesen für Gebäude aus. Jedes steht auf der Karte in deiner Stadt.",
       "🧺 Gebäude fangen weiter Wesen, auch wenn du nicht da bist – bis zu 8 Stunden. Tippe auf ein Gebäude, um sie einzusammeln.",
       "➕ Kauf mehr vom selben Gebäude – es bringt noch mehr.",
