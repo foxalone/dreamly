@@ -156,6 +156,22 @@ export default function ProfilePage() {
           {user && hasPaidAccess(billing) ? t.profile.manageSubscription : t.profile.subscribe}
         </button>
 
+        <button
+          onClick={doSignOut}
+          disabled={!user || busy}
+          className={`${pillBase} bg-red-600 text-white border-transparent hover:bg-red-500 ${pillDisabled}`}
+        >
+          {busy ? "..." : t.profile.signOut}
+        </button>
+
+        {isAdmin ? (
+          <Link
+            href="/app/profile/admin-dashboard"
+            className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
+          >
+            Admin dashboard
+          </Link>
+        ) : null}
         {user && hasPaidAccess(billing) ? (
           <div
             className="
@@ -280,24 +296,6 @@ export default function ProfilePage() {
         </Link>
       </div>
 
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={doSignOut}
-          disabled={!user || busy}
-          className={`${pillBase} bg-red-600 text-white border-transparent hover:bg-red-500 ${pillDisabled}`}
-        >
-          {busy ? "..." : t.profile.signOut}
-        </button>
-
-        {isAdmin ? (
-          <Link
-            href="/app/profile/admin-dashboard"
-            className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
-          >
-            Admin dashboard
-          </Link>
-        ) : null}
-      </div>
       <div className={`mt-10 w-full flex flex-wrap justify-center items-center gap-3 text-sm ${mutedText}`}>
         <LocaleLink href="/terms" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
           {t.legal.termsShort}
