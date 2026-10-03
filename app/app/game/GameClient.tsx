@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import LocaleLink from "@/lib/i18n/LocaleLink";
@@ -20,10 +20,20 @@ const PER_TAP_SIGNED_IN = 5;
 /** Client-side tap cap per second (the server will enforce its own cap too). */
 const MAX_TAPS_PER_SEC = 15;
 const FLIGHT_MS = 950;
-const TRAY_SIZE = 15;
 const STORAGE_KEY = "dreamly_game_v1";
 
-type Saved = { v: 1; creatures: number; taps: number; updatedAt: number };
+/** creatures = spendable balance; caught = how many of each creature (by slug) were ever caught;
+ *  recent = slugs in the order they were first discovered. */
+type Saved = {
+  v: 1;
+  creatures: number;
+  taps: number;
+  updatedAt: number;
+  caught: Record<string, number>;
+  recent: string[];
+};
+
+const EMPTY: Saved = { v: 1, creatures: 0, taps: 0, updatedAt: 0, caught: {}, recent: [] };
 
 type Flying = {
   id: number;
@@ -40,13 +50,25 @@ function loadSaved(): Saved {
     if (raw) {
       const p = JSON.parse(raw) as Partial<Saved>;
       if (typeof p.creatures === "number" && p.creatures >= 0) {
-        return { v: 1, creatures: Math.floor(p.creatures), taps: Math.floor(p.taps ?? 0), updatedAt: p.updatedAt ?? 0 };
+        const caught: Record<string, number> = {};
+        for (const [k, n] of Object.entries(p.caught ?? {})) {
+          if (typeof n === "number" && n > 0) caught[k] = Math.floor(n);
+        }
+        const recent = Array.isArray(p.recent) ? p.recent.filter((k) => typeof k === "string" && caught[k]) : [];
+        return {
+          v: 1,
+          creatures: Math.floor(p.creatures),
+          taps: Math.floor(p.taps ?? 0),
+          updatedAt: p.updatedAt ?? 0,
+          caught,
+          recent,
+        };
       }
     }
   } catch {
     /* storage unavailable — start fresh */
   }
-  return { v: 1, creatures: 0, taps: 0, updatedAt: 0 };
+  return EMPTY;
 }
 
 function persist(s: Saved) {
@@ -64,10 +86,13 @@ function pick<T>(arr: T[]): T {
 export default function GameClient({ pool }: { pool: Creature[] }) {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
-  const [saved, setSaved] = useState<Saved>({ v: 1, creatures: 0, taps: 0, updatedAt: 0 });
+  const [saved, setSaved] = useState<Saved>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [flying, setFlying] = useState<Flying[]>([]);
-  const [tray, setTray] = useState<Array<{ id: number; creature: Creature }>>([]);
+  /** Creatures still in the air, per slug — subtracted from the shown count until they land. */
+  const [inFlight, setInFlight] = useState<Record<string, number>>({});
+  /** Bumped per slug on landing to replay the badge "pop" animation. */
+  const [landTick, setLandTick] = useState<Record<string, number>>({});
   const [plus, setPlus] = useState<Array<{ id: number; n: number; x: number }>>([]);
   const [card, setCard] = useState<Creature | null>(null);
 
@@ -139,15 +164,46 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     const plusId = nextId.current++;
     setPlus((p) => [...p, { id: plusId, n: perTap, x: (Math.random() - 0.5) * 60 }]);
     setFlying((f) => [...f, ...born]);
-    setSaved((s) => ({ v: 1, creatures: s.creatures + perTap, taps: s.taps + 1, updatedAt: Date.now() }));
+    const add: Record<string, number> = {};
+    for (const b of born) add[b.creature.slug] = (add[b.creature.slug] ?? 0) + 1;
+    setInFlight((m) => {
+      const n = { ...m };
+      for (const [k, c] of Object.entries(add)) n[k] = (n[k] ?? 0) + c;
+      return n;
+    });
+    setSaved((s) => {
+      const caught = { ...s.caught };
+      for (const [k, c] of Object.entries(add)) caught[k] = (caught[k] ?? 0) + c;
+      // Discovery order: a creature keeps its place; first-time catches join at the end.
+      const recent = [...s.recent];
+      for (const b of born) if (!recent.includes(b.creature.slug)) recent.push(b.creature.slug);
+      return { v: 1, creatures: s.creatures + perTap, taps: s.taps + 1, updatedAt: Date.now(), caught, recent };
+    });
 
     window.setTimeout(() => {
       const ids = new Set(born.map((b) => b.id));
       setFlying((f) => f.filter((x) => !ids.has(x.id)));
-      setTray((t) => [...born.map((b) => ({ id: b.id, creature: b.creature })).reverse(), ...t].slice(0, TRAY_SIZE));
+      setInFlight((m) => {
+        const n = { ...m };
+        for (const [k, c] of Object.entries(add)) {
+          n[k] = (n[k] ?? 0) - c;
+          if (n[k] <= 0) delete n[k];
+        }
+        return n;
+      });
+      setLandTick((t) => {
+        const n = { ...t };
+        for (const k of Object.keys(add)) n[k] = (n[k] ?? 0) + 1;
+        return n;
+      });
     }, FLIGHT_MS + perTap * 40);
     window.setTimeout(() => setPlus((p) => p.filter((x) => x.id !== plusId)), 900);
   }, [perTap, pool, loaded]);
+
+  const bySlug = useMemo(() => new Map(pool.map((c) => [c.slug, c])), [pool]);
+  const collection = saved.recent
+    .map((slug) => ({ creature: bySlug.get(slug), count: (saved.caught[slug] ?? 0) - (inFlight[slug] ?? 0) }))
+    .filter((x): x is { creature: Creature; count: number } => !!x.creature && x.count > 0);
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-16 pt-6 select-none">
@@ -169,7 +225,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           type="button"
           onClick={tap}
           aria-label={`Tap the dream catcher (+${perTap} creatures)`}
-          className="dk-sway relative cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          className="dk-sway relative cursor-pointer border-0 bg-transparent p-0 outline-none"
           style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
         >
           <span className="dk-halo" aria-hidden />
@@ -216,22 +272,30 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         </div>
       </div>
 
-      {/* Recently caught */}
+      {/* Collection: one chip per creature type with how many were caught, in discovery order. */}
       <div className="mt-2 min-h-[64px]">
-        {tray.length ? (
+        {collection.length ? (
           <>
-            <div className="text-center text-xs text-[var(--muted)]">Tap a creature to see what it means in a dream</div>
-            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-              {tray.map((t) => (
+            <div className="text-center text-xs text-[var(--muted)]">
+              {collection.length} of {pool.length} creatures found · tap one to see what it means in a dream
+            </div>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {collection.map(({ creature, count }) => (
                 <button
-                  key={t.id}
+                  key={creature.slug}
                   type="button"
-                  onClick={() => setCard(t.creature)}
-                  className="dk-land flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-2xl transition hover:scale-110"
-                  aria-label={t.creature.name}
-                  title={t.creature.name}
+                  onClick={() => setCard(creature)}
+                  className="dk-land relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-2xl transition hover:scale-110"
+                  aria-label={`${creature.name}: ${count}`}
+                  title={creature.name}
                 >
-                  {t.creature.emoji}
+                  {creature.emoji}
+                  <span
+                    key={landTick[creature.slug] ?? 0}
+                    className="dk-bump absolute -right-1.5 -top-1.5 min-w-[22px] rounded-full bg-purple-500 px-1.5 text-center text-[11px] font-bold leading-[20px] text-white shadow"
+                  >
+                    {count > 999 ? `${Math.floor(count / 1000)}k` : count}
+                  </span>
                 </button>
               ))}
             </div>
@@ -314,6 +378,8 @@ const CSS = `
 @keyframes dk-plus { from { opacity:1; transform: translate(-50%,0); } to { opacity:0; transform: translate(-50%,-70px); } }
 .dk-land { animation: dk-land .35s ease-out both; }
 @keyframes dk-land { from { opacity:0; transform: scale(.4); } to { opacity:1; transform: scale(1); } }
+.dk-bump { animation: dk-bump .35s ease-out both; }
+@keyframes dk-bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); background:#f59e0b; } 100% { transform: scale(1); } }
 .dk-card { animation: dk-land .2s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   .dk-sway, .dk-catcher, .dk-halo { animation: none; }
