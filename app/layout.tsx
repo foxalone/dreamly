@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
+import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
@@ -7,27 +7,9 @@ import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
 import AppI18n from "@/lib/i18n/AppI18n";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "latin-ext"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const notoSans = Noto_Sans({
-  variable: "--font-noto-sans",
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const notoArabic = Noto_Sans_Arabic({
-  variable: "--font-noto-arabic",
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"],
-});
+// Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
+// because Google started returning extensionless /l/font?kit= URLs that break the Turbopack
+// build ("next/font/google queries have exactly one entry", next.js issue #99114).
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dreamly.art"),
@@ -63,10 +45,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${notoSans.variable} ${notoArabic.variable}`}
       suppressHydrationWarning
     >
       <head>
+        <link
+          rel="preload"
+          href="/fonts/geist-latin-wght-normal.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";["ar","ru"].forEach(function(l){c.toggle("locale-"+l,loc===l)});}catch(e){}})();`,
