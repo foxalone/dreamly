@@ -7,10 +7,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
+import { BUILDINGS } from "@/lib/game/buildings";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
-type MapFilter = "all" | "dreams" | "stories";
+type MapFilter = "all" | "dreams" | "stories" | "kingdoms";
+
+/** A placed Dream Kingdoms building (from /api/game/kingdoms). */
+type KingdomRow = { id: string; buildingId: string; cityId: string; place: string; lat: number; lng: number };
 
 type CityEmojiDoc = {
   cityId?: string;
@@ -98,6 +102,7 @@ function toTopItems(map: Record<string, number>, max: number): EmojiItem[] {
 }
 
 function itemsForFilter(city: CityRow, filter: MapFilter): EmojiItem[] {
+  if (filter === "kingdoms") return [];
   if (filter === "dreams") return city.dreamItems;
   if (filter === "stories") return city.storyItems;
   return toTopItems(
@@ -169,7 +174,7 @@ type MarkerEntry = {
   marker: mapboxgl.Marker;
   el: HTMLDivElement;
   // данные для попапа — обновляются при повторном использовании маркера
-  info: { emoji: string; count: number; filter: MapFilter; place: string; lngLat: [number, number] };
+  info: { emoji: string; count: number; filter: MapFilter; place: string; lngLat: [number, number]; label?: string };
 };
 
 // ---------- theme helpers ----------
@@ -210,6 +215,7 @@ const FILTERS: { key: MapFilter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "dreams", label: "Dreams" },
   { key: "stories", label: "Stories" },
+  { key: "kingdoms", label: "Kingdoms" },
 ];
 
 // ---------- component ----------
@@ -221,6 +227,7 @@ export default function MapPage() {
   const markersRef = useRef<Map<string, MarkerEntry>>(new Map());
   const dataRef = useRef<CityRow[]>([]);
   const filterRef = useRef<MapFilter>("all");
+  const kingdomsRef = useRef<KingdomRow[] | null>(null);
   const [filter, setFilter] = useState<MapFilter>("all");
 
   async function loadData() {
@@ -289,6 +296,22 @@ export default function MapPage() {
   }
 
   function openPopup(map: mapboxgl.Map, info: MarkerEntry["info"]) {
+    if (info.filter === "kingdoms") {
+      const locale = stripLocalePrefix(window.location.pathname).locale;
+      const html = `
+      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
+        <div style="font-size: 18px; line-height: 1.2;">${info.emoji} <b>${info.label ?? ""}</b></div>
+        <div style="opacity: .85; margin-top: 6px;">${info.place}</div>
+        <a href="${localePath("/app/game", locale)}" style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
+          Build your own kingdom →
+        </a>
+      </div>`;
+      if (!popupRef.current) {
+        popupRef.current = new mapboxgl.Popup({ closeButton: true, closeOnClick: true, maxWidth: "240px" });
+      }
+      popupRef.current.setLngLat(info.lngLat).setHTML(html).addTo(map);
+      return;
+    }
     const kindLabel =
       info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : "All";
 
@@ -348,6 +371,55 @@ export default function MapPage() {
 
     const existing = markersRef.current;
     const next = new Map<string, MarkerEntry>();
+
+    if (activeFilter === "kingdoms") {
+      const rows = kingdomsRef.current ?? [];
+      // Zoomed out: only the biggest building of each city; zoomed in: every building.
+      let shown = rows;
+      if (z < 6) {
+        const best = new Map<string, KingdomRow>();
+        const rank = (r: KingdomRow) => BUILDINGS.findIndex((b) => b.id === r.buildingId);
+        for (const r of rows) {
+          const cur = best.get(r.cityId);
+          if (!cur || rank(r) > rank(cur)) best.set(r.cityId, r);
+        }
+        shown = [...best.values()];
+      }
+      for (const r of shown) {
+        const b = BUILDINGS.find((x) => x.id === r.buildingId);
+        if (!b) continue;
+        const lngLat: [number, number] = [r.lng, r.lat];
+        const size = base * 1.5;
+        const info = { emoji: b.emoji, count: 0, filter: activeFilter, place: r.place, lngLat, label: b.name };
+        const key = `k|${r.id}`;
+        const prev = existing.get(key);
+        if (prev) {
+          existing.delete(key);
+          prev.el.style.fontSize = `${size}px`;
+          prev.info = info;
+          next.set(key, prev);
+          continue;
+        }
+        const el = document.createElement("div");
+        el.textContent = b.emoji;
+        el.style.fontSize = `${size}px`;
+        el.style.lineHeight = "1";
+        el.style.userSelect = "none";
+        el.style.cursor = "pointer";
+        el.style.filter = "drop-shadow(0 0 6px rgba(245,158,11,.6))";
+        if (isBehindGlobe(map, lngLat[0], lngLat[1])) {
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+        }
+        const marker = new mapboxgl.Marker({ element: el, anchor: "bottom" }).setLngLat(lngLat).addTo(map);
+        const entry: MarkerEntry = { marker, el, info };
+        el.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          openPopup(map, entry.info);
+        });
+        next.set(key, entry);
+      }
+    }
 
     for (const city of dataRef.current) {
       const items = itemsForFilter(city, activeFilter);
@@ -413,7 +485,26 @@ export default function MapPage() {
     filterRef.current = filter;
     const map = mapRef.current;
     if (map) renderMarkers(map);
+    if (filter === "kingdoms" && kingdomsRef.current === null) {
+      kingdomsRef.current = [];
+      fetch("/api/game/kingdoms")
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((data: { items?: KingdomRow[] }) => {
+          kingdomsRef.current = data.items ?? [];
+          const m = mapRef.current;
+          if (m && filterRef.current === "kingdoms") renderMarkers(m);
+        })
+        .catch(() => {});
+    }
   }, [filter]);
+
+  // /app/map?layer=kingdoms (from the game) opens straight on the Kingdoms layer.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("layer") === "kingdoms") {
+      const t = window.setTimeout(() => setFilter("kingdoms"), 0);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
 
   useEffect(() => {
     if (!mapElRef.current) return;

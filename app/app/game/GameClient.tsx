@@ -186,6 +186,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   /** Tier just unlocked — shows the "new creatures" banner for a few seconds. */
   const [unlocked, setUnlocked] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  /** Buildings already standing on the map (from the server), by id → city. */
+  const [placed, setPlaced] = useState<Record<string, string>>({});
+  const [placing, setPlacing] = useState<string | null>(null);
 
   const catcherRef = useRef<HTMLImageElement | null>(null);
   const mainRef = useRef<HTMLElement | null>(null);
@@ -205,7 +208,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       }
       setUser(u);
       setAuthReady(true);
+      loadPlaced(u);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- subscribe once; loadPlaced only reads its argument
   }, []);
 
   useEffect(() => {
@@ -239,6 +244,57 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   }, [card]);
 
   const perTap = user ? PER_TAP_SIGNED_IN : PER_TAP_GUEST;
+
+  function showToast(text: string, ms = 2600) {
+    setToast(text);
+    window.setTimeout(() => setToast((t) => (t === text ? null : t)), ms);
+  }
+
+  async function authHeaders(u: User | null): Promise<Record<string, string>> {
+    const token = u ? await u.getIdToken().catch(() => "") : "";
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  async function loadPlaced(u: User | null) {
+    try {
+      const res = await fetch("/api/game/buildings", { headers: await authHeaders(u), cache: "no-store" });
+      const data = (await res.json()) as { placed?: Array<{ buildingId: string; city: string }> };
+      setPlaced(Object.fromEntries((data.placed ?? []).map((p) => [p.buildingId, p.city])));
+    } catch {
+      /* offline: the column just shows nothing placed */
+    }
+  }
+
+  /** Build = pay the cost and put the building on the map in the player's city. */
+  async function placeBuilding(b: (typeof BUILDINGS)[number]) {
+    if (placing || placed[b.id] !== undefined || saved.creatures < b.cost) return;
+    setPlacing(b.id);
+    try {
+      const res = await fetch("/api/game/buildings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await authHeaders(user)) },
+        body: JSON.stringify({ buildingId: b.id }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; already?: boolean; code?: string; city?: string };
+      if (data.ok) {
+        if (!data.already) {
+          setSaved((s) => ({ ...s, creatures: Math.max(0, s.creatures - b.cost), updatedAt: Date.now() }));
+        }
+        setPlaced((p) => ({ ...p, [b.id]: data.city ?? "" }));
+        showToast(`${b.emoji} ${b.name} is on the map${data.city ? ` in ${data.city}` : ""} 🌍`, 3500);
+      } else if (data.code === "AUTH_REQUIRED") {
+        showToast("Sign in to build more — guests can place only the Hut", 3500);
+      } else if (data.code === "NO_CITY") {
+        showToast("Couldn't detect your city — try again later", 3500);
+      } else {
+        showToast("Something went wrong — try again");
+      }
+    } catch {
+      showToast("No connection — try again");
+    } finally {
+      setPlacing(null);
+    }
+  }
   const lifetime = lifetimeOf(saved);
   const tierNow = openTier(lifetime);
   const upcoming = nextTier(lifetime);
@@ -495,39 +551,66 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             <div className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Buildings</div>
           ) : null}
           {BUILDINGS.map((b) => {
-            const canBuild = saved.creatures >= b.cost;
-            return (
-              <button
-                key={b.id}
-                type="button"
-                disabled={!canBuild}
-                onClick={() => {
-                  setToast(`${b.emoji} ${b.name} — building opens soon`);
-                  window.setTimeout(() => setToast(null), 2200);
-                }}
-                title={`${b.name} · ${b.cost.toLocaleString()} creatures · +${b.perMin}/min`}
-                className={[
-                  "flex items-center gap-2 rounded-xl border text-left transition",
-                  wideCol ? "px-2 py-1.5" : "justify-center py-1.5",
-                  canBuild
-                    ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.35)] hover:scale-[1.03]"
-                    : "cursor-not-allowed border-transparent [&_.bdim]:opacity-40 [&_.bdim]:grayscale",
-                ].join(" ")}
-              >
+            const isPlaced = placed[b.id] !== undefined;
+            const ready = !isPlaced && saved.creatures >= b.cost;
+            const busy = placing === b.id;
+            const cls = [
+              "relative flex items-center gap-2 rounded-xl border text-left transition",
+              wideCol ? "px-2 py-1.5" : "justify-center py-1.5",
+              isPlaced
+                ? "border-emerald-400/60 bg-[color-mix(in_srgb,#10b981_10%,var(--card))]"
+                : ready
+                  ? "dk-ring border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.35)]"
+                  : "cursor-not-allowed border-transparent [&_.bdim]:opacity-40 [&_.bdim]:grayscale",
+            ].join(" ");
+            const inner = (
+              <>
                 <span className="flex flex-col items-center gap-1">
-                  <span className="bdim text-2xl leading-none">{b.emoji}</span>
-                  {!wideCol ? <MiniBar value={saved.creatures / b.cost} /> : null}
+                  <span className="bdim relative text-2xl leading-none">
+                    {b.emoji}
+                    {isPlaced ? (
+                      <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden>
+                        🌍
+                      </span>
+                    ) : null}
+                  </span>
+                  {!wideCol && !isPlaced ? <MiniBar value={saved.creatures / b.cost} /> : null}
                 </span>
                 {wideCol ? (
                   <span className="min-w-0 flex-1">
                     <span className="bdim block truncate text-sm font-semibold">{b.name}</span>
-                    <span className="bdim flex justify-between text-[11px] text-[var(--muted)]">
-                      <span className="tabular-nums">{shortNumber(b.cost)}</span>
-                      <span className="tabular-nums">+{b.perMin}/min</span>
-                    </span>
-                    <MiniBar value={saved.creatures / b.cost} />
+                    {isPlaced ? (
+                      <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        On the map{placed[b.id] ? ` · ${placed[b.id]}` : ""}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="bdim flex justify-between text-[11px] text-[var(--muted)]">
+                          <span className="tabular-nums">{busy ? "Placing…" : ready ? "Tap to build" : shortNumber(b.cost)}</span>
+                          <span className="tabular-nums">+{b.perMin}/min</span>
+                        </span>
+                        <MiniBar value={saved.creatures / b.cost} />
+                      </>
+                    )}
                   </span>
                 ) : null}
+              </>
+            );
+            const title = `${b.name} · ${b.cost.toLocaleString()} creatures · +${b.perMin}/min`;
+            return isPlaced ? (
+              <LocaleLink key={b.id} href="/app/map?layer=kingdoms" className={cls} title={`${b.name} — on the map`}>
+                {inner}
+              </LocaleLink>
+            ) : (
+              <button
+                key={b.id}
+                type="button"
+                disabled={!ready || busy}
+                onClick={() => placeBuilding(b)}
+                title={title}
+                className={cls}
+              >
+                {inner}
               </button>
             );
           })}
@@ -606,6 +689,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 const CSS = `
 .dk-title { background: linear-gradient(90deg, #7c3aed, #c026d3 45%, #f59e0b); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 1px 6px rgba(168,85,247,.25)); letter-spacing: .02em; }
+.dk-ring { animation: dk-ring 2.4s ease-in-out infinite; transform-origin: 50% 20%; }
+@keyframes dk-ring { 0%, 70%, 100% { rotate: 0deg; } 74% { rotate: -4deg; } 78% { rotate: 4deg; } 82% { rotate: -3deg; } 86% { rotate: 3deg; } 90% { rotate: -1deg; } 94% { rotate: 1deg; } }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
@@ -631,7 +716,7 @@ const CSS = `
 @keyframes dk-bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); background:#f59e0b; } 100% { transform: scale(1); } }
 .dk-card { animation: dk-land .2s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
-  .dk-sway, .dk-catcher, .dk-halo, .dk-float { animation: none; }
+  .dk-sway, .dk-catcher, .dk-halo, .dk-float, .dk-ring { animation: none; }
   .dk-fly { animation-duration: 1ms !important; }
 }
 `;
