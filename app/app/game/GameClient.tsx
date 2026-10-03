@@ -7,7 +7,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { BUILDINGS, shortNumber } from "@/lib/game/buildings";
-import { CHAPTER1_LAST_TIER, CREATURE_TIERS, NEWEST_TIER_WEIGHT, chapterOneDone, nextTier, openTier } from "@/lib/game/creatureTiers";
+import { CHAPTER1_LAST_TIER, CREATURE_TIERS, chapterOneDone, creatureWeight, nextTier, openTier } from "@/lib/game/creatureTiers";
 import {
   MAX_TAPS_PER_SEC,
   PER_TAP_GUEST,
@@ -155,9 +155,9 @@ function computeLayout(n: number, box: Box): Layout {
   return { chip: CHIP, catcherH, cx, cy, originY: cy - catcherH * 0.2, spots };
 }
 
-/** Random creature from the open tiers; the newest open tier is weighted up so new kinds appear soon. */
+/** Random creature from the open tiers, by rarity; the newest open tier is weighted up so new kinds appear soon. */
 function pickCreature(available: Creature[], newestTier: number): Creature {
-  const w = (c: Creature) => (newestTier > 1 && c.tier === newestTier ? NEWEST_TIER_WEIGHT : 1);
+  const w = (c: Creature) => creatureWeight(c.slug, newestTier);
   let total = 0;
   for (const c of available) total += w(c);
   let r = Math.random() * total;

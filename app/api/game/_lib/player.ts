@@ -4,7 +4,7 @@
 
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { BUILDINGS } from "@/lib/game/buildings";
-import { CREATURE_TIERS, chapterOneDone, openTier } from "@/lib/game/creatureTiers";
+import { CREATURE_TIERS, chapterOneDone, creatureWeight, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
 import type { Owner } from "./owner";
@@ -121,6 +121,12 @@ export function openSlugs(lifetime: number, caught?: Record<string, number>): st
   return CREATURE_TIERS.filter((x) => x.tier <= t).flatMap((x) => x.slugs);
 }
 
+/** Server-side split of `n` creatures over the open kinds, by rarity (newest tier boosted). */
+function distributeOpen(n: number, lifetime: number, caught: Record<string, number>, slugs?: string[]) {
+  const t = openTier(lifetime, chapterOneDone(caught));
+  return distribute(n, slugs ?? openSlugs(lifetime, caught), Math.random, (s) => creatureWeight(s, t));
+}
+
 function addCatches(p: PlayerDoc, add: Record<string, number>) {
   for (const [slug, n] of Object.entries(add)) {
     if (n <= 0) continue;
@@ -144,7 +150,7 @@ export function collectInto(p: PlayerDoc, now: number, only?: string | string[])
   const amount = st.total;
   if (amount <= 0) return 0;
   p.creatures += amount;
-  addCatches(p, distribute(amount, openSlugs(p.lifetime, p.caught)));
+  addCatches(p, distributeOpen(amount, p.lifetime, p.caught));
   p.lifetime += amount;
   return amount;
 }
@@ -170,7 +176,7 @@ export function applyTaps(p: PlayerDoc, taps: number, catches: Record<string, nu
     sum += take;
   }
   if (sum < n) {
-    for (const [slug, c] of Object.entries(distribute(n - sum, [...open]))) clean[slug] = (clean[slug] ?? 0) + c;
+    for (const [slug, c] of Object.entries(distributeOpen(n - sum, p.lifetime + n, p.caught, [...open]))) clean[slug] = (clean[slug] ?? 0) + c;
   }
   addCatches(p, clean);
   p.creatures += n;

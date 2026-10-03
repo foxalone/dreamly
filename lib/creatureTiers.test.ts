@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CHAPTER1_LAST_TIER, CHAPTER1_SLUGS, CREATURE_TIERS, chapterOneDone, nextTier, openTier } from "./game/creatureTiers";
+import { CHAPTER1_LAST_TIER, CHAPTER1_SLUGS, CREATURE_RARITY, CREATURE_TIERS, chapterOneDone, creatureWeight, nextTier, openTier } from "./game/creatureTiers";
 import { DREAM_DICTIONARY } from "./dream-dictionary";
 
 test("every creature is a top-level dictionary symbol, listed once, with a unique emoji", () => {
@@ -35,4 +35,12 @@ test("chapter 2 stays hidden until every chapter-1 creature is caught", () => {
   assert.equal(openTier(huge, true), CREATURE_TIERS.length);
   assert.equal(openTier(30_000_000, true), 7);
   assert.equal(nextTier(30_000_000, true)?.tier, 8);
+});
+
+test("rarity: every rare kind is a real creature, every tier keeps common kinds, epic is far rarer", () => {
+  const all = new Set(CREATURE_TIERS.flatMap((t) => t.slugs));
+  for (const slug of Object.keys(CREATURE_RARITY)) assert.ok(all.has(slug), `unknown rarity slug: ${slug}`);
+  for (const t of CREATURE_TIERS) assert.ok(t.slugs.some((s) => !CREATURE_RARITY[s]), `tier ${t.tier} has no common kind`);
+  assert.ok(creatureWeight("dog") / creatureWeight("ladybug") >= 20);
+  assert.ok(creatureWeight("whale", 3) > creatureWeight("whale", 2));
 });

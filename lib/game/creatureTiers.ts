@@ -67,6 +67,48 @@ function tierVisible(tier: CreatureTier, chapter1Done: boolean): boolean {
 /** Creatures of the newest open tier come out this many times more often, so new kinds show up quickly. */
 export const NEWEST_TIER_WEIGHT = 3;
 
+/**
+ * Rarity inside a tier, so the counters are not all alike: most kinds are common, a few are
+ * uncommon, some are rare and one or two per tier are very rare ("epic" — a few in a thousand).
+ * Anything not listed is common.
+ */
+export type Rarity = "common" | "uncommon" | "rare" | "epic";
+
+export const CREATURE_RARITY: Record<string, Exclude<Rarity, "common">> = {
+  // tier 1
+  goat: "uncommon", frog: "uncommon", butterfly: "rare", snail: "rare", ladybug: "epic",
+  // tier 2
+  parrot: "uncommon", monkey: "uncommon", swan: "rare", panda: "rare", peacock: "epic",
+  // tier 3
+  eagle: "uncommon", wolf: "uncommon", octopus: "rare", dolphin: "rare", whale: "epic",
+  // tier 4
+  tiger: "uncommon", shark: "rare", dinosaur: "epic",
+  // tier 5
+  fairy: "uncommon", mermaid: "rare", unicorn: "epic",
+  // tier 6
+  wizard: "uncommon", dragon: "rare", phoenix: "epic",
+  // tier 7
+  boat: "uncommon", train: "uncommon", mirror: "rare", keys: "rare", ring: "epic",
+  // tier 8
+  airport: "uncommon", tunnel: "rare", flying: "rare", elevator: "epic",
+  // tier 9
+  earthquake: "uncommon", tornado: "rare", celebrity: "rare", lottery: "epic", heaven: "epic",
+};
+
+export const RARITY_WEIGHT: Record<Rarity, number> = { common: 10, uncommon: 5, rare: 1.5, epic: 0.4 };
+
+export function rarityOf(slug: string): Rarity {
+  return CREATURE_RARITY[slug] ?? "common";
+}
+
+const TIER_OF: Record<string, number> = Object.fromEntries(CREATURE_TIERS.flatMap((t) => t.slugs.map((s) => [s, t.tier])));
+
+/** Relative chance of a creature coming out: its rarity, boosted when it belongs to the newest open tier. */
+export function creatureWeight(slug: string, newestTier = 0): number {
+  const boost = newestTier > 1 && TIER_OF[slug] === newestTier ? NEWEST_TIER_WEIGHT : 1;
+  return RARITY_WEIGHT[rarityOf(slug)] * boost;
+}
+
 /** Highest tier open for a player who has caught `lifetime` creatures in total. */
 export function openTier(lifetime: number, chapter1Done = false): number {
   let t = 1;

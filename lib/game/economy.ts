@@ -57,14 +57,29 @@ export function allowedTaps(elapsedMs: number): number {
  * Split `n` creatures among `slugs` at random (used for creatures collected from buildings,
  * so the collection counters grow too). Weighted: the newest kinds come a bit more often.
  */
-export function distribute(n: number, slugs: string[], rand: () => number = Math.random): Record<string, number> {
+export function distribute(
+  n: number,
+  slugs: string[],
+  rand: () => number = Math.random,
+  weight: (slug: string) => number = () => 1
+): Record<string, number> {
   const out: Record<string, number> = {};
   if (n <= 0 || !slugs.length) return out;
   const picks = Math.min(n, 60);
   const base = Math.floor(n / picks);
   let rest = n - base * picks;
+  const ws = slugs.map((s) => Math.max(0, weight(s)));
+  const total = ws.reduce((a, b) => a + b, 0) || 1;
+  const pick = () => {
+    let r = rand() * total;
+    for (let k = 0; k < slugs.length; k++) {
+      r -= ws[k];
+      if (r < 0) return slugs[k];
+    }
+    return slugs[slugs.length - 1];
+  };
   for (let i = 0; i < picks; i++) {
-    const slug = slugs[Math.floor(rand() * slugs.length)];
+    const slug = pick();
     const add = base + (rest > 0 ? 1 : 0);
     if (rest > 0) rest--;
     out[slug] = (out[slug] ?? 0) + add;
