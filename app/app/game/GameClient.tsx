@@ -207,9 +207,10 @@ function TweenNumber({ value }: { value: number }) {
 }
 
 /** A building's storage: how many creatures are waiting inside; amber and ringing when full. */
-function Cube({ amount, full }: { amount: number; full: boolean }) {
+function Cube({ amount, full, title }: { amount: number; full: boolean; title?: string }) {
   return (
     <span
+      title={title}
       className={`mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
         full
           ? "border-amber-400 bg-amber-400 text-black"
@@ -726,7 +727,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           {creatures}
         </span>
         {loaded && upcoming ? (
-          <div className="mt-2 w-full max-w-[min(100%,26rem)]">
+          <div className="pointer-events-auto mt-2 w-full max-w-[min(100%,26rem)] cursor-default" title={t.progressHint}>
             {/* Just the bar: progress to the next tier, no numbers or labels. */}
             <div className="h-3 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
               <div
@@ -774,6 +775,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             type="button"
             onClick={tap}
             aria-label={formatMessage(t.tapAria, { n: perTap })}
+            title={formatMessage(t.tapAria, { n: perTap })}
             className="dk-sway absolute cursor-pointer border-0 bg-transparent p-0 outline-none"
             style={{
               left: layout.cx,
@@ -901,13 +903,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   <span className="bdim relative text-2xl leading-none">
                     {b.emoji}
                     {isPlaced ? (
-                      <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden>
+                      <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden title={t.onMap}>
                         🌍
                       </span>
                     ) : null}
                   </span>
                   {!wideCol && !isPlaced ? <MiniBar value={creaturesShown / b.cost} /> : null}
-                  {!wideCol && cube ? <Cube amount={cube.amount} full={cube.full} /> : null}
+                  {!wideCol && cube ? <Cube amount={cube.amount} full={cube.full} title={formatMessage(t.collect, { n: cube.amount.toLocaleString() })} /> : null}
                 </span>
                 {wideCol ? (
                   <span className="min-w-0 flex-1">
@@ -921,9 +923,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                           {t.onMap}{placed[b.id] ? ` · ${placed[b.id]}` : ""}
                         </span>
                         {cube ? (
-                          <Cube amount={cube.amount} full={cube.full} />
+                          <Cube amount={cube.amount} full={cube.full} title={formatMessage(t.collect, { n: cube.amount.toLocaleString() })} />
                         ) : (
-                          <span className="dk-live mt-1 inline-block text-[11px] font-semibold tabular-nums text-amber-500">
+                          <span title={t.liveHint} className="dk-live mt-1 inline-block text-[11px] font-semibold tabular-nums text-amber-500">
                             ✨ {formatMessage(t.perMin, { n: b.perMin * ownedOf(b.id) })}
                           </span>
                         )}
@@ -947,10 +949,16 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
               <div key={b.id} className="relative">
                 <button
                   type="button"
-                  onClick={() => void collect(b.id)}
-                  disabled={collecting || !cube?.amount}
+                  onClick={() => {
+                    if (!collecting && cube?.amount) void collect(b.id);
+                  }}
+                  aria-disabled={collecting || !cube?.amount}
                   className={`${cls} w-full`}
-                  title={cube?.amount ? formatMessage(t.collect, { n: cube.amount.toLocaleString() }) : bName}
+                  title={
+                    cube?.amount
+                      ? `${bName} · ${formatMessage(t.collect, { n: cube.amount.toLocaleString() })}`
+                      : `${bName} · ${t.liveHint} · ${formatMessage(t.perMin, { n: b.perMin * ownedOf(b.id) })}`
+                  }
                 >
                   {inner}
                 </button>
@@ -961,8 +969,10 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   return (
                     <button
                       type="button"
-                      onClick={() => void placeBuilding(b)}
-                      disabled={!can || busy}
+                      onClick={() => {
+                        if (can && !busy) void placeBuilding(b);
+                      }}
+                      aria-disabled={!can || busy}
                       title={`${t.buyMore} · ${price.toLocaleString()}`}
                       className={`mt-1 flex w-full items-center gap-2 rounded-lg border px-2 py-0.5 text-[11px] font-semibold transition ${
                         can
@@ -996,8 +1006,10 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
               <button
                 key={b.id}
                 type="button"
-                disabled={!ready || busy}
-                onClick={() => placeBuilding(b)}
+                aria-disabled={!ready || busy}
+                onClick={() => {
+                  if (ready && !busy) void placeBuilding(b);
+                }}
                 title={title}
                 className={cls}
               >
@@ -1019,7 +1031,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* All-time catch counter (Cookie Clicker's "baked all time"), bottom-left, fairy-tale numerals. */}
       {loaded ? (
-        <div className="pointer-events-none absolute bottom-3 left-4 z-10 select-none" aria-live="polite">
+        <div className="group pointer-events-auto absolute bottom-3 left-4 z-10 cursor-default select-none" aria-live="polite" title={t.lifetimeLabel}>
           <div
             key={Math.floor(lifetimeShown / 1000)}
             className="dk-lifetime dk-title text-3xl leading-none tabular-nums sm:text-4xl"
@@ -1027,7 +1039,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           >
             <TweenNumber value={lifetimeShown} />
           </div>
-          <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+          {/* The label shows only on hover, so the number stands alone. */}
+          <div className="pointer-events-none absolute bottom-full left-0 mb-1 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             ✦ {t.lifetimeLabel} ✦
           </div>
         </div>
@@ -1182,12 +1195,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   <button
                     key={c.slug}
                     type="button"
-                    disabled={!have}
+                    aria-disabled={!have}
                     onClick={() => {
+                      if (!have) return;
                       setShowCollection(false);
                       setCard(c);
                     }}
-                    title={have ? c.name : locked ? t.collectionLocked : "?"}
+                    title={have ? c.name : locked ? t.collectionLocked : t.notCaughtYet}
                     className={`relative flex aspect-square items-center justify-center rounded-lg text-2xl transition ${
                       have
                         ? "dk-piece-have hover:scale-110"

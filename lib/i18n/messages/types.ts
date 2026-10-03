@@ -335,6 +335,9 @@ export type UiMessages = {
     tapToBuild: string;
     buyMore: string;
     lifetimeLabel: string;
+    progressHint: string;
+    liveHint: string;
+    notCaughtYet: string;
     collectionTitle: string;
     collectionOpen: string;
     collectionHint: string;
