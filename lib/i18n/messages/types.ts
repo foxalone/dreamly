@@ -335,6 +335,10 @@ export type UiMessages = {
     tapToBuild: string;
     buyMore: string;
     lifetimeLabel: string;
+    collectionTitle: string;
+    collectionOpen: string;
+    collectionHint: string;
+    collectionLocked: string;
     copyToast: string;
     placing: string;
     onMap: string;

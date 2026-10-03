@@ -216,6 +216,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [landTick, setLandTick] = useState<Record<string, number>>({});
   const [plus, setPlus] = useState<Array<{ id: number; n: number; x: number }>>([]);
   const [card, setCard] = useState<Creature | null>(null);
+  const [showCollection, setShowCollection] = useState(false);
   /** Tier just unlocked — shows the "new creatures" banner for a few seconds. */
   const [unlocked, setUnlocked] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -378,6 +379,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       root.style.overflow = prev;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showCollection) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setShowCollection(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showCollection]);
 
   useEffect(() => {
     if (!card) return;
@@ -546,6 +554,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   };
 
   const bySlug = useMemo(() => new Map(pool.map((c) => [c.slug, c])), [pool]);
+  const foundCount = pool.reduce((n, c) => n + ((caught[c.slug] ?? 0) > 0 ? 1 : 0), 0);
   const collection = recent
     .map((slug) => ({ creature: bySlug.get(slug), count: (caught[slug] ?? 0) - (inFlight[slug] ?? 0) }))
     .filter((x): x is { creature: Creature; count: number } => !!x.creature && x.count > 0);
@@ -872,7 +881,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       ) : null}
 
       {/* Bottom line: first hint, and for guests the sign-in offer (stronger once there is something to lose). */}
-      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)] sm:pl-56" style={{ right: colW }}>
+      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)] sm:pl-56 sm:pr-20" style={{ right: colW }}>
         {authReady && !user && loaded && (creatures >= 200 || placed.hut !== undefined) ? (
           <div className="dk-card mx-auto inline-flex max-w-md flex-wrap items-center justify-center gap-2 rounded-2xl border border-purple-400/50 bg-[color-mix(in_srgb,#a855f7_10%,var(--card))] px-3 py-2 text-sm text-[var(--text)]">
             <span>{formatMessage(t.keepProgress, { n: creatures.toLocaleString(), u: PER_TAP_SIGNED_IN, g: PER_TAP_GUEST })}</span>
@@ -895,6 +904,99 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           </>
         )}
       </div>
+
+      {/* Collection puzzle: small 3×3 at the bottom-right of the stage, lit in proportion to what is collected. */}
+      {loaded && box.w > 0 ? (
+        <button
+          type="button"
+          onClick={() => setShowCollection(true)}
+          aria-label={t.collectionOpen}
+          title={t.collectionTitle}
+          className="dk-puzzle absolute bottom-3 z-20 rounded-xl p-1.5 transition hover:scale-110"
+          style={{ right: colW + 12 }}
+        >
+          <span className="grid grid-cols-3 gap-[3px]">
+            {Array.from({ length: 9 }, (_, i) => {
+              const lit = i < Math.round((foundCount / Math.max(1, pool.length)) * 9) || (i === 0 && foundCount > 0);
+              return (
+                <span
+                  key={i}
+                  className={`block h-3.5 w-3.5 rounded-[4px] ${lit ? "dk-piece-lit" : "bg-[color-mix(in_srgb,var(--text)_14%,transparent)]"}`}
+                />
+              );
+            })}
+          </span>
+        </button>
+      ) : null}
+
+      {showCollection ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowCollection(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.collectionTitle}
+        >
+          <div
+            className="dk-card max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-3xl border border-amber-400/40 bg-[var(--card)] p-5 text-[var(--text)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2
+                  className="dk-title text-2xl leading-tight"
+                  style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+                >
+                  {t.collectionTitle}
+                </h2>
+                <p className="mt-1 text-xs text-[var(--muted)]">{t.collectionHint}</p>
+              </div>
+              <div className="text-right">
+                <div
+                  className="dk-title text-2xl tabular-nums"
+                  style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+                >
+                  {foundCount}/{pool.length}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCollection(false)}
+                  className="mt-1 text-xs font-semibold text-[var(--muted)] underline underline-offset-2"
+                >
+                  {t.close}
+                </button>
+              </div>
+            </div>
+            {/* The big puzzle: one piece per creature, in tier order. */}
+            <div className="mt-4 grid grid-cols-6 gap-1.5 rounded-2xl border border-amber-400/30 bg-[color-mix(in_srgb,#f59e0b_6%,transparent)] p-2 sm:grid-cols-8">
+              {pool.map((c) => {
+                const have = (caught[c.slug] ?? 0) > 0;
+                const locked = !have && c.tier > tierNow;
+                return (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    disabled={!have}
+                    onClick={() => {
+                      setShowCollection(false);
+                      setCard(c);
+                    }}
+                    title={have ? c.name : locked ? t.collectionLocked : "?"}
+                    className={`relative flex aspect-square items-center justify-center rounded-lg text-2xl transition ${
+                      have
+                        ? "dk-piece-have hover:scale-110"
+                        : "cursor-default bg-[color-mix(in_srgb,var(--text)_8%,transparent)]"
+                    }`}
+                  >
+                    <span className={have ? "" : "opacity-25 grayscale"}>{c.emoji}</span>
+                    {locked ? <span className="absolute bottom-0.5 right-1 text-[9px] opacity-60">🔒</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* "While you were away" */}
       {away && !card ? (
@@ -979,6 +1081,12 @@ const CSS = `
 @keyframes dk-ring { 0%, 70%, 100% { rotate: 0deg; } 74% { rotate: -4deg; } 78% { rotate: 4deg; } 82% { rotate: -3deg; } 86% { rotate: 3deg; } 90% { rotate: -1deg; } 94% { rotate: 1deg; } }
 .dk-lifetime { animation: dk-lifetime .6s ease-out both; text-shadow: none; filter: drop-shadow(0 0 10px rgba(245,158,11,.35)) drop-shadow(0 1px 6px rgba(168,85,247,.3)); }
 @keyframes dk-lifetime { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+.dk-puzzle { background: color-mix(in srgb, var(--card) 80%, transparent); border: 1px solid rgba(245,158,11,.45);
+  box-shadow: 0 0 14px rgba(245,158,11,.25), 0 0 22px rgba(168,85,247,.18); animation: dk-puzzle 3.2s ease-in-out infinite; }
+@keyframes dk-puzzle { 0%,100% { box-shadow: 0 0 10px rgba(245,158,11,.2), 0 0 18px rgba(168,85,247,.12); } 50% { box-shadow: 0 0 18px rgba(245,158,11,.45), 0 0 28px rgba(168,85,247,.3); } }
+.dk-piece-lit { background: linear-gradient(135deg, #a855f7, #f59e0b); box-shadow: 0 0 6px rgba(245,158,11,.6); }
+.dk-piece-have { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, #f59e0b 22%, var(--card)), color-mix(in srgb, #a855f7 16%, var(--card)));
+  border: 1px solid rgba(245,158,11,.55); box-shadow: inset 0 0 8px rgba(245,158,11,.2); }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
@@ -1004,7 +1112,7 @@ const CSS = `
 @keyframes dk-bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); background:#f59e0b; } 100% { transform: scale(1); } }
 .dk-card { animation: dk-land .2s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
-  .dk-sway, .dk-catcher, .dk-halo, .dk-float, .dk-ring { animation: none; }
+  .dk-sway, .dk-catcher, .dk-halo, .dk-float, .dk-ring, .dk-puzzle { animation: none; }
   .dk-fly { animation-duration: 1ms !important; }
 }
 `;
