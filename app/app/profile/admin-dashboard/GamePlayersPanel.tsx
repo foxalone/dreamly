@@ -38,6 +38,38 @@ export default function GamePlayersPanel() {
   const [players, setPlayers] = useState<Player[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [onlyUsers, setOnlyUsers] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
+
+  /** Wipe MY game progress (server + this browser) to test the game from scratch. */
+  async function resetMine() {
+    if (resetting) return;
+    if (!confirm("Сбросить ТВОЙ прогресс в Dream Kingdoms?\nСущества, коллекция и здания на карте будут удалены. Других игроков это не трогает.")) return;
+    setResetting(true);
+    setResetMsg(null);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch("/api/admin/game/reset", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = (await res.json()) as { ok?: boolean; buildingsRemoved?: number; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      for (const key of ["dreamly_game_v1", "dreamly_game_pending_v2", "dreamly_game_hint"]) {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          /* ignore */
+        }
+      }
+      setResetMsg(`Готово: прогресс сброшен, зданий удалено с карты — ${data.buildingsRemoved ?? 0}. Открой /app/game.`);
+      void load();
+    } catch (e) {
+      setResetMsg(e instanceof Error ? `Ошибка: ${e.message}` : "Ошибка");
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function load() {
     setError(null);
@@ -84,10 +116,19 @@ export default function GamePlayersPanel() {
           <button type="button" onClick={() => void load()} className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-semibold">
             Обновить
           </button>
+          <button
+            type="button"
+            onClick={() => void resetMine()}
+            disabled={resetting}
+            className="rounded-full border border-rose-400/60 bg-[color-mix(in_srgb,#f43f5e_10%,var(--card))] px-3 py-1.5 text-xs font-semibold text-rose-500 disabled:opacity-60"
+          >
+            {resetting ? "Сбрасываю…" : "↺ Сбросить мою игру"}
+          </button>
         </div>
       </div>
 
       {error ? <p className="mt-3 text-sm text-rose-500">{error}</p> : null}
+      {resetMsg ? <p className="mt-3 text-sm font-semibold">{resetMsg}</p> : null}
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--border)]">
         <table className="w-full text-sm">
