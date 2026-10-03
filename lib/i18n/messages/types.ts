@@ -340,6 +340,10 @@ export type UiMessages = {
     collectionHint: string;
     collectionLocked: string;
     puzzleGrew: string;
+    rulesTitle: string;
+    rulesOpen: string;
+    rules: string[];
+    rulesOk: string;
     copyToast: string;
     placing: string;
     onMap: string;

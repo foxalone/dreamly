@@ -36,6 +36,8 @@ const LEGACY_KEY = "dreamly_game_v1";
 const PENDING_KEY = "dreamly_game_pending_v2";
 /** Read by the floating dream catcher (DreamCatcherFab) to show a dot when storage is full. */
 export const HINT_KEY = "dreamly_game_hint";
+/** Set once the player has seen the "How to play" window on this device. */
+const RULES_SEEN_KEY = "dreamly_game_rules_seen";
 
 /** Server state of the player (see app/api/game/_lib/player.ts → PlayerState). */
 type ServerState = {
@@ -218,6 +220,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [plus, setPlus] = useState<Array<{ id: number; n: number; x: number }>>([]);
   const [card, setCard] = useState<Creature | null>(null);
   const [showCollection, setShowCollection] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   /** Tier just unlocked — shows the "new creatures" banner for a few seconds. */
   const [unlocked, setUnlocked] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -380,6 +383,37 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       root.style.overflow = prev;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showRules) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRules();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showRules]);
+
+  // First visit on this device (nothing caught yet): show the rules once.
+  useEffect(() => {
+    if (!loaded || (server?.lifetime ?? 0) > 0) return;
+    let seen = false;
+    try {
+      seen = localStorage.getItem(RULES_SEEN_KEY) === "1";
+    } catch {
+      /* storage unavailable */
+    }
+    if (seen) return;
+    const t0 = window.setTimeout(() => setShowRules(true), 400);
+    return () => window.clearTimeout(t0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, after the first state load
+  }, [loaded]);
+
+  function closeRules() {
+    setShowRules(false);
+    try {
+      localStorage.setItem(RULES_SEEN_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }
 
   useEffect(() => {
     if (!showCollection) return;
@@ -940,6 +974,60 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           </>
         )}
       </div>
+
+      {/* Rules: a fairy-tale "?" at the top-right of the stage. */}
+      {loaded && box.w > 0 ? (
+        <button
+          type="button"
+          onClick={() => setShowRules(true)}
+          aria-label={t.rulesOpen}
+          title={t.rulesTitle}
+          className="dk-puzzle absolute top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full transition hover:scale-110"
+          style={{ right: colW + 12 }}
+        >
+          <span
+            className="dk-title text-2xl leading-none"
+            style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+            aria-hidden
+          >
+            ?
+          </span>
+        </button>
+      ) : null}
+
+      {showRules ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={closeRules}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.rulesTitle}
+        >
+          <div
+            className="dk-card max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-amber-400/40 bg-[var(--card)] p-6 text-[var(--text)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              className="dk-title text-2xl leading-tight"
+              style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+            >
+              {t.rulesTitle}
+            </h2>
+            <ul className="mt-4 space-y-2.5 text-sm leading-relaxed">
+              {t.rules.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={closeRules}
+              className="mt-5 w-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 px-4 py-2.5 text-sm font-bold text-white shadow"
+            >
+              {t.rulesOk}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Collection puzzle: small 3×3 at the bottom-right of the stage, lit in proportion to what is collected. */}
       {loaded && box.w > 0 ? (
