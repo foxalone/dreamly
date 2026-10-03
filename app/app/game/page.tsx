@@ -15,12 +15,17 @@ const EXTRA_CREATURE_SLUGS = new Set(["angel", "ghost"]);
  * Built on the server so the 7k-line dictionary never ships to the client.
  */
 function creaturePool(): Creature[] {
+  const seenEmoji = new Set<string>();
   return ALL_DREAM_ENTRIES.filter(
     (e) =>
       !e.parentSlug &&
       !e.comboOf &&
       (e.category === "animals" || EXTRA_CREATURE_SLUGS.has(e.slug))
-  ).map((e) => ({
+  )
+    // Two symbols can share an emoji (alligator / crocodile are both 🐊) — keep the first,
+    // otherwise the collection shows two identical chips.
+    .filter((e) => (seenEmoji.has(e.icon) ? false : (seenEmoji.add(e.icon), true)))
+    .map((e) => ({
     emoji: e.icon,
     slug: e.slug,
     name: e.name,
