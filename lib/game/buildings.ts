@@ -1,7 +1,7 @@
 /**
- * Dream Kingdoms — the 10 buildings (phase 1 ladder from Admin → Game).
+ * Dream Kingdoms — the 13 buildings (ladder from Admin → Game; temple, circus and gates added
+ * 2026-10-03 before the last three, which moved up in price).
  * cost = creatures to build it; perMin = creatures it brings per minute (also offline, up to the 8 h storage cap).
- * Buildings 1–3 are approved; 4–10 are the draft balance.
  */
 export type Building = { id: string; emoji: string; name: string; cost: number; perMin: number };
 
@@ -13,9 +13,12 @@ export const BUILDINGS: Building[] = [
   { id: "lighthouse", emoji: "🗽", name: "Lighthouse", cost: 20_000, perMin: 18 },
   { id: "castle", emoji: "🏰", name: "Castle", cost: 70_000, perMin: 30 },
   { id: "palace", emoji: "🏯", name: "Palace", cost: 200_000, perMin: 50 },
-  { id: "cloud-citadel", emoji: "☁️", name: "Cloud Citadel", cost: 550_000, perMin: 80 },
-  { id: "moon-city", emoji: "🌙", name: "Moon City", cost: 1_500_000, perMin: 130 },
-  { id: "oneiros-palace", emoji: "✨", name: "Palace of Oneiros", cost: 4_000_000, perMin: 200 },
+  { id: "dream-temple", emoji: "🏛️", name: "Dream Temple", cost: 400_000, perMin: 65 },
+  { id: "wonder-circus", emoji: "🎪", name: "Circus of Wonders", cost: 800_000, perMin: 85 },
+  { id: "dream-gates", emoji: "⛩️", name: "Dream Gates", cost: 1_600_000, perMin: 110 },
+  { id: "cloud-citadel", emoji: "☁️", name: "Cloud Citadel", cost: 3_200_000, perMin: 140 },
+  { id: "moon-city", emoji: "🌙", name: "Moon City", cost: 6_500_000, perMin: 180 },
+  { id: "oneiros-palace", emoji: "✨", name: "Palace of Oneiros", cost: 13_000_000, perMin: 250 },
 ];
 
 /** Compact number for small labels: 950, 5k, 1.5M. */

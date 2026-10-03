@@ -129,6 +129,12 @@ const RULES: Rule[] = [
     decided: "2026-10-03",
   },
   {
+    rule: "13 зданий",
+    value: "+🏛️ Храм снов, 🎪 Цирк чудес, ⛩️ Врата снов",
+    note: "Вставлены после Дворца: 400k → 65/мин, 800k → 85, 1.6M → 110. Три последних подорожали: Облачная цитадель 3.2M → 140, Лунный город 6.5M → 180, Дворец Онейроса 13M → 250. Симуляция: тиры существ открываются как раньше; regular строит 13-е здание ~на 49-й день (было 21). Колонка прокручивается.",
+    decided: "2026-10-03",
+  },
+  {
     rule: "Глава 2 — скрытый большой пазл",
     value: "+48 символов снов, открываются только после сбора всех 58",
     note: "Пока игрок не поймал всех 58 существ главы 1, глава 2 полностью скрыта (нет в пазле, не выпадает). Когда собраны все — «Пазл вырос!» и начинают выпадать места, вещи, природа, люди и духи из словаря. Тиры 7 / 8 / 9 при 30M / 100M / 300M пойманных (симуляция regular: ~20 / 36 / 64-й день). Не включены как неуместные для коллекции: секс, измена, развод, долги, болезнь, кровь, слёзы, бывший, игнор, числа, Бог, Папа, семья (мать, отец, брат, сестра, ребёнок, бабушки-дедушки, старый друг).",
@@ -156,17 +162,22 @@ const RULES: Rule[] = [
 
 /** Шкала 10 зданий — черновой баланс (симуляция 2026-10-03). Хранилище = 8 часов.
  *  Дни = в какой день юзер строит здание. Casual: 1 визит/день, 20 тапов. Regular: 2 визита/день, 60 тапов. Active: 3+ визита, 200 тапов. */
+/** Шкала 13 зданий (2026-10-03: +Храм снов, Цирк чудес, Врата снов перед тремя последними).
+ *  Дни — когда regular-игрок (2 визита/день, 60 тапов, покупает и копии) строит первую копию. */
 const BUILDINGS = [
   { n: 1, name: "🛖 Шалаш", cost: "15", rate: 1, total: 1, night: "480", payback: "15 мин", casual: 1, regular: 1, active: 1 },
   { n: 2, name: "🏠 Домик", cost: "200", rate: 3, total: 4, night: "1 920", payback: "1 ч", casual: 1, regular: 1, active: 1 },
   { n: 3, name: "🌬️ Мельница снов", cost: "1 000", rate: 5, total: 9, night: "4 320", payback: "3 ч", casual: 1, regular: 1, active: 1 },
   { n: 4, name: "🗼 Башня", cost: "5 000", rate: 10, total: 19, night: "9 120", payback: "8 ч", casual: 2, regular: 1, active: 1 },
-  { n: 5, name: "🗽 Маяк", cost: "20 000", rate: 18, total: 37, night: "17 760", payback: "18 ч", casual: 5, regular: 2, active: 2 },
-  { n: 6, name: "🏰 Замок", cost: "70 000", rate: 30, total: 67, night: "32 160", payback: "1.6 дня", casual: 9, regular: 4, active: 3 },
-  { n: 7, name: "🏯 Дворец", cost: "200 000", rate: 50, total: 117, night: "56 160", payback: "2.8 дня", casual: 15, regular: 7, active: 5 },
-  { n: 8, name: "☁️ Облачная цитадель", cost: "550 000", rate: 80, total: 197, night: "94 560", payback: "4.8 дня", casual: 25, regular: 12, active: 8 },
-  { n: 9, name: "🌙 Лунный город", cost: "1 500 000", rate: 130, total: 327, night: "156 960", payback: "8 дней", casual: 40, regular: 20, active: 14 },
-  { n: 10, name: "✨ Дворец Онейроса", cost: "4 000 000", rate: 200, total: 527, night: "252 960", payback: "14 дней", casual: 66, regular: 33, active: 22 },
+  { n: 5, name: "🗽 Маяк", cost: "20 000", rate: 18, total: 37, night: "17 760", payback: "18 ч", casual: 3, regular: 2, active: 1 },
+  { n: 6, name: "🏰 Замок", cost: "70 000", rate: 30, total: 67, night: "32 160", payback: "1.6 дня", casual: 5, regular: 3, active: 2 },
+  { n: 7, name: "🏯 Дворец", cost: "200 000", rate: 50, total: 117, night: "56 160", payback: "2.8 дня", casual: 9, regular: 5, active: 3 },
+  { n: 8, name: "🏛️ Храм снов", cost: "400 000", rate: 65, total: 182, night: "87 360", payback: "4.3 дня", casual: 14, regular: 7, active: 5 },
+  { n: 9, name: "🎪 Цирк чудес", cost: "800 000", rate: 85, total: 267, night: "128 160", payback: "6.5 дня", casual: 21, regular: 11, active: 7 },
+  { n: 10, name: "⛩️ Врата снов", cost: "1 600 000", rate: 110, total: 377, night: "180 960", payback: "10 дней", casual: 32, regular: 16, active: 11 },
+  { n: 11, name: "☁️ Облачная цитадель", cost: "3 200 000", rate: 140, total: 517, night: "248 160", payback: "16 дней", casual: 47, regular: 24, active: 16 },
+  { n: 12, name: "🌙 Лунный город", cost: "6 500 000", rate: 180, total: 697, night: "334 560", payback: "25 дней", casual: 70, regular: 35, active: 24 },
+  { n: 13, name: "✨ Дворец Онейроса", cost: "13 000 000", rate: 250, total: 947, night: "454 560", payback: "36 дней", casual: 98, regular: 49, active: 33 },
 ] as const;
 
 const RARITY = [
@@ -358,7 +369,7 @@ export default function DreamKingdomsDoc() {
               </tbody>
             </table>
           </div>
-          <h4 className="mt-5 text-sm font-semibold">Шкала 10 зданий — экономика (черновой баланс, на утверждение)</h4>
+          <h4 className="mt-5 text-sm font-semibold">Шкала 13 зданий — экономика (одна копия каждого; копии ×1.15)</h4>
           <p className="mt-1 text-xs text-[var(--muted)]">
             «Всего/мин» — доход всех зданий до этого включительно. «За ночь» — полное хранилище (8 ч) при этом наборе зданий.
             «Окупаемость» — за сколько здание отбивает свою цену. Последние три колонки — в какой день юзер строит здание

@@ -331,7 +331,7 @@ export type UiMessages = {
     tapAria: string;
     tapHint: string;
     buildings: string;
-    buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
+    buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "dream-temple" | "wonder-circus" | "dream-gates" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
     tapToBuild: string;
     buyMore: string;
     lifetimeLabel: string;

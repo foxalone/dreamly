@@ -760,7 +760,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       {/* Buildings column (right). Grey = not affordable yet; lit = enough creatures to build it. */}
       {box.w > 0 ? (
         <aside
-          className="absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-start gap-1.5 overflow-y-auto border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
+          className="dk-scroll absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-start gap-1.5 overflow-y-auto overscroll-contain border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
           style={{ width: colW }}
           aria-label={t.buildings}
         >
@@ -1123,6 +1123,9 @@ const CSS = `
 .dk-piece-lit { background: linear-gradient(135deg, #a855f7, #f59e0b); box-shadow: 0 0 6px rgba(245,158,11,.6); }
 .dk-piece-have { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, #f59e0b 22%, var(--card)), color-mix(in srgb, #a855f7 16%, var(--card)));
   border: 1px solid rgba(245,158,11,.55); box-shadow: inset 0 0 8px rgba(245,158,11,.2); }
+.dk-scroll { scrollbar-width: thin; scrollbar-color: rgba(245,158,11,.45) transparent; }
+.dk-scroll::-webkit-scrollbar { width: 6px; }
+.dk-scroll::-webkit-scrollbar-thumb { background: rgba(245,158,11,.45); border-radius: 9999px; }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
