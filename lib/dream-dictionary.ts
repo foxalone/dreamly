@@ -87,7 +87,7 @@ const CLUSTERS: ClusterSeed[] = [
       "snake dream meaning",
       "snake in water in dream meaning",
     ],
-    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator", "dragon", "crocodile"],
+    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator", "dragon", "crocodile", "scorpion", "turtle", "worm", "lizard"],
     variations: [
       { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
       { slug: "white-snake", name: "white snake", focus: "unfamiliar wisdom, clarity, healing, or a truth arriving in an unexpected form" },
@@ -165,7 +165,7 @@ const CLUSTERS: ClusterSeed[] = [
       "crocodile",
       "dolphin",
       "frog",
-      "beaver",
+      "beaver", "whale", "turtle", "octopus", "swan", "penguin", "crab", "mermaid"
     ],
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
@@ -300,7 +300,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#f59e0b",
     summary: "loyalty, friendship, protection, instinct, companionship, and boundaries under pressure",
     aliases: ["dogs", "puppy", "dream about dog", "dog in a dream"],
-    relatedSymbols: ["cat", "snake", "baby", "spider", "forest", "wolf", "being-chased", "rabbit", "fox"],
+    relatedSymbols: ["cat", "snake", "baby", "spider", "forest", "wolf", "being-chased", "rabbit", "fox", "monkey"],
     variations: [
       { slug: "black-dog", name: "black dog", focus: "unknown instinct, grief, protection, depression, or a loyal presence that is difficult to understand" },
       { slug: "white-dog", name: "white dog", focus: "trustworthy support, peace, protection, innocence, or reassurance from a familiar bond" },
@@ -318,7 +318,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#c084fc",
     summary: "independence, intuition, curiosity, sensuality, boundaries, and relationships that resist control",
     aliases: ["cats", "kitten", "dream about cat", "cat in a dream"],
-    relatedSymbols: ["dog", "snake", "spider", "tiger", "owl", "rat", "rabbit", "fox"],
+    relatedSymbols: ["dog", "snake", "spider", "tiger", "owl", "rat", "rabbit", "fox", "monkey"],
     variations: [
       { slug: "black-cat", name: "black cat", focus: "mystery, intuition, superstition, independence, or anxiety about something you cannot fully predict" },
       { slug: "white-cat", name: "white cat", focus: "gentle intuition, apparent innocence, emotional distance, or a subtle issue beneath a calm surface" },
@@ -335,7 +335,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#8b5cf6",
     summary: "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
     aliases: ["flight", "dream about flying", "flying in a dream", "flying dream meaning"],
-    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane", "dragon"],
+    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane", "dragon", "eagle", "unicorn", "phoenix", "fairy"],
     variations: [
       { slug: "flying-high", name: "flying high", focus: "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground" },
       { slug: "flying-over-water", name: "flying over water", focus: "gaining perspective on strong emotions or moving between freedom and emotional depth" },
@@ -470,7 +470,7 @@ const CLUSTERS: ClusterSeed[] = [
       "intruder",
       "door",
       "elevator",
-      "tree",
+      "tree", "chicken", "snail"
     ],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
@@ -496,7 +496,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#22c55e",
     summary: "value, security, opportunity, self-worth, exchange, power, and anxiety about available resources",
     aliases: ["cash", "dream about money", "money in a dream", "money dream meaning"],
-    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt", "eating", "ring", "keys", "shoes", "numbers"],
+    relatedSymbols: ["house", "car", "teeth", "castle", "work", "phone", "mirror", "lottery", "debt", "eating", "ring", "keys", "shoes", "numbers", "pig", "genie"],
     variations: [
       { slug: "finding-money", name: "finding money", focus: "unexpected opportunity, rediscovered value, confidence, or recognition of a resource you already possess" },
       { slug: "losing-money", name: "losing money", focus: "insecurity, missed opportunity, depleted energy, or concern about value and practical stability" },
@@ -514,7 +514,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#64748b",
     summary: "patience, creativity, entanglement, fear, careful strategy, and the networks being built around you",
     aliases: ["spiders", "dream about spider", "spider in a dream", "spider dream meaning"],
-    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat", "crawling", "insects"],
+    relatedSymbols: ["snake", "cat", "dog", "butterfly", "rat", "crawling", "insects", "scorpion", "octopus"],
     variations: [
       { slug: "big-spider", name: "big spider", focus: "a fear, influence, creative task, or complicated situation that has become difficult to overlook" },
       { slug: "black-spider", name: "black spider", focus: "hidden anxiety, patient strategy, an unknown influence, or a complicated issue operating quietly" },
@@ -691,7 +691,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#4b5563",
     summary: "grief, memory, closure, and the quiet presence of what has ended but is not forgotten",
     aliases: ["graveyard", "dream about cemetery", "cemetery in a dream"],
-    relatedSymbols: ["death", "church", "forest", "owl", "ghost", "flowers", "heaven"],
+    relatedSymbols: ["death", "church", "forest", "owl", "ghost", "flowers", "heaven", "worm"],
     variations: [
       { slug: "walking-through-cemetery", name: "walking through a cemetery", focus: "processing grief, reflecting on mortality, or moving through unresolved memories at your own pace" },
       { slug: "graveyard", name: "a graveyard", focus: "endings, memory, respect for the past, or an honest confrontation with loss" },
@@ -791,7 +791,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#06b6d4",
     summary: "relaxation, emotional exposure, the meeting point of conscious life and deeper feeling, and a need for renewal",
     aliases: ["seaside", "shore", "dream about beach", "beach in a dream"],
-    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm", "swimming", "tsunami", "boat", "sun"],
+    relatedSymbols: ["water", "ocean", "fish", "shark", "hotel", "storm", "swimming", "tsunami", "boat", "sun", "turtle", "crab", "mermaid"],
     variations: [
       { slug: "walking-on-beach", name: "walking on a beach", focus: "reflection, slow progress, or finding calm at the edge of strong emotion" },
       { slug: "empty-beach", name: "an empty beach", focus: "solitude, peaceful withdrawal, or a need for space away from daily demands" },
@@ -811,7 +811,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#16a34a",
     summary: "the unconscious, uncertainty, instinct, growth, and the unknown territory beyond familiar structure",
     aliases: ["woods", "jungle", "dream about forest", "forest in a dream"],
-    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle", "being-lost", "rabbit", "deer", "tree"],
+    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle", "being-lost", "rabbit", "deer", "tree", "monkey", "panda", "fairy"],
     variations: [
       { slug: "dark-forest", name: "a dark forest", focus: "fear of the unknown, confusion, or an unresolved part of the unconscious mind" },
       { slug: "walking-in-forest", name: "walking in a forest", focus: "exploration, self-discovery, or steady progress through an uncertain stage of life" },
@@ -831,7 +831,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0ea5e9",
     summary: "intuition, emotional resources, abundance, fertility, and ideas or feelings moving beneath the surface",
     aliases: ["fishes", "dream about fish", "fish in a dream"],
-    relatedSymbols: ["water", "shark", "beach", "swimming", "dolphin"],
+    relatedSymbols: ["water", "shark", "beach", "swimming", "dolphin", "whale", "turtle", "octopus", "penguin", "crab", "mermaid"],
     variations: [
       { slug: "big-fish", name: "a big fish", focus: "a major opportunity, significant ambition, or an emotional resource that feels unusually large or important" },
       { slug: "dead-fish", name: "a dead fish", focus: "lost opportunity, emotional numbness, or a resource or feeling that has stopped developing" },
@@ -851,7 +851,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#fbbf24",
     summary: "freedom, perspective, communication, hope, and messages or insight arriving from beyond your usual viewpoint",
     aliases: ["birds", "dream about bird", "bird in a dream"],
-    relatedSymbols: ["flying", "owl", "butterfly", "angel", "bat", "tree"],
+    relatedSymbols: ["flying", "owl", "butterfly", "angel", "bat", "tree", "eagle", "peacock", "swan", "penguin", "chicken", "parrot", "phoenix"],
     variations: [
       { slug: "flying-bird", name: "a flying bird", focus: "freedom, ambition, optimism, or a message of hope reaching you at the right time" },
       { slug: "black-bird", name: "a black bird", focus: "unfamiliar news, mystery, grief, or transition arriving in a form that is difficult to predict" },
@@ -871,7 +871,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#b45309",
     summary: "power, drive, freedom, instinct, and the energy that carries you toward an important goal",
     aliases: ["horses", "dream about horse", "horse in a dream", "horse in dream meaning", "horse in dream meaning islam"],
-    relatedSymbols: ["forest", "castle", "car", "elephant", "goat", "giraffe", "camel", "deer", "cow"],
+    relatedSymbols: ["forest", "castle", "car", "elephant", "goat", "giraffe", "camel", "deer", "cow", "unicorn"],
     variations: [
       { slug: "white-horse", name: "a white horse", focus: "purity of purpose, hope, or a powerful drive guided by clear intention" },
       { slug: "black-horse", name: "a black horse", focus: "unfamiliar power, hidden drive, or strong instinct that has not yet been fully understood" },
@@ -891,7 +891,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#475569",
     summary: "instinct, loyalty, social belonging, danger, and the tension between independence and the pack",
     aliases: ["wolves", "dream about wolf", "wolf in a dream"],
-    relatedSymbols: ["dog", "forest", "bear", "lion", "fox"],
+    relatedSymbols: ["dog", "forest", "bear", "lion", "fox", "sheep"],
     variations: [
       { slug: "black-wolf", name: "a black wolf", focus: "hidden instinct, unfamiliar danger, or a powerful presence that is difficult to read" },
       { slug: "white-wolf", name: "a white wolf", focus: "guidance, protection, or a trustworthy instinct guiding you through uncertainty" },
@@ -911,7 +911,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#92400e",
     summary: "strength, protection, solitude, and a powerful instinct that can be either nurturing or dangerous",
     aliases: ["bears", "dream about bear", "bear in a dream"],
-    relatedSymbols: ["forest", "wolf", "lion", "tiger", "elephant"],
+    relatedSymbols: ["forest", "wolf", "lion", "tiger", "elephant", "panda"],
     variations: [
       { slug: "black-bear", name: "a black bear", focus: "hidden strength, unfamiliar threat, or a powerful instinct beneath a calm surface" },
       { slug: "brown-bear", name: "a brown bear", focus: "grounded strength, protective instinct, or a dependable power you can call on when needed" },
@@ -971,7 +971,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#0f172a",
     summary: "danger, ruthlessness, deep fear, and the powerful threats that move unseen beneath the surface",
     aliases: ["sharks", "dream about shark", "shark in a dream"],
-    relatedSymbols: ["water", "fish", "beach", "alligator", "swimming"],
+    relatedSymbols: ["water", "fish", "beach", "alligator", "swimming", "whale", "octopus"],
     variations: [
       { slug: "shark-attack", name: "a shark attack", focus: "sudden danger, fear of betrayal, or a ruthless threat striking without warning" },
       { slug: "dead-shark", name: "a dead shark", focus: "the end of a serious threat, removed danger, or fear that has finally been confronted" },
@@ -991,7 +991,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#6d28d9",
     summary: "wisdom, intuition, hidden knowledge, and an awareness that sees clearly even in darkness",
     aliases: ["owls", "dream about owl", "owl in a dream"],
-    relatedSymbols: ["bird", "forest", "cat", "cemetery", "bat"],
+    relatedSymbols: ["bird", "forest", "cat", "cemetery", "bat", "eagle"],
     variations: [
       { slug: "white-owl", name: "a white owl", focus: "pure insight, spiritual guidance, or wisdom arriving at a meaningful moment" },
       { slug: "black-owl", name: "a black owl", focus: "hidden knowledge, unfamiliar intuition, or wisdom connected with something not yet understood" },
@@ -1011,7 +1011,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ec4899",
     summary: "transformation, lightness, fragile beauty, and the delicate process of becoming something new",
     aliases: ["butterflies", "dream about butterfly", "butterfly in a dream"],
-    relatedSymbols: ["flying", "bird", "spider", "insects"],
+    relatedSymbols: ["flying", "bird", "spider", "insects", "ladybug"],
     variations: [
       { slug: "white-butterfly", name: "a white butterfly", focus: "purity, peace, or a gentle sign accompanying a meaningful personal change" },
       { slug: "black-butterfly", name: "a black butterfly", focus: "an unfamiliar transformation, grief, or change that feels mysterious rather than threatening" },
@@ -1041,7 +1041,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dream of a fire meaning",
       "significance of fire in dreams",
     ],
-    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death", "tsunami", "dragon", "colors", "anger", "sun", "fighting"],
+    relatedSymbols: ["water", "house", "storm", "tornado", "demon", "death", "tsunami", "dragon", "colors", "anger", "sun", "fighting", "phoenix"],
     variations: [
       { slug: "escaping-a-fire", name: "escaping a fire", focus: "survival instinct, urgent change, or getting clear of a situation before it consumes you" },
       { slug: "starting-a-fire", name: "starting a fire", focus: "initiative, suppressed anger, a desire to force change, or the consequences of a deliberate act" },
@@ -1214,7 +1214,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does a wedding dream mean",
       "wedding dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex", "celebrity", "ring", "flowers", "clothes", "divorce"],
+    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex", "celebrity", "ring", "flowers", "clothes", "divorce", "swan"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1395,7 +1395,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#eab308",
     summary: "meaning, conscience, surrender, accountability, and the longing for guidance larger than the self",
     aliases: ["dream about god", "god in a dream", "seeing god in a dream"],
-    relatedSymbols: ["angel", "demon", "church", "ghost", "moon", "colors", "sun", "heaven", "pope"],
+    relatedSymbols: ["angel", "demon", "church", "ghost", "moon", "colors", "sun", "heaven", "pope", "sheep", "wizard"],
     variations: [
       { slug: "talking-to-god", name: "talking to god", focus: "a search for direction, an inner dialogue with conscience, or a question too large to carry alone" },
       { slug: "seeing-god", name: "seeing god", focus: "awe, a need for reassurance, or contact with the deepest source of meaning in your life" },
@@ -1431,7 +1431,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#94a3b8",
     summary: "unresolved past, memory, guilt, presence of what has ended, and feelings that refuse to stay buried",
     aliases: ["spirit", "haunting", "dream about ghost", "ghost in a dream", "ghost in dream meaning", "ghost dream meaning"],
-    relatedSymbols: ["demon", "angel", "death", "house", "cemetery", "god", "bat"],
+    relatedSymbols: ["demon", "angel", "death", "house", "cemetery", "god", "bat", "genie"],
     variations: [
       { slug: "ghost-of-a-loved-one", name: "the ghost of a loved one", focus: "continuing bonds, unfinished grief, or comfort and messages associated with someone who has died" },
       { slug: "haunted-by-a-ghost", name: "being haunted", focus: "a past event, mistake, or memory that keeps intruding on present life" },
@@ -1449,7 +1449,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#7f1d1d",
     summary: "inner conflict, temptation, fear, shame, and destructive forces given a face by the dreaming mind",
     aliases: ["devil", "evil spirit", "dream about demons", "demon in a dream"],
-    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god", "nightmare", "dragon"],
+    relatedSymbols: ["ghost", "angel", "fire", "being-chased", "god", "nightmare", "dragon", "genie"],
     variations: [
       { slug: "being-attacked-by-demon", name: "being attacked by a demon", focus: "an inner battle with fear, addiction, anger, or shame that feels stronger than you" },
       { slug: "demon-possession", name: "demonic possession", focus: "feeling controlled by an emotion, habit, or influence that overrides your intentions" },
@@ -1474,7 +1474,7 @@ const CLUSTERS: ClusterSeed[] = [
       "angel dream meaning",
       "angels dream meaning",
     ],
-    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god", "moon", "heaven", "pope"],
+    relatedSymbols: ["ghost", "demon", "church", "death", "bird", "god", "moon", "heaven", "pope", "unicorn", "fairy", "wizard"],
     variations: [
       { slug: "angel-visiting-you", name: "an angel visiting you", focus: "a need for reassurance, a sense of being guided, or hope during uncertainty" },
       { slug: "guardian-angel", name: "a guardian angel", focus: "protection, support you may be underestimating, or a wish for someone to watch over you" },
@@ -1515,7 +1515,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does dreaming about an alligator mean",
       "alligator dream meaning",
     ],
-    relatedSymbols: ["snake", "water", "shark", "crocodile"],
+    relatedSymbols: ["snake", "water", "shark", "crocodile", "lizard"],
     variations: [
       { slug: "alligator-attack", name: "an alligator attack", focus: "a hidden threat striking suddenly, or betrayal from something that seemed dormant" },
       { slug: "alligator-in-water", name: "an alligator in water", focus: "danger concealed within an emotional situation, or instinct warning you to stay alert" },
@@ -1605,7 +1605,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#6366f1",
     summary: "connection, communication, urgency, dependence, and the channels that link you to others",
     aliases: ["mobile phone", "cell phone", "dream about phone", "phone in a dream"],
-    relatedSymbols: ["money", "car", "being-ignored"],
+    relatedSymbols: ["money", "car", "being-ignored", "parrot"],
     variations: [
       { slug: "losing-your-phone", name: "losing your phone", focus: "fear of disconnection, lost access to others, or dependence on constant contact" },
       { slug: "broken-phone", name: "a broken phone", focus: "failed communication, a relationship channel damaged, or messages not getting through" },
@@ -1752,7 +1752,7 @@ const CLUSTERS: ClusterSeed[] = [
       "tidal wave dream meaning",
       "dreaming of a tsunami",
     ],
-    relatedSymbols: ["water", "storm", "beach", "fire", "tornado"],
+    relatedSymbols: ["water", "storm", "beach", "fire", "tornado", "whale"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "tsunami-coming", name: "a tsunami coming toward you", focus: "a crisis you can see approaching but feel powerless to stop" },
@@ -1776,7 +1776,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of swimming",
       "swimming in a dream",
     ],
-    relatedSymbols: ["water", "beach", "shark", "fish", "boat", "dolphin"],
+    relatedSymbols: ["water", "beach", "shark", "fish", "boat", "dolphin", "mermaid"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "swimming-easily", name: "swimming easily", focus: "emotional fluency, confidence in a feeling-heavy situation, or flow through a difficult season" },
@@ -1800,7 +1800,7 @@ const CLUSTERS: ClusterSeed[] = [
       "looking in a mirror dream",
       "dreaming of a mirror",
     ],
-    relatedSymbols: ["house", "hair", "being-naked", "teeth", "money", "eyes"],
+    relatedSymbols: ["house", "hair", "being-naked", "teeth", "money", "eyes", "peacock"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "broken-mirror", name: "a broken mirror", focus: "shattered self-image, a painful truth, or identity that feels fragmented" },
@@ -2009,7 +2009,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of winning lottery",
       "lotto dream meaning",
     ],
-    relatedSymbols: ["money", "debt", "work", "house", "numbers"],
+    relatedSymbols: ["money", "debt", "work", "house", "numbers", "genie"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "winning-the-lottery", name: "winning the lottery", focus: "hope for sudden relief, a wish to skip the hard middle, or belief that luck could rewrite your story" },
@@ -2087,7 +2087,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of food",
       "food in a dream",
     ],
-    relatedSymbols: ["teeth", "mother", "house", "money", "illness", "wedding", "cow"],
+    relatedSymbols: ["teeth", "mother", "house", "money", "illness", "wedding", "cow", "pig", "worm", "chicken"],
     updatedAt: "2026-08-07",
     variations: [
       { slug: "eating-with-family", name: "eating with family", focus: "belonging, shared care, family roles, or tension around what is given and received at home" },
@@ -2243,7 +2243,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of flowers",
       "bouquet in a dream",
     ],
-    relatedSymbols: ["cemetery", "wedding", "death", "colors", "pregnancy", "tree"],
+    relatedSymbols: ["cemetery", "wedding", "death", "colors", "pregnancy", "tree", "ladybug", "fairy"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "receiving-flowers", name: "receiving flowers", focus: "affection arriving, apology, courtship, or recognition you did not have to ask for" },
@@ -2315,7 +2315,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of dragons",
       "dragons in dreams",
     ],
-    relatedSymbols: ["snake", "fire", "flying", "demon", "dinosaur"],
+    relatedSymbols: ["snake", "fire", "flying", "demon", "dinosaur", "lizard", "unicorn", "phoenix", "wizard"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "flying-dragon", name: "a flying dragon", focus: "power with range, a force that can leave the ground, or ambition given a mythic body" },
@@ -2363,7 +2363,7 @@ const CLUSTERS: ClusterSeed[] = [
       "colors in a dream",
       "dreaming of colors",
     ],
-    relatedSymbols: ["blood", "fire", "water", "flowers", "god", "sun"],
+    relatedSymbols: ["blood", "fire", "water", "flowers", "god", "sun", "peacock", "panda", "parrot"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "seeing-red", name: "seeing red", focus: "anger, urgency, vitality, or a warning the body already knows" },
@@ -2387,7 +2387,7 @@ const CLUSTERS: ClusterSeed[] = [
       "bugs in a dream",
       "insect dream meaning",
     ],
-    relatedSymbols: ["spider", "butterfly", "rat", "crawling", "frog"],
+    relatedSymbols: ["spider", "butterfly", "rat", "crawling", "frog", "scorpion", "worm", "ladybug", "snail"],
     updatedAt: "2026-09-05",
     variations: [
       {
@@ -2492,7 +2492,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dolphin dream meaning",
       "dreaming of dolphins",
     ],
-    relatedSymbols: ["fish", "water", "swimming"],
+    relatedSymbols: ["fish", "water", "swimming", "whale"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "swimming-with-dolphins", name: "swimming with dolphins", focus: "ease in emotion, trusted guidance in depth, or play returning to a feeling-heavy season" },
@@ -2562,7 +2562,7 @@ const CLUSTERS: ClusterSeed[] = [
       "goat dream meaning",
       "dreaming of goats",
     ],
-    relatedSymbols: ["horse", "rabbit", "cow"],
+    relatedSymbols: ["horse", "rabbit", "cow", "pig", "sheep"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "climbing-goat", name: "a goat climbing", focus: "unlikely progress, footing on a steep path, or persistence where others would turn back" },
@@ -2680,7 +2680,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of dinosaurs",
       "t-rex",
     ],
-    relatedSymbols: ["dragon", "elephant"],
+    relatedSymbols: ["dragon", "elephant", "lizard"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "t-rex", name: "a T-rex", focus: "overwhelming outdated power, a predator from an earlier chapter, or childhood fear given a museum body" },
@@ -2728,7 +2728,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of clothes",
       "shopping for clothes dream",
     ],
-    relatedSymbols: ["shoes", "being-naked", "wedding"],
+    relatedSymbols: ["shoes", "being-naked", "wedding", "peacock"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "shopping-for-clothes", name: "shopping for clothes", focus: "trying on a future self, choosing a public identity, or not finding a garment that fits who you are becoming" },
@@ -2947,7 +2947,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of trees",
       "oak tree dream",
     ],
-    relatedSymbols: ["forest", "flowers", "house", "death", "bird"],
+    relatedSymbols: ["forest", "flowers", "house", "death", "bird", "monkey"],
     updatedAt: "2026-09-09",
     variations: [
       { slug: "climbing-a-tree", name: "climbing a tree", focus: "rising by your own limbs, seeking a wider view, or leaving the ground without leaving your roots" },
@@ -3072,7 +3072,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of a cow",
       "dreaming of cows",
     ],
-    relatedSymbols: ["goat", "horse", "elephant", "eating"],
+    relatedSymbols: ["goat", "horse", "elephant", "eating", "pig", "chicken", "sheep"],
     updatedAt: "2026-09-09",
     variations: [
       { slug: "white-cow", name: "a white cow", focus: "sacred provision, a cleaner patience, or a gift of nourishment that asks to be treated as more than meat" },
@@ -3200,7 +3200,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#15803d",
     summary: "patience, protection, slow steady progress, long life, and the shell you pull into when the world feels too loud",
     aliases: ["turtle dreams", "tortoise dream", "dream about a turtle", "turtle dream meaning", "dreaming of turtles"],
-    relatedSymbols: ["water", "beach", "snake", "fish"],
+    relatedSymbols: ["water", "beach", "snake", "fish", "snail"],
     updatedAt: "2026-10-03",
     variations: [
       { slug: "big-turtle", name: "a big turtle", focus: "old wisdom, a stable foundation, or a slow process that is larger than it looks" },
@@ -3285,7 +3285,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#7c3aed",
     summary: "intelligence, adaptability, many tasks at once, control that reaches everywhere, and a mind that hides in ink",
     aliases: ["octopus dreams", "dream about an octopus", "octopus dream meaning", "dreaming of an octopus"],
-    relatedSymbols: ["water", "fish", "shark", "spider"],
+    relatedSymbols: ["water", "fish", "shark", "spider", "crab"],
     updatedAt: "2026-10-03",
     variations: [
       { slug: "giant-octopus", name: "a giant octopus", focus: "an overwhelming hold on your life, a situation with too many arms, or a deep fear rising from below" },

@@ -112,7 +112,8 @@ export function localizedTitle(locale: Locale, name: string): string {
     case "pt":
       return `Significado de sonhar com ${name}`;
     case "de":
-      return `Traumdeutung: ${titleCase(name).replace(/ Und /g, " und ")}`;
+      // German capitalizes nouns only — English-style title case ("Ein Biber Im Haus") reads wrong.
+      return `Traumdeutung: ${capitalizeFirst(name)}`;
     case "ru":
       return `К чему снится ${name}`;
     case "ar":
@@ -192,7 +193,7 @@ export function makeLocalizedSections(locale: Locale, input: SectionInput): Drea
 
   const commonScenarios: DreamScenario[] = input.variationSeeds?.length
     ? input.variationSeeds.slice(0, 6).map((variation) => ({
-        title: locale === "ru" ? capitalizeFirst(variation.name) : titleCase(variation.name),
+        title: capitalizeFirst(variation.name),
         meaning: variationLine(locale, input.title, variation.focus),
       }))
     : defaultScenarios(locale, input.title, subject);
