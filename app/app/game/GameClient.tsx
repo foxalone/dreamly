@@ -554,6 +554,15 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   };
 
   const bySlug = useMemo(() => new Map(pool.map((c) => [c.slug, c])), [pool]);
+  /** Pieces of the collection puzzle in a random-looking order that stays the same between visits. */
+  const puzzleOrder = useMemo(() => {
+    const h = (str: string) => {
+      let x = 2166136261;
+      for (let i = 0; i < str.length; i++) x = Math.imul(x ^ str.charCodeAt(i), 16777619);
+      return x >>> 0;
+    };
+    return [...pool].sort((a, b) => h(a.slug) - h(b.slug));
+  }, [pool]);
   const foundCount = pool.reduce((n, c) => n + ((caught[c.slug] ?? 0) > 0 ? 1 : 0), 0);
   const collection = recent
     .map((slug) => ({ creature: bySlug.get(slug), count: (caught[slug] ?? 0) - (inFlight[slug] ?? 0) }))
@@ -967,9 +976,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 </button>
               </div>
             </div>
-            {/* The big puzzle: one piece per creature, in tier order. */}
+            {/* The big puzzle: one piece per creature, scattered in a stable random order. */}
             <div className="mt-4 grid grid-cols-6 gap-1.5 rounded-2xl border border-amber-400/30 bg-[color-mix(in_srgb,#f59e0b_6%,transparent)] p-2 sm:grid-cols-8">
-              {pool.map((c) => {
+              {puzzleOrder.map((c) => {
                 const have = (caught[c.slug] ?? 0) > 0;
                 const locked = !have && c.tier > tierNow;
                 return (
