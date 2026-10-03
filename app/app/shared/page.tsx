@@ -21,7 +21,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import PlansModal from "@/app/components/PlansModal";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
-import { shareBadgeById } from "@/lib/shareBadges";
+import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
@@ -62,6 +62,7 @@ type SharedDream = {
   // instead of initials, so a share stays anonymous
   shareBadge?: string;
   fromGuest?: boolean;
+  ownerGuestId?: string;
 
   emojis?: DreamEmoji[] | any;
 
@@ -546,7 +547,11 @@ export default function SharedPage() {
               const sourceLabel = getSharedTypeLabel(d);
               const sourceNum = list.length - index;
 
-              const badge = shareBadgeById(d.shareBadge);
+              // creature the author had at THIS share (stamped at share time), so
+              // one person's older dreams can show a lower level than newer ones;
+              // an unstamped guest share is always their first → 🦄
+              const badge =
+                shareBadgeById(d.shareBadge) ?? (d.fromGuest || d.ownerGuestId ? shareBadgeFor(1) : null);
               const aLabel = badge
                 ? `${t.shareBadges.anonymous} · ${shareBadgeLabel(t, badge)}`
                 : authorLabel(d); // legacy docs: initials

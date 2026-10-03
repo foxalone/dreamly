@@ -72,6 +72,17 @@ export default function ShareBadgeTimeline({ count }: { count: number | null }) 
                   ].join(" ")}
                 />
               ) : null}
+              {i === SHARE_BADGES.length - 1 ? (
+                // the ladder keeps going: a dashed tail fading out past the last creature
+                <span
+                  aria-hidden
+                  className={[
+                    "absolute top-[22px] start-1/2 w-full border-t-2 border-dashed",
+                    reached ? "border-purple-500" : "border-[rgba(127,127,127,0.35)]",
+                    "[mask-image:linear-gradient(to_right,black_20%,transparent)] rtl:[mask-image:linear-gradient(to_left,black_20%,transparent)]",
+                  ].join(" ")}
+                />
+              ) : null}
               <span
                 className={[
                   "relative z-[1] flex size-11 items-center justify-center rounded-full text-2xl leading-none transition",
@@ -104,6 +115,7 @@ export default function ShareBadgeTimeline({ count }: { count: number | null }) 
             </li>
           );
         })}
+        <li aria-hidden className="min-w-[2.5rem] flex-[0.6]" />
       </ol>
 
       {next ? <p className="mt-3 text-xs text-[var(--muted)]">{t.shareBadges.timelineHint}</p> : null}

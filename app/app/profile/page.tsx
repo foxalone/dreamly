@@ -172,21 +172,8 @@ export default function ProfilePage() {
         ) : null}
       </div>
 
-      <div className={`mt-6 w-full flex flex-wrap justify-center items-center gap-3 text-sm ${mutedText}`}>
-        <LocaleLink href="/terms" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
-          {t.legal.termsShort}
-        </LocaleLink>
-        <span className="opacity-40">•</span>
-        <LocaleLink href="/privacy" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
-          {t.legal.privacyShort}
-        </LocaleLink>
-        <span className="opacity-40">•</span>
-        <LocaleLink href="/refund" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
-          {t.legal.refundShort}
-        </LocaleLink>
-      </div>
 
-      <div className="mt-8">
+      <div className="mt-6">
         <div className={`${card} p-5`}>
           <div className="flex items-center gap-4">
             {user?.photoURL ? (
@@ -310,6 +297,19 @@ export default function ProfilePage() {
             Admin dashboard
           </Link>
         ) : null}
+      </div>
+      <div className={`mt-10 w-full flex flex-wrap justify-center items-center gap-3 text-sm ${mutedText}`}>
+        <LocaleLink href="/terms" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
+          {t.legal.termsShort}
+        </LocaleLink>
+        <span className="opacity-40">•</span>
+        <LocaleLink href="/privacy" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
+          {t.legal.privacyShort}
+        </LocaleLink>
+        <span className="opacity-40">•</span>
+        <LocaleLink href="/refund" className="hover:underline underline-offset-4 opacity-90 hover:opacity-100">
+          {t.legal.refundShort}
+        </LocaleLink>
       </div>
     </main>
   );

@@ -43,6 +43,8 @@ import AiImageAdminPanel from "./AiImageAdminPanel";
 import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
 import DreamTranslationsInfo from "./DreamTranslationsInfo";
+import { shareBadgeFor } from "@/lib/shareBadges";
+import { EN_MESSAGES } from "@/lib/i18n/messages/en";
 
 import data from "@emoji-mart/data";
 import { init, SearchIndex } from "emoji-mart";
@@ -262,6 +264,8 @@ type UserRow = {
   cityId: string;
   dreamsCount: number;
   sharedCount: number;
+  /** shared and not deleted → creature level (lib/shareBadges.ts) */
+  liveSharedCount: number;
   topIcons: string[]; // ✅ emoji symbols
   upgradeVisits: number; // ✅ new
   packClicks: number; // ✅ new
@@ -1270,6 +1274,11 @@ async function loadUsers() {
       );
       const sharedCountSnap = await getCountFromServer(sharedQ as any);
       const sharedCount = sharedCountSnap.data().count ?? 0;
+      const liveSharedCount = await getCountFromServer(
+        fbQuery(collection(firestore, "shared_dreams"), where("ownerUid", "==", u.uid), where("deleted", "==", false)),
+      )
+        .then((snap) => snap.data().count ?? 0)
+        .catch(() => sharedCount);
 
       // 3) most frequent icons (emoji symbols)
       const iconsMap = new Map<string, number>();
@@ -1315,6 +1324,7 @@ async function loadUsers() {
         cityId: u.cityId,
         dreamsCount,
         sharedCount,
+        liveSharedCount,
         upgradeVisits,
         packClicks,
         topIcons,
@@ -2322,6 +2332,7 @@ async function loadUsers() {
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">City</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Dreams</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Shared</th>
+                    <th className="p-3 text-xs font-semibold text-[var(--muted)]">Creature</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Upgrade visits</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Pack clicks</th>
                     <th className="p-3 text-xs font-semibold text-[var(--muted)]">Most frequent icons</th>
@@ -2344,6 +2355,17 @@ async function loadUsers() {
                       </td>
                       <td className="p-3 text-[var(--text)]">{r.dreamsCount}</td>
                       <td className="p-3 text-[var(--text)]">{r.sharedCount}</td>
+                      <td className="p-3 text-[var(--text)] whitespace-nowrap">
+                        {(() => {
+                          const b = shareBadgeFor(r.liveSharedCount);
+                          return (
+                            <span title={`${r.liveSharedCount} live shares (deleted ones don't count)`}>
+                              <span className="text-lg leading-none">{b.emoji}</span>{" "}
+                              <span className="text-xs">{EN_MESSAGES.shareBadges.names[b.id]}</span>
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="p-3 text-[var(--text)]">{r.upgradeVisits}</td>
                       <td className="p-3 text-[var(--text)]">{r.packClicks}</td>
                       <td className="p-3 text-[var(--text)] text-lg leading-none">
