@@ -392,6 +392,7 @@ export const AR_MESSAGES: UiMessages = {
     collectionTitle: "المجموعة",
     collectionOpen: "افتح مجموعة الكائنات",
     collectionHint: "الكائنات التي اصطدتها ملوّنة، والرمادية ما زالت تنتظرك.",
+    puzzleGrew: "✨ كبر اللغز! جمعت كل الكائنات، وها هي رموز أحلام جديدة تستيقظ: أماكن وأشياء وطبيعة وأرواح.",
     collectionLocked: "تُفتح لاحقاً",
     lifetimeLabel: "كائناً اصطدتها",
     buyMore: "+ واحد آخر",

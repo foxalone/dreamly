@@ -392,6 +392,7 @@ export const PT_MESSAGES: UiMessages = {
     collectionTitle: "Coleção",
     collectionOpen: "Abrir a coleção de criaturas",
     collectionHint: "As criaturas capturadas aparecem coloridas; as cinzentas ainda estão por aí.",
+    puzzleGrew: "✨ O quebra-cabeça cresceu! Você reuniu todas as criaturas — novos símbolos dos sonhos estão despertando: lugares, objetos, natureza e espíritos.",
     collectionLocked: "Desbloqueia depois",
     lifetimeLabel: "criaturas capturadas",
     buyMore: "+ Mais um",

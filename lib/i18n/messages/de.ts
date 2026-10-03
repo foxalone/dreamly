@@ -392,6 +392,7 @@ export const DE_MESSAGES: UiMessages = {
     collectionTitle: "Sammlung",
     collectionOpen: "Wesen-Sammlung öffnen",
     collectionHint: "Gefangene Wesen sind farbig – die grauen warten noch auf dich.",
+    puzzleGrew: "✨ Das Puzzle ist gewachsen! Du hast alle Wesen gesammelt – neue Traumsymbole erwachen: Orte, Dinge, Natur und Geister.",
     collectionLocked: "Wird später freigeschaltet",
     lifetimeLabel: "Wesen gefangen",
     buyMore: "+ Noch eins",

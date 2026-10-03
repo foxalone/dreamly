@@ -392,6 +392,7 @@ export const RU_MESSAGES: UiMessages = {
     collectionTitle: "Коллекция",
     collectionOpen: "Открыть коллекцию существ",
     collectionHint: "Пойманные существа — цветные, серые ещё ждут вас.",
+    puzzleGrew: "✨ Пазл вырос! Вы собрали всех существ — просыпаются новые символы снов: места, вещи, природа и духи.",
     collectionLocked: "Откроется позже",
     lifetimeLabel: "существ поймано",
     buyMore: "+ Ещё одно",

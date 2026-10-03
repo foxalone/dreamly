@@ -392,6 +392,7 @@ export const EN_MESSAGES: UiMessages = {
     collectionTitle: "Collection",
     collectionOpen: "Open the creature collection",
     collectionHint: "Collected creatures are in color — the grey ones are still out there.",
+    puzzleGrew: "✨ The puzzle grew! You collected every creature — new dream symbols are waking up: places, things, nature and spirits.",
     collectionLocked: "Unlocks later",
     lifetimeLabel: "creatures caught",
     buyMore: "+ One more",

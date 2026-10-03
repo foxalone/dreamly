@@ -392,6 +392,7 @@ export const ES_MESSAGES: UiMessages = {
     collectionTitle: "Colección",
     collectionOpen: "Abrir la colección de criaturas",
     collectionHint: "Las criaturas atrapadas están en color; las grises todavía andan por ahí.",
+    puzzleGrew: "✨ ¡El rompecabezas creció! Reuniste todas las criaturas y despiertan nuevos símbolos oníricos: lugares, objetos, naturaleza y espíritus.",
     collectionLocked: "Se desbloquea más adelante",
     lifetimeLabel: "criaturas atrapadas",
     buyMore: "+ Uno más",

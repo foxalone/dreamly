@@ -4,7 +4,7 @@
 
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { BUILDINGS } from "@/lib/game/buildings";
-import { CREATURE_TIERS, openTier } from "@/lib/game/creatureTiers";
+import { CREATURE_TIERS, chapterOneDone, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
 import type { Owner } from "./owner";
@@ -116,8 +116,8 @@ export function toState(p: PlayerDoc, now: number): PlayerState {
 }
 
 /** Creature kinds that can currently come out for a player with `lifetime` catches. */
-export function openSlugs(lifetime: number): string[] {
-  const t = openTier(lifetime);
+export function openSlugs(lifetime: number, caught?: Record<string, number>): string[] {
+  const t = openTier(lifetime, chapterOneDone(caught));
   return CREATURE_TIERS.filter((x) => x.tier <= t).flatMap((x) => x.slugs);
 }
 
@@ -143,7 +143,7 @@ export function collectInto(p: PlayerDoc, now: number, onlyId?: string): number 
   const amount = st.total;
   if (amount <= 0) return 0;
   p.creatures += amount;
-  addCatches(p, distribute(amount, openSlugs(p.lifetime)));
+  addCatches(p, distribute(amount, openSlugs(p.lifetime, p.caught)));
   p.lifetime += amount;
   return amount;
 }
@@ -158,7 +158,7 @@ export function applyTaps(p: PlayerDoc, taps: number, catches: Record<string, nu
   p.lastSyncAt = now;
   if (!accepted) return 0;
   const n = accepted * perTapFor(Boolean(p.uid));
-  const open = new Set(openSlugs(p.lifetime + n));
+  const open = new Set(openSlugs(p.lifetime + n, p.caught));
   const clean: Record<string, number> = {};
   let sum = 0;
   for (const [slug, c] of Object.entries(catches ?? {})) {

@@ -7,7 +7,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { BUILDINGS, shortNumber } from "@/lib/game/buildings";
-import { CREATURE_TIERS, NEWEST_TIER_WEIGHT, nextTier, openTier } from "@/lib/game/creatureTiers";
+import { CHAPTER1_LAST_TIER, CREATURE_TIERS, NEWEST_TIER_WEIGHT, chapterOneDone, nextTier, openTier } from "@/lib/game/creatureTiers";
 import {
   MAX_TAPS_PER_SEC,
   PER_TAP_GUEST,
@@ -127,7 +127,8 @@ function halton(i: number, base: number): number {
  * Stable for a given stage size, keeps clear of the catcher and of each other.
  */
 function computeLayout(n: number, box: Box): Layout {
-  const CHIP = box.w < 520 ? 36 : 42;
+  // Chips shrink when the collection grows past chapter 1, so everything still fits around the catcher.
+  const CHIP = n > 70 ? (box.w < 520 ? 28 : 34) : box.w < 520 ? 36 : 42;
   const avail = Math.max(200, box.h - TOP_RESERVE - BOTTOM_RESERVE);
   const catcherH = Math.round(Math.min(440, avail * 0.82, box.w * 0.5 * 1.5));
   const catcherW = (catcherH * 600) / 900;
@@ -468,13 +469,39 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     }
   }
 
-  const tierNow = openTier(lifetime);
-  const upcoming = nextTier(lifetime);
+  const chapter1Done = chapterOneDone(caught);
+  const tierNow = openTier(lifetime, chapter1Done);
+  const upcoming = nextTier(lifetime, chapter1Done);
+  /** What the player can see: chapter 2 stays a secret until chapter 1 is complete. */
+  const visiblePool = useMemo(
+    () => (chapter1Done ? pool : pool.filter((c) => c.tier <= CHAPTER1_LAST_TIER)),
+    [pool, chapter1Done]
+  );
   /** Right-hand column with the buildings: full cards on wide screens, icons only on narrow ones. */
   const colW = box.w >= 900 ? 220 : box.w >= 520 ? 68 : 56;
   const wideCol = colW > 100;
   const stageW = Math.max(0, box.w - colW);
-  const layout = useMemo(() => computeLayout(pool.length, { w: stageW, h: box.h }), [pool.length, stageW, box.h]);
+  const layout = useMemo(() => computeLayout(visiblePool.length, { w: stageW, h: box.h }), [visiblePool.length, stageW, box.h]);
+
+  // Chapter 1 just completed → the puzzle grows and chapter 2 starts coming out.
+  const wasDone = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    const before = wasDone.current;
+    wasDone.current = chapter1Done;
+    if (before === false && chapter1Done) {
+      const t1 = window.setTimeout(() => {
+        setUnlocked(CHAPTER1_LAST_TIER + 1);
+        showToast(t.puzzleGrew, 7000);
+      }, 0);
+      const t2 = window.setTimeout(() => setUnlocked((x) => (x === CHAPTER1_LAST_TIER + 1 ? null : x)), 7000);
+      return () => {
+        window.clearTimeout(t1);
+        window.clearTimeout(t2);
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire only on the false → true flip
+  }, [chapter1Done, loaded]);
 
   const tap = (e: React.MouseEvent<HTMLButtonElement>) => {
     const available = pool.filter((c) => c.tier <= tierNow);
@@ -546,7 +573,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     }, FLIGHT_MS + perTap * 40);
     window.setTimeout(() => setPlus((p) => p.filter((x) => x.id !== plusId)), 900);
 
-    const tierAfter = openTier(lifetime + perTap);
+    const tierAfter = openTier(lifetime + perTap, chapter1Done);
     if (tierAfter > tierNow) {
       setUnlocked(tierAfter);
       window.setTimeout(() => setUnlocked((x) => (x === tierAfter ? null : x)), 5000);
@@ -561,9 +588,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       for (let i = 0; i < str.length; i++) x = Math.imul(x ^ str.charCodeAt(i), 16777619);
       return x >>> 0;
     };
-    return [...pool].sort((a, b) => h(a.slug) - h(b.slug));
-  }, [pool]);
-  const foundCount = pool.reduce((n, c) => n + ((caught[c.slug] ?? 0) > 0 ? 1 : 0), 0);
+    return [...visiblePool].sort((a, b) => h(a.slug) - h(b.slug));
+  }, [visiblePool]);
+  const foundCount = visiblePool.reduce((n, c) => n + ((caught[c.slug] ?? 0) > 0 ? 1 : 0), 0);
   const collection = recent
     .map((slug) => ({ creature: bySlug.get(slug), count: (caught[slug] ?? 0) - (inFlight[slug] ?? 0) }))
     .filter((x): x is { creature: Creature; count: number } => !!x.creature && x.count > 0);
@@ -926,7 +953,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         >
           <span className="grid grid-cols-3 gap-[3px]">
             {Array.from({ length: 9 }, (_, i) => {
-              const lit = i < Math.round((foundCount / Math.max(1, pool.length)) * 9) || (i === 0 && foundCount > 0);
+              const lit = i < Math.round((foundCount / Math.max(1, visiblePool.length)) * 9) || (i === 0 && foundCount > 0);
               return (
                 <span
                   key={i}
@@ -965,7 +992,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   className="dk-title text-2xl tabular-nums"
                   style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
                 >
-                  {foundCount}/{pool.length}
+                  {foundCount}/{visiblePool.length}
                 </div>
                 <button
                   type="button"
