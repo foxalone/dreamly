@@ -8,7 +8,8 @@ import { adminFirestore } from "@/lib/firebaseAdmin";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+// Never prerender at build time (it would need Firestore credentials); the CDN caches via Cache-Control.
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const snap = await adminFirestore().collection(KINGDOM_COLLECTION).limit(5000).get();
