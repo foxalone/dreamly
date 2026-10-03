@@ -372,7 +372,8 @@ export default function MapPage() {
     const existing = markersRef.current;
     const next = new Map<string, MarkerEntry>();
 
-    if (activeFilter === "kingdoms") {
+    // Kingdom buildings show on "All" and on "Kingdoms".
+    if (activeFilter === "kingdoms" || activeFilter === "all") {
       const rows = kingdomsRef.current ?? [];
       // Zoomed out: only the biggest building of each city; zoomed in: every building.
       let shown = rows;
@@ -390,7 +391,7 @@ export default function MapPage() {
         if (!b) continue;
         const lngLat: [number, number] = [r.lng, r.lat];
         const size = base * 1.5;
-        const info = { emoji: b.emoji, count: 0, filter: activeFilter, place: r.place, lngLat, label: b.name };
+        const info = { emoji: b.emoji, count: 0, filter: "kingdoms" as MapFilter, place: r.place, lngLat, label: b.name };
         const key = `k|${r.id}`;
         const prev = existing.get(key);
         if (prev) {
@@ -485,14 +486,14 @@ export default function MapPage() {
     filterRef.current = filter;
     const map = mapRef.current;
     if (map) renderMarkers(map);
-    if (filter === "kingdoms" && kingdomsRef.current === null) {
+    if ((filter === "kingdoms" || filter === "all") && kingdomsRef.current === null) {
       kingdomsRef.current = [];
       fetch("/api/game/kingdoms")
         .then((r) => (r.ok ? r.json() : { items: [] }))
         .then((data: { items?: KingdomRow[] }) => {
           kingdomsRef.current = data.items ?? [];
           const m = mapRef.current;
-          if (m && filterRef.current === "kingdoms") renderMarkers(m);
+          if (m && (filterRef.current === "kingdoms" || filterRef.current === "all")) renderMarkers(m);
         })
         .catch(() => {});
     }
