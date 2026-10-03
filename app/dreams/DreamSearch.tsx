@@ -339,12 +339,12 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
                 <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs text-[var(--dd-muted)]">
                   <input
                     type="checkbox"
-                    checked={ask.shareToMap}
+                    checked={ask.shareToFeed}
                     disabled={ask.busy}
-                    onChange={(e) => ask.setShareToMap(e.target.checked)}
+                    onChange={(e) => ask.setShareToFeed(e.target.checked)}
                     className="mt-0.5 size-3.5 shrink-0 rounded border-[var(--dd-border-strong)] accent-violet-500"
                   />
-                  <span>{t.home.askShareMap}</span>
+                  <span>{t.home.askShareFeed}</span>
                 </label>
                 <button
                   type="submit"

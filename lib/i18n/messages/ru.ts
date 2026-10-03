@@ -21,7 +21,7 @@ export const RU_MESSAGES: UiMessages = {
     askSubmit: "Толковать",
     askBusy: "Толкуем ваш сон…",
     askHint: "Первое толкование бесплатно — без входа.",
-    askShareMap: "Анонимно показать на карте снов",
+    askShareFeed: "Анонимно поделиться в ленте",
     askSave: "Сохранить в дневник",
     askMore: "Спросить ещё",
     askSignInNote: "Войдите, чтобы сохранить этот сон или спросить дальше.",

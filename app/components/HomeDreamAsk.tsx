@@ -20,8 +20,8 @@ export default function HomeDreamAsk({
     busy,
     error,
     analysis,
-    shareToMap,
-    setShareToMap,
+    shareToFeed,
+    setShareToFeed,
     lens,
     chooseLens,
     submit,
@@ -64,12 +64,12 @@ export default function HomeDreamAsk({
           <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs font-medium text-white/90">
             <input
               type="checkbox"
-              checked={shareToMap}
+              checked={shareToFeed}
               disabled={busy}
-              onChange={(event) => setShareToMap(event.target.checked)}
+              onChange={(event) => setShareToFeed(event.target.checked)}
               className="mt-0.5 size-3.5 shrink-0 rounded border-white/40 bg-white/15 accent-white"
             />
-            <span>{t.home.askShareMap}</span>
+            <span>{t.home.askShareFeed}</span>
           </label>
           <button
             type="submit"

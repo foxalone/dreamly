@@ -19,7 +19,7 @@ export type UiMessages = {
     askSubmit: string;
     askBusy: string;
     askHint: string;
-    askShareMap: string;
+    askShareFeed: string;
     askSave: string;
     askMore: string;
     askSignInNote: string;

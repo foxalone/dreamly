@@ -219,13 +219,13 @@ export default function InlineDreamPrompt({
                   <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs text-[var(--dd-muted)]">
                     <input
                       type="checkbox"
-                      checked={ask.shareToMap}
+                      checked={ask.shareToFeed}
                       disabled={busy}
-                      onChange={(e) => ask.setShareToMap(e.target.checked)}
+                      onChange={(e) => ask.setShareToFeed(e.target.checked)}
                       tabIndex={open ? 0 : -1}
                       className="mt-0.5 size-3.5 shrink-0 rounded border-[var(--dd-border-strong)] accent-[var(--cta)]"
                     />
-                    <span>{t.home.askShareMap}</span>
+                    <span>{t.home.askShareFeed}</span>
                   </label>
                   <button
                     type="submit"

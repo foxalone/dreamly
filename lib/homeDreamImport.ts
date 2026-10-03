@@ -190,7 +190,7 @@ async function claimGuestShare(user: User, dreamId: string): Promise<number | nu
 function restorePending(pending: HomeDreamPending) {
   writeHomeDreamPending(pending.text, {
     analysis: pending.analysis ?? "",
-    shareToMap: pending.shareToMap,
+    shareToFeed: pending.shareToFeed,
     lang: pending.lang,
     lens: pending.lens,
     createdAtMs: pending.createdAtMs,
@@ -219,8 +219,9 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
   // Deterministic id: re-running the import overwrites the same dream instead of
   // adding another one.
   const dreamId = `home_${createdAtMs}`;
-  const visuals = pending.shareToMap !== false ? await resolveVisuals(pending) : visualsFromPending(pending);
-  const city = pending.shareToMap !== false ? await resolveImportCity(pending) : pending.city;
+  // Every dream goes on the map (anonymously, emojis only); the feed share is the visitor's choice.
+  const visuals = await resolveVisuals(pending);
+  const city = await resolveImportCity(pending);
 
   try {
     await setDoc(doc(firestore, "users", user.uid, "dreams", dreamId), {
@@ -275,7 +276,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
     });
 
     // An explicit anonymous share as a guest counts even with the map box unticked.
-    const wantsShare = pending.shareToMap !== false || !!pending.guestSharedId;
+    const wantsShare = pending.shareToFeed !== false || !!pending.guestSharedId;
     let shareCount: number | null | undefined;
     if (wantsShare) {
       try {
@@ -288,7 +289,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         console.warn("home dream map share failed", e);
       }
     }
-    if (pending.shareToMap !== false) {
+    {
       if (visuals.emojis.length > 0) {
         try {
           await ingestDreamForMap({
@@ -307,7 +308,8 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       content_type: "dream",
       input_method: "home_ask",
       word_count: countWords(text),
-      shared_to_map: pending.shareToMap !== false,
+      shared_to_map: true,
+      shared_to_feed: wantsShare,
     });
 
     return {

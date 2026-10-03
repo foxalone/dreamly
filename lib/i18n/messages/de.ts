@@ -21,7 +21,7 @@ export const DE_MESSAGES: UiMessages = {
     askSubmit: "Deuten",
     askBusy: "Dein Traum wird gelesen…",
     askHint: "Die erste Deutung ist kostenlos — ohne Anmeldung.",
-    askShareMap: "Anonym auf der Traumkarte teilen",
+    askShareFeed: "Anonym im Feed teilen",
     askSave: "Im Tagebuch speichern",
     askMore: "Weiterfragen",
     askSignInNote: "Melde dich an, um diesen Traum zu speichern oder weiterzufragen.",

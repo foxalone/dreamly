@@ -21,7 +21,7 @@ export const ES_MESSAGES: UiMessages = {
     askSubmit: "Interpretar",
     askBusy: "Leyendo tu sueño…",
     askHint: "La primera interpretación es gratis, sin iniciar sesión.",
-    askShareMap: "Compartir de forma anónima en el mapa de sueños",
+    askShareFeed: "Compartir de forma anónima en el feed",
     askSave: "Guardar en el diario",
     askMore: "Preguntar más",
     askSignInNote: "Entra para guardar este sueño o seguir preguntando.",

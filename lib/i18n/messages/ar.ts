@@ -21,7 +21,7 @@ export const AR_MESSAGES: UiMessages = {
     askSubmit: "فسّر",
     askBusy: "نقرأ حلمك…",
     askHint: "التفسير الأول مجاني — دون تسجيل دخول.",
-    askShareMap: "شارك الحلم دون اسم على خريطة الأحلام",
+    askShareFeed: "شارك الحلم دون اسم في الخلاصة",
     askSave: "احفظ في اليوميات",
     askMore: "اسأل المزيد",
     askSignInNote: "سجّل الدخول لتحفظ هذا الحلم أو تسأل أكثر.",

@@ -56,7 +56,7 @@ export function useDreamAsk({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
-  const [shareToMap, setShareToMapState] = useState(true);
+  const [shareToFeed, setShareToFeedState] = useState(true);
   const [lens, setLens] = useDreamLens();
   const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
 
@@ -65,7 +65,7 @@ export function useDreamAsk({
     const pending = readHomeDreamPending();
     if (!pending?.text) return;
     setTextState(pending.text);
-    setShareToMapState(pending.shareToMap !== false);
+    setShareToFeedState(pending.shareToFeed !== false);
     if (pending.guestSharedId) setAnonShare("done");
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
@@ -79,12 +79,12 @@ export function useDreamAsk({
   function persistPending(
     dream = text,
     nextAnalysis = analysis,
-    nextShare = shareToMap,
+    nextShare = shareToFeed,
     nextLens = lens
   ) {
     writeHomeDreamPending(dream, {
       analysis: nextAnalysis ?? undefined,
-      shareToMap: nextShare,
+      shareToFeed: nextShare,
       lang: locale,
       lens: nextLens,
     });
@@ -98,7 +98,7 @@ export function useDreamAsk({
       setAnalysis(null);
       setAnonShare("idle");
       onResultChange?.(false);
-      writeHomeDreamPending(next, { analysis: "", shareToMap, lang: locale, lens });
+      writeHomeDreamPending(next, { analysis: "", shareToFeed, lang: locale, lens });
     }
   }
 
@@ -107,14 +107,14 @@ export function useDreamAsk({
     if (analysis) {
       setAnalysis(null);
       onResultChange?.(false);
-      persistPending(text, "", shareToMap, next);
+      persistPending(text, "", shareToFeed, next);
       return;
     }
-    if (text.trim()) persistPending(text, analysis, shareToMap, next);
+    if (text.trim()) persistPending(text, analysis, shareToFeed, next);
   }
 
-  function setShareToMap(next: boolean) {
-    setShareToMapState(next);
+  function setShareToFeed(next: boolean) {
+    setShareToFeedState(next);
     if (text.trim()) persistPending(text, analysis, next);
   }
 
@@ -194,10 +194,11 @@ export function useDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
-      let visuals = shareToMap ? await pickDreamMapVisuals(dream).catch(() => null) : null;
+      // The map pin happens for every dream; the checkbox only decides the feed share.
+      let visuals = await pickDreamMapVisuals(dream).catch(() => null);
       // Prefer the server-side AI pick (validated against emoji-mart); the
       // keyword picker only supplies iconsEn/rootsEn and the emoji fallback.
-      if (shareToMap && hasEnoughDreamEmojis(data?.emojis)) {
+      if (hasEnoughDreamEmojis(data?.emojis)) {
         visuals = {
           emojis: data.emojis.map((e: DreamEmojiEntry) => ({ native: e.native, id: e.id, name: e.name })),
           iconsEn: visuals?.iconsEn ?? [],
@@ -206,7 +207,7 @@ export function useDreamAsk({
       }
       writeHomeDreamPending(dream, {
         analysis: next,
-        shareToMap,
+        shareToFeed,
         lang: locale,
         lens,
         emojis: visuals?.emojis,
@@ -215,7 +216,7 @@ export function useDreamAsk({
       });
 
       let pinnedToMap = false;
-      if (shareToMap && visuals?.emojis?.length) {
+      if (visuals?.emojis?.length) {
         try {
           const pinRes = await fetch("/api/map/ingest-guest", {
             method: "POST",
@@ -242,7 +243,7 @@ export function useDreamAsk({
             pinnedToMap = pin?.ok === true && pin?.skipped !== true;
             writeHomeDreamPending(dream, {
               analysis: next,
-              shareToMap,
+              shareToFeed,
               lang: locale,
               lens,
               emojis: visuals.emojis,
@@ -262,11 +263,16 @@ export function useDreamAsk({
         }
       }
 
+      // "Share anonymously in the feed" ticked: a guest's dream goes to the feed right away;
+      // a signed-in user's is published by the journal import when they save it.
+      if (shareToFeed && !auth.currentUser) void shareAsGuest(dream);
+
       onResultChange?.(true);
       trackEvent(interpretedEvent, {
         guest: !!data.guest,
         credits_used: Number(data.cost ?? 0) || 0,
-        share_to_map: shareToMap,
+        share_to_map: true,
+        share_to_feed: shareToFeed,
         pinned_to_map: pinnedToMap,
         lens,
         ...(eventParams ?? {}),
@@ -284,15 +290,20 @@ export function useDreamAsk({
     if (!dream) return;
 
     if (auth.currentUser) {
-      setShareToMapState(true);
-      writeHomeDreamPending(dream, { shareToMap: true, lang: locale, lens });
+      setShareToFeedState(true);
+      writeHomeDreamPending(dream, { shareToFeed: true, lang: locale, lens });
       trackEvent("share_anon_click", { source, guest: false });
       goToJournal(dream);
       return;
     }
 
-    setAnonShare("busy");
     trackEvent("share_anon_click", { source, guest: true });
+    await shareAsGuest(dream);
+  }
+
+  /** Guest → public feed now (shared_dreams/guest_{id}), claimed by the account on sign-in. */
+  async function shareAsGuest(dream: string) {
+    setAnonShare("busy");
     try {
       const pending = readHomeDreamPending();
       const res = await fetch("/api/dreams/share-guest", {
@@ -331,8 +342,8 @@ export function useDreamAsk({
     busy,
     error,
     analysis,
-    shareToMap,
-    setShareToMap,
+    shareToFeed,
+    setShareToFeed,
     lens,
     chooseLens,
     submit,
