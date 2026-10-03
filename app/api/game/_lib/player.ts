@@ -6,7 +6,7 @@ import { adminFirestore } from "@/lib/firebaseAdmin";
 import { BUILDINGS } from "@/lib/game/buildings";
 import { CREATURE_TIERS, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
-import { allowedTaps, distribute, perTapFor, ratePerMin, storageNow } from "@/lib/game/economy";
+import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
 import type { Owner } from "./owner";
 
 export const PLAYER_COLLECTION = "kingdom_players";
@@ -24,8 +24,10 @@ export type PlayerDoc = {
   recent: string[];
   taps: number;
   lastSyncAt: number;
-  /** null until the first building stands. */
+  /** null until the first building stands. Fallback for buildings without their own collectedAt. */
   lastCollectAt: number | null;
+  /** When each building's storage ("cube") was last emptied. */
+  collectedAt: Record<string, number>;
   /** buildingId → city name */
   placed: Record<string, string>;
   cityId: string | null;
@@ -45,7 +47,9 @@ export type PlayerState = {
   placed: Record<string, string>;
   rate: number;
   lastCollectAt: number | null;
-  storage: { amount: number; full: boolean; minutes: number };
+  collectedAt: Record<string, number>;
+  /** Per building and in total; the client keeps counting from serverNow. */
+  storage: { amount: number; full: boolean; by: Record<string, { amount: number; full: boolean }> };
   serverNow: number;
   signedIn: boolean;
   importedLocal: boolean;
@@ -68,6 +72,7 @@ function emptyPlayer(owner: Owner, now: number): PlayerDoc {
     // A new player may already have tapped for a while before the first batch arrives.
     lastSyncAt: now - 120_000,
     lastCollectAt: null,
+    collectedAt: {},
     placed: {},
     cityId: null,
     city: null,
@@ -94,7 +99,11 @@ export function toState(p: PlayerDoc, now: number): PlayerState {
     placed: p.placed,
     rate,
     lastCollectAt: p.lastCollectAt,
-    storage: storageNow(rate, p.lastCollectAt, now),
+    collectedAt: p.collectedAt ?? {},
+    storage: (() => {
+      const st = buildingStorage(Object.keys(p.placed), p.collectedAt, p.lastCollectAt, now);
+      return { amount: st.total, full: st.anyFull, by: st.by };
+    })(),
     serverNow: now,
     signedIn: Boolean(p.uid),
     importedLocal: p.importedLocal,
@@ -115,11 +124,18 @@ function addCatches(p: PlayerDoc, add: Record<string, number>) {
   }
 }
 
-/** Move whatever is in storage into the balance (and the collection counters). */
-export function collectInto(p: PlayerDoc, now: number): number {
-  const rate = ratePerMin(Object.keys(p.placed));
-  const { amount } = storageNow(rate, p.lastCollectAt, now);
-  if (p.lastCollectAt != null) p.lastCollectAt = now;
+/**
+ * Empty the storage of one building (`onlyId`) or of all of them into the balance
+ * (and the collection counters). Each building keeps its own clock.
+ */
+export function collectInto(p: PlayerDoc, now: number, onlyId?: string): number {
+  const ids = Object.keys(p.placed).filter((id) => !onlyId || id === onlyId);
+  if (!ids.length) return 0;
+  const st = buildingStorage(ids, p.collectedAt, p.lastCollectAt, now);
+  p.collectedAt = { ...(p.collectedAt ?? {}) };
+  for (const id of ids) p.collectedAt[id] = now;
+  if (!onlyId) p.lastCollectAt = now;
+  const amount = st.total;
   if (amount <= 0) return 0;
   p.creatures += amount;
   addCatches(p, distribute(amount, openSlugs(p.lifetime)));
@@ -229,6 +245,7 @@ export async function mergeGuestIntoUser(owner: Owner): Promise<number> {
       });
       tx.delete(fromRefs[i]);
       u.placed[bId] = g.placed[bId];
+      u.collectedAt = { ...(u.collectedAt ?? {}), [bId]: now };
       moved.push(bId);
     });
     if (moved.length) {

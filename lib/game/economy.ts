@@ -57,3 +57,27 @@ export function distribute(n: number, slugs: string[], rand: () => number = Math
   }
   return out;
 }
+
+/**
+ * Each building fills its own storage (its "cube") since it was last emptied.
+ * `collectedAt[id]` falls back to `lastCollectAt` for saves from before per-building storage.
+ */
+export function buildingStorage(
+  placedIds: Iterable<string>,
+  collectedAt: Record<string, number> | undefined,
+  lastCollectAt: number | null,
+  now: number
+): { by: Record<string, { amount: number; full: boolean }>; total: number; anyFull: boolean } {
+  const placed = new Set(placedIds);
+  const by: Record<string, { amount: number; full: boolean }> = {};
+  let total = 0;
+  let anyFull = false;
+  for (const b of BUILDINGS) {
+    if (!placed.has(b.id)) continue;
+    const s = storageNow(b.perMin, collectedAt?.[b.id] ?? lastCollectAt, now);
+    by[b.id] = { amount: s.amount, full: s.full };
+    total += s.amount;
+    anyFull = anyFull || s.full;
+  }
+  return { by, total, anyFull };
+}

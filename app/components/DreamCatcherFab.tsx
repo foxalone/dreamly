@@ -5,25 +5,19 @@ import { usePathname } from "next/navigation";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { stripLocalePrefix } from "@/lib/i18n/path";
-import { STORAGE_MINUTES } from "@/lib/game/economy";
 
-/** Written by the game (GameClient → HINT_KEY): building rate and last collect, to show a dot when storage is full. */
+/** Written by the game (GameClient → HINT_KEY): when the first building's storage fills up, to show a dot. */
 const HINT_KEY = "dreamly_game_hint";
 
 function storageIsFull(): boolean {
   try {
-    const h = JSON.parse(localStorage.getItem(HINT_KEY) ?? "null") as { rate?: number; lastCollectAt?: number | null; skew?: number } | null;
-    if (!h?.rate || !h.lastCollectAt) return false;
-    return Date.now() + (h.skew ?? 0) - h.lastCollectAt >= STORAGE_MINUTES * 60_000;
+    const h = JSON.parse(localStorage.getItem(HINT_KEY) ?? "null") as { fullAt?: number | null; skew?: number } | null;
+    return !!h?.fullAt && Date.now() + (h.skew ?? 0) >= h.fullAt;
   } catch {
     return false;
   }
 }
 
-/**
- * Small floating dream catcher in the corner of every page → Dream Kingdoms (/app/game).
- * Hidden on the game itself and on pages where it would only get in the way.
- */
 /** Creatures that peek out of the catcher on hover: emoji + where they fly (px, up and inwards from the corner). */
 const PEEK = [
   { e: "🦋", x: -46, y: -58, d: 0 },

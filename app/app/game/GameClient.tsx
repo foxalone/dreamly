@@ -13,7 +13,8 @@ import {
   PER_TAP_GUEST,
   PER_TAP_SIGNED_IN,
   SYNC_INTERVAL_MS,
-  storageNow,
+  STORAGE_MINUTES,
+  buildingStorage,
 } from "@/lib/game/economy";
 
 /**
@@ -44,7 +45,8 @@ type ServerState = {
   placed: Record<string, string>;
   rate: number;
   lastCollectAt: number | null;
-  storage: { amount: number; full: boolean; minutes: number };
+  collectedAt: Record<string, number>;
+  storage: { amount: number; full: boolean; by: Record<string, { amount: number; full: boolean }> };
   serverNow: number;
   signedIn: boolean;
   importedLocal: boolean;
@@ -172,6 +174,23 @@ function MiniBar({ value }: { value: number }) {
   );
 }
 
+/** A building's storage: how many creatures are waiting inside; amber and ringing when full. */
+function Cube({ amount, full }: { amount: number; full: boolean }) {
+  return (
+    <span
+      className={`mt-1 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+        full
+          ? "border-amber-400 bg-amber-400 text-black"
+          : amount > 0
+            ? "border-amber-400/60 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))]"
+            : "border-[var(--border)] text-[var(--muted)]"
+      }`}
+    >
+      🧺 {shortNumber(amount)}
+    </span>
+  );
+}
+
 export default function GameClient({ pool }: { pool: Creature[] }) {
   const t = useMessages().game;
   const [user, setUser] = useState<User | null>(null);
@@ -226,7 +245,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     setServer(state);
     setSkew(state.serverNow - Date.now());
     setNow(Date.now());
-    writeJson(HINT_KEY, { rate: state.rate, lastCollectAt: state.lastCollectAt, skew: state.serverNow - Date.now() });
+    // When the first building's cube will be full (server time) — for the floating catcher's dot.
+    const starts = Object.keys(state.placed).map((id) => state.collectedAt?.[id] ?? state.lastCollectAt ?? 0).filter(Boolean);
+    writeJson(HINT_KEY, {
+      fullAt: starts.length ? Math.min(...starts) + STORAGE_MINUTES * 60_000 : null,
+      skew: state.serverNow - Date.now(),
+    });
   }
 
   async function postAction(body: object): Promise<{ ok?: boolean; delta?: number; state?: ServerState } | null> {
@@ -286,7 +310,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       setRank(data.rank ?? null);
       if (data.overtaken && data.rank) setOvertaken(data.rank);
       if (data.merged) showToast(t.merged, 4000);
-      if (state.storage.amount > 0 && state.storage.minutes >= 10) {
+      // At least ~10 minutes of production waiting → "While you were away".
+      if (state.storage.amount > 0 && state.storage.amount >= state.rate * 10) {
         setAway({ amount: state.storage.amount, full: state.storage.full });
       }
 
@@ -320,7 +345,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   // Send taps in batches, and when the tab is hidden; tick the storage counter.
   useEffect(() => {
     const sync = window.setInterval(() => void flush(), SYNC_INTERVAL_MS);
-    const tick = window.setInterval(() => setNow(Date.now()), 15_000);
+    const tick = window.setInterval(() => setNow(Date.now()), 5_000);
     const onHide = () => {
       if (document.visibilityState === "hidden") void flush();
     };
@@ -370,13 +395,17 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const recent = [...(server?.recent ?? [])];
   for (const k of Object.keys(local.catches)) if (!recent.includes(k)) recent.push(k);
   const placed = server?.placed ?? {};
-  const storage = server ? storageNow(server.rate, server.lastCollectAt, (now || server.serverNow - skew) + skew) : null;
+  // Each building's cube keeps filling on the client between server updates.
+  const cubes = server
+    ? buildingStorage(Object.keys(server.placed), server.collectedAt, server.lastCollectAt, (now || server.serverNow - skew) + skew).by
+    : {};
 
-  async function collect() {
+  /** Empty one building's cube (or all of them) into the balance. */
+  async function collect(buildingId?: string) {
     if (collecting) return;
     setCollecting(true);
     await flush();
-    const res = await postAction({ type: "collect" });
+    const res = await postAction({ type: "collect", buildingId });
     if (res?.ok && res.state) {
       acceptServer(res.state);
       if (res.delta) showToast(formatMessage(t.collected, { n: res.delta.toLocaleString() }));
@@ -555,20 +584,6 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             {formatMessage(t.rank, { rank: rank.rank, city: rank.city })}
           </div>
         ) : null}
-        {storage && storage.amount > 0 ? (
-          <button
-            type="button"
-            onClick={() => void collect()}
-            disabled={collecting}
-            className={`pointer-events-auto mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold shadow-sm transition hover:scale-105 ${
-              storage.full
-                ? "dk-ring border-amber-400 bg-amber-400 text-black"
-                : "border-amber-400/60 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))]"
-            }`}
-          >
-            🧺 {formatMessage(t.collect, { n: shortNumber(storage.amount) })}
-          </button>
-        ) : null}
         {overtaken ? (
           <button
             type="button"
@@ -701,13 +716,16 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           {BUILDINGS.map((b) => {
             const bName = t.buildingNames[b.id as keyof typeof t.buildingNames] ?? b.name;
             const isPlaced = placed[b.id] !== undefined;
+            const cube = isPlaced ? cubes[b.id] : undefined;
             const ready = !isPlaced && creatures >= b.cost;
             const busy = placing === b.id;
             const cls = [
               "relative flex items-center gap-2 rounded-xl border text-left transition",
               wideCol ? "px-2 py-1.5" : "justify-center py-1.5",
               isPlaced
-                ? "border-emerald-400/60 bg-[color-mix(in_srgb,#10b981_10%,var(--card))]"
+                ? cube?.full
+                  ? "dk-ring border-amber-400 bg-[color-mix(in_srgb,#f59e0b_18%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.45)]"
+                  : "border-emerald-400/60 bg-[color-mix(in_srgb,#10b981_10%,var(--card))] hover:scale-[1.02]"
                 : ready
                   ? "dk-ring border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.35)]"
                   : "cursor-not-allowed border-transparent [&_.bdim]:opacity-40 [&_.bdim]:grayscale",
@@ -724,14 +742,18 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     ) : null}
                   </span>
                   {!wideCol && !isPlaced ? <MiniBar value={creatures / b.cost} /> : null}
+                  {!wideCol && cube ? <Cube amount={cube.amount} full={cube.full} /> : null}
                 </span>
                 {wideCol ? (
                   <span className="min-w-0 flex-1">
                     <span className="bdim block truncate text-sm font-semibold">{bName}</span>
                     {isPlaced ? (
-                      <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        {t.onMap}{placed[b.id] ? ` · ${placed[b.id]}` : ""}
-                      </span>
+                      <>
+                        <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          {t.onMap}{placed[b.id] ? ` · ${placed[b.id]}` : ""}
+                        </span>
+                        {cube ? <Cube amount={cube.amount} full={cube.full} /> : null}
+                      </>
                     ) : (
                       <>
                         <span className="bdim flex justify-between text-[11px] text-[var(--muted)]">
@@ -746,10 +768,29 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
               </>
             );
             const title = `${bName} · ${b.cost.toLocaleString()} · ${formatMessage(t.perMin, { n: b.perMin })}`;
+            // A built building is its own "cube": it keeps filling with creatures; a tap releases them.
             return isPlaced ? (
-              <LocaleLink key={b.id} href="/app/map?layer=kingdoms" className={cls} title={`${bName} — ${t.onMap}`}>
-                {inner}
-              </LocaleLink>
+              <div key={b.id} className="relative">
+                <button
+                  type="button"
+                  onClick={() => void collect(b.id)}
+                  disabled={collecting || !cube?.amount}
+                  className={`${cls} w-full`}
+                  title={cube?.amount ? formatMessage(t.collect, { n: cube.amount.toLocaleString() }) : bName}
+                >
+                  {inner}
+                </button>
+                {wideCol ? (
+                  <LocaleLink
+                    href="/app/map?layer=kingdoms"
+                    className="absolute right-2 top-1.5 text-xs opacity-60 hover:opacity-100"
+                    title={t.onMap}
+                    aria-label={t.onMap}
+                  >
+                    🗺️
+                  </LocaleLink>
+                ) : null}
+              </div>
             ) : (
               <button
                 key={b.id}

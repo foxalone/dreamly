@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { allowedTaps, distribute, ratePerMin, storageNow, STORAGE_MINUTES } from "./game/economy";
+import { allowedTaps, buildingStorage, distribute, ratePerMin, storageNow, STORAGE_MINUTES } from "./game/economy";
 
 test("rate sums placed buildings", () => {
   assert.equal(ratePerMin([]), 0);
@@ -27,4 +27,13 @@ test("distribute keeps the total", () => {
   const d = distribute(1234, ["a", "b", "c"]);
   assert.equal(Object.values(d).reduce((x, y) => x + y, 0), 1234);
   assert.deepEqual(distribute(0, ["a"]), {});
+});
+
+test("each building has its own storage", () => {
+  const t0 = 1_000_000;
+  const s = buildingStorage(["hut", "cottage"], { hut: t0, cottage: t0 + 30 * 60_000 }, null, t0 + 60 * 60_000);
+  assert.equal(s.by.hut.amount, 60);
+  assert.equal(s.by.cottage.amount, 90);
+  assert.equal(s.total, 150);
+  assert.equal(buildingStorage(["hut"], undefined, t0, t0 + 10 * 60_000).by.hut.amount, 10);
 });

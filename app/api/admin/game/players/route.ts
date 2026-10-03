@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "../../_lib/auth";
 import { adminAuth } from "../../_lib/firebaseAdmin";
 import { adminFirestore } from "@/lib/firebaseAdmin";
-import { ratePerMin, storageNow } from "@/lib/game/economy";
+import { buildingStorage, ratePerMin } from "@/lib/game/economy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         buildings: Object.keys(placed),
         city: (x.city as string | null) ?? null,
         rate,
-        storage: storageNow(rate, (x.lastCollectAt as number | null) ?? null, now).amount,
+        storage: buildingStorage(Object.keys(placed), x.collectedAt as Record<string, number> | undefined, (x.lastCollectAt as number | null) ?? null, now).total,
         lastRank: (x.lastRank as number | null) ?? null,
         createdAt: Number(x.createdAt) || null,
         updatedAt: Number(x.updatedAt) || null,

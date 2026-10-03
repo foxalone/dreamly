@@ -1,6 +1,6 @@
 // app/api/game/buildings/route.ts
 // Dream Kingdoms: buy a building and place it on the map (POST).
-// The server checks and charges the balance (kingdom_players), banks the storage first,
+// The server checks and charges the balance (kingdom_players); each building starts its own storage clock,
 // and places the building city-level from the request IP with a stable per-owner offset.
 
 import { NextResponse } from "next/server";
@@ -9,7 +9,7 @@ import { adminFirestore } from "@/lib/firebaseAdmin";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { BUILDINGS } from "@/lib/game/buildings";
 import { GUEST_BUILDING_IDS, KINGDOM_COLLECTION, jitterLatLng } from "@/lib/game/kingdomPlacement";
-import { collectInto, playerRef, readPlayer, toState } from "../_lib/player";
+import { playerRef, readPlayer, toState } from "../_lib/player";
 import { resolveOwner, withOwner } from "../_lib/owner";
 
 export const runtime = "nodejs";
@@ -47,7 +47,6 @@ export async function POST(req: Request) {
     }
     if (!geo?.cityId || lat == null || lng == null) return { ok: false as const, code: "NO_CITY" };
 
-    collectInto(p, now); // bank the storage before the rate changes
     if (p.creatures < building.cost) return { ok: false as const, code: "NOT_ENOUGH" };
 
     p.creatures -= building.cost;
@@ -55,6 +54,7 @@ export async function POST(req: Request) {
     p.cityId = p.cityId ?? geo.cityId;
     p.city = p.city ?? geo.city;
     if (p.lastCollectAt == null) p.lastCollectAt = now;
+    p.collectedAt = { ...(p.collectedAt ?? {}), [building.id]: now };
     p.updatedAt = now;
 
     const spot = jitterLatLng(lat, lng, `${owner.ownerKey}|${building.id}`);
