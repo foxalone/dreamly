@@ -42,7 +42,8 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import { authorInitials } from "@/lib/authorInitials";
+import { nextShareBadge, shareBadgeFor, shareBadgeLevelUp, type ShareBadge } from "@/lib/shareBadges";
+import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
 
 import data from "@emoji-mart/data";
@@ -423,6 +424,8 @@ export default function DreamsPage() {
   const [composerType, setComposerType] = useState<ContentType>("dream");
 
   const [sharingId, setSharingId] = useState<string | null>(null);
+  // "You're now a 🧙 Wizard!" after a share that reached a new level
+  const [levelUp, setLevelUp] = useState<ShareBadge | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [rootsBusyId, setRootsBusyId] = useState<string | null>(null);
 
@@ -463,6 +466,10 @@ export default function DreamsPage() {
       ensureUserProfileOnSignIn(user);
       void importHomeDreamPending(user).then((result) => {
         if (result.status === "imported") {
+          if (result.shared && typeof result.shareCount === "number") {
+            const up = shareBadgeLevelUp(result.shareCount - 1, result.shareCount);
+            if (up) setLevelUp(up);
+          }
           if (result.analysis) {
             setAnalysisOpenType("dream");
             setAnalysisOpenId(result.dreamId);
@@ -527,6 +534,12 @@ export default function DreamsPage() {
   function closeAnalysis() {
     setAnalysisOpenId(null);
   }
+
+  useEffect(() => {
+    if (!levelUp) return;
+    const id = setTimeout(() => setLevelUp(null), 7000);
+    return () => clearTimeout(id);
+  }, [levelUp]);
 
   // init recLang
   useEffect(() => {
@@ -1064,6 +1077,8 @@ export default function DreamsPage() {
       return;
     }
 
+    // Level before this share (alive shared dreams + stories), for the badge.
+    const sharedBefore = sharedItems.length;
     const optimistic = (d: Dream) => (d.id === itemId ? { ...d, shared: true, sharedAtMs: Date.now() } : d);
     if (type === "story") setStories((prev) => prev.map(optimistic));
     else setDreams((prev) => prev.map(optimistic));
@@ -1086,10 +1101,12 @@ export default function DreamsPage() {
         ownerStoryId: type === "story" ? itemId : null,
         sourceType: type,
 
-        // Public doc: initials only, never the email/name (every field is world-readable).
+        // Anonymous: no email, name or initials in the public doc (every field is
+        // world-readable). The feed shows the creature level instead.
         authorName: null,
         authorEmail: null,
-        authorInitials: authorInitials(u.email, u.displayName),
+        authorInitials: null,
+        shareBadge: shareBadgeFor(sharedBefore + 1).id,
 
         title: item.title ?? "",
         text: item.text ?? "",
@@ -1144,6 +1161,9 @@ export default function DreamsPage() {
         method: "dreamly_feed",
         content_type: type,
       });
+
+      const up = shareBadgeLevelUp(sharedBefore, sharedBefore + 1);
+      if (up) setLevelUp(up);
 
       setTab("SHARED");
     } catch (e: any) {
@@ -1487,6 +1507,51 @@ export default function DreamsPage() {
         : t.profile.subscribe}
   </button>
 </div>
+
+        {uid ? (() => {
+          // Creature level from shared (not deleted) dreams — lib/shareBadges.ts
+          const n = sharedItems.length;
+          const badge = shareBadgeFor(n);
+          const next = nextShareBadge(n);
+          return (
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="font-semibold text-[var(--text)]">
+                {formatMessage(t.shareBadges.yourLevel, { badge: shareBadgeLabel(t, badge) })}
+              </span>
+              <span className="text-xs text-[var(--muted)]">
+                {next
+                  ? formatMessage(t.shareBadges.progress, {
+                      n,
+                      left: next.remaining,
+                      next: shareBadgeLabel(t, next.badge),
+                    })
+                  : formatMessage(t.shareBadges.maxLevel, { n })}
+              </span>
+            </div>
+          );
+        })() : null}
+
+        {levelUp ? (
+          <div
+            role="status"
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-purple-400/40 bg-purple-500/10 px-4 py-3 text-sm font-semibold text-[var(--text)]"
+          >
+            <span>
+              <span className="mr-2 text-xl" aria-hidden>
+                {levelUp.emoji}
+              </span>
+              {formatMessage(t.shareBadges.levelUp, { badge: shareBadgeLabel(t, levelUp) })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setLevelUp(null)}
+              className="text-[var(--muted)] hover:text-[var(--text)]"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <textarea
@@ -1961,6 +2026,30 @@ export default function DreamsPage() {
                     <div className="text-[var(--text)] whitespace-pre-wrap break-words text-sm leading-relaxed">{txt}</div>
                   )}
                 </div>
+
+                {d && txt && d.shared !== true && d.source !== "dreamer" ? (() => {
+                  // Right after a reading is when people are most willing to share.
+                  const nextBadge = shareBadgeFor(sharedItems.length + 1);
+                  const isSharing = sharingId === d.id;
+                  return (
+                    <div className="mt-5 rounded-xl border border-[var(--border)] p-4">
+                      <div className="text-sm font-semibold text-[var(--text)]">{t.shareBadges.promptTitle}</div>
+                      <div className="mt-1 text-xs text-[var(--muted)]">
+                        {formatMessage(t.shareBadges.promptBody, { badge: shareBadgeLabel(t, nextBadge) })}
+                      </div>
+                      <button
+                        onClick={() => {
+                          closeAnalysis();
+                          void shareItem(d.id, analysisOpenType);
+                        }}
+                        disabled={isSharing}
+                        className={["dream-primary-btn mt-3", isSharing ? "opacity-70 cursor-wait" : ""].join(" ")}
+                      >
+                        {isSharing ? t.shareBadges.sharing : `${nextBadge.emoji} ${t.shareBadges.shareCta}`}
+                      </button>
+                    </div>
+                  );
+                })() : null}
               </div>
             </div>
           );

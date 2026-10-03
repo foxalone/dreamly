@@ -6,6 +6,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "@/app/components/DreamLensChips";
 import { useDreamAsk } from "@/app/components/useDreamAsk";
+import ShareAnonPrompt from "@/app/components/ShareAnonPrompt";
 
 const OPEN_DELAY_MS = 160;
 const CLOSE_DELAY_MS = 380;
@@ -248,6 +249,11 @@ export default function InlineDreamPrompt({
               {analysis ? (
                 <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
                   <p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--dd-text)]">{analysis}</p>
+                  <ShareAnonPrompt
+                    status={ask.anonShare}
+                    onShare={ask.shareAnonymously}
+                    onSignIn={() => ask.goToJournal()}
+                  />
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"

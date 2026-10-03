@@ -16,6 +16,14 @@ import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
 
+/**
+ * Anonymous share right after a reading.
+ * - guest: POST /api/dreams/share-guest → public feed now, claimed on sign-in
+ * - signed in: the dream is not in the journal yet, so it goes there with the
+ *   share flag on and the journal import publishes it
+ */
+export type AnonShareStatus = "idle" | "busy" | "done" | "already" | "rejected" | "failed";
+
 export type DreamAskOptions = {
   /** GA `source` on guest_limit_reached / upgrade_prompt, e.g. "home_ask" or "symbol_inline". */
   source: string;
@@ -49,6 +57,7 @@ export function useDreamAsk({
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [shareToMap, setShareToMapState] = useState(true);
   const [lens, setLens] = useDreamLens();
+  const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
 
   useEffect(() => {
     if (!restorePending) return;
@@ -56,6 +65,7 @@ export function useDreamAsk({
     if (!pending?.text) return;
     setTextState(pending.text);
     setShareToMapState(pending.shareToMap !== false);
+    if (pending.guestSharedId) setAnonShare("done");
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
       setAnalysis(pending.analysis);
@@ -84,6 +94,7 @@ export function useDreamAsk({
     setTextState(next);
     if (analysis) {
       setAnalysis(null);
+      setAnonShare("idle");
       onResultChange?.(false);
       writeHomeDreamPending(next, { analysis: "", shareToMap, lang: locale, lens });
     }
@@ -124,6 +135,7 @@ export function useDreamAsk({
   function reset() {
     setTextState("");
     setAnalysis(null);
+    setAnonShare("idle");
     setError(null);
     onResultChange?.(false);
   }
@@ -141,6 +153,7 @@ export function useDreamAsk({
     setBusy(true);
     setError(null);
     setAnalysis(null);
+    setAnonShare("idle");
     onResultChange?.(false);
 
     try {
@@ -263,7 +276,54 @@ export function useDreamAsk({
     }
   }
 
+  async function shareAnonymously() {
+    if (!analysis || anonShare === "busy" || anonShare === "done") return;
+    const dream = text.trim();
+    if (!dream) return;
+
+    if (auth.currentUser) {
+      setShareToMapState(true);
+      writeHomeDreamPending(dream, { shareToMap: true, lang: locale, lens });
+      trackEvent("share_anon_click", { source, guest: false });
+      goToJournal(dream);
+      return;
+    }
+
+    setAnonShare("busy");
+    trackEvent("share_anon_click", { source, guest: true });
+    try {
+      const pending = readHomeDreamPending();
+      const res = await fetch("/api/dreams/share-guest", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: dream,
+          lang: locale,
+          lens,
+          emojis: pending?.text === dream ? pending.emojis : undefined,
+          iconsEn: pending?.text === dream ? pending.iconsEn : undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.ok && data?.sharedId) {
+        writeHomeDreamPending(dream, { guestSharedId: String(data.sharedId), lang: locale, lens });
+        setAnonShare("done");
+        trackEvent("share", { method: "guest_anonymous", content_type: "dream" });
+        return;
+      }
+      if (data?.code === "ALREADY_SHARED") setAnonShare("already");
+      else if (data?.code === "REJECTED") setAnonShare("rejected");
+      else setAnonShare("failed");
+    } catch {
+      setAnonShare("failed");
+    }
+  }
+
   return {
+    anonShare,
+    shareAnonymously,
+    signedIn: () => !!auth.currentUser,
     text,
     setText,
     busy,

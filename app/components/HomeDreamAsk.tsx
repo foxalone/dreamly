@@ -4,6 +4,7 @@ import { BookOpenText, Loader2, Sparkles } from "lucide-react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "./DreamLensChips";
+import ShareAnonPrompt from "./ShareAnonPrompt";
 import { useDreamAsk } from "./useDreamAsk";
 
 export default function HomeDreamAsk({
@@ -25,6 +26,8 @@ export default function HomeDreamAsk({
     submit,
     goToJournal,
     maxChars,
+    anonShare,
+    shareAnonymously,
   } = useDreamAsk({
     source: "home_ask",
     interpretedEvent: "home_dream_interpreted",
@@ -100,6 +103,7 @@ export default function HomeDreamAsk({
       {analysis ? (
         <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
           <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{analysis}</p>
+          <ShareAnonPrompt status={anonShare} onShare={shareAnonymously} onSignIn={() => goToJournal()} />
           <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button

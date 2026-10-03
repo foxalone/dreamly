@@ -21,6 +21,8 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import PlansModal from "@/app/components/PlansModal";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { shareBadgeById } from "@/lib/shareBadges";
+import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
 
@@ -56,6 +58,10 @@ type SharedDream = {
   authorName?: string | null;
   authorEmail?: string | null;
   authorInitials?: string | null;
+  // creature level of the author at share time (lib/shareBadges.ts) — shown
+  // instead of initials, so a share stays anonymous
+  shareBadge?: string;
+  fromGuest?: boolean;
 
   emojis?: DreamEmoji[] | any;
 
@@ -540,8 +546,11 @@ export default function SharedPage() {
               const sourceLabel = getSharedTypeLabel(d);
               const sourceNum = list.length - index;
 
-              const aLabel = authorLabel(d); // ✅ email first
-              const aInit = initialsFromEmailOrText(aLabel);
+              const badge = shareBadgeById(d.shareBadge);
+              const aLabel = badge
+                ? `${t.shareBadges.anonymous} · ${shareBadgeLabel(t, badge)}`
+                : authorLabel(d); // legacy docs: initials
+              const aInit = badge ? badge.emoji : initialsFromEmailOrText(aLabel);
 
               return (
                 <div
@@ -552,8 +561,12 @@ export default function SharedPage() {
                     <div className="min-w-0 flex items-center gap-3">
                       {/* ✅ author initials (email-based; never uuid) */}
                       <div
-                        className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[10px] text-[var(--muted)]"
+                        className={[
+                          "w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[var(--muted)]",
+                          badge ? "text-[15px] cursor-help" : "text-[10px]",
+                        ].join(" ")}
                         title={aLabel}
+                        aria-label={aLabel}
                       >
                         {aInit}
                       </div>

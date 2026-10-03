@@ -25,6 +25,8 @@ export type HomeDreamPending = {
   rootsEn?: string[];
   city?: HomeDreamCity;
   guestMapIngested?: boolean;
+  /** shared_dreams/guest_{guestId} when the guest shared this dream anonymously; claimed on sign-in. */
+  guestSharedId?: string;
 };
 
 function normalizeCity(raw: unknown): HomeDreamCity | undefined {
@@ -69,6 +71,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
     rootsEn: Array.isArray(parsed.rootsEn) ? parsed.rootsEn.map(String).filter(Boolean) : undefined,
     city: normalizeCity(parsed.city),
     guestMapIngested: parsed.guestMapIngested === true,
+    guestSharedId: typeof parsed.guestSharedId === "string" && parsed.guestSharedId ? parsed.guestSharedId : undefined,
   };
 }
 
@@ -110,6 +113,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       rootsEn: extra?.rootsEn ?? prev?.rootsEn,
       city: extra && "city" in extra ? extra.city : prevRaw?.city,
       guestMapIngested: extra?.guestMapIngested ?? prev?.guestMapIngested,
+      guestSharedId: extra?.guestSharedId ?? prev?.guestSharedId,
     };
     storage()?.setItem(HOME_DREAM_PENDING_KEY, JSON.stringify(next));
   } catch {

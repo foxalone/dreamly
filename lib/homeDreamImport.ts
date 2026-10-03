@@ -5,6 +5,8 @@ import { trackEvent } from "@/lib/analytics";
 import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
+import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
+import { shareBadgeFor } from "@/lib/shareBadges";
 import {
   HOME_DREAM_MAX_CHARS,
   takeHomeDreamPending,
@@ -15,7 +17,14 @@ import {
 
 export type HomeDreamImportResult =
   | { status: "empty" }
-  | { status: "imported"; dreamId: string; shared: boolean; analysis?: string }
+  | {
+      status: "imported";
+      dreamId: string;
+      shared: boolean;
+      analysis?: string;
+      /** Shared dreams the account has after this import (null = unknown), for the level-up toast. */
+      shareCount?: number | null;
+    }
   | { status: "failed"; pendingText: string; error: unknown };
 
 let inFlight: Promise<HomeDreamImportResult> | null = null;
@@ -89,7 +98,13 @@ async function resolveVisuals(pending: HomeDreamPending): Promise<DreamMapVisual
   return pickDreamMapVisuals(pending.text).catch(() => cached);
 }
 
-async function shareImportedDream(user: User, dreamId: string, pending: HomeDreamPending, visuals: DreamMapVisuals) {
+async function shareImportedDream(
+  user: User,
+  dreamId: string,
+  pending: HomeDreamPending,
+  visuals: DreamMapVisuals
+): Promise<number | null> {
+  const before = await countMySharedDreams(user.uid);
   const nowMs = Date.now();
   const sharedId = `${user.uid}_${dreamId}`;
   const text = pending.text;
@@ -125,6 +140,7 @@ async function shareImportedDream(user: User, dreamId: string, pending: HomeDrea
     deleted: false,
     reactions: { heart: 0, like: 0, star: 0 },
     fromHomeAsk: true,
+    ...(before !== null ? { shareBadge: shareBadgeFor(before + 1).id } : {}),
     ...(pending.city?.cityId
       ? {
           cityId: pending.city.cityId,
@@ -139,6 +155,36 @@ async function shareImportedDream(user: User, dreamId: string, pending: HomeDrea
   requestSharedDreamLang(user, sharedId);
 
   trackEvent("share", { method: "home_ask_map", content_type: "dream" });
+  return before === null ? null : before + 1;
+}
+
+/**
+ * The guest already shared this dream anonymously (shared_dreams/guest_{id}).
+ * Move that doc to the account instead of publishing a second copy.
+ * Returns the account's shared count, or false when there was nothing to claim
+ * (other browser, already claimed) and the caller should share normally.
+ */
+async function claimGuestShare(user: User, dreamId: string): Promise<number | null | false> {
+  const idToken = await user.getIdToken();
+  const res = await fetch("/api/dreams/claim-guest-share", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken, dreamId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.ok !== true) return false;
+
+  const sharedAtMs = Number(data.sharedAtMs) || Date.now();
+  await updateDoc(doc(firestore, "users", user.uid, "dreams", dreamId), {
+    shared: true,
+    sharedAtMs,
+    sharedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  trackEvent("share", { method: "guest_claimed", content_type: "dream" });
+  const count = Number(data.count);
+  return Number.isFinite(count) ? count : null;
 }
 
 function restorePending(pending: HomeDreamPending) {
@@ -153,6 +199,7 @@ function restorePending(pending: HomeDreamPending) {
     rootsEn: pending.rootsEn,
     city: pending.city,
     guestMapIngested: pending.guestMapIngested,
+    guestSharedId: pending.guestSharedId,
   });
 }
 
@@ -227,12 +274,21 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         : {}),
     });
 
-    if (pending.shareToMap !== false) {
+    // An explicit anonymous share as a guest counts even with the map box unticked.
+    const wantsShare = pending.shareToMap !== false || !!pending.guestSharedId;
+    let shareCount: number | null | undefined;
+    if (wantsShare) {
       try {
-        await shareImportedDream(user, dreamId, { ...pending, city: city ?? pending.city }, visuals);
+        const claimed = pending.guestSharedId ? await claimGuestShare(user, dreamId).catch(() => false as const) : false;
+        shareCount =
+          claimed !== false
+            ? claimed
+            : await shareImportedDream(user, dreamId, { ...pending, city: city ?? pending.city }, visuals);
       } catch (e) {
         console.warn("home dream map share failed", e);
       }
+    }
+    if (pending.shareToMap !== false) {
       if (visuals.emojis.length > 0) {
         try {
           await ingestDreamForMap({
@@ -257,8 +313,9 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
     return {
       status: "imported",
       dreamId,
-      shared: pending.shareToMap !== false,
+      shared: wantsShare,
       analysis: analysis || undefined,
+      shareCount,
     };
   } catch (error) {
     // Nothing was written: hand the cache back so the journal composer (and a

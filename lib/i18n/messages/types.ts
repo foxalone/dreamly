@@ -304,4 +304,21 @@ export type UiMessages = {
     notNow: string;
     subscribeCta: string;
   };
+  shareBadges: {
+    names: Record<"dreamer" | "unicorn" | "wizard" | "siren" | "phoenix" | "dragon" | "oneiros", string>;
+    promptTitle: string;
+    promptBody: string;
+    shareCta: string;
+    sharing: string;
+    levelUp: string;
+    yourLevel: string;
+    progress: string;
+    maxLevel: string;
+    guestDone: string;
+    guestAlready: string;
+    rejected: string;
+    failed: string;
+    signInCta: string;
+    anonymous: string;
+  };
 };
