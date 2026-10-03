@@ -335,7 +335,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         {loaded && upcoming ? (
           <div className="mx-auto mt-2 max-w-xs">
             <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-              <span>🔒 {upcoming.slugs.length} new creatures</span>
+              <span>🔒 New creatures</span>
               <span className="tabular-nums">
                 {lifetime.toLocaleString()} / {upcoming.unlockAt.toLocaleString()} caught
               </span>
@@ -467,17 +467,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* Bottom line */}
       <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)]">
-        {collection.length ? (
-          <span>
-            {collection.length} of {pool.length} creatures found · tap one to see what it means in a dream
-          </span>
-        ) : (
-          <span>Tap the dream catcher to catch dream creatures</span>
-        )}
+        {/* No "N of M found": how many creatures exist stays a surprise. */}
+        {collection.length ? null : <span>Tap the dream catcher to catch dream creatures</span>}
         {authReady && !user ? (
           <span>
-            {" "}
-            · Guests get {PER_TAP_GUEST} per tap —{" "}
+            {collection.length ? "" : " · "}Guests get {PER_TAP_GUEST} per tap —{" "}
             <LocaleLink href="/signin?next=/app/game" className="font-semibold text-purple-400 underline underline-offset-2">
               sign in
             </LocaleLink>{" "}
