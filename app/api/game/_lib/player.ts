@@ -130,16 +130,17 @@ function addCatches(p: PlayerDoc, add: Record<string, number>) {
 }
 
 /**
- * Empty the storage of one building (`onlyId`) or of all of them into the balance
+ * Empty the storage of some buildings (`only`: one id or a list) or of all of them into the balance
  * (and the collection counters). Each building keeps its own clock.
  */
-export function collectInto(p: PlayerDoc, now: number, onlyId?: string): number {
-  const ids = Object.keys(p.placed).filter((id) => !onlyId || id === onlyId);
+export function collectInto(p: PlayerDoc, now: number, only?: string | string[]): number {
+  const want = only === undefined ? null : new Set(Array.isArray(only) ? only : [only]);
+  const ids = Object.keys(p.placed).filter((id) => !want || want.has(id));
   if (!ids.length) return 0;
   const st = buildingStorage(ids, p.collectedAt, p.lastCollectAt, now, p.owned);
   p.collectedAt = { ...(p.collectedAt ?? {}) };
   for (const id of ids) p.collectedAt[id] = now;
-  if (!onlyId) p.lastCollectAt = now;
+  if (!want) p.lastCollectAt = now;
   const amount = st.total;
   if (amount <= 0) return 0;
   p.creatures += amount;

@@ -1,7 +1,7 @@
 // app/api/game/action/route.ts
 // Dream Kingdoms: server-validated actions on the player's balance.
 //   { type: "sync", taps, catches }  — a batch of taps (capped by elapsed time, see economy.allowedTaps)
-//   { type: "collect", buildingId? } — empty one building's storage (or all) into the balance
+//   { type: "collect", buildingId? | buildingIds? } — empty those buildings' storage (or all) into the balance
 //   { type: "import", local }        — one-time import of the old browser-only save (capped)
 
 import { NextResponse } from "next/server";
@@ -17,6 +17,7 @@ type Body = {
   catches?: Record<string, number>;
   local?: { creatures?: number; caught?: Record<string, number>; recent?: string[] };
   buildingId?: string;
+  buildingIds?: string[];
 };
 
 export async function POST(req: Request) {
@@ -34,7 +35,14 @@ export async function POST(req: Request) {
     const p = readPlayer(snap.data(), owner, now);
     let delta = 0;
     if (type === "sync") delta = applyTaps(p, Number(body.taps) || 0, body.catches ?? {}, now);
-    else if (type === "collect") delta = collectInto(p, now, typeof body.buildingId === "string" ? body.buildingId : undefined);
+    else if (type === "collect") {
+      const ids = Array.isArray(body.buildingIds)
+        ? body.buildingIds.filter((x): x is string => typeof x === "string").slice(0, 50)
+        : typeof body.buildingId === "string"
+          ? body.buildingId
+          : undefined;
+      delta = collectInto(p, now, ids);
+    }
     else delta = importLocal(p, body.local ?? {});
     p.updatedAt = now;
     tx.set(ref, p);

@@ -36,6 +36,8 @@ const LEGACY_KEY = "dreamly_game_v1";
 const PENDING_KEY = "dreamly_game_pending_v2";
 /** Read by the floating dream catcher (DreamCatcherFab) to show a dot when storage is full. */
 export const HINT_KEY = "dreamly_game_hint";
+/** While the page is open, live buildings' production is banked on the server this often. */
+const LIVE_COLLECT_MS = 30_000;
 /** Set once the player has seen the "How to play" window on this device. */
 const RULES_SEEN_KEY = "dreamly_game_rules_seen";
 
@@ -179,6 +181,31 @@ function MiniBar({ value }: { value: number }) {
   );
 }
 
+/** A number that counts up (or down) to its new value instead of jumping. */
+function TweenNumber({ value }: { value: number }) {
+  const [shown, setShown] = useState(value);
+  const shownRef = useRef(value);
+  useEffect(() => {
+    const from = shownRef.current;
+    if (from === value) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const dur = reduced ? 1 : Math.min(900, 250 + Math.abs(value - from) * 25);
+    const t0 = performance.now();
+    let raf = 0;
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const eased = 1 - (1 - k) ** 3;
+      const v = Math.round(from + (value - from) * eased);
+      shownRef.current = v;
+      setShown(v);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{shown.toLocaleString()}</>;
+}
+
 /** A building's storage: how many creatures are waiting inside; amber and ringing when full. */
 function Cube({ amount, full }: { amount: number; full: boolean }) {
   return (
@@ -207,6 +234,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const pendingRef = useRef<Batch>(EMPTY_BATCH);
   const syncingRef = useRef(false);
   const userRef = useRef<User | null>(null);
+  const serverRef = useRef<ServerState | null>(null);
   /** serverNow − Date.now() at load, so the storage counter runs on server time. */
   const [skew, setSkew] = useState(0);
   const [now, setNow] = useState(0);
@@ -228,6 +256,14 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [collecting, setCollecting] = useState(false);
   /** "While you were away" screen. */
   const [away, setAway] = useState<{ amount: number; full: boolean } | null>(null);
+  /**
+   * Buildings whose cube filled while the player was away: they wait, full, for a tap.
+   * All other buildings are "live": while the page is open their production flows straight
+   * into the counters and is banked on the server in the background.
+   */
+  const [awayIds, setAwayIds] = useState<Set<string>>(new Set());
+  const awayIdsRef = useRef<Set<string>>(new Set());
+  const liveCollectingRef = useRef(false);
   const [rank, setRank] = useState<Rank | null>(null);
   const [overtaken, setOvertaken] = useState<Rank | null>(null);
 
@@ -249,6 +285,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   }
 
   function acceptServer(state: ServerState) {
+    serverRef.current = state;
     setServer(state);
     setSkew(state.serverNow - Date.now());
     setNow(Date.now());
@@ -317,10 +354,18 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       setRank(data.rank ?? null);
       if (data.overtaken && data.rank) setOvertaken(data.rank);
       if (data.merged) showToast(t.merged, 4000);
-      // At least ~10 minutes of production waiting → "While you were away".
-      if (state.storage.amount > 0 && state.storage.amount >= state.rate * 10) {
-        setAway({ amount: state.storage.amount, full: state.storage.full });
+      // Cubes holding at least ~10 minutes of production were filled while the player was away:
+      // they stay full until tapped. The rest start "live" right away.
+      const awaySet = new Set<string>();
+      for (const [id, c] of Object.entries(state.storage.by ?? {})) {
+        const b = BUILDINGS.find((x) => x.id === id);
+        const perMin = (b?.perMin ?? 0) * Math.max(1, state.owned?.[id] ?? 1);
+        if (c.amount > 0 && c.amount >= perMin * 10) awaySet.add(id);
       }
+      awayIdsRef.current = awaySet;
+      setAwayIds(awaySet);
+      const awayTotal = [...awaySet].reduce((n, id) => n + (state.storage.by?.[id]?.amount ?? 0), 0);
+      if (awayTotal > 0) setAway({ amount: awayTotal, full: state.storage.full });
 
       // Taps left from the last visit (not confirmed before the tab closed).
       const left = readJson<Batch>(PENDING_KEY);
@@ -352,14 +397,19 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   // Send taps in batches, and when the tab is hidden; tick the storage counter.
   useEffect(() => {
     const sync = window.setInterval(() => void flush(), SYNC_INTERVAL_MS);
-    const tick = window.setInterval(() => setNow(Date.now()), 5_000);
+    const tick = window.setInterval(() => setNow(Date.now()), 1_000);
+    const live = window.setInterval(() => void collectLive(), LIVE_COLLECT_MS);
     const onHide = () => {
-      if (document.visibilityState === "hidden") void flush();
+      if (document.visibilityState === "hidden") {
+        void flush();
+        void collectLive();
+      }
     };
     document.addEventListener("visibilitychange", onHide);
     return () => {
       window.clearInterval(sync);
       window.clearInterval(tick);
+      window.clearInterval(live);
       document.removeEventListener("visibilitychange", onHide);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- flush reads refs
@@ -444,8 +494,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const cubes = server
     ? buildingStorage(Object.keys(server.placed), server.collectedAt, server.lastCollectAt, (now || server.serverNow - skew) + skew, server.owned).by
     : {};
+  // Live buildings (not waiting for a tap) count straight into what the player sees.
+  let liveFlow = 0;
+  for (const [id, c] of Object.entries(cubes)) if (!awayIds.has(id)) liveFlow += c.amount;
+  const creaturesShown = creatures + liveFlow;
+  const lifetimeShown = lifetime + liveFlow;
 
-  /** Empty one building's cube (or all of them) into the balance. */
+  /** Release a full cube (one building, or all of them) into the balance; the building goes live. */
   async function collect(buildingId?: string) {
     if (collecting) return;
     setCollecting(true);
@@ -454,11 +509,31 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     if (res?.ok && res.state) {
       acceptServer(res.state);
       if (res.delta) showToast(formatMessage(t.collected, { n: res.delta.toLocaleString() }));
+      const next = new Set(awayIdsRef.current);
+      if (buildingId) next.delete(buildingId);
+      else next.clear();
+      awayIdsRef.current = next;
+      setAwayIds(next);
     } else {
       showToast(t.error);
     }
     setAway(null);
     setCollecting(false);
+  }
+
+  /** Quietly bank what live buildings produced while the page was open. */
+  async function collectLive() {
+    const st = serverRef.current;
+    if (!st || liveCollectingRef.current) return;
+    const ids = Object.keys(st.placed).filter((id) => !awayIdsRef.current.has(id));
+    if (!ids.length) return;
+    liveCollectingRef.current = true;
+    try {
+      const res = await postAction({ type: "collect", buildingIds: ids });
+      if (res?.ok && res.state) acceptServer(res.state);
+    } finally {
+      liveCollectingRef.current = false;
+    }
   }
 
   /** Build = pay the cost on the server and put the building on the map in the player's city. */
@@ -468,10 +543,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   /** Build the first copy (placed on the map) or buy one more copy of a building that already stands. */
   async function placeBuilding(b: (typeof BUILDINGS)[number]) {
     const owned = ownedOf(b.id);
-    if (placing || creatures < nextCost(b.cost, owned)) return;
+    if (placing || creaturesShown < nextCost(b.cost, owned)) return;
     setPlacing(b.id);
     try {
       await flush();
+      await collectLive(); // bank the live flow so the server sees the balance the player sees
       const res = await fetch("/api/game/buildings", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(await authHeaders(userRef.current)) },
@@ -804,8 +880,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           {BUILDINGS.map((b) => {
             const bName = t.buildingNames[b.id as keyof typeof t.buildingNames] ?? b.name;
             const isPlaced = placed[b.id] !== undefined;
-            const cube = isPlaced ? cubes[b.id] : undefined;
-            const ready = !isPlaced && creatures >= b.cost;
+            const isAway = isPlaced && awayIds.has(b.id);
+            const cube = isAway ? cubes[b.id] : undefined;
+            const ready = !isPlaced && creaturesShown >= b.cost;
             const busy = placing === b.id;
             const cls = [
               "relative flex items-center gap-2 rounded-xl border text-left transition",
@@ -829,7 +906,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                       </span>
                     ) : null}
                   </span>
-                  {!wideCol && !isPlaced ? <MiniBar value={creatures / b.cost} /> : null}
+                  {!wideCol && !isPlaced ? <MiniBar value={creaturesShown / b.cost} /> : null}
                   {!wideCol && cube ? <Cube amount={cube.amount} full={cube.full} /> : null}
                 </span>
                 {wideCol ? (
@@ -843,7 +920,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                         <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                           {t.onMap}{placed[b.id] ? ` · ${placed[b.id]}` : ""}
                         </span>
-                        {cube ? <Cube amount={cube.amount} full={cube.full} /> : null}
+                        {cube ? (
+                          <Cube amount={cube.amount} full={cube.full} />
+                        ) : (
+                          <span className="dk-live mt-1 inline-block text-[11px] font-semibold tabular-nums text-amber-500">
+                            ✨ {formatMessage(t.perMin, { n: b.perMin * ownedOf(b.id) })}
+                          </span>
+                        )}
                       </>
                     ) : (
                       <>
@@ -851,7 +934,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                           <span className="tabular-nums">{busy ? t.placing : ready ? t.tapToBuild : shortNumber(b.cost)}</span>
                           <span className="tabular-nums">{formatMessage(t.perMin, { n: b.perMin })}</span>
                         </span>
-                        <MiniBar value={creatures / b.cost} />
+                        <MiniBar value={creaturesShown / b.cost} />
                       </>
                     )}
                   </span>
@@ -874,7 +957,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 {/* One more copy: the price grows 15% per copy, the cube fills faster. */}
                 {(() => {
                   const price = nextCost(b.cost, ownedOf(b.id));
-                  const can = creatures >= price && !!user;
+                  const can = creaturesShown >= price && !!user;
                   return (
                     <button
                       type="button"
@@ -938,11 +1021,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       {loaded ? (
         <div className="pointer-events-none absolute bottom-3 left-4 z-10 select-none" aria-live="polite">
           <div
-            key={Math.floor(lifetime / 1000)}
+            key={Math.floor(lifetimeShown / 1000)}
             className="dk-lifetime dk-title text-3xl leading-none tabular-nums sm:text-4xl"
             style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
           >
-            {lifetime.toLocaleString()}
+            <TweenNumber value={lifetimeShown} />
           </div>
           <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
             ✦ {t.lifetimeLabel} ✦
@@ -952,7 +1035,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* Bottom line: first hint, and for guests the sign-in offer (stronger once there is something to lose). */}
       <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)] sm:pl-56 sm:pr-20" style={{ right: colW }}>
-        {authReady && !user && loaded && (creatures >= 200 || placed.hut !== undefined) ? (
+        {authReady && !user && loaded && (creaturesShown >= 200 || placed.hut !== undefined) ? (
           <div className="dk-card mx-auto inline-flex max-w-md flex-wrap items-center justify-center gap-2 rounded-2xl border border-purple-400/50 bg-[color-mix(in_srgb,#a855f7_10%,var(--card))] px-3 py-2 text-sm text-[var(--text)]">
             <span>{formatMessage(t.keepProgress, { n: creatures.toLocaleString(), u: PER_TAP_SIGNED_IN, g: PER_TAP_GUEST })}</span>
             <LocaleLink href="/signin?next=/app/game" className="rounded-full bg-purple-500 px-3 py-1 font-semibold text-white">
@@ -1213,6 +1296,8 @@ const CSS = `
 .dk-scroll { scrollbar-width: thin; scrollbar-color: rgba(245,158,11,.45) transparent; }
 .dk-scroll::-webkit-scrollbar { width: 6px; }
 .dk-scroll::-webkit-scrollbar-thumb { background: rgba(245,158,11,.45); border-radius: 9999px; }
+.dk-live { animation: dk-live 2s ease-in-out infinite; }
+@keyframes dk-live { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
