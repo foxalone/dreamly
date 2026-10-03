@@ -357,7 +357,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           {saved.creatures} creatures
         </span>
         {loaded && upcoming ? (
-          <div className="mx-auto mt-2 w-full max-w-sm sm:absolute sm:left-1/2 sm:top-5 sm:mt-0 sm:-translate-x-1/2">
+          <div className="mt-2 w-full max-w-[min(100%,26rem)]">
             {/* Just the bar: progress to the next tier, no numbers or labels. */}
             <div className="h-3 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
               <div
