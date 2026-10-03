@@ -334,13 +334,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         </div>
         {loaded && upcoming ? (
           <div className="mx-auto mt-2 max-w-xs">
-            <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-              <span>🔒 New creatures</span>
-              <span className="tabular-nums">
-                {lifetime.toLocaleString()} / {upcoming.unlockAt.toLocaleString()} caught
-              </span>
-            </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
+            {/* Just the bar: progress to the next tier, no numbers or labels. */}
+            <div className="h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
                 style={{
