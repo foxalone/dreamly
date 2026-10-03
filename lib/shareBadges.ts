@@ -97,3 +97,14 @@ export function checkShareableDreamText(text: unknown, maxChars: number): ShareT
 export function guestSharedDocId(guestId: string) {
   return `guest_${guestId}`;
 }
+
+/** "0", "1", "2–5", "51+" — the share counts a level covers. */
+export function shareBadgeRange(id: ShareBadgeId): string {
+  const i = SHARE_BADGES.findIndex((b) => b.id === id);
+  if (i < 0) return "";
+  const lo = SHARE_BADGES[i].min;
+  const next = SHARE_BADGES[i + 1];
+  if (!next) return `${lo}+`;
+  const hi = next.min - 1;
+  return hi === lo ? String(lo) : `${lo}–${hi}`;
+}

@@ -366,5 +366,8 @@ export const EN_MESSAGES: UiMessages = {
     failed: "Couldn't share right now. Please try again.",
     signInCta: "Sign in",
     anonymous: "Anonymous dreamer",
+    timelineTitle: "Your dream creatures",
+    youAreHere: "You are here",
+    timelineHint: "Share dreams anonymously to wake the next creature.",
   },
 };

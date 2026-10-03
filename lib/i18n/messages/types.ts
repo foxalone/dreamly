@@ -320,5 +320,8 @@ export type UiMessages = {
     failed: string;
     signInCta: string;
     anonymous: string;
+    timelineTitle: string;
+    youAreHere: string;
+    timelineHint: string;
   };
 };

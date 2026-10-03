@@ -366,5 +366,8 @@ export const RU_MESSAGES: UiMessages = {
     failed: "Не получилось опубликовать. Попробуйте ещё раз.",
     signInCta: "Войти",
     anonymous: "Анонимный сновидец",
+    timelineTitle: "Ваши существа снов",
+    youAreHere: "Вы здесь",
+    timelineHint: "Делитесь снами анонимно, чтобы разбудить следующее существо.",
   },
 };

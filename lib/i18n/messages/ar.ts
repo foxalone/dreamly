@@ -366,5 +366,8 @@ export const AR_MESSAGES: UiMessages = {
     failed: "تعذّرت المشاركة الآن. حاول مرة أخرى.",
     signInCta: "تسجيل الدخول",
     anonymous: "حالم مجهول",
+    timelineTitle: "مخلوقات أحلامك",
+    youAreHere: "أنت هنا",
+    timelineHint: "شارك أحلامك دون الكشف عن هويتك لتوقظ المخلوق التالي.",
   },
 };

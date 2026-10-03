@@ -15,6 +15,8 @@ import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import ShareBadgeTimeline from "@/app/components/ShareBadgeTimeline";
+import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
 import {
   hasPaidAccess,
   remainingDreamsToday,
@@ -44,6 +46,8 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<UserBillingFields | null>(null);
+  // shared (not deleted) dreams → creature level; null while loading
+  const [sharedCount, setSharedCount] = useState<number | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -63,6 +67,21 @@ export default function ProfilePage() {
       setBilling(snap.exists() ? (snap.data() as UserBillingFields) : {});
     });
     return () => unsub();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setSharedCount(0);
+      return;
+    }
+    let alive = true;
+    setSharedCount(null);
+    void countMySharedDreams(user.uid).then((n) => {
+      if (alive) setSharedCount(n ?? 0);
+    });
+    return () => {
+      alive = false;
+    };
   }, [user?.uid]);
 
   async function doSignOut() {
@@ -206,6 +225,10 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <ShareBadgeTimeline count={sharedCount} />
       </div>
 
       <div className="mt-4">

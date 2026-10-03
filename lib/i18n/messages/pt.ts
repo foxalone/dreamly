@@ -366,5 +366,8 @@ export const PT_MESSAGES: UiMessages = {
     failed: "Não foi possível compartilhar agora. Tente de novo.",
     signInCta: "Entrar",
     anonymous: "Sonhador anônimo",
+    timelineTitle: "Suas criaturas dos sonhos",
+    youAreHere: "Você está aqui",
+    timelineHint: "Compartilhe sonhos anonimamente para despertar a próxima criatura.",
   },
 };

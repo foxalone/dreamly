@@ -7,6 +7,7 @@ import {
   nextShareBadge,
   shareBadgeFor,
   shareBadgeLevelUp,
+  shareBadgeRange,
 } from "./shareBadges";
 
 test("shareBadgeFor maps counts to the creature scale", () => {
@@ -64,4 +65,12 @@ test("checkShareableDreamText keeps out links, contacts and mashing", () => {
   assert.deepEqual(checkShareableDreamText("I dreamed of you, call me +1 555 123 4567 tonight", 250), { ok: false, reason: "contact" });
   assert.deepEqual(checkShareableDreamText("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 250), { ok: false, reason: "spam" });
   assert.deepEqual(checkShareableDreamText("!!!! ???? .... ,,,, dream ;;;; ----", 250), { ok: false, reason: "spam" });
+});
+
+test("shareBadgeRange labels each level's span", () => {
+  assert.equal(shareBadgeRange("dreamer"), "0");
+  assert.equal(shareBadgeRange("unicorn"), "1");
+  assert.equal(shareBadgeRange("wizard"), "2–5");
+  assert.equal(shareBadgeRange("phoenix"), "11–25");
+  assert.equal(shareBadgeRange("oneiros"), "51+");
 });

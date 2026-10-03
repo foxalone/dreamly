@@ -366,5 +366,8 @@ export const DE_MESSAGES: UiMessages = {
     failed: "Teilen hat gerade nicht geklappt. Bitte versuch es noch einmal.",
     signInCta: "Anmelden",
     anonymous: "Anonymer Träumer",
+    timelineTitle: "Deine Traumwesen",
+    youAreHere: "Du bist hier",
+    timelineHint: "Teile Träume anonym, um das nächste Wesen zu wecken.",
   },
 };
