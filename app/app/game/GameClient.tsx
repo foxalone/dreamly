@@ -1161,28 +1161,35 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             className="dk-card max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-3xl border border-amber-400/40 bg-[var(--card)] p-5 text-[var(--text)] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2
-                  className="dk-title text-2xl leading-tight"
-                  style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
-                >
-                  {t.collectionTitle}
-                </h2>
-              </div>
-              <div className="text-right">
+            <div className="flex items-center justify-between gap-3">
+              <h2
+                className="dk-title text-2xl leading-tight"
+                style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+              >
+                {t.collectionTitle}
+              </h2>
+              <div className="flex items-center gap-3">
                 <div
                   className="dk-title text-2xl tabular-nums"
                   style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
                 >
                   {foundCount}/{visiblePool.length}
                 </div>
+                {/* Fairy-tale close: the same golden ring as the "?" button. */}
                 <button
                   type="button"
                   onClick={() => setShowCollection(false)}
-                  className="mt-1 text-xs font-semibold text-[var(--muted)] underline underline-offset-2"
+                  aria-label={t.close}
+                  title={t.close}
+                  className="dk-puzzle flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition hover:rotate-90 hover:scale-110"
                 >
-                  {t.close}
+                  <span
+                    className="dk-title text-xl leading-none"
+                    style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+                    aria-hidden
+                  >
+                    ✕
+                  </span>
                 </button>
               </div>
             </div>
