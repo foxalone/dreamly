@@ -169,7 +169,7 @@ export default function ProfilePage() {
             href="/app/profile/admin-dashboard"
             className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
           >
-            Admin dashboard
+            Admin
           </Link>
         ) : null}
         {user && hasPaidAccess(billing) ? (
