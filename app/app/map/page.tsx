@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -302,6 +303,9 @@ export default function MapPage() {
         <div style="opacity: .85; margin-top: 6px;">
           ${info.place}
         </div>
+        <a data-dream-meaning style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
+          ${info.emoji} Dream meaning →
+        </a>
       </div>
     `;
 
@@ -314,6 +318,23 @@ export default function MapPage() {
     }
 
     popupRef.current.setLngLat(info.lngLat).setHTML(html).addTo(map);
+
+    // Link the emoji to its dictionary meaning (independent of the filter / game).
+    const link = popupRef.current.getElement()?.querySelector<HTMLAnchorElement>("a[data-dream-meaning]");
+    if (link) {
+      const locale = stripLocalePrefix(window.location.pathname).locale;
+      link.href = localePath(`/dreams?q=${encodeURIComponent(info.emoji)}`, locale);
+      fetch(`/api/map/emoji-symbol?e=${encodeURIComponent(info.emoji)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((res: { slug: string | null; query: string } | null) => {
+          if (!res) return;
+          const target = res.slug
+            ? `/dreams/${res.slug}`
+            : `/dreams?q=${encodeURIComponent(res.query || info.emoji)}`;
+          link.href = localePath(target, locale);
+        })
+        .catch(() => {});
+    }
   }
 
   // Диффим маркеры вместо пересоздания: те, что уже на карте, только меняют

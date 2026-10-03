@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import { BUILDINGS, shortNumber } from "@/lib/game/buildings";
 import { CREATURE_TIERS, NEWEST_TIER_WEIGHT, nextTier, openTier } from "@/lib/game/creatureTiers";
 
 /**
@@ -171,6 +172,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [card, setCard] = useState<Creature | null>(null);
   /** Tier just unlocked — shows the "new creatures" banner for a few seconds. */
   const [unlocked, setUnlocked] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const catcherRef = useRef<HTMLImageElement | null>(null);
   const mainRef = useRef<HTMLElement | null>(null);
@@ -227,7 +229,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const lifetime = lifetimeOf(saved);
   const tierNow = openTier(lifetime);
   const upcoming = nextTier(lifetime);
-  const layout = useMemo(() => computeLayout(pool.length, box), [pool.length, box]);
+  /** Right-hand column with the buildings: full cards on wide screens, icons only on narrow ones. */
+  const colW = box.w >= 900 ? 220 : box.w >= 520 ? 68 : 56;
+  const wideCol = colW > 100;
+  const stageW = Math.max(0, box.w - colW);
+  const layout = useMemo(() => computeLayout(pool.length, { w: stageW, h: box.h }), [pool.length, stageW, box.h]);
 
   const tap = (e: React.MouseEvent<HTMLButtonElement>) => {
     const available = pool.filter((c) => c.tier <= tierNow);
@@ -326,7 +332,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       <style>{CSS}</style>
 
       {/* Top: title, counter, progress to the next tier */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-4 text-center">
+      <div className="pointer-events-none absolute left-0 top-0 z-10 px-4 pt-4 text-center" style={{ right: colW }}>
         <h1 className="text-xl font-semibold">Dream Kingdoms</h1>
         <div className="mt-1 flex items-baseline justify-center gap-2" aria-live="polite">
           <span className="text-3xl font-bold tabular-nums">{saved.creatures.toLocaleString()}</span>
@@ -460,8 +466,63 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         </>
       ) : null}
 
+      {/* Buildings column (right). Grey = not affordable yet; lit = enough creatures to build it. */}
+      {box.w > 0 ? (
+        <aside
+          className="absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-center gap-1.5 border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
+          style={{ width: colW }}
+          aria-label="Buildings"
+        >
+          {wideCol ? (
+            <div className="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Buildings</div>
+          ) : null}
+          {BUILDINGS.map((b) => {
+            const canBuild = saved.creatures >= b.cost;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                disabled={!canBuild}
+                onClick={() => {
+                  setToast(`${b.emoji} ${b.name} — building opens soon`);
+                  window.setTimeout(() => setToast(null), 2200);
+                }}
+                title={`${b.name} · ${b.cost.toLocaleString()} creatures · +${b.perMin}/min`}
+                className={[
+                  "flex items-center gap-2 rounded-xl border text-left transition",
+                  wideCol ? "px-2 py-1.5" : "justify-center py-1.5",
+                  canBuild
+                    ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.35)] hover:scale-[1.03]"
+                    : "cursor-not-allowed border-transparent opacity-40 grayscale",
+                ].join(" ")}
+              >
+                <span className="text-2xl leading-none">{b.emoji}</span>
+                {wideCol ? (
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{b.name}</span>
+                    <span className="flex justify-between text-[11px] text-[var(--muted)]">
+                      <span className="tabular-nums">{shortNumber(b.cost)}</span>
+                      <span className="tabular-nums">+{b.perMin}/min</span>
+                    </span>
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </aside>
+      ) : null}
+
+      {toast ? (
+        <div
+          className="dk-card absolute bottom-10 z-30 -translate-x-1/2 rounded-full bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] shadow-lg"
+          style={{ left: stageW / 2 }}
+        >
+          {toast}
+        </div>
+      ) : null}
+
       {/* Bottom line */}
-      <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)]">
+      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)]" style={{ right: colW }}>
         {/* No "N of M found": how many creatures exist stays a surprise. */}
         {collection.length ? null : <span>Tap the dream catcher to catch dream creatures</span>}
         {authReady && !user ? (

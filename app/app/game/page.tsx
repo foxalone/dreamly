@@ -12,6 +12,12 @@ export const metadata: Metadata = {
  * Every creature is a dictionary symbol, so its card links to its symbol page.
  * Built on the server so the dictionary never ships to the client.
  */
+/** The dictionary's English shortMeaning is Title Cased ("Home And Nourishment, …"); the card reads it as a sentence. */
+function sentenceCase(text: string): string {
+  const lower = text.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
 function creaturePool(): Creature[] {
   return CREATURE_TIERS.flatMap((t) =>
     t.slugs
@@ -21,7 +27,7 @@ function creaturePool(): Creature[] {
         emoji: e.icon,
         slug: e.slug,
         name: e.name.replace(/^(a|an|the) /i, ""),
-        meaning: e.shortMeaning,
+        meaning: sentenceCase(e.shortMeaning),
         tier: t.tier,
       }))
   );
