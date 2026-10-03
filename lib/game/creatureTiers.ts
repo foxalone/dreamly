@@ -2,6 +2,8 @@
  * Dream Kingdoms — which creatures can come out of the dream catcher, and when.
  * Every creature is a top-level dream-dictionary symbol (slug), so its card links to /dreams/<slug>.
  * A tier opens once the player has caught `unlockAt` creatures in total (lifetime, all kinds).
+ * Thresholds re-balanced 2026-10-03 for building copies (simulation: tier 6 ≈ day 13 active /
+ * day 20 regular / day 39 casual).
  * Rules doc: Admin → Game (app/app/profile/admin-dashboard/DreamKingdomsDoc.tsx).
  */
 
@@ -20,12 +22,12 @@ export const CREATURE_TIERS: CreatureTier[] = [
   },
   {
     tier: 3,
-    unlockAt: 1_000,
+    unlockAt: 5_000,
     slugs: ["elephant", "dolphin", "bat", "lizard", "octopus", "eagle", "whale", "spider", "snake", "wolf", "bear"],
   },
-  { tier: 4, unlockAt: 5_000, slugs: ["lion", "tiger", "shark", "alligator", "scorpion", "dinosaur"] },
-  { tier: 5, unlockAt: 20_000, slugs: ["ghost", "angel", "unicorn", "fairy", "mermaid"] },
-  { tier: 6, unlockAt: 75_000, slugs: ["dragon", "phoenix", "genie", "wizard"] },
+  { tier: 4, unlockAt: 100_000, slugs: ["lion", "tiger", "shark", "alligator", "scorpion", "dinosaur"] },
+  { tier: 5, unlockAt: 2_000_000, slugs: ["ghost", "angel", "unicorn", "fairy", "mermaid"] },
+  { tier: 6, unlockAt: 30_000_000, slugs: ["dragon", "phoenix", "genie", "wizard"] },
 ];
 
 /** Creatures of the newest open tier come out this many times more often, so new kinds show up quickly. */

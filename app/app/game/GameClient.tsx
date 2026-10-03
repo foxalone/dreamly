@@ -15,6 +15,7 @@ import {
   SYNC_INTERVAL_MS,
   STORAGE_MINUTES,
   buildingStorage,
+  nextCost,
 } from "@/lib/game/economy";
 
 /**
@@ -46,6 +47,7 @@ type ServerState = {
   rate: number;
   lastCollectAt: number | null;
   collectedAt: Record<string, number>;
+  owned: Record<string, number>;
   storage: { amount: number; full: boolean; by: Record<string, { amount: number; full: boolean }> };
   serverNow: number;
   signedIn: boolean;
@@ -397,7 +399,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const placed = server?.placed ?? {};
   // Each building's cube keeps filling on the client between server updates.
   const cubes = server
-    ? buildingStorage(Object.keys(server.placed), server.collectedAt, server.lastCollectAt, (now || server.serverNow - skew) + skew).by
+    ? buildingStorage(Object.keys(server.placed), server.collectedAt, server.lastCollectAt, (now || server.serverNow - skew) + skew, server.owned).by
     : {};
 
   /** Empty one building's cube (or all of them) into the balance. */
@@ -417,8 +419,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   }
 
   /** Build = pay the cost on the server and put the building on the map in the player's city. */
+  /** Copies of a building the player owns (0 = not built yet). */
+  const ownedOf = (id: string) => (placed[id] === undefined ? 0 : Math.max(1, server?.owned?.[id] ?? 1));
+
+  /** Build the first copy (placed on the map) or buy one more copy of a building that already stands. */
   async function placeBuilding(b: (typeof BUILDINGS)[number]) {
-    if (placing || placed[b.id] !== undefined || creatures < b.cost) return;
+    const owned = ownedOf(b.id);
+    if (placing || creatures < nextCost(b.cost, owned)) return;
     setPlacing(b.id);
     try {
       await flush();
@@ -427,12 +434,14 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         headers: { "Content-Type": "application/json", ...(await authHeaders(userRef.current)) },
         body: JSON.stringify({ buildingId: b.id }),
       });
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string; city?: string; state?: ServerState };
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string; city?: string; copies?: number; state?: ServerState };
       const name = t.buildingNames[b.id as keyof typeof t.buildingNames] ?? b.name;
       if (data.ok) {
         if (data.state) acceptServer(data.state);
         showToast(
-          formatMessage(data.city ? t.placedToastCity : t.placedToast, { emoji: b.emoji, name, city: data.city ?? "" }),
+          (data.copies ?? 1) > 1
+            ? formatMessage(t.copyToast, { emoji: b.emoji, name, n: data.copies ?? 2 })
+            : formatMessage(data.city ? t.placedToastCity : t.placedToast, { emoji: b.emoji, name, city: data.city ?? "" }),
           3500
         );
       } else if (data.code === "AUTH_REQUIRED") {
@@ -706,7 +715,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       {/* Buildings column (right). Grey = not affordable yet; lit = enough creatures to build it. */}
       {box.w > 0 ? (
         <aside
-          className="absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-center gap-1.5 border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
+          className="absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-start gap-1.5 overflow-y-auto border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
           style={{ width: colW }}
           aria-label={t.buildings}
         >
@@ -746,7 +755,10 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 </span>
                 {wideCol ? (
                   <span className="min-w-0 flex-1">
-                    <span className="bdim block truncate text-sm font-semibold">{bName}</span>
+                    <span className="bdim block truncate text-sm font-semibold">
+                      {bName}
+                      {isPlaced && ownedOf(b.id) > 1 ? <span className="ml-1 text-amber-500">×{ownedOf(b.id)}</span> : null}
+                    </span>
                     {isPlaced ? (
                       <>
                         <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
@@ -780,6 +792,33 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 >
                   {inner}
                 </button>
+                {/* One more copy: the price grows 15% per copy, the cube fills faster. */}
+                {(() => {
+                  const price = nextCost(b.cost, ownedOf(b.id));
+                  const can = creatures >= price && !!user;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => void placeBuilding(b)}
+                      disabled={!can || busy}
+                      title={`${t.buyMore} · ${price.toLocaleString()}`}
+                      className={`mt-1 flex w-full items-center gap-2 rounded-lg border px-2 py-0.5 text-[11px] font-semibold transition ${
+                        can
+                          ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] hover:scale-[1.02]"
+                          : "cursor-not-allowed border-[var(--border)] text-[var(--muted)]"
+                      }`}
+                    >
+                      {wideCol ? (
+                        <>
+                          <span className="whitespace-nowrap">{busy ? t.placing : t.buyMore}</span>
+                          <span className="ml-auto tabular-nums">{shortNumber(price)}</span>
+                        </>
+                      ) : (
+                        <span className="mx-auto">+</span>
+                      )}
+                    </button>
+                  );
+                })()}
                 {wideCol ? (
                   <LocaleLink
                     href="/app/map?layer=kingdoms"

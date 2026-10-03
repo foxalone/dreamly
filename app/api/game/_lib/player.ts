@@ -28,6 +28,8 @@ export type PlayerDoc = {
   lastCollectAt: number | null;
   /** When each building's storage ("cube") was last emptied. */
   collectedAt: Record<string, number>;
+  /** Copies of each building (missing = 1 for a placed building). */
+  owned: Record<string, number>;
   /** buildingId → city name */
   placed: Record<string, string>;
   cityId: string | null;
@@ -48,6 +50,7 @@ export type PlayerState = {
   rate: number;
   lastCollectAt: number | null;
   collectedAt: Record<string, number>;
+  owned: Record<string, number>;
   /** Per building and in total; the client keeps counting from serverNow. */
   storage: { amount: number; full: boolean; by: Record<string, { amount: number; full: boolean }> };
   serverNow: number;
@@ -73,6 +76,7 @@ function emptyPlayer(owner: Owner, now: number): PlayerDoc {
     lastSyncAt: now - 120_000,
     lastCollectAt: null,
     collectedAt: {},
+    owned: {},
     placed: {},
     cityId: null,
     city: null,
@@ -90,7 +94,7 @@ export function readPlayer(data: FirebaseFirestore.DocumentData | undefined, own
 }
 
 export function toState(p: PlayerDoc, now: number): PlayerState {
-  const rate = ratePerMin(Object.keys(p.placed));
+  const rate = ratePerMin(Object.keys(p.placed), p.owned);
   return {
     creatures: p.creatures,
     lifetime: p.lifetime,
@@ -100,8 +104,9 @@ export function toState(p: PlayerDoc, now: number): PlayerState {
     rate,
     lastCollectAt: p.lastCollectAt,
     collectedAt: p.collectedAt ?? {},
+    owned: p.owned ?? {},
     storage: (() => {
-      const st = buildingStorage(Object.keys(p.placed), p.collectedAt, p.lastCollectAt, now);
+      const st = buildingStorage(Object.keys(p.placed), p.collectedAt, p.lastCollectAt, now, p.owned);
       return { amount: st.total, full: st.anyFull, by: st.by };
     })(),
     serverNow: now,
@@ -131,7 +136,7 @@ function addCatches(p: PlayerDoc, add: Record<string, number>) {
 export function collectInto(p: PlayerDoc, now: number, onlyId?: string): number {
   const ids = Object.keys(p.placed).filter((id) => !onlyId || id === onlyId);
   if (!ids.length) return 0;
-  const st = buildingStorage(ids, p.collectedAt, p.lastCollectAt, now);
+  const st = buildingStorage(ids, p.collectedAt, p.lastCollectAt, now, p.owned);
   p.collectedAt = { ...(p.collectedAt ?? {}) };
   for (const id of ids) p.collectedAt[id] = now;
   if (!onlyId) p.lastCollectAt = now;
@@ -246,6 +251,7 @@ export async function mergeGuestIntoUser(owner: Owner): Promise<number> {
       tx.delete(fromRefs[i]);
       u.placed[bId] = g.placed[bId];
       u.collectedAt = { ...(u.collectedAt ?? {}), [bId]: now };
+      u.owned = { ...(u.owned ?? {}), [bId]: Math.max(1, g.owned?.[bId] ?? 1) };
       moved.push(bId);
     });
     if (moved.length) {
@@ -273,9 +279,10 @@ export async function cityRank(p: PlayerDoc): Promise<{ rank: number; total: num
     const x = d.data();
     const b = BUILDINGS.find((bb) => bb.id === x.buildingId);
     if (!b) continue;
-    power.set(String(x.ownerKey), (power.get(String(x.ownerKey)) ?? 0) + b.perMin);
+    const copies = Math.max(1, Math.floor(Number(x.count) || 1));
+    power.set(String(x.ownerKey), (power.get(String(x.ownerKey)) ?? 0) + b.perMin * copies);
   }
-  const mine = power.get(p.ownerKey) ?? ratePerMin(Object.keys(p.placed));
+  const mine = power.get(p.ownerKey) ?? ratePerMin(Object.keys(p.placed), p.owned);
   let rank = 1;
   for (const [k, v] of power) if (k !== p.ownerKey && v > mine) rank++;
   return { rank, total: Math.max(power.size, 1), city: p.city ?? "" };

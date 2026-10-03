@@ -26,7 +26,8 @@ export async function GET(req: Request) {
       const x = d.data();
       const placed = (x.placed ?? {}) as Record<string, string>;
       const caught = (x.caught ?? {}) as Record<string, number>;
-      const rate = ratePerMin(Object.keys(placed));
+      const owned = (x.owned ?? {}) as Record<string, number>;
+      const rate = ratePerMin(Object.keys(placed), owned);
       return {
         ownerKey: d.id,
         uid: (x.uid as string | null) ?? null,
@@ -36,9 +37,10 @@ export async function GET(req: Request) {
         kinds: Object.keys(caught).length,
         taps: Number(x.taps) || 0,
         buildings: Object.keys(placed),
+        owned,
         city: (x.city as string | null) ?? null,
         rate,
-        storage: buildingStorage(Object.keys(placed), x.collectedAt as Record<string, number> | undefined, (x.lastCollectAt as number | null) ?? null, now).total,
+        storage: buildingStorage(Object.keys(placed), x.collectedAt as Record<string, number> | undefined, (x.lastCollectAt as number | null) ?? null, now, owned).total,
         lastRank: (x.lastRank as number | null) ?? null,
         createdAt: Number(x.createdAt) || null,
         updatedAt: Number(x.updatedAt) || null,

@@ -19,6 +19,7 @@ export async function GET() {
       return {
         id: createHash("sha1").update(d.id).digest("hex").slice(0, 12),
         buildingId: String(x.buildingId ?? ""),
+        count: Math.max(1, Math.floor(Number(x.count) || 1)),
         cityId: String(x.cityId ?? ""),
         place: [x.city, x.admin1, x.country].filter(Boolean).join(", "),
         lat: Number(x.lat),

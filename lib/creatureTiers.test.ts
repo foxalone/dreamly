@@ -20,7 +20,8 @@ test("tiers unlock in order", () => {
   assert.equal(openTier(0), 1);
   assert.equal(openTier(149), 1);
   assert.equal(openTier(150), 2);
-  assert.equal(openTier(1_000_000), CREATURE_TIERS.length);
+  assert.equal(openTier(30_000_000), CREATURE_TIERS.length);
   assert.equal(nextTier(0)?.tier, 2);
-  assert.equal(nextTier(1_000_000), null);
+  assert.equal(openTier(29_999_999), CREATURE_TIERS.length - 1);
+  assert.equal(nextTier(30_000_000), null);
 });

@@ -17,11 +17,25 @@ export function perTapFor(signedIn: boolean): number {
   return signedIn ? PER_TAP_SIGNED_IN : PER_TAP_GUEST;
 }
 
-/** Creatures per minute from the placed buildings. */
-export function ratePerMin(placedIds: Iterable<string>): number {
+/** Each extra copy of a building costs this much more than the previous one (Cookie Clicker rule). */
+export const COST_GROWTH = 1.15;
+
+/** Price of the next copy when `owned` copies already stand. */
+export function nextCost(baseCost: number, owned: number): number {
+  return Math.round(baseCost * COST_GROWTH ** Math.max(0, owned));
+}
+
+/** How many copies of a placed building the player has (saves from before copies count as 1). */
+export function ownedCount(id: string, placedIds: Set<string>, owned?: Record<string, number>): number {
+  if (!placedIds.has(id)) return 0;
+  return Math.max(1, Math.floor(owned?.[id] ?? 1));
+}
+
+/** Creatures per minute from the placed buildings (all copies). */
+export function ratePerMin(placedIds: Iterable<string>, owned?: Record<string, number>): number {
   const set = new Set(placedIds);
   let r = 0;
-  for (const b of BUILDINGS) if (set.has(b.id)) r += b.perMin;
+  for (const b of BUILDINGS) r += b.perMin * ownedCount(b.id, set, owned);
   return r;
 }
 
@@ -59,14 +73,16 @@ export function distribute(n: number, slugs: string[], rand: () => number = Math
 }
 
 /**
- * Each building fills its own storage (its "cube") since it was last emptied.
+ * Each building type fills its own storage (its "cube") since it was last emptied; all copies of
+ * a type fill the same cube.
  * `collectedAt[id]` falls back to `lastCollectAt` for saves from before per-building storage.
  */
 export function buildingStorage(
   placedIds: Iterable<string>,
   collectedAt: Record<string, number> | undefined,
   lastCollectAt: number | null,
-  now: number
+  now: number,
+  owned?: Record<string, number>
 ): { by: Record<string, { amount: number; full: boolean }>; total: number; anyFull: boolean } {
   const placed = new Set(placedIds);
   const by: Record<string, { amount: number; full: boolean }> = {};
@@ -74,7 +90,7 @@ export function buildingStorage(
   let anyFull = false;
   for (const b of BUILDINGS) {
     if (!placed.has(b.id)) continue;
-    const s = storageNow(b.perMin, collectedAt?.[b.id] ?? lastCollectAt, now);
+    const s = storageNow(b.perMin * ownedCount(b.id, placed, owned), collectedAt?.[b.id] ?? lastCollectAt, now);
     by[b.id] = { amount: s.amount, full: s.full };
     total += s.amount;
     anyFull = anyFull || s.full;

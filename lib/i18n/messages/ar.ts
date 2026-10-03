@@ -389,6 +389,8 @@ export const AR_MESSAGES: UiMessages = {
       "moon-city": "مدينة القمر",
       "oneiros-palace": "قصر أونيروس",
     },
+    buyMore: "+ واحد آخر",
+    copyToast: "{emoji} {name} ×{n} — كائنات أكثر كل دقيقة",
     tapToBuild: "اضغط للبناء",
     placing: "جارٍ البناء…",
     onMap: "على الخريطة",

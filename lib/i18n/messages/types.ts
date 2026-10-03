@@ -333,6 +333,8 @@ export type UiMessages = {
     buildings: string;
     buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
     tapToBuild: string;
+    buyMore: string;
+    copyToast: string;
     placing: string;
     onMap: string;
     perMin: string;
