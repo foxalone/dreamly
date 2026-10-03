@@ -8,7 +8,7 @@ import { after, NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
-import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+import { isDreamTooLong } from "@/lib/dreamLength";
 import { countWords } from "@/lib/dreamVisuals";
 import { enrichSavedDream } from "@/lib/dreams/enrichSavedDream";
 import { adminAuth } from "../../admin/_lib/firebaseAdmin";
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     const text = s(body?.text);
     if (!text) return NextResponse.json({ error: "Missing text", code: "EMPTY" }, { status: 400 });
-    if (text.length > DREAM_MAX_CHARS) {
+    if (isDreamTooLong(text)) {
       return NextResponse.json({ error: "Dream is too long", code: "TOO_LONG" }, { status: 400 });
     }
     const type: "dream" | "story" = s(body?.type) === "story" ? "story" : "dream";

@@ -271,6 +271,7 @@ export type UiMessages = {
     firstDreamFree: string;
     dailyLimitReached: string;
     dreamTooLong: string;
+    wordCount: string;
     writeDream: string;
     writeStory: string;
   };

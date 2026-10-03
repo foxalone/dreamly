@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
-import { HOME_DREAM_MAX_CHARS } from "@/lib/homeDreamPending";
+import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeDreamSlot, refundDreamSlot, requirePaidAccess } from "../_lib/subscription";
 import {
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     if (!text) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
-    if (text.length > HOME_DREAM_MAX_CHARS) {
+    if (isDreamTooLong(text)) {
       return NextResponse.json({ error: "Dream text is too long." }, { status: 400 });
     }
 

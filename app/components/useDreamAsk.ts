@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
+import { clampDreamText } from "@/lib/dreamLength";
 import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { hasEnoughDreamEmojis, type DreamEmojiEntry } from "@/lib/dreamEmojiResolve";
 import {
@@ -90,7 +91,8 @@ export function useDreamAsk({
   }
 
   /** Textarea change: editing after a reading discards that reading. */
-  function setText(next: string) {
+  function setText(raw: string) {
+    const next = clampDreamText(raw);
     setTextState(next);
     if (analysis) {
       setAnalysis(null);

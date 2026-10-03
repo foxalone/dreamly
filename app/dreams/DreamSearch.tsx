@@ -6,6 +6,8 @@ import type { DreamCategory } from "@/lib/dream-categories";
 import { getCategoryCopy } from "@/lib/i18n/categories";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import DreamWordCounter from "@/app/components/DreamWordCounter";
+import { clampDreamText } from "@/lib/dreamLength";
 import { openQuickSymbol } from "./quickSymbolEvents";
 import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
 import { trackEvent } from "@/lib/analytics";
@@ -60,7 +62,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
   }, [ask.text]);
 
   function startDreamAsk() {
-    const dream = query.trim().slice(0, ask.maxChars);
+    const dream = clampDreamText(query.trim()).trim();
     if (!dream) return;
     trackEvent("dictionary_search_to_interpret", { word_count: wordCount });
     pendingSubmit.current = dream;
@@ -331,9 +333,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
                 className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3.5 py-3 text-[15px] leading-6 text-[var(--dd-text)] outline-none transition placeholder:text-[var(--dd-faint)] focus:border-violet-400 disabled:opacity-70"
               />
               <div className="flex items-center justify-end text-[11px] font-medium tabular-nums text-[var(--dd-subtle)]">
-                <span className={ask.text.length >= ask.maxChars ? "text-amber-500" : ""}>
-                  {ask.text.length}/{ask.maxChars}
-                </span>
+                <DreamWordCounter text={ask.text} fullClassName="text-amber-500" />
               </div>
               <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
                 <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs text-[var(--dd-muted)]">

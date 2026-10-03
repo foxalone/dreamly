@@ -7,6 +7,7 @@ import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "@/app/components/DreamLensChips";
 import { useDreamAsk } from "@/app/components/useDreamAsk";
 import ShareAnonPrompt from "@/app/components/ShareAnonPrompt";
+import DreamWordCounter from "@/app/components/DreamWordCounter";
 
 const OPEN_DELAY_MS = 160;
 const CLOSE_DELAY_MS = 380;
@@ -211,9 +212,7 @@ export default function InlineDreamPrompt({
                   className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3.5 py-3 text-[15px] leading-6 text-[var(--dd-text)] outline-none transition placeholder:text-[var(--dd-faint)] focus:border-[var(--cta)] disabled:opacity-70"
                 />
                 <div className="flex items-center justify-end text-[11px] font-medium tabular-nums text-[var(--dd-subtle)]">
-                  <span className={text.length >= ask.maxChars ? "text-amber-500" : ""}>
-                    {text.length}/{ask.maxChars}
-                  </span>
+                  <DreamWordCounter text={text} fullClassName="text-amber-500" />
                 </div>
                 <DreamLensChips value={ask.lens} onChange={ask.chooseLens} disabled={busy} tone="onDictionary" />
                 <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">

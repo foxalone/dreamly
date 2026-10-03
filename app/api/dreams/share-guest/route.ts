@@ -6,7 +6,7 @@ import { detectDreamLang } from "@/lib/detectDreamLang";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { checkShareableDreamText, guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
-import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+import { DREAM_MAX_CHARS, isDreamTooLong } from "@/lib/dreamLength";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { readClientIp, readGuestId, setGuestCookie } from "../_lib/guestQuota";
 
@@ -66,7 +66,9 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
     const text = s(body?.text);
-    const check = checkShareableDreamText(text, DREAM_MAX_CHARS);
+    const check = isDreamTooLong(text)
+      ? ({ ok: false, reason: "too_long" } as const)
+      : checkShareableDreamText(text, DREAM_MAX_CHARS);
     if (!check.ok) {
       return finish(NextResponse.json({ ok: false, code: "REJECTED", reason: check.reason }, { status: 422 }));
     }

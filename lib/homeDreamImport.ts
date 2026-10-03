@@ -5,10 +5,10 @@ import { trackEvent } from "@/lib/analytics";
 import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
+import { clampDreamText } from "@/lib/dreamLength";
 import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
 import { shareBadgeFor } from "@/lib/shareBadges";
 import {
-  HOME_DREAM_MAX_CHARS,
   takeHomeDreamPending,
   writeHomeDreamPending,
   type HomeDreamCity,
@@ -225,7 +225,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
   try {
     await setDoc(doc(firestore, "users", user.uid, "dreams", dreamId), {
       uid: user.uid,
-      text: text.slice(0, HOME_DREAM_MAX_CHARS),
+      text: clampDreamText(text).trim(),
       title: makeTitle(text),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),

@@ -1,4 +1,5 @@
-export const DREAM_MAX_CHARS = 400;
+// Dream length: 350 words (char cap is only a safety net) — see lib/dreamLength.ts
+export { DREAM_MAX_CHARS, DREAM_MAX_WORDS } from "@/lib/dreamLength";
 export const DREAMS_PER_DAY = 5;
 export const TRIAL_DAYS = 3;
 // Non-subscribers get this many feed translations per UTC day (cached or not —

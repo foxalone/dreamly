@@ -1,6 +1,6 @@
 import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
 
-import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+import { DREAM_MAX_CHARS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 
 export const HOME_DREAM_PENDING_KEY = "dreamly:homeDreamPending";
 export const HOME_DREAM_MAX_CHARS = DREAM_MAX_CHARS;
@@ -53,7 +53,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
   const parsed = raw as HomeDreamPending;
   const text = String(parsed.text ?? "").trim();
   if (!text) return null;
-  if (text.length > HOME_DREAM_MAX_CHARS) return null;
+  if (isDreamTooLong(text)) return null;
 
   const createdAtMs = Number(parsed.createdAtMs ?? 0);
   if (createdAtMs && Date.now() - createdAtMs > HOME_DREAM_TTL_MS) return null;
@@ -94,7 +94,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
   try {
     const cleaned = text.trim();
     if (!cleaned) return;
-    const nextText = cleaned.slice(0, HOME_DREAM_MAX_CHARS);
+    const nextText = clampDreamText(cleaned).trim();
     const prevRaw = readHomeDreamPending();
     // Visuals, analysis and the map-pin flag belong to a specific text. When the
     // visitor submits a different dream they must not leak from the previous one

@@ -18,7 +18,8 @@ import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
-import { DREAM_MAX_CHARS } from "@/lib/subscriptions/plans";
+import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
+import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
   hasFreeDreamSave,
   hasPaidAccess,
@@ -977,8 +978,8 @@ export default function DreamsPage() {
   async function save() {
     const v = text.trim();
     const type: ContentType = tab === "STORIES" ? "story" : "dream";
-    if (v.length > MAX_DREAM_CHARS) {
-      setError(formatMessage(t.app.dreamTooLong, { n: MAX_DREAM_CHARS }));
+    if (isDreamTooLong(v)) {
+      setError(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
       return;
     }
 
@@ -1027,7 +1028,7 @@ export default function DreamsPage() {
       if (!res.ok) {
         if (saved?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
         if (saved?.code === "SUBSCRIPTION_REQUIRED" || res.status === 402) throw new Error("SUBSCRIPTION_REQUIRED");
-        if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: MAX_DREAM_CHARS }));
+        if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
         throw new Error(saved?.error ?? `Failed to save ${type}.`);
       }
 
@@ -1558,7 +1559,7 @@ export default function DreamsPage() {
             value={text}
             onChange={(e) => {
               const raw = e.target.value ?? "";
-              const v = raw.length > MAX_DREAM_CHARS ? raw.slice(0, MAX_DREAM_CHARS) : raw;
+              const v = clampDreamText(raw);
               setText(v);
               const next = detectRecLangFromText(v);
               if (next) setRecLang(next);
@@ -1881,7 +1882,7 @@ export default function DreamsPage() {
   value={text}
   onChange={(e) => {
     const raw = e.target.value ?? "";
-    const v = raw.length > MAX_DREAM_CHARS ? raw.slice(0, MAX_DREAM_CHARS) : raw;
+    const v = clampDreamText(raw);
 
     setText(v);
 
@@ -1904,10 +1905,8 @@ export default function DreamsPage() {
 />
 
 <div className="mt-2 flex items-center justify-between text-xs text-[var(--muted)]">
-  <span className="opacity-70">Max {MAX_DREAM_CHARS} chars</span>
-  <span className={text.length >= MAX_DREAM_CHARS ? "text-red-200" : ""}>
-    {text.length}/{MAX_DREAM_CHARS}
-  </span>
+  <span />
+  <DreamWordCounter text={text} fullClassName="text-red-400" />
 </div>
               </div>
 

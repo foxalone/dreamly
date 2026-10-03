@@ -5,6 +5,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "./DreamLensChips";
 import ShareAnonPrompt from "./ShareAnonPrompt";
+import DreamWordCounter from "./DreamWordCounter";
 import { useDreamAsk } from "./useDreamAsk";
 
 export default function HomeDreamAsk({
@@ -52,8 +53,8 @@ export default function HomeDreamAsk({
           className="w-full resize-none rounded-[1.15rem] bg-white px-4 py-3.5 text-base text-zinc-900 outline-none placeholder:text-zinc-400"
         />
         <div className="flex justify-end px-2 pt-1.5 text-[11px] font-medium tabular-nums">
-          <span className={text.length >= maxChars ? "text-amber-200" : "text-white/70"}>
-            {text.length}/{maxChars}
+          <span className="text-white/70">
+            <DreamWordCounter text={text} fullClassName="text-amber-200" />
           </span>
         </div>
         <div className="px-2 pb-1 pt-2">
