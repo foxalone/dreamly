@@ -95,7 +95,7 @@ type Flying = {
 
 /** Space reserved at the top (title, counter, progress) and bottom (found line) of the stage. */
 const TOP_RESERVE = 92;
-const BOTTOM_RESERVE = 44;
+const BOTTOM_RESERVE = 76;
 
 type Box = { w: number; h: number };
 type Spot = { x: number; y: number };
@@ -855,8 +855,24 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         </div>
       ) : null}
 
+      {/* All-time catch counter (Cookie Clicker's "baked all time"), bottom-left, fairy-tale numerals. */}
+      {loaded ? (
+        <div className="pointer-events-none absolute bottom-3 left-4 z-10 select-none" aria-live="polite">
+          <div
+            key={Math.floor(lifetime / 1000)}
+            className="dk-lifetime dk-title text-3xl leading-none tabular-nums sm:text-4xl"
+            style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+          >
+            {lifetime.toLocaleString()}
+          </div>
+          <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+            ✦ {t.lifetimeLabel} ✦
+          </div>
+        </div>
+      ) : null}
+
       {/* Bottom line: first hint, and for guests the sign-in offer (stronger once there is something to lose). */}
-      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)]" style={{ right: colW }}>
+      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)] sm:pl-56" style={{ right: colW }}>
         {authReady && !user && loaded && (creatures >= 200 || placed.hut !== undefined) ? (
           <div className="dk-card mx-auto inline-flex max-w-md flex-wrap items-center justify-center gap-2 rounded-2xl border border-purple-400/50 bg-[color-mix(in_srgb,#a855f7_10%,var(--card))] px-3 py-2 text-sm text-[var(--text)]">
             <span>{formatMessage(t.keepProgress, { n: creatures.toLocaleString(), u: PER_TAP_SIGNED_IN, g: PER_TAP_GUEST })}</span>
@@ -961,6 +977,8 @@ const CSS = `
   filter: drop-shadow(0 1px 6px rgba(168,85,247,.25)); letter-spacing: .02em; }
 .dk-ring { animation: dk-ring 2.4s ease-in-out infinite; transform-origin: 50% 20%; }
 @keyframes dk-ring { 0%, 70%, 100% { rotate: 0deg; } 74% { rotate: -4deg; } 78% { rotate: 4deg; } 82% { rotate: -3deg; } 86% { rotate: 3deg; } 90% { rotate: -1deg; } 94% { rotate: 1deg; } }
+.dk-lifetime { animation: dk-lifetime .6s ease-out both; text-shadow: none; filter: drop-shadow(0 0 10px rgba(245,158,11,.35)) drop-shadow(0 1px 6px rgba(168,85,247,.3)); }
+@keyframes dk-lifetime { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }

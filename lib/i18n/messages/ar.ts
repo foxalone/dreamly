@@ -389,6 +389,7 @@ export const AR_MESSAGES: UiMessages = {
       "moon-city": "مدينة القمر",
       "oneiros-palace": "قصر أونيروس",
     },
+    lifetimeLabel: "كائناً اصطدتها",
     buyMore: "+ واحد آخر",
     copyToast: "{emoji} {name} ×{n} — كائنات أكثر كل دقيقة",
     tapToBuild: "اضغط للبناء",

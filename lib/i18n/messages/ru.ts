@@ -389,6 +389,7 @@ export const RU_MESSAGES: UiMessages = {
       "moon-city": "Лунный город",
       "oneiros-palace": "Дворец Онейроса",
     },
+    lifetimeLabel: "существ поймано",
     buyMore: "+ Ещё одно",
     copyToast: "{emoji} {name} ×{n} — больше существ каждую минуту",
     tapToBuild: "Нажмите, чтобы построить",

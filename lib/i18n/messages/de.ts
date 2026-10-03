@@ -389,6 +389,7 @@ export const DE_MESSAGES: UiMessages = {
       "moon-city": "Mondstadt",
       "oneiros-palace": "Palast des Oneiros",
     },
+    lifetimeLabel: "Wesen gefangen",
     buyMore: "+ Noch eins",
     copyToast: "{emoji} {name} ×{n} – mehr Wesen pro Minute",
     tapToBuild: "Tippen zum Bauen",

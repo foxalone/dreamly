@@ -334,6 +334,7 @@ export type UiMessages = {
     buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
     tapToBuild: string;
     buyMore: string;
+    lifetimeLabel: string;
     copyToast: string;
     placing: string;
     onMap: string;

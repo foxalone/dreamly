@@ -389,6 +389,7 @@ export const ES_MESSAGES: UiMessages = {
       "moon-city": "Ciudad de la Luna",
       "oneiros-palace": "Palacio de Oniros",
     },
+    lifetimeLabel: "criaturas atrapadas",
     buyMore: "+ Uno más",
     copyToast: "{emoji} {name} ×{n}: más criaturas cada minuto",
     tapToBuild: "Toca para construir",
