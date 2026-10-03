@@ -567,14 +567,21 @@ export default function SharedPage() {
                       {/* ✅ author initials (email-based; never uuid) */}
                       <div
                         className={[
-                          "w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[var(--muted)]",
-                          badge ? "text-[15px] cursor-help" : "text-[10px]",
+                          "shrink-0 rounded-full flex items-center justify-center",
+                          badge
+                            ? // the author's creature: bigger than the dream icons and in its own
+                              // circle, so it never reads as one of them (light and dark theme)
+                              "size-11 text-[26px] leading-none cursor-help bg-[color-mix(in_srgb,#a855f7_14%,var(--card))] ring-1 ring-purple-400/60"
+                            : "w-7 h-7 border border-[var(--border)] text-[10px] text-[var(--muted)]",
                         ].join(" ")}
                         title={aLabel}
                         aria-label={aLabel}
                       >
                         {aInit}
                       </div>
+                      {badge && emojis.length > 0 ? (
+                        <span aria-hidden className="h-6 w-px shrink-0 bg-[var(--border)]" />
+                      ) : null}
 
                       {/* icons */}
                       {emojis.length > 0 ? (
