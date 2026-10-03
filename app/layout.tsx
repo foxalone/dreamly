@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
+import DreamCatcherFab from "./components/DreamCatcherFab";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
@@ -72,6 +73,7 @@ export default function RootLayout({
         <GoogleRedirectHandler />
         <AppI18n>
           {children}
+          <DreamCatcherFab />
           <InstallPwaBanner />
         </AppI18n>
       </body>
