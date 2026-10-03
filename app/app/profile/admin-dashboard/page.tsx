@@ -32,6 +32,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
 import DreamKingdomsDoc from "./DreamKingdomsDoc";
+import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import GscQueriesPanel from "./GscQueriesPanel";
@@ -2437,6 +2438,8 @@ async function loadUsers() {
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
+
+      {tab === "GAME" && user && <GamePlayersPanel />}
 
       {tab === "GAME" && <DreamKingdomsDoc />}
 
