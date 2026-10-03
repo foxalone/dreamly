@@ -985,7 +985,6 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 >
                   {t.collectionTitle}
                 </h2>
-                <p className="mt-1 text-xs text-[var(--muted)]">{t.collectionHint}</p>
               </div>
               <div className="text-right">
                 <div
