@@ -80,6 +80,63 @@ function persist(s: Saved) {
   }
 }
 
+/** Space reserved at the top (title, counter, progress) and bottom (found line) of the stage. */
+const TOP_RESERVE = 128;
+const BOTTOM_RESERVE = 44;
+
+type Box = { w: number; h: number };
+type Spot = { x: number; y: number };
+type Layout = {
+  /** Creature chip size: smaller on phones so a full collection still fits. */
+  chip: number;
+  catcherH: number;
+  cx: number;
+  cy: number;
+  /** Center of the web, where creatures fly out from. */
+  originY: number;
+  spots: Spot[];
+};
+
+/** Halton low-discrepancy sequence: spread-out positions that look random but are stable. */
+function halton(i: number, base: number): number {
+  let f = 1;
+  let r = 0;
+  while (i > 0) {
+    f /= base;
+    r += f * (i % base);
+    i = Math.floor(i / base);
+  }
+  return r;
+}
+
+/**
+ * Where each creature (by discovery index) sits around the dream catcher.
+ * Stable for a given stage size, keeps clear of the catcher and of each other.
+ */
+function computeLayout(n: number, box: Box): Layout {
+  const CHIP = box.w < 520 ? 36 : 42;
+  const avail = Math.max(200, box.h - TOP_RESERVE - BOTTOM_RESERVE);
+  const catcherH = Math.round(Math.min(440, avail * 0.82, box.w * 0.5 * 1.5));
+  const catcherW = (catcherH * 600) / 900;
+  const cx = box.w / 2;
+  const cy = TOP_RESERVE + avail / 2;
+  const rx = catcherW * 0.42 + CHIP * 0.6;
+  const ry = catcherH * 0.46 + CHIP * 0.4;
+  const pad = CHIP / 2 + 6;
+  const spots: Spot[] = [];
+  for (let minDist = CHIP + 12; spots.length < n && minDist >= CHIP * 0.7; minDist -= 6) {
+    spots.length = 0;
+    for (let i = 1; i < 5000 && spots.length < n; i++) {
+      const x = pad + halton(i, 2) * (box.w - pad * 2);
+      const y = TOP_RESERVE + pad + halton(i, 3) * (avail - pad * 2);
+      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) continue;
+      if (spots.some((p) => (p.x - x) ** 2 + (p.y - y) ** 2 < minDist * minDist)) continue;
+      spots.push({ x, y });
+    }
+  }
+  return { chip: CHIP, catcherH, cx, cy, originY: cy - catcherH * 0.2, spots };
+}
+
 /** Total creatures ever caught — drives which tiers are open. */
 function lifetimeOf(s: Saved): number {
   let n = 0;
@@ -116,6 +173,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [unlocked, setUnlocked] = useState<number | null>(null);
 
   const catcherRef = useRef<HTMLImageElement | null>(null);
+  const mainRef = useRef<HTMLElement | null>(null);
+  const [box, setBox] = useState<Box>({ w: 0, h: 0 });
+  const [mainTop, setMainTop] = useState(0);
   const tapTimes = useRef<number[]>([]);
   const nextId = useRef(1);
 
@@ -137,6 +197,25 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     if (loaded) persist(saved);
   }, [saved, loaded]);
 
+  // The game is one screen: no page scroll, the stage fills the space under the sticky header.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = "hidden";
+    window.scrollTo(0, 0);
+    const el = mainRef.current;
+    const ro = new ResizeObserver(() => {
+      if (!el) return;
+      setMainTop(el.getBoundingClientRect().top + window.scrollY);
+      setBox({ w: el.clientWidth, h: el.clientHeight });
+    });
+    if (el) ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.overflow = prev;
+    };
+  }, []);
+
   useEffect(() => {
     if (!card) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setCard(null);
@@ -148,6 +227,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const lifetime = lifetimeOf(saved);
   const tierNow = openTier(lifetime);
   const upcoming = nextTier(lifetime);
+  const layout = useMemo(() => computeLayout(pool.length, box), [pool.length, box]);
 
   const tap = (e: React.MouseEvent<HTMLButtonElement>) => {
     const available = pool.filter((c) => c.tier <= tierNow);
@@ -170,17 +250,20 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       { duration: reduced ? 1 : 320, easing: "ease-out" }
     );
 
+    // Each creature flies from the web center to its own place around the catcher.
+    const order = [...saved.recent];
     const born: Flying[] = Array.from({ length: perTap }, (_, i) => {
-      // Fan out mostly upwards and sideways from the web center.
+      const creature = pickCreature(available, tierNow);
+      if (!order.includes(creature.slug)) order.push(creature.slug);
+      const spot = layout.spots[order.indexOf(creature.slug)];
       const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5;
-      const dist = 110 + Math.random() * 90;
       return {
         id: nextId.current++,
-        creature: pickCreature(available, tierNow),
-        dx: Math.cos(angle) * dist * 0.85,
-        dy: Math.sin(angle) * dist,
-        rot: (Math.random() - 0.5) * 70,
-        delay: i * 40,
+        creature,
+        dx: spot ? spot.x - layout.cx : Math.cos(angle) * 160,
+        dy: spot ? spot.y - layout.originY : Math.sin(angle) * 160,
+        rot: (Math.random() - 0.5) * 50,
+        delay: i * 50,
       };
     });
 
@@ -235,148 +318,173 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     .filter((x): x is { creature: Creature; count: number } => !!x.creature && x.count > 0);
 
   return (
-    <main className="mx-auto max-w-xl px-4 pb-16 pt-6 select-none">
+    <main
+      ref={mainRef}
+      className="relative mx-auto w-full max-w-5xl overflow-hidden select-none"
+      style={{ height: `calc(100dvh - ${mainTop}px)` }}
+    >
       <style>{CSS}</style>
 
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">Dream Kingdoms</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">Tap the dream catcher to catch dream creatures</p>
-      </div>
-
-      <div className="mt-5 flex items-center justify-center gap-2" aria-live="polite">
-        <span className="text-3xl font-bold tabular-nums">{saved.creatures.toLocaleString()}</span>
-        <span className="text-sm text-[var(--muted)]">creatures</span>
-      </div>
-
-      {/* Next tier: how far until new kinds of creatures can come out. */}
-      {loaded && upcoming ? (
-        <div className="mx-auto mt-3 max-w-xs">
-          <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-            <span>
-              🔒 {upcoming.slugs.length} new creatures
-            </span>
-            <span className="tabular-nums">
-              {lifetime.toLocaleString()} / {upcoming.unlockAt.toLocaleString()} caught
-            </span>
-          </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
-              style={{
-                width: `${Math.min(
-                  100,
-                  ((lifetime - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0)) /
-                    (upcoming.unlockAt - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0))) *
-                    100
-                )}%`,
-              }}
-            />
-          </div>
+      {/* Top: title, counter, progress to the next tier */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-4 text-center">
+        <h1 className="text-xl font-semibold">Dream Kingdoms</h1>
+        <div className="mt-1 flex items-baseline justify-center gap-2" aria-live="polite">
+          <span className="text-3xl font-bold tabular-nums">{saved.creatures.toLocaleString()}</span>
+          <span className="text-sm text-[var(--muted)]">creatures</span>
         </div>
-      ) : null}
-
-      {unlocked ? (
-        <div className="dk-card mx-auto mt-3 max-w-sm rounded-2xl border border-amber-400/50 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-2 text-center text-sm">
-          <div className="font-semibold">✨ New creatures can now come out of the dream catcher!</div>
-          <div className="mt-1 text-2xl tracking-wide">
-            {pool.filter((c) => c.tier === unlocked).map((c) => c.emoji).join(" ")}
-          </div>
-        </div>
-      ) : null}
-
-      {/* Stage */}
-      <div className="dk-stage relative mx-auto mt-2 flex h-[440px] items-center justify-center">
-        <button
-          type="button"
-          onClick={tap}
-          aria-label={`Tap the dream catcher (+${perTap} creatures)`}
-          className="dk-sway relative cursor-pointer border-0 bg-transparent p-0 outline-none"
-          style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-        >
-          <span className="dk-halo" aria-hidden />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={catcherRef}
-            src="/game/dreamcatcher.webp"
-            alt=""
-            width={600}
-            height={900}
-            draggable={false}
-            className="dk-catcher relative h-[400px] w-auto"
-          />
-        </button>
-
-        {/* Origin of flights = center of the web (upper third of the image). */}
-        <div className="pointer-events-none absolute left-1/2 top-[30%]" aria-hidden>
-          {flying.map((f) => (
-            <span
-              key={f.id}
-              className="dk-fly absolute -translate-x-1/2 -translate-y-1/2 text-4xl"
-              style={
-                {
-                  "--dx": `${f.dx}px`,
-                  "--dy": `${f.dy}px`,
-                  "--rot": `${f.rot}deg`,
-                  animationDuration: `${FLIGHT_MS}ms`,
-                  animationDelay: `${f.delay}ms`,
-                } as React.CSSProperties
-              }
-            >
-              {f.creature.emoji}
-            </span>
-          ))}
-          {plus.map((p) => (
-            <span
-              key={p.id}
-              className="dk-plus absolute -translate-x-1/2 text-lg font-bold text-amber-300"
-              style={{ left: p.x }}
-            >
-              +{p.n}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Collection: one chip per creature type with how many were caught, in discovery order. */}
-      <div className="mt-2 min-h-[64px]">
-        {collection.length ? (
-          <>
-            <div className="text-center text-xs text-[var(--muted)]">
-              {collection.length} of {pool.length} creatures found · tap one to see what it means in a dream
+        {loaded && upcoming ? (
+          <div className="mx-auto mt-2 max-w-xs">
+            <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+              <span>🔒 {upcoming.slugs.length} new creatures</span>
+              <span className="tabular-nums">
+                {lifetime.toLocaleString()} / {upcoming.unlockAt.toLocaleString()} caught
+              </span>
             </div>
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              {collection.map(({ creature, count }) => (
-                <button
-                  key={creature.slug}
-                  type="button"
-                  onClick={() => setCard(creature)}
-                  className="dk-land relative flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-2xl transition hover:scale-110"
-                  aria-label={`${creature.name}: ${count}`}
-                  title={creature.name}
-                >
-                  {creature.emoji}
-                  <span
-                    key={landTick[creature.slug] ?? 0}
-                    className="dk-bump absolute -right-1.5 -top-1.5 min-w-[22px] rounded-full bg-purple-500 px-1.5 text-center text-[11px] font-bold leading-[20px] text-white shadow"
-                  >
-                    {count > 999 ? `${Math.floor(count / 1000)}k` : count}
-                  </span>
-                </button>
-              ))}
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    ((lifetime - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0)) /
+                      (upcoming.unlockAt - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0))) *
+                      100
+                  )}%`,
+                }}
+              />
             </div>
-          </>
+          </div>
+        ) : null}
+        {unlocked ? (
+          <div className="dk-card mx-auto mt-2 max-w-sm rounded-2xl border border-amber-400/50 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-2 text-sm">
+            <div className="font-semibold">✨ New creatures can now come out of the dream catcher!</div>
+            <div className="mt-1 text-2xl tracking-wide">
+              {pool.filter((c) => c.tier === unlocked).map((c) => c.emoji).join(" ")}
+            </div>
+          </div>
         ) : null}
       </div>
 
-      {authReady && !user ? (
-        <div className="mx-auto mt-6 max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-center text-sm">
-          You get <b>{PER_TAP_GUEST}</b> creatures per tap as a guest.{" "}
-          <LocaleLink href="/signin?next=/app/game" className="font-semibold text-purple-400 underline underline-offset-2">
-            Sign in
-          </LocaleLink>{" "}
-          to get <b>{PER_TAP_SIGNED_IN}</b>.
-        </div>
+      {box.w > 0 ? (
+        <>
+          {/* Dream catcher */}
+          <button
+            type="button"
+            onClick={tap}
+            aria-label={`Tap the dream catcher (+${perTap} creatures)`}
+            className="dk-sway absolute cursor-pointer border-0 bg-transparent p-0 outline-none"
+            style={{
+              left: layout.cx,
+              top: layout.cy,
+              height: layout.catcherH,
+              marginLeft: -(layout.catcherH * 600) / 900 / 2,
+              marginTop: -layout.catcherH / 2,
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            <span className="dk-halo" aria-hidden style={{ width: layout.catcherH * 0.55, height: layout.catcherH * 0.55 }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={catcherRef}
+              src="/game/dreamcatcher.webp"
+              alt=""
+              width={600}
+              height={900}
+              draggable={false}
+              className="dk-catcher relative w-auto"
+              style={{ height: layout.catcherH }}
+            />
+          </button>
+
+          {/* Caught creatures, scattered around the catcher (one per kind, with a counter). */}
+          {collection.map(({ creature, count }, i) => {
+            const spot = layout.spots[saved.recent.indexOf(creature.slug)];
+            if (!spot) return null;
+            return (
+              <button
+                key={creature.slug}
+                type="button"
+                onClick={() => setCard(creature)}
+                className="dk-land absolute z-[5] flex items-center justify-center rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_88%,transparent)] text-xl shadow-sm transition hover:scale-110"
+                style={{
+                  left: spot.x - layout.chip / 2,
+                  top: spot.y - layout.chip / 2,
+                  width: layout.chip,
+                  height: layout.chip,
+                }}
+                aria-label={`${creature.name}: ${count}`}
+                title={creature.name}
+              >
+                <span className="dk-float" style={{ animationDelay: `${-(i * 0.37) % 3}s` }}>
+                  {creature.emoji}
+                </span>
+                <span
+                  key={landTick[creature.slug] ?? 0}
+                  className="dk-bump absolute -right-1.5 -top-1.5 min-w-[20px] rounded-full bg-purple-500 px-1 text-center text-[10px] font-bold leading-[18px] text-white shadow"
+                >
+                  {count > 999 ? `${Math.floor(count / 1000)}k` : count}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Flights start at the center of the web. */}
+          <div
+            className="pointer-events-none absolute z-20"
+            style={{ left: layout.cx, top: layout.originY }}
+            aria-hidden
+          >
+            {flying.map((f) => (
+              <span
+                key={f.id}
+                className="dk-fly absolute text-3xl"
+                style={
+                  {
+                    "--dx": `${f.dx}px`,
+                    "--dy": `${f.dy}px`,
+                    "--rot": `${f.rot}deg`,
+                    animationDuration: `${FLIGHT_MS}ms`,
+                    animationDelay: `${f.delay}ms`,
+                  } as React.CSSProperties
+                }
+              >
+                {f.creature.emoji}
+              </span>
+            ))}
+            {plus.map((p) => (
+              <span
+                key={p.id}
+                className="dk-plus absolute -translate-x-1/2 text-lg font-bold text-amber-400"
+                style={{ left: p.x }}
+              >
+                +{p.n}
+              </span>
+            ))}
+          </div>
+        </>
       ) : null}
+
+      {/* Bottom line */}
+      <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)]">
+        {collection.length ? (
+          <span>
+            {collection.length} of {pool.length} creatures found · tap one to see what it means in a dream
+          </span>
+        ) : (
+          <span>Tap the dream catcher to catch dream creatures</span>
+        )}
+        {authReady && !user ? (
+          <span>
+            {" "}
+            · Guests get {PER_TAP_GUEST} per tap —{" "}
+            <LocaleLink href="/signin?next=/app/game" className="font-semibold text-purple-400 underline underline-offset-2">
+              sign in
+            </LocaleLink>{" "}
+            for {PER_TAP_SIGNED_IN}
+          </span>
+        ) : null}
+      </div>
 
       {/* Symbol card */}
       {card ? (
@@ -399,7 +507,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
               </div>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-              Dreaming of a {card.name} is linked with {card.meaning}.
+              {card.meaning}
             </p>
             <div className="mt-4 flex gap-2">
               <LocaleLink
@@ -428,17 +536,19 @@ const CSS = `
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
 @keyframes dk-pulse { 0%,100% { scale: 1; } 50% { scale: 1.025; } }
-.dk-halo { position:absolute; left:50%; top:30%; width:240px; height:240px; translate:-50% -50%; border-radius:9999px;
+.dk-halo { position:absolute; left:50%; top:30%; translate:-50% -50%; border-radius:9999px;
   background: radial-gradient(circle, rgba(251,191,36,.35), rgba(168,85,247,.18) 45%, transparent 70%);
   animation: dk-halo 2.6s ease-in-out infinite; pointer-events:none; }
 @keyframes dk-halo { 0%,100% { opacity:.55; scale:.95; } 50% { opacity:1; scale:1.08; } }
-.dk-fly { animation-name: dk-fly; animation-timing-function: cubic-bezier(.2,.7,.3,1); animation-fill-mode: both; }
+.dk-fly { animation-name: dk-fly; animation-timing-function: cubic-bezier(.3,.6,.35,1); animation-fill-mode: both; }
 @keyframes dk-fly {
   0%   { opacity:0; transform: translate(-50%,-50%) scale(.2) rotate(0deg); }
-  15%  { opacity:1; }
-  70%  { opacity:1; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.15) rotate(var(--rot)); }
-  100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 40px)) scale(.8) rotate(var(--rot)); }
+  12%  { opacity:1; transform: translate(-50%,-50%) scale(1.25) rotate(0deg); }
+  55%  { opacity:1; transform: translate(calc(-50% + var(--dx) * .55), calc(-50% + var(--dy) * .55 - 50px)) scale(1.1) rotate(var(--rot)); }
+  100% { opacity:.9; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.75) rotate(0deg); }
 }
+.dk-float { display:inline-block; animation: dk-float 3s ease-in-out infinite; }
+@keyframes dk-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .dk-plus { top:-10px; animation: dk-plus .9s ease-out both; text-shadow: 0 0 10px rgba(251,191,36,.7); }
 @keyframes dk-plus { from { opacity:1; transform: translate(-50%,0); } to { opacity:0; transform: translate(-50%,-70px); } }
 .dk-land { animation: dk-land .35s ease-out both; }
@@ -447,7 +557,7 @@ const CSS = `
 @keyframes dk-bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); background:#f59e0b; } 100% { transform: scale(1); } }
 .dk-card { animation: dk-land .2s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
-  .dk-sway, .dk-catcher, .dk-halo { animation: none; }
+  .dk-sway, .dk-catcher, .dk-halo, .dk-float { animation: none; }
   .dk-fly { animation-duration: 1ms !important; }
 }
 `;
