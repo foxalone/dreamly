@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import { CREATURE_TIERS, NEWEST_TIER_WEIGHT, nextTier, openTier } from "@/lib/game/creatureTiers";
 
 /**
  * Dream Kingdoms — phase 1, step 1: the tap screen.
@@ -13,7 +14,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
  * Rules: Admin → Game (app/app/profile/admin-dashboard/DreamKingdomsDoc.tsx).
  */
 
-export type Creature = { emoji: string; slug: string; name: string; meaning: string };
+export type Creature = { emoji: string; slug: string; name: string; meaning: string; tier: number };
 
 const PER_TAP_GUEST = 3;
 const PER_TAP_SIGNED_IN = 5;
@@ -79,8 +80,24 @@ function persist(s: Saved) {
   }
 }
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+/** Total creatures ever caught — drives which tiers are open. */
+function lifetimeOf(s: Saved): number {
+  let n = 0;
+  for (const c of Object.values(s.caught)) n += c;
+  return n;
+}
+
+/** Random creature from the open tiers; the newest open tier is weighted up so new kinds appear soon. */
+function pickCreature(available: Creature[], newestTier: number): Creature {
+  const w = (c: Creature) => (newestTier > 1 && c.tier === newestTier ? NEWEST_TIER_WEIGHT : 1);
+  let total = 0;
+  for (const c of available) total += w(c);
+  let r = Math.random() * total;
+  for (const c of available) {
+    r -= w(c);
+    if (r < 0) return c;
+  }
+  return available[available.length - 1];
 }
 
 export default function GameClient({ pool }: { pool: Creature[] }) {
@@ -95,6 +112,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [landTick, setLandTick] = useState<Record<string, number>>({});
   const [plus, setPlus] = useState<Array<{ id: number; n: number; x: number }>>([]);
   const [card, setCard] = useState<Creature | null>(null);
+  /** Tier just unlocked — shows the "new creatures" banner for a few seconds. */
+  const [unlocked, setUnlocked] = useState<number | null>(null);
 
   const catcherRef = useRef<HTMLImageElement | null>(null);
   const tapTimes = useRef<number[]>([]);
@@ -126,10 +145,14 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   }, [card]);
 
   const perTap = user ? PER_TAP_SIGNED_IN : PER_TAP_GUEST;
+  const lifetime = lifetimeOf(saved);
+  const tierNow = openTier(lifetime);
+  const upcoming = nextTier(lifetime);
 
-  const tap = useCallback(() => {
-    if (!pool.length || !loaded) return;
-    const now = performance.now();
+  const tap = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const available = pool.filter((c) => c.tier <= tierNow);
+    if (!available.length || !loaded) return;
+    const now = e.timeStamp;
     tapTimes.current = tapTimes.current.filter((t) => now - t < 1000);
     if (tapTimes.current.length >= MAX_TAPS_PER_SEC) return;
     tapTimes.current.push(now);
@@ -153,7 +176,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       const dist = 110 + Math.random() * 90;
       return {
         id: nextId.current++,
-        creature: pick(pool),
+        creature: pickCreature(available, tierNow),
         dx: Math.cos(angle) * dist * 0.85,
         dy: Math.sin(angle) * dist,
         rot: (Math.random() - 0.5) * 70,
@@ -198,7 +221,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       });
     }, FLIGHT_MS + perTap * 40);
     window.setTimeout(() => setPlus((p) => p.filter((x) => x.id !== plusId)), 900);
-  }, [perTap, pool, loaded]);
+
+    const tierAfter = openTier(lifetime + perTap);
+    if (tierAfter > tierNow) {
+      setUnlocked(tierAfter);
+      window.setTimeout(() => setUnlocked((u) => (u === tierAfter ? null : u)), 5000);
+    }
+  };
 
   const bySlug = useMemo(() => new Map(pool.map((c) => [c.slug, c])), [pool]);
   const collection = saved.recent
@@ -218,6 +247,42 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         <span className="text-3xl font-bold tabular-nums">{saved.creatures.toLocaleString()}</span>
         <span className="text-sm text-[var(--muted)]">creatures</span>
       </div>
+
+      {/* Next tier: how far until new kinds of creatures can come out. */}
+      {loaded && upcoming ? (
+        <div className="mx-auto mt-3 max-w-xs">
+          <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+            <span>
+              🔒 {upcoming.slugs.length} new creatures
+            </span>
+            <span className="tabular-nums">
+              {lifetime.toLocaleString()} / {upcoming.unlockAt.toLocaleString()} caught
+            </span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
+              style={{
+                width: `${Math.min(
+                  100,
+                  ((lifetime - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0)) /
+                    (upcoming.unlockAt - (CREATURE_TIERS[upcoming.tier - 2]?.unlockAt ?? 0))) *
+                    100
+                )}%`,
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {unlocked ? (
+        <div className="dk-card mx-auto mt-3 max-w-sm rounded-2xl border border-amber-400/50 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-2 text-center text-sm">
+          <div className="font-semibold">✨ New creatures can now come out of the dream catcher!</div>
+          <div className="mt-1 text-2xl tracking-wide">
+            {pool.filter((c) => c.tier === unlocked).map((c) => c.emoji).join(" ")}
+          </div>
+        </div>
+      ) : null}
 
       {/* Stage */}
       <div className="dk-stage relative mx-auto mt-2 flex h-[440px] items-center justify-center">

@@ -1,36 +1,30 @@
 import type { Metadata } from "next";
-import { ALL_DREAM_ENTRIES } from "@/lib/dream-dictionary";
+import { DREAM_DICTIONARY } from "@/lib/dream-dictionary";
+import { CREATURE_TIERS } from "@/lib/game/creatureTiers";
 import GameClient, { type Creature } from "./GameClient";
 
 export const metadata: Metadata = {
   title: "Dream Kingdoms — Dreamly",
 };
 
-/** Extra non-animal dictionary symbols that read as dream creatures. */
-const EXTRA_CREATURE_SLUGS = new Set(["angel", "ghost"]);
-
 /**
- * Creature pool for the tap game: every top-level dictionary symbol in the "animals"
- * category (plus a few spiritual beings), so each creature links to its symbol page.
- * Built on the server so the 7k-line dictionary never ships to the client.
+ * Creature pool for the tap game, from the tier table (lib/game/creatureTiers.ts).
+ * Every creature is a dictionary symbol, so its card links to its symbol page.
+ * Built on the server so the dictionary never ships to the client.
  */
 function creaturePool(): Creature[] {
-  const seenEmoji = new Set<string>();
-  return ALL_DREAM_ENTRIES.filter(
-    (e) =>
-      !e.parentSlug &&
-      !e.comboOf &&
-      (e.category === "animals" || EXTRA_CREATURE_SLUGS.has(e.slug))
-  )
-    // Two symbols can share an emoji (alligator / crocodile are both 🐊) — keep the first,
-    // otherwise the collection shows two identical chips.
-    .filter((e) => (seenEmoji.has(e.icon) ? false : (seenEmoji.add(e.icon), true)))
-    .map((e) => ({
-    emoji: e.icon,
-    slug: e.slug,
-    name: e.name,
-    meaning: e.shortMeaning,
-  }));
+  return CREATURE_TIERS.flatMap((t) =>
+    t.slugs
+      .map((slug) => DREAM_DICTIONARY[slug])
+      .filter((e) => Boolean(e))
+      .map((e) => ({
+        emoji: e.icon,
+        slug: e.slug,
+        name: e.name.replace(/^(a|an|the) /i, ""),
+        meaning: e.shortMeaning,
+        tier: t.tier,
+      }))
+  );
 }
 
 export default function GamePage() {

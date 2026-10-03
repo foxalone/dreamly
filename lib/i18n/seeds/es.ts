@@ -3714,4 +3714,505 @@ export const SEEDS_ES: Record<string, SeedL10n> = {
     name: "un papa enojado",
     focus: "culpa, miedo a la condena, una regla que rompiste o una autoridad cuya aprobación dejaste de creer pero sigues buscando",
   },
+  // Added 2026-10-03: new animals + mythical creatures (native copy, not translated).
+  scorpion: {
+    name: "un escorpión",
+    summary: "peligro oculto, un aguijón guardado en reserva, autoprotección y un dolor que viene de algo pequeño que no viste venir",
+  },
+  "scorpion-sting": {
+    name: "una picadura de escorpión",
+    focus: "un daño repentino de alguien cercano, palabras que envenenan o un aviso que sentiste solo cuando el daño ya estaba hecho",
+  },
+  "black-scorpion": {
+    name: "un escorpión negro",
+    focus: "una amenaza que no logras descifrar, rencor enterrado o un peligro que se esconde a plena vista",
+  },
+  "killing-a-scorpion": {
+    name: "matar un escorpión",
+    focus: "acabar con una amenaza oculta, plantarle cara a una traición o no dejar que el miedo conserve su aguijón",
+  },
+  "scorpion-in-bed": {
+    name: "un escorpión en la cama",
+    focus: "peligro dentro de la intimidad, desconfianza en una relación cercana o una preocupación que no te deja descansar",
+  },
+  whale: {
+    name: "una ballena",
+    summary: "emoción profunda, sabiduría antigua, una presencia inmensa bajo la superficie y el llamado de algo mucho más grande que tú",
+  },
+  "swimming-with-whales": {
+    name: "nadar con ballenas",
+    focus: "moverte junto a tus sentimientos más hondos, confiar en algo inmenso o sentirte pequeño y a salvo a la vez",
+  },
+  "whale-jumping": {
+    name: "una ballena saltando fuera del agua",
+    focus: "una verdad profunda que sale a la superficie, una descarga repentina de emoción o una alegría que no puede quedarse escondida",
+  },
+  "beached-whale": {
+    name: "una ballena varada",
+    focus: "una gran fuerza encallada, emociones que no encuentran salida o algo importante que quedó fuera de su elemento",
+  },
+  "killer-whale": {
+    name: "una orca",
+    focus: "poder inteligente, lealtad familiar o una fuerza hermosa y peligrosa en un mismo cuerpo",
+  },
+  eagle: {
+    name: "un águila",
+    summary: "visión desde lo alto, libertad, ambición, valentía y la capacidad de ver lejos y actuar en el momento justo",
+  },
+  "flying-eagle": {
+    name: "un águila volando",
+    focus: "elevarte por encima de una situación, una mirada más amplia sobre tu vida o una ambición que por fin levanta vuelo",
+  },
+  "eagle-attack": {
+    name: "un águila que te ataca",
+    focus: "ser el blanco de alguien poderoso, un juicio duro que llega desde arriba o tu propio orgullo volviéndose en tu contra",
+  },
+  "bald-eagle": {
+    name: "un águila calva",
+    focus: "dignidad, independencia, orgullo nacional o familiar, o un sentido del deber que vela por ti",
+  },
+  "eagle-catching-prey": {
+    name: "un águila cazando a su presa",
+    focus: "aprovechar una oportunidad, actuar con decisión o el momento en que la concentración se convierte en resultado",
+  },
+  turtle: {
+    name: "una tortuga",
+    summary: "paciencia, protección, avance lento pero firme, larga vida y el caparazón en el que te refugias cuando el mundo hace demasiado ruido",
+  },
+  "big-turtle": {
+    name: "una tortuga grande",
+    focus: "sabiduría antigua, una base estable o un proceso lento que es más grande de lo que parece",
+  },
+  "baby-turtle": {
+    name: "una tortuga bebé",
+    focus: "un comienzo nuevo y frágil, un paso pequeño hacia algo grande o la necesidad de protección en el camino",
+  },
+  "turtle-in-water": {
+    name: "una tortuga en el agua",
+    focus: "moverte con calma entre las emociones, sentirte en casa con lo que sientes o un avance que fluye cuando estás en tu elemento",
+  },
+  "turtle-on-its-back": {
+    name: "una tortuga boca arriba",
+    focus: "sentirte atascado y expuesto, una protección que falló o necesitar ayuda para volver a ponerte de pie",
+  },
+  pig: {
+    name: "un cerdo",
+    summary: "abundancia, apetito, comodidad y exceso, prosperidad en el hogar y la pregunta de cuánto te permites tomar",
+  },
+  piglets: {
+    name: "cerditos",
+    focus: "pequeñas ganancias que se multiplican, un comienzo nuevo y juguetón o una abundancia que todavía necesita cuidado",
+  },
+  "pig-in-mud": {
+    name: "un cerdo en el lodo",
+    focus: "disfrutar del desorden, culpa por darte un gusto o encontrar comodidad donde otros solo ven suciedad",
+  },
+  "fat-pig": {
+    name: "un cerdo gordo",
+    focus: "abundancia y riqueza, codicia o el miedo a haber tomado más de lo que te correspondía",
+  },
+  "pig-chasing-you": {
+    name: "un cerdo que te persigue",
+    focus: "un apetito del que no logras escapar, la codicia ajena presionándote o un hábito que te sigue a todas partes",
+  },
+  monkey: {
+    name: "un mono",
+    summary: "juego, travesura, una mente inquieta, imitación e ingenio que puede convertirse en caos",
+  },
+  "monkey-attack": {
+    name: "un mono que te ataca",
+    focus: "burlas o engaños, un caos que se vuelve agresivo o los juegos de alguien que llegaron demasiado lejos",
+  },
+  "baby-monkey": {
+    name: "un mono bebé",
+    focus: "curiosidad inocente, necesidad de cercanía o una parte juguetona de ti que pide atención",
+  },
+  "monkey-stealing": {
+    name: "un mono que te roba",
+    focus: "que alguien astuto te engañe, pequeñas pérdidas por distracción o una confianza dada a la ligera",
+  },
+  gorilla: {
+    name: "un gorila",
+    focus: "fuerza bruta, autoridad protectora o un poder que permanece en calma hasta que lo provocan",
+  },
+  worm: {
+    name: "gusanos",
+    summary: "descomposición y renovación, algo que trabaja sin ser visto, poca valoración propia y un cambio lento que ocurre bajo la superficie",
+  },
+  "worms-in-food": {
+    name: "gusanos en la comida",
+    focus: "algo echado a perder en lo que te nutre, desconfianza ante un regalo o un asco que te has ido tragando",
+  },
+  "worms-coming-out-of-body": {
+    name: "gusanos saliendo del cuerpo",
+    focus: "soltar algo tóxico, ansiedad por la salud o un problema oculto que por fin se va",
+  },
+  earthworm: {
+    name: "una lombriz",
+    focus: "trabajo humilde y paciente, tierra fértil que se prepara o un crecimiento que empieza en la oscuridad",
+  },
+  "white-worms": {
+    name: "gusanos blancos",
+    focus: "preocupaciones pequeñas y persistentes, cosas que te carcomen en silencio o una limpieza que ya no puede esperar",
+  },
+  lizard: {
+    name: "una lagartija",
+    summary: "instinto de supervivencia, regeneración, cálculo frío y una parte antigua de la mente que reacciona antes de pensar",
+  },
+  "lizard-in-house": {
+    name: "una lagartija en la casa",
+    focus: "un huésped inesperado en tu vida privada, una pequeña preocupación que vuelve una y otra vez o suerte que se cuela sin avisar",
+  },
+  "lizard-losing-tail": {
+    name: "una lagartija que pierde la cola",
+    focus: "soltar algo para sobrevivir, un sacrificio que volverá a crecer o escapar pagando un precio",
+  },
+  "big-lizard": {
+    name: "un lagarto grande",
+    focus: "una reacción primitiva que creció demasiado, un miedo antiguo o un instinto que domina tus decisiones",
+  },
+  "lizard-bite": {
+    name: "una lagartija que te muerde",
+    focus: "un ataque frío e inesperado, una traición mezquina o un reflejo que hiere a alguien antes de que lo pienses",
+  },
+  octopus: {
+    name: "un pulpo",
+    summary: "inteligencia, adaptabilidad, muchas tareas a la vez, un control que llega a todas partes y una mente que se esconde tras su tinta",
+  },
+  "giant-octopus": {
+    name: "un pulpo gigante",
+    focus: "algo que te tiene atrapado por completo, una situación con demasiados brazos o un miedo profundo que sube desde el fondo",
+  },
+  "octopus-tentacles": {
+    name: "tentáculos de pulpo",
+    focus: "sentirte atrapado desde muchos lados, relaciones absorbentes u obligaciones que se enredan a tu alrededor",
+  },
+  "octopus-ink": {
+    name: "un pulpo que suelta tinta",
+    focus: "escapar sembrando confusión, ocultar la verdad o protegerte enturbiando las aguas",
+  },
+  "eating-octopus": {
+    name: "comer pulpo",
+    focus: "asimilar algo extraño, dominar lo complicado o tragarte una situación enredada",
+  },
+  peacock: {
+    name: "un pavo real",
+    summary: "belleza, orgullo, exhibición, seguridad en ti mismo y el deseo de que te vean con todos tus colores",
+  },
+  "peacock-spreading-feathers": {
+    name: "un pavo real abriendo la cola",
+    focus: "mostrarte por completo, un momento de orgullo y reconocimiento o una exhibición que esconde inseguridad",
+  },
+  "white-peacock": {
+    name: "un pavo real blanco",
+    focus: "belleza pura, una señal espiritual o un orgullo que se volvió sereno y silencioso",
+  },
+  "peacock-feather": {
+    name: "una pluma de pavo real",
+    focus: "un recordatorio de tu propio valor, protección o un pequeño pedazo de belleza para guardar",
+  },
+  "peacock-flying": {
+    name: "un pavo real volando",
+    focus: "una belleza capaz de elevarse, la vanidad superada o una seguridad que te impulsa hacia un nuevo papel",
+  },
+  swan: {
+    name: "un cisne",
+    summary: "gracia, amor fiel, belleza interior, transformación y calma en la superficie con mucho esfuerzo por debajo",
+  },
+  "white-swan": {
+    name: "un cisne blanco",
+    focus: "pureza, un amor nuevo y delicado o una gracia que llega en un momento difícil",
+  },
+  "black-swan": {
+    name: "un cisne negro",
+    focus: "lo inesperado, un hecho raro que lo cambia todo o una belleza escondida en una etapa oscura",
+  },
+  "pair-of-swans": {
+    name: "una pareja de cisnes",
+    focus: "entrega, una unión para toda la vida o el anhelo de un amor que se quede",
+  },
+  "swan-attacking": {
+    name: "un cisne que te ataca",
+    focus: "una persona dulce que se vuelve feroz, una ira protectora o una belleza que defiende su territorio",
+  },
+  panda: {
+    name: "un oso panda",
+    summary: "dulzura, equilibrio, descanso, fuerza serena y una forma más suave de ser poderoso",
+  },
+  "baby-panda": {
+    name: "un panda bebé",
+    focus: "ternura, una alegría nueva y frágil o una parte de ti que necesita cuidados delicados",
+  },
+  "giant-panda": {
+    name: "un panda gigante",
+    focus: "autoridad tranquila, una fuerza que nunca necesita demostrarse o un gran problema que resulta inofensivo",
+  },
+  "red-panda": {
+    name: "un panda rojo",
+    focus: "encanto tímido, un espíritu raro y curioso o un lado juguetón que guardas para los de casa",
+  },
+  "panda-eating-bamboo": {
+    name: "un panda comiendo bambú",
+    focus: "un sustento sencillo y constante, satisfacción o una rutina que te sostiene en silencio",
+  },
+  penguin: {
+    name: "un pingüino",
+    summary: "lealtad, comunidad, resistencia en el frío y encontrar tu camino en un mundo que no fue hecho para ti",
+  },
+  "baby-penguin": {
+    name: "un pingüino bebé",
+    focus: "dependencia y cuidado, una familia que protege a sus crías o un comienzo vulnerable",
+  },
+  "group-of-penguins": {
+    name: "un grupo de pingüinos",
+    focus: "pertenencia, calor compartido o fundirte con la multitud para sobrevivir a una etapa dura",
+  },
+  "penguin-swimming": {
+    name: "un pingüino nadando",
+    focus: "torpeza en tierra pero elegancia en tu elemento, o encontrar el lugar donde te mueves con soltura",
+  },
+  "emperor-penguin": {
+    name: "un pingüino emperador",
+    focus: "sacrificio paciente, entrega como padre o madre, o dignidad bajo una presión extrema",
+  },
+  chicken: {
+    name: "una gallina",
+    summary: "hogar y sustento, cuidado maternal, chismes y nerviosismo, y las pequeñas ganancias diarias de una vida corriente",
+  },
+  "chicken-eggs": {
+    name: "huevos de gallina",
+    focus: "un potencial que espera nacer, pequeños ahorros que crecen o planes que necesitan calor y tiempo",
+  },
+  rooster: {
+    name: "un gallo",
+    focus: "una llamada de atención, orgullo y seguridad, o alguien que reclama su lugar a los gritos",
+  },
+  chicks: {
+    name: "pollitos",
+    focus: "comienzos nuevos, hijos o proyectos a tu cuidado, o una inocencia que necesita protección",
+  },
+  "dead-chicken": {
+    name: "una gallina muerta",
+    focus: "una fuente de consuelo perdida, un plan pequeño que fracasó o un cuidado que llegó demasiado tarde",
+  },
+  sheep: {
+    name: "una oveja",
+    summary: "inocencia, seguir al grupo, mansedumbre, confianza y la pregunta de quién te está guiando",
+  },
+  lamb: {
+    name: "un cordero",
+    focus: "inocencia, sacrificio, ternura o una parte de ti que es pura y se lastima con facilidad",
+  },
+  "flock-of-sheep": {
+    name: "un rebaño de ovejas",
+    focus: "conformismo, la seguridad de estar en grupo o una comunidad a la que perteneces sin haberla elegido",
+  },
+  "black-sheep": {
+    name: "una oveja negra",
+    focus: "ser distinto de tu familia, destacar, o la libertad y la soledad de no encajar",
+  },
+  "counting-sheep": {
+    name: "contar ovejas",
+    focus: "inquietud antes de dormir, una mente que no se apaga o el anhelo de un descanso de verdad",
+  },
+  ladybug: {
+    name: "una mariquita",
+    summary: "suerte, pequeñas bendiciones, protección, alegría de la infancia y buenas noticias que llegan sin hacer ruido",
+  },
+  "ladybug-on-hand": {
+    name: "una mariquita en la mano",
+    focus: "la suerte posándose sobre ti, un deseo a punto de cumplirse o una señal suave de que vas por buen camino",
+  },
+  "many-ladybugs": {
+    name: "muchas mariquitas",
+    focus: "abundancia de pequeñas alegrías, una temporada de buena suerte o bendiciones que llegan todas a la vez",
+  },
+  "ladybug-flying-away": {
+    name: "una mariquita que se va volando",
+    focus: "una oportunidad que se escapa, dejar libre un deseo o una suerte que tienes que seguir",
+  },
+  "dead-ladybug": {
+    name: "una mariquita muerta",
+    focus: "una esperanza perdida, una pequeña decepción o el temor de que se te haya acabado la suerte",
+  },
+  snail: {
+    name: "un caracol",
+    summary: "lentitud, paciencia, llevar tu casa a cuestas, sensibilidad y un avance que no se puede apurar",
+  },
+  "snail-shell": {
+    name: "una concha de caracol",
+    focus: "un hogar que protege, un repliegue hacia ti mismo o la bella espiral de un crecimiento lento",
+  },
+  "many-snails": {
+    name: "muchos caracoles",
+    focus: "retrasos que se acumulan, impaciencia con personas o procesos lentos, o muchos pasos pequeños dados juntos",
+  },
+  "stepping-on-a-snail": {
+    name: "pisar un caracol",
+    focus: "romper algo frágil por las prisas, culpa por un descuido o la paciencia perdida",
+  },
+  "snail-on-body": {
+    name: "un caracol en el cuerpo",
+    focus: "algo lento pero persistente que se te pega, sensibilidad al contacto o la necesidad de bajar el ritmo",
+  },
+  parrot: {
+    name: "un loro",
+    summary: "comunicación, palabras repetidas, chismes, colores vivos y voces que no son del todo tuyas",
+  },
+  "talking-parrot": {
+    name: "un loro que habla",
+    focus: "un mensaje que se repite hasta que lo escuchas, alguien que hace eco de otros o palabras que dices sin sentirlas",
+  },
+  "parrot-in-cage": {
+    name: "un loro en una jaula",
+    focus: "una voz cautiva, belleza sin libertad o un permiso para hablar solo bajo las reglas de otro",
+  },
+  "colorful-parrot": {
+    name: "un loro de colores",
+    focus: "alegría y expresión personal, una etapa social animada o noticias exóticas en camino",
+  },
+  "parrot-flying-away": {
+    name: "un loro que se escapa volando",
+    focus: "un secreto que sale a la luz, la libertad de expresión recuperada o una voz que se va de tu vida",
+  },
+  crab: {
+    name: "un cangrejo",
+    summary: "actitud defensiva, una coraza dura sobre un corazón blando, movimientos de lado y aferrarse con la pinza",
+  },
+  "crab-pinching": {
+    name: "un cangrejo que te pellizca",
+    focus: "un comentario hiriente, alguien que se aferra demasiado o una reacción defensiva que duele",
+  },
+  "crab-on-beach": {
+    name: "un cangrejo en la playa",
+    focus: "el límite entre lo que sientes y la realidad, pasos cautelosos o una parte tímida de ti que se asoma",
+  },
+  "eating-crab": {
+    name: "comer cangrejo",
+    focus: "atravesar las defensas de alguien, una recompensa que cuesta esfuerzo o disfrutar después del trabajo duro",
+  },
+  "many-crabs": {
+    name: "muchos cangrejos",
+    focus: "gente que tira hacia abajo al que intenta salir, una competencia apretada o muchas defensas pequeñas a la vez",
+  },
+  unicorn: {
+    name: "un unicornio",
+    summary: "magia, pureza, una esperanza poco común, inocencia y un sueño que parece demasiado hermoso para ser real",
+  },
+  "white-unicorn": {
+    name: "un unicornio blanco",
+    focus: "una intención pura, una bendición espiritual o una inocencia que quieres proteger",
+  },
+  "riding-a-unicorn": {
+    name: "montar un unicornio",
+    focus: "dejarte llevar por la esperanza, vivir una fantasía por un momento o confiar en un don excepcional",
+  },
+  "black-unicorn": {
+    name: "un unicornio negro",
+    focus: "magia con sombra, una fuerza rara nacida del dolor o un sueño que te da miedo desear",
+  },
+  "flying-unicorn": {
+    name: "un unicornio volando",
+    focus: "un deseo imposible que despega, una imaginación sin límites o una fe que te eleva",
+  },
+  phoenix: {
+    name: "el ave fénix",
+    summary: "renacer después de una pérdida, resurgir de las cenizas, renovación a través del fuego y una fuerza que vuelve tras un final",
+  },
+  "phoenix-rising": {
+    name: "un ave fénix resurgiendo de sus cenizas",
+    focus: "recuperarte tras un final duro, un nuevo yo después de la crisis o una esperanza que sobrevivió al fuego",
+  },
+  "phoenix-on-fire": {
+    name: "un ave fénix en llamas",
+    focus: "un final doloroso pero necesario, quemar lo viejo o una transformación que ya está en marcha",
+  },
+  "phoenix-feather": {
+    name: "una pluma de fénix",
+    focus: "un regalo que sana, la prueba de que puedes recuperarte o una pequeña señal de la renovación que se acerca",
+  },
+  "flying-phoenix": {
+    name: "un ave fénix volando",
+    focus: "libertad después de renacer, fuerza recuperada o un nuevo comienzo con impulso",
+  },
+  mermaid: {
+    name: "una sirena",
+    summary: "anhelo, seducción, lo femenino profundo, una vida entre dos mundos y emociones que te arrastran bajo la superficie",
+  },
+  "being-a-mermaid": {
+    name: "ser una sirena",
+    focus: "vivir entre dos mundos, libertad en tus emociones o una identidad que no encaja en tierra firme",
+  },
+  "mermaid-singing": {
+    name: "una sirena cantando",
+    focus: "un llamado tentador, un deseo que podría desviarte o una belleza que esconde un peligro",
+  },
+  "mermaid-tail": {
+    name: "una cola de sirena",
+    focus: "transformación, pertenecer a las aguas del sentimiento o una parte de ti que no puede alejarse",
+  },
+  "talking-to-a-mermaid": {
+    name: "hablar con una sirena",
+    focus: "una conversación con tu inconsciente, la intuición que te trae un mensaje o un secreto de las profundidades",
+  },
+  fairy: {
+    name: "un hada",
+    summary: "magia pequeña, el asombro de la infancia, deseos, fuerzas invisibles que ayudan y travesuras que se esconden en la belleza",
+  },
+  "fairy-godmother": {
+    name: "un hada madrina",
+    focus: "ayuda que llega justo cuando más la necesitas, una protectora o la esperanza de que alguien cambie tu historia",
+  },
+  "fairy-dust": {
+    name: "polvo de hadas",
+    focus: "un toque de suerte, una fe que hace posibles las cosas o un encantamiento que puede desvanecerse",
+  },
+  "being-a-fairy": {
+    name: "ser un hada",
+    focus: "ligereza, un espíritu creativo y libre o escapar de responsabilidades pesadas",
+  },
+  "evil-fairy": {
+    name: "un hada malvada",
+    focus: "un encanto usado como trampa, una maldición del pasado o algo hermoso con un aguijón escondido",
+  },
+  genie: {
+    name: "un genio",
+    summary: "deseos, un poder oculto que espera ser liberado, el deseo y su precio, y recibir exactamente lo que pediste",
+  },
+  "genie-granting-wishes": {
+    name: "un genio que concede deseos",
+    focus: "un deseo a punto de cumplirse, decidir qué quieres de verdad o un poder que ya tienes",
+  },
+  "genie-in-a-lamp": {
+    name: "el genio de la lámpara",
+    focus: "un potencial encerrado, un talento que espera que lo despierten o una ayuda escondida en algo corriente",
+  },
+  "angry-genie": {
+    name: "un genio enojado",
+    focus: "un poder que liberaste y no puedes controlar, un deseo que salió al revés o una consecuencia que no planeaste",
+  },
+  "becoming-a-genie": {
+    name: "convertirte en genio",
+    focus: "cumplir los deseos de todos menos los tuyos, mucha capacidad con poca libertad o el anhelo de ser liberado",
+  },
+  wizard: {
+    name: "un mago",
+    summary: "sabiduría, conocimiento oculto, un mentor, el poder de transformar y la parte de ti que sabe más de lo que dice",
+  },
+  "being-a-wizard": {
+    name: "ser un mago",
+    focus: "descubrir tu propio poder, dominar una situación o hacerte responsable de los cambios que puedes provocar",
+  },
+  "evil-wizard": {
+    name: "un mago malvado",
+    focus: "manipulación, alguien que usa su saber en tu contra o un poder que perdió la conciencia",
+  },
+  "old-wizard": {
+    name: "un mago anciano",
+    focus: "el consejo de un mentor o de alguien mayor, sabiduría interior o respuestas que llegan con paciencia",
+  },
+  "wizard-casting-a-spell": {
+    name: "un mago lanzando un hechizo",
+    focus: "un punto de inflexión, una influencia que no puedes ver o palabras que cambian la realidad",
+  },
 };
