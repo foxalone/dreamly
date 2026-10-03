@@ -31,6 +31,7 @@ import {
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
 import ProDocs from "./ProDocs";
+import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import GscQueriesPanel from "./GscQueriesPanel";
@@ -164,7 +165,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -429,6 +430,7 @@ export default function AdminDashboardPage() {
       requested === "SYMBOL_CLICKS" ||
       requested === "GSC" ||
       requested === "DOCS" ||
+      requested === "GAME" ||
       requested === "FREE_VIDEOS" ||
       requested === "FREE_MIX_VIDEOS" ||
       requested === "STOCK_POOL_VIDEOS" ||
@@ -1430,6 +1432,8 @@ async function loadUsers() {
               </>
             ) : tab === "DOCS" ? (
               <>Внутренняя документация (Confluence-style)</>
+            ) : tab === "GAME" ? (
+              <>Dream Kingdoms · кликер + королевства на карте · дизайн-док и rules</>
             ) : tab === "FREE_VIDEOS" ? (
               <>Free Video · English Shorts · stock footage · YouTube package · Telegram</>
             ) : tab === "FREE_MIX_VIDEOS" ? (
@@ -1573,6 +1577,18 @@ async function loadUsers() {
           ].join(" ")}
         >
           Docs
+        </button>
+
+        <button
+          onClick={() => setTab("GAME")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "GAME"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          Game
         </button>
 
         <button
@@ -2421,6 +2437,8 @@ async function loadUsers() {
 
       {/* DOCS TAB — Confluence-style */}
       {tab === "DOCS" && <ProDocs />}
+
+      {tab === "GAME" && <DreamKingdomsDoc />}
 
       {tab === "FREE_VIDEOS" && user && <VideoAdminPanel user={user} />}
 
