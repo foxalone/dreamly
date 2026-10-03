@@ -82,7 +82,7 @@ function persist(s: Saved) {
 }
 
 /** Space reserved at the top (title, counter, progress) and bottom (found line) of the stage. */
-const TOP_RESERVE = 128;
+const TOP_RESERVE = 92;
 const BOTTOM_RESERVE = 44;
 
 type Box = { w: number; h: number };
@@ -156,6 +156,19 @@ function pickCreature(available: Creature[], newestTier: number): Creature {
     if (r < 0) return c;
   }
   return available[available.length - 1];
+}
+
+/** Thin bar under a building: how much of its cost the player already has. */
+function MiniBar({ value }: { value: number }) {
+  const pct = Math.max(0, Math.min(1, value)) * 100;
+  return (
+    <span className="mt-1 block h-1 w-full min-w-[28px] overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_12%,transparent)]">
+      <span
+        className={`block h-full rounded-full transition-[width] duration-500 ${pct >= 100 ? "bg-amber-400" : "bg-purple-500"}`}
+        style={{ width: `${pct}%` }}
+      />
+    </span>
+  );
 }
 
 export default function GameClient({ pool }: { pool: Creature[] }) {
@@ -332,16 +345,21 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       <style>{CSS}</style>
 
       {/* Top: title, counter, progress to the next tier */}
-      <div className="pointer-events-none absolute left-0 top-0 z-10 px-4 pt-4 text-center" style={{ right: colW }}>
-        <h1 className="text-xl font-semibold">Dream Kingdoms</h1>
-        <div className="mt-1 flex items-baseline justify-center gap-2" aria-live="polite">
-          <span className="text-3xl font-bold tabular-nums">{saved.creatures.toLocaleString()}</span>
-          <span className="text-sm text-[var(--muted)]">creatures</span>
-        </div>
+      <div className="pointer-events-none absolute left-0 top-0 z-10 px-4 pt-3" style={{ right: colW }}>
+        {/* Title, fairy-tale lettering, top-left. */}
+        <h1
+          className="dk-title text-left text-2xl leading-tight sm:text-3xl"
+          style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
+        >
+          Dream Kingdoms
+        </h1>
+        <span className="sr-only" aria-live="polite">
+          {saved.creatures} creatures
+        </span>
         {loaded && upcoming ? (
-          <div className="mx-auto mt-2 max-w-xs">
+          <div className="mx-auto mt-2 w-full max-w-sm sm:absolute sm:left-1/2 sm:top-5 sm:mt-0 sm:-translate-x-1/2">
             {/* Just the bar: progress to the next tier, no numbers or labels. */}
-            <div className="h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
+            <div className="h-3 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
                 style={{
@@ -493,17 +511,21 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   wideCol ? "px-2 py-1.5" : "justify-center py-1.5",
                   canBuild
                     ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_14%,var(--card))] shadow-[0_0_14px_rgba(245,158,11,.35)] hover:scale-[1.03]"
-                    : "cursor-not-allowed border-transparent opacity-40 grayscale",
+                    : "cursor-not-allowed border-transparent [&_.bdim]:opacity-40 [&_.bdim]:grayscale",
                 ].join(" ")}
               >
-                <span className="text-2xl leading-none">{b.emoji}</span>
+                <span className="flex flex-col items-center gap-1">
+                  <span className="bdim text-2xl leading-none">{b.emoji}</span>
+                  {!wideCol ? <MiniBar value={saved.creatures / b.cost} /> : null}
+                </span>
                 {wideCol ? (
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{b.name}</span>
-                    <span className="flex justify-between text-[11px] text-[var(--muted)]">
+                    <span className="bdim block truncate text-sm font-semibold">{b.name}</span>
+                    <span className="bdim flex justify-between text-[11px] text-[var(--muted)]">
                       <span className="tabular-nums">{shortNumber(b.cost)}</span>
                       <span className="tabular-nums">+{b.perMin}/min</span>
                     </span>
+                    <MiniBar value={saved.creatures / b.cost} />
                   </span>
                 ) : null}
               </button>
@@ -582,6 +604,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 }
 
 const CSS = `
+.dk-title { background: linear-gradient(90deg, #7c3aed, #c026d3 45%, #f59e0b); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 1px 6px rgba(168,85,247,.25)); letter-spacing: .02em; }
 .dk-sway { transform-origin: 50% 0%; animation: dk-sway 5s ease-in-out infinite; }
 @keyframes dk-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 .dk-catcher { animation: dk-pulse 2.6s ease-in-out infinite; filter: drop-shadow(0 0 0 transparent); }
