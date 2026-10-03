@@ -1,8 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { stripLocalePrefix } from "@/lib/i18n/path";
+import { STORAGE_MINUTES } from "@/lib/game/economy";
+
+/** Written by the game (GameClient → HINT_KEY): building rate and last collect, to show a dot when storage is full. */
+const HINT_KEY = "dreamly_game_hint";
+
+function storageIsFull(): boolean {
+  try {
+    const h = JSON.parse(localStorage.getItem(HINT_KEY) ?? "null") as { rate?: number; lastCollectAt?: number | null; skew?: number } | null;
+    if (!h?.rate || !h.lastCollectAt) return false;
+    return Date.now() + (h.skew ?? 0) - h.lastCollectAt >= STORAGE_MINUTES * 60_000;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Small floating dream catcher in the corner of every page → Dream Kingdoms (/app/game).
@@ -20,14 +36,25 @@ const HIDDEN_PREFIXES = ["/app/game", "/app/profile/admin-dashboard", "/signin",
 
 export default function DreamCatcherFab() {
   const pathname = usePathname() ?? "/";
+  const t = useMessages().game;
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const check = () => setFull(storageIsFull());
+    const first = window.setTimeout(check, 0);
+    const every = window.setInterval(check, 60_000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(every);
+    };
+  }, [pathname]);
   const { path } = stripLocalePrefix(pathname);
   if (HIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p + "/"))) return null;
 
   return (
     <LocaleLink
       href="/app/game"
-      aria-label="Dream Kingdoms — catch dream creatures"
-      title="Dream Kingdoms"
+      aria-label={t.fabLabel}
+      title={t.title}
       className="dcf group fixed bottom-4 end-4 z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
@@ -51,6 +78,14 @@ export default function DreamCatcherFab() {
       `}</style>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/game/dreamcatcher-small.webp" alt="" width={48} height={72} className="h-full w-full" draggable={false} />
+      {full ? (
+        <span
+          aria-hidden
+          className="absolute -top-1 end-0 flex h-4 w-4 animate-pulse items-center justify-center rounded-full bg-amber-400 text-[10px] shadow"
+        >
+          🧺
+        </span>
+      ) : null}
       {PEEK.map((p) => (
         <span
           key={p.e}
