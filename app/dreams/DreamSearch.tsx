@@ -7,12 +7,12 @@ import { getCategoryCopy } from "@/lib/i18n/categories";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
-import { clampDreamText } from "@/lib/dreamLength";
+import { DREAM_MAX_CHARS, clampDreamText } from "@/lib/dreamLength";
 import { openQuickSymbol } from "./quickSymbolEvents";
 import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
 import { trackEvent } from "@/lib/analytics";
 import { formatMessage } from "@/lib/i18n/messages";
-import { countWords } from "@/lib/quickSymbolLimits";
+import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
 import { useDreamAsk } from "@/app/components/useDreamAsk";
 import {
   containsWholePhrase,
@@ -61,15 +61,16 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ask.text]);
 
-  function startDreamAsk() {
-    const dream = clampDreamText(query.trim()).trim();
+  function startDreamAsk(raw: string = query, via: "search_field" | "ai_field" = "search_field") {
+    const dream = clampDreamText(raw.trim()).trim();
     if (!dream) return;
-    trackEvent("dictionary_search_to_interpret", { word_count: wordCount });
+    trackEvent("dictionary_search_to_interpret", { word_count: countWords(dream), via });
     pendingSubmit.current = dream;
     ask.chooseLens(lens);
     ask.setText(dream);
     setAskOpen(true);
-    setQuery("");
+    if (via === "ai_field") setAiQuery("");
+    else setQuery("");
   }
 
   function closeDreamAsk() {
@@ -170,6 +171,11 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     event.preventDefault();
     const nextQuery = aiQuery.trim();
     if (!nextQuery) return;
+    // A whole dream doesn't fit Quick Symbol's 10-word cap — send it to the full interpreter.
+    if (countWords(nextQuery) > QUICK_SYMBOL_MAX_WORDS) {
+      startDreamAsk(nextQuery, "ai_field");
+      return;
+    }
     trackEvent("quick_symbol_opened", { source: "dictionary_search" });
     openQuickSymbol(nextQuery, lens);
   }
@@ -219,7 +225,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
                 </div>
                 <button
                   type="button"
-                  onClick={startDreamAsk}
+                  onClick={() => startDreamAsk()}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-violet-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-400"
                 >
                   <Sparkles size={15} aria-hidden="true" />
@@ -282,7 +288,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
           onChange={(event) => setAiQuery(event.target.value)}
           placeholder={t.dictionary.askPlaceholder}
           autoComplete="off"
-          maxLength={120}
+          maxLength={DREAM_MAX_CHARS}
           className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"
         />
         <button
