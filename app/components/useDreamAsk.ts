@@ -99,7 +99,7 @@ export function useDreamAsk({
       setAnalysis(null);
       setAnonShare("idle");
       onResultChange?.(false);
-      writeHomeDreamPending(next, { analysis: "", shareToFeed, lang: locale, lens });
+      // Preserve the completed reading; save the new text when it is submitted.
     }
   }
 

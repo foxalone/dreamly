@@ -79,19 +79,35 @@ function normalize(raw: unknown): HomeDreamPending | null {
   };
 }
 
-export function readHomeDreamPending(): HomeDreamPending | null {
+/** Old single-dream caches are read as a one-item queue. */
+export function readHomeDreamQueue(): HomeDreamPending[] {
   try {
     const raw = storage()?.getItem(HOME_DREAM_PENDING_KEY);
-    if (!raw) return null;
-    const pending = normalize(JSON.parse(raw));
-    if (!pending) {
-      storage()?.removeItem(HOME_DREAM_PENDING_KEY);
-      return null;
-    }
-    return pending;
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return (Array.isArray(parsed) ? parsed : [parsed])
+      .map(normalize).filter((item): item is HomeDreamPending => item !== null);
   } catch {
-    return null;
+    return [];
   }
+}
+
+function saveQueue(queue: HomeDreamPending[]) {
+  if (queue.length) storage()?.setItem(HOME_DREAM_PENDING_KEY, JSON.stringify(queue));
+  else storage()?.removeItem(HOME_DREAM_PENDING_KEY);
+}
+
+/** The form restores the latest dream; import processes the queue oldest first. */
+export function readHomeDreamPending(): HomeDreamPending | null {
+  const queue = readHomeDreamQueue();
+  return queue[queue.length - 1] ?? null;
+}
+
+/** Remove only the acknowledged entry, preserving dreams added in the meantime. */
+export function removeHomeDreamPending(pending: HomeDreamPending) {
+  saveQueue(readHomeDreamQueue().filter((item) =>
+    item.createdAtMs !== pending.createdAtMs || item.text !== pending.text
+  ));
 }
 
 export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPending, "text">) {
@@ -99,20 +115,18 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
     const cleaned = text.trim();
     if (!cleaned) return;
     const nextText = clampDreamText(cleaned).trim();
-    const prevRaw = readHomeDreamPending();
-    // Visuals, analysis and the map-pin flag belong to a specific text. When the
-    // visitor submits a different dream they must not leak from the previous one
-    // (that is how a snake dream once got the lotus/pen emojis of an earlier text).
-    const sameText = !!prevRaw && prevRaw.text === nextText;
-    const prev = sameText ? prevRaw : undefined;
+    const queue = readHomeDreamQueue();
+    const prevRaw = queue[queue.length - 1];
+    const index = queue.findIndex((item) => item.text === nextText);
+    const prev = index >= 0 ? queue[index] : undefined;
     const next: HomeDreamPending = {
       text: nextText,
       resumeAnalysis: extra?.resumeAnalysis ?? prev?.resumeAnalysis,
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
-      shareToFeed: extra?.shareToFeed ?? prevRaw?.shareToFeed ?? true,
-      lang: extra?.lang || prevRaw?.lang,
-      lens: extra?.lens || prevRaw?.lens,
-      createdAtMs: extra?.createdAtMs || prev?.createdAtMs || Date.now(),
+      shareToFeed: extra?.shareToFeed ?? prev?.shareToFeed ?? prevRaw?.shareToFeed ?? true,
+      lang: extra?.lang || prev?.lang || prevRaw?.lang,
+      lens: extra?.lens || prev?.lens || prevRaw?.lens,
+      createdAtMs: prev?.createdAtMs || extra?.createdAtMs || Math.max(Date.now(), ...queue.map((item) => (item.createdAtMs ?? 0) + 1)),
       emojis: extra?.emojis ?? prev?.emojis,
       iconsEn: extra?.iconsEn ?? prev?.iconsEn,
       rootsEn: extra?.rootsEn ?? prev?.rootsEn,
@@ -120,7 +134,9 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       guestMapIngested: extra?.guestMapIngested ?? prev?.guestMapIngested,
       guestSharedId: extra?.guestSharedId ?? prev?.guestSharedId,
     };
-    storage()?.setItem(HOME_DREAM_PENDING_KEY, JSON.stringify(next));
+    if (index >= 0) queue[index] = next;
+    else queue.push(next);
+    saveQueue(queue);
   } catch {
     // ignore quota / private mode
   }
@@ -136,6 +152,6 @@ export function clearHomeDreamPending() {
 
 export function takeHomeDreamPending(): HomeDreamPending | null {
   const pending = readHomeDreamPending();
-  if (pending) clearHomeDreamPending();
+  if (pending) removeHomeDreamPending(pending);
   return pending;
 }

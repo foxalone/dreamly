@@ -19,7 +19,7 @@ git add -- app/api/dreams/fill-roots/route.ts app/app/dreams/page.tsx app/compon
   lib/dreams/enrichSavedDream.ts lib/homeDreamImport.ts lib/homeDreamPending.ts \
   lib/importedDreamRoots.ts lib/homeDreamPending.test.ts push-signin-dream-fix.sh
 if ! git diff --cached --quiet; then
-  git commit -m "Fix imported dream symbols and resume analysis after sign-in"
+  git commit -m "Preserve guest dream history and analyses through sign-in"
 fi
 # A normal push refuses to overwrite remote commits if main has diverged.
 git push origin HEAD:main

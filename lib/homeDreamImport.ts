@@ -1,4 +1,4 @@
-import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { getDoc, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
@@ -9,8 +9,8 @@ import { clampDreamText } from "@/lib/dreamLength";
 import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
 import { shareBadgeFor } from "@/lib/shareBadges";
 import {
-  takeHomeDreamPending,
-  writeHomeDreamPending,
+  readHomeDreamQueue,
+  removeHomeDreamPending,
   type HomeDreamCity,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
@@ -31,7 +31,7 @@ export type HomeDreamImportResult =
   /** Free saves for today are used up — the cache is kept, show the paywall. */
   | { status: "save_limit" };
 
-let inFlight: Promise<HomeDreamImportResult> | null = null;
+let inFlight: Promise<HomeDreamImportResult[]> | null = null;
 
 function makeTitle(text: string) {
   const t = text.trim().replace(/\s+/g, " ");
@@ -191,33 +191,13 @@ async function claimGuestShare(user: User, dreamId: string): Promise<number | nu
   return Number.isFinite(count) ? count : null;
 }
 
-function restorePending(pending: HomeDreamPending) {
-  writeHomeDreamPending(pending.text, {
-    analysis: pending.analysis ?? "",
-    resumeAnalysis: pending.resumeAnalysis,
-    shareToFeed: pending.shareToFeed,
-    lang: pending.lang,
-    lens: pending.lens,
-    createdAtMs: pending.createdAtMs,
-    emojis: pending.emojis,
-    iconsEn: pending.iconsEn,
-    rootsEn: pending.rootsEn,
-    city: pending.city,
-    guestMapIngested: pending.guestMapIngested,
-    guestSharedId: pending.guestSharedId,
-  });
-}
-
 async function importOnce(user: User): Promise<HomeDreamImportResult> {
-  // Claim the cache before the first await. The localStorage entry is the only
-  // lock shared between tabs and page loads, and everything below (visuals, geo,
-  // the Firestore round-trip) is slow enough for a second context to start the
-  // very same import and write a duplicate dream.
-  const pending = takeHomeDreamPending();
+  // Keep the entry durable until Firestore confirms the save.
+  const pending = readHomeDreamQueue()[0];
   const text = pending?.text.trim() ?? "";
   if (!pending || !text) return { status: "empty" };
 
-  const now = new Date();
+  const now = new Date(pending.createdAtMs || Date.now());
   const analysis = pending.analysis?.trim() || "";
   const nowMs = Date.now();
   const createdAtMs = pending.createdAtMs || nowMs;
@@ -228,6 +208,17 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
   // Same save rule as the journal (5 free a day per network, then an ad):
   // take the slot on the server before writing.
   try {
+    // A reload after the remote save must not consume another slot or overwrite it.
+    const existing = await getDoc(doc(firestore, "users", user.uid, "dreams", dreamId));
+    if (existing.exists()) {
+      removeHomeDreamPending(pending);
+      return {
+        status: "imported", dreamId, shared: existing.data().shared === true,
+        analysis: existing.data().analysisText || undefined,
+        resumeAnalysis: pending.resumeAnalysis === true && !existing.data().analysisText,
+        lens: pending.lens,
+      };
+    }
     const idToken = await user.getIdToken();
     const slot = await fetch("/api/dreams/consume-slot", {
       method: "POST",
@@ -236,19 +227,16 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
     });
     if (!slot.ok) {
       const data = await slot.json().catch(() => ({}));
-      restorePending(pending);
       if (data?.code === "SAVE_IP_LIMIT") return { status: "save_limit" };
       return { status: "failed", pendingText: text, error: new Error(String(data?.error ?? "save slot failed")) };
     }
   } catch (error) {
-    restorePending(pending);
     return { status: "failed", pendingText: text, error };
   }
 
-  const visuals = await resolveVisuals(pending);
-  const city = await resolveImportCity(pending);
-
   try {
+    const visuals = await resolveVisuals(pending);
+    const city = await resolveImportCity(pending);
     await setDoc(doc(firestore, "users", user.uid, "dreams", dreamId), {
       uid: user.uid,
       text: clampDreamText(text).trim(),
@@ -300,6 +288,8 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         : {}),
     });
 
+    removeHomeDreamPending(pending);
+
     // An explicit anonymous share as a guest counts even with the map box unticked.
     const wantsShare = pending.shareToFeed !== false || !!pending.guestSharedId;
     let shareCount: number | null | undefined;
@@ -347,17 +337,27 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       shareCount,
     };
   } catch (error) {
-    // Nothing was written: hand the cache back so the journal composer (and a
-    // later retry) can still find the dream.
-    restorePending(pending);
+    // Unsaved entries stay in the queue for the next retry.
     return { status: "failed", pendingText: text, error };
   }
 }
 
-export function importHomeDreamPending(user: User): Promise<HomeDreamImportResult> {
+export function importHomeDreamPending(user: User): Promise<HomeDreamImportResult[]> {
   if (inFlight) return inFlight;
-  inFlight = importOnce(user).finally(() => {
-    inFlight = null;
-  });
+  const drain = async () => {
+    const results: HomeDreamImportResult[] = [];
+    while (true) {
+      const result = await importOnce(user);
+      results.push(result);
+      if (result.status !== "imported") return results;
+    }
+  };
+  // Serialize imports across tabs. Deterministic IDs also make reloads safe.
+  inFlight = (async () => {
+    if (typeof navigator !== "undefined" && navigator.locks) {
+      return await navigator.locks.request("dreamly:guest-dream-import", drain);
+    }
+    return drain();
+  })().finally(() => { inFlight = null; });
   return inFlight;
 }

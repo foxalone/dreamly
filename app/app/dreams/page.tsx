@@ -472,27 +472,29 @@ export default function DreamsPage() {
       setUid(user?.uid ?? null);
       if (!user) return;
       ensureUserProfileOnSignIn(user);
-      const runImport = () => void importHomeDreamPending(user).then((result) => {
-        if (result.status === "save_limit") {
-          openPaywall({ kind: "save", source: "home_ask_import", retry: runImport });
-          return;
-        }
-        if (result.status === "imported") {
-          if (result.shared && typeof result.shareCount === "number") {
-            const up = shareBadgeLevelUp(result.shareCount - 1, result.shareCount);
-            if (up) setLevelUp(up);
+      const runImport = () => void importHomeDreamPending(user).then((results) => {
+        for (const result of results) {
+          if (result.status === "save_limit") {
+            openPaywall({ kind: "save", source: "home_ask_import", retry: runImport });
+            return;
           }
-          if (result.analysis) {
-            setAnalysisOpenType("dream");
-            setAnalysisOpenId(result.dreamId);
+          if (result.status === "imported") {
+            if (result.shared && typeof result.shareCount === "number") {
+              const up = shareBadgeLevelUp(result.shareCount - 1, result.shareCount);
+              if (up) setLevelUp(up);
+            }
+            if (result.analysis) {
+              setAnalysisOpenType("dream");
+              setAnalysisOpenId(result.dreamId);
+            }
+            if (result.shared) setTab("SHARED");
+            if (result.resumeAnalysis) setResumeAnalysis({ id: result.dreamId, lens: result.lens });
+            continue;
           }
-          if (result.shared) setTab("SHARED");
-          if (result.resumeAnalysis) setResumeAnalysis({ id: result.dreamId, lens: result.lens });
-          return;
-        }
-        if (result.status === "failed" && result.pendingText) {
-          setText(result.pendingText);
-          setOpen(true);
+          if (result.status === "failed" && result.pendingText) {
+            setText(result.pendingText);
+            setOpen(true);
+          }
         }
       });
       runImport();
