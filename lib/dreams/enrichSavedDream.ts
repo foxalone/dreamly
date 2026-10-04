@@ -3,6 +3,7 @@
 // emojis, Lucide icon keys and the city pin. Runs for every save — the free
 // first save included — after /api/dreams/save has answered, so it no longer
 // depends on the subscription or on the browser tab staying open.
+import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
 import admin from "firebase-admin";
 import emojiData from "@emoji-mart/data";
 import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -146,8 +147,8 @@ export async function enrichSavedDream(params: {
  * Root words (+ icons when missing) for a diary item that already has its
  * emojis and map pin — the homepage-Ask import, whose visuals come from the
  * reading. Same server rule as every save, for every user, subscription or
- * not. Idempotent: does nothing once roots exist, so it can never be used to
- * burn AI calls on the same dream twice.
+ * not. Completed semantic roots are preserved; legacy raw-token imports
+ * are replaced once and marked with rootsVersion.
  */
 export async function fillMissingRoots(params: { uid: string; itemId: string; sourceType: SourceType }) {
   const { uid, itemId, sourceType } = params;
@@ -163,7 +164,10 @@ export async function fillMissingRoots(params: { uid: string; itemId: string; so
   if (!text || item.deleted === true) return { ok: false as const, reason: "no_text" };
   const hasRoots =
     (Array.isArray(item.roots) && item.roots.length > 0) || (Array.isArray(item.rootsEn) && item.rootsEn.length > 0);
-  if (hasRoots) return { ok: true as const, skipped: true };
+  // Old homepage imports stored raw map-search tokens as semantic roots.
+  if (hasRoots && !needsImportedRootRepair(item)) {
+    return { ok: true as const, skipped: true };
+  }
 
   const apiKey = getOneiroOpenAiApiKey();
   if (!apiKey) return { ok: false as const, reason: "no_key" };
@@ -188,6 +192,7 @@ export async function fillMissingRoots(params: { uid: string; itemId: string; so
   await itemRef.set(
     {
       roots: rootsMajor,
+      rootsVersion: 1,
       rootsEn: rootsEnMajor,
       rootsLang: roots.lang ?? null,
       rootsTop: [],

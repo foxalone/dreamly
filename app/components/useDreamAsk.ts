@@ -121,6 +121,7 @@ export function useDreamAsk({
 
   function goToJournal(pending = text, guestLimit = false) {
     persistPending(pending);
+    if (guestLimit) writeHomeDreamPending(pending, { analysis: "", resumeAnalysis: true });
     const next = localePath("/app/dreams", locale);
     const user = auth.currentUser;
     if (user) {

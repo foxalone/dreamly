@@ -1,14 +1,11 @@
 // app/api/dreams/fill-roots/route.ts
-// Server-side root words for a homepage-Ask dream right after it was imported
-// into the journal — for every user, like any diary save. Only fresh Ask
-// imports (fromHomeAsk, written < 15 min ago) qualify, and fillMissingRoots is a
-// no-op once roots exist, so this cannot be used to spend AI repeatedly.
+// Fill semantic symbols for new imports and repair legacy map-token imports.
+// Ownership and the completed roots version gate this background operation.
+import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
 import { after, NextResponse } from "next/server";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { fillMissingRoots } from "@/lib/dreams/enrichSavedDream";
 import { requireSignedInUid } from "../_lib/requireUser";
-
-const MAX_AGE_MS = 15 * 60 * 1000;
 
 export async function POST(req: Request) {
   try {
@@ -22,10 +19,7 @@ export async function POST(req: Request) {
 
     const snap = await adminDb().collection("users").doc(auth.uid).collection("dreams").doc(dreamId).get();
     const d = snap.exists ? snap.data() ?? {} : null;
-    // createdAtMs is when the guest wrote the dream (maybe days ago); the
-    // import itself stamps updatedAt, so freshness is measured from that.
-    const writtenMs = typeof d?.updatedAt?.toMillis === "function" ? d.updatedAt.toMillis() : 0;
-    if (!d || d.fromHomeAsk !== true || !(Date.now() - writtenMs < MAX_AGE_MS)) {
+    if (!d || d.deleted === true || !needsImportedRootRepair(d)) {
       return NextResponse.json({ ok: false, skipped: true });
     }
 

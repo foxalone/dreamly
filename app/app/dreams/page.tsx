@@ -17,6 +17,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
+import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
@@ -31,7 +32,7 @@ import {
 import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
 import { openPaywall } from "@/lib/paywall";
-import { isDreamLens } from "@/lib/dream-lenses";
+import { type DreamLens, isDreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
   collection,
@@ -82,6 +83,8 @@ type Dream = {
   deleted?: boolean;
   deletedAtMs?: number;
 
+  fromHomeAsk?: boolean;
+  rootsVersion?: number;
   rootsEn?: string[];
   roots?: string[];
   rootsTop?: { w: string; c: number }[];
@@ -416,6 +419,9 @@ export default function DreamsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [resumeAnalysis, setResumeAnalysis] = useState<{ id: string; lens?: DreamLens } | null>(null);
+  const resumedAnalyses = useRef(new Set<string>());
+  const repairedRoots = useRef(new Set<string>());
   const [dreams, setDreams] = useState<Dream[]>([]);
   const [stories, setStories] = useState<Dream[]>([]);
   const [uid, setUid] = useState<string | null>(null);
@@ -481,18 +487,7 @@ export default function DreamsPage() {
             setAnalysisOpenId(result.dreamId);
           }
           if (result.shared) setTab("SHARED");
-          // Root words for the imported Ask dream, on the server, for every
-          // user (same rule as any diary save). Arrives via the dreams listener.
-          void user
-            .getIdToken()
-            .then((idToken) =>
-              fetch("/api/dreams/fill-roots", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ idToken, dreamId: result.dreamId }),
-              })
-            )
-            .catch(() => {});
+          if (result.resumeAnalysis) setResumeAnalysis({ id: result.dreamId, lens: result.lens });
           return;
         }
         if (result.status === "failed" && result.pendingText) {
@@ -991,7 +986,7 @@ export default function DreamsPage() {
   }
 
   const saveRef = useRef<() => Promise<void>>(async () => {});
-  const analyzeRef = useRef<(id: string, opts?: { afterAd?: boolean }) => Promise<void>>(async () => {});
+  const analyzeRef = useRef<(id: string, opts?: { afterAd?: boolean; lens?: DreamLens }) => Promise<void>>(async () => {});
 
   async function save() {
     const v = text.trim();
@@ -1181,7 +1176,8 @@ export default function DreamsPage() {
     }
   }
 
-  async function analyzeDream(dreamId: string, opts: { afterAd?: boolean } = {}) {
+  async function analyzeDream(dreamId: string, opts: { afterAd?: boolean; lens?: DreamLens } = {}) {
+    const analysisLens = opts.lens ?? lens;
     const u = auth.currentUser;
     if (!u) return;
 
@@ -1209,7 +1205,7 @@ export default function DreamsPage() {
           kind: "analysis",
           reason,
           source: "dream_analysis",
-          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+          retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
         return;
       }
@@ -1229,7 +1225,7 @@ export default function DreamsPage() {
         body: JSON.stringify({
           text: t,
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
-          lens,
+          lens: analysisLens,
           idToken,
         }),
       });
@@ -1260,7 +1256,7 @@ export default function DreamsPage() {
         analysisText,
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
-        analysisLens: data2?.lens ?? lens,
+        analysisLens: data2?.lens ?? analysisLens,
         updatedAt: serverTimestamp(),
       });
 
@@ -1272,7 +1268,7 @@ export default function DreamsPage() {
                 analysisText,
                 analysisAtMs: nowMs,
                 analysisModel: data2?.model ?? undefined,
-                analysisLens: data2?.lens ?? lens,
+                analysisLens: data2?.lens ?? analysisLens,
               }
             : x
         )
@@ -1282,7 +1278,7 @@ export default function DreamsPage() {
         input_language: (dream as any)?.langGuess ?? guessLang(t),
         word_count: countWords(t),
         credits_used: 0,
-        lens,
+        lens: analysisLens,
       });
       openAnalysis(dreamId);
     } catch (e: any) {
@@ -1291,14 +1287,14 @@ export default function DreamsPage() {
           kind: "analysis",
           reason: "limit",
           source: "dream_analysis",
-          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+          retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
       } else if (e?.message === "FREE_DAILY_LIMIT") {
         openPaywall({
           kind: "analysis",
           reason: "daily",
           source: "dream_analysis",
-          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+          retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
       } else if (e?.message === "DAILY_LIMIT") {
         setError(dailyLimitCopy);
@@ -1311,6 +1307,31 @@ export default function DreamsPage() {
   }
 
   analyzeRef.current = analyzeDream;
+
+  useEffect(() => {
+    if (!resumeAnalysis || billingLoading || analysisBusyId || deletingId || sharingId || rootsBusyId) return;
+    if (!dreams.some((dream) => dream.id === resumeAnalysis.id)) return;
+    const key = `${uid}:${resumeAnalysis.id}`;
+    if (resumedAnalyses.current.has(key)) return;
+    resumedAnalyses.current.add(key);
+    setResumeAnalysis(null);
+    void analyzeRef.current(resumeAnalysis.id, { lens: resumeAnalysis.lens });
+  }, [uid, resumeAnalysis, billingLoading, dreams, analysisBusyId, deletingId, sharingId, rootsBusyId]);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user || user.uid !== uid) return;
+    for (const dream of dreams) {
+      const key = `${user.uid}:${dream.id}`;
+      if (dream.deleted || !needsImportedRootRepair(dream) || repairedRoots.current.has(key)) continue;
+      repairedRoots.current.add(key);
+      void user.getIdToken().then((idToken) => fetch("/api/dreams/fill-roots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, dreamId: dream.id }),
+      })).catch(() => {});
+    }
+  }, [uid, dreams]);
 
   async function deleteItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
@@ -1790,6 +1811,7 @@ export default function DreamsPage() {
                 ) : null}
 
                 {(() => {
+                  if (needsImportedRootRepair(d)) return null;
                   const chips =
                     (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
                     (Array.isArray(d.rootsEn) && d.rootsEn.length > 0 && d.rootsEn) ||

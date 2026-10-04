@@ -22,6 +22,8 @@ export type HomeDreamImportResult =
       dreamId: string;
       shared: boolean;
       analysis?: string;
+      resumeAnalysis?: boolean;
+      lens?: HomeDreamPending["lens"];
       /** Shared dreams the account has after this import (null = unknown), for the level-up toast. */
       shareCount?: number | null;
     }
@@ -192,6 +194,7 @@ async function claimGuestShare(user: User, dreamId: string): Promise<number | nu
 function restorePending(pending: HomeDreamPending) {
   writeHomeDreamPending(pending.text, {
     analysis: pending.analysis ?? "",
+    resumeAnalysis: pending.resumeAnalysis,
     shareToFeed: pending.shareToFeed,
     lang: pending.lang,
     lens: pending.lens,
@@ -268,11 +271,11 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       shared: false,
       sharedAtMs: null,
       sharedAt: null,
-      roots: visuals.rootsEn,
+      roots: [],
       rootsTop: [] as { w: string; c: number }[],
-      rootsEn: visuals.rootsEn,
+      rootsEn: [],
       rootsLang: pending.lang || null,
-      rootsUpdatedAt: visuals.rootsEn.length ? serverTimestamp() : null,
+      rootsUpdatedAt: null,
       sourceType: "dream",
       ownerUid: user.uid,
       authorName: (user.displayName ?? "").trim() || null,
@@ -339,6 +342,8 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       dreamId,
       shared: wantsShare,
       analysis: analysis || undefined,
+      resumeAnalysis: pending.resumeAnalysis === true && !analysis,
+      lens: pending.lens,
       shareCount,
     };
   } catch (error) {
