@@ -481,9 +481,18 @@ export default function DreamsPage() {
             setAnalysisOpenId(result.dreamId);
           }
           if (result.shared) setTab("SHARED");
-          setTimeout(() => {
-            extractRootsForItem(result.dreamId, "dream", { auto: true }).catch(() => {});
-          }, 80);
+          // Root words for the imported Ask dream, on the server, for every
+          // user (same rule as any diary save). Arrives via the dreams listener.
+          void user
+            .getIdToken()
+            .then((idToken) =>
+              fetch("/api/dreams/fill-roots", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken, dreamId: result.dreamId }),
+              })
+            )
+            .catch(() => {});
           return;
         }
         if (result.status === "failed" && result.pendingText) {

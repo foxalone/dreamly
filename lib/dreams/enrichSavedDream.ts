@@ -141,3 +141,61 @@ export async function enrichSavedDream(params: {
   }
   return { ok: true as const, emojis: 0, cityId: params.ipCity?.cityId ?? null };
 }
+
+/**
+ * Root words (+ icons when missing) for a diary item that already has its
+ * emojis and map pin — the homepage-Ask import, whose visuals come from the
+ * reading. Same server rule as every save, for every user, subscription or
+ * not. Idempotent: does nothing once roots exist, so it can never be used to
+ * burn AI calls on the same dream twice.
+ */
+export async function fillMissingRoots(params: { uid: string; itemId: string; sourceType: SourceType }) {
+  const { uid, itemId, sourceType } = params;
+  const itemRef = adminFirestore()
+    .collection("users")
+    .doc(uid)
+    .collection(sourceType === "story" ? "stories" : "dreams")
+    .doc(itemId);
+  const snap = await itemRef.get();
+  if (!snap.exists) return { ok: false as const, reason: "not_found" };
+  const item = snap.data() ?? {};
+  const text = s(item.text);
+  if (!text || item.deleted === true) return { ok: false as const, reason: "no_text" };
+  const hasRoots =
+    (Array.isArray(item.roots) && item.roots.length > 0) || (Array.isArray(item.rootsEn) && item.rootsEn.length > 0);
+  if (hasRoots) return { ok: true as const, skipped: true };
+
+  const apiKey = getOneiroOpenAiApiKey();
+  if (!apiKey) return { ok: false as const, reason: "no_key" };
+  const roots = await extractRootWords(apiKey, text).catch((e) => {
+    console.warn("fillMissingRoots: root words failed", e);
+    return null;
+  });
+  if (!roots) return { ok: false as const, reason: "ai_failed" };
+
+  const counts = desiredCountsFromText(text);
+  const rootsMajor = (roots.roots ?? []).slice(0, counts.roots);
+  const rootsEnMajor = (roots.rootsEn ?? roots.roots ?? []).slice(0, counts.roots);
+  const hasIcons = Array.isArray(item.iconsEn) && item.iconsEn.length > 0;
+  const iconsEn = hasIcons
+    ? null
+    : filterIconsWithGlyph(
+        pickDreamIconsEn(normalizeForIconsEn(rootsEnMajor.join(" ")), counts.icons),
+        DREAM_ICONS_EN as any,
+        counts.icons
+      );
+
+  await itemRef.set(
+    {
+      roots: rootsMajor,
+      rootsEn: rootsEnMajor,
+      rootsLang: roots.lang ?? null,
+      rootsTop: [],
+      rootsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...(iconsEn && iconsEn.length ? { iconsEn } : {}),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true as const, roots: rootsMajor.length };
+}
