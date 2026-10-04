@@ -21,7 +21,7 @@ type Props = {
    * onGranted asks the server for the credit (true = granted); onDone runs
    * after the ad closes with the credit in place.
    */
-  rewarded?: { onGranted: () => Promise<boolean>; onDone: () => void } | null;
+  rewarded?: { label: string; onGranted: () => Promise<boolean>; onDone: () => void } | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -131,7 +131,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
         <p className="mt-1 text-xs text-[var(--muted)]">{t.plansModal.unlimitedNote}</p>
         {rewarded ? (
           <RewardedAdButton
-            label={t.plansModal.watchAd}
+            label={rewarded.label}
             source={source}
             onGranted={rewarded.onGranted}
             onDone={rewarded.onDone}

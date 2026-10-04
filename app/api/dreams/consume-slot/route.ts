@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeSaveAccess } from "../_lib/subscription";
+import { readClientIp } from "../_lib/guestQuota";
 
 type Body = { idToken?: unknown };
 
@@ -9,8 +10,8 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    // Diary save: free and unlimited for every signed-in user (anti-bot cap only).
-    const slot = await consumeSaveAccess(auth.uid);
+    // Diary save: subscribers unlimited; others 5 a day per network, then a rewarded ad per save.
+    const slot = await consumeSaveAccess(auth.uid, readClientIp(req));
     if ("error" in slot) return slot.error;
     return NextResponse.json({ ok: true, ...slot });
   } catch (e: unknown) {

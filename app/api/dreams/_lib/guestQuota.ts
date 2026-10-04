@@ -26,7 +26,7 @@ function utcDayKey(d = new Date()) {
   return d.toISOString().slice(0, 10);
 }
 
-function hashIp(ip: string) {
+export function hashIp(ip: string) {
   const salt = process.env.GUEST_IP_SALT?.trim() || "dreamly-guest";
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }

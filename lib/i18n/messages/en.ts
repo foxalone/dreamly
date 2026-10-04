@@ -74,7 +74,7 @@ export const EN_MESSAGES: UiMessages = {
       {
         question: "Is Dreamly free to use?",
         answer:
-          "The dictionary, gallery, map, and saving dreams to your journal are free. Your first AI interpretation as a guest is free too; sign in for a few more free interpretations. After that, AI readings are part of the Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, 400 characters per dream.",
+          "The dictionary, gallery, and map are free, and you can save a few dreams to your journal for free every day (more by watching a short ad). Your first AI interpretation as a guest is free too; sign in for a few more free interpretations. After that, AI readings are part of the Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, with unlimited saving, 400 characters per dream.",
       },
       {
         question: "How does AI dream interpretation work?",
@@ -203,8 +203,8 @@ export const EN_MESSAGES: UiMessages = {
     trialBadge: "3-day free trial",
     limitsNote: "Up to 3 AI interpretations per day — including during the trial.",
     accessFeatures: "Journal, map, photos, and more.",
-    useFor: "Subscription unlocks AI interpretations in the app. Saving dreams is always free.",
-    freeNote: "The dictionary, gallery, map, your dream journal, and your first interpretations stay free.",
+    useFor: "Subscription unlocks AI interpretations and unlimited saving in the app.",
+    freeNote: "The dictionary, gallery, map, a few saved dreams every day, and your first interpretations stay free.",
     refundNote: "Cancel during the trial and you are not charged. See the Refund Policy.",
     seoTitle: "Dreamly Pricing — Monthly and Yearly AI Dream Interpretation",
     seoDescription:
@@ -336,10 +336,13 @@ export const EN_MESSAGES: UiMessages = {
     translateTitle: "You've used today's free translation",
     translateBody: "Everyone gets one free translation a day, and every translation is saved forever. Subscribe to translate as many dreams as you like.",
     saveTitle: "You've used your free limit",
-    saveBody: "Your free interpretations are used up. AI interpretations are part of the Dreamly subscription — start a 3-day free trial to keep going. Saving dreams stays free.",
+    saveBody: "Your free interpretations are used up. AI interpretations are part of the Dreamly subscription — start a 3-day free trial to keep going.",
     saveDailyTitle: "Free: one interpretation a day",
     saveDailyBody: "Come back tomorrow for another free interpretation, or subscribe for up to 3 a day.",
     watchAd: "Watch a short ad — get one more interpretation",
+    watchAdSave: "Watch a short ad — save this dream",
+    savesLimitTitle: "Today's free saves are used up",
+    savesLimitBody: "You can save a few dreams for free every day. Watch a short ad to save this one, or subscribe to save without limits.",
     unlimitedNote: "Unlimited translations, journal, AI readings and more.",
     choosePlan: "Choose a plan",
     notNow: "Not now",

@@ -74,7 +74,7 @@ export const DE_MESSAGES: UiMessages = {
       {
         question: "Ist Dreamly kostenlos?",
         answer:
-          "Lexikon, Galerie, Karte und das Speichern von Träumen im Tagebuch sind kostenlos. Deine erste KI-Deutung als Gast ist ebenfalls gratis; nach der Anmeldung bekommst du noch ein paar weitere. Danach gehören KI-Deutungen zum Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test) — bis zu 3 pro Tag, je 400 Zeichen pro Traum.",
+          "Lexikon, Galerie und Karte sind kostenlos, und du kannst jeden Tag ein paar Träume kostenlos im Tagebuch speichern (mehr nach einer kurzen Werbung). Deine erste KI-Deutung als Gast ist ebenfalls gratis; nach der Anmeldung bekommst du noch ein paar weitere. Danach gehören KI-Deutungen zum Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test) — bis zu 3 pro Tag, unbegrenztes Speichern, je 400 Zeichen pro Traum.",
       },
       {
         question: "Wie funktioniert die KI-Traumdeutung?",
@@ -203,8 +203,8 @@ export const DE_MESSAGES: UiMessages = {
     trialBadge: "3 Tage kostenlos testen",
     limitsNote: "Bis zu 3 KI-Deutungen pro Tag — auch in der Testphase.",
     accessFeatures: "Tagebuch, Karte, Fotos und mehr.",
-    useFor: "Das Abo schaltet KI-Deutungen in der App frei. Träume speichern ist immer kostenlos.",
-    freeNote: "Lexikon, Galerie, Karte, dein Traumtagebuch und deine ersten Deutungen bleiben kostenlos.",
+    useFor: "Das Abo schaltet KI-Deutungen und unbegrenztes Speichern in der App frei.",
+    freeNote: "Lexikon, Galerie, Karte, ein paar gespeicherte Träume pro Tag und deine ersten Deutungen bleiben kostenlos.",
     refundNote: "Kündigst du in der Testphase, wird nichts berechnet. Siehe die Erstattungsrichtlinie.",
     seoTitle: "Dreamly-Preise — monatliche und jährliche KI-Traumdeutung",
     seoDescription:
@@ -336,10 +336,13 @@ export const DE_MESSAGES: UiMessages = {
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
     saveTitle: "Du hast dein Gratis-Limit aufgebraucht",
-    saveBody: "Deine kostenlosen Deutungen sind aufgebraucht. KI-Deutungen sind Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um weiterzumachen. Träume speichern bleibt kostenlos.",
+    saveBody: "Deine kostenlosen Deutungen sind aufgebraucht. KI-Deutungen sind Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um weiterzumachen.",
     saveDailyTitle: "Gratis: eine Deutung pro Tag",
     saveDailyBody: "Komm morgen für eine weitere Gratis-Deutung wieder, oder abonniere für bis zu 3 pro Tag.",
     watchAd: "Kurze Werbung ansehen — eine weitere Deutung erhalten",
+    watchAdSave: "Kurze Werbung ansehen — diesen Traum speichern",
+    savesLimitTitle: "Die kostenlosen Speicherungen für heute sind aufgebraucht",
+    savesLimitBody: "Jeden Tag kannst du ein paar Träume kostenlos speichern. Sieh dir eine kurze Werbung an, um diesen zu speichern, oder abonniere und speichere ohne Limit.",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
     choosePlan: "Plan wählen",
     notNow: "Jetzt nicht",

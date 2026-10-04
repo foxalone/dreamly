@@ -1,6 +1,6 @@
 // app/api/dreams/save/route.ts
-// Diary save, done on the server: saving is free and unlimited for every
-// signed-in user (consumeSaveAccess only applies an anti-bot cap), write
+// Diary save, done on the server: consumeSaveAccess (subscribers unlimited;
+// others 5 a day per network, then one rewarded-ad credit per save), write
 // users/{uid}/{dreams|stories}/{id}, answer, and then — in after() — give the
 // dream its roots, emojis, icons and city. Every saved dream gets the full
 // experience, even if the user closes the tab right after pressing Save.
@@ -14,6 +14,7 @@ import { enrichSavedDream } from "@/lib/dreams/enrichSavedDream";
 import { adminAuth } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeSaveAccess } from "../_lib/subscription";
+import { readClientIp } from "../_lib/guestQuota";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -61,8 +62,8 @@ export async function POST(req: Request) {
     const type: "dream" | "story" = s(body?.type) === "story" ? "story" : "dream";
     const source: "voice" | "manual" = s(body?.source) === "voice" ? "voice" : "manual";
 
-    // Diary save: free and unlimited for every signed-in user (anti-bot cap only).
-    const slot = await consumeSaveAccess(uid);
+    // Diary save: subscribers unlimited; others 5 a day per network, then a rewarded ad per save.
+    const slot = await consumeSaveAccess(uid, readClientIp(req));
     if ("error" in slot) return slot.error;
 
     let authorName: string | null = null;

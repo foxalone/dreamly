@@ -74,7 +74,7 @@ export const ES_MESSAGES: UiMessages = {
       {
         question: "¿Dreamly es gratis?",
         answer:
-          "El diccionario, la galería, el mapa y guardar sueños en tu diario son gratis. Tu primera interpretación con IA como invitado también es gratis; inicia sesión para obtener algunas más. Después, las interpretaciones con IA forman parte de la suscripción Dreamly (6,99 USD/mes o 69,99 USD/año, con 3 días de prueba): hasta 3 al día, 400 caracteres por sueño.",
+          "El diccionario, la galería y el mapa son gratis, y cada día puedes guardar algunos sueños gratis en tu diario (más viendo un anuncio corto). Tu primera interpretación con IA como invitado también es gratis; inicia sesión para obtener algunas más. Después, las interpretaciones con IA forman parte de la suscripción Dreamly (6,99 USD/mes o 69,99 USD/año, con 3 días de prueba): hasta 3 al día, guardado ilimitado, 400 caracteres por sueño.",
       },
       {
         question: "¿Cómo funciona la interpretación con IA?",
@@ -203,8 +203,8 @@ export const ES_MESSAGES: UiMessages = {
     trialBadge: "3 días de prueba gratis",
     limitsNote: "Hasta 3 interpretaciones con IA al día — también durante la prueba.",
     accessFeatures: "Diario, mapa, fotos y más.",
-    useFor: "La suscripción desbloquea las interpretaciones con IA en la app. Guardar sueños siempre es gratis.",
-    freeNote: "El diccionario, la galería, el mapa, tu diario de sueños y tus primeras interpretaciones siguen siendo gratis.",
+    useFor: "La suscripción desbloquea las interpretaciones con IA y el guardado ilimitado en la app.",
+    freeNote: "El diccionario, la galería, el mapa, algunos sueños guardados cada día y tus primeras interpretaciones siguen siendo gratis.",
     refundNote: "Si cancelas durante la prueba, no se cobra. Consulta la Política de reembolso.",
     seoTitle: "Precios de Dreamly — Interpretación de sueños con IA mensual y anual",
     seoDescription:
@@ -336,10 +336,13 @@ export const ES_MESSAGES: UiMessages = {
     translateTitle: "Ya usaste tu traducción gratuita de hoy",
     translateBody: "Todos tienen una traducción gratuita al día, y cada traducción se guarda para siempre. Suscríbete para traducir todos los sueños que quieras.",
     saveTitle: "Has agotado tu límite gratuito",
-    saveBody: "Tus interpretaciones gratuitas se han agotado. Las interpretaciones con IA forman parte de la suscripción a Dreamly: empieza una prueba gratuita de 3 días para continuar. Guardar sueños sigue siendo gratis.",
+    saveBody: "Tus interpretaciones gratuitas se han agotado. Las interpretaciones con IA forman parte de la suscripción a Dreamly: empieza una prueba gratuita de 3 días para continuar.",
     saveDailyTitle: "Gratis: una interpretación al día",
     saveDailyBody: "Vuelve mañana por otra interpretación gratis, o suscríbete para tener hasta 3 al día.",
     watchAd: "Mira un anuncio corto y obtén otra interpretación",
+    watchAdSave: "Mira un anuncio corto y guarda este sueño",
+    savesLimitTitle: "Se acabaron los guardados gratis de hoy",
+    savesLimitBody: "Cada día puedes guardar algunos sueños gratis. Mira un anuncio corto para guardar este, o suscríbete para guardar sin límites.",
     unlimitedNote: "Traducciones ilimitadas, diario, lecturas con IA y más.",
     choosePlan: "Elige un plan",
     notNow: "Ahora no",

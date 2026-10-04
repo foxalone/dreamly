@@ -24,6 +24,7 @@ import {
   hasFreeAnalysis,
   adAnalysisCredits,
   adRewardsLeftToday,
+  adSaveRewardsLeftToday,
   freeAnalysisDailyLimitReached,
   hasPaidAccess,
   remainingDreamsToday,
@@ -417,7 +418,7 @@ export default function DreamsPage() {
   const [saving, setSaving] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   // Which paywall text the plans modal shows on a refused diary save.
-  const [plansReason, setPlansReason] = useState<"limit" | "daily">("limit");
+  const [plansReason, setPlansReason] = useState<"limit" | "daily" | "saves">("limit");
   // Dream whose analysis hit the paywall — re-run after a rewarded ad.
   const [pendingAnalysisId, setPendingAnalysisId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -996,8 +997,8 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-    // Saving is free and unlimited for every signed-in user — only AI
-    // analyses are limited (see analyzeDream / consumeAnalysisAccess).
+    // Saving: subscribers unlimited; others 5 a day per network, then one
+    // rewarded ad per save — enforced on the server (consumeSaveAccess).
 
     const now = new Date();
     const source = usedVoice || recording ? ("voice" as const) : ("manual" as const);
@@ -1023,6 +1024,7 @@ export default function DreamsPage() {
       });
       const saved = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (saved?.code === "SAVE_IP_LIMIT") throw new Error("SAVE_IP_LIMIT");
         if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
         throw new Error(saved?.error ?? `Failed to save ${type}.`);
       }
@@ -1038,6 +1040,14 @@ export default function DreamsPage() {
       setText("");
       setUsedVoice(false);
     } catch (e: any) {
+      if (e?.message === "SAVE_IP_LIMIT") {
+        // Free saves for today on this network are gone: offer an ad or a plan.
+        setSaving(false);
+        setPendingAnalysisId(null);
+        setPlansReason("saves");
+        setPlansOpen(true);
+        return;
+      }
       setError(e?.message ?? `Failed to save ${type}.`);
       setSaving(false);
     }
@@ -2060,12 +2070,44 @@ export default function DreamsPage() {
       <PlansModal
         open={plansOpen}
         onClose={() => setPlansOpen(false)}
-        source="dream_analysis"
-        title={plansReason === "daily" ? t.plansModal.saveDailyTitle : t.plansModal.saveTitle}
-        body={plansReason === "daily" ? t.plansModal.saveDailyBody : t.plansModal.saveBody}
+        source={plansReason === "saves" ? "diary_save" : "dream_analysis"}
+        title={
+          plansReason === "saves"
+            ? t.plansModal.savesLimitTitle
+            : plansReason === "daily"
+              ? t.plansModal.saveDailyTitle
+              : t.plansModal.saveTitle
+        }
+        body={
+          plansReason === "saves"
+            ? t.plansModal.savesLimitBody
+            : plansReason === "daily"
+              ? t.plansModal.saveDailyBody
+              : t.plansModal.saveBody
+        }
         rewarded={
-          pendingAnalysisId && !hasPaidAccess(billing) && adRewardsLeftToday(billing) > 0
+          plansReason === "saves" && !hasPaidAccess(billing) && adSaveRewardsLeftToday(billing) > 0
             ? {
+                label: t.plansModal.watchAdSave,
+                onGranted: async () => {
+                  const u = auth.currentUser;
+                  if (!u) return false;
+                  const idToken = await u.getIdToken();
+                  const res = await fetch("/api/dreams/ad-reward", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idToken, kind: "save" }),
+                  });
+                  return res.ok;
+                },
+                onDone: () => {
+                  setPlansOpen(false);
+                  void save();
+                },
+              }
+            : plansReason !== "saves" && pendingAnalysisId && !hasPaidAccess(billing) && adRewardsLeftToday(billing) > 0
+            ? {
+                label: t.plansModal.watchAd,
                 onGranted: async () => {
                   const u = auth.currentUser;
                   if (!u) return false;

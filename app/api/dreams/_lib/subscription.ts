@@ -6,9 +6,12 @@ import {
   FREE_ANALYSES_PER_DAY,
   FREE_ANALYSES_TOTAL,
   AD_REWARDS_PER_DAY,
+  AD_SAVE_REWARDS_PER_DAY,
+  FREE_SAVES_PER_IP_PER_DAY,
   SAVES_PER_DAY_ABUSE_CAP,
 } from "@/lib/subscriptions/plans";
 import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
+import { hashIp } from "./guestQuota";
 
 export { DREAM_MAX_CHARS, DREAMS_PER_DAY } from "@/lib/subscriptions/plans";
 
@@ -49,6 +52,11 @@ function quotaError(e: unknown): { error: NextResponse } {
   if (message === "AD_NOT_NEEDED") {
     return { error: jsonError("Subscribers do not need ad rewards.", "AD_NOT_NEEDED", 400) };
   }
+  if (message === "SAVE_IP_LIMIT") {
+    return {
+      error: jsonError("Free saves for today are used up. Watch an ad or subscribe.", "SAVE_IP_LIMIT", 402),
+    };
+  }
   if (message === "SAVE_ABUSE_CAP") {
     return { error: jsonError("Too many dreams saved today. Try again tomorrow.", "SAVE_ABUSE_CAP", 429) };
   }
@@ -70,28 +78,59 @@ export async function requirePaidAccess(uid: string): Promise<{ error: NextRespo
 }
 
 /**
- * Diary save: free and unlimited for every signed-in user (subscription or
- * not). Only a quiet anti-bot cap of SAVES_PER_DAY_ABUSE_CAP per UTC day.
+ * Diary save for a signed-in user.
+ * - Subscriber: unlimited (only the SAVES_PER_DAY_ABUSE_CAP anti-bot cap).
+ * - No subscription: FREE_SAVES_PER_IP_PER_DAY saves per network (hashed
+ *   IP) per UTC day; after that one adSaveCredits credit (earned by watching
+ *   a rewarded ad) per save, else SAVE_IP_LIMIT.
  */
-export async function consumeSaveAccess(uid: string): Promise<AccessOk | { error: NextResponse }> {
+export async function consumeSaveAccess(
+  uid: string,
+  ip: string
+): Promise<(AccessOk & { charge: "free" | "ad" | "paid" }) | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
   }
   const db = adminDb();
   const userRef = db.collection("users").doc(uid);
   const dayKey = utcDayKey();
+  const ipRef = db.collection("saveIpDaily").doc(`${hashIp(ip || "unknown")}_${dayKey}`);
   try {
     return await db.runTransaction(async (tx) => {
-      const snap = await tx.get(userRef);
+      const [snap, ipSnap] = await Promise.all([tx.get(userRef), tx.get(ipRef)]);
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
       const current = String(data.savesDayKey ?? "") === dayKey ? toCount(data.savesTodayCount) : 0;
       if (current >= SAVES_PER_DAY_ABUSE_CAP) throw new Error("SAVE_ABUSE_CAP");
-      tx.set(
-        userRef,
-        { savesDayKey: dayKey, savesTodayCount: current + 1, updatedAt: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
-      return { uid, used: current + 1, remaining: Math.max(0, SAVES_PER_DAY_ABUSE_CAP - current - 1), dayKey };
+      const userPatch: Record<string, unknown> = {
+        savesDayKey: dayKey,
+        savesTodayCount: current + 1,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      let charge: "free" | "ad" | "paid" = "paid";
+      if (!hasPaidAccess(data)) {
+        const ipCount = ipSnap.exists ? toCount(ipSnap.get("count")) : 0;
+        if (ipCount < FREE_SAVES_PER_IP_PER_DAY) {
+          charge = "free";
+          tx.set(
+            ipRef,
+            { count: ipCount + 1, dayKey, updatedAt: FieldValue.serverTimestamp() },
+            { merge: true }
+          );
+        } else {
+          const credits = toCount(data.adSaveCredits);
+          if (credits < 1) throw new Error("SAVE_IP_LIMIT");
+          charge = "ad";
+          userPatch.adSaveCredits = credits - 1;
+        }
+      }
+      tx.set(userRef, userPatch, { merge: true });
+      return {
+        uid,
+        used: current + 1,
+        remaining: Math.max(0, SAVES_PER_DAY_ABUSE_CAP - current - 1),
+        dayKey,
+        charge,
+      };
     });
   } catch (e: unknown) {
     return quotaError(e);
@@ -204,11 +243,13 @@ export async function refundAdCredit(uid: string) {
 }
 
 /**
- * The user finished a rewarded ad: grant one adAnalysisCredits credit.
- * Subscribers never need it; at most AD_REWARDS_PER_DAY grants per UTC day.
+ * The user finished a rewarded ad: grant one credit — an AI analysis
+ * (adAnalysisCredits, max AD_REWARDS_PER_DAY a day) or a diary save
+ * (adSaveCredits, max AD_SAVE_REWARDS_PER_DAY a day). Subscribers never need it.
  */
 export async function grantAdReward(
-  uid: string
+  uid: string,
+  kind: "analysis" | "save" = "analysis"
 ): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
@@ -221,21 +262,26 @@ export async function grantAdReward(
       const snap = await tx.get(userRef);
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
       if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
-      const today = String(data.adRewardsDayKey ?? "") === dayKey ? toCount(data.adRewardsTodayCount) : 0;
-      if (today >= AD_REWARDS_PER_DAY) throw new Error("AD_DAILY_LIMIT");
-      const credits = toCount(data.adAnalysisCredits) + 1;
+      // Separate counters and caps for analysis ads and save ads.
+      const f =
+        kind === "save"
+          ? { credits: "adSaveCredits", day: "adSaveRewardsDayKey", today: "adSaveRewardsTodayCount", cap: AD_SAVE_REWARDS_PER_DAY }
+          : { credits: "adAnalysisCredits", day: "adRewardsDayKey", today: "adRewardsTodayCount", cap: AD_REWARDS_PER_DAY };
+      const today = String(data[f.day] ?? "") === dayKey ? toCount(data[f.today]) : 0;
+      if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");
+      const credits = toCount(data[f.credits]) + 1;
       tx.set(
         userRef,
         {
-          adAnalysisCredits: credits,
-          adRewardsDayKey: dayKey,
-          adRewardsTodayCount: today + 1,
+          [f.credits]: credits,
+          [f.day]: dayKey,
+          [f.today]: today + 1,
           adRewardAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
-      return { uid, credits, leftToday: AD_REWARDS_PER_DAY - today - 1 };
+      return { uid, credits, leftToday: f.cap - today - 1 };
     });
   } catch (e: unknown) {
     return quotaError(e);

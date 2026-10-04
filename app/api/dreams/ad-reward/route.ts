@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { grantAdReward } from "../_lib/subscription";
 
-type Body = { idToken?: unknown };
+type Body = { idToken?: unknown; kind?: unknown };
 
 /**
  * POST /api/dreams/ad-reward — called by the browser after GPT fires
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    const res = await grantAdReward(auth.uid);
+    const res = await grantAdReward(auth.uid, body.kind === "save" ? "save" : "analysis");
     if ("error" in res) return res.error;
     return NextResponse.json({ ok: true, credits: res.credits, leftToday: res.leftToday });
   } catch (e: unknown) {

@@ -1,4 +1,4 @@
-import { AD_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
+import { AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -24,6 +24,10 @@ export type UserBillingFields = {
   adAnalysisCredits?: number | null;
   adRewardsDayKey?: string | null;
   adRewardsTodayCount?: number | null;
+  /** Diary saves earned by watching a rewarded ad (after the free 5 per network a day). */
+  adSaveCredits?: number | null;
+  adSaveRewardsDayKey?: string | null;
+  adSaveRewardsTodayCount?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -75,6 +79,12 @@ export function adAnalysisCredits(data: UserBillingFields | null | undefined) {
 export function adRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
   const used = String(data?.adRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adRewardsTodayCount) : 0;
   return Math.max(0, AD_REWARDS_PER_DAY - used);
+}
+
+/** How many more "ad for a save" rewards this non-subscriber may watch today. */
+export function adSaveRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
+  const used = String(data?.adSaveRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adSaveRewardsTodayCount) : 0;
+  return Math.max(0, AD_SAVE_REWARDS_PER_DAY - used);
 }
 
 /** Can this user get an AI analysis right now (subscriber slot or free one). */

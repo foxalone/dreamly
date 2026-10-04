@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   adRewardsLeftToday,
+  adSaveRewardsLeftToday,
   canAnalyzeDream,
   freeAnalysisDailyLimitReached,
   hasFreeAnalysis,
@@ -56,4 +57,11 @@ test("rewarded ads: credits unlock an analysis, max 3 ads a day", () => {
   assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 2 }), 1);
   assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 3 }), 0);
   assert.equal(adRewardsLeftToday({ adRewardsDayKey: "2000-01-01", adRewardsTodayCount: 3 }), 3);
+});
+
+test("save ads: up to 10 a day", () => {
+  const today = utcDayKey();
+  assert.equal(adSaveRewardsLeftToday({}), 10);
+  assert.equal(adSaveRewardsLeftToday({ adSaveRewardsDayKey: today, adSaveRewardsTodayCount: 10 }), 0);
+  assert.equal(adSaveRewardsLeftToday({ adSaveRewardsDayKey: "2000-01-01", adSaveRewardsTodayCount: 10 }), 10);
 });
