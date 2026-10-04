@@ -21,8 +21,6 @@ import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
-  hasFreeDreamSave,
-  freeDreamDailyLimitReached,
   hasFreeAnalysis,
   freeAnalysisDailyLimitReached,
   hasPaidAccess,
@@ -994,25 +992,8 @@ export default function DreamsPage() {
 
     const u = auth.currentUser;
     if (!u) return;
-    const paid = hasPaidAccess(billing);
-    if (!paid && !hasFreeDreamSave(billing)) {
-      // Save is always visible; the paywall shows up only when it is pressed.
-      // A signed-in user without a subscription gets FREE_DREAM_SAVES_TOTAL
-      // free saves, at most FREE_DREAM_SAVES_PER_DAY a day, with no counter
-      // shown anywhere — the server enforces both in consumeDreamSlot.
-      setPlansReason("limit");
-      setPlansOpen(true);
-      return;
-    }
-    if (!paid && freeDreamDailyLimitReached(billing)) {
-      setPlansReason("daily");
-      setPlansOpen(true);
-      return;
-    }
-    if (paid && remainingDreamsToday(billing) < 1) {
-      setError(t.app.dailyLimitReached);
-      return;
-    }
+    // Saving is free and unlimited for every signed-in user — only AI
+    // analyses are limited (see analyzeDream / consumeAnalysisAccess).
 
     const now = new Date();
     const source = usedVoice || recording ? ("voice" as const) : ("manual" as const);
@@ -1038,9 +1019,6 @@ export default function DreamsPage() {
       });
       const saved = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (saved?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
-        if (saved?.code === "FREE_DAILY_LIMIT") throw new Error("FREE_DAILY_LIMIT");
-        if (saved?.code === "SUBSCRIPTION_REQUIRED" || res.status === 402) throw new Error("SUBSCRIPTION_REQUIRED");
         if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
         throw new Error(saved?.error ?? `Failed to save ${type}.`);
       }
@@ -1049,7 +1027,6 @@ export default function DreamsPage() {
         content_type: type,
         input_method: source,
         word_count: countWords(v),
-        free_save: saved?.free === true,
       });
 
       setOpen(false);
@@ -1057,23 +1034,6 @@ export default function DreamsPage() {
       setText("");
       setUsedVoice(false);
     } catch (e: any) {
-      if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_SAVE") {
-        setSaving(false);
-        setPlansReason("limit");
-        setPlansOpen(true);
-        return;
-      }
-      if (e?.message === "FREE_DAILY_LIMIT") {
-        setSaving(false);
-        setPlansReason("daily");
-        setPlansOpen(true);
-        return;
-      }
-      if (e?.message === "DAILY_LIMIT") {
-        setError(t.app.dailyLimitReached);
-        setSaving(false);
-        return;
-      }
       setError(e?.message ?? `Failed to save ${type}.`);
       setSaving(false);
     }
@@ -1224,6 +1184,9 @@ export default function DreamsPage() {
         setPlansOpen(true);
         return;
       }
+    } else if (remainingDreamsToday(billing) < 1) {
+      setError(dailyLimitCopy);
+      return;
     }
 
     setError(null);
@@ -1239,7 +1202,6 @@ export default function DreamsPage() {
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           lens,
           idToken,
-          countTowardLimit: false,
         }),
       });
 
@@ -1390,7 +1352,7 @@ export default function DreamsPage() {
 
   const canAccess = hasPaidAccess(billing);
   const canSave = useMemo(
-    () => !!text.trim() && !saving && (!canAccess || remainingDreamsToday(billing) > 0),
+    () => !!text.trim() && !saving,
     [text, saving, canAccess, billing]
   );
 

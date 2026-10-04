@@ -18,12 +18,12 @@ const ACTIONS = [
   {
     action: "Сохранить сон / story",
     cost: "1 сон бесплатно (за всё время), дальше подписка + 1 из 5/день",
-    note: "POST /api/dreams/save (allowFreeSave) → users/{uid}.freeDreamSavesUsed / freeDreamSaveDayKey. Без подписки: 5 бесплатных сохранений и (отдельно) 5 бесплатных толкований, максимум 1 в день; счётчик пользователю не показывается. 6-й (или 2-й за день) открывает окно планов.",
+    note: "POST /api/dreams/save → consumeSaveAccess: сохранение бесплатно и без лимита для всех вошедших (только анти-бот 50/день). Толкования: без подписки 5 всего, максимум 1 в день (freeAnalyses*), счётчик не показывается; 6-е (или 2-е за день) открывает окно планов.",
   },
   {
     action: "Analyze (разбор сна)",
     cost: "подписка + 1 из 5/день",
-    note: "consumeDreamSlot на сервере. Гость: 1 бесплатный ask.",
+    note: "consumeAnalysisAccess на сервере. Гость: 1 бесплатный ask.",
   },
   {
     action: "Quick Symbol — нашли в словаре",
@@ -126,7 +126,7 @@ export default function ProDocs() {
           <p className="mt-1 text-[var(--muted)]">
             Доступ = активная PayPal-подписка или trial (
             <span className="font-mono text-[var(--text)]">users/&#123;uid&#125;.subscriptionStatus</span>
-            ). Гость получает 1 бесплатную интерпретацию. Лимиты: подписчик 3 сна/день UTC, без подписки 5 снов (1 в день), 400 символов.
+            ). Гость получает 1 бесплатную интерпретацию. Толкования: подписчик 3/день UTC, без подписки 5 (1 в день). Сохранение бесплатно. 400 символов.
           </p>
         </div>
 
@@ -159,7 +159,7 @@ export default function ProDocs() {
               <span className="font-mono text-[var(--text)]">/app/upgrade</span>).
             </li>
             <li>
-              Лимиты: подписчик 3 сна в UTC-день, без подписки 5 снов всего (1 в день), 400 символов на сон.
+              Толкования: подписчик 3 в UTC-день, без подписки 5 всего (1 в день). Сохранение бесплатно. 400 символов на сон.
             </li>
             <li>Welcome-кредиты больше не выдаются.</li>
           </ul>
@@ -201,7 +201,7 @@ export default function ProDocs() {
           </h3>
 
           <div className="mt-3 rounded-xl border border-[color-mix(in_srgb,#f59e0b_40%,var(--border))] bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] px-4 py-3">
-            <div className="font-semibold">3 сна в день (UTC)</div>
+            <div className="font-semibold">3 толкования в день (UTC)</div>
             <p className="mt-1 text-[var(--muted)]">
               Общий слот на save и analyze. Rootwords / translate / emoji-pick входят в подписку без
               отдельного капа. Гость: 1 бесплатный analyze.

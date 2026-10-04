@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { consumeDreamSlot } from "../_lib/subscription";
+import { consumeSaveAccess } from "../_lib/subscription";
 
 type Body = { idToken?: unknown };
 
@@ -9,8 +9,8 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    // Diary save: subscribers use a daily slot, others get 5 free saves (max 1 a day).
-    const slot = await consumeDreamSlot(auth.uid, { allowFreeSave: true });
+    // Diary save: free and unlimited for every signed-in user (anti-bot cap only).
+    const slot = await consumeSaveAccess(auth.uid);
     if ("error" in slot) return slot.error;
     return NextResponse.json({ ok: true, ...slot });
   } catch (e: unknown) {

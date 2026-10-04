@@ -115,10 +115,9 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      // Subscribers: daily slots (DREAMS_PER_DAY). Signed-in without a
+      // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
       // subscription: 5 free analyses in total, max 1 a day.
-      const countTowardLimit = body?.countTowardLimit !== false;
-      const access = await consumeAnalysisAccess(uid, countTowardLimit);
+      const access = await consumeAnalysisAccess(uid);
       if ("error" in access) return access.error;
       if (access.charge === "slot") chargedUid = uid;
       if (access.charge === "free") freeAnalysisUid = uid;

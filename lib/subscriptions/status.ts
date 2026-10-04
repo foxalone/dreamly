@@ -1,4 +1,4 @@
-import { DREAMS_PER_DAY, FREE_DREAM_SAVES_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "./plans";
+import { DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -16,12 +16,7 @@ export type UserBillingFields = {
   trialEndsAtMs?: number | null;
   dreamsDayKey?: string | null;
   dreamsTodayCount?: number | null;
-  /** Lifetime count of diary saves made without a subscription. */
-  freeDreamSavesUsed?: number | null;
-  /** UTC day of the last free save (with freeDreamSavesTodayCount). */
-  freeDreamSaveDayKey?: string | null;
-  freeDreamSavesTodayCount?: number | null;
-  /** Free AI analyses without a subscription (same 5 total / 1 a day rule). */
+  /** Free AI analyses without a subscription (5 in total, 1 a day). */
   freeAnalysesUsed?: number | null;
   freeAnalysisDayKey?: string | null;
   freeAnalysesTodayCount?: number | null;
@@ -52,27 +47,6 @@ export function remainingDreamsToday(data: UserBillingFields | null | undefined,
   return Math.max(0, DREAMS_PER_DAY - dreamsUsedToday(data, now));
 }
 
-export function freeDreamSavesUsed(data: UserBillingFields | null | undefined) {
-  const used = Number(data?.freeDreamSavesUsed ?? 0);
-  return Number.isFinite(used) ? Math.max(0, Math.floor(used)) : 0;
-}
-
-export function freeDreamSavesToday(data: UserBillingFields | null | undefined, now = new Date()) {
-  if (String(data?.freeDreamSaveDayKey ?? "") !== utcDayKey(now)) return 0;
-  const used = Number(data?.freeDreamSavesTodayCount ?? 0);
-  return Number.isFinite(used) ? Math.max(0, Math.floor(used)) : 0;
-}
-
-/** True while a non-subscriber has not used up the lifetime free saves. */
-export function hasFreeDreamSave(data: UserBillingFields | null | undefined) {
-  return freeDreamSavesUsed(data) < FREE_DREAM_SAVES_TOTAL;
-}
-
-/** True when the non-subscriber already took today's free save. */
-export function freeDreamDailyLimitReached(data: UserBillingFields | null | undefined, now = new Date()) {
-  return freeDreamSavesToday(data, now) >= FREE_DREAM_SAVES_PER_DAY;
-}
-
 function count(v: unknown) {
   const n = Number(v ?? 0);
   return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
@@ -80,17 +54,17 @@ function count(v: unknown) {
 
 /** True while a non-subscriber has free AI analyses left (5 in total). */
 export function hasFreeAnalysis(data: UserBillingFields | null | undefined) {
-  return count(data?.freeAnalysesUsed) < FREE_DREAM_SAVES_TOTAL;
+  return count(data?.freeAnalysesUsed) < FREE_ANALYSES_TOTAL;
 }
 
 /** True when the non-subscriber already took today's free analysis. */
 export function freeAnalysisDailyLimitReached(data: UserBillingFields | null | undefined, now = new Date()) {
   if (String(data?.freeAnalysisDayKey ?? "") !== utcDayKey(now)) return false;
-  return count(data?.freeAnalysesTodayCount) >= FREE_DREAM_SAVES_PER_DAY;
+  return count(data?.freeAnalysesTodayCount) >= FREE_ANALYSES_PER_DAY;
 }
 
-/** Can this user save a dream right now — subscription, or a free save. */
-export function canSaveDream(data: UserBillingFields | null | undefined, now = Date.now()) {
+/** Can this user get an AI analysis right now (subscriber slot or free one). */
+export function canAnalyzeDream(data: UserBillingFields | null | undefined, now = Date.now()) {
   if (hasPaidAccess(data, now)) return remainingDreamsToday(data, new Date(now)) > 0;
-  return hasFreeDreamSave(data) && !freeDreamDailyLimitReached(data, new Date(now));
+  return hasFreeAnalysis(data) && !freeAnalysisDailyLimitReached(data, new Date(now));
 }
