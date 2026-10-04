@@ -339,6 +339,7 @@ export const PT_MESSAGES: UiMessages = {
     saveBody: "Suas interpretações gratuitas acabaram. As interpretações com IA fazem parte da assinatura Dreamly — comece um teste gratuito de 3 dias para continuar. Salvar sonhos continua grátis.",
     saveDailyTitle: "Grátis: uma interpretação por dia",
     saveDailyBody: "Volte amanhã para mais uma interpretação grátis, ou assine para ter até 3 por dia.",
+    watchAd: "Assista a um anúncio curto e ganhe mais uma interpretação",
     unlimitedNote: "Traduções ilimitadas, diário, leituras com IA e mais.",
     choosePlan: "Escolha um plano",
     notNow: "Agora não",

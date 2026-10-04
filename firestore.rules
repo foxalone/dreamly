@@ -18,6 +18,7 @@ service cloud.firestore {
         'freeDreamSavesUsed', 'freeDreamSaveAt', 'freeDreamSaveDayKey', 'freeDreamSavesTodayCount',
         'freeAnalysesUsed', 'freeAnalysisAt', 'freeAnalysisDayKey', 'freeAnalysesTodayCount',
         'savesDayKey', 'savesTodayCount',
+        'adAnalysisCredits', 'adRewardsDayKey', 'adRewardsTodayCount', 'adRewardAt',
         // подписка и лимиты — пишет только сервер (lib/paypal/syncSubscription.ts,
         // consume-slot, translationLedger); иначе клиент мог бы выдать себе Pro
         'subscriptionStatus', 'subscriptionPlan', 'paypalSubscriptionId',

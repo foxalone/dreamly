@@ -301,6 +301,7 @@ export type UiMessages = {
     saveBody: string;
     saveDailyTitle: string;
     saveDailyBody: string;
+    watchAd: string;
     unlimitedNote: string;
     choosePlan: string;
     notNow: string;

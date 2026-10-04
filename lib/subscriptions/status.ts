@@ -1,4 +1,4 @@
-import { DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
+import { AD_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -20,6 +20,10 @@ export type UserBillingFields = {
   freeAnalysesUsed?: number | null;
   freeAnalysisDayKey?: string | null;
   freeAnalysesTodayCount?: number | null;
+  /** Analyses earned by watching a rewarded ad (spent after the free ones). */
+  adAnalysisCredits?: number | null;
+  adRewardsDayKey?: string | null;
+  adRewardsTodayCount?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -63,8 +67,19 @@ export function freeAnalysisDailyLimitReached(data: UserBillingFields | null | u
   return count(data?.freeAnalysesTodayCount) >= FREE_ANALYSES_PER_DAY;
 }
 
+export function adAnalysisCredits(data: UserBillingFields | null | undefined) {
+  return count(data?.adAnalysisCredits);
+}
+
+/** How many more rewarded ads this non-subscriber may watch today. */
+export function adRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
+  const used = String(data?.adRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adRewardsTodayCount) : 0;
+  return Math.max(0, AD_REWARDS_PER_DAY - used);
+}
+
 /** Can this user get an AI analysis right now (subscriber slot or free one). */
 export function canAnalyzeDream(data: UserBillingFields | null | undefined, now = Date.now()) {
   if (hasPaidAccess(data, now)) return remainingDreamsToday(data, new Date(now)) > 0;
-  return hasFreeAnalysis(data) && !freeAnalysisDailyLimitReached(data, new Date(now));
+  if (hasFreeAnalysis(data) && !freeAnalysisDailyLimitReached(data, new Date(now))) return true;
+  return adAnalysisCredits(data) > 0;
 }

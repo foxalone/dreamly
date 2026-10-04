@@ -5,6 +5,7 @@ import {
   DREAMS_PER_DAY,
   FREE_ANALYSES_PER_DAY,
   FREE_ANALYSES_TOTAL,
+  AD_REWARDS_PER_DAY,
   SAVES_PER_DAY_ABUSE_CAP,
 } from "@/lib/subscriptions/plans";
 import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
@@ -41,6 +42,12 @@ function quotaError(e: unknown): { error: NextResponse } {
     return {
       error: jsonError(`Daily limit reached (${DREAMS_PER_DAY} interpretations). Try again tomorrow.`, "DAILY_LIMIT", 429),
     };
+  }
+  if (message === "AD_DAILY_LIMIT") {
+    return { error: jsonError("No more ad rewards today. Try again tomorrow.", "AD_DAILY_LIMIT", 429) };
+  }
+  if (message === "AD_NOT_NEEDED") {
+    return { error: jsonError("Subscribers do not need ad rewards.", "AD_NOT_NEEDED", 400) };
   }
   if (message === "SAVE_ABUSE_CAP") {
     return { error: jsonError("Too many dreams saved today. Try again tomorrow.", "SAVE_ABUSE_CAP", 429) };
@@ -95,12 +102,13 @@ export async function consumeSaveAccess(uid: string): Promise<AccessOk | { error
  * AI analysis by a signed-in user, all in one transaction:
  * - subscriber: one of DREAMS_PER_DAY daily slots;
  * - no subscription: one free analysis — FREE_ANALYSES_TOTAL in total, at
- *   most FREE_ANALYSES_PER_DAY per UTC day.
+ *   most FREE_ANALYSES_PER_DAY per UTC day; when those are gone, one
+ *   adAnalysisCredits credit earned by watching a rewarded ad.
  * Returns which counter to give back if the AI call fails.
  */
 export async function consumeAnalysisAccess(
   uid: string
-): Promise<{ uid: string; charge: "slot" | "free" } | { error: NextResponse }> {
+): Promise<{ uid: string; charge: "slot" | "free" | "ad" } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
   }
@@ -127,9 +135,20 @@ export async function consumeAnalysisAccess(
         return { uid, charge: "slot" as const };
       }
       const used = toCount(data.freeAnalysesUsed);
-      if (used >= FREE_ANALYSES_TOTAL) throw new Error("SUBSCRIPTION_REQUIRED");
       const today = String(data.freeAnalysisDayKey ?? "") === dayKey ? toCount(data.freeAnalysesTodayCount) : 0;
-      if (today >= FREE_ANALYSES_PER_DAY) throw new Error("FREE_DAILY_LIMIT");
+      if (used >= FREE_ANALYSES_TOTAL || today >= FREE_ANALYSES_PER_DAY) {
+        // Free quota is gone — spend a credit earned by watching an ad, if any.
+        const credits = toCount(data.adAnalysisCredits);
+        if (credits > 0) {
+          tx.set(
+            userRef,
+            { adAnalysisCredits: credits - 1, updatedAt: FieldValue.serverTimestamp() },
+            { merge: true }
+          );
+          return { uid, charge: "ad" as const };
+        }
+        throw new Error(used >= FREE_ANALYSES_TOTAL ? "SUBSCRIPTION_REQUIRED" : "FREE_DAILY_LIMIT");
+      }
       tx.set(
         userRef,
         {
@@ -168,6 +187,58 @@ export async function refundFreeAnalysis(uid: string) {
     });
   } catch (e) {
     console.warn("refundFreeAnalysis failed:", e);
+  }
+}
+
+/** Give back an ad credit whose AI call failed. */
+export async function refundAdCredit(uid: string) {
+  if (!uid) return;
+  try {
+    await adminDb()
+      .collection("users")
+      .doc(uid)
+      .set({ adAnalysisCredits: FieldValue.increment(1) }, { merge: true });
+  } catch (e) {
+    console.warn("refundAdCredit failed:", e);
+  }
+}
+
+/**
+ * The user finished a rewarded ad: grant one adAnalysisCredits credit.
+ * Subscribers never need it; at most AD_REWARDS_PER_DAY grants per UTC day.
+ */
+export async function grantAdReward(
+  uid: string
+): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
+  if (!uid) {
+    return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
+  }
+  const db = adminDb();
+  const userRef = db.collection("users").doc(uid);
+  const dayKey = utcDayKey();
+  try {
+    return await db.runTransaction(async (tx) => {
+      const snap = await tx.get(userRef);
+      const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
+      if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
+      const today = String(data.adRewardsDayKey ?? "") === dayKey ? toCount(data.adRewardsTodayCount) : 0;
+      if (today >= AD_REWARDS_PER_DAY) throw new Error("AD_DAILY_LIMIT");
+      const credits = toCount(data.adAnalysisCredits) + 1;
+      tx.set(
+        userRef,
+        {
+          adAnalysisCredits: credits,
+          adRewardsDayKey: dayKey,
+          adRewardsTodayCount: today + 1,
+          adRewardAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return { uid, credits, leftToday: AD_REWARDS_PER_DAY - today - 1 };
+    });
+  } catch (e: unknown) {
+    return quotaError(e);
   }
 }
 

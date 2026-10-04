@@ -339,6 +339,7 @@ export const DE_MESSAGES: UiMessages = {
     saveBody: "Deine kostenlosen Deutungen sind aufgebraucht. KI-Deutungen sind Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um weiterzumachen. Träume speichern bleibt kostenlos.",
     saveDailyTitle: "Gratis: eine Deutung pro Tag",
     saveDailyBody: "Komm morgen für eine weitere Gratis-Deutung wieder, oder abonniere für bis zu 3 pro Tag.",
+    watchAd: "Kurze Werbung ansehen — eine weitere Deutung erhalten",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
     choosePlan: "Plan wählen",
     notNow: "Jetzt nicht",

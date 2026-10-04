@@ -22,6 +22,8 @@ import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
   hasFreeAnalysis,
+  adAnalysisCredits,
+  adRewardsLeftToday,
   freeAnalysisDailyLimitReached,
   hasPaidAccess,
   remainingDreamsToday,
@@ -416,6 +418,8 @@ export default function DreamsPage() {
   const [plansOpen, setPlansOpen] = useState(false);
   // Which paywall text the plans modal shows on a refused diary save.
   const [plansReason, setPlansReason] = useState<"limit" | "daily">("limit");
+  // Dream whose analysis hit the paywall — re-run after a rewarded ad.
+  const [pendingAnalysisId, setPendingAnalysisId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [dreams, setDreams] = useState<Dream[]>([]);
@@ -1157,7 +1161,7 @@ export default function DreamsPage() {
     }
   }
 
-  async function analyzeDream(dreamId: string) {
+  async function analyzeDream(dreamId: string, opts: { afterAd?: boolean } = {}) {
     const u = auth.currentUser;
     if (!u) return;
 
@@ -1174,13 +1178,15 @@ export default function DreamsPage() {
       return;
     }
 
-    if (!hasPaidAccess(billing)) {
+    if (!hasPaidAccess(billing) && !opts.afterAd && adAnalysisCredits(billing) < 1) {
       // Signed-in without a subscription: 5 free analyses, max 1 a day, no
       // counter shown — the server enforces it in consumeAnalysisAccess.
+      // Credits from rewarded ads are spent after the free ones.
       const reason = !hasFreeAnalysis(billing) ? "limit" : freeAnalysisDailyLimitReached(billing) ? "daily" : null;
       if (reason) {
         trackEvent("upgrade_prompt", { source: "dream_analysis" });
         setPlansReason(reason);
+        setPendingAnalysisId(dreamId);
         setPlansOpen(true);
         return;
       }
@@ -1259,9 +1265,11 @@ export default function DreamsPage() {
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
         setPlansReason("limit");
+        setPendingAnalysisId(dreamId);
         setPlansOpen(true);
       } else if (e?.message === "FREE_DAILY_LIMIT") {
         setPlansReason("daily");
+        setPendingAnalysisId(dreamId);
         setPlansOpen(true);
       } else if (e?.message === "DAILY_LIMIT") {
         setError(dailyLimitCopy);
@@ -2052,9 +2060,32 @@ export default function DreamsPage() {
       <PlansModal
         open={plansOpen}
         onClose={() => setPlansOpen(false)}
-        source="diary_save"
+        source="dream_analysis"
         title={plansReason === "daily" ? t.plansModal.saveDailyTitle : t.plansModal.saveTitle}
         body={plansReason === "daily" ? t.plansModal.saveDailyBody : t.plansModal.saveBody}
+        rewarded={
+          pendingAnalysisId && !hasPaidAccess(billing) && adRewardsLeftToday(billing) > 0
+            ? {
+                onGranted: async () => {
+                  const u = auth.currentUser;
+                  if (!u) return false;
+                  const idToken = await u.getIdToken();
+                  const res = await fetch("/api/dreams/ad-reward", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idToken }),
+                  });
+                  return res.ok;
+                },
+                onDone: () => {
+                  const id = pendingAnalysisId;
+                  setPlansOpen(false);
+                  setPendingAnalysisId(null);
+                  if (id) void analyzeDream(id, { afterAd: true });
+                },
+              }
+            : null
+        }
       />
     </main>
   );

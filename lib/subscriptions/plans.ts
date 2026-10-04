@@ -17,6 +17,12 @@ export const FREE_TRANSLATIONS_PER_DAY = 1;
 export const SAVES_PER_DAY_ABUSE_CAP = 50;
 export const FREE_ANALYSES_TOTAL = 5;
 export const FREE_ANALYSES_PER_DAY = 1;
+// Rewarded ad (Google Ad Manager): a signed-in user without a subscription
+// who hit the free limit may watch an ad for one more AI analysis, at most
+// AD_REWARDS_PER_DAY times per UTC day. The "granted" signal comes from the
+// browser and cannot be verified, so this server-side cap is the guard.
+export const AD_REWARDS_PER_DAY = 3;
+export const REWARDED_AD_UNIT_PATH = "/23382781832/dreamly_rewarded";
 
 export const SUBSCRIPTION_PLANS = {
   monthly: {

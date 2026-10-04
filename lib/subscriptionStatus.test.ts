@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  adRewardsLeftToday,
   canAnalyzeDream,
   freeAnalysisDailyLimitReached,
   hasFreeAnalysis,
@@ -45,4 +46,14 @@ test("canAnalyzeDream: free rule for non-subscribers, 3 a day for subscribers", 
   // an expired subscription falls back to the free rule
   assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 0 }), true);
   assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 5 }), false);
+});
+
+test("rewarded ads: credits unlock an analysis, max 3 ads a day", () => {
+  const today = utcDayKey();
+  assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 5, adAnalysisCredits: 1 }), true);
+  assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 5, adAnalysisCredits: 0 }), false);
+  assert.equal(adRewardsLeftToday({}), 3);
+  assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 2 }), 1);
+  assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 3 }), 0);
+  assert.equal(adRewardsLeftToday({ adRewardsDayKey: "2000-01-01", adRewardsTodayCount: 3 }), 3);
 });

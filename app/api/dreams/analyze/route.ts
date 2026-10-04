@@ -5,7 +5,7 @@ import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/o
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { consumeAnalysisAccess, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
+import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
   consumeGuestAsk,
   newGuestId,
@@ -59,6 +59,7 @@ function analysisLanguageName(lang: string): string {
 export async function POST(req: Request) {
   let chargedUid: string | null = null;
   let freeAnalysisUid: string | null = null;
+  let adCreditUid: string | null = null;
   let guestId: string | null = null;
   let clientIp = "";
 
@@ -74,6 +75,11 @@ export async function POST(req: Request) {
     if (freeAnalysisUid) {
       await refundFreeAnalysis(freeAnalysisUid);
       freeAnalysisUid = null;
+      return;
+    }
+    if (adCreditUid) {
+      await refundAdCredit(adCreditUid);
+      adCreditUid = null;
       return;
     }
     if (guestId) await refundGuestAsk(guestId, clientIp);
@@ -121,6 +127,7 @@ export async function POST(req: Request) {
       if ("error" in access) return access.error;
       if (access.charge === "slot") chargedUid = uid;
       if (access.charge === "free") freeAnalysisUid = uid;
+      if (access.charge === "ad") adCreditUid = uid;
     }
     const isGuest = !uid;
 

@@ -7,6 +7,7 @@ import { SUBSCRIPTION_PLANS, type PlanId } from "@/lib/subscriptions/plans";
 import { subscriptionItem, trackEvent } from "@/lib/analytics";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import RewardedAdButton from "./RewardedAdButton";
 
 type Props = {
   open: boolean;
@@ -15,6 +16,12 @@ type Props = {
   source: string;
   title: string;
   body: string;
+  /**
+   * Offer "watch an ad for one more interpretation" next to the plans.
+   * onGranted asks the server for the credit (true = granted); onDone runs
+   * after the ad closes with the credit in place.
+   */
+  rewarded?: { onGranted: () => Promise<boolean>; onDone: () => void } | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -32,7 +39,7 @@ function fmtMoney(price: string, currency: string) {
  * (e.g. the second translation of the day). Picking a plan sends the user
  * to /app/upgrade?pkg=<plan>, where the PayPal checkout lives.
  */
-export default function PlansModal({ open, onClose, source, title, body }: Props) {
+export default function PlansModal({ open, onClose, source, title, body, rewarded }: Props) {
   const router = useRouter();
   const locale = useLocale();
   const t = useMessages();
@@ -122,6 +129,14 @@ export default function PlansModal({ open, onClose, source, title, body }: Props
         </div>
         <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
         <p className="mt-1 text-xs text-[var(--muted)]">{t.plansModal.unlimitedNote}</p>
+        {rewarded ? (
+          <RewardedAdButton
+            label={t.plansModal.watchAd}
+            source={source}
+            onGranted={rewarded.onGranted}
+            onDone={rewarded.onDone}
+          />
+        ) : null}
 
         <div className="mt-4 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
           {t.plansModal.choosePlan}
