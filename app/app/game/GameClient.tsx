@@ -727,9 +727,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           {creatures}
         </span>
         {loaded && upcoming ? (
-          <div className="pointer-events-auto mt-2 w-full max-w-[min(100%,26rem)] cursor-default" title={t.progressHint}>
-            {/* Just the bar: progress to the next tier, no numbers or labels. */}
-            <div className="h-3 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
+          <div className="pointer-events-auto mt-2 w-full max-w-[min(100%,26rem)] cursor-default pr-10 sm:pr-12" title={t.progressHint}>
+            {/* Just the bar: progress to the next tier, no numbers or labels. Right padding keeps it clear of the "?". */}
+            <div className="h-2 overflow-hidden sm:h-3 rounded-full bg-[color-mix(in_srgb,var(--text)_10%,transparent)]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-purple-500 to-amber-400 transition-[width] duration-500"
                 style={{
@@ -1084,11 +1084,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
           onClick={() => setShowRules(true)}
           aria-label={t.rulesOpen}
           title={t.rulesTitle}
-          className="dk-puzzle absolute top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full transition hover:scale-110"
-          style={{ right: colW + 12 }}
+          className="dk-puzzle absolute top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-110 sm:h-12 sm:w-12"
+          style={{ right: colW + (wideCol ? 12 : 8) }}
         >
           <span
-            className="dk-title text-2xl leading-none"
+            className="dk-title text-lg leading-none sm:text-2xl"
             style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
             aria-hidden
           >
