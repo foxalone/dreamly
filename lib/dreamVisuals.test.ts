@@ -34,3 +34,8 @@ test("pickEmojisByKeywords maps roots to emojis without repeats or flags", () =>
   const out = pickEmojisByKeywords(["swords", "sky", "soul", "sword"], data, 4);
   assert.deepEqual(out.map((e) => e.native), ["🗡️", "🌌", "👻"]);
 });
+
+test("filterIconsWithGlyph accepts component icons alongside emoji glyphs", () => {
+  const table = { tree: { Icon: () => null }, missing: {}, moon: { emoji: "🌙" } };
+  assert.deepEqual(filterIconsWithGlyph(["missing", "tree", "moon"], table, 2), ["tree", "moon"]);
+});

@@ -17,7 +17,8 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
-import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
+import { DreamSymbolIcons } from "@/app/components/DreamSymbolIcons";
+import { needsImportedRootRepair, needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
@@ -85,6 +86,7 @@ type Dream = {
 
   fromHomeAsk?: boolean;
   rootsVersion?: number;
+  visualsVersion?: number;
   rootsEn?: string[];
   roots?: string[];
   rootsTop?: { w: string; c: number }[];
@@ -1325,7 +1327,7 @@ export default function DreamsPage() {
     if (!user || user.uid !== uid) return;
     for (const dream of dreams) {
       const key = `${user.uid}:${dream.id}`;
-      if (dream.deleted || !needsImportedRootRepair(dream) || repairedRoots.current.has(key)) continue;
+      if (dream.deleted || !needsImportedVisualRepair(dream) || repairedRoots.current.has(key)) continue;
       repairedRoots.current.add(key);
       void user.getIdToken().then((idToken) => fetch("/api/dreams/fill-roots", {
         method: "POST",
@@ -1405,7 +1407,7 @@ export default function DreamsPage() {
     for (const k of keys) {
       const icon = (DREAM_ICONS_EN as any)?.[k];
       const glyph = icon?.emoji ?? icon?.native;
-      if (!glyph) continue;
+      if (!glyph && !icon?.Icon) continue;
       out.push(k);
       if (out.length >= max) break;
     }
@@ -1718,22 +1720,7 @@ export default function DreamsPage() {
                       )}
 
                       {Array.isArray(d.iconsEn) && d.iconsEn.length > 0 && (
-                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none opacity-90">
-                          {d.iconsEn
-                            .map((k) => {
-                              const icon = (DREAM_ICONS_EN as any)?.[k];
-                              const glyph = icon?.emoji ?? icon?.native;
-                              if (!glyph) return null;
-                              return { k, glyph, label: icon?.label || icon?.name || String(k) };
-                            })
-                            .filter(Boolean)
-                            .slice(0, 4)
-                            .map((x: any, i: number) => (
-                              <span key={`${d.id}:icon:${String(x.k)}:${i}`} title={x.label} className="cursor-help">
-                                {x.glyph}
-                              </span>
-                            ))}
-                        </span>
+                        <DreamSymbolIcons keys={d.iconsEn} />
                       )}
                     </div>
                   </div>

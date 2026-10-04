@@ -3,7 +3,7 @@
 // emojis, Lucide icon keys and the city pin. Runs for every save — the free
 // first save included — after /api/dreams/save has answered, so it no longer
 // depends on the subscription or on the browser tab staying open.
-import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
+import { needsImportedRootRepair, needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import admin from "firebase-admin";
 import emojiData from "@emoji-mart/data";
 import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -143,13 +143,7 @@ export async function enrichSavedDream(params: {
   return { ok: true as const, emojis: 0, cityId: params.ipCity?.cityId ?? null };
 }
 
-/**
- * Root words (+ icons when missing) for a diary item that already has its
- * emojis and map pin — the homepage-Ask import, whose visuals come from the
- * reading. Same server rule as every save, for every user, subscription or
- * not. Completed semantic roots are preserved; legacy raw-token imports
- * are replaced once and marked with rootsVersion.
- */
+/** Repair imported symbols and missing visuals independently; preserve completed work. */
 export async function fillMissingRoots(params: { uid: string; itemId: string; sourceType: SourceType }) {
   const { uid, itemId, sourceType } = params;
   const itemRef = adminFirestore()
@@ -162,42 +156,53 @@ export async function fillMissingRoots(params: { uid: string; itemId: string; so
   const item = snap.data() ?? {};
   const text = s(item.text);
   if (!text || item.deleted === true) return { ok: false as const, reason: "no_text" };
-  const hasRoots =
-    (Array.isArray(item.roots) && item.roots.length > 0) || (Array.isArray(item.rootsEn) && item.rootsEn.length > 0);
-  // Old homepage imports stored raw map-search tokens as semantic roots.
-  if (hasRoots && !needsImportedRootRepair(item)) {
-    return { ok: true as const, skipped: true };
-  }
+  if (!needsImportedVisualRepair(item)) return { ok: true as const, skipped: true };
 
   const apiKey = getOneiroOpenAiApiKey();
-  if (!apiKey) return { ok: false as const, reason: "no_key" };
-  const roots = await extractRootWords(apiKey, text).catch((e) => {
-    console.warn("fillMissingRoots: root words failed", e);
-    return null;
-  });
-  if (!roots) return { ok: false as const, reason: "ai_failed" };
-
   const counts = desiredCountsFromText(text);
-  const rootsMajor = (roots.roots ?? []).slice(0, counts.roots);
-  const rootsEnMajor = (roots.rootsEn ?? roots.roots ?? []).slice(0, counts.roots);
-  const hasIcons = Array.isArray(item.iconsEn) && item.iconsEn.length > 0;
-  const iconsEn = hasIcons
-    ? null
-    : filterIconsWithGlyph(
-        pickDreamIconsEn(normalizeForIconsEn(rootsEnMajor.join(" ")), counts.icons),
-        DREAM_ICONS_EN as any,
-        counts.icons
-      );
+  let rootsMajor: string[] = Array.isArray(item.roots) ? item.roots : [];
+  let rootsEnMajor: string[] = Array.isArray(item.rootsEn) ? item.rootsEn : [];
+  let rootsLang = item.rootsLang ?? null;
+  // Already repaired roots (such as forest/darkness) need no further model call.
+  if (needsImportedRootRepair(item) || !rootsEnMajor.length) {
+    if (!apiKey) return { ok: false as const, reason: "no_key" };
+    const roots = await extractRootWords(apiKey, text).catch((e) => {
+      console.warn("fillMissingRoots: root words failed", e);
+      return null;
+    });
+    if (!roots) return { ok: false as const, reason: "ai_failed" };
+    rootsMajor = roots.roots.slice(0, counts.roots);
+    rootsEnMajor = roots.rootsEn.slice(0, counts.roots);
+    rootsLang = roots.lang;
+  }
+
+  const existingIcons = filterIconsWithGlyph(
+    Array.isArray(item.iconsEn) ? item.iconsEn : [], DREAM_ICONS_EN, counts.icons
+  );
+  const iconsEn = existingIcons.length ? existingIcons : filterIconsWithGlyph(
+    pickDreamIconsEn(normalizeForIconsEn(rootsEnMajor.join(" ")), counts.icons),
+    DREAM_ICONS_EN, counts.icons
+  );
+  let emojis: DreamEmoji[] = Array.isArray(item.emojis) ? item.emojis.filter((e: DreamEmoji) => s(e?.native)) : [];
+  if (!emojis.length) {
+    const pick = apiKey ? await pickDreamEmojisAi(apiKey, text).catch(() => null) : null;
+    emojis = pick && hasEnoughDreamEmojis(pick.emojis)
+      ? pick.emojis.map((e) => ({ native: e.native, id: e.id, name: e.name })).slice(0, Math.max(counts.emojis, 2))
+      : pickEmojisByKeywords(rootsEnMajor, emojiData as any, Math.max(counts.emojis, 2));
+  }
 
   await itemRef.set(
     {
       roots: rootsMajor,
       rootsVersion: 1,
       rootsEn: rootsEnMajor,
-      rootsLang: roots.lang ?? null,
+      rootsLang,
       rootsTop: [],
       rootsUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      ...(iconsEn && iconsEn.length ? { iconsEn } : {}),
+      iconsEn,
+      emojis,
+      // Leave failed visual generation eligible for retry on the next visit.
+      ...(iconsEn.length || emojis.length ? { visualsVersion: 1 } : {}),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
     { merge: true }

@@ -1,7 +1,7 @@
 // app/api/dreams/fill-roots/route.ts
 // Fill semantic symbols for new imports and repair legacy map-token imports.
 // Ownership and the completed roots version gate this background operation.
-import { needsImportedRootRepair } from "@/lib/importedDreamRoots";
+import { needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { after, NextResponse } from "next/server";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { fillMissingRoots } from "@/lib/dreams/enrichSavedDream";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     const snap = await adminDb().collection("users").doc(auth.uid).collection("dreams").doc(dreamId).get();
     const d = snap.exists ? snap.data() ?? {} : null;
-    if (!d || d.deleted === true || !needsImportedRootRepair(d)) {
+    if (!d || d.deleted === true || !needsImportedVisualRepair(d)) {
       return NextResponse.json({ ok: false, skipped: true });
     }
 

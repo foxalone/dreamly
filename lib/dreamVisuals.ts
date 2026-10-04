@@ -68,17 +68,17 @@ export function normalizeForIconsEn(input: string) {
     .join(" ");
 }
 
-/** Keep only icon keys that have a glyph in the icon table, capped at `max`. */
+/** Keep only icon keys that have a glyph or a renderable component, capped at `max`. */
 export function filterIconsWithGlyph<K extends string>(
   keys: K[],
-  table: Record<string, { emoji?: string; native?: string } | undefined>,
+  table: Record<string, { emoji?: string; native?: string; Icon?: unknown } | undefined>,
   max: number
 ): K[] {
   const out: K[] = [];
   for (const k of keys) {
     const icon = table?.[k];
     const glyph = icon?.emoji ?? icon?.native;
-    if (!glyph) continue;
+    if (!glyph && !icon?.Icon) continue;
     out.push(k);
     if (out.length >= max) break;
   }
