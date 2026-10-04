@@ -5,7 +5,7 @@ import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/o
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { consumeDreamSlot, refundDreamSlot, requirePaidAccess } from "../_lib/subscription";
+import { consumeAnalysisAccess, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
   consumeGuestAsk,
   newGuestId,
@@ -58,6 +58,7 @@ function analysisLanguageName(lang: string): string {
 
 export async function POST(req: Request) {
   let chargedUid: string | null = null;
+  let freeAnalysisUid: string | null = null;
   let guestId: string | null = null;
   let clientIp = "";
 
@@ -68,6 +69,11 @@ export async function POST(req: Request) {
     if (chargedUid) {
       await refundDreamSlot(chargedUid);
       chargedUid = null;
+      return;
+    }
+    if (freeAnalysisUid) {
+      await refundFreeAnalysis(freeAnalysisUid);
+      freeAnalysisUid = null;
       return;
     }
     if (guestId) await refundGuestAsk(guestId, clientIp);
@@ -109,15 +115,13 @@ export async function POST(req: Request) {
         );
       }
     } else {
+      // Subscribers: daily slots (DREAMS_PER_DAY). Signed-in without a
+      // subscription: 5 free analyses in total, max 1 a day.
       const countTowardLimit = body?.countTowardLimit !== false;
-      if (countTowardLimit) {
-        const debit = await consumeDreamSlot(uid);
-        if ("error" in debit) return debit.error;
-        chargedUid = uid;
-      } else {
-        const access = await requirePaidAccess(uid);
-        if ("error" in access) return access.error;
-      }
+      const access = await consumeAnalysisAccess(uid, countTowardLimit);
+      if ("error" in access) return access.error;
+      if (access.charge === "slot") chargedUid = uid;
+      if (access.charge === "free") freeAnalysisUid = uid;
     }
     const isGuest = !uid;
 

@@ -74,7 +74,7 @@ export const PT_MESSAGES: UiMessages = {
       {
         question: "A Dreamly é grátis?",
         answer:
-          "O dicionário, a galeria, o mapa e a primeira interpretação como convidado são grátis. Salvar sonhos e mais leituras com IA exigem uma assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste). Assinantes podem salvar e interpretar até 5 sonhos por dia, com 400 caracteres cada.",
+          "O dicionário, a galeria, o mapa e a primeira interpretação como convidado são grátis. Entre para salvar e interpretar mais alguns sonhos de graça; depois disso, salvar sonhos e as leituras com IA fazem parte da assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste). Assinantes podem salvar e interpretar até 3 sonhos por dia, com 400 caracteres cada.",
       },
       {
         question: "Como funciona a interpretação com IA?",
@@ -201,7 +201,7 @@ export const PT_MESSAGES: UiMessages = {
     billedYearly: "Cobrado anualmente",
     billedFree: "Sem assinatura",
     trialBadge: "3 dias de teste grátis",
-    limitsNote: "Até 5 sonhos por dia — inclusive no teste.",
+    limitsNote: "Até 3 sonhos por dia — inclusive no teste.",
     accessFeatures: "Diário, mapa, fotos e mais.",
     useFor: "A assinatura libera salvar sonhos e interpretações com IA no aplicativo.",
     freeNote: "O dicionário, a galeria, o mapa, o primeiro sonho salvo e a primeira interpretação continuam grátis.",
@@ -314,7 +314,7 @@ export const PT_MESSAGES: UiMessages = {
     noDreams: "Ainda não há sonhos. Adicione o primeiro.",
     noStories: "Ainda não há histórias. Adicione a primeira.",
     subscriptionRequired: "É preciso uma assinatura Dreamly.",
-    dailyLimitReached: "Limite diário atingido (5 sonhos). Tente amanhã.",
+    dailyLimitReached: "Limite diário atingido (3 sonhos). Tente amanhã.",
     dreamTooLong: "Texto longo demais. Máximo {n} palavras.",
     wordCount: "{n}/{max} palavras",
     writeDream: "Escreva seu sonho…",
@@ -336,9 +336,9 @@ export const PT_MESSAGES: UiMessages = {
     translateTitle: "Você já usou a tradução gratuita de hoje",
     translateBody: "Todos têm uma tradução gratuita por dia, e cada tradução fica salva para sempre. Assine para traduzir quantos sonhos quiser.",
     saveTitle: "Você atingiu o limite gratuito",
-    saveBody: "Seus salvamentos gratuitos acabaram. Guardar mais sonhos no diário faz parte da assinatura Dreamly — comece um teste gratuito de 3 dias para salvar este e todos os próximos.",
+    saveBody: "Seus sonhos gratuitos acabaram. Salvar e interpretar mais sonhos faz parte da assinatura Dreamly — comece um teste gratuito de 3 dias para continuar.",
     saveDailyTitle: "Grátis: um sonho por dia",
-    saveDailyBody: "Volte amanhã para salvar outro sonho de graça, ou assine para salvar até 5 sonhos por dia.",
+    saveDailyBody: "Volte amanhã para mais um sonho grátis, ou assine para salvar e interpretar até 3 sonhos por dia.",
     unlimitedNote: "Traduções ilimitadas, diário, leituras com IA e mais.",
     choosePlan: "Escolha um plano",
     notNow: "Agora não",

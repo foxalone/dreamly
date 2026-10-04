@@ -74,7 +74,7 @@ export const DE_MESSAGES: UiMessages = {
       {
         question: "Ist Dreamly kostenlos?",
         answer:
-          "Lexikon, Galerie, Karte und die erste Deutung als Gast sind kostenlos. Träume speichern und weitere KI-Lesungen brauchen ein Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test). Abonnenten können bis zu 5 Träume pro Tag speichern und deuten, je 400 Zeichen.",
+          "Lexikon, Galerie, Karte und die erste Deutung als Gast sind kostenlos. Nach der Anmeldung kannst du noch ein paar Träume kostenlos speichern und deuten; danach gehören Speichern und KI-Lesungen zum Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test). Abonnenten können bis zu 3 Träume pro Tag speichern und deuten, je 400 Zeichen.",
       },
       {
         question: "Wie funktioniert die KI-Traumdeutung?",
@@ -201,7 +201,7 @@ export const DE_MESSAGES: UiMessages = {
     billedYearly: "Jährliche Abrechnung",
     billedFree: "Ohne Abo",
     trialBadge: "3 Tage kostenlos testen",
-    limitsNote: "Bis zu 5 Träume pro Tag — auch in der Testphase.",
+    limitsNote: "Bis zu 3 Träume pro Tag — auch in der Testphase.",
     accessFeatures: "Tagebuch, Karte, Fotos und mehr.",
     useFor: "Das Abo schaltet Speichern und KI-Deutungen in der App frei.",
     freeNote: "Lexikon, Galerie, Karte, dein erster gespeicherter Traum und die erste Deutung bleiben kostenlos.",
@@ -314,7 +314,7 @@ export const DE_MESSAGES: UiMessages = {
     noDreams: "Noch keine Träume. Füge den ersten hinzu.",
     noStories: "Noch keine Geschichten. Füge die erste hinzu.",
     subscriptionRequired: "Ein Dreamly-Abo ist erforderlich.",
-    dailyLimitReached: "Tageslimit erreicht (5 Träume). Versuch es morgen.",
+    dailyLimitReached: "Tageslimit erreicht (3 Träume). Versuch es morgen.",
     dreamTooLong: "Zu lang. Maximal {n} Wörter.",
     wordCount: "{n}/{max} Wörter",
     writeDream: "Schreib deinen Traum…",
@@ -336,9 +336,9 @@ export const DE_MESSAGES: UiMessages = {
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
     saveTitle: "Du hast dein Gratis-Limit aufgebraucht",
-    saveBody: "Deine kostenlosen Speicherungen sind aufgebraucht. Weitere Träume im Tagebuch zu behalten ist Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um diesen und alle weiteren Träume zu speichern.",
+    saveBody: "Deine kostenlosen Träume sind aufgebraucht. Weitere Träume speichern und deuten ist Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um weiterzumachen.",
     saveDailyTitle: "Gratis: ein Traum pro Tag",
-    saveDailyBody: "Komm morgen wieder, um einen weiteren Traum kostenlos zu speichern, oder abonniere und speichere bis zu 5 Träume pro Tag.",
+    saveDailyBody: "Komm morgen für einen weiteren Gratis-Traum wieder, oder abonniere und speichere und deute bis zu 3 Träume pro Tag.",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",
     choosePlan: "Plan wählen",
     notNow: "Jetzt nicht",

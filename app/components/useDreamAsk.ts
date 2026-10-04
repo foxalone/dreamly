@@ -179,7 +179,7 @@ export function useDreamAsk({
           goToJournal(dream, true);
           return;
         }
-        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS") {
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {
           trackEvent("upgrade_prompt", { source });
           router.push(localePath("/app/upgrade", locale));
           return;

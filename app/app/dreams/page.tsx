@@ -23,6 +23,8 @@ import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
   hasFreeDreamSave,
   freeDreamDailyLimitReached,
+  hasFreeAnalysis,
+  freeAnalysisDailyLimitReached,
   hasPaidAccess,
   remainingDreamsToday,
   type UserBillingFields,
@@ -1213,10 +1215,15 @@ export default function DreamsPage() {
     }
 
     if (!hasPaidAccess(billing)) {
-      trackEvent("upgrade_prompt", { source: "dream_analysis" });
-      setError(subscriptionRequiredCopy);
-      router.push(localePath("/app/upgrade", locale));
-      return;
+      // Signed-in without a subscription: 5 free analyses, max 1 a day, no
+      // counter shown — the server enforces it in consumeAnalysisAccess.
+      const reason = !hasFreeAnalysis(billing) ? "limit" : freeAnalysisDailyLimitReached(billing) ? "daily" : null;
+      if (reason) {
+        trackEvent("upgrade_prompt", { source: "dream_analysis" });
+        setPlansReason(reason);
+        setPlansOpen(true);
+        return;
+      }
     }
 
     setError(null);
@@ -1240,6 +1247,9 @@ export default function DreamsPage() {
       if (!res.ok) {
         if (data2?.code === "DAILY_LIMIT") {
           throw new Error("DAILY_LIMIT");
+        }
+        if (data2?.code === "FREE_DAILY_LIMIT") {
+          throw new Error("FREE_DAILY_LIMIT");
         }
         if (data2?.code === "SUBSCRIPTION_REQUIRED" || data2?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           throw new Error("SUBSCRIPTION_REQUIRED");
@@ -1286,8 +1296,11 @@ export default function DreamsPage() {
       openAnalysis(dreamId);
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
-        setError(subscriptionRequiredCopy);
-        router.push(localePath("/app/upgrade", locale));
+        setPlansReason("limit");
+        setPlansOpen(true);
+      } else if (e?.message === "FREE_DAILY_LIMIT") {
+        setPlansReason("daily");
+        setPlansOpen(true);
       } else if (e?.message === "DAILY_LIMIT") {
         setError(dailyLimitCopy);
       } else {

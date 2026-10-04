@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   canSaveDream,
+  freeAnalysisDailyLimitReached,
   freeDreamDailyLimitReached,
+  hasFreeAnalysis,
   hasFreeDreamSave,
   hasPaidAccess,
   utcDayKey,
@@ -52,4 +54,23 @@ test("canSaveDream: free saves for non-subscribers, daily slots for subscribers"
   // an expired subscription falls back to the free-save rule
   assert.equal(canSaveDream({ subscriptionStatus: "expired", freeDreamSavesUsed: 0 }), true);
   assert.equal(canSaveDream({ subscriptionStatus: "expired", freeDreamSavesUsed: 5 }), false);
+});
+
+test("free AI analyses: 5 in total, max 1 a day, counted apart from saves", () => {
+  const today = utcDayKey();
+  assert.equal(hasFreeAnalysis({}), true);
+  assert.equal(hasFreeAnalysis({ freeAnalysesUsed: 4 }), true);
+  assert.equal(hasFreeAnalysis({ freeAnalysesUsed: 5 }), false);
+  // used-up saves do not touch the analysis quota
+  assert.equal(hasFreeAnalysis({ freeDreamSavesUsed: 5 }), true);
+  assert.equal(freeAnalysisDailyLimitReached({ freeAnalysisDayKey: today, freeAnalysesTodayCount: 1 }), true);
+  assert.equal(freeAnalysisDailyLimitReached({ freeAnalysisDayKey: "2000-01-01", freeAnalysesTodayCount: 1 }), false);
+  // today's free save does not block today's free analysis
+  assert.equal(freeAnalysisDailyLimitReached({ freeDreamSaveDayKey: today, freeDreamSavesTodayCount: 1 }), false);
+});
+
+test("subscribers: 3 dreams a day", () => {
+  const today = utcDayKey();
+  assert.equal(canSaveDream({ subscriptionStatus: "active", dreamsDayKey: today, dreamsTodayCount: 2 }), true);
+  assert.equal(canSaveDream({ subscriptionStatus: "active", dreamsDayKey: today, dreamsTodayCount: 3 }), false);
 });
