@@ -20,7 +20,7 @@ export const SAVES_PER_DAY_ABUSE_CAP = 50;
 // AD_SAVE_REWARDS_PER_DAY ads per user per day (decided 2026-10-04).
 export const FREE_SAVES_PER_IP_PER_DAY = 5;
 export const AD_SAVE_REWARDS_PER_DAY = 10;
-export const FREE_ANALYSES_TOTAL = 5;
+export const FREE_ANALYSES_TOTAL = 3;
 export const FREE_ANALYSES_PER_DAY = 1;
 // Rewarded ad (Google Ad Manager): a signed-in user without a subscription
 // who hit the free limit may watch an ad for one more AI analysis, at most

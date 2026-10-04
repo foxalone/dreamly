@@ -1189,7 +1189,7 @@ export default function DreamsPage() {
     }
 
     if (!hasPaidAccess(billing) && !opts.afterAd && adAnalysisCredits(billing) < 1) {
-      // Signed-in without a subscription: 5 free analyses, max 1 a day, no
+      // Signed-in without a subscription: 3 free analyses, max 1 a day, no
       // counter shown — the server enforces it in consumeAnalysisAccess.
       // Credits from rewarded ads are spent after the free ones.
       const reason = !hasFreeAnalysis(billing) ? "limit" : freeAnalysisDailyLimitReached(billing) ? "daily" : null;

@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       }
     } else {
       // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
-      // subscription: 5 free analyses in total, max 1 a day.
+      // subscription: 3 free analyses in total, max 1 a day.
       const access = await consumeAnalysisAccess(uid);
       if ("error" in access) return access.error;
       if (access.charge === "slot") chargedUid = uid;

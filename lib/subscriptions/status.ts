@@ -16,7 +16,7 @@ export type UserBillingFields = {
   trialEndsAtMs?: number | null;
   dreamsDayKey?: string | null;
   dreamsTodayCount?: number | null;
-  /** Free AI analyses without a subscription (5 in total, 1 a day). */
+  /** Free AI analyses without a subscription (3 in total, 1 a day). */
   freeAnalysesUsed?: number | null;
   freeAnalysisDayKey?: string | null;
   freeAnalysesTodayCount?: number | null;
@@ -60,7 +60,7 @@ function count(v: unknown) {
   return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
 }
 
-/** True while a non-subscriber has free AI analyses left (5 in total). */
+/** True while a non-subscriber has free AI analyses left (3 in total). */
 export function hasFreeAnalysis(data: UserBillingFields | null | undefined) {
   return count(data?.freeAnalysesUsed) < FREE_ANALYSES_TOTAL;
 }
