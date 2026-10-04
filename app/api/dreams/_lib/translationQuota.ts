@@ -19,8 +19,9 @@ import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
  */
 
 export type TranslationAccess =
-  | { ok: true; paid: true; usedDailyFree: false }
-  | { ok: true; paid: false; usedDailyFree: true }
+  | { ok: true; paid: true; usedDailyFree: false; usedAdCredit: false }
+  | { ok: true; paid: false; usedDailyFree: true; usedAdCredit: false }
+  | { ok: true; paid: false; usedDailyFree: false; usedAdCredit: true }
   | { error: NextResponse };
 
 function limitError() {
@@ -52,13 +53,20 @@ export async function consumeTranslationAccess(uid: string): Promise<Translation
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
 
       if (hasPaidAccess(data)) {
-        return { ok: true, paid: true, usedDailyFree: false };
+        return { ok: true, paid: true, usedDailyFree: false, usedAdCredit: false };
       }
 
       const sameDay = String(data.translateDayKey ?? "") === dayKey;
       const usedRaw = sameDay ? Number(data.translateFreeCount ?? 0) : 0;
       const used = Number.isFinite(usedRaw) ? Math.max(0, Math.floor(usedRaw)) : 0;
       if (used >= FREE_TRANSLATIONS_PER_DAY) {
+        // Daily free one is gone — spend a credit earned by watching an ad, if any.
+        const creditsRaw = Number(data.adTranslateCredits ?? 0);
+        const credits = Number.isFinite(creditsRaw) ? Math.max(0, Math.floor(creditsRaw)) : 0;
+        if (credits > 0) {
+          tx.set(userRef, { adTranslateCredits: credits - 1 }, { merge: true });
+          return { ok: true, paid: false, usedDailyFree: false, usedAdCredit: true };
+        }
         throw new Error("FREE_TRANSLATION_USED");
       }
 
@@ -71,7 +79,7 @@ export async function consumeTranslationAccess(uid: string): Promise<Translation
         },
         { merge: true }
       );
-      return { ok: true, paid: false, usedDailyFree: true };
+      return { ok: true, paid: false, usedDailyFree: true, usedAdCredit: false };
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "";
@@ -106,5 +114,15 @@ export async function refundFreeTranslation(uid: string) {
     });
   } catch (e) {
     console.warn("refundFreeTranslation failed:", e);
+  }
+}
+
+/** Give an ad credit back when the translation itself failed. */
+export async function refundAdTranslateCredit(uid: string) {
+  if (!uid) return;
+  try {
+    await adminDb().collection("users").doc(uid).set({ adTranslateCredits: FieldValue.increment(1) }, { merge: true });
+  } catch (e) {
+    console.warn("refundAdTranslateCredit failed:", e);
   }
 }

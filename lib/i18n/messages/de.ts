@@ -341,6 +341,7 @@ export const DE_MESSAGES: UiMessages = {
     saveDailyBody: "Komm morgen für eine weitere Gratis-Deutung wieder, oder abonniere für bis zu 3 pro Tag.",
     watchAd: "Kurze Werbung ansehen — eine weitere Deutung erhalten",
     watchAdSave: "Kurze Werbung ansehen — diesen Traum speichern",
+    watchAdTranslate: "Kurze Werbung ansehen — diesen Traum übersetzen",
     savesLimitTitle: "Die kostenlosen Speicherungen für heute sind aufgebraucht",
     savesLimitBody: "Jeden Tag kannst du ein paar Träume kostenlos speichern. Sieh dir eine kurze Werbung an, um diesen zu speichern, oder abonniere und speichere ohne Limit.",
     unlimitedNote: "Unbegrenzte Übersetzungen, Tagebuch, KI-Deutungen und mehr.",

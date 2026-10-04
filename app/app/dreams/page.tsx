@@ -23,8 +23,6 @@ import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
   hasFreeAnalysis,
   adAnalysisCredits,
-  adRewardsLeftToday,
-  adSaveRewardsLeftToday,
   freeAnalysisDailyLimitReached,
   hasPaidAccess,
   remainingDreamsToday,
@@ -32,7 +30,7 @@ import {
 } from "@/lib/subscriptions/status";
 import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
-import PlansModal from "@/app/components/PlansModal";
+import { openPaywall } from "@/lib/paywall";
 import { isDreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
@@ -416,11 +414,6 @@ export default function DreamsPage() {
   const [usedVoice, setUsedVoice] = useState(false);
 
   const [saving, setSaving] = useState(false);
-  const [plansOpen, setPlansOpen] = useState(false);
-  // Which paywall text the plans modal shows on a refused diary save.
-  const [plansReason, setPlansReason] = useState<"limit" | "daily" | "saves">("limit");
-  // Dream whose analysis hit the paywall — re-run after a rewarded ad.
-  const [pendingAnalysisId, setPendingAnalysisId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [dreams, setDreams] = useState<Dream[]>([]);
@@ -473,7 +466,11 @@ export default function DreamsPage() {
       setUid(user?.uid ?? null);
       if (!user) return;
       ensureUserProfileOnSignIn(user);
-      void importHomeDreamPending(user).then((result) => {
+      const runImport = () => void importHomeDreamPending(user).then((result) => {
+        if (result.status === "save_limit") {
+          openPaywall({ kind: "save", source: "home_ask_import", retry: runImport });
+          return;
+        }
         if (result.status === "imported") {
           if (result.shared && typeof result.shareCount === "number") {
             const up = shareBadgeLevelUp(result.shareCount - 1, result.shareCount);
@@ -494,6 +491,7 @@ export default function DreamsPage() {
           setOpen(true);
         }
       });
+      runImport();
     });
 
     return () => unsub();
@@ -983,6 +981,9 @@ export default function DreamsPage() {
     }
   }
 
+  const saveRef = useRef<() => Promise<void>>(async () => {});
+  const analyzeRef = useRef<(id: string, opts?: { afterAd?: boolean }) => Promise<void>>(async () => {});
+
   async function save() {
     const v = text.trim();
     const type: ContentType = tab === "STORIES" ? "story" : "dream";
@@ -1043,15 +1044,15 @@ export default function DreamsPage() {
       if (e?.message === "SAVE_IP_LIMIT") {
         // Free saves for today on this network are gone: offer an ad or a plan.
         setSaving(false);
-        setPendingAnalysisId(null);
-        setPlansReason("saves");
-        setPlansOpen(true);
+        openPaywall({ kind: "save", source: "diary_save", retry: () => void saveRef.current() });
         return;
       }
       setError(e?.message ?? `Failed to save ${type}.`);
       setSaving(false);
     }
   }
+
+  saveRef.current = save;
 
   async function shareItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
@@ -1195,9 +1196,12 @@ export default function DreamsPage() {
       const reason = !hasFreeAnalysis(billing) ? "limit" : freeAnalysisDailyLimitReached(billing) ? "daily" : null;
       if (reason) {
         trackEvent("upgrade_prompt", { source: "dream_analysis" });
-        setPlansReason(reason);
-        setPendingAnalysisId(dreamId);
-        setPlansOpen(true);
+        openPaywall({
+          kind: "analysis",
+          reason,
+          source: "dream_analysis",
+          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+        });
         return;
       }
     } else if (remainingDreamsToday(billing) < 1) {
@@ -1274,13 +1278,19 @@ export default function DreamsPage() {
       openAnalysis(dreamId);
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
-        setPlansReason("limit");
-        setPendingAnalysisId(dreamId);
-        setPlansOpen(true);
+        openPaywall({
+          kind: "analysis",
+          reason: "limit",
+          source: "dream_analysis",
+          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+        });
       } else if (e?.message === "FREE_DAILY_LIMIT") {
-        setPlansReason("daily");
-        setPendingAnalysisId(dreamId);
-        setPlansOpen(true);
+        openPaywall({
+          kind: "analysis",
+          reason: "daily",
+          source: "dream_analysis",
+          retry: () => void analyzeRef.current(dreamId, { afterAd: true }),
+        });
       } else if (e?.message === "DAILY_LIMIT") {
         setError(dailyLimitCopy);
       } else {
@@ -1290,6 +1300,8 @@ export default function DreamsPage() {
       setAnalysisBusyId(null);
     }
   }
+
+  analyzeRef.current = analyzeDream;
 
   async function deleteItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
@@ -2067,68 +2079,6 @@ export default function DreamsPage() {
         })()}
       </div>
 
-      <PlansModal
-        open={plansOpen}
-        onClose={() => setPlansOpen(false)}
-        source={plansReason === "saves" ? "diary_save" : "dream_analysis"}
-        title={
-          plansReason === "saves"
-            ? t.plansModal.savesLimitTitle
-            : plansReason === "daily"
-              ? t.plansModal.saveDailyTitle
-              : t.plansModal.saveTitle
-        }
-        body={
-          plansReason === "saves"
-            ? t.plansModal.savesLimitBody
-            : plansReason === "daily"
-              ? t.plansModal.saveDailyBody
-              : t.plansModal.saveBody
-        }
-        rewarded={
-          plansReason === "saves" && !hasPaidAccess(billing) && adSaveRewardsLeftToday(billing) > 0
-            ? {
-                label: t.plansModal.watchAdSave,
-                onGranted: async () => {
-                  const u = auth.currentUser;
-                  if (!u) return false;
-                  const idToken = await u.getIdToken();
-                  const res = await fetch("/api/dreams/ad-reward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ idToken, kind: "save" }),
-                  });
-                  return res.ok;
-                },
-                onDone: () => {
-                  setPlansOpen(false);
-                  void save();
-                },
-              }
-            : plansReason !== "saves" && pendingAnalysisId && !hasPaidAccess(billing) && adRewardsLeftToday(billing) > 0
-            ? {
-                label: t.plansModal.watchAd,
-                onGranted: async () => {
-                  const u = auth.currentUser;
-                  if (!u) return false;
-                  const idToken = await u.getIdToken();
-                  const res = await fetch("/api/dreams/ad-reward", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ idToken }),
-                  });
-                  return res.ok;
-                },
-                onDone: () => {
-                  const id = pendingAnalysisId;
-                  setPlansOpen(false);
-                  setPendingAnalysisId(null);
-                  if (id) void analyzeDream(id, { afterAd: true });
-                },
-              }
-            : null
-        }
-      />
     </main>
   );
 }

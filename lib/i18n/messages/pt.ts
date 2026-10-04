@@ -341,6 +341,7 @@ export const PT_MESSAGES: UiMessages = {
     saveDailyBody: "Volte amanhã para mais uma interpretação grátis, ou assine para ter até 3 por dia.",
     watchAd: "Assista a um anúncio curto e ganhe mais uma interpretação",
     watchAdSave: "Assista a um anúncio curto e salve este sonho",
+    watchAdTranslate: "Assista a um anúncio curto e traduza este sonho",
     savesLimitTitle: "Os salvamentos grátis de hoje acabaram",
     savesLimitBody: "Todo dia você pode salvar alguns sonhos de graça. Assista a um anúncio curto para salvar este, ou assine para salvar sem limites.",
     unlimitedNote: "Traduções ilimitadas, diário, leituras com IA e mais.",

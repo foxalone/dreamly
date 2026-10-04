@@ -6,7 +6,7 @@ import {
 } from "@/lib/openaiEnv";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { consumeTranslationAccess, refundFreeTranslation } from "../_lib/translationQuota";
+import { consumeTranslationAccess, refundAdTranslateCredit, refundFreeTranslation } from "../_lib/translationQuota";
 import {
   readCachedTranslation,
   recordTranslationServe,
@@ -177,6 +177,7 @@ export async function POST(req: Request) {
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
       if (usedDailyFree) await refundFreeTranslation(uid);
+      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
       return NextResponse.json(
         { error: getMissingOneiroOpenAiKeyMessage() },
         { status: 500 }
@@ -199,6 +200,7 @@ export async function POST(req: Request) {
       translation = extractOutputText(resp);
     } catch (e: any) {
       if (usedDailyFree) await refundFreeTranslation(uid);
+      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
       return NextResponse.json(
         { error: e?.message ?? "Translate failed" },
         { status: 500 }
@@ -207,6 +209,7 @@ export async function POST(req: Request) {
 
     if (!translation) {
       if (usedDailyFree) await refundFreeTranslation(uid);
+      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
       return NextResponse.json({ error: "Empty translation" }, { status: 500 });
     }
 

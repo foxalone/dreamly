@@ -303,6 +303,7 @@ export type UiMessages = {
     saveDailyBody: string;
     watchAd: string;
     watchAdSave: string;
+    watchAdTranslate: string;
     savesLimitTitle: string;
     savesLimitBody: string;
     unlimitedNote: string;

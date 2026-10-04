@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Keyboard, Mic } from "lucide-react";
 import {
@@ -19,7 +19,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { auth, firestore } from "@/lib/firebase";
-import PlansModal from "@/app/components/PlansModal";
+import { openPaywall } from "@/lib/paywall";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
@@ -243,7 +243,6 @@ export default function SharedPage() {
   // translations fetched in this session ("<dreamId>:<lang>" → text) so a
   // second click doesn't hit the API again
   const [fetchedTranslations, setFetchedTranslations] = useState<Record<string, string>>({});
-  const [plansOpen, setPlansOpen] = useState(false);
   const t = useMessages();
 
   useEffect(() => {
@@ -432,6 +431,8 @@ export default function SharedPage() {
     }
   }
 
+  const translateRef = useRef<(d: SharedDream) => Promise<void>>(async () => {});
+
   async function translateDream(d: SharedDream) {
     const original = (d.text ?? "").trim();
     if (!original) return;
@@ -491,8 +492,8 @@ export default function SharedPage() {
       if (!res.ok) {
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           // Daily free translation already used and no subscription:
-          // show the plans picker instead of a red error banner.
-          setPlansOpen(true);
+          // the site-wide paywall (plans + "watch an ad" → one more translation).
+          openPaywall({ kind: "translate", source: "feed_translate", retry: () => void translateRef.current(d) });
           return;
         }
         throw new Error(data?.error ?? "Translate failed");
@@ -515,6 +516,8 @@ export default function SharedPage() {
     }
   }
 
+  translateRef.current = translateDream;
+
   return (
     <main className="relative min-h-screen px-6 pt-4 pb-10 max-w-3xl mx-auto">
       <div>
@@ -526,13 +529,6 @@ export default function SharedPage() {
           </div>
         )}
 
-        <PlansModal
-          open={plansOpen}
-          onClose={() => setPlansOpen(false)}
-          source="feed_translate"
-          title={t.plansModal.translateTitle}
-          body={t.plansModal.translateBody}
-        />
 
         {list.length === 0 ? (
           <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">

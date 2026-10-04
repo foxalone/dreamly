@@ -7,6 +7,7 @@ import {
   FREE_ANALYSES_TOTAL,
   AD_REWARDS_PER_DAY,
   AD_SAVE_REWARDS_PER_DAY,
+  AD_TRANSLATE_REWARDS_PER_DAY,
   FREE_SAVES_PER_IP_PER_DAY,
   SAVES_PER_DAY_ABUSE_CAP,
 } from "@/lib/subscriptions/plans";
@@ -249,7 +250,7 @@ export async function refundAdCredit(uid: string) {
  */
 export async function grantAdReward(
   uid: string,
-  kind: "analysis" | "save" = "analysis"
+  kind: "analysis" | "save" | "translate" = "analysis"
 ): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
@@ -266,6 +267,8 @@ export async function grantAdReward(
       const f =
         kind === "save"
           ? { credits: "adSaveCredits", day: "adSaveRewardsDayKey", today: "adSaveRewardsTodayCount", cap: AD_SAVE_REWARDS_PER_DAY }
+          : kind === "translate"
+          ? { credits: "adTranslateCredits", day: "adTranslateRewardsDayKey", today: "adTranslateRewardsTodayCount", cap: AD_TRANSLATE_REWARDS_PER_DAY }
           : { credits: "adAnalysisCredits", day: "adRewardsDayKey", today: "adRewardsTodayCount", cap: AD_REWARDS_PER_DAY };
       const today = String(data[f.day] ?? "") === dayKey ? toCount(data[f.today]) : 0;
       if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");

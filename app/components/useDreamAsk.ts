@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
@@ -16,6 +16,7 @@ import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
+import { openPaywall } from "@/lib/paywall";
 
 /**
  * Anonymous share right after a reading.
@@ -180,8 +181,13 @@ export function useDreamAsk({
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {
-          trackEvent("upgrade_prompt", { source });
-          router.push(localePath("/app/upgrade", locale));
+          // Same paywall as the journal: plans + "watch an ad" → re-run this reading.
+          openPaywall({
+            kind: "analysis",
+            reason: data?.code === "FREE_DAILY_LIMIT" ? "daily" : "limit",
+            source,
+            retry: () => void submitRef.current(),
+          });
           return;
         }
         if (data?.code === "DAILY_LIMIT") {
@@ -283,6 +289,9 @@ export function useDreamAsk({
       setBusy(false);
     }
   }
+
+  const submitRef = useRef<(event?: FormEvent) => Promise<void>>(async () => {});
+  submitRef.current = submit;
 
   async function shareAnonymously() {
     if (!analysis || anonShare === "busy" || anonShare === "done") return;

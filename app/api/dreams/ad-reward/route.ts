@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    const res = await grantAdReward(auth.uid, body.kind === "save" ? "save" : "analysis");
+    const kind = body.kind === "save" ? "save" : body.kind === "translate" ? "translate" : "analysis";
+    const res = await grantAdReward(auth.uid, kind);
     if ("error" in res) return res.error;
     return NextResponse.json({ ok: true, credits: res.credits, leftToday: res.leftToday });
   } catch (e: unknown) {

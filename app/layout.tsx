@@ -7,6 +7,7 @@ import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
 import AppI18n from "@/lib/i18n/AppI18n";
+import PaywallHost from "./components/PaywallHost";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
 // because Google started returning extensionless /l/font?kit= URLs that break the Turbopack
@@ -75,6 +76,7 @@ export default function RootLayout({
           {children}
           <DreamCatcherFab />
           <InstallPwaBanner />
+          <PaywallHost />
         </AppI18n>
       </body>
     </html>

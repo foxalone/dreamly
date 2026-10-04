@@ -25,7 +25,9 @@ export type HomeDreamImportResult =
       /** Shared dreams the account has after this import (null = unknown), for the level-up toast. */
       shareCount?: number | null;
     }
-  | { status: "failed"; pendingText: string; error: unknown };
+  | { status: "failed"; pendingText: string; error: unknown }
+  /** Free saves for today are used up — the cache is kept, show the paywall. */
+  | { status: "save_limit" };
 
 let inFlight: Promise<HomeDreamImportResult> | null = null;
 
@@ -220,6 +222,26 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
   // adding another one.
   const dreamId = `home_${createdAtMs}`;
   // Every dream goes on the map (anonymously, emojis only); the feed share is the visitor's choice.
+  // Same save rule as the journal (5 free a day per network, then an ad):
+  // take the slot on the server before writing.
+  try {
+    const idToken = await user.getIdToken();
+    const slot = await fetch("/api/dreams/consume-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    if (!slot.ok) {
+      const data = await slot.json().catch(() => ({}));
+      restorePending(pending);
+      if (data?.code === "SAVE_IP_LIMIT") return { status: "save_limit" };
+      return { status: "failed", pendingText: text, error: new Error(String(data?.error ?? "save slot failed")) };
+    }
+  } catch (error) {
+    restorePending(pending);
+    return { status: "failed", pendingText: text, error };
+  }
+
   const visuals = await resolveVisuals(pending);
   const city = await resolveImportCity(pending);
 

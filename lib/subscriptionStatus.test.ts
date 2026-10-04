@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  adRewardsLeftFor,
   adRewardsLeftToday,
   adSaveRewardsLeftToday,
   canAnalyzeDream,
@@ -64,4 +65,13 @@ test("save ads: up to 10 a day", () => {
   assert.equal(adSaveRewardsLeftToday({}), 10);
   assert.equal(adSaveRewardsLeftToday({ adSaveRewardsDayKey: today, adSaveRewardsTodayCount: 10 }), 0);
   assert.equal(adSaveRewardsLeftToday({ adSaveRewardsDayKey: "2000-01-01", adSaveRewardsTodayCount: 10 }), 10);
+});
+
+test("ad rewards per paywall kind: analysis 3, save 10, translate 3", () => {
+  const today = utcDayKey();
+  assert.equal(adRewardsLeftFor({}, "analysis"), 3);
+  assert.equal(adRewardsLeftFor({}, "save"), 10);
+  assert.equal(adRewardsLeftFor({}, "translate"), 3);
+  assert.equal(adRewardsLeftFor({ adTranslateRewardsDayKey: today, adTranslateRewardsTodayCount: 3 }, "translate"), 0);
+  assert.equal(adRewardsLeftFor({ adTranslateRewardsDayKey: today, adTranslateRewardsTodayCount: 3 }, "analysis"), 3);
 });

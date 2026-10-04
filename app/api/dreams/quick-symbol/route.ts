@@ -6,7 +6,7 @@ import {
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
-import { requirePaidAccess } from "../_lib/subscription";
+import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
   countWords,
   findBestDreamMatch,
@@ -160,7 +160,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Signed in: subscription. Guest: one free lookup, then sign-in.
+    // Miss → GPT. Same rule as every AI interpretation: guest one free lookup,
+    // then sign-in; signed in → consumeAnalysisAccess (free / ad credit / plan).
+    let charge: "slot" | "free" | "ad" | null = null;
     if (isGuest && guestId) {
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
@@ -178,12 +180,16 @@ export async function POST(req: Request) {
         );
       }
     } else if (uid) {
-      const access = await requirePaidAccess(uid);
+      const access = await consumeAnalysisAccess(uid);
       if ("error" in access) return access.error;
+      charge = access.charge;
     }
 
     const refundOne = async () => {
       if (guestId) await refundGuestAsk(guestId, clientIp);
+      if (uid && charge === "slot") await refundDreamSlot(uid);
+      if (uid && charge === "free") await refundFreeAnalysis(uid);
+      if (uid && charge === "ad") await refundAdCredit(uid);
     };
 
     const apiKey = getOneiroOpenAiApiKey();

@@ -1,4 +1,4 @@
-import { AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
+import { AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -28,6 +28,10 @@ export type UserBillingFields = {
   adSaveCredits?: number | null;
   adSaveRewardsDayKey?: string | null;
   adSaveRewardsTodayCount?: number | null;
+  /** Feed translations earned by watching a rewarded ad (after the free one of the day). */
+  adTranslateCredits?: number | null;
+  adTranslateRewardsDayKey?: string | null;
+  adTranslateRewardsTodayCount?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -85,6 +89,21 @@ export function adRewardsLeftToday(data: UserBillingFields | null | undefined, n
 export function adSaveRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
   const used = String(data?.adSaveRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adSaveRewardsTodayCount) : 0;
   return Math.max(0, AD_SAVE_REWARDS_PER_DAY - used);
+}
+
+/** Rewarded ads left today for one paywall kind (see lib/paywall.ts). */
+export function adRewardsLeftFor(
+  data: UserBillingFields | null | undefined,
+  kind: "analysis" | "save" | "translate",
+  now = new Date()
+) {
+  if (kind === "save") return adSaveRewardsLeftToday(data, now);
+  if (kind === "translate") {
+    const used =
+      String(data?.adTranslateRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adTranslateRewardsTodayCount) : 0;
+    return Math.max(0, AD_TRANSLATE_REWARDS_PER_DAY - used);
+  }
+  return adRewardsLeftToday(data, now);
 }
 
 /** Can this user get an AI analysis right now (subscriber slot or free one). */

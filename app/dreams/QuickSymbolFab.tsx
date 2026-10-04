@@ -1,5 +1,7 @@
 "use client";
 
+import { openPaywall } from "@/lib/paywall";
+
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -146,6 +148,21 @@ export default function QuickSymbolFab() {
     const u = auth.currentUser;
     if (!u) return;
 
+    // Same save rule as the journal (5 free a day per network, then an ad).
+    const slot = await fetch("/api/dreams/consume-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken: await u.getIdToken() }),
+    });
+    if (!slot.ok) {
+      const data = await slot.json().catch(() => ({}));
+      if (data?.code === "SAVE_IP_LIMIT") {
+        openPaywall({ kind: "save", source: "quick_symbol_save", retry: () => void saveToDiary(params) });
+        return;
+      }
+      throw new Error(String(data?.error ?? "save slot failed"));
+    }
+
     const now = new Date();
     await addDoc(collection(firestore, "users", u.uid, "dreams"), {
       uid: u.uid,
@@ -220,10 +237,14 @@ export default function QuickSymbolFab() {
           goToSignIn(q);
           return;
         }
-        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS") {
-          trackEvent("upgrade_prompt", { source: "quick_symbol" });
-          setError("A Dreamly subscription is required.");
-          router.push("/app/upgrade");
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {
+          // Same paywall as everywhere: plans + "watch an ad" → re-run this lookup.
+          openPaywall({
+            kind: "analysis",
+            reason: data?.code === "FREE_DAILY_LIMIT" ? "daily" : "limit",
+            source: "quick_symbol",
+            retry: () => void runLookup(q, auth.currentUser, nextLens),
+          });
           return;
         }
         throw new Error(data?.error ?? "Quick symbol failed");
