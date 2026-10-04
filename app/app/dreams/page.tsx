@@ -18,7 +18,7 @@ import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { DreamSymbolIcons } from "@/app/components/DreamSymbolIcons";
-import { needsImportedRootRepair, needsImportedVisualRepair } from "@/lib/importedDreamRoots";
+import { needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
@@ -1798,29 +1798,6 @@ export default function DreamsPage() {
                     {(d.summary || d.analysisText || "").trim()}
                   </div>
                 ) : null}
-
-                {(() => {
-                  if (needsImportedRootRepair(d)) return null;
-                  const chips =
-                    (Array.isArray(d.roots) && d.roots.length > 0 && d.roots) ||
-                    (Array.isArray(d.rootsEn) && d.rootsEn.length > 0 && d.rootsEn) ||
-                    null;
-
-                  if (!chips) return null;
-
-                  return (
-                    <div className="mt-3 text-xs text-[var(--muted)] flex flex-wrap gap-2">
-                      {chips.slice(0, 6).map((w, i) => (
-                        <span
-                          key={`${d.id}:root:${i}`}
-                          className="px-2 py-1 rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)]"
-                        >
-                          {w}
-                        </span>
-                      ))}
-                    </div>
-                  );
-                })()}
 
                   <div className="mt-3 text-xs text-[var(--muted)] flex justify-end items-center gap-2">
                     <span
