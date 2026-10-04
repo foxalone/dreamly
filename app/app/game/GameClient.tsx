@@ -716,9 +716,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* Top: title, counter, progress to the next tier */}
       <div className="pointer-events-none absolute left-0 top-0 z-10 px-4 pt-3" style={{ right: colW }}>
-        {/* Title, fairy-tale lettering, top-left. */}
+        {/* Title, fairy-tale lettering, top-left. Right padding keeps it clear of the "?" button. */}
         <h1
-          className="dk-title text-left text-2xl leading-tight sm:text-3xl"
+          className="dk-title pr-14 text-left text-lg leading-tight min-[400px]:text-xl sm:pr-16 sm:text-3xl"
           style={{ fontFamily: "'Cinzel Decorative', Georgia, serif", fontWeight: 700 }}
         >
           {t.title}
@@ -905,6 +905,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     {isPlaced ? (
                       <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden title={t.onMap}>
                         🌍
+                      </span>
+                    ) : null}
+                    {/* Narrow column (phone) has no name line, so the copy count sits on the icon. */}
+                    {!wideCol && isPlaced && ownedOf(b.id) > 1 ? (
+                      <span className="absolute -left-2 -top-1.5 rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-[14px] text-white tabular-nums shadow">
+                        ×{ownedOf(b.id)}
                       </span>
                     ) : null}
                   </span>

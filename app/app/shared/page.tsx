@@ -562,8 +562,9 @@ export default function SharedPage() {
                   key={d.id}
                   className="p-5 rounded-2xl bg-[var(--card)] border border-white/10"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex items-center gap-3">
+                  {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
+                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <div className="min-w-0 max-w-full flex items-center gap-3">
                       {/* ✅ author initials (email-based; never uuid) */}
                       <div
                         className={[
