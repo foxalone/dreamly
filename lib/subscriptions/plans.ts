@@ -6,12 +6,15 @@ export const TRIAL_DAYS = 3;
 // the shared cache only saves the OpenAI call). A dream+lang a user already
 // paid for stays free for that user forever. See app/api/dreams/_lib/translationLedger.ts.
 export const FREE_TRANSLATIONS_PER_DAY = 1;
-// A signed-in user without a subscription may save this many diary dreams,
-// ever (not per day). Counted in users/{uid}.freeDreamSavesUsed by
-// consumeDreamSlot({ allowFreeSave: true }); the field is server-only in
-// firestore.rules. AI interpretation is never covered by this — it stays
-// subscription-only.
-export const FREE_DREAM_SAVES_TOTAL = 1;
+// A signed-in user without a subscription may save this many diary dreams
+// in total, and at most FREE_DREAM_SAVES_PER_DAY of them per UTC day.
+// Counted in users/{uid}.freeDreamSavesUsed / freeDreamSaveDayKey by
+// consumeDreamSlot({ allowFreeSave: true }); both fields are server-only in
+// firestore.rules. The user is never shown how many free saves are left —
+// the plans modal only appears when a save is refused. AI interpretation is
+// never covered by this — it stays subscription-only.
+export const FREE_DREAM_SAVES_TOTAL = 5;
+export const FREE_DREAM_SAVES_PER_DAY = 1;
 
 export const SUBSCRIPTION_PLANS = {
   monthly: {

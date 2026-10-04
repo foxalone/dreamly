@@ -1,7 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
-import { DREAMS_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "@/lib/subscriptions/plans";
+import { DREAMS_PER_DAY, FREE_DREAM_SAVES_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "@/lib/subscriptions/plans";
 import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
 
 export { DREAM_MAX_CHARS, DREAMS_PER_DAY } from "@/lib/subscriptions/plans";
@@ -11,14 +11,15 @@ type AccessOk = {
   remaining: number;
   used: number;
   dayKey: string;
-  /** True when this slot was the non-subscriber's free first save (no daily counter touched). */
+  /** True when this slot was one of the non-subscriber's free saves (subscriber daily counter untouched). */
   free?: boolean;
 };
 
 type ConsumeOpts = {
   /**
    * Let a signed-in user without a subscription take the slot if they still
-   * have one of FREE_DREAM_SAVES_TOTAL lifetime free saves. Only the diary
+   * have one of FREE_DREAM_SAVES_TOTAL lifetime free saves and have not taken
+   * FREE_DREAM_SAVES_PER_DAY of them today (UTC). Only the diary
    * Save path (/api/dreams/consume-slot) passes this; AI analysis never does.
    */
   allowFreeSave?: boolean;
@@ -67,10 +68,15 @@ export async function consumeDreamSlot(
         const freeUsedRaw = Number(data.freeDreamSavesUsed ?? 0);
         const freeUsed = Number.isFinite(freeUsedRaw) ? Math.max(0, Math.floor(freeUsedRaw)) : 0;
         if (freeUsed >= FREE_DREAM_SAVES_TOTAL) throw new Error("SUBSCRIPTION_REQUIRED");
+        const todayRaw = String(data.freeDreamSaveDayKey ?? "") === dayKey ? Number(data.freeDreamSavesTodayCount ?? 0) : 0;
+        const today = Number.isFinite(todayRaw) ? Math.max(0, Math.floor(todayRaw)) : 0;
+        if (today >= FREE_DREAM_SAVES_PER_DAY) throw new Error("FREE_DAILY_LIMIT");
         tx.set(
           userRef,
           {
             freeDreamSavesUsed: freeUsed + 1,
+            freeDreamSaveDayKey: dayKey,
+            freeDreamSavesTodayCount: today + 1,
             freeDreamSaveAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
           },
@@ -100,6 +106,11 @@ export async function consumeDreamSlot(
     const message = e instanceof Error ? e.message : "";
     if (message === "SUBSCRIPTION_REQUIRED") {
       return { error: jsonError("A Dreamly subscription is required.", "SUBSCRIPTION_REQUIRED", 402) };
+    }
+    if (message === "FREE_DAILY_LIMIT") {
+      return {
+        error: jsonError("Free saves: one dream a day. Subscribe or try again tomorrow.", "FREE_DAILY_LIMIT", 402),
+      };
     }
     if (message === "DAILY_LIMIT") {
       return {

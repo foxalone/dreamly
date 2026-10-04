@@ -1,4 +1,4 @@
-import { DREAMS_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "./plans";
+import { DREAMS_PER_DAY, FREE_DREAM_SAVES_PER_DAY, FREE_DREAM_SAVES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -18,6 +18,9 @@ export type UserBillingFields = {
   dreamsTodayCount?: number | null;
   /** Lifetime count of diary saves made without a subscription. */
   freeDreamSavesUsed?: number | null;
+  /** UTC day of the last free save (with freeDreamSavesTodayCount). */
+  freeDreamSaveDayKey?: string | null;
+  freeDreamSavesTodayCount?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -50,13 +53,24 @@ export function freeDreamSavesUsed(data: UserBillingFields | null | undefined) {
   return Number.isFinite(used) ? Math.max(0, Math.floor(used)) : 0;
 }
 
-/** True when a non-subscriber still has a free diary save left. */
+export function freeDreamSavesToday(data: UserBillingFields | null | undefined, now = new Date()) {
+  if (String(data?.freeDreamSaveDayKey ?? "") !== utcDayKey(now)) return 0;
+  const used = Number(data?.freeDreamSavesTodayCount ?? 0);
+  return Number.isFinite(used) ? Math.max(0, Math.floor(used)) : 0;
+}
+
+/** True while a non-subscriber has not used up the lifetime free saves. */
 export function hasFreeDreamSave(data: UserBillingFields | null | undefined) {
   return freeDreamSavesUsed(data) < FREE_DREAM_SAVES_TOTAL;
 }
 
-/** Can this user save a dream right now — subscription, or the free first save. */
+/** True when the non-subscriber already took today's free save. */
+export function freeDreamDailyLimitReached(data: UserBillingFields | null | undefined, now = new Date()) {
+  return freeDreamSavesToday(data, now) >= FREE_DREAM_SAVES_PER_DAY;
+}
+
+/** Can this user save a dream right now — subscription, or a free save. */
 export function canSaveDream(data: UserBillingFields | null | undefined, now = Date.now()) {
   if (hasPaidAccess(data, now)) return remainingDreamsToday(data, new Date(now)) > 0;
-  return hasFreeDreamSave(data);
+  return hasFreeDreamSave(data) && !freeDreamDailyLimitReached(data, new Date(now));
 }

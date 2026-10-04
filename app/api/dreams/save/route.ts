@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     const type: "dream" | "story" = s(body?.type) === "story" ? "story" : "dream";
     const source: "voice" | "manual" = s(body?.source) === "voice" ? "voice" : "manual";
 
-    // Diary save: subscribers use a daily slot, others get one free save ever.
+    // Diary save: subscribers use a daily slot, others get 5 free saves (max 1 a day).
     const slot = await consumeDreamSlot(uid, { allowFreeSave: true });
     if ("error" in slot) return slot.error;
 

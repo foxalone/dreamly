@@ -22,6 +22,7 @@ import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 import {
   hasFreeDreamSave,
+  freeDreamDailyLimitReached,
   hasPaidAccess,
   remainingDreamsToday,
   type UserBillingFields,
@@ -413,6 +414,8 @@ export default function DreamsPage() {
 
   const [saving, setSaving] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
+  // Which paywall text the plans modal shows on a refused diary save.
+  const [plansReason, setPlansReason] = useState<"limit" | "daily">("limit");
   const [error, setError] = useState<string | null>(null);
 
   const [dreams, setDreams] = useState<Dream[]>([]);
@@ -992,8 +995,15 @@ export default function DreamsPage() {
     const paid = hasPaidAccess(billing);
     if (!paid && !hasFreeDreamSave(billing)) {
       // Save is always visible; the paywall shows up only when it is pressed.
-      // A signed-in user without a subscription gets one free save, ever
-      // (FREE_DREAM_SAVES_TOTAL) — the server enforces it in consume-slot.
+      // A signed-in user without a subscription gets FREE_DREAM_SAVES_TOTAL
+      // free saves, at most FREE_DREAM_SAVES_PER_DAY a day, with no counter
+      // shown anywhere — the server enforces both in consumeDreamSlot.
+      setPlansReason("limit");
+      setPlansOpen(true);
+      return;
+    }
+    if (!paid && freeDreamDailyLimitReached(billing)) {
+      setPlansReason("daily");
       setPlansOpen(true);
       return;
     }
@@ -1027,6 +1037,7 @@ export default function DreamsPage() {
       const saved = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (saved?.code === "DAILY_LIMIT") throw new Error("DAILY_LIMIT");
+        if (saved?.code === "FREE_DAILY_LIMIT") throw new Error("FREE_DAILY_LIMIT");
         if (saved?.code === "SUBSCRIPTION_REQUIRED" || res.status === 402) throw new Error("SUBSCRIPTION_REQUIRED");
         if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
         throw new Error(saved?.error ?? `Failed to save ${type}.`);
@@ -1046,6 +1057,13 @@ export default function DreamsPage() {
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_SAVE") {
         setSaving(false);
+        setPlansReason("limit");
+        setPlansOpen(true);
+        return;
+      }
+      if (e?.message === "FREE_DAILY_LIMIT") {
+        setSaving(false);
+        setPlansReason("daily");
         setPlansOpen(true);
         return;
       }
@@ -1493,20 +1511,21 @@ export default function DreamsPage() {
     Shared <span className="opacity-70">({sharedItems.length})</span>
   </button>
 
-  <button
-    onClick={() => router.push(localePath("/app/upgrade", locale))}
-    className={[
-      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-    ].join(" ")}
-    title={t.profile.subscribe}
-  >
-    {canAccess
-      ? formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })
-      : !billingLoading && hasFreeDreamSave(billing)
-        ? t.app.firstDreamFree
-        : t.profile.subscribe}
-  </button>
+  {/* Subscribers see today's remaining slots. Non-subscribers see nothing
+      here: no hint about free saves — the plans modal appears only when a
+      save is refused. */}
+  {canAccess ? (
+    <button
+      onClick={() => router.push(localePath("/app/upgrade", locale))}
+      className={[
+        "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
+        "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+      ].join(" ")}
+      title={t.profile.subscribe}
+    >
+      {formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })}
+    </button>
+  ) : null}
 </div>
 
         {uid ? (() => {
@@ -2059,8 +2078,8 @@ export default function DreamsPage() {
         open={plansOpen}
         onClose={() => setPlansOpen(false)}
         source="diary_save"
-        title={t.plansModal.saveTitle}
-        body={t.plansModal.saveBody}
+        title={plansReason === "daily" ? t.plansModal.saveDailyTitle : t.plansModal.saveTitle}
+        body={plansReason === "daily" ? t.plansModal.saveDailyBody : t.plansModal.saveBody}
       />
     </main>
   );

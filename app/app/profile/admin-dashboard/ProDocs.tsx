@@ -18,7 +18,7 @@ const ACTIONS = [
   {
     action: "Сохранить сон / story",
     cost: "1 сон бесплатно (за всё время), дальше подписка + 1 из 5/день",
-    note: "POST /api/dreams/consume-slot (allowFreeSave) → users/{uid}.freeDreamSavesUsed, затем Firestore addDoc. 400 символов. Без подписки кнопка Save открывает окно планов.",
+    note: "POST /api/dreams/save (allowFreeSave) → users/{uid}.freeDreamSavesUsed / freeDreamSaveDayKey. Без подписки: 5 бесплатных снов всего, максимум 1 в день, счётчик пользователю не показывается. 6-й сон (или 2-й за день) открывает окно планов.",
   },
   {
     action: "Analyze (разбор сна)",

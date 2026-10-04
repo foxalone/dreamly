@@ -14,8 +14,8 @@ service cloud.firestore {
       return [
         'openaiFreeDayKey', 'openaiFreeUsed', 'openaiFreeUpdatedAt',
         'totalPurchasedCredits', 'welcomeBonusGranted', 'isAdmin',
-        // один бесплатный сон без подписки — пишет только consume-slot (admin SDK)
-        'freeDreamSavesUsed', 'freeDreamSaveAt',
+        // бесплатные сны без подписки (5 всего, 1 в день) — пишет только сервер (admin SDK)
+        'freeDreamSavesUsed', 'freeDreamSaveAt', 'freeDreamSaveDayKey', 'freeDreamSavesTodayCount',
         // подписка и лимиты — пишет только сервер (lib/paypal/syncSubscription.ts,
         // consume-slot, translationLedger); иначе клиент мог бы выдать себе Pro
         'subscriptionStatus', 'subscriptionPlan', 'paypalSubscriptionId',
