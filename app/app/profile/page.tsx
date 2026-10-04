@@ -33,6 +33,8 @@ function initialsFromUser(u: User) {
   return (a + b).slice(0, 2);
 }
 
+const buildCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT || "";
+
 function shortUid(uid?: string | null) {
   if (!uid) return "";
   if (uid.length <= 10) return uid;
@@ -223,6 +225,11 @@ export default function ProfilePage() {
               {user?.uid ? (
                 <div className={`mt-2 text-xs ${mutedText}`}>
                   UID: <span className="font-mono">{shortUid(user.uid)}</span>
+                  {buildCommit ? (
+                    <div className="mt-1 font-mono" dir="ltr">
+                      {buildCommit.slice(0, 7)}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>

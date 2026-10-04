@@ -1,6 +1,22 @@
 import type { NextConfig } from "next";
+import { execFileSync } from "node:child_process";
+
+function resolveBuildCommit(): string {
+  const deploymentSha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || "";
+  if (/^[a-f0-9]{40}$/i.test(deploymentSha)) return deploymentSha.toLowerCase();
+  try {
+    const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8", stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    return /^[a-f0-9]{40}$/i.test(sha) ? sha.toLowerCase() : "";
+  } catch {
+    return "";
+  }
+}
 
 const nextConfig: NextConfig = {
+  // Next embeds this SHA into the client bundle, identifying the installed build.
+  env: { NEXT_PUBLIC_BUILD_COMMIT: resolveBuildCommit() },
   // Allows CI/sandbox builds to write to an alternate dist dir (defaults to .next).
   distDir: process.env.NEXT_DIST_DIR || ".next",
 
