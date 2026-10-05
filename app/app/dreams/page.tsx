@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FcGoogle } from "react-icons/fc";
+import HomeDreamAsk from "@/app/components/HomeDreamAsk";
 import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -11,12 +11,11 @@ import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.e
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 
 import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
-import { getAdditionalUserInfo, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
-import { trackAuth, trackEvent } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 import { DreamSymbolIcons } from "@/app/components/DreamSymbolIcons";
 import { needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
@@ -842,20 +841,6 @@ export default function DreamsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  async function signInGoogle() {
-    setError(null);
-    try {
-      const cred = await signInWithGoogle();
-      if (!cred) return;
-      await ensureUserProfileOnSignIn(cred.user);
-      trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
-      // uid will update via onAuthStateChanged
-    } catch (e: any) {
-      console.error("Google sign-in failed:", e);
-      setError(e?.message ?? "Google sign-in failed.");
-    }
-  }
-
   function close() {
     if (saving) return;
     setOpen(false);
@@ -1433,7 +1418,6 @@ export default function DreamsPage() {
     [aliveDreams, aliveStories]
   );
   const visibleItems = tab === "SHARED" ? sharedItems : tab === "STORIES" ? aliveStories : aliveDreams;
-  const locked = !uid;
 
   useEffect(() => {
     if (!uid) return;
@@ -1475,39 +1459,18 @@ export default function DreamsPage() {
     };
   }, [uid, tab, sharedItems]);
 
+  if (!uid) {
+    return (
+      <main className="mx-auto max-w-3xl px-5 pb-10 pt-5 sm:px-6">
+        <h1 className="text-xl font-semibold">{t.nav.dreams}</h1>
+        <HomeDreamAsk journal />
+      </main>
+    );
+  }
+
   return (
     <main className="relative min-h-screen px-5 sm:px-6 pt-4 pb-8 sm:pt-5 sm:pb-10 max-w-3xl mx-auto">
-      {locked && (
-        <div className="absolute inset-0 z-50 backdrop-blur-sm bg-black/25 flex items-center justify-center px-5">
-          <div className="w-full max-w-lg rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-6">
-            <div className="text-[var(--text)] text-lg font-semibold">You are not signed in.</div>
-            <div className="mt-2 text-[var(--muted)]">Sign in with Google to create and save your dreams and stories.</div>
-
-            <button
-              onClick={signInGoogle}
-              className="mt-5 px-4 py-2 rounded-xl bg-white text-black font-semibold inline-flex items-center gap-2"
-            >
-              <FcGoogle className="text-xl" />
-              <span>Sign in with Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push(localePath("/dreams", locale))}
-              className="mt-3 block text-sm font-semibold text-[var(--muted)] hover:text-[var(--text)]"
-            >
-              {t.home.askOrDictionary}
-            </button>
-
-            {error && (
-              <div className="mt-4 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
-                {error}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className={locked ? "pointer-events-none select-none" : ""}>
+      <div>
       {/* Header */}
       <div>
         <h1 className="sr-only">Your Diary</h1>

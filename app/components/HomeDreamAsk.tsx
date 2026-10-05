@@ -10,8 +10,10 @@ import { useDreamAsk } from "./useDreamAsk";
 
 export default function HomeDreamAsk({
   onResultChange,
+  journal = false,
 }: {
   onResultChange?: (hasResult: boolean) => void;
+  journal?: boolean;
 }) {
   const t = useMessages();
   const {
@@ -26,6 +28,7 @@ export default function HomeDreamAsk({
     chooseLens,
     submit,
     goToJournal,
+    reset,
     maxChars,
     anonShare,
     shareAnonymously,
@@ -33,11 +36,12 @@ export default function HomeDreamAsk({
     source: "home_ask",
     interpretedEvent: "home_dream_interpreted",
     restorePending: true,
+    redirectToJournal: !journal,
     onResultChange,
   });
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-xl text-start">
+    <div className="mx-auto mt-10 flex w-full max-w-xl flex-col text-start">
       <form onSubmit={submit} className="rounded-3xl bg-purple-600 p-2 shadow-[0_12px_40px_rgba(124,58,237,0.28)]">
         <label className="sr-only" htmlFor="home-dream-text">
           {t.home.askPlaceholder}
@@ -101,22 +105,26 @@ export default function HomeDreamAsk({
         </div>
       )}
 
-      {analysis ? (
-        <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
+      {analysis && !journal && !busy ? (
+        <button
+          type="button"
+          onClick={() => goToJournal()}
+          className="mt-4 self-center rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
+        >
+          {t.app.analysis}
+        </button>
+      ) : null}
+
+      {analysis && journal ? (
+        <div className="order-first mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
+          <h2 className="mb-3 font-semibold">{t.app.analysis}</h2>
           <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{analysis}</p>
-          <ShareAnonPrompt status={anonShare} onShare={shareAnonymously} onSignIn={() => goToJournal()} />
+          <ShareAnonPrompt status={anonShare} onShare={shareAnonymously} onSignIn={() => goToJournal(text, false, true)} />
           <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => goToJournal()}
-              className="rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
-            >
-              {t.home.askSave}
-            </button>
-            <button
-              type="button"
-              onClick={() => goToJournal()}
+              onClick={reset}
               className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface)]"
             >
               {t.home.askMore}

@@ -251,7 +251,7 @@ export default function InlineDreamPrompt({
                   <ShareAnonPrompt
                     status={ask.anonShare}
                     onShare={ask.shareAnonymously}
-                    onSignIn={() => ask.goToJournal()}
+                    onSignIn={() => ask.goToJournal(ask.text, false, true)}
                   />
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button

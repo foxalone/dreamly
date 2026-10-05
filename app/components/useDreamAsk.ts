@@ -35,6 +35,7 @@ export type DreamAskOptions = {
   eventParams?: Record<string, string | number | boolean>;
   /** Restore the device-cached dream on mount (homepage does; inline prompts don't). */
   restorePending?: boolean;
+  redirectToJournal?: boolean;
   onResultChange?: (hasResult: boolean) => void;
 };
 
@@ -48,6 +49,7 @@ export function useDreamAsk({
   interpretedEvent,
   eventParams,
   restorePending = false,
+  redirectToJournal = false,
   onResultChange,
 }: DreamAskOptions) {
   const t = useMessages();
@@ -119,12 +121,12 @@ export function useDreamAsk({
     if (text.trim()) persistPending(text, analysis, next);
   }
 
-  function goToJournal(pending = text, guestLimit = false) {
+  function goToJournal(pending = text, guestLimit = false, signIn = false) {
     persistPending(pending);
     if (guestLimit) writeHomeDreamPending(pending, { analysis: "", resumeAnalysis: true });
     const next = localePath("/app/dreams", locale);
     const user = auth.currentUser;
-    if (user) {
+    if (user || (!guestLimit && !signIn)) {
       router.push(next);
       return;
     }
@@ -272,7 +274,7 @@ export function useDreamAsk({
 
       // "Share anonymously in the feed" ticked: a guest's dream goes to the feed right away;
       // a signed-in user's is published by the journal import when they save it.
-      if (shareToFeed && !auth.currentUser) void shareAsGuest(dream);
+      if (shareToFeed && !auth.currentUser) await shareAsGuest(dream);
 
       onResultChange?.(true);
       trackEvent(interpretedEvent, {
@@ -284,6 +286,7 @@ export function useDreamAsk({
         lens,
         ...(eventParams ?? {}),
       });
+      if (redirectToJournal) router.push(localePath("/app/dreams", locale));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Analyze failed");
     } finally {
