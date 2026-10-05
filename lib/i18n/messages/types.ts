@@ -1,5 +1,6 @@
 export type UiMessages = {
   brand: { name: string; dictionary: string };
+  launch: { tagline: string; art: string; enter: string };
   nav: {
     dreams: string;
     feed: string;

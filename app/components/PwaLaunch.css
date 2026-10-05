@@ -1,0 +1,58 @@
+.pwa-launch { display: none; }
+html[data-pwa-launch] .pwa-launch {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #100d24;
+  color: #fff6e9;
+  text-align: center;
+  padding: max(64px, env(safe-area-inset-top)) 28px max(36px, env(safe-area-inset-bottom));
+  /* Fails open even if hydration fails: no permanent loading screen. */
+  animation: pwa-launch-dismiss 2800ms both;
+}
+.pwa-launch-art, .pwa-launch-shade { position: absolute; inset: 0; z-index: -2; }
+.pwa-launch-art {
+  background-position: center;
+  background-size: cover;
+  animation: pwa-launch-drift 3400ms ease-out both;
+}
+html[data-pwa-launch="0"] .pwa-launch-art { background-image: url('/launch/moon.webp'); }
+html[data-pwa-launch="1"] .pwa-launch-art { background-image: url('/launch/forest.webp'); }
+html[data-pwa-launch="2"] .pwa-launch-art { background-image: url('/launch/castle.webp'); }
+.pwa-launch-shade {
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(13,9,31,.75), rgba(21,12,39,.12) 43%, rgba(13,9,31,.28) 62%, #100d24 100%);
+}
+.pwa-launch-heading { animation: pwa-launch-rise 900ms ease-out both; }
+.pwa-launch-moon { display: block; color: #f5d7a0; font-size: 36px; line-height: 1; margin-bottom: 16px; }
+.pwa-launch h1 { font-family: 'Cinzel Decorative', Georgia, serif; font-size: clamp(38px, 10vw, 64px); letter-spacing: .06em; line-height: 1.2; text-shadow: 0 3px 28px #100d24; }
+.pwa-launch-heading p { margin: 16px auto 0; max-width: 260px; font-size: 15px; line-height: 1.7; color: #f3e7dd; text-shadow: 0 2px 12px #100d24; }
+.pwa-launch-footer { width: 100%; max-width: 320px; }
+.pwa-launch-rule { display: block; width: 48px; height: 1px; margin: 0 auto 18px; background: #dfbd83; box-shadow: 0 0 15px #dfbd83; }
+.pwa-launch-footer p { font-size: 11px; letter-spacing: .06em; color: #d7c6ba; }
+.pwa-launch button { display: block; margin: 18px auto 0; min-height: 48px; padding: 10px 28px; border: 1px solid #dfbd8366; border-radius: 999px; background: #fff6e90d; color: #fff6e9; font-size: 14px; backdrop-filter: blur(12px); cursor: pointer; }
+.pwa-launch button:focus-visible { outline: 2px solid #f5d7a0; outline-offset: 5px; }
+.pwa-launch-stars { position: absolute; top: 42%; left: 18%; color: #ffe3ab; font-size: 17px; animation: pwa-launch-shimmer 1800ms ease-in-out infinite alternate; text-shadow: 0 0 18px #ffe3ab; }
+.pwa-launch-stars span { position: absolute; top: 100px; left: 55vw; font-size: 26px; }
+.pwa-launch-stars i { position: absolute; top: 180px; left: 6vw; font-size: 10px; font-style: normal; }
+@keyframes pwa-launch-drift { from { transform: scale(1.02); } to { transform: scale(1.09); } }
+@keyframes pwa-launch-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pwa-launch-shimmer { from { opacity: .3; } to { opacity: .9; } }
+@keyframes pwa-launch-dismiss { 0%, 86% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; pointer-events: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pwa-launch-art, .pwa-launch-heading, .pwa-launch-stars { animation: none; }
+  html[data-pwa-launch] .pwa-launch { animation-timing-function: steps(1, end); }
+}
+@media (max-height: 520px) {
+  html[data-pwa-launch] .pwa-launch { padding-block: 20px; }
+  .pwa-launch-moon { display: none; }
+  .pwa-launch h1 { font-size: 32px; }
+  .pwa-launch-heading p { margin-top: 8px; }
+  .pwa-launch-rule { margin-bottom: 8px; }
+}

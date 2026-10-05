@@ -2,6 +2,7 @@ import type { UiMessages } from "./types";
 
 export const RU_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "Сонник Dreamly" },
+  launch: {"tagline": "Открой мир сновидений", "art": "Из коллекции Dreamly Art", "enter": "Войти"},
   nav: {
     dreams: "Сны",
     feed: "Лента",

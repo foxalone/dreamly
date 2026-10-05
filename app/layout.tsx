@@ -7,6 +7,8 @@ import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
 import AppI18n from "@/lib/i18n/AppI18n";
+import PwaLaunch from "./components/PwaLaunch";
+import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
 import PaywallHost from "./components/PaywallHost";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
@@ -50,6 +52,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: PWA_LAUNCH_SCRIPT }} />
         <link
           rel="preload"
           href="/fonts/geist-latin-wght-normal.woff2"
@@ -73,10 +76,12 @@ export default function RootLayout({
         <SymbolClickTracker />
         <GoogleRedirectHandler />
         <AppI18n>
-          {children}
-          <DreamCatcherFab />
-          <InstallPwaBanner />
-          <PaywallHost />
+          <PwaLaunch>
+            {children}
+            <DreamCatcherFab />
+            <InstallPwaBanner />
+            <PaywallHost />
+          </PwaLaunch>
         </AppI18n>
       </body>
     </html>
