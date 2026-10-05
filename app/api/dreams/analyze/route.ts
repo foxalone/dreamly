@@ -15,7 +15,9 @@ import {
   refundGuestAsk,
   setGuestCookie,
 } from "../_lib/guestQuota";
-import { dreamLensPrompt, parseDreamLens } from "@/lib/dream-lenses";
+import { parseDreamLens } from "@/lib/dream-lenses";
+
+import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
 
 type Body = {
   text: string;
@@ -36,25 +38,6 @@ function guessLang(text: string): string {
   if (hasCy && !hasHe && !hasAr) return "ru";
   if (hasLat && !hasHe && !hasCy && !hasAr) return "en";
   return "unknown";
-}
-
-function analysisLanguageName(lang: string): string {
-  switch (lang) {
-    case "es":
-      return "Spanish";
-    case "ar":
-      return "Arabic";
-    case "pt":
-      return "Brazilian Portuguese";
-    case "de":
-      return "German";
-    case "ru":
-      return "Russian";
-    case "he":
-      return "Hebrew";
-    default:
-      return "English";
-  }
 }
 
 export async function POST(req: Request) {
@@ -148,32 +131,7 @@ export async function POST(req: Request) {
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
     const lens = parseDreamLens(body?.lens);
 
-    const system =
-      "You provide concise dream analysis text only. No headings, no questions, no advice.";
-
-    const userPrompt = `
-Dream text:
-"""${text}"""
-
-Write a concise dream analysis in ${analysisLanguageName(lang)}.
-
-Interpretive lens: ${lens}.
-${dreamLensPrompt(lens)}
-The lens changes emphasis and vocabulary only. Keep the same format.
-
-Rules:
-- Do NOT include any titles or section headers.
-- Do NOT include words like "Summary", "Key symbols", or "Possible emotions".
-- Do NOT ask questions.
-- Do NOT give advice or suggestions.
-- Do NOT address the user directly.
-- Avoid medical or diagnostic language.
-- Write as a natural, flowing interpretation paragraph (2–4 short paragraphs max).
-
-Keep it under ~1000 characters.
-`.trim();
-
-    const model = process.env.OPENAI_DREAM_MODEL || "gpt-4o-mini";
+    const model = process.env.OPENAI_DREAM_MODEL?.trim() || "gpt-4o-mini";
     const openai = new OpenAI({ apiKey });
 
     // Emoji pick runs alongside the analysis call; it never fails the request.
@@ -183,11 +141,8 @@ Keep it under ~1000 characters.
     try {
       const resp = await openai.chat.completions.create({
         model,
-        temperature: 0.7,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: userPrompt },
-        ],
+        temperature: 0.3,
+        messages: dreamAnalysisMessages(text, lang, lens),
       });
       analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
     } catch (e: any) {
