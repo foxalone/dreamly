@@ -7,6 +7,7 @@ import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
+  type GuestConsumeResult,
   consumeGuestAsk,
   newGuestId,
   readClientIp,
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
   let adCreditUid: string | null = null;
   let guestId: string | null = null;
   let clientIp = "";
+  let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
 
   const finish = <T extends NextResponse>(res: T): T =>
     guestId ? setGuestCookie(res, guestId) : res;
@@ -82,7 +84,11 @@ export async function POST(req: Request) {
       adCreditUid = null;
       return;
     }
-    if (guestId) await refundGuestAsk(guestId, clientIp);
+    if (guestId && guestBooking) {
+      const booking = guestBooking;
+      guestBooking = null;
+      await refundGuestAsk(guestId, clientIp, booking);
+    }
   };
 
   try {
@@ -115,11 +121,13 @@ export async function POST(req: Request) {
                   ? "Too many free interpretations from this network. Sign in to continue."
                   : "That was your free interpretation. Sign in to continue.",
               code: "GUEST_LIMIT_REACHED",
+              reason: booked.reason,
             },
             { status: 401 }
           )
         );
       }
+      guestBooking = booked;
     } else {
       // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
       // subscription: 3 free analyses in total, max 1 a day.
@@ -208,7 +216,7 @@ Keep it under ~1000 characters.
       })
     );
   } catch (e: any) {
-    if (chargedUid || guestId) await refundCharge();
+    await refundCharge();
     return finish(
       NextResponse.json({ error: e?.message ?? "Analyze failed" }, { status: 500 })
     );

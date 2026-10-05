@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
 import { openPaywall } from "@/lib/paywall";
 
 import { useEffect, useRef, useState } from "react";
@@ -87,6 +89,7 @@ function clearPending() {
 
 export default function QuickSymbolFab() {
   const router = useRouter();
+  const locale = useLocale();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -230,7 +233,15 @@ export default function QuickSymbolFab() {
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source: "quick_symbol" });
-          goToSignIn(q);
+          openPaywall({
+            kind: "analysis",
+            source: "quick_symbol",
+            guest: {
+              reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
+              signIn: () => goToSignIn(q),
+            },
+            retry: () => void runLookup(q, auth.currentUser, nextLens),
+          });
           return;
         }
         if (data?.code === "AUTH_REQUIRED") {
@@ -289,7 +300,7 @@ export default function QuickSymbolFab() {
   function goToSignIn(pendingQuery: string) {
     writePending(pendingQuery, lens);
     const returnTo = `${pathname || "/dreams"}${typeof window !== "undefined" ? window.location.search : ""}`;
-    router.push(`/signin?next=${encodeURIComponent(returnTo)}`);
+    router.push(`${localePath("/signin", locale)}?next=${encodeURIComponent(returnTo)}`);
   }
 
   async function onSubmit(e: React.FormEvent) {

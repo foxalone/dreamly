@@ -39,6 +39,8 @@ function loadGpt(): Promise<void> {
 
 type Props = {
   label: string;
+  /** Keep the guest ad option visible and explain loading/no-fill/failure. */
+  statusCopy?: { loading: string; unavailable: string; failed: string };
   /**
    * Called after Google reports the reward (ad watched long enough). Should
    * ask the server for the credit; resolve true when it was granted.
@@ -53,22 +55,29 @@ type Props = {
  * "Watch an ad → get one more interpretation" via a Google Ad Manager
  * rewarded ad (GPT OutOfPageFormat.REWARDED). Renders nothing until Google
  * actually has an ad ready, so visitors with no fill (e.g. from Russia, ad
- * blockers, desktop pages GPT refuses) never see a dead button.
+ * blockers, desktop pages GPT refuses) never see a dead button. Guest dialogs
+ * supply statusCopy to show an explicit disabled option with an explanation.
  */
-export default function RewardedAdButton({ label, onGranted, onDone, source }: Props) {
+export default function RewardedAdButton({ label, onGranted, onDone, source, statusCopy }: Props) {
+  const [status, setStatus] = useState<"loading" | "unavailable" | "failed">("loading");
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const showRef = useRef<null | (() => void)>(null);
   const grantedRef = useRef(false);
   const cbRef = useRef({ onGranted, onDone });
-  cbRef.current = { onGranted, onDone };
+  useEffect(() => { cbRef.current = { onGranted, onDone }; }, [onGranted, onDone]);
 
   useEffect(() => {
     let cancelled = false;
+    showRef.current = null;
+    grantedRef.current = false;
     let slot: any = null;
     const listeners: Array<[string, (e: any) => void]> = [];
     const timer = window.setTimeout(() => {
-      if (!showRef.current) cancelled = true;
+      if (!showRef.current) {
+        cancelled = true;
+        setStatus("unavailable");
+      }
     }, READY_TIMEOUT_MS);
 
     loadGpt()
@@ -78,7 +87,7 @@ export default function RewardedAdButton({ label, onGranted, onDone, source }: P
           if (cancelled) return;
           slot = gt.defineOutOfPageSlot(REWARDED_AD_UNIT_PATH, gt.enums.OutOfPageFormat.REWARDED);
           // null = this page / device is not eligible for rewarded ads.
-          if (!slot) return;
+          if (!slot) { setStatus("unavailable"); return; }
           slot.addService(gt.pubads());
 
           const on = (type: string, fn: (e: any) => void) => {
@@ -91,11 +100,12 @@ export default function RewardedAdButton({ label, onGranted, onDone, source }: P
 
           on("rewardedSlotReady", (e) => {
             if (cancelled) return;
+            window.clearTimeout(timer);
             showRef.current = () => e.makeRewardedVisible();
             setReady(true);
           });
           on("slotRenderEnded", (e) => {
-            if (e.isEmpty) setReady(false);
+            if (e.isEmpty) { setReady(false); setStatus("unavailable"); }
           });
           on("rewardedSlotGranted", () => {
             grantedRef.current = true;
@@ -107,12 +117,14 @@ export default function RewardedAdButton({ label, onGranted, onDone, source }: P
             slot = null;
             setReady(false);
             if (!grantedRef.current) {
+              setStatus("unavailable");
               setBusy(false);
               return;
             }
             const ok = await cbRef.current.onGranted().catch(() => false);
             setBusy(false);
             if (ok) cbRef.current.onDone();
+            else setStatus("failed");
           });
 
           gt.enableServices();
@@ -120,7 +132,7 @@ export default function RewardedAdButton({ label, onGranted, onDone, source }: P
         });
       })
       .catch(() => {
-        /* ad blocker or network — just no button */
+        if (!cancelled) setStatus("unavailable");
       });
 
     return () => {
@@ -134,7 +146,17 @@ export default function RewardedAdButton({ label, onGranted, onDone, source }: P
     };
   }, [source]);
 
-  if (!ready) return null;
+  if (!ready) {
+    if (!statusCopy) return null;
+    return (
+      <div className="mt-3">
+        <button type="button" disabled className="dream-btn dream-btn--neutral w-full text-sm opacity-60">
+          ▶ {label}
+        </button>
+        <p role="status" className="mt-2 text-sm text-[var(--muted)]">{statusCopy[status]}</p>
+      </div>
+    );
+  }
 
   return (
     <button

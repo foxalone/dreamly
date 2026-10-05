@@ -14,6 +14,7 @@ import {
   QUICK_SYMBOL_MAX_WORDS,
 } from "@/lib/quickSymbol";
 import {
+  type GuestConsumeResult,
   consumeGuestAsk,
   newGuestId,
   readClientIp,
@@ -162,6 +163,7 @@ export async function POST(req: Request) {
 
     // Miss → GPT. Same rule as every AI interpretation: guest one free lookup,
     // then sign-in; signed in → consumeAnalysisAccess (free / ad credit / plan).
+    let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
     let charge: "slot" | "free" | "ad" | null = null;
     if (isGuest && guestId) {
       const booked = await consumeGuestAsk(guestId, clientIp);
@@ -174,11 +176,13 @@ export async function POST(req: Request) {
                   ? "Too many free lookups from this network. Sign in to continue."
                   : "That was your free lookup. Sign in to keep asking.",
               code: "GUEST_LIMIT_REACHED",
+              reason: booked.reason,
             },
             { status: 401 }
           )
         );
       }
+      guestBooking = booked;
     } else if (uid) {
       const access = await consumeAnalysisAccess(uid);
       if ("error" in access) return access.error;
@@ -186,7 +190,11 @@ export async function POST(req: Request) {
     }
 
     const refundOne = async () => {
-      if (guestId) await refundGuestAsk(guestId, clientIp);
+      if (guestId && guestBooking) {
+        const booking = guestBooking;
+        guestBooking = null;
+        await refundGuestAsk(guestId, clientIp, booking);
+      }
       if (uid && charge === "slot") await refundDreamSlot(uid);
       if (uid && charge === "free") await refundFreeAnalysis(uid);
       if (uid && charge === "ad") await refundAdCredit(uid);

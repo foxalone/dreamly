@@ -13,6 +13,8 @@ export type PaywallKind = "analysis" | "save" | "translate";
 
 export type PaywallRequest = {
   kind: PaywallKind;
+  /** Guest choice: sign in or earn another analysis through a rewarded ad. */
+  guest?: { reason: "guest_limit" | "ip_limit"; signIn: () => void };
   /** analysis only: "daily" = today's free one is used, "limit" = all free ones are used. */
   reason?: "limit" | "daily";
   /** GA4 upgrade_prompt source. */

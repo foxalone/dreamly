@@ -334,6 +334,13 @@ export const EN_MESSAGES: UiMessages = {
     jewish: "Jewish",
   },
   plansModal: {
+    guestTitle: "Continue your interpretation",
+    guestBody: "Guests get one free AI interpretation. That limit is used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
+    guestNetworkBody: "Today’s free AI interpretations for this network are used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
+    adLoading: "Looking for an available ad…",
+    adUnavailable: "No ad is available right now. You can sign in or try again later.",
+    adFailed: "We couldn’t confirm the ad reward. Please try again.",
+    adDailyLimit: "Today’s ad limit has been reached. Sign in or come back tomorrow.",
     translateTitle: "You've used today's free translation",
     translateBody: "Everyone gets one free translation a day, and every translation is saved forever. Subscribe to translate as many dreams as you like.",
     saveTitle: "You've used your free limit",

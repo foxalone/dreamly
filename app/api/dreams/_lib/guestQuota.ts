@@ -2,24 +2,19 @@ import { createHash, randomUUID } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 import type { NextResponse } from "next/server";
 
+import { AD_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
+import { guestAnalysisAccess } from "@/lib/guestAnalysisAccess";
+export { GUEST_FREE_ASKS } from "@/lib/guestAnalysisAccess";
+
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 
 /** Name of the anonymous-visitor cookie. */
 export const GUEST_COOKIE = "dreamly_guest";
 
-/** Free AI lookups an anonymous visitor gets before we ask them to sign in. */
-export const GUEST_FREE_ASKS = 1;
-
-/**
- * Backstop so clearing the cookie in a loop cannot burn the OpenAI budget.
- * Counted per hashed IP per UTC day.
- */
-const GUEST_IP_DAILY_LIMIT = 5;
-
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 export type GuestConsumeResult =
-  | { ok: true; used: number }
+  | { ok: true; used: number; charge: "free" | "ad"; dayKey: string }
   | { ok: false; reason: "guest_limit" | "ip_limit" };
 
 function utcDayKey(d = new Date()) {
@@ -90,11 +85,12 @@ export async function consumeGuestAsk(
       const used = Number(guestSnap.data()?.used ?? 0);
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
 
-      if (Number.isFinite(used) && used >= GUEST_FREE_ASKS) {
-        throw new Error("GUEST_LIMIT");
-      }
-      if (Number.isFinite(ipUsed) && ipUsed >= GUEST_IP_DAILY_LIMIT) {
-        throw new Error("IP_LIMIT");
+      const access = guestAnalysisAccess(used, ipUsed, Number(guestSnap.data()?.adAnalysisCredits ?? 0));
+      if (access === "guest_limit") throw new Error("GUEST_LIMIT");
+      if (access === "ip_limit") throw new Error("IP_LIMIT");
+      if (access === "ad") {
+        tx.set(guestRef, { adAnalysisCredits: FieldValue.increment(-1) }, { merge: true });
+        return { ok: true as const, used, charge: "ad" as const, dayKey };
       }
 
       tx.set(
@@ -117,7 +113,7 @@ export async function consumeGuestAsk(
         { merge: true }
       );
 
-      return { ok: true as const, used: used + 1 };
+      return { ok: true as const, used: used + 1, charge: "free" as const, dayKey };
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "";
@@ -127,20 +123,53 @@ export async function consumeGuestAsk(
   }
 }
 
-/** Give the free lookup back when the model call failed. */
-export async function refundGuestAsk(guestId: string, ip: string) {
+/** Refund exactly the balance and UTC day charged by this request. */
+export async function refundGuestAsk(
+  guestId: string,
+  ip: string,
+  booking: Extract<GuestConsumeResult, { ok: true }>
+) {
   try {
     const db = adminDb();
-    const dayKey = utcDayKey();
-    await db
-      .collection("guestQuickSymbol")
-      .doc(guestId)
-      .set({ used: FieldValue.increment(-1) }, { merge: true });
-    await db
-      .collection("guestQuickSymbolIp")
-      .doc(`${hashIp(ip)}_${dayKey}`)
-      .set({ used: FieldValue.increment(-1) }, { merge: true });
+    const batch = db.batch();
+    const guestRef = db.collection("guestQuickSymbol").doc(guestId);
+    if (booking.charge === "ad") {
+      batch.set(guestRef, { adAnalysisCredits: FieldValue.increment(1) }, { merge: true });
+    } else {
+      batch.set(guestRef, { used: FieldValue.increment(-1) }, { merge: true });
+      batch.set(
+        db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${booking.dayKey}`),
+        { used: FieldValue.increment(-1) },
+        { merge: true }
+      );
+    }
+    await batch.commit();
   } catch (e) {
     console.warn("refundGuestAsk failed:", e);
   }
+}
+
+/** Same browser-reported reward model as signed-in ads; cap both guest and IP. */
+export async function guestAdReward(guestId: string, ip: string, grant = false) {
+  const db = adminDb();
+  const dayKey = utcDayKey();
+  const guestRef = db.collection("guestQuickSymbol").doc(guestId);
+  const ipRef = db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${dayKey}`);
+  return db.runTransaction(async (tx) => {
+    const guest = (await tx.get(guestRef)).data() ?? {};
+    const network = (await tx.get(ipRef)).data() ?? {};
+    const today = guest.adRewardsDayKey === dayKey ? Number(guest.adRewardsTodayCount ?? 0) : 0;
+    const ipToday = Number(network.adRewardsTodayCount ?? 0);
+    const leftToday = Math.max(0, AD_REWARDS_PER_DAY - Math.max(today, ipToday));
+    const credits = Math.max(0, Number(guest.adAnalysisCredits ?? 0));
+    // Reuse an unspent credit, including after a failed analysis or grant retry.
+    if (!grant || credits > 0 || leftToday === 0) return { credits, leftToday };
+    tx.set(guestRef, {
+      adAnalysisCredits: credits + 1,
+      adRewardsDayKey: dayKey,
+      adRewardsTodayCount: today + 1,
+    }, { merge: true });
+    tx.set(ipRef, { adRewardsTodayCount: ipToday + 1 }, { merge: true });
+    return { credits: credits + 1, leftToday: leftToday - 1 };
+  });
 }

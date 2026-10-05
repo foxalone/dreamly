@@ -163,6 +163,7 @@ export function useDreamAsk({
     onResultChange?.(false);
 
     try {
+      await auth.authStateReady();
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
       const res = await fetch("/api/dreams/analyze", {
         method: "POST",
@@ -180,7 +181,16 @@ export function useDreamAsk({
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source });
-          goToJournal(dream, true);
+          persistPending(dream, "");
+          openPaywall({
+            kind: "analysis",
+            source,
+            guest: {
+              reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
+              signIn: () => goToJournal(dream, true),
+            },
+            retry: () => void submitRef.current(),
+          });
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {

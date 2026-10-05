@@ -296,6 +296,13 @@ export type UiMessages = {
     interpret: string;
   };
   plansModal: {
+    guestTitle: string;
+    guestBody: string;
+    guestNetworkBody: string;
+    adLoading: string;
+    adUnavailable: string;
+    adFailed: string;
+    adDailyLimit: string;
     translateTitle: string;
     translateBody: string;
     saveTitle: string;

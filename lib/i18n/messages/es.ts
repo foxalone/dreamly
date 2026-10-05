@@ -334,6 +334,13 @@ export const ES_MESSAGES: UiMessages = {
     jewish: "Judío",
   },
   plansModal: {
+    guestTitle: "Continúa con tu interpretación",
+    guestBody: "Como visitante, tienes una interpretación con IA gratis y ya la usaste. Entra o mira un anuncio corto para obtener otra gratis sin iniciar sesión.",
+    guestNetworkBody: "Ya se usaron las interpretaciones con IA gratis de hoy para esta red. Entra o mira un anuncio corto para obtener otra gratis sin iniciar sesión.",
+    adLoading: "Buscando un anuncio disponible…",
+    adUnavailable: "No hay anuncios disponibles ahora. Puedes entrar o intentarlo más tarde.",
+    adFailed: "No pudimos confirmar la recompensa del anuncio. Inténtalo de nuevo.",
+    adDailyLimit: "Ya se alcanzó el límite de anuncios de hoy. Entra o vuelve mañana.",
     translateTitle: "Ya usaste tu traducción gratuita de hoy",
     translateBody: "Todos tienen una traducción gratuita al día, y cada traducción se guarda para siempre. Suscríbete para traducir todos los sueños que quieras.",
     saveTitle: "Has agotado tu límite gratuito",

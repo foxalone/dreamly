@@ -7,6 +7,7 @@ import { auth, firestore } from "@/lib/firebase";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { subscribePaywall, type PaywallRequest } from "@/lib/paywall";
 import { adRewardsLeftFor, hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
+import GuestAnalysisLimitModal from "./GuestAnalysisLimitModal";
 import PlansModal from "./PlansModal";
 
 /**
@@ -14,6 +15,7 @@ import PlansModal from "./PlansModal";
  * ad" for one more interpretation / save / translation. The ad button is
  * offered only to signed-in users without a subscription who still have ad
  * rewards left today for that kind — and only when Google has an ad.
+ * Guest analysis limits use a separate sign-in / rewarded-ad choice.
  */
 export default function PaywallHost() {
   const t = useMessages();
@@ -26,7 +28,7 @@ export default function PaywallHost() {
         setReq(next);
         setAdAllowed(false);
         const u = auth.currentUser;
-        if (!u) return;
+        if (!u || next.guest) return;
         try {
           const snap = await getDoc(doc(firestore, "users", u.uid));
           const data = (snap.exists() ? snap.data() : {}) as UserBillingFields;
@@ -39,6 +41,8 @@ export default function PaywallHost() {
   );
 
   if (!req) return null;
+
+  if (req.guest) return <GuestAnalysisLimitModal request={req} onClose={() => setReq(null)} />;
 
   const pm = t.plansModal;
   const copy =

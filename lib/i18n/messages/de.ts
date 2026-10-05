@@ -334,6 +334,13 @@ export const DE_MESSAGES: UiMessages = {
     jewish: "Jüdisch",
   },
   plansModal: {
+    guestTitle: "Weiter zur Traumdeutung",
+    guestBody: "Als Gast erhältst du eine kostenlose KI-Deutung. Diese hast du bereits genutzt. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
+    guestNetworkBody: "Die kostenlosen KI-Deutungen für dieses Netzwerk sind heute aufgebraucht. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
+    adLoading: "Verfügbare Werbung wird gesucht…",
+    adUnavailable: "Zurzeit ist keine Werbung verfügbar. Du kannst dich anmelden oder es später erneut versuchen.",
+    adFailed: "Die Werbebelohnung konnte nicht bestätigt werden. Bitte versuche es erneut.",
+    adDailyLimit: "Das heutige Werbelimit ist erreicht. Melde dich an oder komm morgen wieder.",
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Alle bekommen eine kostenlose Übersetzung pro Tag, und jede Übersetzung wird dauerhaft gespeichert. Mit einem Abo übersetzt du so viele Träume, wie du willst.",
     saveTitle: "Du hast dein Gratis-Limit aufgebraucht",
