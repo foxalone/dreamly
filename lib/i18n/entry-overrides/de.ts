@@ -6,6 +6,10 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
+  snake: {
+    seoDescription:
+      "Was bedeutet eine Schlange im Traum? Entdecke Deutungen zu Bissen, Verfolgung und Farben sowie psychologische und spirituelle Perspektiven bei Dreamly.",
+  },
   "lion-and-tiger": {
     seoTitle: "Löwe und Tiger im Traum: Macht, Rivalität und Mut",
     seoDescription:

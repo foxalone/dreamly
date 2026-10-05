@@ -6936,7 +6936,7 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
   snake: {
     seoTitle: "Snake Dream Meaning: Transformation, Hidden Fear & Instinct",
     seoDescription:
-      "Bitten, chased, or just watched? What snake dreams mean in psychology, Islam, and the Bible — plus six scenarios and why the snake's color changes the reading.",
+      "Dreams about snakes: explore bites, chases and colors, with psychological, spiritual, Islamic and biblical meanings. Reflect on your dream with Dreamly.",
   },
   "teeth-falling-out": {
     seoTitle: "Teeth Falling Out Dream Meaning: Why It's So Common",

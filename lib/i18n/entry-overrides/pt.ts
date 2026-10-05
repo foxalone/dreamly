@@ -6,6 +6,10 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
+  snake: {
+    seoDescription:
+      "O que significa sonhar com cobra? Explore picadas, cores e perseguições, com interpretações psicológicas e espirituais no dicionário de sonhos Dreamly.",
+  },
   "lion-and-tiger": {
     seoTitle: "Sonhar com leão e tigre: poder, rivalidade e coragem",
     seoDescription:

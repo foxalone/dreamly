@@ -6,6 +6,10 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
+  snake: {
+    seoDescription:
+      "¿Qué significa soñar con serpientes? Explora mordeduras, colores y persecuciones, con interpretaciones psicológicas y espirituales en el diccionario Dreamly.",
+  },
   "lion-and-tiger": {
     seoTitle: "Soñar con león y tigre: poder, rivalidad y valentía",
     seoDescription:

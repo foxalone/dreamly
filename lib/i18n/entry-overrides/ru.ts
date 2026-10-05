@@ -6,6 +6,10 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_RU: Record<string, EntryL10nOverride> = {
+  snake: {
+    seoDescription:
+      "К чему снится змея? Узнайте, что могут означать укус, погоня и цвет змеи, и сравните психологическое и духовное толкования в соннике Dreamly.",
+  },
   "lion-and-tiger": {
     seoTitle: "К чему снятся лев и тигр: власть, соперничество, смелость",
     seoDescription:

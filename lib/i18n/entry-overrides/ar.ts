@@ -6,6 +6,10 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_AR: Record<string, EntryL10nOverride> = {
+  snake: {
+    seoDescription:
+      "ما معنى رؤية الثعبان في المنام؟ اكتشف دلالات اللدغة والمطاردة والألوان، وتفسيرات نفسية وروحية وإسلامية وكتابية تساعدك على تأمل حلمك مع Dreamly.",
+  },
   "lion-and-tiger": {
     seoTitle: "تفسير حلم الأسد والنمر: القوة والتنافس والشجاعة",
     seoDescription:
