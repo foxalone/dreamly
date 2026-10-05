@@ -189,6 +189,16 @@ export type UiMessages = {
     resubscribeCta: string;
   };
   profile: {
+    preferredLanguage: string;
+    preferredLanguageHint: string;
+    browserLanguage: string;
+    languageSaving: string;
+    languageSaveError: string;
+    translating: string;
+    showOriginal: string;
+    translateTo: string;
+    translationAllowance: string;
+
     title: string;
     copyUuid: string;
     copied: string;

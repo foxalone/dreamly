@@ -235,6 +235,16 @@ export const RU_MESSAGES: UiMessages = {
     resubscribeCta: "Подписаться снова",
   },
   profile: {
+    preferredLanguage: "Предпочитаемый язык перевода",
+    preferredLanguageHint: "При нажатии кнопки перевода сны переводятся на этот язык. Изменения сохраняются автоматически.",
+    browserLanguage: "Язык браузера ({language})",
+    languageSaving: "Сохраняем…",
+    languageSaveError: "Не удалось сохранить язык. Попробуйте ещё раз.",
+    translating: "Переводим…",
+    showOriginal: "Показать оригинал",
+    translateTo: "Перевести на {language}",
+    translationAllowance: "Один бесплатный перевод в день, без ограничений по подписке",
+
     title: "Профиль",
     copyUuid: "Скопировать UUID",
     copied: "Скопировано!",

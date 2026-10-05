@@ -4,10 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+
+import { TRANSLATION_LANGUAGES } from "@/lib/translationLanguage";
+import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 
 import ThemeSwitcher from "@/app/components/ThemeSwitcher";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
@@ -45,6 +48,9 @@ export default function ProfilePage() {
   const locale = useLocale();
   const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
+  const { preference, browserLanguage, ready: languageReady } = useTranslationLanguage(user?.uid ?? null);
+  const [languageSaving, setLanguageSaving] = useState(false);
+  const [languageError, setLanguageError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<UserBillingFields | null>(null);
@@ -236,6 +242,38 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <section className={`${card} mt-4 p-5`}>
+        <label htmlFor="preferred-translation-language" className={`block font-semibold ${titleText}`}>
+          {t.profile.preferredLanguage}
+        </label>
+        <p id="translation-language-hint" className={`mt-1 text-sm ${mutedText}`}>{t.profile.preferredLanguageHint}</p>
+        <select
+          id="preferred-translation-language"
+          aria-describedby="translation-language-hint"
+          value={preference ?? ""}
+          disabled={!user || !languageReady || languageSaving}
+          className={`mt-3 max-w-full ${pillBase} ${pillSurface} ${pillDisabled}`}
+          onChange={async (event) => {
+            if (!user) return;
+            const value = event.target.value || null;
+            setLanguageSaving(true);
+            setLanguageError(false);
+            try {
+              await setDoc(doc(firestore, "users", user.uid), { preferredTranslationLanguage: value }, { merge: true });
+            } catch {
+              setLanguageError(true);
+            } finally {
+              setLanguageSaving(false);
+            }
+          }}
+        >
+          <option value="">{formatMessage(t.profile.browserLanguage, { language: TRANSLATION_LANGUAGES[browserLanguage] })}</option>
+          {Object.entries(TRANSLATION_LANGUAGES).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+        </select>
+        {languageSaving && <p role="status" className={`mt-2 text-sm ${mutedText}`}>{t.profile.languageSaving}</p>}
+        {languageError && <p role="alert" className="mt-2 text-sm text-red-500">{t.profile.languageSaveError}</p>}
+      </section>
 
       <div className="mt-4">
         <ShareBadgeTimeline count={sharedCount} />

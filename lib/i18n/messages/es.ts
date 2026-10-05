@@ -235,6 +235,16 @@ export const ES_MESSAGES: UiMessages = {
     resubscribeCta: "Suscribirse de nuevo",
   },
   profile: {
+    preferredLanguage: "Idioma preferido para las traducciones",
+    preferredLanguageHint: "Los sueños se traducen a este idioma al pulsar Traducir. Los cambios se guardan automáticamente.",
+    browserLanguage: "Idioma del navegador ({language})",
+    languageSaving: "Guardando…",
+    languageSaveError: "No se pudo guardar el idioma. Inténtalo de nuevo.",
+    translating: "Traduciendo…",
+    showOriginal: "Mostrar original",
+    translateTo: "Traducir a {language}",
+    translationAllowance: "Una traducción gratis al día; traducciones ilimitadas con una suscripción",
+
     title: "Perfil",
     copyUuid: "Copiar UUID",
     copied: "¡Copiado!",

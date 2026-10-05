@@ -235,6 +235,16 @@ export const AR_MESSAGES: UiMessages = {
     resubscribeCta: "اشترك مجددًا",
   },
   profile: {
+    preferredLanguage: "لغة الترجمة المفضلة",
+    preferredLanguageHint: "تُترجم الأحلام إلى هذه اللغة عند الضغط على زر الترجمة. تُحفظ التغييرات تلقائيًا.",
+    browserLanguage: "لغة المتصفح ({language})",
+    languageSaving: "جارٍ الحفظ…",
+    languageSaveError: "تعذّر حفظ اللغة. يُرجى المحاولة مجددًا.",
+    translating: "جارٍ الترجمة…",
+    showOriginal: "عرض النص الأصلي",
+    translateTo: "ترجمة إلى {language}",
+    translationAllowance: "ترجمة مجانية واحدة يوميًا، وترجمات غير محدودة مع الاشتراك",
+
     title: "الملف",
     copyUuid: "نسخ UUID",
     copied: "تم النسخ!",

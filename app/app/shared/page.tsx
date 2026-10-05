@@ -24,6 +24,10 @@ import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
+import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
+import { type TranslationLanguage } from "@/lib/translationLanguage";
+import { formatMessage } from "@/lib/i18n/messages";
+
 const SIGNIN_NEXT = "/signin?next=/app/shared";
 
 type ReactionKey = "heart" | "like" | "star";
@@ -34,7 +38,7 @@ type DreamEmoji = {
   id?: string;
 };
 
-type TargetLang = "en" | "ru" | "he";
+type TargetLang = TranslationLanguage;
 
 type SharedDream = {
   id: string;
@@ -165,18 +169,6 @@ function getSharedTypeLabel(d: SharedDream) {
   return d.sourceType === "story" ? "Story" : "Dream";
 }
 
-function getUserTargetLang(): TargetLang {
-  if (typeof window === "undefined") return "en";
-
-  const saved = localStorage.getItem("recLang") ?? "";
-  const nav = (navigator.language || "").toLowerCase();
-  const raw = (saved || nav).toLowerCase();
-
-  if (raw.startsWith("ru")) return "ru";
-  if (raw.startsWith("he") || raw.startsWith("iw")) return "he";
-  return "en";
-}
-
 // The dream's own language: the server-detected `lang` when present, otherwise a
 // script-based guess. Used to hide the translate button when it would only
 // "translate" a text into the language it is already in (that call still costs
@@ -231,7 +223,10 @@ export default function SharedPage() {
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [targetLang, setTargetLang] = useState<TargetLang>("en");
+  const { targetLang, ready: languageReady } = useTranslationLanguage(uid);
+  const translationContext = `${uid}:${targetLang}`;
+  const translationContextRef = useRef(translationContext);
+  translationContextRef.current = translationContext;
   // when set, show translated text for that dream id
   const [showingTranslation, setShowingTranslation] = useState<
     Record<string, string>
@@ -246,8 +241,9 @@ export default function SharedPage() {
   const t = useMessages();
 
   useEffect(() => {
-    setTargetLang(getUserTargetLang());
-  }, []);
+    setShowingTranslation({});
+    setFetchedTranslations({});
+  }, [translationContext]);
 
   // ✅ auth state only (no anonymous login). Guests are allowed to view.
   useEffect(() => {
@@ -453,8 +449,9 @@ export default function SharedPage() {
       return;
     }
 
-    const lang = getUserTargetLang();
-    setTargetLang(lang);
+    if (!languageReady) return;
+    const lang = targetLang;
+    const requestContext = translationContext;
 
     // Same language as the viewer — never spend a translation on it.
     if (dreamLang(d) === lang) return;
@@ -502,6 +499,7 @@ export default function SharedPage() {
       const translation = String(data?.translation ?? "").trim();
       if (!translation) throw new Error("Empty translation");
 
+      if (translationContextRef.current !== requestContext) return;
       setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
       setFetchedTranslations((prev) => ({ ...prev, [key]: translation }));
       setUnlocked((prev) => {
@@ -661,18 +659,18 @@ export default function SharedPage() {
                       // this viewer already paid for this dream+lang
                       const hasMine = unlocked.has(`${d.id}:${targetLang}`);
                       const label = isBusy
-                        ? "Translating…"
+                        ? t.profile.translating
                         : isShowing
-                          ? "Show original"
-                          : `Translate to ${targetLang.toUpperCase()}`;
+                          ? t.profile.showOriginal
+                          : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
                       const title = isBusy || isShowing || hasMine
                         ? label
-                        : `${label} (free once a day, unlimited with a subscription)`;
+                        : `${label} (${t.profile.translationAllowance})`;
 
                       return (
                         <button
                           onClick={() => translateDream(d)}
-                          disabled={isBusy}
+                          disabled={isBusy || !languageReady}
                           aria-label={label}
                           className={[
                             "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",

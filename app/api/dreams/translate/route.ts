@@ -15,6 +15,8 @@ import {
   type TranslationSource,
 } from "../_lib/translationLedger";
 
+import { normalizeTranslationLanguage as normalizeTargetLang, TRANSLATION_LANGUAGE_LABELS as LANG_LABEL } from "@/lib/translationLanguage";
+
 export const runtime = "nodejs";
 
 type Body = {
@@ -23,24 +25,6 @@ type Body = {
   targetLang?: string;
   idToken?: string;
 };
-
-type TargetLang = "en" | "ru" | "he";
-
-const LANG_LABEL: Record<TargetLang, string> = {
-  en: "English",
-  ru: "Russian",
-  he: "Hebrew",
-};
-
-function normalizeTargetLang(v: unknown): TargetLang | null {
-  const l = String(v ?? "")
-    .trim()
-    .toLowerCase();
-  if (l === "en" || l.startsWith("en-") || l === "en-us") return "en";
-  if (l === "ru" || l.startsWith("ru-") || l === "ru-ru") return "ru";
-  if (l === "he" || l.startsWith("he-") || l === "iw" || l === "he-il") return "he";
-  return null;
-}
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v);
@@ -93,7 +77,7 @@ export async function POST(req: Request) {
 
     if (!targetLang) {
       return NextResponse.json(
-        { error: "Invalid targetLang. Use en, ru, or he." },
+        { error: "Invalid targetLang. Use en, es, ar, pt, de, ru, or he." },
         { status: 400 }
       );
     }
