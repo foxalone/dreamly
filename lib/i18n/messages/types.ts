@@ -311,6 +311,7 @@ export type UiMessages = {
     guestNetworkBody: string;
     adLoading: string;
     adUnavailable: string;
+    adUnavailableSignedIn: string;
     adFailed: string;
     adDailyLimit: string;
     translateTitle: string;

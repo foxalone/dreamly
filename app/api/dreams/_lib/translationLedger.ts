@@ -84,14 +84,10 @@ export async function readCachedTranslation(
   publicData: Record<string, unknown> | null,
   lang: string
 ): Promise<{ entry: TranslationEntry; legacy: boolean } | null> {
-  try {
-    const snap = await privateTranslationsRef(dreamRef).get();
-    if (snap.exists) {
-      const entry = entryFromRaw((snap.data() as any)?.[lang]);
-      if (entry) return { entry, legacy: false };
-    }
-  } catch (e: any) {
-    console.warn("private translations read failed:", e?.message ?? e);
+  const snap = await privateTranslationsRef(dreamRef).get();
+  if (snap.exists) {
+    const entry = entryFromRaw((snap.data() as any)?.[lang]);
+    if (entry) return { entry, legacy: false };
   }
   const legacyRaw = isRecord(publicData?.translations) ? publicData!.translations[lang] : undefined;
   const entry = entryFromRaw(legacyRaw);
@@ -99,21 +95,17 @@ export async function readCachedTranslation(
 }
 
 export async function readTranslationUnlock(
+  db: Firestore,
   uid: string,
   sharedDreamId: string,
   lang: string
 ): Promise<boolean> {
   if (!uid || !sharedDreamId) return false;
-  try {
-    const { adminDb } = await import("../../admin/_lib/firebaseAdmin");
-    const snap = await adminDb().doc(`users/${uid}/translationUnlocks/${sharedDreamId}`).get();
-    if (!snap.exists) return false;
-    const langs = (snap.data() as any)?.langs;
-    return !!(langs && typeof langs === "object" && langs[lang]);
-  } catch (e: any) {
-    console.warn("readTranslationUnlock failed:", e?.message ?? e);
-    return false;
-  }
+  // A failed read must not turn existing access into a new charge.
+  const snap = await db.doc(`users/${uid}/translationUnlocks/${sharedDreamId}`).get();
+  if (!snap.exists) return false;
+  const langs = (snap.data() as any)?.langs;
+  return !!(langs && typeof langs === "object" && langs[lang]);
 }
 
 export async function recordTranslationServe(args: {
@@ -206,10 +198,7 @@ export async function recordTranslationServe(args: {
     { merge: true }
   );
 
-  try {
-    await batch.commit();
-  } catch (e: any) {
-    // Never fail the request because bookkeeping failed — the user already paid.
-    console.warn("recordTranslationServe failed:", e?.message ?? e);
-  }
+  // Text and permanent access must both be durable before reporting success.
+  // The caller refunds the consumed allowance if this atomic write fails.
+  await batch.commit();
 }

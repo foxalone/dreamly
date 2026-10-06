@@ -11,7 +11,6 @@ import {
   readCachedTranslation,
   recordTranslationServe,
   readTranslationUnlock,
-  type TranslationEntry,
   type TranslationSource,
 } from "../_lib/translationLedger";
 
@@ -21,7 +20,6 @@ export const runtime = "nodejs";
 
 type Body = {
   sharedDreamId?: string;
-  text?: string;
   targetLang?: string;
   idToken?: string;
 };
@@ -63,6 +61,8 @@ async function lookupUser(uid: string): Promise<{ name: string | null; email: st
 
 export async function POST(req: Request) {
   let uid: string | null = null;
+  let refundDaily = false;
+  let refundAd = false;
 
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
@@ -73,7 +73,6 @@ export async function POST(req: Request) {
 
     const sharedDreamId = String(body?.sharedDreamId ?? "").trim();
     const targetLang = normalizeTargetLang(body?.targetLang);
-    let text = String(body?.text ?? "").trim();
 
     if (!targetLang) {
       return NextResponse.json(
@@ -84,56 +83,56 @@ export async function POST(req: Request) {
 
     // Access model (see _lib/translationLedger.ts):
     //  - a user who already unlocked this dream+lang gets it again for free;
-    //  - otherwise every request spends the daily free slot / requires Pro,
+    //  - otherwise every request uses the daily free slot, an ad credit or Pro,
     //    even when the text is already cached — the cache only saves the
     //    OpenAI call, never the charge.
     const db = adminDb();
-    const ref = sharedDreamId ? db.doc(`shared_dreams/${sharedDreamId}`) : null;
-    let cached: { entry: TranslationEntry; legacy: boolean } | null = null;
-
-    if (ref) {
-      try {
-        const snap = await ref.get();
-        if (snap.exists) {
-          const data = (snap.data() as Record<string, unknown>) ?? {};
-          cached = await readCachedTranslation(ref, data, targetLang);
-          if (!text) text = String(data?.text ?? "").trim();
-        }
-      } catch (e: any) {
-        console.warn("translate cache read failed:", e?.message ?? e);
-      }
+    if (!sharedDreamId || sharedDreamId.includes("/")) {
+      return NextResponse.json({ error: "A valid sharedDreamId is required." }, { status: 400 });
     }
+    const ref = db.doc(`shared_dreams/${sharedDreamId}`);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      return NextResponse.json({ error: "Dream not found." }, { status: 404 });
+    }
+    const dream = (snap.data() as Record<string, unknown>) ?? {};
+    // Use the stored dream so a caller cannot replace a permanently saved translation.
+    const text = String(dream.text ?? "").trim();
+    const cached = await readCachedTranslation(ref, dream, targetLang);
 
-    if (ref && cached) {
-      const unlock = await readTranslationUnlock(uid, sharedDreamId, targetLang);
-      if (unlock) {
-        return NextResponse.json({
-          translation: cached.entry.text,
-          cached: true,
-          source: "unlocked" satisfies TranslationSource,
-          cost: 0,
-          usedDailyFree: false,
-          model: cached.entry.model,
-          targetLang,
-        });
-      }
+    const unlocked = await readTranslationUnlock(db, uid, sharedDreamId, targetLang);
+    if (cached && unlocked) {
+      return NextResponse.json({
+        translation: cached.entry.text,
+        cached: true,
+        source: "unlocked" satisfies TranslationSource,
+        cost: 0,
+        usedDailyFree: false,
+        model: cached.entry.model,
+        targetLang,
+      });
     }
 
     if (!text && !cached) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    // Subscribers: unlimited. Everyone else: one translation per day,
-    // otherwise 402 SUBSCRIPTION_REQUIRED (client opens the plans modal).
-    const access = await consumeTranslationAccess(uid);
+    // Subscribers: unlimited. Others use the daily free slot, then ad credits.
+    // Without either, return 402 so the client offers an ad or a subscription.
+    // An existing unlock remains free even if its cached text needs rebuilding.
+    const access = unlocked
+      ? { ok: true as const, paid: false, usedDailyFree: false, usedAdCredit: false }
+      : await consumeTranslationAccess(uid);
     if ("error" in access) return access.error;
+    refundDaily = access.usedDailyFree;
+    refundAd = access.usedAdCredit;
     const usedDailyFree = access.usedDailyFree;
     const paid = access.paid;
 
     const who = await lookupUser(uid);
 
     // Cache hit: no OpenAI call, but the slot above is already spent.
-    if (ref && cached) {
+    if (cached) {
       await recordTranslationServe({
         db,
         dreamRef: ref,
@@ -147,6 +146,8 @@ export async function POST(req: Request) {
         paid,
         cached,
       });
+      refundDaily = false;
+      refundAd = false;
       return NextResponse.json({
         translation: cached.entry.text,
         cached: true,
@@ -159,60 +160,38 @@ export async function POST(req: Request) {
     }
 
     const apiKey = getOneiroOpenAiApiKey();
-    if (!apiKey) {
-      if (usedDailyFree) await refundFreeTranslation(uid);
-      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
-      return NextResponse.json(
-        { error: getMissingOneiroOpenAiKeyMessage() },
-        { status: 500 }
-      );
-    }
+    if (!apiKey) throw new Error(getMissingOneiroOpenAiKeyMessage());
 
     const model = process.env.OPENAI_TRANSLATE_MODEL?.trim() || "gpt-5-nano";
     const openai = new OpenAI({ apiKey });
     const langLabel = LANG_LABEL[targetLang];
 
-    let translation = "";
-    try {
-      const resp = await openai.responses.create({
-        model,
-        instructions:
-          "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
-        input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
-        reasoning: { effort: "minimal" },
-      });
-      translation = extractOutputText(resp);
-    } catch (e: any) {
-      if (usedDailyFree) await refundFreeTranslation(uid);
-      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
-      return NextResponse.json(
-        { error: e?.message ?? "Translate failed" },
-        { status: 500 }
-      );
-    }
+    const resp = await openai.responses.create({
+      model,
+      instructions:
+        "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
+      input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
+      reasoning: { effort: "minimal" },
+    });
+    const translation = extractOutputText(resp);
+    if (!translation) throw new Error("Empty translation");
 
-    if (!translation) {
-      if (usedDailyFree) await refundFreeTranslation(uid);
-      if (access.usedAdCredit) await refundAdTranslateCredit(uid);
-      return NextResponse.json({ error: "Empty translation" }, { status: 500 });
-    }
+    await recordTranslationServe({
+      db,
+      dreamRef: ref,
+      sharedDreamId,
+      uid,
+      who,
+      targetLang,
+      source: "ai",
+      model,
+      usedDailyFree,
+      paid,
+      translation,
+    });
 
-    if (ref) {
-      await recordTranslationServe({
-        db,
-        dreamRef: ref,
-        sharedDreamId,
-        uid,
-        who,
-        targetLang,
-        source: "ai",
-        model,
-        usedDailyFree,
-        paid,
-        translation,
-      });
-    }
-
+    refundDaily = false;
+    refundAd = false;
     return NextResponse.json({
       translation,
       cached: false,
@@ -223,6 +202,8 @@ export async function POST(req: Request) {
       targetLang,
     });
   } catch (e: any) {
+    if (uid && refundDaily) await refundFreeTranslation(uid);
+    if (uid && refundAd) await refundAdTranslateCredit(uid);
     return NextResponse.json(
       { error: e?.message ?? "Translate failed" },
       { status: 500 }

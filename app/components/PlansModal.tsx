@@ -48,7 +48,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
   // pass an inline arrow, which would otherwise re-fire the analytics event
   // on every render).
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -133,6 +133,11 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
           <RewardedAdButton
             label={rewarded.label}
             source={source}
+            statusCopy={{
+              loading: t.plansModal.adLoading,
+              unavailable: t.plansModal.adUnavailableSignedIn,
+              failed: t.plansModal.adFailed,
+            }}
             onGranted={rewarded.onGranted}
             onDone={rewarded.onDone}
           />
