@@ -10,7 +10,9 @@ import { hasEnoughDreamEmojis, type DreamEmojiEntry } from "@/lib/dreamEmojiReso
 import {
   HOME_DREAM_MAX_CHARS,
   readHomeDreamPending,
+  readHomeDreamQueue,
   writeHomeDreamPending,
+  type HomeDreamPending,
 } from "@/lib/homeDreamPending";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -35,6 +37,7 @@ export type DreamAskOptions = {
   eventParams?: Record<string, string | number | boolean>;
   /** Restore the device-cached dream on mount (homepage does; inline prompts don't). */
   restorePending?: boolean;
+  initialDream?: HomeDreamPending;
   redirectToJournal?: boolean;
   onResultChange?: (hasResult: boolean) => void;
 };
@@ -49,6 +52,7 @@ export function useDreamAsk({
   interpretedEvent,
   eventParams,
   restorePending = false,
+  initialDream,
   redirectToJournal = false,
   onResultChange,
 }: DreamAskOptions) {
@@ -64,8 +68,8 @@ export function useDreamAsk({
   const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
 
   useEffect(() => {
-    if (!restorePending) return;
-    const pending = readHomeDreamPending();
+    if (!restorePending && !initialDream) return;
+    const pending = initialDream ?? readHomeDreamPending();
     if (!pending?.text) return;
     setTextState(pending.text);
     setShareToFeedState(pending.shareToFeed !== false);
@@ -328,7 +332,7 @@ export function useDreamAsk({
   async function shareAsGuest(dream: string) {
     setAnonShare("busy");
     try {
-      const pending = readHomeDreamPending();
+      const pending = readHomeDreamQueue().find((item) => item.text === dream);
       const res = await fetch("/api/dreams/share-guest", {
         method: "POST",
         credentials: "same-origin",

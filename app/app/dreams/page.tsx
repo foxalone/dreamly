@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import HomeDreamAsk from "@/app/components/HomeDreamAsk";
+import GuestDreamJournal from "@/app/components/GuestDreamJournal";
 import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -1460,12 +1460,7 @@ export default function DreamsPage() {
   }, [uid, tab, sharedItems]);
 
   if (!uid) {
-    return (
-      <main className="mx-auto max-w-3xl px-5 pb-10 pt-5 sm:px-6">
-        <h1 className="text-xl font-semibold">{t.nav.dreams}</h1>
-        <HomeDreamAsk journal />
-      </main>
-    );
+    return <GuestDreamJournal />;
   }
 
   return (
