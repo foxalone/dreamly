@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { FieldValue } from "firebase-admin/firestore";
+import { type Firestore, FieldValue } from "firebase-admin/firestore";
 import type { NextResponse } from "next/server";
 
 import { AD_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
@@ -150,20 +150,27 @@ export async function refundGuestAsk(
 }
 
 /** Same browser-reported reward model as signed-in ads; cap both guest and IP. */
-export async function guestAdReward(guestId: string, ip: string, grant = false) {
-  const db = adminDb();
+export async function guestAdReward(guestId: string, ip: string, grant = false, rewardId?: string, database?: Firestore) {
+  const db = database ?? adminDb();
   const dayKey = utcDayKey();
   const guestRef = db.collection("guestQuickSymbol").doc(guestId);
   const ipRef = db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${dayKey}`);
   return db.runTransaction(async (tx) => {
+    const receiptRef = grant && rewardId ? guestRef.collection("adRewardReceipts").doc(rewardId) : null;
+    const receipt = receiptRef ? await tx.get(receiptRef) : null;
     const guest = (await tx.get(guestRef)).data() ?? {};
     const network = (await tx.get(ipRef)).data() ?? {};
     const today = guest.adRewardsDayKey === dayKey ? Number(guest.adRewardsTodayCount ?? 0) : 0;
     const ipToday = Number(network.adRewardsTodayCount ?? 0);
     const leftToday = Math.max(0, AD_REWARDS_PER_DAY - Math.max(today, ipToday));
     const credits = Math.max(0, Number(guest.adAnalysisCredits ?? 0));
+    if (receipt?.exists) return { credits, leftToday, replayed: true };
+    if (grant && !receiptRef) throw new Error("INVALID_REWARD_ID");
     // Reuse an unspent credit, including after a failed analysis or grant retry.
-    if (!grant || credits > 0 || leftToday === 0) return { credits, leftToday };
+    if (!grant || (leftToday === 0 && credits === 0)) return { credits, leftToday };
+    // Consume the replay key even when reusing an existing unspent credit.
+    tx.create(receiptRef!, { createdAt: FieldValue.serverTimestamp() });
+    if (credits > 0) return { credits, leftToday };
     tx.set(guestRef, {
       adAnalysisCredits: credits + 1,
       adRewardsDayKey: dayKey,

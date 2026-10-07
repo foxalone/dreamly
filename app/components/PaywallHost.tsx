@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
@@ -14,17 +14,22 @@ import PlansModal from "./PlansModal";
  * Renders the site-wide paywall (see lib/paywall.ts): plans + "watch a short
  * ad" for one more interpretation / save / translation. The ad button is
  * offered only to signed-in users without a subscription who still have ad
- * rewards left today for that kind — and only when Google has an ad.
+ * rewards left today for that kind. GPT is requested after user opt-in.
  * Guest analysis limits use a separate sign-in / rewarded-ad choice.
  */
 export default function PaywallHost() {
   const t = useMessages();
   const [req, setReq] = useState<PaywallRequest | null>(null);
   const [adAllowed, setAdAllowed] = useState(false);
+  const requestVersion = useRef(0);
+  const [version, setVersion] = useState(0);
+  const close = () => { requestVersion.current++; setReq(null); };
 
   useEffect(
     () =>
       subscribePaywall(async (next) => {
+        const current = ++requestVersion.current;
+        setVersion(current);
         setReq(next);
         setAdAllowed(false);
         const u = auth.currentUser;
@@ -32,6 +37,7 @@ export default function PaywallHost() {
         try {
           const snap = await getDoc(doc(firestore, "users", u.uid));
           const data = (snap.exists() ? snap.data() : {}) as UserBillingFields;
+          if (current !== requestVersion.current || auth.currentUser?.uid !== u.uid) return;
           if (!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) > 0) setAdAllowed(true);
         } catch {
           /* no ad button */
@@ -42,8 +48,9 @@ export default function PaywallHost() {
 
   if (!req) return null;
 
-  if (req.guest) return <GuestAnalysisLimitModal request={req} onClose={() => setReq(null)} />;
+  if (req.guest) return <GuestAnalysisLimitModal key={version} request={req} onClose={close} />;
 
+  const rewardUser = auth.currentUser;
   const pm = t.plansModal;
   const copy =
     req.kind === "save"
@@ -56,8 +63,9 @@ export default function PaywallHost() {
 
   return (
     <PlansModal
+      key={version}
       open
-      onClose={() => setReq(null)}
+      onClose={close}
       source={req.source}
       title={copy.title}
       body={copy.body}
@@ -65,20 +73,21 @@ export default function PaywallHost() {
         adAllowed
           ? {
               label: copy.ad,
-              onGranted: async () => {
+              onGranted: async (rewardId) => {
                 const u = auth.currentUser;
-                if (!u) return false;
+                if (!u || u.uid !== rewardUser?.uid) return false;
                 const idToken = await u.getIdToken();
                 const res = await fetch("/api/dreams/ad-reward", {
                   method: "POST",
+                  keepalive: true,
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ idToken, kind: req.kind }),
+                  body: JSON.stringify({ idToken, kind: req.kind, rewardId }),
                 });
                 return res.ok;
               },
               onDone: () => {
                 const retry = req.retry;
-                setReq(null);
+                close();
                 retry?.();
               },
             }

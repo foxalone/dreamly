@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { type Firestore, FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import {
@@ -250,16 +250,20 @@ export async function refundAdCredit(uid: string) {
  */
 export async function grantAdReward(
   uid: string,
-  kind: "analysis" | "save" | "translate" = "analysis"
+  kind: "analysis" | "save" | "translate",
+  rewardId: string,
+  database?: Firestore
 ): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
   }
-  const db = adminDb();
+  const db = database ?? adminDb();
   const userRef = db.collection("users").doc(uid);
+  const receiptRef = userRef.collection("adRewardReceipts").doc(rewardId);
   const dayKey = utcDayKey();
   try {
     return await db.runTransaction(async (tx) => {
+      const receipt = await tx.get(receiptRef);
       const snap = await tx.get(userRef);
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
       if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
@@ -271,8 +275,13 @@ export async function grantAdReward(
           ? { credits: "adTranslateCredits", day: "adTranslateRewardsDayKey", today: "adTranslateRewardsTodayCount", cap: AD_TRANSLATE_REWARDS_PER_DAY }
           : { credits: "adAnalysisCredits", day: "adRewardsDayKey", today: "adRewardsTodayCount", cap: AD_REWARDS_PER_DAY };
       const today = String(data[f.day] ?? "") === dayKey ? toCount(data[f.today]) : 0;
+      if (receipt.exists) {
+        if (receipt.data()?.kind !== kind) return { error: NextResponse.json({ code: "REWARD_KIND_MISMATCH" }, { status: 409 }) };
+        return { uid, credits: toCount(data[f.credits]), leftToday: Math.max(0, f.cap - today) };
+      }
       if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");
       const credits = toCount(data[f.credits]) + 1;
+      tx.create(receiptRef, { kind, createdAt: FieldValue.serverTimestamp() });
       tx.set(
         userRef,
         {

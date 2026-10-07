@@ -66,8 +66,8 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         {ad === "ready" ? (
           <RewardedAdButton label={pm.watchAd} source={request.source}
             statusCopy={{ loading: pm.adLoading, unavailable: pm.adUnavailable, failed: pm.adFailed }}
-            onGranted={async () => {
-              const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin" });
+            onGranted={async (rewardId) => {
+              const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rewardId }) });
               return res.ok;
             }}
             onDone={retry} />
