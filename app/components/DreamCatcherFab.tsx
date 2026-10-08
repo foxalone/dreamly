@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { stripLocalePrefix } from "@/lib/i18n/path";
@@ -26,6 +27,18 @@ const PEEK = [
   { e: "🦉", x: 6, y: -70, d: 0.75 },
 ];
 
+/** Set on click so the game page can report `game_open { via: "fab" }`. Read and cleared by GameClient. */
+export const GAME_ENTRY_KEY = "dreamly_game_entry";
+
+/** GA page bucket: "home" | "dictionary" | "feed" | ... — a bounded set, not the raw path. */
+export function fabPageKind(path: string): string {
+  if (path === "/" || path === "") return "home";
+  const first = path.split("/")[1] ?? "";
+  if (first === "dreams") return path.split("/").length > 2 ? "dictionary" : "home";
+  if (first === "app") return path.split("/")[2] || "app";
+  return first || "other";
+}
+
 const HIDDEN_PREFIXES = ["/app/game", "/app/profile/admin-dashboard", "/signin", "/payment-success", "/app/tiktok-studio"];
 
 export default function DreamCatcherFab() {
@@ -42,13 +55,38 @@ export default function DreamCatcherFab() {
     };
   }, [pathname]);
   const { path } = stripLocalePrefix(pathname);
-  if (HIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p + "/"))) return null;
+  const hidden = HIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p + "/"));
+  const page = fabPageKind(path);
+
+  // One `game_fab_view` per page view; `game_fab_hover` once per page view (mouse/keyboard only).
+  const hovered = useRef(false);
+  useEffect(() => {
+    if (hidden) return;
+    hovered.current = false;
+    trackEvent("game_fab_view", { page, full: storageIsFull() });
+  }, [hidden, page, pathname]);
+  const onHover = () => {
+    if (hovered.current) return;
+    hovered.current = true;
+    trackEvent("game_fab_hover", { page, full });
+  };
+  const onClick = () => {
+    trackEvent("game_fab_click", { page, full });
+    try {
+      sessionStorage.setItem(GAME_ENTRY_KEY, JSON.stringify({ via: "fab", page, at: Date.now() }));
+    } catch {}
+  };
+
+  if (hidden) return null;
 
   return (
     <LocaleLink
       href="/app/game"
       aria-label={t.fabLabel}
       title={t.title}
+      onMouseEnter={onHover}
+      onFocus={onHover}
+      onClick={onClick}
       className="dcf group fixed bottom-4 end-4 z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
       style={{ WebkitTapHighlightColor: "transparent" }}
     >

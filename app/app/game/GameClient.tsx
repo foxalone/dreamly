@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { trackEvent } from "@/lib/analytics";
+import { GAME_ENTRY_KEY } from "@/app/components/DreamCatcherFab";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
@@ -390,6 +392,31 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- subscribe once
   }, []);
 
+  // `game_open` once per visit, after auth is known: via "fab" (dream-catcher widget, see
+  // DreamCatcherFab → GAME_ENTRY_KEY) or "direct" (URL, nav, back button).
+  const openTracked = useRef(false);
+  useEffect(() => {
+    if (!authReady || openTracked.current) return;
+    openTracked.current = true;
+    let via = "direct";
+    let page = "";
+    try {
+      const raw = sessionStorage.getItem(GAME_ENTRY_KEY);
+      if (raw) {
+        const entry = JSON.parse(raw) as { via?: string; page?: string; at?: number };
+        if (entry?.via && Date.now() - (entry.at ?? 0) < 60_000) {
+          via = entry.via;
+          page = entry.page ?? "";
+        }
+        sessionStorage.removeItem(GAME_ENTRY_KEY);
+      }
+    } catch {}
+    trackEvent("game_open", { via, from_page: page, guest: !userRef.current });
+  }, [authReady]);
+
+  // First tap of this visit → did they actually play after opening?
+  const tapTracked = useRef(false);
+
   // Keep unsent taps across reloads.
   useEffect(() => {
     writeJson(PENDING_KEY, pending.taps ? pending : null);
@@ -621,6 +648,10 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     tapTimes.current = tapTimes.current.filter((x) => stamp - x < 1000);
     if (tapTimes.current.length >= MAX_TAPS_PER_SEC) return;
     tapTimes.current.push(stamp);
+    if (!tapTracked.current) {
+      tapTracked.current = true;
+      trackEvent("game_first_tap", { guest: !userRef.current });
+    }
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
