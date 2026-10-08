@@ -344,6 +344,14 @@ export const EN_MESSAGES: UiMessages = {
     buddhist: "Buddhist",
     jewish: "Jewish",
   },
+  adUnlock: {
+    title: "Watch a short ad",
+    waiting: "Loading the ad…",
+    watching: "Watch the ad to the end to continue.",
+    done: "Thanks! Taking you back…",
+    none: "No ad is available right now. Please try again later.",
+    back: "Back",
+  },
   plansModal: {
     guestTitle: "Continue your interpretation",
     guestBody: "Guests get one free AI interpretation. That limit is used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",

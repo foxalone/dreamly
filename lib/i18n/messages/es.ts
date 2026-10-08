@@ -344,6 +344,14 @@ export const ES_MESSAGES: UiMessages = {
     buddhist: "Budista",
     jewish: "Judío",
   },
+  adUnlock: {
+    title: "Mira un anuncio corto",
+    waiting: "Cargando el anuncio…",
+    watching: "Mira el anuncio hasta el final para continuar.",
+    done: "¡Gracias! Volviendo…",
+    none: "No hay anuncios disponibles ahora. Inténtalo más tarde.",
+    back: "Volver",
+  },
   plansModal: {
     guestTitle: "Continúa con tu interpretación",
     guestBody: "Como visitante, tienes una interpretación con IA gratis y ya la usaste. Entra o mira un anuncio corto para obtener otra gratis sin iniciar sesión.",

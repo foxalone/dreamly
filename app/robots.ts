@@ -16,6 +16,7 @@ export default function robots(): MetadataRoute.Robots {
           "/app/profile/admin-dashboard",
           "/app/upgrade",
           "/payment-success",
+          "/ad/",
         ],
       },
     ],

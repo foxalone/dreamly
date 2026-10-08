@@ -77,7 +77,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         <button ref={signInRef} type="button" className="dream-primary-btn mt-5 w-full"
           onClick={() => { onClose(); request.guest?.signIn(); }}>{translate ? pm.signInWithGoogle : t.common.signIn}</button>
         {ad === "ready" ? (
-          <RewardedAdButton label={copy.ad} source={request.source}
+          <RewardedAdButton label={copy.ad} kind={kind} source={request.source}
             statusCopy={{ loading: pm.adLoading, unavailable: pm.adUnavailable, failed: pm.adFailed }}
             onGranted={async (rewardId) => {
               const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rewardId, kind }) });

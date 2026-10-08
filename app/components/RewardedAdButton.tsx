@@ -2,11 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
+import { adUnlockUrl } from "@/lib/adUnlock";
 import { createRewardedAd, type RewardedState } from "@/lib/rewardedAd";
 import { trackEvent } from "@/lib/analytics";
+import type { PaywallKind } from "@/lib/paywall";
 
 type Props = {
   label: string;
+  /**
+   * What the ad pays for. When Google Ad Manager has no fill for the GPT
+   * rewarded slot, the button falls back to the AdSense Offerwall page
+   * (/ad/unlock, see lib/adUnlock.ts) for this kind.
+   */
+  kind: PaywallKind;
   /** Keep the guest ad option visible and explain loading/no-fill/failure. */
   statusCopy?: { loading: string; unavailable: string; failed: string };
   /**
@@ -25,7 +35,8 @@ type Props = {
  * shows when Google reports ready. Dialogs supply localized statusCopy for loading,
  * no fill and failures.
  */
-export default function RewardedAdButton({ label, onGranted, onDone, source, statusCopy }: Props) {
+export default function RewardedAdButton({ label, kind, onGranted, onDone, source, statusCopy }: Props) {
+  const router = useRouter();
   const [status, setStatus] = useState<RewardedState | "idle">("idle");
   const [requested, setRequested] = useState(false);
   const sessionRef = useRef<ReturnType<typeof createRewardedAd> | null>(null);
@@ -51,7 +62,15 @@ export default function RewardedAdButton({ label, onGranted, onDone, source, sta
     };
   }, [source, requested]);
 
-  const ready = status === "idle" || status === "ready" || status === "busy";
+  // GPT had nothing to show (this network has no line items / Ad Exchange for
+  // the rewarded slot): continue on the AdSense Offerwall page instead.
+  useEffect(() => {
+    if (status !== "unavailable") return;
+    trackEvent("rewarded_ad_fallback", { source, kind });
+    router.push(adUnlockUrl(kind));
+  }, [status, source, kind, router]);
+
+  const ready = status === "idle" || status === "ready" || status === "busy" || status === "unavailable";
   if (!ready) {
     if (!statusCopy) return null;
     return (
@@ -67,7 +86,7 @@ export default function RewardedAdButton({ label, onGranted, onDone, source, sta
   return (
     <button
       type="button"
-      disabled={status === "busy"}
+      disabled={status === "busy" || status === "unavailable"}
       onClick={() => {
         if (status === "idle") { setStatus("loading"); setRequested(true); return; }
         if (sessionRef.current?.show()) trackEvent("rewarded_ad_open", { source });

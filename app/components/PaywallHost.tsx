@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { clearAdUnlockPending } from "@/lib/adUnlock";
 import { subscribePaywall, type PaywallRequest } from "@/lib/paywall";
 import { adRewardsLeftFor, hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
 import GuestAnalysisLimitModal from "./GuestAnalysisLimitModal";
@@ -23,7 +24,9 @@ export default function PaywallHost() {
   const [adAllowed, setAdAllowed] = useState(false);
   const requestVersion = useRef(0);
   const [version, setVersion] = useState(0);
-  const close = () => { requestVersion.current++; setReq(null); };
+  // Closing the paywall also drops a pending Offerwall resume (lib/adUnlock.ts);
+  // RewardedAdButton navigates away before this runs when it falls back.
+  const close = () => { requestVersion.current++; setReq(null); clearAdUnlockPending(); };
 
   useEffect(
     () =>
@@ -73,6 +76,7 @@ export default function PaywallHost() {
         adAllowed
           ? {
               label: copy.ad,
+              kind: req.kind,
               onGranted: async (rewardId) => {
                 const u = auth.currentUser;
                 if (!u || u.uid !== rewardUser?.uid) return false;

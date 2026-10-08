@@ -20,6 +20,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
+import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
@@ -220,6 +221,7 @@ function TranslateIcon({ className }: { className?: string }) {
 export default function SharedPage() {
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [items, setItems] = useState<SharedDream[]>([]);
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -257,6 +259,7 @@ export default function SharedPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u ? u.uid : null);
+      setAuthReady(true);
       if (!u) return;
       ensureUserProfileOnSignIn(u);
     });
@@ -301,6 +304,18 @@ export default function SharedPage() {
     pendingAfterSignInRef.current = null;
     void translateRef.current(d);
   }, [uid, claimedUid, languageReady]);
+
+  // ✅ back from the Offerwall page (/ad/unlock): the ad credit is booked,
+  // re-run the translation the user asked for (lib/adUnlock.ts).
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current || items.length === 0 || !authReady || !languageReady) return;
+    if (uid && claimedUid !== uid) return;
+    resumedRef.current = true;
+    const pending = takeAdUnlockPending("translate");
+    const d = pending?.dreamId ? items.find((x) => x.id === pending.dreamId) : null;
+    if (d) void translateRef.current(d);
+  }, [items, authReady, languageReady, uid, claimedUid]);
 
   // ✅ realtime shared_dreams feed
   useEffect(() => {
@@ -536,6 +551,7 @@ export default function SharedPage() {
         if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
           // Guest: sign in with Google (one free translation a day, and the
           // translations unlocked with ads move to the account) or watch an ad.
+          setAdUnlockPending({ kind: "translate", dreamId: d.id });
           openPaywall({
             kind: "translate",
             source: "feed_translate_guest",
@@ -559,6 +575,7 @@ export default function SharedPage() {
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           // Daily free translation already used and no subscription:
           // the site-wide paywall (plans + "watch an ad" → one more translation).
+          setAdUnlockPending({ kind: "translate", dreamId: d.id });
           openPaywall({ kind: "translate", source: "feed_translate", retry: () => void translateRef.current(d) });
           return;
         }

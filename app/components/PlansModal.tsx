@@ -8,6 +8,7 @@ import { subscriptionItem, trackEvent } from "@/lib/analytics";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import RewardedAdButton from "./RewardedAdButton";
+import type { PaywallKind } from "@/lib/paywall";
 
 type Props = {
   open: boolean;
@@ -21,7 +22,7 @@ type Props = {
    * onGranted asks the server for the credit (true = granted); onDone runs
    * after the ad closes with the credit in place.
    */
-  rewarded?: { label: string; onGranted: (rewardId: string) => Promise<boolean>; onDone: () => void } | null;
+  rewarded?: { label: string; kind: PaywallKind; onGranted: (rewardId: string) => Promise<boolean>; onDone: () => void } | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -132,6 +133,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
         {rewarded ? (
           <RewardedAdButton
             label={rewarded.label}
+            kind={rewarded.kind}
             source={source}
             statusCopy={{
               loading: t.plansModal.adLoading,

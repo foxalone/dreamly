@@ -344,6 +344,14 @@ export const DE_MESSAGES: UiMessages = {
     buddhist: "Buddhistisch",
     jewish: "Jüdisch",
   },
+  adUnlock: {
+    title: "Sieh dir eine kurze Werbung an",
+    waiting: "Werbung wird geladen…",
+    watching: "Sieh dir die Werbung bis zum Ende an, um fortzufahren.",
+    done: "Danke! Du wirst zurückgeleitet…",
+    none: "Gerade ist keine Werbung verfügbar. Bitte versuche es später noch einmal.",
+    back: "Zurück",
+  },
   plansModal: {
     guestTitle: "Weiter zur Traumdeutung",
     guestBody: "Als Gast erhältst du eine kostenlose KI-Deutung. Diese hast du bereits genutzt. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",

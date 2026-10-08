@@ -306,6 +306,7 @@ export type UiMessages = {
     signIn: string;
     interpret: string;
   };
+  adUnlock: { title: string; waiting: string; watching: string; done: string; none: string; back: string };
   plansModal: {
     guestTitle: string;
     guestBody: string;
