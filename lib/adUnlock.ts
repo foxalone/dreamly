@@ -81,3 +81,21 @@ export function isOfferwallElement(el: Element): boolean {
   const id = el.id ?? "";
   return /(^|\s)fc-/.test(cls) || id.startsWith("fc-") || /(^|\s)fc-/.test(el.getAttribute("class") ?? "");
 }
+
+/**
+ * The Offerwall grants an entitlement after the ad (configured as "1 page
+ * view") and keeps it in the first-party cookie FCOEC. That page view would be
+ * the NEXT visit to /ad/unlock, so the Offerwall would only render every other
+ * time. The credit is already booked on our server by then, so once it is,
+ * the entitlement is dropped and the next unlock shows an ad again.
+ */
+export function clearOfferwallEntitlement() {
+  try {
+    const host = window.location.hostname;
+    for (const domain of ["", host, `.${host}`]) {
+      document.cookie = `FCOEC=; Max-Age=0; path=/${domain ? `; domain=${domain}` : ""}`;
+    }
+  } catch {
+    /* ignore */
+  }
+}

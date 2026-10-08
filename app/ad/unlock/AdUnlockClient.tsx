@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
-import { isOfferwallElement, safeNext } from "@/lib/adUnlock";
+import { clearOfferwallEntitlement, isOfferwallElement, safeNext } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { PaywallKind } from "@/lib/paywall";
@@ -104,6 +104,7 @@ export default function AdUnlockClient() {
           return;
         }
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
+        clearOfferwallEntitlement();
         setPhase("done");
         setTimeout(() => router.replace(next), 600);
       } catch {
