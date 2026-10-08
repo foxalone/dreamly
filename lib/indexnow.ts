@@ -57,7 +57,7 @@ export function indexNowKeyLocation(key: string = indexNowKey()): string {
 /* ---------------------------------------------------------------- URL rules */
 
 /** Unprefixed path prefixes that are noindex and/or disallowed in robots.txt. */
-const EXCLUDED_PATH_PREFIXES = ["/signin", "/app", "/payment-success"];
+const EXCLUDED_PATH_PREFIXES = ["/signin", "/app", "/payment-success", "/ad"];
 /** Exceptions inside an excluded prefix: public, indexable pages (see app/app/map/mapSeo.tsx). */
 const INDEXABLE_EXCEPTIONS = ["/app/map"];
 
