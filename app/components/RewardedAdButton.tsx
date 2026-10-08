@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { adUnlockUrl } from "@/lib/adUnlock";
 import { createRewardedAd, type RewardedState } from "@/lib/rewardedAd";
 import { trackEvent } from "@/lib/analytics";
@@ -36,7 +34,6 @@ type Props = {
  * no fill and failures.
  */
 export default function RewardedAdButton({ label, kind, onGranted, onDone, source, statusCopy }: Props) {
-  const router = useRouter();
   const [status, setStatus] = useState<RewardedState | "idle">("idle");
   const [requested, setRequested] = useState(false);
   const sessionRef = useRef<ReturnType<typeof createRewardedAd> | null>(null);
@@ -64,11 +61,14 @@ export default function RewardedAdButton({ label, kind, onGranted, onDone, sourc
 
   // GPT had nothing to show (this network has no line items / Ad Exchange for
   // the rewarded slot): continue on the AdSense Offerwall page instead.
+  // Full navigation on purpose: the Offerwall is rendered by the AdSense tag
+  // on page load only, a client-side route change would not trigger it (and
+  // would leave this modal on screen).
   useEffect(() => {
     if (status !== "unavailable") return;
     trackEvent("rewarded_ad_fallback", { source, kind });
-    router.push(adUnlockUrl(kind));
-  }, [status, source, kind, router]);
+    window.location.assign(adUnlockUrl(kind));
+  }, [status, source, kind]);
 
   const ready = status === "idle" || status === "ready" || status === "busy" || status === "unavailable";
   if (!ready) {
