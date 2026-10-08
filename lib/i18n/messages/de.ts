@@ -244,6 +244,7 @@ export const DE_MESSAGES: UiMessages = {
     showOriginal: "Original anzeigen",
     translateTo: "In {language} übersetzen",
     translationAllowance: "Eine kostenlose Übersetzung pro Tag, unbegrenzt mit einem Abo",
+    guestTranslationAllowance: "Melde dich an für eine kostenlose Übersetzung pro Tag, oder sieh dir eine kurze Werbung an",
 
     title: "Profil",
     copyUuid: "UUID kopieren",
@@ -347,6 +348,10 @@ export const DE_MESSAGES: UiMessages = {
     guestTitle: "Weiter zur Traumdeutung",
     guestBody: "Als Gast erhältst du eine kostenlose KI-Deutung. Diese hast du bereits genutzt. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
     guestNetworkBody: "Die kostenlosen KI-Deutungen für dieses Netzwerk sind heute aufgebraucht. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
+    guestTranslateTitle: "Diesen Traum übersetzen",
+    guestTranslateBody: "Melde dich mit Google an und erhalte eine kostenlose Übersetzung pro Tag, oder sieh dir eine kurze Werbung an, um ohne Anmeldung zu übersetzen. Die Übersetzung bleibt deine – wenn du dich später anmeldest, wandert sie in dein Konto.",
+    signInWithGoogle: "Mit Google fortfahren",
+    translateNow: "Übersetzen",
     adLoading: "Verfügbare Werbung wird gesucht…",
     adUnavailable: "Zurzeit ist keine Werbung verfügbar. Du kannst dich anmelden oder es später erneut versuchen.",
     adUnavailableSignedIn: "Zurzeit ist keine Werbung verfügbar. Bitte versuche es später erneut.",

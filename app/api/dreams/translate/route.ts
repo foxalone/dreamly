@@ -8,9 +8,17 @@ import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundAdTranslateCredit, refundFreeTranslation } from "../_lib/translationQuota";
 import {
+  consumeGuestTranslation,
+  newGuestId,
+  readGuestId,
+  refundGuestTranslation,
+  setGuestCookie,
+} from "../_lib/guestQuota";
+import {
   readCachedTranslation,
   recordTranslationServe,
   readTranslationUnlock,
+  type TranslationOwner,
   type TranslationSource,
 } from "../_lib/translationLedger";
 
@@ -59,17 +67,41 @@ async function lookupUser(uid: string): Promise<{ name: string | null; email: st
   }
 }
 
+/**
+ * Who is asking:
+ *  - with `idToken` → a signed-in user (daily free slot / ad credit / Pro);
+ *  - without it → a guest identified by the dreamly_guest cookie. Guests have
+ *    no free slot: they translate only with an ad credit
+ *    (POST /api/dreams/guest-ad-reward kind=translate) and get the same
+ *    permanent unlock, which moves into their account when they sign in
+ *    (POST /api/dreams/claim-guest-translations). A guest without a cookie
+ *    gets one on the 402 so the ad flow can attach the credit to it.
+ */
 export async function POST(req: Request) {
   let uid: string | null = null;
+  let guestId: string | null = null;
   let refundDaily = false;
   let refundAd = false;
+  let refundGuest = false;
+  // set when the guest cookie was minted in this request
+  let cookieGuestId: string | null = null;
+  const finish = <T extends NextResponse>(res: T): T => (cookieGuestId ? setGuestCookie(res, cookieGuestId) : res);
 
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
 
-    const auth = await requireSignedInUid(body?.idToken);
-    if ("error" in auth) return auth.error;
-    uid = auth.uid;
+    if (String(body?.idToken ?? "").trim()) {
+      const auth = await requireSignedInUid(body?.idToken);
+      if ("error" in auth) return auth.error;
+      uid = auth.uid;
+    } else {
+      guestId = readGuestId(req);
+      if (!guestId) {
+        guestId = newGuestId();
+        cookieGuestId = guestId;
+      }
+    }
+    const owner: TranslationOwner = uid ? { uid } : { guestId: guestId! };
 
     const sharedDreamId = String(body?.sharedDreamId ?? "").trim();
     const targetLang = normalizeTargetLang(body?.targetLang);
@@ -100,9 +132,9 @@ export async function POST(req: Request) {
     const text = String(dream.text ?? "").trim();
     const cached = await readCachedTranslation(ref, dream, targetLang);
 
-    const unlocked = await readTranslationUnlock(db, uid, sharedDreamId, targetLang);
+    const unlocked = await readTranslationUnlock(db, owner, sharedDreamId, targetLang);
     if (cached && unlocked) {
-      return NextResponse.json({
+      return finish(NextResponse.json({
         translation: cached.entry.text,
         cached: true,
         source: "unlocked" satisfies TranslationSource,
@@ -110,7 +142,7 @@ export async function POST(req: Request) {
         usedDailyFree: false,
         model: cached.entry.model,
         targetLang,
-      });
+      }));
     }
 
     if (!text && !cached) {
@@ -120,16 +152,33 @@ export async function POST(req: Request) {
     // Subscribers: unlimited. Others use the daily free slot, then ad credits.
     // Without either, return 402 so the client offers an ad or a subscription.
     // An existing unlock remains free even if its cached text needs rebuilding.
-    const access = unlocked
-      ? { ok: true as const, paid: false, usedDailyFree: false, usedAdCredit: false }
-      : await consumeTranslationAccess(uid);
-    if ("error" in access) return access.error;
-    refundDaily = access.usedDailyFree;
-    refundAd = access.usedAdCredit;
-    const usedDailyFree = access.usedDailyFree;
-    const paid = access.paid;
+    let usedDailyFree = false;
+    let paid = false;
+    if (unlocked) {
+      // existing access — nothing to charge
+    } else if (uid) {
+      const access = await consumeTranslationAccess(uid);
+      if ("error" in access) return access.error;
+      refundDaily = access.usedDailyFree;
+      refundAd = access.usedAdCredit;
+      usedDailyFree = access.usedDailyFree;
+      paid = access.paid;
+    } else {
+      // Guest: an ad credit or nothing. 402 → the client offers
+      // "sign in with Google" / "watch an ad".
+      const ok = await consumeGuestTranslation(guestId!);
+      if (!ok) {
+        return finish(
+          NextResponse.json(
+            { error: "Sign in or watch an ad to translate.", code: "GUEST_AD_REQUIRED", reason: "GUEST_TRANSLATION" },
+            { status: 402 }
+          )
+        );
+      }
+      refundGuest = true;
+    }
 
-    const who = await lookupUser(uid);
+    const who = uid ? await lookupUser(uid) : { name: "guest", email: null };
 
     // Cache hit: no OpenAI call, but the slot above is already spent.
     if (cached) {
@@ -137,7 +186,8 @@ export async function POST(req: Request) {
         db,
         dreamRef: ref,
         sharedDreamId,
-        uid,
+        uid: uid ?? "",
+        guestId: guestId ?? undefined,
         who,
         targetLang,
         source: "cache",
@@ -148,7 +198,8 @@ export async function POST(req: Request) {
       });
       refundDaily = false;
       refundAd = false;
-      return NextResponse.json({
+      refundGuest = false;
+      return finish(NextResponse.json({
         translation: cached.entry.text,
         cached: true,
         source: "cache" satisfies TranslationSource,
@@ -156,7 +207,7 @@ export async function POST(req: Request) {
         usedDailyFree,
         model: cached.entry.model,
         targetLang,
-      });
+      }));
     }
 
     const apiKey = getOneiroOpenAiApiKey();
@@ -180,7 +231,8 @@ export async function POST(req: Request) {
       db,
       dreamRef: ref,
       sharedDreamId,
-      uid,
+      uid: uid ?? "",
+      guestId: guestId ?? undefined,
       who,
       targetLang,
       source: "ai",
@@ -192,7 +244,8 @@ export async function POST(req: Request) {
 
     refundDaily = false;
     refundAd = false;
-    return NextResponse.json({
+    refundGuest = false;
+    return finish(NextResponse.json({
       translation,
       cached: false,
       source: "ai" satisfies TranslationSource,
@@ -200,10 +253,11 @@ export async function POST(req: Request) {
       usedDailyFree,
       model,
       targetLang,
-    });
+    }));
   } catch (e: any) {
     if (uid && refundDaily) await refundFreeTranslation(uid);
     if (uid && refundAd) await refundAdTranslateCredit(uid);
+    if (guestId && refundGuest) await refundGuestTranslation(guestId);
     return NextResponse.json(
       { error: e?.message ?? "Translate failed" },
       { status: 500 }

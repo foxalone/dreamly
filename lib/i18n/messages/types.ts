@@ -198,6 +198,7 @@ export type UiMessages = {
     showOriginal: string;
     translateTo: string;
     translationAllowance: string;
+    guestTranslationAllowance: string;
 
     title: string;
     copyUuid: string;
@@ -309,6 +310,10 @@ export type UiMessages = {
     guestTitle: string;
     guestBody: string;
     guestNetworkBody: string;
+    guestTranslateTitle: string;
+    guestTranslateBody: string;
+    signInWithGoogle: string;
+    translateNow: string;
     adLoading: string;
     adUnavailable: string;
     adUnavailableSignedIn: string;

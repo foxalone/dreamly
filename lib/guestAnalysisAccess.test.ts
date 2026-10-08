@@ -32,6 +32,10 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   const tx = {
     get: async (ref: { path: string }) => ({ exists: records.has(ref.path), data: () => records.get(ref.path) }),
     set: write,
+    create: (ref: { path: string }, data: Record<string, unknown>) => {
+      if (records.has(ref.path)) throw new Error("ALREADY_EXISTS");
+      records.set(ref.path, data);
+    },
   };
   t.mock.method(db, "runTransaction", async (fn: (transaction: typeof tx) => unknown) => fn(tx));
   t.mock.method(db, "batch", () => ({ set: write, commit: async () => [] }));
@@ -42,6 +46,13 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   const request = () => new Request("http://localhost/api/dreams/guest-ad-reward", {
     headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip },
   });
+  // POST needs a fresh replay key per watched ad (lib/rewardedReceipt.ts).
+  let seq = 0;
+  const grant = () => new Request("http://localhost/api/dreams/guest-ad-reward", {
+    method: "POST",
+    headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
+    body: JSON.stringify({ rewardId: `9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c${String(++seq).padStart(2, "0")}` }),
+  });
 
   assert.equal((await GET(new Request("http://localhost/api/dreams/guest-ad-reward"))).status, 401);
   const free = await consumeGuestAsk(id, ip);
@@ -49,9 +60,9 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   assert.equal(free.charge, "free");
   assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "guest_limit" });
   assert.deepEqual(await (await GET(request())).json(), { credits: 0, leftToday: 3 });
-  assert.deepEqual(await (await POST(request())).json(), { credits: 1, leftToday: 2 });
+  assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: 2 });
   // A retried reward request cannot accumulate an extra unspent credit.
-  assert.deepEqual(await (await POST(request())).json(), { credits: 1, leftToday: 2 });
+  assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: 2 });
   const earned = await consumeGuestAsk(id, ip);
   assert.ok(earned.ok);
   assert.equal(earned.charge, "ad");
@@ -62,17 +73,17 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 1);
   assert.ok((await consumeGuestAsk(id, ip)).ok);
   for (let n = 0; n < 2; n++) {
-    assert.equal((await POST(request())).status, 200);
+    assert.equal((await POST(grant())).status, 200);
     assert.ok((await consumeGuestAsk(id, ip)).ok);
   }
-  assert.equal((await POST(request())).status, 429);
+  assert.equal((await POST(grant())).status, 429);
   // Resetting cookies does not bypass the network ad cap.
-  assert.deepEqual(await guestAdReward("another-guest", ip, true), { credits: 0, leftToday: 0 });
+  assert.deepEqual(await guestAdReward("another-guest", ip, true, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c90"), { credits: 0, leftToday: 0 });
 
   const networkIp = "192.0.2.2";
   records.set(`guestQuickSymbolIp/${hashIp(networkIp)}_${today}`, { used: 5 });
   assert.deepEqual(await consumeGuestAsk("network-guest", networkIp), { ok: false, reason: "ip_limit" });
-  await guestAdReward("network-guest", networkIp, true);
+  await guestAdReward("network-guest", networkIp, true, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c91");
   const networkEarned = await consumeGuestAsk("network-guest", networkIp);
   assert.ok(networkEarned.ok);
   assert.equal(networkEarned.charge, "ad");

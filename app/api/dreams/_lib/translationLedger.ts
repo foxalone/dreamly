@@ -18,10 +18,17 @@ import { FieldValue, type DocumentReference, type Firestore } from "firebase-adm
  *     { sharedDreamId, langs: { en: { atMs, source, usedDailyFree, paid } } }
  *
  * A user pays (daily free slot or Pro) once per dream+lang, then it is theirs
- * forever. Every paid serve is logged for the admin dashboard:
+ * forever. Guests (no account, identified by the dreamly_guest cookie) pay
+ * with an ad credit and get the same permanent unlock under
+ *
+ *   guestQuickSymbol/{guestId}/translationUnlocks/{sharedDreamId}
+ *
+ * which POST /api/dreams/claim-guest-translations moves into the account the
+ * first time that browser signs in. Every paid serve is logged for the admin
+ * dashboard:
  *
  *   shared_dreams/{id}/translationEvents/{auto}
- *     { uid, name, email, lang, source: "ai" | "cache", model, usedDailyFree, paid, atMs }
+ *     { uid, guestId, name, email, lang, source: "ai" | "cache", model, usedDailyFree, paid, atMs }
  *
  * The public dream doc only carries `translatedLangs` and `translationCount`.
  *
@@ -94,15 +101,32 @@ export async function readCachedTranslation(
   return entry ? { entry, legacy: true } : null;
 }
 
+/** Who unlocked a translation: a signed-in user or an anonymous guest (cookie). */
+export type TranslationOwner = { uid: string; guestId?: undefined } | { guestId: string; uid?: undefined };
+
+export function translationUnlockPath(owner: TranslationOwner, sharedDreamId: string) {
+  return owner.uid
+    ? `users/${owner.uid}/translationUnlocks/${sharedDreamId}`
+    : `guestQuickSymbol/${owner.guestId}/translationUnlocks/${sharedDreamId}`;
+}
+
+function toOwner(owner: string | TranslationOwner): TranslationOwner | null {
+  if (typeof owner === "string") return owner ? { uid: owner } : null;
+  if (owner.uid) return { uid: owner.uid };
+  if (owner.guestId) return { guestId: owner.guestId };
+  return null;
+}
+
 export async function readTranslationUnlock(
   db: Firestore,
-  uid: string,
+  owner: string | TranslationOwner,
   sharedDreamId: string,
   lang: string
 ): Promise<boolean> {
-  if (!uid || !sharedDreamId) return false;
+  const who = toOwner(owner);
+  if (!who || !sharedDreamId) return false;
   // A failed read must not turn existing access into a new charge.
-  const snap = await db.doc(`users/${uid}/translationUnlocks/${sharedDreamId}`).get();
+  const snap = await db.doc(translationUnlockPath(who, sharedDreamId)).get();
   if (!snap.exists) return false;
   const langs = (snap.data() as any)?.langs;
   return !!(langs && typeof langs === "object" && langs[lang]);
@@ -112,7 +136,9 @@ export async function recordTranslationServe(args: {
   db: Firestore;
   dreamRef: DocumentReference;
   sharedDreamId: string;
+  /** signed-in user; empty for a guest (then `guestId` is required) */
   uid: string;
+  guestId?: string;
   who: { name: string | null; email: string | null };
   targetLang: string;
   source: "ai" | "cache";
@@ -125,6 +151,12 @@ export async function recordTranslationServe(args: {
   cached?: { entry: TranslationEntry; legacy: boolean };
 }) {
   const { db, dreamRef, sharedDreamId, uid, who, targetLang, source, model, usedDailyFree, paid } = args;
+  const guestId = uid ? undefined : String(args.guestId ?? "").trim();
+  if (!uid && !guestId) throw new Error("recordTranslationServe: uid or guestId required");
+  const owner: TranslationOwner = uid ? { uid } : { guestId: guestId! };
+  // Ledger fields that identify the payer: uid for accounts, null for guests
+  // (the admin shows the guestId from the event instead).
+  const payerUid = uid || null;
   const now = Date.now();
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
   const prev: Partial<TranslationEntry> = args.cached?.entry ?? {};
@@ -135,14 +167,14 @@ export async function recordTranslationServe(args: {
           text: args.translation ?? "",
           model,
           atMs: now,
-          byUid: uid,
+          byUid: payerUid,
           byName: who.name,
           byEmail: who.email,
           aiCalls: num(prev.aiCalls) + 1,
           cacheHits: num(prev.cacheHits),
           unlockCount: num(prev.unlockCount) + 1,
           lastServedAtMs: now,
-          lastServedByUid: uid,
+          lastServedByUid: payerUid,
           lastSource: "ai",
         }
       : {
@@ -156,7 +188,7 @@ export async function recordTranslationServe(args: {
           cacheHits: num(prev.cacheHits) + 1,
           unlockCount: num(prev.unlockCount) + 1,
           lastServedAtMs: now,
-          lastServedByUid: uid,
+          lastServedByUid: payerUid,
           lastSource: "cache",
         };
 
@@ -174,7 +206,8 @@ export async function recordTranslationServe(args: {
   batch.update(dreamRef, publicUpdate);
 
   batch.set(dreamRef.collection("translationEvents").doc(), {
-    uid,
+    uid: payerUid,
+    guestId: guestId ?? null,
     name: who.name,
     email: who.email,
     lang: targetLang,
@@ -187,7 +220,7 @@ export async function recordTranslationServe(args: {
   });
 
   batch.set(
-    db.doc(`users/${uid}/translationUnlocks/${sharedDreamId}`),
+    db.doc(translationUnlockPath(owner, sharedDreamId)),
     {
       sharedDreamId,
       updatedAtMs: now,

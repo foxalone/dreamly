@@ -244,6 +244,7 @@ export const EN_MESSAGES: UiMessages = {
     showOriginal: "Show original",
     translateTo: "Translate to {language}",
     translationAllowance: "One free translation a day, unlimited with a subscription",
+    guestTranslationAllowance: "Sign in for one free translation a day, or watch a short ad",
 
     title: "Profile",
     copyUuid: "Copy UUID",
@@ -347,6 +348,10 @@ export const EN_MESSAGES: UiMessages = {
     guestTitle: "Continue your interpretation",
     guestBody: "Guests get one free AI interpretation. That limit is used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
     guestNetworkBody: "Today’s free AI interpretations for this network are used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
+    guestTranslateTitle: "Translate this dream",
+    guestTranslateBody: "Sign in with Google to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
+    signInWithGoogle: "Continue with Google",
+    translateNow: "Translate",
     adLoading: "Looking for an available ad…",
     adUnavailable: "No ad is available right now. You can sign in or try again later.",
     adUnavailableSignedIn: "No ad is available right now. Please try again later.",

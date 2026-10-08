@@ -18,6 +18,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { openPaywall } from "@/lib/paywall";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
@@ -238,6 +239,13 @@ export default function SharedPage() {
   // translations fetched in this session ("<dreamId>:<lang>" → text) so a
   // second click doesn't hit the API again
   const [fetchedTranslations, setFetchedTranslations] = useState<Record<string, string>>({});
+  // uid whose guest translation unlocks (cookie) were already handed over to
+  // the account this page load — a pending translate waits for it, so the
+  // account is never charged for a dream the guest already paid for.
+  const [claimedUid, setClaimedUid] = useState<string | null>(null);
+  // dream to translate as soon as the guest finished signing in from the modal
+  const pendingAfterSignInRef = useRef<SharedDream | null>(null);
+  const translateRef = useRef<(d: SharedDream) => Promise<void>>(async () => {});
   const t = useMessages();
 
   useEffect(() => {
@@ -254,6 +262,45 @@ export default function SharedPage() {
     });
     return () => unsub();
   }, []);
+
+  // ✅ guest → account: move translations unlocked with ads (see
+  // /api/dreams/claim-guest-translations). Idempotent; cheap when nothing to move.
+  useEffect(() => {
+    if (!uid) {
+      setClaimedUid(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const u = auth.currentUser;
+        if (!u || u.uid !== uid) return;
+        const idToken = await u.getIdToken();
+        await fetch("/api/dreams/claim-guest-translations", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+      } catch (e) {
+        console.warn("claim-guest-translations failed:", e);
+      } finally {
+        if (!cancelled) setClaimedUid(uid);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [uid]);
+
+  // ✅ translate the dream the guest clicked, once signed in, claimed and the
+  // account's language preference is known.
+  useEffect(() => {
+    const d = pendingAfterSignInRef.current;
+    if (!d || !uid || claimedUid !== uid || !languageReady) return;
+    pendingAfterSignInRef.current = null;
+    void translateRef.current(d);
+  }, [uid, claimedUid, languageReady]);
 
   // ✅ realtime shared_dreams feed
   useEffect(() => {
@@ -427,8 +474,6 @@ export default function SharedPage() {
     }
   }
 
-  const translateRef = useRef<(d: SharedDream) => Promise<void>>(async () => {});
-
   async function translateDream(d: SharedDream) {
     const original = (d.text ?? "").trim();
     if (!original) return;
@@ -443,11 +488,11 @@ export default function SharedPage() {
       return;
     }
 
+    // Guests may translate too: the API identifies them by the dreamly_guest
+    // cookie and charges an ad credit (402 GUEST_AD_REQUIRED → modal with
+    // "continue with Google" / "watch an ad"). Their target language is the
+    // browser's, since there is no profile preference yet.
     const u = auth.currentUser;
-    if (!u) {
-      setError("Sign in to translate.");
-      return;
-    }
 
     if (!languageReady) return;
     const lang = targetLang;
@@ -473,20 +518,44 @@ export default function SharedPage() {
     setTranslateBusyId(d.id);
 
     try {
-      const idToken = await u.getIdToken();
+      const idToken = u ? await u.getIdToken() : undefined;
       const res = await fetch("/api/dreams/translate", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sharedDreamId: d.id,
           text: original,
           targetLang: lang,
-          idToken,
+          ...(idToken ? { idToken } : {}),
         }),
       });
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
+          // Guest: sign in with Google (one free translation a day, and the
+          // translations unlocked with ads move to the account) or watch an ad.
+          openPaywall({
+            kind: "translate",
+            source: "feed_translate_guest",
+            guest: {
+              reason: "translate",
+              signIn: () => {
+                pendingAfterSignInRef.current = d;
+                signInWithGoogle().catch((e) => {
+                  pendingAfterSignInRef.current = null;
+                  // popup closed by the user is not an error worth showing
+                  if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+                    setError(e?.message ?? "Sign-in failed.");
+                  }
+                });
+              },
+            },
+            retry: () => void translateRef.current(d),
+          });
+          return;
+        }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           // Daily free translation already used and no subscription:
           // the site-wide paywall (plans + "watch an ad" → one more translation).
@@ -665,7 +734,7 @@ export default function SharedPage() {
                           : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
                       const title = isBusy || isShowing || hasMine
                         ? label
-                        : `${label} (${t.profile.translationAllowance})`;
+                        : `${label} (${uid ? t.profile.translationAllowance : t.profile.guestTranslationAllowance})`;
 
                       return (
                         <button

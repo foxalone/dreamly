@@ -244,6 +244,7 @@ export const ES_MESSAGES: UiMessages = {
     showOriginal: "Mostrar original",
     translateTo: "Traducir a {language}",
     translationAllowance: "Una traducción gratis al día; traducciones ilimitadas con una suscripción",
+    guestTranslationAllowance: "Entra para una traducción gratis al día, o mira un anuncio corto",
 
     title: "Perfil",
     copyUuid: "Copiar UUID",
@@ -347,6 +348,10 @@ export const ES_MESSAGES: UiMessages = {
     guestTitle: "Continúa con tu interpretación",
     guestBody: "Como visitante, tienes una interpretación con IA gratis y ya la usaste. Entra o mira un anuncio corto para obtener otra gratis sin iniciar sesión.",
     guestNetworkBody: "Ya se usaron las interpretaciones con IA gratis de hoy para esta red. Entra o mira un anuncio corto para obtener otra gratis sin iniciar sesión.",
+    guestTranslateTitle: "Traducir este sueño",
+    guestTranslateBody: "Entra con Google para obtener una traducción gratis al día, o mira un anuncio corto para traducir sin iniciar sesión. La traducción es tuya: si entras más tarde, pasará a tu cuenta.",
+    signInWithGoogle: "Continuar con Google",
+    translateNow: "Traducir",
     adLoading: "Buscando un anuncio disponible…",
     adUnavailable: "No hay anuncios disponibles ahora. Puedes entrar o intentarlo más tarde.",
     adUnavailableSignedIn: "No hay anuncios disponibles ahora. Inténtalo más tarde.",
