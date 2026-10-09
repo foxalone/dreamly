@@ -45,7 +45,7 @@ import AiImageAdminPanel from "./AiImageAdminPanel";
 import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
 import DreamTranslationsInfo from "./DreamTranslationsInfo";
-import { shareBadgeFor } from "@/lib/shareBadges";
+import { guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
 import { EN_MESSAGES } from "@/lib/i18n/messages/en";
 
 import data from "@emoji-mart/data";
@@ -662,6 +662,37 @@ export default function AdminDashboardPage() {
     return () => unsub();
   }, [user?.uid, isAdmin, pageSize, onlyShared]);
 
+  // ✅ Guest dreams CAN be in the public feed since share-guest
+  // (shared_dreams/guest_{guestId}, app/api/dreams/share-guest). Track which
+  // guests currently have one, so guest rows show the real shared state and
+  // "Hide from Shared" / deletes also remove the feed copy.
+  const [guestShared, setGuestShared] = useState<Map<string, number>>(() => new Map());
+  useEffect(() => {
+    if (!user || !isAdmin) {
+      setGuestShared(new Map());
+      return;
+    }
+    const q = query(collection(firestore, "shared_dreams"), where("fromGuest", "==", true));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const next = new Map<string, number>();
+        snap.docs.forEach((d) => {
+          // a share claimed into an account lives at {uid}_{dreamId} — that
+          // copy belongs to the user's own row, not to the guest row
+          if (!d.id.startsWith("guest_")) return;
+          const data = d.data() as { ownerGuestId?: unknown; sharedAtMs?: unknown };
+          const g = String(data?.ownerGuestId ?? "").trim();
+          if (g) next.set(g, Number(data?.sharedAtMs ?? 0));
+        });
+        setGuestShared(next);
+      },
+      (e) => console.warn("guest shared_dreams onSnapshot error:", e?.message ?? e),
+    );
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, isAdmin]);
+
   // ✅ RTDB: live load config JSON
   useEffect(() => {
     if (!user || !isAdmin) return;
@@ -855,14 +886,26 @@ export default function AdminDashboardPage() {
       ? dreamSearchRes?.matches ?? live.filter((x) => dreamMatchesQuery(x, dreamSearchQ))
       : live;
     r = mergeGuestOrigins(r);
+    // guestRowFromDoc cannot know about the feed copy — overlay the live map
+    r = r.map((x) => {
+      if (!isGuestRow(x) || !x.guestId) return x;
+      const atMs = guestShared.get(x.guestId);
+      return atMs !== undefined ? { ...x, shared: true, sharedAtMs: atMs || x.sharedAtMs } : x;
+    });
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);
     return r;
-  }, [items, guestItems, showDeleted, onlyShared, dreamSearchQ, dreamSearchRes]);
+  }, [items, guestItems, guestShared, showDeleted, onlyShared, dreamSearchQ, dreamSearchRes]);
 
   async function hideFromShared(d: DreamAdmin) {
     if (!isAdmin) return;
-    if (isGuestRow(d)) return; // guest pins are never in shared_dreams
+    if (isGuestRow(d)) {
+      // guest share lives at shared_dreams/guest_{guestId} (share-guest route)
+      if (!d.guestId || !guestShared.has(d.guestId)) return;
+      if (!confirm("Hide this dream from Shared?")) return;
+      await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      return;
+    }
     if (!confirm("Hide this dream from Shared?")) return;
 
     // 1) убрать флаг в оригинале
@@ -886,6 +929,9 @@ export default function AdminDashboardPage() {
         deletedAtMs: Date.now(),
         deletedBy: "admin",
       });
+      if (d.guestId && guestShared.has(d.guestId)) {
+        await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      }
       return;
     }
 
@@ -909,6 +955,9 @@ export default function AdminDashboardPage() {
     if (isGuestRow(d)) {
       // note: city_emoji_stats counters are not decremented (same as for user dreams)
       await deleteDoc(doc(firestore, "guest_dreams", d.id));
+      if (d.guestId && guestShared.has(d.guestId)) {
+        await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      }
       return;
     }
 
