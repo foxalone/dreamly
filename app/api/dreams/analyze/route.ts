@@ -96,9 +96,16 @@ export async function POST(req: Request) {
       guestId = readGuestId(req) ?? newGuestId();
       clientIp = readClientIp(req);
       // Same text from the same network today (cookie reset / incognito):
-      // serve the stored answer — no OpenAI call, no quota spent.
+      // a FREE repeat gets the stored answer — no OpenAI call, no quota
+      // spent. A repeat paid with an ad credit (e.g. the same dream through
+      // another lens) falls through and buys a fresh analysis, like any
+      // paid path — users who play by the rules get a real new reading.
       const dedup = await readGuestAskDedup(clientIp, text).catch(() => null);
-      if (dedup?.analysis) {
+      const booked = await consumeGuestAsk(guestId, clientIp);
+      if (dedup?.analysis && (!booked.ok || booked.charge === "free")) {
+        // Not ad-paid: hand back the free slot (if one was taken) and serve
+        // the cache.
+        if (booked.ok) await refundGuestAsk(guestId, clientIp, booked);
         return finish(
           NextResponse.json({
             analysis: dedup.analysis,
@@ -112,7 +119,6 @@ export async function POST(req: Request) {
           })
         );
       }
-      const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
         return finish(
           NextResponse.json(
