@@ -15,6 +15,7 @@ import {
   refundGuestAsk,
   setGuestCookie,
 } from "../_lib/guestQuota";
+import { readGuestAskDedup, writeGuestAskDedup } from "../_lib/guestDedup";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
@@ -94,6 +95,23 @@ export async function POST(req: Request) {
     if (!uid) {
       guestId = readGuestId(req) ?? newGuestId();
       clientIp = readClientIp(req);
+      // Same text from the same network today (cookie reset / incognito):
+      // serve the stored answer — no OpenAI call, no quota spent.
+      const dedup = await readGuestAskDedup(clientIp, text).catch(() => null);
+      if (dedup?.analysis) {
+        return finish(
+          NextResponse.json({
+            analysis: dedup.analysis,
+            model: dedup.model ?? null,
+            lens: dedup.lens ?? null,
+            guest: true,
+            cost: 0,
+            emojis: dedup.emojis ?? [],
+            emojiModel: dedup.emojiModel ?? null,
+            cached: true,
+          })
+        );
+      }
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
         return finish(
@@ -158,6 +176,18 @@ export async function POST(req: Request) {
     }
 
     const emojiPick = await emojiPromise;
+
+    if (isGuest) {
+      // Remember the answer for today's repeats of this text from this network.
+      await writeGuestAskDedup(clientIp, text, {
+        analysis,
+        model,
+        lens: lens ?? null,
+        emojis: emojiPick?.emojis ?? [],
+        emojiModel: emojiPick?.model ?? null,
+        createdAtMs: Date.now(),
+      }).catch(() => {});
+    }
 
     return finish(
       NextResponse.json({

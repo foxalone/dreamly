@@ -9,6 +9,7 @@ import {
   readGuestId,
   setGuestCookie,
 } from "@/app/api/dreams/_lib/guestQuota";
+import { readGuestAskDedup, writeGuestAskDedup } from "@/app/api/dreams/_lib/guestDedup";
 
 export const runtime = "nodejs";
 
@@ -65,6 +66,17 @@ export async function POST(req: Request) {
 
     if (natives.length === 0) {
       return finish(NextResponse.json({ ok: false, error: "Missing emojis" }, { status: 400 }));
+    }
+
+    // The same dream text already pinned from this network today (guest
+    // cookie reset): one person, one pin, one admin row — skip the duplicate.
+    const dedupText = s(body?.text);
+    const clientIp = readClientIp(req);
+    if (dedupText) {
+      const dedup = await readGuestAskDedup(clientIp, dedupText).catch(() => null);
+      if (dedup?.guestDreamId) {
+        return finish(NextResponse.json({ ok: true, skipped: true, deduped: true }));
+      }
     }
 
     const geo = await resolveIpCity(req);
@@ -194,6 +206,12 @@ export async function POST(req: Request) {
         { merge: true }
       );
     });
+
+    if (dedupText) {
+      // Link today's text to the created doc, so the next cookie-reset repeat
+      // is skipped above.
+      await writeGuestAskDedup(clientIp, dedupText, { guestDreamId: ingestId }).catch(() => {});
+    }
 
     if (!geo.lat || !geo.lng) {
       const url = new URL("/api/map/resolve-city", req.url);
