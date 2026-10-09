@@ -329,10 +329,13 @@ export type UiMessages = {
     watchAd: string;
     watchAdSave: string;
     watchAdTranslate: string;
+    adCardTitle: string;
+    adCardCta: string;
     savesLimitTitle: string;
     savesLimitBody: string;
     unlimitedNote: string;
     choosePlan: string;
+    chooseAccess: string;
     notNow: string;
     subscribeCta: string;
   };

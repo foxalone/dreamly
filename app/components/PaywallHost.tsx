@@ -15,7 +15,7 @@ import PlansModal from "./PlansModal";
  * Renders the site-wide paywall (see lib/paywall.ts): plans + "watch a short
  * ad" for one more interpretation / save / translation. The ad button is
  * offered only to signed-in users without a subscription who still have ad
- * rewards left today for that kind. GPT is requested after user opt-in.
+ * rewards left today for that kind. The ad card opens the AdSense Offerwall.
  * Guest analysis limits use a separate sign-in / rewarded-ad choice.
  */
 export default function PaywallHost() {
@@ -24,8 +24,8 @@ export default function PaywallHost() {
   const [adAllowed, setAdAllowed] = useState(false);
   const requestVersion = useRef(0);
   const [version, setVersion] = useState(0);
-  // Closing the paywall also drops a pending Offerwall resume (lib/adUnlock.ts);
-  // RewardedAdButton navigates away before this runs when it falls back.
+  // Closing the paywall drops a pending Offerwall resume. Choosing the ad card
+  // navigates without closing, so the selected action remains available.
   const close = () => { requestVersion.current++; setReq(null); clearAdUnlockPending(); };
 
   useEffect(
@@ -53,7 +53,6 @@ export default function PaywallHost() {
 
   if (req.guest) return <GuestAnalysisLimitModal key={version} request={req} onClose={close} />;
 
-  const rewardUser = auth.currentUser;
   const pm = t.plansModal;
   const copy =
     req.kind === "save"
@@ -78,23 +77,6 @@ export default function PaywallHost() {
               label: copy.ad,
               kind: req.kind,
               translation: req.translation,
-              onGranted: async (rewardId) => {
-                const u = auth.currentUser;
-                if (!u || u.uid !== rewardUser?.uid) return false;
-                const idToken = await u.getIdToken();
-                const res = await fetch("/api/dreams/ad-reward", {
-                  method: "POST",
-                  keepalive: true,
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ idToken, kind: req.kind, rewardId, ...req.translation }),
-                });
-                return res.ok;
-              },
-              onDone: () => {
-                const retry = req.retry;
-                close();
-                retry?.();
-              },
             }
           : null
       }
