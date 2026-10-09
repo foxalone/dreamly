@@ -7,7 +7,7 @@
  * itself — but it cannot be opened from JavaScript: it renders on page load,
  * on the pages included in its AdSense configuration. So the fallback is a
  * dedicated page, /ad/unlock, where the Offerwall is configured to appear at
- * once (metering threshold 1). The page waits for the Offerwall to be shown
+ * once ("Show after 0 page views"). The page waits for the Offerwall to be shown
  * and closed, books the selected action with the same /ad-reward routes, and returns
  * to `next`.
  *

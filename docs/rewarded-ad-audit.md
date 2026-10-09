@@ -1,5 +1,30 @@
 # Dreamly rewarded-ad audit — 2026-10-07
 
+## Production Offerwall check — 2026-10-09
+
+- The published AdSense Offerwall targets only `dreamly.art/ad/unlock`, shows
+  after 0 page views, and grants 1 page view after a completed rewarded ad.
+  Auto ads remain off. The app sends users to the dedicated page from an
+  existing blocked action, such as translation, analysis, or saving a dream.
+- The message previously promised site-wide access for 24 hours. Its published
+  copy now says one ad unlocks one selected action in English, Spanish,
+  Arabic, Brazilian Portuguese, German, and Russian. This copy lives in
+  AdSense, not in the repository. Google can take up to 10 minutes to serve
+  message edits.
+- The AdSense report for October 9 showed one `Display • Offerwall` ad
+  impression and estimated earnings of ₪0.02. This confirms that a shown ad
+  can monetize; merely showing the Offerwall prompt is not an ad impression.
+- The extra choice screen belongs to AdSense Offerwall. The website cannot
+  make its "View a short ad" selection for the visitor. A single site click
+  would require the direct GAM rewarded slot to fill. The real Dreamly slot
+  returned no fill in the comparison below; AdSense backfill being enabled
+  on the unit has not supplied an eligible ad. No direct GAM line items were
+  visible in the account on October 9.
+- The current Offerwall client infers completion from the Google overlay
+  disappearing; AdSense does not provide the app a documented ad-completion
+  callback. This is a weaker signal than the direct GPT `rewardedSlotGranted`
+  event. Do not treat the Offerwall path as server-verified proof of a paid ad.
+
 ## A. Root cause and observed evidence
 
 The actual path is already `/23382781832/dreamly_rewarded`. This is a WEB

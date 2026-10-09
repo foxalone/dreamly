@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 /**
  * /ad/unlock?kind=analysis|save|translate&next=/path — the AdSense Offerwall
  * page (see lib/adUnlock.ts). Configured in AdSense › Privacy & messaging ›
- * Offerwall with a page inclusion for this path and metering threshold 1.
+ * Offerwall with a page inclusion for this path and "Show after 0 page views".
  */
 export default function AdUnlockPage() {
   return (
