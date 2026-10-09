@@ -28,7 +28,7 @@ export type UserBillingFields = {
   adSaveCredits?: number | null;
   adSaveRewardsDayKey?: string | null;
   adSaveRewardsTodayCount?: number | null;
-  /** Feed translations earned by watching a rewarded ad (after the free one of the day). */
+  /** Legacy banked translation credits; no longer spent. */
   adTranslateCredits?: number | null;
   adTranslateRewardsDayKey?: string | null;
   adTranslateRewardsTodayCount?: number | null;

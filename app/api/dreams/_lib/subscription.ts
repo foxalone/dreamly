@@ -13,6 +13,7 @@ import {
 } from "@/lib/subscriptions/plans";
 import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
 import { hashIp } from "./guestQuota";
+import { matchingTranslationAdGrant, TRANSLATION_AD_GRANT_MS, type TranslationAdTarget } from "@/lib/translationAdGrant";
 
 export { DREAM_MAX_CHARS, DREAMS_PER_DAY } from "@/lib/subscriptions/plans";
 
@@ -252,7 +253,8 @@ export async function grantAdReward(
   uid: string,
   kind: "analysis" | "save" | "translate",
   rewardId: string,
-  database?: Firestore
+  database?: Firestore,
+  target?: TranslationAdTarget
 ): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
@@ -260,11 +262,13 @@ export async function grantAdReward(
   const db = database ?? adminDb();
   const userRef = db.collection("users").doc(uid);
   const receiptRef = userRef.collection("adRewardReceipts").doc(rewardId);
+  const translationGrantRef = userRef.collection("translationUnlocks").doc("__adGrant");
   const dayKey = utcDayKey();
   try {
     return await db.runTransaction(async (tx) => {
       const receipt = await tx.get(receiptRef);
       const snap = await tx.get(userRef);
+      const translationGrant = kind === "translate" ? await tx.get(translationGrantRef) : null;
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
       if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
       // Separate counters and caps for analysis ads and save ads.
@@ -277,15 +281,22 @@ export async function grantAdReward(
       const today = String(data[f.day] ?? "") === dayKey ? toCount(data[f.today]) : 0;
       if (receipt.exists) {
         if (receipt.data()?.kind !== kind) return { error: NextResponse.json({ code: "REWARD_KIND_MISMATCH" }, { status: 409 }) };
-        return { uid, credits: toCount(data[f.credits]), leftToday: Math.max(0, f.cap - today) };
+        if (kind === "translate" && (receipt.data()?.sharedDreamId !== target?.sharedDreamId || receipt.data()?.targetLang !== target?.targetLang)) {
+          return { error: NextResponse.json({ code: "REWARD_TARGET_MISMATCH" }, { status: 409 }) };
+        }
+        return { uid, credits: kind === "translate" ? Number(!!target && matchingTranslationAdGrant(translationGrant?.data(), target)) : toCount(data[f.credits]), leftToday: Math.max(0, f.cap - today) };
       }
       if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");
+      if (kind === "translate" && !target) return { error: NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 }) };
       const credits = toCount(data[f.credits]) + 1;
-      tx.create(receiptRef, { kind, createdAt: FieldValue.serverTimestamp() });
+      tx.create(receiptRef, { kind, ...(kind === "translate" ? target : {}), createdAt: FieldValue.serverTimestamp() });
+      if (kind === "translate") tx.set(translationGrantRef, { ...target, expiresAtMs: Date.now() + TRANSLATION_AD_GRANT_MS });
       tx.set(
         userRef,
         {
-          [f.credits]: credits,
+          ...(kind === "translate"
+            ? { adTranslateCredits: 0 }
+            : { [f.credits]: credits }),
           [f.day]: dayKey,
           [f.today]: today + 1,
           adRewardAt: FieldValue.serverTimestamp(),
@@ -293,7 +304,7 @@ export async function grantAdReward(
         },
         { merge: true }
       );
-      return { uid, credits, leftToday: f.cap - today - 1 };
+      return { uid, credits: kind === "translate" ? 1 : credits, leftToday: f.cap - today - 1 };
     });
   } catch (e: unknown) {
     return quotaError(e);

@@ -39,7 +39,8 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       if (event.key === "Escape") closeRef.current();
     };
     window.addEventListener("keydown", onKey);
-    void fetch(`/api/dreams/guest-ad-reward?kind=${kind}`, { credentials: "same-origin", cache: "no-store" })
+    const params = new URLSearchParams({ kind, ...(request.translation ?? {}) });
+    void fetch(`/api/dreams/guest-ad-reward?${params}`, { credentials: "same-origin", cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error("ad status failed");
         const data = await res.json();
@@ -51,7 +52,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       window.removeEventListener("keydown", onKey);
       previousFocus?.focus();
     };
-  }, [kind]);
+  }, [kind, request.translation]);
 
   function retry() {
     onClose();
@@ -77,10 +78,10 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         <button ref={signInRef} type="button" className="dream-primary-btn mt-5 w-full"
           onClick={() => { onClose(); request.guest?.signIn(); }}>{translate ? pm.signInWithGoogle : t.common.signIn}</button>
         {ad === "ready" ? (
-          <RewardedAdButton label={copy.ad} kind={kind} source={request.source}
+          <RewardedAdButton label={copy.ad} kind={kind} translation={request.translation} source={request.source}
             statusCopy={{ loading: pm.adLoading, unavailable: pm.adUnavailable, failed: pm.adFailed }}
             onGranted={async (rewardId) => {
-              const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rewardId, kind }) });
+              const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rewardId, kind, ...request.translation }) });
               return res.ok;
             }}
             onDone={retry} />

@@ -7,6 +7,7 @@ import { guestAnalysisAccess } from "@/lib/guestAnalysisAccess";
 export { GUEST_FREE_ASKS } from "@/lib/guestAnalysisAccess";
 
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
+import { matchingTranslationAdGrant, TRANSLATION_AD_GRANT_MS, type TranslationAdTarget } from "@/lib/translationAdGrant";
 
 /** Name of the anonymous-visitor cookie. */
 export const GUEST_COOKIE = "dreamly_guest";
@@ -152,9 +153,9 @@ export async function refundGuestAsk(
 /**
  * What a guest can earn by watching a rewarded ad. "analysis" is the original
  * flow (one more AI interpretation); "translate" is a feed translation —
- * guests have no free daily translation, so an ad credit is their only way in
- * besides signing in. Each kind has its own credit and its own daily caps
- * (guest + network), mirroring users/{uid}.ad*Credits for signed-in users.
+ * guests have no free daily translation. A watched ad opens only the selected
+ * dream and language; no translation credits can accumulate. The daily caps
+ * still apply to the guest and network.
  */
 export type GuestAdKind = "analysis" | "translate";
 
@@ -184,7 +185,8 @@ export async function guestAdReward(
   grant = false,
   rewardId?: string,
   database?: Firestore,
-  kind: GuestAdKind = "analysis"
+  kind: GuestAdKind = "analysis",
+  target?: TranslationAdTarget
 ) {
   const db = database ?? adminDb();
   const dayKey = utcDayKey();
@@ -199,9 +201,27 @@ export async function guestAdReward(
     const today = guest[f.dayKey] === dayKey ? Number(guest[f.today] ?? 0) : 0;
     const ipToday = Number(network[f.today] ?? 0);
     const leftToday = Math.max(0, f.perDay - Math.max(today, ipToday));
-    const credits = Math.max(0, Number(guest[f.credits] ?? 0));
-    if (receipt?.exists) return { credits, leftToday, replayed: true };
+    const credits = kind === "translate"
+      ? Number(!!target && matchingTranslationAdGrant(guest.translationAdGrant, target))
+      : Math.max(0, Number(guest[f.credits] ?? 0));
+    if (receipt?.exists) {
+      if (kind === "translate" && (receipt.data()?.sharedDreamId !== target?.sharedDreamId || receipt.data()?.targetLang !== target?.targetLang)) throw new Error("REWARD_TARGET_MISMATCH");
+      return { credits, leftToday, replayed: true };
+    }
     if (grant && !receiptRef) throw new Error("INVALID_REWARD_ID");
+    if (grant && kind === "translate" && !target) throw new Error("TRANSLATION_TARGET_REQUIRED");
+    if (kind === "translate") {
+      if (!grant || leftToday === 0) return { credits, leftToday };
+      tx.create(receiptRef!, { kind, ...target, createdAt: FieldValue.serverTimestamp() });
+      tx.set(guestRef, {
+        translationAdGrant: { ...target, expiresAtMs: Date.now() + TRANSLATION_AD_GRANT_MS },
+        adTranslateCredits: 0,
+        [f.dayKey]: dayKey,
+        [f.today]: today + 1,
+      }, { merge: true });
+      tx.set(ipRef, { [f.today]: ipToday + 1 }, { merge: true });
+      return { credits: 1, leftToday: leftToday - 1 };
+    }
     // Reuse an unspent credit, including after a failed analysis or grant retry.
     if (!grant || (leftToday === 0 && credits === 0)) return { credits, leftToday };
     // Consume the replay key even when reusing an existing unspent credit.
@@ -218,28 +238,32 @@ export async function guestAdReward(
 }
 
 /**
- * Feed translation for a guest: spends one ad-earned translate credit. There
+ * Feed translation for a guest: spends the ad pass for this exact target. There
  * is no free slot for guests (sign in for the daily free one), and a dream+lang
  * the guest already unlocked is served free by the translate route before this
  * is called (see translationLedger.ts, guest owner).
  */
-export async function consumeGuestTranslation(guestId: string, database?: Firestore): Promise<boolean> {
+export async function consumeGuestTranslation(guestId: string, target: TranslationAdTarget, database?: Firestore): Promise<boolean> {
   const db = database ?? adminDb();
   const guestRef = db.collection("guestQuickSymbol").doc(guestId);
   return db.runTransaction(async (tx) => {
     const guest = (await tx.get(guestRef)).data() ?? {};
-    const credits = Math.max(0, Math.floor(Number(guest.adTranslateCredits ?? 0)));
-    if (credits <= 0) return false;
-    tx.set(guestRef, { adTranslateCredits: credits - 1 }, { merge: true });
+    if (!matchingTranslationAdGrant(guest.translationAdGrant, target)) return false;
+    tx.set(guestRef, { translationAdGrant: FieldValue.delete() }, { merge: true });
     return true;
   });
 }
 
-/** Give the translate credit back when the translation itself failed. */
-export async function refundGuestTranslation(guestId: string, database?: Firestore) {
+/** Restore this target's pass when the translation itself failed. */
+export async function refundGuestTranslation(guestId: string, target: TranslationAdTarget, database?: Firestore) {
   try {
     const db = database ?? adminDb();
-    await db.collection("guestQuickSymbol").doc(guestId).set({ adTranslateCredits: FieldValue.increment(1) }, { merge: true });
+    const ref = db.collection("guestQuickSymbol").doc(guestId);
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (Number(snap.data()?.translationAdGrant?.expiresAtMs ?? 0) > Date.now()) return;
+      tx.set(ref, { translationAdGrant: { ...target, expiresAtMs: Date.now() + TRANSLATION_AD_GRANT_MS } }, { merge: true });
+    });
   } catch (e) {
     console.warn("refundGuestTranslation failed:", e);
   }

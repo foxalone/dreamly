@@ -22,7 +22,7 @@ type Props = {
    * onGranted asks the server for the credit (true = granted); onDone runs
    * after the ad closes with the credit in place.
    */
-  rewarded?: { label: string; kind: PaywallKind; onGranted: (rewardId: string) => Promise<boolean>; onDone: () => void } | null;
+  rewarded?: { label: string; kind: PaywallKind; translation?: { sharedDreamId: string; targetLang: string }; onGranted: (rewardId: string) => Promise<boolean>; onDone: () => void } | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -134,6 +134,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
           <RewardedAdButton
             label={rewarded.label}
             kind={rewarded.kind}
+            translation={rewarded.translation}
             source={source}
             statusCopy={{
               loading: t.plansModal.adLoading,

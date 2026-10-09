@@ -77,6 +77,7 @@ export default function PaywallHost() {
           ? {
               label: copy.ad,
               kind: req.kind,
+              translation: req.translation,
               onGranted: async (rewardId) => {
                 const u = auth.currentUser;
                 if (!u || u.uid !== rewardUser?.uid) return false;
@@ -85,7 +86,7 @@ export default function PaywallHost() {
                   method: "POST",
                   keepalive: true,
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ idToken, kind: req.kind, rewardId }),
+                  body: JSON.stringify({ idToken, kind: req.kind, rewardId, ...req.translation }),
                 });
                 return res.ok;
               },

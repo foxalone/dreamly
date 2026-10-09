@@ -8,7 +8,7 @@
  * on the pages included in its AdSense configuration. So the fallback is a
  * dedicated page, /ad/unlock, where the Offerwall is configured to appear at
  * once (metering threshold 1). The page waits for the Offerwall to be shown
- * and closed, books the credit with the same /ad-reward routes, and returns
+ * and closed, books the selected action with the same /ad-reward routes, and returns
  * to `next`.
  *
  * The action to resume is kept in sessionStorage (the paywall's retry closure
@@ -24,11 +24,16 @@ export type AdUnlockPending = {
   kind: PaywallKind;
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
+  targetLang?: string;
   atMs: number;
 };
 
-export function adUnlockUrl(kind: PaywallKind, next?: string) {
+export function adUnlockUrl(kind: PaywallKind, next?: string, translation?: { sharedDreamId: string; targetLang: string }) {
   const params = new URLSearchParams({ kind });
+  if (kind === "translate" && translation) {
+    params.set("sharedDreamId", translation.sharedDreamId);
+    params.set("targetLang", translation.targetLang);
+  }
   const target = next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
   params.set("next", safeNext(target));
   return `${AD_UNLOCK_PATH}?${params.toString()}`;
@@ -45,7 +50,7 @@ export function setAdUnlockPending(p: Omit<AdUnlockPending, "atMs">) {
   try {
     sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...p, atMs: Date.now() }));
   } catch {
-    /* private mode etc. — the credit is still granted; the user clicks again */
+    /* private mode etc. — other actions still work; a translation needs its target */
   }
 }
 
@@ -72,6 +77,18 @@ export function takeAdUnlockPending(kind?: PaywallKind): AdUnlockPending | null 
   }
 }
 
+/** Read the selected action on the Offerwall page without consuming its return-to-feed retry. */
+export function peekAdUnlockPending(kind?: PaywallKind): AdUnlockPending | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as AdUnlockPending;
+    return p && (!kind || p.kind === kind) && typeof p.atMs === "number" && Date.now() - p.atMs <= 10 * 60_000 ? p : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Elements the AdSense Offerwall (Funding Choices) adds to the page. Class
  * and id names are prefixed "fc-"; the dialog itself is a fixed overlay.
@@ -86,7 +103,7 @@ export function isOfferwallElement(el: Element): boolean {
  * The Offerwall grants an entitlement after the ad (configured as "1 page
  * view") and keeps it in the first-party cookie FCOEC. That page view would be
  * the NEXT visit to /ad/unlock, so the Offerwall would only render every other
- * time. The credit is already booked on our server by then, so once it is,
+ * time. The action is already booked on our server by then, so once it is,
  * the entitlement is dropped and the next unlock shows an ad again.
  */
 export function clearOfferwallEntitlement() {

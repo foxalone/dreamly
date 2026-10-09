@@ -13,6 +13,8 @@ export type PaywallKind = "analysis" | "save" | "translate";
 
 export type PaywallRequest = {
   kind: PaywallKind;
+  /** The one feed translation paid for by a rewarded ad. */
+  translation?: { sharedDreamId: string; targetLang: string };
   /**
    * Guest choice: sign in (Google) or earn the action through a rewarded ad.
    * "guest_limit" / "ip_limit" are the analysis quotas; "translate" is a feed

@@ -6,7 +6,8 @@ import {
 } from "@/lib/openaiEnv";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { consumeTranslationAccess, refundAdTranslateCredit, refundFreeTranslation } from "../_lib/translationQuota";
+import { consumeTranslationAccess, refundAdTranslateGrant, refundFreeTranslation } from "../_lib/translationQuota";
+import { type TranslationAdTarget } from "@/lib/translationAdGrant";
 import {
   consumeGuestTranslation,
   newGuestId,
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
   let refundGuest = false;
   // set when the guest cookie was minted in this request
   let cookieGuestId: string | null = null;
+  let adTarget: TranslationAdTarget | null = null;
   const finish = <T extends NextResponse>(res: T): T => (cookieGuestId ? setGuestCookie(res, cookieGuestId) : res);
 
   try {
@@ -112,6 +114,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    adTarget = { sharedDreamId, targetLang };
 
     // Access model (see _lib/translationLedger.ts):
     //  - a user who already unlocked this dream+lang gets it again for free;
@@ -149,7 +152,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing text" }, { status: 400 });
     }
 
-    // Subscribers: unlimited. Others use the daily free slot, then ad credits.
+    // Subscribers: unlimited. Others use the daily free slot or a pass for this translation.
     // Without either, return 402 so the client offers an ad or a subscription.
     // An existing unlock remains free even if its cached text needs rebuilding.
     let usedDailyFree = false;
@@ -157,16 +160,16 @@ export async function POST(req: Request) {
     if (unlocked) {
       // existing access — nothing to charge
     } else if (uid) {
-      const access = await consumeTranslationAccess(uid);
+      const access = await consumeTranslationAccess(uid, adTarget);
       if ("error" in access) return access.error;
       refundDaily = access.usedDailyFree;
-      refundAd = access.usedAdCredit;
+      refundAd = access.usedAdGrant;
       usedDailyFree = access.usedDailyFree;
       paid = access.paid;
     } else {
-      // Guest: an ad credit or nothing. 402 → the client offers
+      // Guest: a pass for this translation or nothing. 402 → the client offers
       // "sign in with Google" / "watch an ad".
-      const ok = await consumeGuestTranslation(guestId!);
+      const ok = await consumeGuestTranslation(guestId!, adTarget);
       if (!ok) {
         return finish(
           NextResponse.json(
@@ -256,8 +259,8 @@ export async function POST(req: Request) {
     }));
   } catch (e: any) {
     if (uid && refundDaily) await refundFreeTranslation(uid);
-    if (uid && refundAd) await refundAdTranslateCredit(uid);
-    if (guestId && refundGuest) await refundGuestTranslation(guestId);
+    if (uid && refundAd && adTarget) await refundAdTranslateGrant(uid, adTarget);
+    if (guestId && refundGuest && adTarget) await refundGuestTranslation(guestId, adTarget);
     return NextResponse.json(
       { error: e?.message ?? "Translate failed" },
       { status: 500 }

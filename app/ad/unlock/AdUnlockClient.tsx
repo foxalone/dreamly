@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
-import { clearOfferwallEntitlement, isOfferwallElement, safeNext } from "@/lib/adUnlock";
+import { clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { PaywallKind } from "@/lib/paywall";
@@ -32,7 +32,7 @@ function offerwallVisible(): boolean {
 
 /**
  * Waits for the AdSense Offerwall to show and close on this page, then books
- * the ad credit (same routes as the GPT rewarded flow) and goes back.
+ * the selected action (same routes as the GPT rewarded flow) and goes back.
  * "Closed" means watched: the Offerwall is published without a dismiss option.
  */
 export default function AdUnlockClient() {
@@ -44,6 +44,8 @@ export default function AdUnlockClient() {
   const [phase, setPhase] = useState<Phase>("waiting");
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const rewardId = useRef<string>("");
+  const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
+  if (pending.current === undefined) pending.current = kind === "translate" ? peekAdUnlockPending("translate") : null;
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
@@ -73,9 +75,15 @@ export default function AdUnlockClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase === "waiting" || phase === "showing"]);
 
-  // Book the credit once the Offerwall closed (and auth state is known).
+  // Book the selected action once the Offerwall closed (and auth state is known).
   useEffect(() => {
     if (phase !== "granting" || user === undefined) return;
+    const translation = kind === "translate" && pending.current?.dreamId && pending.current?.targetLang
+      ? { sharedDreamId: pending.current.dreamId, targetLang: pending.current.targetLang }
+      : kind === "translate" && sp.get("sharedDreamId") && sp.get("targetLang")
+        ? { sharedDreamId: sp.get("sharedDreamId")!, targetLang: sp.get("targetLang")! }
+        : null;
+    if (kind === "translate" && !translation) { setPhase("failed"); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -86,7 +94,7 @@ export default function AdUnlockClient() {
             method: "POST",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current }),
+            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, ...translation }),
           });
         } else {
           res = await fetch("/api/dreams/guest-ad-reward", {
@@ -94,7 +102,7 @@ export default function AdUnlockClient() {
             credentials: "same-origin",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kind, rewardId: rewardId.current }),
+            body: JSON.stringify({ kind, rewardId: rewardId.current, ...translation }),
           });
         }
         if (cancelled) return;
@@ -114,7 +122,7 @@ export default function AdUnlockClient() {
     return () => {
       cancelled = true;
     };
-  }, [phase, user, kind, next, router]);
+  }, [phase, user, kind, next, router, sp]);
 
   const m = t.adUnlock;
   const text =

@@ -247,7 +247,7 @@ export default function SharedPage() {
   const [claimedUid, setClaimedUid] = useState<string | null>(null);
   // dream to translate as soon as the guest finished signing in from the modal
   const pendingAfterSignInRef = useRef<SharedDream | null>(null);
-  const translateRef = useRef<(d: SharedDream) => Promise<void>>(async () => {});
+  const translateRef = useRef<(d: SharedDream, lang?: TargetLang) => Promise<void>>(async () => {});
   const t = useMessages();
 
   useEffect(() => {
@@ -314,7 +314,7 @@ export default function SharedPage() {
     resumedRef.current = true;
     const pending = takeAdUnlockPending("translate");
     const d = pending?.dreamId ? items.find((x) => x.id === pending.dreamId) : null;
-    if (d) void translateRef.current(d);
+    if (d) void translateRef.current(d, pending?.targetLang as TargetLang | undefined);
   }, [items, authReady, languageReady, uid, claimedUid]);
 
   // ✅ realtime shared_dreams feed
@@ -489,7 +489,7 @@ export default function SharedPage() {
     }
   }
 
-  async function translateDream(d: SharedDream) {
+  async function translateDream(d: SharedDream, selectedLang?: TargetLang) {
     const original = (d.text ?? "").trim();
     if (!original) return;
 
@@ -510,7 +510,7 @@ export default function SharedPage() {
     const u = auth.currentUser;
 
     if (!languageReady) return;
-    const lang = targetLang;
+    const lang = selectedLang ?? targetLang;
     const requestContext = translationContext;
 
     // Same language as the viewer — never spend a translation on it.
@@ -551,9 +551,10 @@ export default function SharedPage() {
         if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
           // Guest: sign in with Google (one free translation a day, and the
           // translations unlocked with ads move to the account) or watch an ad.
-          setAdUnlockPending({ kind: "translate", dreamId: d.id });
+          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang });
           openPaywall({
             kind: "translate",
+            translation: { sharedDreamId: d.id, targetLang: lang },
             source: "feed_translate_guest",
             guest: {
               reason: "translate",
@@ -568,15 +569,15 @@ export default function SharedPage() {
                 });
               },
             },
-            retry: () => void translateRef.current(d),
+            retry: () => void translateRef.current(d, lang),
           });
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           // Daily free translation already used and no subscription:
           // the site-wide paywall (plans + "watch an ad" → one more translation).
-          setAdUnlockPending({ kind: "translate", dreamId: d.id });
-          openPaywall({ kind: "translate", source: "feed_translate", retry: () => void translateRef.current(d) });
+          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang });
+          openPaywall({ kind: "translate", translation: { sharedDreamId: d.id, targetLang: lang }, source: "feed_translate", retry: () => void translateRef.current(d, lang) });
           return;
         }
         throw new Error(data?.error ?? "Translate failed");

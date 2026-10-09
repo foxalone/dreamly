@@ -15,6 +15,7 @@ type Props = {
    * (/ad/unlock, see lib/adUnlock.ts) for this kind.
    */
   kind: PaywallKind;
+  translation?: { sharedDreamId: string; targetLang: string };
   /** Keep the guest ad option visible and explain loading/no-fill/failure. */
   statusCopy?: { loading: string; unavailable: string; failed: string };
   /**
@@ -33,7 +34,7 @@ type Props = {
  * shows when Google reports ready. Dialogs supply localized statusCopy for loading,
  * no fill and failures.
  */
-export default function RewardedAdButton({ label, kind, onGranted, onDone, source, statusCopy }: Props) {
+export default function RewardedAdButton({ label, kind, translation, onGranted, onDone, source, statusCopy }: Props) {
   const [status, setStatus] = useState<RewardedState | "idle">("idle");
   const [requested, setRequested] = useState(false);
   const sessionRef = useRef<ReturnType<typeof createRewardedAd> | null>(null);
@@ -67,8 +68,8 @@ export default function RewardedAdButton({ label, kind, onGranted, onDone, sourc
   useEffect(() => {
     if (status !== "unavailable") return;
     trackEvent("rewarded_ad_fallback", { source, kind });
-    window.location.assign(adUnlockUrl(kind));
-  }, [status, source, kind]);
+    window.location.assign(adUnlockUrl(kind, undefined, translation));
+  }, [status, source, kind, translation]);
 
   const ready = status === "idle" || status === "ready" || status === "busy" || status === "unavailable";
   if (!ready) {

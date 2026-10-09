@@ -3,13 +3,14 @@ import { requireSignedInUid } from "../_lib/requireUser";
 import { grantAdReward } from "../_lib/subscription";
 
 import { validRewardId } from "@/lib/rewardedReceipt";
+import { translationAdTarget } from "@/lib/translationAdGrant";
 
-type Body = { idToken?: unknown; kind?: unknown; rewardId?: unknown };
+type Body = { idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
 
 /**
  * POST /api/dreams/ad-reward — called by the browser after GPT fires
- * rewardedSlotGranted. Grants one AI-analysis credit to a signed-in user
- * without a subscription, at most AD_REWARDS_PER_DAY times per UTC day.
+ * rewardedSlotGranted. Translation grants are bound to one dream and language;
+ * analysis/save rewards retain their existing credit model.
  */
 export async function POST(req: Request) {
   try {
@@ -18,7 +19,9 @@ export async function POST(req: Request) {
     if ("error" in auth) return auth.error;
     if (!validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
     const kind = body.kind === "save" ? "save" : body.kind === "translate" ? "translate" : "analysis";
-    const res = await grantAdReward(auth.uid, kind, body.rewardId);
+    const target = kind === "translate" ? translationAdTarget(body.sharedDreamId, body.targetLang) : null;
+    if (kind === "translate" && !target) return NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 });
+    const res = await grantAdReward(auth.uid, kind, body.rewardId, undefined, target ?? undefined);
     if ("error" in res) return res.error;
     return NextResponse.json({ ok: true, credits: res.credits, leftToday: res.leftToday });
   } catch (e: unknown) {

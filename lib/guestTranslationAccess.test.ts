@@ -15,6 +15,7 @@ function fakeDb() {
     for (const [k, v] of Object.entries(data)) {
       const inc = v && typeof v === "object" && typeof (v as any).isEqual === "function" ? v : null;
       if (inc) {
+        if (v?.constructor?.name === "DeleteTransform") { delete prev[k]; continue; }
         // FieldValue.increment(n) — we only ever use ±1 here
         const asText = String((inc as any).operand ?? "");
         const n = Number(asText) || (JSON.stringify(inc).includes("-1") ? -1 : 1);
@@ -57,33 +58,37 @@ function fakeDb() {
 const guest = "12345678-abcd-1234-abcd-123456789abc";
 const ip = "192.0.2.1";
 const rewardId = "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c5d";
+const target = { sharedDreamId: "dream", targetLang: "ru" };
 
-test("guest translation: no free slot, one ad credit per watched ad, refund on failure", async () => {
+test("guest translation: ad opens only its selected target and is restored on failure", async () => {
   const { db, docs } = fakeDb();
-  // Nothing earned yet → cannot translate.
-  assert.equal(await consumeGuestTranslation(guest, db), false);
+  docs.set(`guestQuickSymbol/${guest}`, { adTranslateCredits: 5 });
+  // Nothing watched for this target yet → cannot translate.
+  assert.equal(await consumeGuestTranslation(guest, target, db), false);
 
   // GET status for the translate kind: no credits, 3 ads left today.
   assert.deepEqual(await guestAdReward(guest, ip, false, undefined, db, "translate"), { credits: 0, leftToday: 3 });
 
-  // Watching an ad grants a translate credit — on its own field, not the analysis one.
-  const granted = await guestAdReward(guest, ip, true, rewardId, db, "translate");
+  // Watching an ad grants a temporary pass for this target, not a banked credit.
+  const granted = await guestAdReward(guest, ip, true, rewardId, db, "translate", target);
   assert.deepEqual(granted, { credits: 1, leftToday: 2 });
-  assert.equal(docs.get(`guestQuickSymbol/${guest}`)?.adTranslateCredits, 1);
+  assert.equal(docs.get(`guestQuickSymbol/${guest}`)?.adTranslateCredits, 0);
   assert.equal(docs.get(`guestQuickSymbol/${guest}`)?.adAnalysisCredits, undefined);
   // Analysis status is untouched by translate ads.
   assert.deepEqual(await guestAdReward(guest, ip, false, undefined, db, "analysis"), { credits: 0, leftToday: 3 });
 
   // Replaying the same reward id does not grant a second credit.
-  assert.deepEqual(await guestAdReward(guest, ip, true, rewardId, db, "translate"), { credits: 1, leftToday: 2, replayed: true });
+  assert.deepEqual(await guestAdReward(guest, ip, true, rewardId, db, "translate", target), { credits: 1, leftToday: 2, replayed: true });
 
-  // The credit buys exactly one translation.
-  assert.equal(await consumeGuestTranslation(guest, db), true);
-  assert.equal(await consumeGuestTranslation(guest, db), false);
+  // The pass opens exactly one translation.
+  assert.equal(await consumeGuestTranslation(guest, { sharedDreamId: "other", targetLang: "ru" }, db), false);
+  assert.equal(await consumeGuestTranslation(guest, target, db), true);
+  assert.equal(await consumeGuestTranslation(guest, target, db), false);
+  assert.equal(await consumeGuestTranslation(guest, { sharedDreamId: "dream", targetLang: "de" }, db), false);
 
-  // A failed translation gives it back.
-  await refundGuestTranslation(guest, db);
-  assert.equal(await consumeGuestTranslation(guest, db), true);
+  // A failed translation restores this target's pass.
+  await refundGuestTranslation(guest, target, db);
+  assert.equal(await consumeGuestTranslation(guest, target, db), true);
 });
 
 test("guest unlock lives under the guest doc and is isolated from accounts", async () => {
