@@ -7,7 +7,9 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
-import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { isLocale } from "@/lib/i18n/config";
+import { getMessages } from "@/lib/i18n/messages";
+import { localeFromPathname, localePath } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 
 type Phase = "waiting" | "showing" | "granting" | "done" | "unavailable" | "failed";
@@ -36,11 +38,13 @@ function offerwallVisible(): boolean {
  * "Closed" means watched: the Offerwall is published without a dismiss option.
  */
 export default function AdUnlockClient() {
-  const t = useMessages();
   const router = useRouter();
   const sp = useSearchParams();
   const kind = kindFrom(sp.get("kind"));
   const next = safeNext(sp.get("next"));
+  const localeParam = sp.get("locale");
+  const locale = isLocale(localeParam) ? localeParam : localeFromPathname(next);
+  const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const rewardId = useRef<string>("");
@@ -153,6 +157,9 @@ export default function AdUnlockClient() {
             {m.back}
           </button>
         ) : null}
+        <a href={localePath("/app/upgrade", locale)} className="mt-4 block text-sm text-[var(--muted)] underline">
+          {t.plansModal.choosePlan}
+        </a>
       </div>
     </main>
   );

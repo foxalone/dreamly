@@ -14,12 +14,13 @@
 - The AdSense report for October 9 showed one `Display • Offerwall` ad
   impression and estimated earnings of ₪0.02. This confirms that a shown ad
   can monetize; merely showing the Offerwall prompt is not an ad impression.
-- The extra choice screen belongs to AdSense Offerwall. The website cannot
-  make its "View a short ad" selection for the visitor. A single site click
-  would require the direct GAM rewarded slot to fill. The real Dreamly slot
-  returned no fill in the comparison below; AdSense backfill being enabled
-  on the unit has not supplied an eligible ad. No direct GAM line items were
-  visible in the account on October 9.
+- The choice screen belongs to AdSense Offerwall. The website cannot make
+  its "View a short ad" selection for the visitor. Eligible paywalls now
+  navigate directly to that screen, so the visitor's first ad-specific click
+  is Google's choice. Prices are linked separately from `/ad/unlock`. The real
+  Dreamly direct GPT slot returned no fill in the comparison below; AdSense
+  backfill being enabled on the unit has not supplied an eligible ad. No
+  direct GAM line items were visible in the account on October 9.
 - The current Offerwall client infers completion from the Google overlay
   disappearing; AdSense does not provide the app a documented ad-completion
   callback. This is a weaker signal than the direct GPT `rewardedSlotGranted`

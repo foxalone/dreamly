@@ -138,7 +138,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
         <div className="mt-5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
           {rewarded ? t.plansModal.chooseAccess : t.plansModal.choosePlan}
         </div>
-        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <div className={`mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 ${rewarded ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
           {plans}
           {rewarded ? (
             <RewardedAdButton

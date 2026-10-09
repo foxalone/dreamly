@@ -4,29 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
+import { trackEvent } from "@/lib/analytics";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
-import { clearAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, clearAdUnlockPending } from "@/lib/adUnlock";
 import { subscribePaywall, type PaywallRequest } from "@/lib/paywall";
 import { adRewardsLeftFor, hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
 import GuestAnalysisLimitModal from "./GuestAnalysisLimitModal";
 import PlansModal from "./PlansModal";
 
 /**
- * Renders the site-wide paywall (see lib/paywall.ts): plans + "watch a short
- * ad" for one more interpretation / save / translation. The ad button is
- * offered only to signed-in users without a subscription who still have ad
- * rewards left today for that kind. The ad card tries the direct rewarded slot
- * and falls back to the AdSense Offerwall when Google has no fill.
- * Guest analysis limits use a separate sign-in / rewarded-ad choice.
+ * Routes an eligible blocked action straight to the AdSense Offerwall, where
+ * Google's "View a short ad" choice is the first click. When the user is not
+ * eligible for another ad, show the subscription plans instead.
  */
 export default function PaywallHost() {
   const t = useMessages();
   const [req, setReq] = useState<PaywallRequest | null>(null);
-  const [adAllowed, setAdAllowed] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const requestVersion = useRef(0);
   const [version, setVersion] = useState(0);
-  // Closing the paywall drops a pending Offerwall resume. Choosing the ad card
-  // navigates without closing, so the selected action remains available.
+  // Dismissing the pricing option drops a pending Offerwall resume. Automatic
+  // navigation to an eligible ad leaves the selected action available.
   const close = () => { requestVersion.current++; setReq(null); clearAdUnlockPending(); };
 
   useEffect(
@@ -35,17 +34,24 @@ export default function PaywallHost() {
         const current = ++requestVersion.current;
         setVersion(current);
         setReq(next);
-        setAdAllowed(false);
+        setChecking(!next.guest);
+        setRedirecting(false);
         const u = auth.currentUser;
-        if (!u || next.guest) return;
+        if (!u || next.guest) { setChecking(false); return; }
         try {
           const snap = await getDoc(doc(firestore, "users", u.uid));
           const data = (snap.exists() ? snap.data() : {}) as UserBillingFields;
           if (current !== requestVersion.current || auth.currentUser?.uid !== u.uid) return;
-          if (!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) > 0) setAdAllowed(true);
+          if (!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) > 0) {
+            setRedirecting(true);
+            trackEvent("rewarded_ad_open", { source: next.source, kind: next.kind });
+            window.location.assign(adUnlockUrl(next.kind, undefined, next.translation));
+            return;
+          }
         } catch {
-          /* no ad button */
+          /* Keep the subscription option available if eligibility cannot be read. */
         }
+        if (current === requestVersion.current) setChecking(false);
       }),
     []
   );
@@ -53,16 +59,23 @@ export default function PaywallHost() {
   if (!req) return null;
 
   if (req.guest) return <GuestAnalysisLimitModal key={version} request={req} onClose={close} />;
+  if (checking || redirecting) return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" role="status">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-sm text-[var(--muted)]">
+        {t.plansModal.adLoading}
+      </div>
+    </div>
+  );
 
   const pm = t.plansModal;
   const copy =
     req.kind === "save"
-      ? { title: pm.savesLimitTitle, body: pm.savesLimitBody, ad: pm.watchAdSave }
+      ? { title: pm.savesLimitTitle, body: pm.savesLimitBody }
       : req.kind === "translate"
-        ? { title: pm.translateTitle, body: pm.translateBody, ad: pm.watchAdTranslate }
+        ? { title: pm.translateTitle, body: pm.translateBody }
         : req.reason === "daily"
-          ? { title: pm.saveDailyTitle, body: pm.saveDailyBody, ad: pm.watchAd }
-          : { title: pm.saveTitle, body: pm.saveBody, ad: pm.watchAd };
+          ? { title: pm.saveDailyTitle, body: pm.saveDailyBody }
+          : { title: pm.saveTitle, body: pm.saveBody };
 
   return (
     <PlansModal
@@ -72,36 +85,6 @@ export default function PaywallHost() {
       source={req.source}
       title={copy.title}
       body={copy.body}
-      rewarded={
-        adAllowed
-          ? {
-              label: copy.ad,
-              kind: req.kind,
-              translation: req.translation,
-              onGranted: async (rewardId: string) => {
-                const currentUser = auth.currentUser;
-                if (!currentUser) return false;
-                try {
-                  const idToken = await currentUser.getIdToken();
-                  const res = await fetch("/api/dreams/ad-reward", {
-                    method: "POST",
-                    keepalive: true,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ idToken, kind: req.kind, rewardId, ...req.translation }),
-                  });
-                  return res.ok;
-                } catch {
-                  return false;
-                }
-              },
-              onDone: () => {
-                const retry = req.retry;
-                close();
-                retry?.();
-              },
-            }
-          : null
-      }
     />
   );
 }

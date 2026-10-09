@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { PaywallRequest } from "@/lib/paywall";
-import RewardedAdButton from "./RewardedAdButton";
+import { adUnlockUrl } from "@/lib/adUnlock";
 
 /**
- * Guest paywall: "sign in with Google" or "watch an ad", for an AI analysis
- * (request.kind "analysis") or a feed translation (request.kind "translate").
- * The ad credit is granted per kind by /api/dreams/guest-ad-reward.
+ * Send eligible guests to the Offerwall directly, so Google's ad choice is
+ * their first click. If the ad limit is reached, show the sign-in choice.
  */
 export default function GuestAnalysisLimitModal({ request, onClose }: {
   request: PaywallRequest;
@@ -54,10 +53,26 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
     };
   }, [kind, request.translation]);
 
+  useEffect(() => {
+    if (ad === "ready") window.location.assign(adUnlockUrl(kind, undefined, request.translation));
+  }, [ad, kind, request.translation]);
+
+  useEffect(() => {
+    if (ad !== "loading" && ad !== "ready") signInRef.current?.focus();
+  }, [ad]);
+
   function retry() {
     onClose();
     request.retry?.();
   }
+
+  if (ad === "loading" || ad === "ready") return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" role="status">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-sm text-[var(--muted)]">
+        {pm.adLoading}
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
@@ -77,21 +92,13 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         <p id="guest-limit-body" className="mt-2 text-sm text-[var(--muted)]">{copy.body}</p>
         <button ref={signInRef} type="button" className="dream-primary-btn mt-5 w-full"
           onClick={() => { onClose(); request.guest?.signIn(); }}>{translate ? pm.signInWithGoogle : t.common.signIn}</button>
-        {ad === "ready" ? (
-          <RewardedAdButton label={copy.ad} kind={kind} translation={request.translation} source={request.source}
-            statusCopy={{ loading: pm.adLoading, unavailable: pm.adUnavailable, failed: pm.adFailed }}
-            onGranted={async (rewardId) => {
-              const res = await fetch("/api/dreams/guest-ad-reward", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rewardId, kind, ...request.translation }) });
-              return res.ok;
-            }}
-            onDone={retry} />
-        ) : ad === "credit" ? (
+        {ad === "credit" ? (
           <button type="button" className="dream-btn dream-btn--neutral mt-3 w-full" onClick={retry}>{copy.again}</button>
         ) : (
           <div className="mt-3">
             <button type="button" disabled className="dream-btn dream-btn--neutral w-full text-sm opacity-60">▶ {copy.ad}</button>
             <p role="status" className="mt-2 text-sm text-[var(--muted)]">
-              {ad === "loading" ? pm.adLoading : ad === "limit" ? pm.adDailyLimit : pm.adUnavailable}
+              {ad === "limit" ? pm.adDailyLimit : pm.adUnavailable}
             </p>
           </div>
         )}

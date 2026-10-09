@@ -32,6 +32,7 @@ import {
 import { formatMessage } from "@/lib/i18n/messages";
 import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
 import { openPaywall } from "@/lib/paywall";
+import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { type DreamLens, isDreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
@@ -419,6 +420,16 @@ export default function DreamsPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const pending = peekAdUnlockPending("save");
+    if (!pending?.draft) return;
+    takeAdUnlockPending("save");
+    setText(pending.draft.text);
+    setTab(pending.draft.tab);
+    setUsedVoice(pending.draft.usedVoice);
+    setOpen(true);
+  }, []);
 
   const [resumeAnalysis, setResumeAnalysis] = useState<{ id: string; lens?: DreamLens } | null>(null);
   const resumedAnalyses = useRef(new Set<string>());
@@ -1037,6 +1048,7 @@ export default function DreamsPage() {
       if (e?.message === "SAVE_IP_LIMIT") {
         // Free saves for today on this network are gone: offer an ad or a plan.
         setSaving(false);
+        setAdUnlockPending({ kind: "save", draft: { text: v, tab: tab === "STORIES" ? "STORIES" : "DREAMS", usedVoice } });
         openPaywall({ kind: "save", source: "diary_save", retry: () => void saveRef.current() });
         return;
       }

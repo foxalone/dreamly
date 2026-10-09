@@ -5,8 +5,8 @@
  * line items / Ad Exchange, which this network does not have, so GPT answers
  * "no fill". The AdSense Offerwall, on the other hand, is filled by Google
  * itself — but it cannot be opened from JavaScript: it renders on page load,
- * on the pages included in its AdSense configuration. So the fallback is a
- * dedicated page, /ad/unlock, where the Offerwall is configured to appear at
+ * on the pages included in its AdSense configuration. Dreamly therefore uses
+ * a dedicated page, /ad/unlock, where the Offerwall is configured to appear at
  * once ("Show after 0 page views"). The page waits for the Offerwall to be shown
  * and closed, books the selected action with the same /ad-reward routes, and returns
  * to `next`.
@@ -15,6 +15,7 @@
  * cannot survive the navigation).
  */
 import type { PaywallKind } from "@/lib/paywall";
+import { localeFromPathname } from "@/lib/i18n/path";
 
 export const AD_UNLOCK_PATH = "/ad/unlock";
 
@@ -25,6 +26,8 @@ export type AdUnlockPending = {
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
   targetLang?: string;
+  /** Keep an unsaved journal entry across the Offerwall's full navigation. */
+  draft?: { text: string; tab: "DREAMS" | "STORIES"; usedVoice: boolean };
   atMs: number;
 };
 
@@ -36,6 +39,7 @@ export function adUnlockUrl(kind: PaywallKind, next?: string, translation?: { sh
   }
   const target = next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
   params.set("next", safeNext(target));
+  if (typeof window !== "undefined") params.set("locale", localeFromPathname(window.location.pathname));
   return `${AD_UNLOCK_PATH}?${params.toString()}`;
 }
 
