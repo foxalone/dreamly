@@ -241,6 +241,13 @@ export default function SharedPage() {
   // translations fetched in this session ("<dreamId>:<lang>" → text) so a
   // second click doesn't hit the API again
   const [fetchedTranslations, setFetchedTranslations] = useState<Record<string, string>>({});
+  // dreams this user explicitly switched back to the original — an unlocked
+  // dream otherwise stays translated on every visit (persisted per uid+lang
+  // in localStorage; best-effort only, the unlock itself lives in Firestore)
+  const [showOriginal, setShowOriginal] = useState<Set<string>>(() => new Set());
+  // unlocked dream+lang keys this page load already auto-translated (or tried
+  // to) — keeps the auto-show effect from refetching a failing dream forever
+  const autoShownRef = useRef(new Set<string>());
   // uid whose guest translation unlocks (cookie) were already handed over to
   // the account this page load — a pending translate waits for it, so the
   // account is never charged for a dream the guest already paid for.
@@ -253,7 +260,30 @@ export default function SharedPage() {
   useEffect(() => {
     setShowingTranslation({});
     setFetchedTranslations({});
+    autoShownRef.current = new Set();
+    try {
+      const raw = localStorage.getItem(`dreamly.showOriginal:${translationContext}`);
+      setShowOriginal(new Set(raw ? (JSON.parse(raw) as string[]) : []));
+    } catch {
+      setShowOriginal(new Set());
+    }
   }, [translationContext]);
+
+  // Remember that this user flipped this dream to the original (or back).
+  const rememberShowOriginal = (id: string, on: boolean) => {
+    setShowOriginal((prev) => {
+      if (prev.has(id) === on) return prev;
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      try {
+        localStorage.setItem(`dreamly.showOriginal:${translationContextRef.current}`, JSON.stringify([...next]));
+      } catch {
+        /* private mode — the choice just won't survive a reload */
+      }
+      return next;
+    });
+  };
 
   // ✅ auth state only (no anonymous login). Guests are allowed to view.
   useEffect(() => {
@@ -369,6 +399,63 @@ export default function SharedPage() {
     );
     return () => unsub();
   }, [uid]);
+
+  // ✅ once translated — stays translated (for this user): every dream already
+  // unlocked in the viewer's language is shown translated on load. The text
+  // comes from /api/dreams/translate, which serves an unlocked dream+lang for
+  // free from the cache, so nothing is charged and no paywall can open here.
+  // A dream the user flipped back to the original (showOriginal) is left alone.
+  useEffect(() => {
+    if (!uid || !languageReady || items.length === 0) return;
+    if (claimedUid !== uid) return;
+    const todo = items.filter((d) => {
+      const key = `${d.id}:${targetLang}`;
+      return (
+        unlocked.has(key) &&
+        !showOriginal.has(d.id) &&
+        !showingTranslation[d.id] &&
+        !autoShownRef.current.has(key) &&
+        dreamLang(d) !== targetLang
+      );
+    });
+    if (todo.length === 0) return;
+    todo.forEach((d) => autoShownRef.current.add(`${d.id}:${targetLang}`));
+    const requestContext = translationContext;
+    void (async () => {
+      const u = auth.currentUser;
+      if (!u) return;
+      let idToken: string;
+      try {
+        idToken = await u.getIdToken();
+      } catch {
+        return;
+      }
+      for (const d of todo) {
+        const key = `${d.id}:${targetLang}`;
+        let translation = fetchedTranslations[key] ?? "";
+        if (!translation) {
+          try {
+            const res = await fetch("/api/dreams/translate", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sharedDreamId: d.id, text: (d.text ?? "").trim(), targetLang, idToken }),
+            });
+            if (!res.ok) continue;
+            const data = await res.json().catch(() => ({}));
+            translation = String(data?.translation ?? "").trim();
+          } catch {
+            continue;
+          }
+        }
+        if (!translation) continue;
+        if (translationContextRef.current !== requestContext) return;
+        setFetchedTranslations((prev) => ({ ...prev, [key]: translation }));
+        setShowingTranslation((prev) => (prev[d.id] ? prev : { ...prev, [d.id]: translation }));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, unlocked, showOriginal, uid, claimedUid, languageReady, targetLang]);
 
   // ✅ my reactions (only when signed in)
   useEffect(() => {
@@ -495,6 +582,7 @@ export default function SharedPage() {
 
     // toggle back to original if already showing translation
     if (showingTranslation[d.id]) {
+      rememberShowOriginal(d.id, true);
       setShowingTranslation((prev) => {
         const next = { ...prev };
         delete next[d.id];
@@ -523,6 +611,7 @@ export default function SharedPage() {
     const key = `${d.id}:${lang}`;
     const already = fetchedTranslations[key];
     if (already) {
+      rememberShowOriginal(d.id, false);
       setShowingTranslation((prev) => ({ ...prev, [d.id]: already }));
       return;
     }
@@ -587,6 +676,7 @@ export default function SharedPage() {
       if (!translation) throw new Error("Empty translation");
 
       if (translationContextRef.current !== requestContext) return;
+      rememberShowOriginal(d.id, false);
       setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
       setFetchedTranslations((prev) => ({ ...prev, [key]: translation }));
       setUnlocked((prev) => {
