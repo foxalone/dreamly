@@ -15,7 +15,8 @@ import PlansModal from "./PlansModal";
  * Renders the site-wide paywall (see lib/paywall.ts): plans + "watch a short
  * ad" for one more interpretation / save / translation. The ad button is
  * offered only to signed-in users without a subscription who still have ad
- * rewards left today for that kind. The ad card opens the AdSense Offerwall.
+ * rewards left today for that kind. The ad card tries the direct rewarded slot
+ * and falls back to the AdSense Offerwall when Google has no fill.
  * Guest analysis limits use a separate sign-in / rewarded-ad choice.
  */
 export default function PaywallHost() {
@@ -77,6 +78,27 @@ export default function PaywallHost() {
               label: copy.ad,
               kind: req.kind,
               translation: req.translation,
+              onGranted: async (rewardId: string) => {
+                const currentUser = auth.currentUser;
+                if (!currentUser) return false;
+                try {
+                  const idToken = await currentUser.getIdToken();
+                  const res = await fetch("/api/dreams/ad-reward", {
+                    method: "POST",
+                    keepalive: true,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ idToken, kind: req.kind, rewardId, ...req.translation }),
+                  });
+                  return res.ok;
+                } catch {
+                  return false;
+                }
+              },
+              onDone: () => {
+                const retry = req.retry;
+                close();
+                retry?.();
+              },
             }
           : null
       }

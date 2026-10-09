@@ -7,8 +7,8 @@ import { SUBSCRIPTION_PLANS, type PlanId } from "@/lib/subscriptions/plans";
 import { subscriptionItem, trackEvent } from "@/lib/analytics";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
-import { adUnlockUrl } from "@/lib/adUnlock";
 import type { PaywallKind } from "@/lib/paywall";
+import RewardedAdButton from "./RewardedAdButton";
 
 type Props = {
   open: boolean;
@@ -18,10 +18,16 @@ type Props = {
   title: string;
   body: string;
   /**
-   * The ad is a choice alongside the paid plans. A full navigation is needed
-   * for AdSense to render its Offerwall on /ad/unlock.
+   * The ad is a choice alongside the paid plans. Try the direct rewarded slot
+   * first, then fall back to the AdSense Offerwall when it has no fill.
    */
-  rewarded?: { label: string; kind: PaywallKind; translation?: { sharedDreamId: string; targetLang: string } } | null;
+  rewarded?: {
+    label: string;
+    kind: PaywallKind;
+    translation?: { sharedDreamId: string; targetLang: string };
+    onGranted: (rewardId: string) => Promise<boolean>;
+    onDone: () => void;
+  } | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -135,21 +141,16 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
         <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
           {plans}
           {rewarded ? (
-            <button
-              type="button"
-              onClick={() => {
-                trackEvent("rewarded_ad_open", { source, kind: rewarded.kind });
-                window.location.assign(adUnlockUrl(rewarded.kind, undefined, rewarded.translation));
-              }}
-              className="flex flex-col rounded-2xl border border-violet-400/50 bg-violet-500/10 p-4 text-start transition hover:border-violet-300 hover:bg-violet-500/15 sm:col-span-2 md:col-span-1"
-            >
-              <span className="flex items-baseline justify-between gap-2">
-                <span className="text-base font-semibold text-[var(--text)]">{t.plansModal.adCardTitle}</span>
-                <span className="text-lg font-semibold text-[var(--text)]">{t.pricing.free}</span>
-              </span>
-              <span className="mt-1 text-sm text-[var(--muted)]">{rewarded.label}</span>
-              <span className="dream-primary-btn mt-auto w-full text-center text-sm">▶ {t.plansModal.adCardCta}</span>
-            </button>
+            <RewardedAdButton
+              label={t.plansModal.adCardCta}
+              kind={rewarded.kind}
+              translation={rewarded.translation}
+              source={source}
+              statusCopy={{ loading: t.plansModal.adLoading, unavailable: t.plansModal.adUnavailableSignedIn, failed: t.plansModal.adFailed }}
+              onGranted={rewarded.onGranted}
+              onDone={rewarded.onDone}
+              card={{ title: t.plansModal.adCardTitle, price: t.pricing.free, description: rewarded.label }}
+            />
           ) : null}
         </div>
 

@@ -26,6 +26,8 @@ type Props = {
   /** Called after the ad closes and the reward was granted. */
   onDone: () => void;
   source: string;
+  /** Render the same opt-in button as a choice beside the subscription plans. */
+  card?: { title: string; price: string; description: string };
 };
 
 /**
@@ -34,7 +36,7 @@ type Props = {
  * shows when Google reports ready. Dialogs supply localized statusCopy for loading,
  * no fill and failures.
  */
-export default function RewardedAdButton({ label, kind, translation, onGranted, onDone, source, statusCopy }: Props) {
+export default function RewardedAdButton({ label, kind, translation, onGranted, onDone, source, statusCopy, card }: Props) {
   const [status, setStatus] = useState<RewardedState | "idle">("idle");
   const [requested, setRequested] = useState(false);
   const sessionRef = useRef<ReturnType<typeof createRewardedAd> | null>(null);
@@ -72,6 +74,31 @@ export default function RewardedAdButton({ label, kind, translation, onGranted, 
   }, [status, source, kind, translation]);
 
   const ready = status === "idle" || status === "ready" || status === "busy" || status === "unavailable";
+  const start = () => {
+    if (status === "idle") { setStatus("loading"); setRequested(true); return; }
+    if (sessionRef.current?.show()) trackEvent("rewarded_ad_open", { source });
+  };
+  if (card) {
+    const statusText = status === "loading" ? statusCopy?.loading
+      : status === "unavailable" ? statusCopy?.unavailable
+        : status === "failed" ? statusCopy?.failed : null;
+    return (
+      <button
+        type="button"
+        disabled={!ready || status === "busy" || status === "unavailable"}
+        onClick={start}
+        className="flex flex-col rounded-2xl border border-violet-400/50 bg-violet-500/10 p-4 text-start transition hover:border-violet-300 hover:bg-violet-500/15 disabled:opacity-70 sm:col-span-2 md:col-span-1"
+      >
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="text-base font-semibold text-[var(--text)]">{card.title}</span>
+          <span className="text-lg font-semibold text-[var(--text)]">{card.price}</span>
+        </span>
+        <span className="mt-1 text-sm text-[var(--muted)]">{card.description}</span>
+        {statusText ? <span role="status" className="mt-2 text-xs text-[var(--muted)]">{statusText}</span> : null}
+        <span className="dream-primary-btn mt-auto w-full text-center text-sm">▶ {label}</span>
+      </button>
+    );
+  }
   if (!ready) {
     if (!statusCopy) return null;
     return (
@@ -88,10 +115,7 @@ export default function RewardedAdButton({ label, kind, translation, onGranted, 
     <button
       type="button"
       disabled={status === "busy" || status === "unavailable"}
-      onClick={() => {
-        if (status === "idle") { setStatus("loading"); setRequested(true); return; }
-        if (sessionRef.current?.show()) trackEvent("rewarded_ad_open", { source });
-      }}
+      onClick={start}
       className="dream-btn dream-btn--neutral mt-3 w-full text-sm"
     >
       ▶ {label}
