@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { PaywallRequest } from "@/lib/paywall";
 import { adUnlockUrl } from "@/lib/adUnlock";
+import { trackEvent } from "@/lib/analytics";
 
 /**
- * Send eligible guests to the Offerwall directly, so Google's ad choice is
- * their first click. If the ad limit is reached, show the sign-in choice.
+ * Guest choice: sign in, or watch a short ad. Picking the ad navigates to
+ * the Offerwall page (/ad/unlock); when the ad limit is reached only the
+ * sign-in choice remains.
  */
 export default function GuestAnalysisLimitModal({ request, onClose }: {
   request: PaywallRequest;
@@ -54,11 +56,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   }, [kind, request.translation]);
 
   useEffect(() => {
-    if (ad === "ready") window.location.assign(adUnlockUrl(kind, undefined, request.translation));
-  }, [ad, kind, request.translation]);
-
-  useEffect(() => {
-    if (ad !== "loading" && ad !== "ready") signInRef.current?.focus();
+    if (ad !== "loading") signInRef.current?.focus();
   }, [ad]);
 
   function retry() {
@@ -66,7 +64,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
     request.retry?.();
   }
 
-  if (ad === "loading" || ad === "ready") return (
+  if (ad === "loading") return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" role="status">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-sm text-[var(--muted)]">
         {pm.adLoading}
@@ -94,6 +92,17 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
           onClick={() => { onClose(); request.guest?.signIn(); }}>{translate ? pm.signInWithGoogle : t.common.signIn}</button>
         {ad === "credit" ? (
           <button type="button" className="dream-btn dream-btn--neutral mt-3 w-full" onClick={retry}>{copy.again}</button>
+        ) : ad === "ready" ? (
+          <button
+            type="button"
+            className="dream-btn dream-btn--neutral mt-3 w-full text-sm"
+            onClick={() => {
+              trackEvent("rewarded_ad_open", { source: request.source, kind });
+              window.location.assign(adUnlockUrl(kind, undefined, request.translation));
+            }}
+          >
+            ▶ {copy.ad}
+          </button>
         ) : (
           <div className="mt-3">
             <button type="button" disabled className="dream-btn dream-btn--neutral w-full text-sm opacity-60">▶ {copy.ad}</button>

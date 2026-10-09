@@ -18,15 +18,13 @@ type Props = {
   title: string;
   body: string;
   /**
-   * The ad is a choice alongside the paid plans. Try the direct rewarded slot
-   * first, then fall back to the AdSense Offerwall when it has no fill.
+   * The ad is a choice alongside the paid plans; clicking it goes straight
+   * to the AdSense Offerwall page (/ad/unlock).
    */
   rewarded?: {
     label: string;
     kind: PaywallKind;
     translation?: { sharedDreamId: string; targetLang: string };
-    onGranted: (rewardId: string) => Promise<boolean>;
-    onDone: () => void;
   } | null;
 };
 
@@ -146,9 +144,6 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
               kind={rewarded.kind}
               translation={rewarded.translation}
               source={source}
-              statusCopy={{ loading: t.plansModal.adLoading, unavailable: t.plansModal.adUnavailableSignedIn, failed: t.plansModal.adFailed }}
-              onGranted={rewarded.onGranted}
-              onDone={rewarded.onDone}
               card={{ title: t.plansModal.adCardTitle, price: t.pricing.free, description: rewarded.label }}
             />
           ) : null}
