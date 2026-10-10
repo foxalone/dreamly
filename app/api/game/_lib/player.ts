@@ -7,10 +7,12 @@ import { BUILDINGS } from "@/lib/game/buildings";
 import { CREATURE_TIERS, chapterOneDone, creatureWeight, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
-import { addEscape, canGrantEscape, escapeDayKey, escapeTotal, type EscapeState } from "@/lib/game/escape";
+import { addEscape, adoptEscapeStash, canGrantEscape, escapeDayKey, escapeTotal, type EscapeStash, type EscapeState } from "@/lib/game/escape";
 import type { Owner } from "./owner";
 
 export const PLAYER_COLLECTION = "kingdom_players";
+/** Escapes for people who never entered the game wait here, not in kingdom_players. */
+export const ESCAPE_STASH_COLLECTION = "kingdom_escapes";
 
 /** One-time import from the old browser-only save is capped, so it cannot be used to mint creatures. */
 const IMPORT_CAP = 3_000;
@@ -67,6 +69,19 @@ export type PlayerState = {
 
 export function playerRef(ownerKey: string) {
   return adminFirestore().collection(PLAYER_COLLECTION).doc(ownerKey);
+}
+
+export function escapeStashRef(ownerKey: string) {
+  return adminFirestore().collection(ESCAPE_STASH_COLLECTION).doc(ownerKey);
+}
+
+/**
+ * Really entered the game: tapped at least once (or has progress from before taps were
+ * counted). Only such players get a kingdom_players row — writing a dream alone never
+ * creates one, so the admin table holds real players only.
+ */
+export function hasPlayed(p: PlayerDoc): boolean {
+  return p.taps > 0 || p.lifetime > 0 || Object.keys(p.placed).length > 0;
 }
 
 function emptyPlayer(owner: Owner, now: number): PlayerDoc {
@@ -233,24 +248,88 @@ export function catchEscaped(p: PlayerDoc, _now: number): number {
   return total;
 }
 
-/** Grant an escape from outside the game routes (used by /api/dreams/analyze). */
+/**
+ * Grant an escape from outside the game routes (used by /api/dreams/analyze). Dream
+ * writers who never played get no kingdom_players row: their escape waits in
+ * kingdom_escapes until the first tap (action "sync" adopts it, see action route).
+ */
 export async function grantEscapeForOwner(
   owner: Owner,
   matches: { slug: string | null; native: string }[],
   paidWithAd = false
 ): Promise<{ granted: number; total: number; emojis: string[]; grantedEmojis: string[] }> {
   const ref = playerRef(owner.ownerKey);
+  const stashRef = escapeStashRef(owner.ownerKey);
   return adminFirestore().runTransaction(async (tx) => {
     const now = Date.now();
     const snap = await tx.get(ref);
     const p = readPlayer(snap.data(), owner, now);
-    const granted = grantEscape(p, matches, now, paidWithAd);
-    if (granted > 0) {
-      p.updatedAt = now;
-      tx.set(ref, p);
+    if (snap.exists && hasPlayed(p)) {
+      const granted = grantEscape(p, matches, now, paidWithAd);
+      if (granted > 0) {
+        p.updatedAt = now;
+        tx.set(ref, p);
+      }
+      const emojis = p.escaped?.emojis ?? [];
+      return { granted, total: escapeTotal(p.escaped), emojis, grantedEmojis: granted > 0 ? emojis.slice(-granted) : [] };
     }
-    const emojis = p.escaped?.emojis ?? [];
-    return { granted, total: escapeTotal(p.escaped), emojis, grantedEmojis: granted > 0 ? emojis.slice(-granted) : [] };
+    // Not a player yet: park the escape aside. grantEscape only touches these two fields.
+    const sSnap = await tx.get(stashRef);
+    const s = (sSnap.data() ?? {}) as EscapeStash & { createdAt?: number };
+    const holder = { escaped: s.escaped ?? null, escapeDay: s.escapeDay ?? null } as PlayerDoc;
+    const granted = grantEscape(holder, matches, now, paidWithAd);
+    if (granted > 0) {
+      tx.set(stashRef, {
+        ownerKey: owner.ownerKey,
+        uid: owner.uid,
+        guestId: owner.uid ? null : owner.guestId,
+        escaped: holder.escaped,
+        escapeDay: holder.escapeDay,
+        createdAt: s.createdAt ?? now,
+        updatedAt: now,
+      });
+    }
+    const emojis = holder.escaped?.emojis ?? [];
+    return { granted, total: escapeTotal(holder.escaped), emojis, grantedEmojis: granted > 0 ? emojis.slice(-granted) : [] };
+  });
+}
+
+/**
+ * A guest who wrote dreams but never played signs in: move their waiting escape stash
+ * to the account (straight into the player doc when the account already plays).
+ */
+export async function mergeGuestStash(owner: Owner): Promise<void> {
+  if (!owner.uid || !owner.guestId) return;
+  const db = adminFirestore();
+  const gRef = escapeStashRef(`g_${owner.guestId}`);
+  const uPlayerRef = playerRef(owner.ownerKey);
+  const uStashRef = escapeStashRef(owner.ownerKey);
+  await db.runTransaction(async (tx) => {
+    const gSnap = await tx.get(gRef);
+    if (!gSnap.exists) return;
+    const now = Date.now();
+    const [pSnap, uSnap] = await Promise.all([tx.get(uPlayerRef), tx.get(uStashRef)]);
+    const g = gSnap.data() as EscapeStash;
+    const p = readPlayer(pSnap.data(), owner, now);
+    if (pSnap.exists && hasPlayed(p)) {
+      adoptEscapeStash(p, g, now);
+      p.updatedAt = now;
+      tx.set(uPlayerRef, p);
+    } else {
+      const u = (uSnap.data() ?? {}) as EscapeStash & { createdAt?: number };
+      const holder = { escaped: u.escaped ?? null, escapeDay: u.escapeDay ?? null };
+      adoptEscapeStash(holder, g, now);
+      tx.set(uStashRef, {
+        ownerKey: owner.ownerKey,
+        uid: owner.uid,
+        guestId: null,
+        escaped: holder.escaped,
+        escapeDay: holder.escapeDay,
+        createdAt: u.createdAt ?? now,
+        updatedAt: now,
+      });
+    }
+    tx.delete(gRef);
   });
 }
 

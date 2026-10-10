@@ -47,7 +47,9 @@ export async function GET(req: Request) {
         mergedInto: (x.mergedInto as string | null) ?? null,
       };
     })
-    .filter((r) => !r.mergedInto);
+    // Only people who actually played: rows written before the first-tap rule (or merged
+    // leftovers) stay hidden, the table mirrors what new code creates.
+    .filter((r) => !r.mergedInto && (r.taps > 0 || r.lifetime > 0 || r.buildings.length > 0));
 
   // Names / emails for signed-in players.
   const uids = [...new Set(rows.map((r) => r.uid).filter((u): u is string => !!u))];

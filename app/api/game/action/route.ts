@@ -7,7 +7,8 @@
 
 import { NextResponse } from "next/server";
 import { adminFirestore } from "@/lib/firebaseAdmin";
-import { applyTaps, catchEscaped, collectInto, importLocal, playerRef, readPlayer, toState } from "../_lib/player";
+import { adoptEscapeStash, type EscapeStash } from "@/lib/game/escape";
+import { applyTaps, catchEscaped, collectInto, escapeStashRef, hasPlayed, importLocal, playerRef, readPlayer, toState } from "../_lib/player";
 import { resolveOwner, withOwner } from "../_lib/owner";
 
 export const runtime = "nodejs";
@@ -34,12 +35,16 @@ export async function POST(req: Request) {
     const now = Date.now();
     const snap = await tx.get(ref);
     const p = readPlayer(snap.data(), owner, now);
+    const playedBefore = snap.exists && hasPlayed(p);
     let delta = 0;
     let escapedEmojis: string[] | undefined;
     if (type === "sync") delta = applyTaps(p, Number(body.taps) || 0, body.catches ?? {}, now);
     else if (type === "catch_escaped") {
-      escapedEmojis = p.escaped?.emojis ?? [];
-      delta = catchEscaped(p, now);
+      // Nothing is credited before the first tap — the stash waits until they play.
+      if (playedBefore) {
+        escapedEmojis = p.escaped?.emojis ?? [];
+        delta = catchEscaped(p, now);
+      }
     }
     else if (type === "collect") {
       const ids = Array.isArray(body.buildingIds)
@@ -50,8 +55,23 @@ export async function POST(req: Request) {
       delta = collectInto(p, now, ids);
     }
     else delta = importLocal(p, body.local ?? {});
+    // The very first taps make the player real: adopt an escape that has been waiting
+    // in kingdom_escapes since before this row existed (reads must precede writes).
+    let stash: FirebaseFirestore.DocumentReference | null = null;
+    if (!playedBefore && hasPlayed(p)) {
+      const sRef = escapeStashRef(owner.ownerKey);
+      const sSnap = await tx.get(sRef);
+      if (sSnap.exists) {
+        adoptEscapeStash(p, sSnap.data() as EscapeStash, now);
+        stash = sRef;
+      }
+    }
     p.updatedAt = now;
-    tx.set(ref, p);
+    // Only someone who actually played gets (or keeps) a kingdom_players row.
+    if (snap.exists || hasPlayed(p)) {
+      tx.set(ref, p);
+      if (stash) tx.delete(stash);
+    }
     return { delta, state: toState(p, now), ...(escapedEmojis ? { escapedEmojis } : {}) };
   });
 

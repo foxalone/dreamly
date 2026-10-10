@@ -5,7 +5,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { GAME_ENTRY_KEY } from "@/app/components/DreamCatcherFab";
-import { writeEscapePending } from "@/lib/game/escape";
+import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
@@ -329,6 +329,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     const res = await postAction({ type: "sync", taps: batch.taps, catches: batch.catches });
     if (res?.ok && res.state) {
       acceptServer(res.state);
+      // The first taps may have adopted creatures that escaped from this player's dreams
+      // before the player existed (kingdom_escapes): catch them with the usual ceremony.
+      if (res.state.escaped?.total) {
+        const emojis = res.state.escaped.emojis;
+        window.setTimeout(() => void collectEscapedRef.current(emojis), 400);
+      }
     } else {
       pendingRef.current = mergeBatch(batch, pendingRef.current);
       setPending(pendingRef.current);
@@ -744,6 +750,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     });
     pendingRef.current = mergeBatch(pendingRef.current, { taps: 1, n: perTap, catches: add });
     setPending(pendingRef.current);
+
+    // A brand-new player's very first tap while dream creatures wait in the catcher:
+    // sync right away so they land now, not a batch interval later.
+    if ((serverRef.current?.lifetime ?? 0) === 0 && pendingRef.current.taps === 1 && readEscapePending()) {
+      window.setTimeout(() => void flush(), 700);
+    }
 
     window.setTimeout(() => {
       const ids = new Set(born.map((b) => b.id));

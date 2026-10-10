@@ -38,6 +38,37 @@ export function canGrantEscape(lastFreeDay: string | null, now: number, paidWith
 }
 
 /**
+ * kingdom_escapes/{ownerKey}: escapes granted to someone who never actually played wait
+ * here, so kingdom_players (and the admin table) only ever holds people who entered the
+ * game and tapped at least once.
+ */
+export type EscapeStash = { escaped?: EscapeState | null; escapeDay?: string | null };
+
+/**
+ * The first real taps arrived: pull a waiting stash into the player's escape fields.
+ * Creatures older than the TTL are dropped (the player never came for them), but the
+ * day rule survives either way, so the free grant stays one per day. Mutates `p`.
+ */
+export function adoptEscapeStash(
+  p: { escaped: EscapeState | null; escapeDay: string | null },
+  s: EscapeStash | null | undefined,
+  now: number
+): void {
+  if (!s) return;
+  if (s.escapeDay && (!p.escapeDay || s.escapeDay > p.escapeDay)) p.escapeDay = s.escapeDay;
+  const e = s.escaped;
+  if (!e || escapeTotal(e) <= 0 || now - (e.at ?? 0) > ESCAPE_TTL_MS) return;
+  p.escaped = p.escaped
+    ? {
+        slugs: [...(p.escaped.slugs ?? []), ...(e.slugs ?? [])],
+        extra: Math.max(0, p.escaped.extra ?? 0) + Math.max(0, e.extra ?? 0),
+        emojis: [...(p.escaped.emojis ?? []), ...(e.emojis ?? [])],
+        at: now,
+      }
+    : { slugs: [...(e.slugs ?? [])], extra: Math.max(0, e.extra ?? 0), emojis: [...(e.emojis ?? [])], at: e.at ?? now };
+}
+
+/**
  * Add one dream's escaped creatures to what is already waiting. Analysis ad credits
  * are limited per day, so a paid reading must not lose its reward to a pool cap.
  * Pure: returns the next state, never mutates `prev`.

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ESCAPE_MAX, addEscape, canGrantEscape, escapeDayKey, escapeTotal } from "./game/escape";
+import { ESCAPE_MAX, ESCAPE_TTL_MS, addEscape, adoptEscapeStash, canGrantEscape, escapeDayKey, escapeTotal, type EscapeState } from "./game/escape";
 
 test("escapeTotal counts matched slugs and nameless extras", () => {
   assert.equal(escapeTotal(null), 0);
@@ -58,4 +58,30 @@ test("ad-paid readings grant on every use without consuming the free daily escap
   assert.equal(canGrantEscape("2026-10-10", today, true), true);
   assert.equal(canGrantEscape(null, today, true), true);
   assert.equal(canGrantEscape(null, today, false), true);
+});
+
+test("adoptEscapeStash moves waiting creatures and the day rule onto the new player", () => {
+  const p: { escaped: EscapeState | null; escapeDay: string | null } = { escaped: null, escapeDay: null };
+  adoptEscapeStash(p, { escaped: { slugs: ["fox"], extra: 1, emojis: ["🦊", "📕"], at: 1_000 }, escapeDay: "2026-10-10" }, 2_000);
+  assert.equal(escapeTotal(p.escaped), 2);
+  assert.deepEqual(p.escaped!.emojis, ["🦊", "📕"]);
+  assert.equal(p.escapeDay, "2026-10-10");
+});
+
+test("adoptEscapeStash merges into an existing escape and keeps the newer day", () => {
+  const p: { escaped: EscapeState | null; escapeDay: string | null } = {
+    escaped: { slugs: ["owl"], extra: 0, emojis: ["🦉"], at: 5 },
+    escapeDay: "2026-10-09",
+  };
+  adoptEscapeStash(p, { escaped: { slugs: ["fox"], extra: 1, emojis: ["🦊", "📕"], at: 10 }, escapeDay: "2026-10-10" }, 20);
+  assert.equal(escapeTotal(p.escaped), 3);
+  assert.deepEqual(p.escaped!.slugs, ["owl", "fox"]);
+  assert.equal(p.escapeDay, "2026-10-10");
+});
+
+test("adoptEscapeStash drops creatures older than the TTL but keeps the day rule", () => {
+  const p: { escaped: EscapeState | null; escapeDay: string | null } = { escaped: null, escapeDay: null };
+  adoptEscapeStash(p, { escaped: { slugs: ["fox"], extra: 0, emojis: ["🦊"], at: 0 }, escapeDay: "2026-10-08" }, ESCAPE_TTL_MS + 1);
+  assert.equal(p.escaped, null);
+  assert.equal(p.escapeDay, "2026-10-08");
 });

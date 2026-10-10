@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
-import { cityRank, mergeGuestIntoUser, playerRef, readPlayer, toState } from "../_lib/player";
+import { cityRank, hasPlayed, mergeGuestIntoUser, mergeGuestStash, playerRef, readPlayer, toState } from "../_lib/player";
 import { resolveOwner, withOwner } from "../_lib/owner";
 
 export const runtime = "nodejs";
@@ -18,6 +18,8 @@ export async function GET(req: Request) {
   let merged = 0;
   if (owner.uid && owner.guestId) {
     merged = await mergeGuestIntoUser(owner).catch(() => 0);
+    // Escapes a never-played guest collected by writing dreams follow them too.
+    await mergeGuestStash(owner).catch(() => {});
   }
 
   const ref = playerRef(owner.ownerKey);
@@ -43,9 +45,14 @@ export async function GET(req: Request) {
   const overtaken = Boolean(rank && p.lastRank != null && rank.rank > p.lastRank);
   if (rank && rank.rank !== p.lastRank) await ref.set({ lastRank: rank.rank }, { merge: true });
 
+  const state = toState(p, now);
+  // Nothing is credited before the first tap: the catch ceremony runs after "sync"
+  // makes the player real (the stash is adopted there), not on merely opening the game.
+  if (!hasPlayed(p)) state.escaped = null;
+
   return withOwner(
     NextResponse.json(
-      { exists: snap.exists || Object.keys(p.placed).length > 0, state: toState(p, now), merged, rank, overtaken },
+      { exists: snap.exists || Object.keys(p.placed).length > 0, state, merged, rank, overtaken },
       { headers: { "Cache-Control": "no-store" } }
     ),
     owner
