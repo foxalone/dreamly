@@ -312,17 +312,15 @@ export default function MapPage() {
       popupRef.current.setLngLat(info.lngLat).setHTML(html).addTo(map);
       return;
     }
-    const kindLabel =
-      info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : "All";
+    // Which map layer the count belongs to; on the combined layer the label says nothing, so skip it.
+    const kindLabel = info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : null;
 
     const html = `
       <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px; color: #1f2937;">
         <div style="font-size: 18px; line-height: 1.2;">
           ${info.emoji} <b>${info.count}</b>
         </div>
-        <div style="opacity: .7; margin-top: 4px; font-size: 11px;">
-          ${kindLabel}
-        </div>
+        ${kindLabel ? `<div style="opacity: .7; margin-top: 4px; font-size: 11px;">${kindLabel}</div>` : ""}
         <div style="opacity: .85; margin-top: 6px;">
           ${info.place}
         </div>
