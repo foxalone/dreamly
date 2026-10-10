@@ -347,6 +347,20 @@ export default function SharedPage() {
     if (d) void translateRef.current(d, pending?.targetLang as TargetLang | undefined);
   }, [items, authReady, languageReady, uid, claimedUid]);
 
+  // /app/shared?dream=<id> (map popup): scroll to that dream and flash it once.
+  const highlightDone = useRef(false);
+  useEffect(() => {
+    if (highlightDone.current || !items.length) return;
+    const id = new URLSearchParams(window.location.search).get("dream");
+    highlightDone.current = true;
+    if (!id) return;
+    const el = document.getElementById(`shared-${id}`);
+    if (!el) return; // older than the feed window — nothing to point at
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-purple-400");
+    window.setTimeout(() => el.classList.remove("ring-2", "ring-purple-400"), 4500);
+  }, [items]);
+
   // ✅ realtime shared_dreams feed
   useEffect(() => {
     const q = query(
@@ -731,7 +745,8 @@ export default function SharedPage() {
               return (
                 <div
                   key={d.id}
-                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10"
+                  id={`shared-${d.id}`}
+                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow"
                 >
                   {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
                   <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">

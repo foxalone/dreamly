@@ -329,6 +329,7 @@ export default function MapPage() {
         <a data-dream-meaning style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
           ${info.emoji} Dream meaning →
         </a>
+        <div data-emoji-dreams></div>
       </div>
     `;
 
@@ -355,6 +356,29 @@ export default function MapPage() {
             ? `/dreams/${res.slug}`
             : `/dreams?q=${encodeURIComponent(res.query || info.emoji)}`;
           link.href = localePath(target, locale);
+        })
+        .catch(() => {});
+    }
+
+    // Rows below: the latest feed dreams that got this icon, deep-linked into the feed.
+    const list = popupRef.current.getElement()?.querySelector<HTMLDivElement>("div[data-emoji-dreams]");
+    if (list) {
+      const locale = stripLocalePrefix(window.location.pathname).locale;
+      const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      fetch(`/api/map/emoji-dreams?e=${encodeURIComponent(info.emoji)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((res: { dreams?: { id: string; snippet: string }[] } | null) => {
+          const dreams = res?.dreams ?? [];
+          if (!dreams.length) return;
+          list.innerHTML = dreams
+            .map(
+              (d) => `
+            <a href="${localePath(`/app/shared?dream=${encodeURIComponent(d.id)}`, locale)}"
+               style="display:block; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(0,0,0,.08); color: inherit; text-decoration: none; opacity: .85;">
+              ${info.emoji} “${esc(d.snippet)}” →
+            </a>`
+            )
+            .join("");
         })
         .catch(() => {});
     }
