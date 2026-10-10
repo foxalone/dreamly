@@ -22,7 +22,8 @@ import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { auth, firestore } from "@/lib/firebase";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
-import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
@@ -260,6 +261,7 @@ export default function SharedPage() {
   const pendingAfterSignInRef = useRef<SharedDream | null>(null);
   const translateRef = useRef<(d: SharedDream, lang?: TargetLang) => Promise<void>>(async () => {});
   const t = useMessages();
+  const locale = useLocale();
 
   useEffect(() => {
     setShowingTranslation({});
@@ -750,7 +752,14 @@ export default function SharedPage() {
                 <div
                   key={d.id}
                   id={`shared-${d.id}`}
-                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow"
+                  // ✅ the whole card opens the dream's public page; clicks on the
+                  // buttons and links inside (reactions, translate, 💬, the text
+                  // link) keep their own behaviour
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest("a, button")) return;
+                    router.push(localePath(`/dream/${d.id}`, locale));
+                  }}
+                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow cursor-pointer"
                 >
                   {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
                   <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
