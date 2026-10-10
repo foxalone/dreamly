@@ -7,7 +7,7 @@ import { BUILDINGS } from "@/lib/game/buildings";
 import { CREATURE_TIERS, chapterOneDone, creatureWeight, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
-import { addEscape, escapeDayKey, escapeTotal, type EscapeState } from "@/lib/game/escape";
+import { addEscape, canGrantEscape, escapeDayKey, escapeTotal, type EscapeState } from "@/lib/game/escape";
 import type { Owner } from "./owner";
 
 export const PLAYER_COLLECTION = "kingdom_players";
@@ -40,7 +40,7 @@ export type PlayerDoc = {
   mergedInto: string | null;
   /** Creatures that escaped from analyzed dreams, waiting in the catcher (see lib/game/escape.ts). */
   escaped: EscapeState | null;
-  /** UTC day of the last escape grant — one dream per day feeds the catcher. */
+  /** UTC day of the last free/plan escape; ad-paid analyses grant separately. */
   escapeDay: string | null;
   createdAt: number;
   updatedAt: number;
@@ -196,18 +196,18 @@ export function applyTaps(p: PlayerDoc, taps: number, catches: Record<string, nu
 }
 
 /**
- * A dream analysis happened: its emojis escape into the catcher — once per UTC day.
- * Returns how many creatures were granted (0 when today's escape already happened).
+ * A dream analysis happened: its emojis escape into the catcher. Free/plan readings
+ * grant once per UTC day; every ad-paid reading grants its own icons.
  */
-export function grantEscape(p: PlayerDoc, matches: { slug: string | null; native: string }[], now: number): number {
+export function grantEscape(p: PlayerDoc, matches: { slug: string | null; native: string }[], now: number, paidWithAd = false): number {
   const day = escapeDayKey(now);
-  if (p.escapeDay === day) return 0;
+  if (!canGrantEscape(p.escapeDay, now, paidWithAd)) return 0;
   const before = escapeTotal(p.escaped);
   const next = addEscape(p.escaped, matches, now);
   const granted = escapeTotal(next) - before;
   if (granted <= 0) return 0;
   p.escaped = next;
-  p.escapeDay = day;
+  if (!paidWithAd) p.escapeDay = day;
   return granted;
 }
 
@@ -236,19 +236,21 @@ export function catchEscaped(p: PlayerDoc, _now: number): number {
 /** Grant an escape from outside the game routes (used by /api/dreams/analyze). */
 export async function grantEscapeForOwner(
   owner: Owner,
-  matches: { slug: string | null; native: string }[]
-): Promise<{ granted: number; total: number }> {
+  matches: { slug: string | null; native: string }[],
+  paidWithAd = false
+): Promise<{ granted: number; total: number; emojis: string[]; grantedEmojis: string[] }> {
   const ref = playerRef(owner.ownerKey);
   return adminFirestore().runTransaction(async (tx) => {
     const now = Date.now();
     const snap = await tx.get(ref);
     const p = readPlayer(snap.data(), owner, now);
-    const granted = grantEscape(p, matches, now);
+    const granted = grantEscape(p, matches, now, paidWithAd);
     if (granted > 0) {
       p.updatedAt = now;
       tx.set(ref, p);
     }
-    return { granted, total: escapeTotal(p.escaped) };
+    const emojis = p.escaped?.emojis ?? [];
+    return { granted, total: escapeTotal(p.escaped), emojis, grantedEmojis: granted > 0 ? emojis.slice(-granted) : [] };
   });
 }
 

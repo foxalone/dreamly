@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
+import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
@@ -187,6 +188,8 @@ export async function POST(req: Request) {
     }
 
     const emojiPick = await emojiPromise;
+    const fallbackEmojis = emojiPick?.emojis?.length ? [] : (await pickDreamMapVisuals(text).catch(() => null))?.emojis ?? [];
+    const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
 
     if (isGuest) {
       // Remember the answer for today's repeats of this text from this network.
@@ -194,22 +197,24 @@ export async function POST(req: Request) {
         analysis,
         model,
         lens: lens ?? null,
-        emojis: emojiPick?.emojis ?? [],
+        emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,
         createdAtMs: Date.now(),
       }).catch(() => {});
     }
 
-    // Dream Kingdoms: the dream's emojis escape into the floating dream catcher —
-    // exactly the icons this dream created, one dream per day. Never fails the reading.
-    let escape: { granted: number; total: number } | null = null;
+    // Every analysis paid with an ad credit grants its own icons. Free/plan
+    // analyses retain the once-per-day rule. Never fails the reading.
+    let escape: { granted: number; total: number; emojis: string[]; grantedEmojis: string[] } | null = null;
     const escapeOwnerKey = uid ? `u_${uid}` : guestId ? `g_${guestId}` : null;
     const escapeSource =
-      Array.isArray(body?.escapeEmojis) && body.escapeEmojis.length ? body.escapeEmojis : emojiPick?.emojis ?? [];
+      Array.isArray(body?.escapeEmojis) && body.escapeEmojis.length ? body.escapeEmojis : dreamEmojis;
     if (escapeOwnerKey && escapeSource.length > 0) {
+      const matched = matchEscapes(escapeSource);
       escape = await grantEscapeForOwner(
         { ownerKey: escapeOwnerKey, uid, guestId: uid ? null : guestId, newGuest: false },
-        matchEscapes(escapeSource)
+        matched.length ? matched : matchEscapes([{ native: "💭" }]),
+        Boolean(adCreditUid || guestBooking?.charge === "ad")
       ).catch(() => null);
     }
 
@@ -220,7 +225,7 @@ export async function POST(req: Request) {
         lens,
         guest: isGuest,
         cost: 0,
-        emojis: emojiPick?.emojis ?? [],
+        emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,
         escape,
       })

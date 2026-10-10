@@ -1289,7 +1289,7 @@ export default function DreamsPage() {
         credits_used: 0,
         lens: analysisLens,
       });
-      // Dream Kingdoms: first analyzed dream today — its emojis escaped into the catcher.
+      // Dream Kingdoms: daily free/plan grant or a grant for every ad-paid analysis.
       if (Number(data2?.escape?.granted ?? 0) > 0) {
         const fromApi = Array.isArray(data2?.emojis)
           ? (data2.emojis as Array<{ native?: string }>).map((e) => (typeof e?.native === "string" ? e.native : "")).filter(Boolean)
@@ -1298,9 +1298,12 @@ export default function DreamsPage() {
           ? ((dream as any).emojis as Array<{ native?: string }>).map((e) => (typeof e?.native === "string" ? e.native : "")).filter(Boolean)
           : [];
         // The dream's own icons first — they are what escaped (see escapeEmojis above).
-        const natives = (fromItem.length ? fromItem : fromApi).slice(0, Number(data2.escape.granted));
+        const natives = Array.isArray(data2.escape.grantedEmojis)
+          ? data2.escape.grantedEmojis
+          : (fromItem.length ? fromItem : fromApi).slice(0, Number(data2.escape.granted));
         if (natives.length) {
-          writeEscapePending({ emojis: natives, at: Date.now(), key: t });
+          const waiting = Array.isArray(data2.escape.emojis) ? data2.escape.emojis : natives;
+          writeEscapePending({ emojis: waiting, latestEmojis: natives, at: Date.now(), key: t });
           setEscapedFor({ id: dreamId, emojis: natives });
         }
       }

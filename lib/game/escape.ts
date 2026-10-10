@@ -1,7 +1,8 @@
 /**
  * Dream Kingdoms — "escaped creatures": right after a dream analysis, the dream's own
  * emojis "escape" into the floating dream catcher (DreamCatcherFab). The grant is written
- * server-side by /api/dreams/analyze (one dream per day), the player collects it by
+ * server-side by /api/dreams/analyze (one free/plan dream per day, every ad-paid
+ * analysis), the player collects it by
  * opening the game (action "catch_escaped").
  *
  * This module is pure + browser helpers; no firebase imports, safe on client and server.
@@ -21,8 +22,6 @@ export type EscapeState = {
 
 /** At most this many creatures escape from one dream (= the emoji pick size). */
 export const ESCAPE_MAX = 4;
-/** Uncollected escapes pile up to this many creatures, so the field cannot grow unbounded. */
-export const ESCAPE_POOL_CAP = 8;
 
 export function escapeTotal(e: EscapeState | null | undefined): number {
   if (!e) return 0;
@@ -34,9 +33,14 @@ export function escapeDayKey(now: number): string {
   return new Date(now).toISOString().slice(0, 10);
 }
 
+export function canGrantEscape(lastFreeDay: string | null, now: number, paidWithAd: boolean): boolean {
+  return paidWithAd || lastFreeDay !== escapeDayKey(now);
+}
+
 /**
- * Add one dream's escaped creatures to what is already waiting (uncollected escapes merge,
- * capped). Pure: returns the next state, never mutates `prev`.
+ * Add one dream's escaped creatures to what is already waiting. Analysis ad credits
+ * are limited per day, so a paid reading must not lose its reward to a pool cap.
+ * Pure: returns the next state, never mutates `prev`.
  */
 export function addEscape(
   prev: EscapeState | null | undefined,
@@ -49,12 +53,11 @@ export function addEscape(
   let extra = Math.max(0, prev?.extra ?? 0);
   const emojis = [...(prev?.emojis ?? [])];
   for (const m of take) {
-    if (slugs.length + extra >= ESCAPE_POOL_CAP) break;
     if (m.slug) slugs.push(m.slug);
     else extra++;
     emojis.push(m.native);
   }
-  return { slugs, extra, emojis: emojis.slice(0, ESCAPE_POOL_CAP), at: now };
+  return { slugs, extra, emojis, at: now };
 }
 
 // ── Browser side: the badge on the floating catcher ─────────────────────────
@@ -62,7 +65,10 @@ export function addEscape(
 // clears it once the creatures are caught. Display only — the server owns the balance.
 
 export type EscapePending = {
+  /** All creatures waiting in the catcher, for its badge. */
   emojis: string[];
+  /** This reading's creatures, for the note when returning to the journal. */
+  latestEmojis?: string[];
   at: number;
   /** The dream the escape came from (its text) — only that card shows the note. */
   key?: string;

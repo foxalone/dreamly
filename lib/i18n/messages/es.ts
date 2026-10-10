@@ -421,7 +421,7 @@ export const ES_MESSAGES: UiMessages = {
     tapHint: "Toca el atrapasueños para atrapar criaturas de los sueños",
     escapeLead: "Mientras se interpretaba tu sueño, unas criaturas escaparon de él:",
     escapeCta: "se escondieron en el atrapasueños. ¡Tócalo para atraparlas!",
-    escapeAlreadyToday: "De este sueño no escaparon criaturas nuevas. Solo un sueño al día puede enviar criaturas al atrapasueños.",
+    escapeAlreadyToday: "No escaparon criaturas nuevas de esta interpretación. Las interpretaciones sin anuncio las envían una vez al día; cada interpretación desbloqueada con un anuncio envía las suyas.",
     escapeCaught: "✨ Atrapadas de tu sueño: {emojis}",
     buildings: "Construcciones",
     buildingNames: {
