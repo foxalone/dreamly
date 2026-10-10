@@ -36,8 +36,12 @@ export default function HomeHero() {
             <div className="lg:col-span-3 [&>div]:lg:max-w-none">
               <HomeDreamAsk onResultChange={setHasResult} />
             </div>
-            <div className="mt-4 lg:mt-10">
-              <HomeExploreCard />
+            {/* lg: absolutely filled cell — the card takes exactly the form's height
+                instead of setting the row height itself. */}
+            <div className="mt-4 lg:relative lg:mt-10">
+              <div className="lg:absolute lg:inset-0">
+                <HomeExploreCard />
+              </div>
             </div>
           </div>
         </div>

@@ -34,7 +34,7 @@ export default function HomeExploreCard() {
   ];
 
   return (
-    <aside className="flex h-full flex-col rounded-3xl border border-[var(--border)] bg-[var(--card)] p-4 text-start">
+    <aside className="flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)] p-4 text-start">
       <h2 className="text-sm font-semibold text-[var(--text)]">{t.home.exploreTitle}</h2>
       <form onSubmit={submit} className="mt-3">
         <label className="sr-only" htmlFor="home-explore-q">{t.home.explorePlaceholder}</label>
@@ -49,7 +49,7 @@ export default function HomeExploreCard() {
           />
         </div>
       </form>
-      <nav className="hx-nav mt-3 flex flex-col gap-1">
+      <nav className="hx-nav mt-3 flex flex-1 flex-col justify-evenly gap-1">
         <style>{`
           /* Attract loop: each link lights up and "presses" for a beat, one after another.
              One full cycle = 1.6s per link. Pauses while the visitor's cursor is in the list. */
