@@ -364,6 +364,11 @@ export type UiMessages = {
     fabLabel: string;
     tapAria: string;
     tapHint: string;
+    /** Note above a fresh dream reading: creatures escaped into the catcher. */
+    escapeLead: string;
+    escapeCta: string;
+    /** Game toast after collecting them; {emojis} = the dream's emojis. */
+    escapeCaught: string;
     buildings: string;
     buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "dream-temple" | "wonder-circus" | "dream-gates" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
     tapToBuild: string;

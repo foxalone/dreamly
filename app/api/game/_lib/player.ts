@@ -7,6 +7,7 @@ import { BUILDINGS } from "@/lib/game/buildings";
 import { CREATURE_TIERS, chapterOneDone, creatureWeight, openTier } from "@/lib/game/creatureTiers";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { allowedTaps, buildingStorage, distribute, perTapFor, ratePerMin } from "@/lib/game/economy";
+import { addEscape, escapeDayKey, escapeTotal, type EscapeState } from "@/lib/game/escape";
 import type { Owner } from "./owner";
 
 export const PLAYER_COLLECTION = "kingdom_players";
@@ -37,6 +38,10 @@ export type PlayerDoc = {
   lastRank: number | null;
   importedLocal: boolean;
   mergedInto: string | null;
+  /** Creatures that escaped from analyzed dreams, waiting in the catcher (see lib/game/escape.ts). */
+  escaped: EscapeState | null;
+  /** UTC day of the last escape grant — one dream per day feeds the catcher. */
+  escapeDay: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -56,6 +61,8 @@ export type PlayerState = {
   serverNow: number;
   signedIn: boolean;
   importedLocal: boolean;
+  /** Waiting escaped creatures, if any — the game collects them on open. */
+  escaped: { total: number; emojis: string[] } | null;
 };
 
 export function playerRef(ownerKey: string) {
@@ -83,6 +90,8 @@ function emptyPlayer(owner: Owner, now: number): PlayerDoc {
     lastRank: null,
     importedLocal: false,
     mergedInto: null,
+    escaped: null,
+    escapeDay: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -112,6 +121,7 @@ export function toState(p: PlayerDoc, now: number): PlayerState {
     serverNow: now,
     signedIn: Boolean(p.uid),
     importedLocal: p.importedLocal,
+    escaped: escapeTotal(p.escaped) > 0 ? { total: escapeTotal(p.escaped), emojis: p.escaped?.emojis ?? [] } : null,
   };
 }
 
@@ -183,6 +193,63 @@ export function applyTaps(p: PlayerDoc, taps: number, catches: Record<string, nu
   p.lifetime += n;
   p.taps += accepted;
   return n;
+}
+
+/**
+ * A dream analysis happened: its emojis escape into the catcher — once per UTC day.
+ * Returns how many creatures were granted (0 when today's escape already happened).
+ */
+export function grantEscape(p: PlayerDoc, matches: { slug: string | null; native: string }[], now: number): number {
+  const day = escapeDayKey(now);
+  if (p.escapeDay === day) return 0;
+  const before = escapeTotal(p.escaped);
+  const next = addEscape(p.escaped, matches, now);
+  const granted = escapeTotal(next) - before;
+  if (granted <= 0) return 0;
+  p.escaped = next;
+  p.escapeDay = day;
+  return granted;
+}
+
+/**
+ * The player opened the game: everything waiting in the catcher goes into the balance.
+ * Matched creatures are credited as exactly their kind (that is the point — "your dream's
+ * creature"); unmatched dream emojis become random open kinds.
+ */
+export function catchEscaped(p: PlayerDoc, _now: number): number {
+  const total = escapeTotal(p.escaped);
+  if (!total) {
+    p.escaped = null;
+    return 0;
+  }
+  const add: Record<string, number> = {};
+  for (const slug of p.escaped?.slugs ?? []) add[slug] = (add[slug] ?? 0) + 1;
+  addCatches(p, add);
+  const extra = p.escaped?.extra ?? 0;
+  if (extra > 0) addCatches(p, distributeOpen(extra, p.lifetime, p.caught));
+  p.creatures += total;
+  p.lifetime += total;
+  p.escaped = null;
+  return total;
+}
+
+/** Grant an escape from outside the game routes (used by /api/dreams/analyze). */
+export async function grantEscapeForOwner(
+  owner: Owner,
+  matches: { slug: string | null; native: string }[]
+): Promise<{ granted: number; total: number }> {
+  const ref = playerRef(owner.ownerKey);
+  return adminFirestore().runTransaction(async (tx) => {
+    const now = Date.now();
+    const snap = await tx.get(ref);
+    const p = readPlayer(snap.data(), owner, now);
+    const granted = grantEscape(p, matches, now);
+    if (granted > 0) {
+      p.updatedAt = now;
+      tx.set(ref, p);
+    }
+    return { granted, total: escapeTotal(p.escaped) };
+  });
 }
 
 /** One-time import of the old localStorage save (capped). */

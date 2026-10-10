@@ -5,6 +5,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { GAME_ENTRY_KEY } from "@/app/components/DreamCatcherFab";
+import { writeEscapePending } from "@/lib/game/escape";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
@@ -58,6 +59,8 @@ type ServerState = {
   serverNow: number;
   signedIn: boolean;
   importedLocal: boolean;
+  /** Creatures that escaped from analyzed dreams, waiting to be caught on open. */
+  escaped: { total: number; emojis: string[] } | null;
 };
 
 /** Taps made on this device that the server has not confirmed yet. */
@@ -357,6 +360,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       setRank(data.rank ?? null);
       if (data.overtaken && data.rank) setOvertaken(data.rank);
       if (data.merged) showToast(t.merged, 4000);
+      // Creatures that escaped from the player's dream readings: catch them with a
+      // little ceremony — they fly out of the catcher and the balance updates.
+      if (state.escaped?.total) {
+        const emojis = state.escaped.emojis;
+        window.setTimeout(() => void collectEscapedRef.current(emojis), 500);
+      }
       // Cubes holding at least ~10 minutes of production were filled while the player was away:
       // they stay full until tapped. The rest start "live" right away.
       const awaySet = new Set<string>();
@@ -381,6 +390,46 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       showToast(t.offline);
     }
   }
+
+  /** Collect the escaped creatures (once per load; the ref keeps loadState's closure fresh). */
+  const escapedBusy = useRef(false);
+  async function collectEscaped(emojis: string[]) {
+    if (escapedBusy.current) return;
+    escapedBusy.current = true;
+    try {
+      const res = await postAction({ type: "catch_escaped" });
+      if (!res?.ok) return;
+      if (res.state) acceptServer(res.state);
+      writeEscapePending(null); // the FAB badge goes out
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (!reduced && emojis.length) {
+        const strip = (x: string) => x.replace(/\uFE0F/g, "");
+        const born: Flying[] = emojis.map((e, i) => {
+          const creature =
+            pool.find((c) => strip(c.emoji) === strip(e)) ?? ({ emoji: e, slug: `esc_${i}`, name: "", meaning: "", tier: 1 } as Creature);
+          const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+          return {
+            id: nextId.current++,
+            creature,
+            dx: Math.cos(angle) * 180,
+            dy: Math.sin(angle) * 180,
+            rot: (Math.random() - 0.5) * 60,
+            delay: 200 + i * 180,
+          };
+        });
+        setFlying((f) => [...f, ...born]);
+        window.setTimeout(() => {
+          const ids = new Set(born.map((b) => b.id));
+          setFlying((f) => f.filter((x) => !ids.has(x.id)));
+        }, FLIGHT_MS + 200 + emojis.length * 180 + 100);
+      }
+      showToast(formatMessage(t.escapeCaught, { emojis: emojis.join(" ") }), 5000);
+    } finally {
+      escapedBusy.current = false;
+    }
+  }
+  const collectEscapedRef = useRef(collectEscaped);
+  collectEscapedRef.current = collectEscaped;
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {

@@ -417,6 +417,9 @@ export const PT_MESSAGES: UiMessages = {
     fabLabel: "Reinos dos Sonhos — capture criaturas dos sonhos",
     tapAria: "Toque no filtro dos sonhos (+{n})",
     tapHint: "Toque no filtro dos sonhos para capturar criaturas dos sonhos",
+    escapeLead: "Enquanto seu sonho era interpretado, criaturas escaparam dele:",
+    escapeCta: "elas se esconderam no filtro dos sonhos. Toque nele para capturá-las!",
+    escapeCaught: "✨ Capturadas do seu sonho: {emojis}",
     buildings: "Construções",
     buildingNames: {
       "hut": "Cabana",

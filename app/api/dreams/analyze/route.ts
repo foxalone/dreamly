@@ -16,6 +16,8 @@ import {
   setGuestCookie,
 } from "../_lib/guestQuota";
 import { readGuestAskDedup, writeGuestAskDedup } from "../_lib/guestDedup";
+import { grantEscapeForOwner } from "../../game/_lib/player";
+import { matchEscapes } from "../../game/_lib/escapeMatch";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
@@ -195,6 +197,17 @@ export async function POST(req: Request) {
       }).catch(() => {});
     }
 
+    // Dream Kingdoms: the dream's emojis escape into the floating dream catcher —
+    // exactly the icons this dream created, one dream per day. Never fails the reading.
+    let escape: { granted: number; total: number } | null = null;
+    const escapeOwnerKey = uid ? `u_${uid}` : guestId ? `g_${guestId}` : null;
+    if (escapeOwnerKey && (emojiPick?.emojis?.length ?? 0) > 0) {
+      escape = await grantEscapeForOwner(
+        { ownerKey: escapeOwnerKey, uid, guestId: uid ? null : guestId, newGuest: false },
+        matchEscapes(emojiPick?.emojis ?? [])
+      ).catch(() => null);
+    }
+
     return finish(
       NextResponse.json({
         analysis,
@@ -204,6 +217,7 @@ export async function POST(req: Request) {
         cost: 0,
         emojis: emojiPick?.emojis ?? [],
         emojiModel: emojiPick?.model ?? null,
+        escape,
       })
     );
   } catch (e: any) {

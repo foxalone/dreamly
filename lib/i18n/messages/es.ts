@@ -417,6 +417,9 @@ export const ES_MESSAGES: UiMessages = {
     fabLabel: "Reinos de los Sueños — atrapa criaturas de los sueños",
     tapAria: "Toca el atrapasueños (+{n})",
     tapHint: "Toca el atrapasueños para atrapar criaturas de los sueños",
+    escapeLead: "Mientras se interpretaba tu sueño, unas criaturas escaparon de él:",
+    escapeCta: "se escondieron en el atrapasueños. ¡Tócalo para atraparlas!",
+    escapeCaught: "✨ Atrapadas de tu sueño: {emojis}",
     buildings: "Construcciones",
     buildingNames: {
       "hut": "Choza",

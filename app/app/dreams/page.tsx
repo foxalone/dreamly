@@ -21,6 +21,8 @@ import { needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
+import EscapeNote from "@/app/components/EscapeNote";
+import { writeEscapePending } from "@/lib/game/escape";
 import {
   hasFreeAnalysis,
   adAnalysisCredits,
@@ -471,6 +473,8 @@ export default function DreamsPage() {
 
   const [analysisBusyId, setAnalysisBusyId] = useState<string | null>(null);
   const [analysisOpenId, setAnalysisOpenId] = useState<string | null>(null);
+  /** Dream whose fresh reading made creatures escape into the catcher (shows the note in the popup). */
+  const [escapedFor, setEscapedFor] = useState<{ id: string; emojis: string[] } | null>(null);
   const [analysisOpenType, setAnalysisOpenType] = useState<ContentType>("dream");
 
   const hintsRef = useRef<Record<string, string>>({});
@@ -1281,6 +1285,20 @@ export default function DreamsPage() {
         credits_used: 0,
         lens: analysisLens,
       });
+      // Dream Kingdoms: first analyzed dream today — its emojis escaped into the catcher.
+      if (Number(data2?.escape?.granted ?? 0) > 0) {
+        const fromApi = Array.isArray(data2?.emojis)
+          ? (data2.emojis as Array<{ native?: string }>).map((e) => (typeof e?.native === "string" ? e.native : "")).filter(Boolean)
+          : [];
+        const fromItem = Array.isArray((dream as any)?.emojis)
+          ? ((dream as any).emojis as Array<{ native?: string }>).map((e) => (typeof e?.native === "string" ? e.native : "")).filter(Boolean)
+          : [];
+        const natives = (fromApi.length ? fromApi : fromItem).slice(0, Number(data2.escape.granted));
+        if (natives.length) {
+          writeEscapePending({ emojis: natives, at: Date.now() });
+          setEscapedFor({ id: dreamId, emojis: natives });
+        }
+      }
       openAnalysis(dreamId);
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
@@ -2010,6 +2028,7 @@ export default function DreamsPage() {
                 </div>
 
                 <div className="mt-4">
+                  {escapedFor && escapedFor.id === analysisOpenId ? <EscapeNote emojis={escapedFor.emojis} /> : null}
                   {!txt ? (
                     <div className="text-sm text-[var(--muted)]">No analysis found.</div>
                   ) : (

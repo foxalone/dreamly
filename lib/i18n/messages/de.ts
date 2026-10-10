@@ -417,6 +417,9 @@ export const DE_MESSAGES: UiMessages = {
     fabLabel: "Traumkönigreiche — fang Traumwesen",
     tapAria: "Tippe auf den Traumfänger (+{n})",
     tapHint: "Tippe auf den Traumfänger, um Traumwesen zu fangen",
+    escapeLead: "Während dein Traum gedeutet wurde, sind Wesen aus ihm entkommen:",
+    escapeCta: "sie haben sich im Traumfänger versteckt. Tippe darauf, um sie zu fangen!",
+    escapeCaught: "✨ Aus deinem Traum gefangen: {emojis}",
     buildings: "Gebäude",
     buildingNames: {
       "hut": "Hütte",

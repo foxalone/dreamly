@@ -417,6 +417,9 @@ export const AR_MESSAGES: UiMessages = {
     fabLabel: "ممالك الأحلام — اصطد كائنات الأحلام",
     tapAria: "اضغط على صائد الأحلام (+{n})",
     tapHint: "اضغط على صائد الأحلام لتصطاد كائنات الأحلام",
+    escapeLead: "أثناء تفسير حلمك، هربت منه كائنات:",
+    escapeCta: "اختبأت في صائد الأحلام. اضغط عليه لتمسك بها!",
+    escapeCaught: "✨ أمسكتَ كائنات من حلمك: {emojis}",
     buildings: "المباني",
     buildingNames: {
       "hut": "كوخ",

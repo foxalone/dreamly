@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { ESCAPE_EVENT, readEscapePending } from "@/lib/game/escape";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { stripLocalePrefix } from "@/lib/i18n/path";
@@ -45,13 +46,22 @@ export default function DreamCatcherFab() {
   const pathname = usePathname() ?? "/";
   const t = useMessages().game;
   const [full, setFull] = useState(false);
+  /** Creatures that escaped from a dream reading and wait in the catcher (lib/game/escape.ts). */
+  const [escaped, setEscaped] = useState<string[] | null>(null);
   useEffect(() => {
-    const check = () => setFull(storageIsFull());
+    const check = () => {
+      setFull(storageIsFull());
+      setEscaped(readEscapePending()?.emojis ?? null);
+    };
     const first = window.setTimeout(check, 0);
     const every = window.setInterval(check, 60_000);
+    window.addEventListener(ESCAPE_EVENT, check);
+    window.addEventListener("storage", check);
     return () => {
       window.clearTimeout(first);
       window.clearInterval(every);
+      window.removeEventListener(ESCAPE_EVENT, check);
+      window.removeEventListener("storage", check);
     };
   }, [pathname]);
   const { path } = stripLocalePrefix(pathname);
@@ -63,15 +73,15 @@ export default function DreamCatcherFab() {
   useEffect(() => {
     if (hidden) return;
     hovered.current = false;
-    trackEvent("game_fab_view", { page, full: storageIsFull() });
+    trackEvent("game_fab_view", { page, full: storageIsFull(), escaped: (readEscapePending()?.emojis.length ?? 0) > 0 });
   }, [hidden, page, pathname]);
   const onHover = () => {
     if (hovered.current) return;
     hovered.current = true;
-    trackEvent("game_fab_hover", { page, full });
+    trackEvent("game_fab_hover", { page, full, escaped: (escaped?.length ?? 0) > 0 });
   };
   const onClick = () => {
-    trackEvent("game_fab_click", { page, full });
+    trackEvent("game_fab_click", { page, full, escaped: (escaped?.length ?? 0) > 0 });
     try {
       sessionStorage.setItem(GAME_ENTRY_KEY, JSON.stringify({ via: "fab", page, at: Date.now() }));
     } catch {}
@@ -110,7 +120,16 @@ export default function DreamCatcherFab() {
       `}</style>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/game/dreamcatcher-small.webp" alt="" width={48} height={72} className="h-full w-full" draggable={false} />
-      {full ? (
+      {escaped?.length ? (
+        // Creatures from the player's own dream are waiting — this beats the storage dot.
+        <span
+          aria-hidden
+          className="absolute -top-2 end-0 flex animate-pulse items-center gap-0.5 rounded-full bg-purple-600 px-1.5 py-0.5 text-[11px] leading-none shadow-md shadow-purple-500/40"
+        >
+          <span>{escaped[0]}</span>
+          {escaped.length > 1 ? <span className="font-semibold text-white">+{escaped.length - 1}</span> : null}
+        </span>
+      ) : full ? (
         <span
           aria-hidden
           className="absolute -top-1 end-0 flex h-4 w-4 animate-pulse items-center justify-center rounded-full bg-amber-400 text-[10px] shadow"

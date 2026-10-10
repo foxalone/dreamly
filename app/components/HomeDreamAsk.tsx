@@ -4,6 +4,7 @@ import { BookOpenText, Loader2, Sparkles } from "lucide-react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "./DreamLensChips";
+import EscapeNote from "./EscapeNote";
 import ShareAnonPrompt from "./ShareAnonPrompt";
 import DreamWordCounter from "./DreamWordCounter";
 import { useDreamAsk } from "./useDreamAsk";
@@ -32,6 +33,7 @@ export default function HomeDreamAsk({
     maxChars,
     anonShare,
     shareAnonymously,
+    escaped,
   } = useDreamAsk({
     source: "home_ask",
     interpretedEvent: "home_dream_interpreted",
@@ -118,6 +120,7 @@ export default function HomeDreamAsk({
       {analysis && journal ? (
         <div className="order-first mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
           <h2 className="mb-3 font-semibold">{t.app.analysis}</h2>
+          {escaped?.length ? <EscapeNote emojis={escaped} /> : null}
           <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{analysis}</p>
           <ShareAnonPrompt status={anonShare} onShare={shareAnonymously} onSignIn={() => goToJournal(text, false, true)} />
           <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>

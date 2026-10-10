@@ -14,6 +14,7 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
+import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
@@ -66,6 +67,8 @@ export function useDreamAsk({
   const [shareToFeed, setShareToFeedState] = useState(true);
   const [lens, setLens] = useDreamLens();
   const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
+  /** Emojis that escaped into the dream catcher for THIS reading (null = no escape note). */
+  const [escaped, setEscaped] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (!restorePending && !initialDream) return;
@@ -77,6 +80,10 @@ export function useDreamAsk({
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
       setAnalysis(pending.analysis);
+      // The redirect from the homepage lands here: keep showing the escape note
+      // as long as the creatures are still waiting in the catcher.
+      const esc = readEscapePending();
+      if (esc) setEscaped(esc.emojis);
       onResultChange?.(true);
     }
     // Restore once on mount so a later login still finds the same cache.
@@ -104,6 +111,7 @@ export function useDreamAsk({
     if (analysis) {
       setAnalysis(null);
       setAnonShare("idle");
+      setEscaped(null);
       onResultChange?.(false);
       // Preserve the completed reading; save the new text when it is submitted.
     }
@@ -146,6 +154,7 @@ export function useDreamAsk({
     setTextState("");
     setAnalysis(null);
     setAnonShare("idle");
+    setEscaped(null);
     setError(null);
     onResultChange?.(false);
   }
@@ -164,6 +173,7 @@ export function useDreamAsk({
     setError(null);
     setAnalysis(null);
     setAnonShare("idle");
+    setEscaped(null);
     onResultChange?.(false);
 
     try {
@@ -217,6 +227,18 @@ export function useDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
+      // Dream Kingdoms: the server granted an escape (first dream today) — remember it
+      // for the catcher badge and show the note + fly-away above this reading.
+      if (Number(data?.escape?.granted ?? 0) > 0 && Array.isArray(data?.emojis)) {
+        const natives = (data.emojis as DreamEmojiEntry[])
+          .map((e) => (typeof e?.native === "string" ? e.native : ""))
+          .filter(Boolean)
+          .slice(0, Number(data.escape.granted));
+        if (natives.length) {
+          writeEscapePending({ emojis: natives, at: Date.now() });
+          setEscaped(natives);
+        }
+      }
       // The map pin happens for every dream; the checkbox only decides the feed share.
       let visuals = await pickDreamMapVisuals(dream).catch(() => null);
       // Prefer the server-side AI pick (validated against emoji-mart); the
@@ -363,6 +385,7 @@ export function useDreamAsk({
   return {
     anonShare,
     shareAnonymously,
+    escaped,
     signedIn: () => !!auth.currentUser,
     text,
     setText,
