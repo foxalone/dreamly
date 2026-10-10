@@ -19,11 +19,13 @@ export default function EscapeNote({ emojis }: { emojis: string[] }) {
   useEffect(() => {
     const at = readEscapePending()?.at ?? 0;
     if (!at || flown.has(at)) return;
-    flown.add(at);
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const row = rowRef.current;
     if (!row) return;
-    const spans = Array.from(row.querySelectorAll<HTMLElement>("[data-esc]"));
+    const visible = (el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.top < window.innerHeight && rect.bottom > 0;
+    };
     const fab = document.querySelector(".dcf");
     const fr = fab?.getBoundingClientRect();
     const rtl = (document.dir || document.documentElement.dir) === "rtl";
@@ -31,6 +33,12 @@ export default function EscapeNote({ emojis }: { emojis: string[] }) {
     const tx = fr ? fr.left + fr.width / 2 : rtl ? 40 : window.innerWidth - 40;
     const ty = fr ? fr.top + fr.height * 0.35 : window.innerHeight - 56;
     const timer = window.setTimeout(() => {
+      if (flown.has(at)) return;
+      const noteSpans = Array.from(row.querySelectorAll<HTMLElement>("[data-esc]"));
+      const cardSpans = Array.from(row.closest("article")?.querySelectorAll<HTMLElement>("[data-esc-source]") ?? []);
+      const spans = cardSpans.length >= emojis.length && cardSpans.some(visible) ? cardSpans.slice(0, emojis.length) : noteSpans;
+      if (!spans.some(visible)) return;
+      flown.add(at);
       spans.forEach((el, i) => {
         const r = el.getBoundingClientRect();
         if (!r.width) return;

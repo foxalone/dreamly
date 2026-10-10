@@ -29,7 +29,7 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-base font-semibold">{t.nav.dreams} #{number}</h2>
           <span className="inline-flex gap-2 text-lg" aria-hidden="true">
-            {dream.emojis?.slice(0, 7).map((emoji, i) => <span key={i}>{emoji.native}</span>)}
+            {dream.emojis?.slice(0, 7).map((emoji, i) => <span key={i} data-esc-source>{emoji.native}</span>)}
           </span>
           <DreamSymbolIcons keys={dream.iconsEn ?? []} />
         </div>
@@ -50,6 +50,7 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
         <section className="mt-4 rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold">{t.app.analysis}</h3>
           {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} /></div> : null}
+          {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
           <p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{ask.analysis}</p>
           <ShareAnonPrompt status={ask.anonShare} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>

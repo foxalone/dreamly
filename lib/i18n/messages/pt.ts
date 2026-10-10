@@ -421,6 +421,7 @@ export const PT_MESSAGES: UiMessages = {
     tapHint: "Toque no filtro dos sonhos para capturar criaturas dos sonhos",
     escapeLead: "Enquanto seu sonho era interpretado, criaturas escaparam dele:",
     escapeCta: "elas se esconderam no filtro dos sonhos. Toque nele para capturá-las!",
+    escapeAlreadyToday: "Nenhuma criatura nova escapou deste sonho. Apenas um sonho por dia pode enviar criaturas ao filtro dos sonhos.",
     escapeCaught: "✨ Capturadas do seu sonho: {emojis}",
     buildings: "Construções",
     buildingNames: {

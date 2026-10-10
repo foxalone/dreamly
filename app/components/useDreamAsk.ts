@@ -70,6 +70,7 @@ export function useDreamAsk({
   const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
   /** Emojis that escaped into the dream catcher for THIS reading (null = no escape note). */
   const [escaped, setEscaped] = useState<string[] | null>(null);
+  const [escapeAlreadyToday, setEscapeAlreadyToday] = useState(false);
 
   useEffect(() => {
     if (!restorePending && !initialDream) return;
@@ -118,6 +119,7 @@ export function useDreamAsk({
       setAnalysis(null);
       setAnonShare("idle");
       setEscaped(null);
+      setEscapeAlreadyToday(false);
       onResultChange?.(false);
       // Preserve the completed reading; save the new text when it is submitted.
     }
@@ -127,6 +129,7 @@ export function useDreamAsk({
     setLens(next);
     if (analysis) {
       setAnalysis(null);
+      setEscapeAlreadyToday(false);
       onResultChange?.(false);
       persistPending(text, "", shareToFeed, next);
       return;
@@ -161,6 +164,7 @@ export function useDreamAsk({
     setAnalysis(null);
     setAnonShare("idle");
     setEscaped(null);
+    setEscapeAlreadyToday(false);
     setError(null);
     onResultChange?.(false);
   }
@@ -180,6 +184,7 @@ export function useDreamAsk({
     setAnalysis(null);
     setAnonShare("idle");
     setEscaped(null);
+    setEscapeAlreadyToday(false);
     onResultChange?.(false);
 
     try {
@@ -255,6 +260,8 @@ export function useDreamAsk({
           writeEscapePending({ emojis: natives, at: Date.now(), key: dream });
           setEscaped(natives);
         }
+      } else if (data?.escape && Number(data.escape.granted ?? 0) === 0) {
+        setEscapeAlreadyToday(true);
       }
       // The map pin happens for every dream; the checkbox only decides the feed share.
       let visuals = await pickDreamMapVisuals(dream).catch(() => null);
@@ -403,6 +410,7 @@ export function useDreamAsk({
     anonShare,
     shareAnonymously,
     escaped,
+    escapeAlreadyToday,
     signedIn: () => !!auth.currentUser,
     text,
     setText,

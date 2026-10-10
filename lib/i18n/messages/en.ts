@@ -421,6 +421,7 @@ export const EN_MESSAGES: UiMessages = {
     tapHint: "Tap the dream catcher to catch dream creatures",
     escapeLead: "While your dream was being interpreted, creatures escaped from it:",
     escapeCta: "they hid in the dream catcher. Tap it to catch them!",
+    escapeAlreadyToday: "No new creatures escaped from this dream. One dream per day can send creatures to the dream catcher.",
     escapeCaught: "✨ Caught from your dream: {emojis}",
     buildings: "Buildings",
     buildingNames: {

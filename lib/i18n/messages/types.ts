@@ -371,6 +371,7 @@ export type UiMessages = {
     /** Note above a fresh dream reading: creatures escaped into the catcher. */
     escapeLead: string;
     escapeCta: string;
+    escapeAlreadyToday: string;
     /** Game toast after collecting them; {emojis} = the dream's emojis. */
     escapeCaught: string;
     buildings: string;

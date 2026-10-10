@@ -421,6 +421,7 @@ export const DE_MESSAGES: UiMessages = {
     tapHint: "Tippe auf den Traumfänger, um Traumwesen zu fangen",
     escapeLead: "Während dein Traum gedeutet wurde, sind Wesen aus ihm entkommen:",
     escapeCta: "sie haben sich im Traumfänger versteckt. Tippe darauf, um sie zu fangen!",
+    escapeAlreadyToday: "Aus diesem Traum sind keine neuen Wesen entkommen. Nur ein Traum pro Tag kann Wesen zum Traumfänger schicken.",
     escapeCaught: "✨ Aus deinem Traum gefangen: {emojis}",
     buildings: "Gebäude",
     buildingNames: {

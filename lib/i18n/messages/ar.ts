@@ -421,6 +421,7 @@ export const AR_MESSAGES: UiMessages = {
     tapHint: "اضغط على صائد الأحلام لتصطاد كائنات الأحلام",
     escapeLead: "أثناء تفسير حلمك، هربت منه كائنات:",
     escapeCta: "اختبأت في صائد الأحلام. اضغط عليه لتمسك بها!",
+    escapeAlreadyToday: "لم تهرب كائنات جديدة من هذا الحلم. يمكن لحلم واحد فقط كل يوم أن يرسل كائنات إلى صائد الأحلام.",
     escapeCaught: "✨ أمسكتَ كائنات من حلمك: {emojis}",
     buildings: "المباني",
     buildingNames: {
