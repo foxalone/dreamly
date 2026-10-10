@@ -631,7 +631,8 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                       >
                         {cBadge.emoji}
                       </span>
-                      <span className="truncate">{cLabel}</span>
+                      {/* the creature is already in the avatar — no "🧙 Wizard" words next to it */}
+                      <span className="truncate">{t.shareBadges.anonymous}</span>
                       {c.createdAtMs && dateFmt ? (
                         <span className="opacity-70 whitespace-nowrap">· {dateFmt.format(new Date(c.createdAtMs))}</span>
                       ) : null}
