@@ -15,7 +15,7 @@ export const GUEST_COOKIE = "dreamly_guest";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 export type GuestConsumeResult =
-  | { ok: true; used: number; charge: "free" | "ad"; dayKey: string }
+  | { ok: true; used: number; charge: "free" | "ad" | "tester"; dayKey: string }
   | { ok: false; reason: "guest_limit" | "ip_limit" };
 
 function utcDayKey(d = new Date()) {
@@ -25,6 +25,16 @@ function utcDayKey(d = new Date()) {
 export function hashIp(ip: string) {
   const salt = process.env.GUEST_IP_SALT?.trim() || "dreamly-guest";
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
+}
+
+/**
+ * IPs that bypass all guest limits — for dima's own testing. Comma-separated
+ * env TESTER_IPS (e.g. "77.126.1.2, 2a00:..."). Empty/unset = nobody.
+ */
+export function isTesterIp(ip: string): boolean {
+  const raw = process.env.TESTER_IPS ?? "";
+  if (!raw.trim() || !ip || ip === "unknown") return false;
+  return raw.split(",").map((s) => s.trim()).filter(Boolean).includes(ip);
 }
 
 /** Best-effort client IP behind Vercel's proxy. */
@@ -73,6 +83,9 @@ export async function consumeGuestAsk(
   guestId: string,
   ip: string
 ): Promise<GuestConsumeResult> {
+  // Tester IP: unlimited free readings, nothing counted, nothing to refund.
+  if (isTesterIp(ip)) return { ok: true, used: 0, charge: "tester", dayKey: utcDayKey() };
+
   const db = adminDb();
   const dayKey = utcDayKey();
   const guestRef = db.collection("guestQuickSymbol").doc(guestId);
@@ -130,6 +143,7 @@ export async function refundGuestAsk(
   ip: string,
   booking: Extract<GuestConsumeResult, { ok: true }>
 ) {
+  if (booking.charge === "tester") return; // nothing was counted
   try {
     const db = adminDb();
     const batch = db.batch();
@@ -200,7 +214,8 @@ export async function guestAdReward(
     const network = (await tx.get(ipRef)).data() ?? {};
     const today = guest[f.dayKey] === dayKey ? Number(guest[f.today] ?? 0) : 0;
     const ipToday = Number(network[f.today] ?? 0);
-    const leftToday = Math.max(0, f.perDay - Math.max(today, ipToday));
+    // Tester IP: the daily ad cap never closes.
+    const leftToday = isTesterIp(ip) ? f.perDay : Math.max(0, f.perDay - Math.max(today, ipToday));
     const credits = kind === "translate"
       ? Number(!!target && matchingTranslationAdGrant(guest.translationAdGrant, target))
       : Math.max(0, Number(guest[f.credits] ?? 0));

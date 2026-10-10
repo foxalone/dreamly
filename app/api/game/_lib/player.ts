@@ -199,9 +199,15 @@ export function applyTaps(p: PlayerDoc, taps: number, catches: Record<string, nu
  * A dream analysis happened: its emojis escape into the catcher — once per UTC day.
  * Returns how many creatures were granted (0 when today's escape already happened).
  */
-export function grantEscape(p: PlayerDoc, matches: { slug: string | null; native: string }[], now: number): number {
+export function grantEscape(
+  p: PlayerDoc,
+  matches: { slug: string | null; native: string }[],
+  now: number,
+  /** Tester IPs (TESTER_IPS) skip the one-escape-per-day rule. */
+  ignoreDay = false
+): number {
   const day = escapeDayKey(now);
-  if (p.escapeDay === day) return 0;
+  if (!ignoreDay && p.escapeDay === day) return 0;
   const before = escapeTotal(p.escaped);
   const next = addEscape(p.escaped, matches, now);
   const granted = escapeTotal(next) - before;
@@ -236,14 +242,15 @@ export function catchEscaped(p: PlayerDoc, _now: number): number {
 /** Grant an escape from outside the game routes (used by /api/dreams/analyze). */
 export async function grantEscapeForOwner(
   owner: Owner,
-  matches: { slug: string | null; native: string }[]
+  matches: { slug: string | null; native: string }[],
+  ignoreDay = false
 ): Promise<{ granted: number; total: number }> {
   const ref = playerRef(owner.ownerKey);
   return adminFirestore().runTransaction(async (tx) => {
     const now = Date.now();
     const snap = await tx.get(ref);
     const p = readPlayer(snap.data(), owner, now);
-    const granted = grantEscape(p, matches, now);
+    const granted = grantEscape(p, matches, now, ignoreDay);
     if (granted > 0) {
       p.updatedAt = now;
       tx.set(ref, p);

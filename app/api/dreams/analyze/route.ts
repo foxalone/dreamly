@@ -9,6 +9,7 @@ import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnaly
 import {
   type GuestConsumeResult,
   consumeGuestAsk,
+  isTesterIp,
   newGuestId,
   readClientIp,
   readGuestId,
@@ -209,7 +210,8 @@ export async function POST(req: Request) {
     if (escapeOwnerKey && escapeSource.length > 0) {
       escape = await grantEscapeForOwner(
         { ownerKey: escapeOwnerKey, uid, guestId: uid ? null : guestId, newGuest: false },
-        matchEscapes(escapeSource)
+        matchEscapes(escapeSource),
+        isTesterIp(readClientIp(req)) // tester: an escape per dream, not per day
       ).catch(() => null);
     }
 
