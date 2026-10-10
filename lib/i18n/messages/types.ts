@@ -16,7 +16,6 @@ export type UiMessages = {
     h1: string;
     /** Quarter-width explore card beside the home ask form. */
     exploreTitle: string;
-    explorePlaceholder: string;
     lead: string;
     cta: string;
     askPlaceholder: string;

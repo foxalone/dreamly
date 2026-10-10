@@ -1,29 +1,15 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
-import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
-import { localePath } from "@/lib/i18n/path";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { trackEvent } from "@/lib/analytics";
 
 /**
  * The quarter-width card beside the homepage ask form: for visitors who are not
- * here to type a dream — search the dictionary, or jump straight into the site.
+ * here to type a dream — jump straight into the site.
  */
 export default function HomeExploreCard() {
   const t = useMessages();
-  const locale = useLocale();
-  const router = useRouter();
-  const [q, setQ] = useState("");
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    const query = q.trim();
-    trackEvent("home_explore", { action: "search", q_len: query.length });
-    router.push(localePath(query ? `/dreams?q=${encodeURIComponent(query)}` : "/dreams", locale));
-  }
 
   const links: { href: string; emoji: string; label: string }[] = [
     { href: "/dreams", emoji: "📖", label: t.nav.dictionary },
@@ -36,19 +22,6 @@ export default function HomeExploreCard() {
   return (
     <aside className="flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)] p-4 text-start">
       <h2 className="text-sm font-semibold text-[var(--text)]">{t.home.exploreTitle}</h2>
-      <form onSubmit={submit} className="mt-3">
-        <label className="sr-only" htmlFor="home-explore-q">{t.home.explorePlaceholder}</label>
-        <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2 focus-within:border-violet-400/70">
-          <Search size={15} className="shrink-0 text-[var(--muted)]" aria-hidden="true" />
-          <input
-            id="home-explore-q"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t.home.explorePlaceholder}
-            className="w-full min-w-0 bg-transparent text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
-          />
-        </div>
-      </form>
       <nav className="hx-nav mt-3 flex flex-1 flex-col justify-evenly gap-1">
         <style>{`
           /* Attract loop: each link lights up and "presses" for a beat, one after another.

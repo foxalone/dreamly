@@ -17,7 +17,6 @@ export const EN_MESSAGES: UiMessages = {
   home: {
     h1: "What Does My Dream Mean? AI Dream Interpreter & Journal",
     exploreTitle: "Or just explore",
-    explorePlaceholder: "Search dream symbols…",
     lead: "Get AI dream meaning in seconds, keep a private journal, and explore a free dream dictionary of symbols people search for most.",
     cta: "Explore Your Dream",
     askPlaceholder: "Describe your dream…",

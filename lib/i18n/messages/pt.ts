@@ -17,7 +17,6 @@ export const PT_MESSAGES: UiMessages = {
   home: {
     h1: "O que significa o meu sonho? Intérprete de sonhos com IA e diário",
     exploreTitle: "Ou apenas explore",
-    explorePlaceholder: "Buscar símbolos de sonhos…",
     lead: "Receba o significado do sonho em segundos, mantenha um diário privado e explore um dicionário gratuito dos símbolos mais buscados.",
     cta: "Explore seu sonho",
     askPlaceholder: "Descreva seu sonho…",
