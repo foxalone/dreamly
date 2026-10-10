@@ -49,13 +49,27 @@ export default function HomeExploreCard() {
           />
         </div>
       </form>
-      <nav className="mt-3 flex flex-col gap-1">
-        {links.map((l) => (
+      <nav className="hx-nav mt-3 flex flex-col gap-1">
+        <style>{`
+          /* Attract loop: each link lights up and "presses" for a beat, one after another.
+             One full cycle = 1.6s per link. Pauses while the visitor's cursor is in the list. */
+          .hx { animation: hx-press calc(var(--hx-n) * 1.6s) ease-in-out infinite; animation-delay: calc(var(--hx-i) * 1.6s); }
+          .hx-nav:hover .hx { animation-play-state: paused; }
+          @keyframes hx-press {
+            0%, 3% { background: transparent; transform: scale(1); }
+            9% { background: color-mix(in srgb, #8b5cf6 18%, transparent); transform: scale(0.97); }
+            15% { background: color-mix(in srgb, #8b5cf6 12%, transparent); transform: scale(1.015); }
+            22%, 100% { background: transparent; transform: scale(1); }
+          }
+          @media (prefers-reduced-motion: reduce) { .hx { animation: none; } }
+        `}</style>
+        {links.map((l, i) => (
           <LocaleLink
             key={l.href}
             href={l.href}
             onClick={() => trackEvent("home_explore", { action: "link", href: l.href })}
-            className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-violet-500/10"
+            style={{ "--hx-i": i, "--hx-n": links.length } as React.CSSProperties}
+            className="hx flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-violet-500/10"
           >
             <span aria-hidden="true" className="text-base leading-none">{l.emoji}</span>
             {l.label}
