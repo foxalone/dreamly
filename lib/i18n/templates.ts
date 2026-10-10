@@ -139,8 +139,8 @@ export function localizedSeoTitle(locale: Locale, name: string, hook: string, ti
   return full.length <= 70 ? full : title;
 }
 
-export function localizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
-  const clean = meaning.replace(/\.+$/, "").trim();
+function buildLocalizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
+  const clean = meaning.trim();
   const ruTitle = titleOverride ?? localizedTitle("ru", name);
   const map: Record<Locale, string> = {
     en: `Dreams about ${name} often point to ${clean} — not a prediction. Psychological, spiritual, Islamic, and biblical readings.`,
@@ -151,7 +151,30 @@ export function localizedSeoDescription(locale: Locale, name: string, meaning: s
     ar: `حلم ${name} كثيرًا ما يشير إلى ${clean} — وليس نبوءة. قراءات نفسية وروحية وإسلامية وكتابية.`,
   };
   const text = map[locale];
-  return text.length <= 170 ? text : text.slice(0, 167).trimEnd() + "…";
+  return text;
+}
+
+export function localizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
+  const MAX = 170;
+  const full = meaning.replace(/\.+$/, "").trim();
+  const text = buildLocalizedSeoDescription(locale, name, full, titleOverride);
+  if (text.length <= MAX) return text;
+  // Too long: drop trailing themes from the meaning hook (at its own commas)
+  // so the description stays a complete sentence instead of being cut mid-word.
+  const cuts: number[] = [];
+  for (const match of full.matchAll(/[,;،؛]/g)) {
+    if (match.index !== undefined) cuts.push(match.index);
+  }
+  for (let i = cuts.length - 1; i >= 0; i -= 1) {
+    const shorter = full.slice(0, cuts[i]).replace(/[\s,;،؛]+$/u, "").replace(/\s+(and|y|e|und|и|و)$/u, "");
+    if (!shorter) continue;
+    const candidate = buildLocalizedSeoDescription(locale, name, shorter, titleOverride);
+    if (candidate.length <= MAX) return candidate;
+  }
+  // Last resort (hook has no separators): clip at a word boundary, never mid-word.
+  const cut = text.slice(0, MAX - 1);
+  const at = cut.lastIndexOf(" ");
+  return `${(at > MAX / 2 ? cut.slice(0, at) : cut).trimEnd()}…`;
 }
 
 export function localizedAliases(locale: Locale, name: string, extra: string[] = [], titleOverride?: string): string[] {
