@@ -3690,6 +3690,41 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "ein zorniger Papst",
     focus: "Schuld, Angst vor Verurteilung, eine gebrochene Regel oder eine Autorität, an deren Zustimmung du nicht mehr glaubst und die du trotzdem suchst",
   },
+  garden: {
+    name: "ein Garten",
+    summary: "kultiviertes Wachstum, geduldige Pflege und ihre sichtbaren Früchte, ein eigener innerer Raum und das, was unter deiner Aufmerksamkeit blüht oder verdorrt",
+    aliases: ["Garten", "Traum vom Garten", "Garten im Traum", "Traumdeutung Garten", "Schrebergarten", "Kleingarten"],
+  },
+  "beautiful-garden": {
+    name: "ein schöner Garten",
+    focus: "eine Zeit des Aufblühens, Arbeit, die sich endlich zeigt, innerer Frieden oder eine Beziehung in voller Blüte",
+  },
+  "vegetable-garden": {
+    name: "ein Gemüsegarten",
+    focus: "praktische Ergebnisse, für sich und andere sorgen, belohnte Geduld und Arbeit, die in Ernten statt in Applaus gemessen wird",
+  },
+  "overgrown-garden": {
+    name: "ein verwilderter Garten",
+    focus: "vernachlässigtes Potenzial, ein unbeachteter Teil des Lebens oder eine Schönheit, die unter dem Unkraut auf deine Rückkehr wartet",
+  },
+  "planting-a-garden": {
+    name: "einen Garten anlegen",
+    title: "Was es bedeutet, im Traum einen Garten anzulegen",
+    focus: "Anfänge, die Zeit brauchen, Vertrauen in eine künftige Jahreszeit oder eine Investition in etwas, das sich nicht beschleunigen lässt",
+  },
+  "watering-a-garden": {
+    name: "den Garten gießen",
+    title: "Was es bedeutet, im Traum den Garten zu gießen",
+    focus: "stetige Pflege, etwas durch Aufmerksamkeit am Leben halten oder die stille Instandhaltung, aus der Liebe tatsächlich besteht",
+  },
+  "secret-garden": {
+    name: "ein geheimer Garten",
+    focus: "ein privates Innenleben, eine verborgene Quelle der Freude oder ein Teil von dir, den du noch niemandem gezeigt hast",
+  },
+  "garden-of-eden": {
+    name: "der Garten Eden",
+    focus: "Sehnsucht nach einer verlorenen Ganzheit, Unschuld vor einer Entscheidung oder die Erinnerung an eine Zeit, in der noch für alles gesorgt war",
+  },
   // Added 2026-10-03: new animals + mythical creatures (native copy, not translated).
   scorpion: {
     name: "ein Skorpion",

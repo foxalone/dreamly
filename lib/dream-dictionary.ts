@@ -87,7 +87,7 @@ const CLUSTERS: ClusterSeed[] = [
       "snake dream meaning",
       "snake in water in dream meaning",
     ],
-    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator", "dragon", "crocodile", "scorpion", "turtle", "worm", "lizard"],
+    relatedSymbols: ["water", "death", "dog", "cat", "spider", "being-chased", "forest", "rat", "alligator", "dragon", "crocodile", "scorpion", "turtle", "worm", "lizard", "garden"],
     variations: [
       { slug: "black-snake", name: "black snake", focus: "an unknown threat, repressed fear, mystery, or a change that is difficult to read" },
       { slug: "white-snake", name: "white snake", focus: "unfamiliar wisdom, clarity, healing, or a truth arriving in an unexpected form" },
@@ -471,7 +471,7 @@ const CLUSTERS: ClusterSeed[] = [
       "door",
       "elevator",
       "tree", "chicken", "snail"
-    ],
+    , "garden"],
     variations: [
       { slug: "old-house", name: "old house", focus: "past identity, family history, neglected memories, or a foundation that needs repair and attention" },
       { slug: "new-house", name: "new house", focus: "a fresh identity, changed circumstances, future plans, or emotional space that is still unfamiliar" },
@@ -811,7 +811,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#16a34a",
     summary: "the unconscious, uncertainty, instinct, growth, and the unknown territory beyond familiar structure",
     aliases: ["woods", "jungle", "dream about forest", "forest in a dream"],
-    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle", "being-lost", "rabbit", "deer", "tree", "monkey", "panda", "fairy"],
+    relatedSymbols: ["snake", "dog", "wolf", "bear", "owl", "horse", "being-chased", "cemetery", "castle", "being-lost", "rabbit", "deer", "tree", "monkey", "panda", "fairy", "garden"],
     variations: [
       { slug: "dark-forest", name: "a dark forest", focus: "fear of the unknown, confusion, or an unresolved part of the unconscious mind" },
       { slug: "walking-in-forest", name: "walking in a forest", focus: "exploration, self-discovery, or steady progress through an uncertain stage of life" },
@@ -1011,7 +1011,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#ec4899",
     summary: "transformation, lightness, fragile beauty, and the delicate process of becoming something new",
     aliases: ["butterflies", "dream about butterfly", "butterfly in a dream"],
-    relatedSymbols: ["flying", "bird", "spider", "insects", "ladybug"],
+    relatedSymbols: ["flying", "bird", "spider", "insects", "ladybug", "garden"],
     variations: [
       { slug: "white-butterfly", name: "a white butterfly", focus: "purity, peace, or a gentle sign accompanying a meaningful personal change" },
       { slug: "black-butterfly", name: "a black butterfly", focus: "an unfamiliar transformation, grief, or change that feels mysterious rather than threatening" },
@@ -2243,7 +2243,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of flowers",
       "bouquet in a dream",
     ],
-    relatedSymbols: ["cemetery", "wedding", "death", "colors", "pregnancy", "tree", "ladybug", "fairy"],
+    relatedSymbols: ["cemetery", "wedding", "death", "colors", "pregnancy", "tree", "ladybug", "fairy", "garden"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "receiving-flowers", name: "receiving flowers", focus: "affection arriving, apology, courtship, or recognition you did not have to ask for" },
@@ -2947,7 +2947,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of trees",
       "oak tree dream",
     ],
-    relatedSymbols: ["forest", "flowers", "house", "death", "bird", "monkey"],
+    relatedSymbols: ["forest", "flowers", "house", "death", "bird", "monkey", "garden"],
     updatedAt: "2026-09-09",
     variations: [
       { slug: "climbing-a-tree", name: "climbing a tree", focus: "rising by your own limbs, seeking a wider view, or leaving the ground without leaving your roots" },
@@ -3138,6 +3138,35 @@ const CLUSTERS: ClusterSeed[] = [
       { slug: "becoming-the-pope", name: "becoming the pope", focus: "a responsibility larger than you asked for, sudden visibility, or the fear of being expected to have all the answers" },
       { slug: "pope-visiting-your-home", name: "the pope visiting your home", focus: "your private life being judged or honored, a wish for the family to be reconciled, or values entering the house" },
       { slug: "angry-pope", name: "an angry pope", focus: "guilt, fear of condemnation, a rule you broke, or an authority whose approval you have stopped believing in" },
+    ],
+  },
+  {
+    slug: "garden",
+    name: "a garden",
+    category: "nature",
+    icon: "🌷",
+    accent: "#65a30d",
+    summary: "cultivated growth, patient care and its visible results, a private inner space, and what flourishes or withers under your attention",
+    aliases: [
+      "gardens",
+      "dream about a garden",
+      "garden dream meaning",
+      "dreaming of a garden",
+      "garden in a dream",
+      "flower garden",
+      "backyard garden",
+      "dream of gardening",
+    ],
+    relatedSymbols: ["flowers", "tree", "forest", "house", "snake", "butterfly"],
+    updatedAt: "2026-10-10",
+    variations: [
+      { slug: "beautiful-garden", name: "a beautiful garden", focus: "a season of flourishing, work that is finally showing, inner peace, or a relationship in bloom" },
+      { slug: "vegetable-garden", name: "a vegetable garden", focus: "practical results, providing for yourself and others, patience rewarded, and work measured in harvests rather than applause" },
+      { slug: "overgrown-garden", name: "an overgrown garden", focus: "neglected potential, a part of life left untended, or beauty waiting under the weeds for your attention to return" },
+      { slug: "planting-a-garden", name: "planting a garden", focus: "beginnings that will take time, faith in a future season, or an investment in something that cannot be rushed" },
+      { slug: "watering-a-garden", name: "watering a garden", focus: "steady care, keeping something alive through attention, or the quiet maintenance that love actually consists of" },
+      { slug: "secret-garden", name: "a secret garden", focus: "a private inner life, a hidden source of joy, or a part of yourself you have not shown anyone yet" },
+      { slug: "garden-of-eden", name: "the garden of Eden", focus: "longing for a lost wholeness, innocence before a choice, or the memory of a time when everything was still provided" },
     ],
   },
   // ── Added 2026-10-03: animals + mythical creatures for the dictionary and the Dream Kingdoms game ──
@@ -3894,6 +3923,50 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What does it mean to dream that the pope died?", answer: "Most often that a source of authority in your life is fading: a parent, a mentor, a boss, or a belief. In the weeks after a real papal death the dream is usually just the news being processed." },
       { question: "What does Islam say about seeing the pope in a dream?", answer: "There is no specific ruling. Classical interpreters read priests and leaders of other faiths by context, sometimes as people of knowledge, sometimes as a caution about drifting from one's path. Dreams built from news and daily impressions carry no message." },
       { question: "Is there a biblical meaning to dreaming of the pope?", answer: "The office is tied to Peter, the disciple given the keys of the kingdom and told to feed the sheep after he had been forgiven. A pope dream often carries those themes: authority to open or close, and a shepherd who was restored before he was trusted." },
+    ],
+  },
+  garden: {
+    introduction: [
+      "A garden is nature with a human signature on it. Unlike the wild forest, which stands for everything beyond your control, a garden is the part of the world you have taken responsibility for: fenced, planted, watered, weeded, and therefore a mirror. People dream of gardens in seasons when something in their life is growing or failing to grow — a new relationship, a business, a pregnancy, a slow recovery — and the dream garden reports on that project with the honesty of a plant: it blooms, wilts, or disappears under weeds according to the care it has actually received, not the care you intended to give.",
+      "Gardens also carry an older cargo. Nearly every tradition places its picture of original happiness in one — Eden, paradise, the walled gardens of Persian kings — so a dream garden is often not just a to-do list but a longing: for rest, for innocence, for a time when provision was someone else's job. Whether your dream leaned toward the practical or the paradisal usually shows in one detail: were you working in the garden, or were you simply allowed to be there? The pages on [flowers](/dreams/flowers) and the [tree](/dreams/tree) look at the garden's individual inhabitants; this one is about the plot itself and the gardener you are.",
+    ],
+    general: [
+      "Read the garden's condition before anything else, because it is the dream's headline. A garden in full bloom reflects a season of flourishing — effort paying off, health returning, a relationship thriving — and often arrives just before you consciously notice that things are going well. A withered or dried-out garden points to something starved of attention: ask immediately what you have stopped watering. An overgrown garden is different from a dead one; the life is still there, just unmanaged, and the dream usually concerns a talent, friendship, or plan that would revive quickly if you returned to it. Whose garden it was matters too — your childhood garden points to family ground, a stranger's garden to a life you are comparing yourself against.",
+      "Then look at what you were doing. Planting and sowing are dreams of beginnings and of faith in a payoff you cannot see yet; they cluster around new ventures, new homes, and early pregnancy. Watering and weeding are about maintenance, the unglamorous middle of every commitment. Standing at a locked gate, or seeing a beautiful garden over a wall you cannot pass, tracks exclusion and longing — something flourishing that you feel barred from. And take note if something hostile appeared among the beds: a [snake](/dreams/snake) in the garden is one of the oldest images in the human library, the flaw or temptation inside the very thing you have cultivated so carefully.",
+    ],
+    psychological: [
+      "Psychologically, the garden is the cultivated self. Where the forest stands for the unconscious as given, the garden is what you have made of your nature: habits trained like espaliered trees, feelings pruned or allowed to flower, boundaries maintained like fences. Jung read the garden as an image of the psyche's work on itself — growth, but growth within a form. That is why the state of a dream garden so often matches your inner housekeeping rather than your outer circumstances. The common anxiety dream of finding your garden overgrown tends to visit competent, busy people, and it rarely means life is failing; it means some inner ground — creativity, friendship, rest — has been left to the weeds while everything visible was being managed.",
+      "There is also a simpler mechanism at work, almost a law of attention: what you water grows. Dreams use the garden to show you your actual, as opposed to your stated, priorities. A thriving bed of something you do not remember planting can be a habit or resentment that has been quietly fed for years. An empty plot, dug and ready, often appears when a decision is ripe: the ground is prepared, and the dream is asking what you intend to put in it. For dreamers grieving someone, tending a garden can be the psyche's way of continuing to care for a person who no longer needs anything — a gentle dream, and a common one.",
+    ],
+    spiritual: [
+      "Spiritually, the garden is the oldest picture of the soul in good order: watered, sheltered, fruitful, and walked in. Mystics across traditions describe the inner life as a garden the divine visits — a place prepared through small, repeated acts of care rather than single heroic efforts. A dream of being at peace in a garden, especially one you did not plant, is often experienced as grace: provision you did not earn, rest you did not arrange. Many dreamers describe these as among the most comforting dreams they can remember, and that comfort deserves to be trusted.",
+      "The garden also teaches the spiritual logic of seasons. Pruning looks like loss and is preparation; winter looks like death and is rest; nothing blooms year-round, and the gardener does not panic in February. A dream of a bare or cut-back garden during a hard stretch may be less a diagnosis than a reframe: this is a season, not a verdict. If the dream placed you at the gate of a garden you could not enter, the question it asks is spiritual rather than horticultural — what do you believe you are excluded from, and who told you the gate was locked?",
+    ],
+    islamic: [
+      "In Islamic dream interpretation the garden is among the most favorable symbols there is, because the Quran's own word for paradise, jannah, means garden, and paradise is described throughout as gardens beneath which rivers flow. Classical interpreters such as Ibn Sirin read a flourishing green garden as the dreamer's religion in good condition — faith watered by works — and also as blessing in the household: a garden may stand for a wife or husband, for children, or for honest wealth that grows. Entering a beautiful unknown garden, especially with running water, is read as glad tidings, and for the pious, a reminder of what is promised.",
+      "The tradition is equally direct about gardens that fail. The Quran tells of the owner of two gardens who credited himself rather than his Lord and watched them ruined (Surah al-Kahf 18:32-44), and of the people of the garden who schemed to harvest at dawn and exclude the poor, and found it destroyed (Surah al-Qalam 68:17-33). A dream of a withered, burned, or confiscated garden can therefore be taken as a caution about pride in provision or neglect of gratitude and charity, while dreams woven from daily impressions — you watered the plants before bed — carry no message at all. As always, a troubling dream is not narrated widely; a good one is received with thanks.",
+    ],
+    biblical: [
+      "The Bible opens and closes in a garden, and plants its turning points in them. Eden is the human starting picture — provision, companionship, work that is not yet toil (Genesis 2:8-15) — and the loss of Eden is the Bible's explanation for why every garden since has weeds in it. A dream of a paradisal garden often carries exactly this Genesis note: homesickness for a wholeness you cannot quite remember, and the suspicion that the ordinary world is not the original arrangement. The serpent belongs to this scene too; a temptation dream set in a garden is drawing on Genesis 3 whether the dreamer has read it or not.",
+      "Scripture then keeps returning to the image with tenderness. The beloved is 'a garden locked up... a sealed fountain' (Song of Songs 4:12); the restored soul is 'like a well-watered garden' (Isaiah 58:11); Jesus prays his hardest prayer in the garden of Gethsemane and is buried and raised in a garden, where Mary mistakes him for the gardener (John 20:15) — a mistake many readers have taken as the Bible's quiet joke with a true bottom: he is one. And Paul gives dream-gardeners their job description: 'I planted the seed, Apollos watered it, but God has been making it grow' (1 Corinthians 3:6). A biblical reading of a garden dream, then, asks three things: what have you planted, what are you watering, and whether you can leave the growing to God.",
+    ],
+    commonScenarios: [
+      { title: "A Beautiful Garden in Bloom", meaning: "A season of flourishing, often noticed by the dream before you notice it awake: effort paying off, health returning, a relationship thriving. If it was someone else's garden, check the feeling — admiration points to a model, envy to a longing worth taking seriously." },
+      { title: "A Vegetable Garden or Harvest", meaning: "Provision and patience: work measured in harvests rather than applause. These dreams favor people building something slow — a savings plan, a qualification, a family — and reassure that the unglamorous rows are filling in." },
+      { title: "An Overgrown or Neglected Garden", meaning: "Life unmanaged, not life lost. A talent, friendship, or plan is still alive under the weeds and would revive with attention. Common in busy, competent people whose inner ground pays for their outer order." },
+      { title: "Planting Seeds or a New Garden", meaning: "A beginning that will take time: a venture, a home, a child, a change of character. The dream endorses the investment while warning about the timescale — nothing you planted last night is meant to bloom by morning." },
+      { title: "Watering the Garden", meaning: "The maintenance stage of love and work. Carrying water, especially to a garden that is not spectacular, honors the quiet upkeep that keeps things alive. If the water would not come, ask what resource of yours has actually run dry." },
+      { title: "A Secret or Walled Garden", meaning: "A private inner life: a joy, faith, or part of yourself kept behind a wall. Finding the door is usually an invitation to let someone in; standing outside one is the feeling of being barred from a flourishing you suspect exists." },
+      { title: "A Snake in the Garden", meaning: "The oldest scene in the library: a flaw, temptation, or bad-faith presence inside the very thing you have cultivated. It rarely means abandoning the garden — it means naming what has moved in among the beds." },
+    ],
+    faq: [
+      { question: "What does it mean to dream about a garden?", answer: "A garden usually stands for the part of your life you are responsible for growing — a relationship, a project, your own character — and its condition reports on the care that part has actually received. Blooming points to flourishing, weeds to neglect that is still reversible, and a locked gate to something you feel excluded from." },
+      { question: "Is dreaming of a garden a good sign?", answer: "Most garden dreams lean positive: growth, provision, and rest are the symbol's home territory, and traditions from Islam to the Bible treat the garden as an image of paradise. The caution dreams - withered beds, ruined harvests - are usually about neglect or pride, and both are correctable." },
+      { question: "What does an overgrown garden mean in a dream?", answer: "Neglected potential rather than failure. Something alive — a talent, a friendship, a plan — has been left untended and is still there under the weeds. The dream tends to visit busy people and is best read as an invitation, not an accusation." },
+      { question: "What does it mean to dream of planting or watering?", answer: "Planting is a beginning with a built-in wait: faith in a season you cannot see yet. Watering is the maintenance middle — steady, repeated care. Both dreams usually endorse what you are doing while reminding you of the timescale it actually runs on." },
+      { question: "What does a garden mean in Islam?", answer: "It is among the best of symbols: the Quran's word for paradise means garden. Interpreters read a green, watered garden as faith and blessing — sometimes as spouse, children, or honest wealth — while a ruined garden recalls the Quran's warnings about pride in provision and neglect of gratitude." },
+      { question: "What is the biblical meaning of a garden dream?", answer: "The Bible begins in Eden and ends in a garden city, and sets temptation, agony, and resurrection in gardens. A garden dream can carry homesickness for Eden, the locked garden of intimacy, the watered garden of restoration, or Paul's division of labor: you plant and water, God gives the growth." },
+      { question: "Why did I dream about the garden of Eden?", answer: "Eden dreams tend to come in seasons of nostalgia or moral choice: longing for a time when everything was provided, or standing before a decision with a voice arguing for it. The dream is less about the place than about innocence — what was lost, and what is being weighed." },
     ],
   },
   sex: {
@@ -6917,6 +6990,11 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Pope Dream Meaning: Authority, Blessing & Conscience",
     seoDescription:
       "Met, blessed, or scolded by the pope in a dream? What it says about authority, guilt and forgiveness, plus psychological, Islamic and biblical readings and 7 scenarios.",
+  },
+  garden: {
+    seoTitle: "Garden Dream Meaning: Growth, Care & the Inner Life",
+    seoDescription:
+      "A blooming, overgrown or secret garden in a dream? What it says about what you tend and what you neglect, plus psychological, Islamic and biblical readings and 7 scenarios.",
   },
   sex: {
     seoTitle: "Sex Dream Meaning: Desire, Power & Self-Integration",

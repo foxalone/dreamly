@@ -3679,6 +3679,39 @@ export const SEEDS_PT: Record<string, SeedL10n> = {
     name: "um papa bravo",
     focus: "culpa, medo de condenação, uma regra que você quebrou ou uma autoridade em cuja aprovação você deixou de acreditar mas ainda procura",
   },
+  garden: {
+    name: "um jardim",
+    summary: "crescimento cultivado, o cuidado paciente e seus frutos visíveis, um espaço interior só seu e o que floresce ou murcha conforme a sua atenção",
+    aliases: ["jardim", "sonhar com jardim", "jardim em sonho", "sonhar com horta", "o quintal de casa"],
+  },
+  "beautiful-garden": {
+    name: "um jardim bonito",
+    focus: "uma temporada de florescimento, um trabalho que enfim aparece, paz interior ou uma relação em flor",
+  },
+  "vegetable-garden": {
+    name: "uma horta",
+    focus: "resultados práticos, prover para você e os seus, paciência recompensada e um trabalho medido em colheitas, não em aplausos",
+  },
+  "overgrown-garden": {
+    name: "um jardim abandonado",
+    focus: "potencial esquecido, uma parte da vida sem cuidado ou uma beleza que espera sob o mato a volta da sua atenção",
+  },
+  "planting-a-garden": {
+    name: "plantar um jardim",
+    focus: "começos que levam tempo, fé numa estação futura ou um investimento em algo que não se pode apressar",
+  },
+  "watering-a-garden": {
+    name: "regar um jardim",
+    focus: "cuidado constante, manter algo vivo à força de atenção ou a manutenção silenciosa de que o amor é feito",
+  },
+  "secret-garden": {
+    name: "um jardim secreto",
+    focus: "uma vida interior privada, uma fonte escondida de alegria ou uma parte de você que ainda não mostrou a ninguém",
+  },
+  "garden-of-eden": {
+    name: "o jardim do Éden",
+    focus: "saudade de uma inteireza perdida, a inocência antes de uma escolha ou a memória de um tempo em que tudo era dado",
+  },
   // Added 2026-10-03: new animals + mythical creatures (native copy, not translated).
   scorpion: {
     name: "um escorpião",

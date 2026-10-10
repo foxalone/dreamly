@@ -3714,6 +3714,39 @@ export const SEEDS_ES: Record<string, SeedL10n> = {
     name: "un papa enojado",
     focus: "culpa, miedo a la condena, una regla que rompiste o una autoridad cuya aprobación dejaste de creer pero sigues buscando",
   },
+  garden: {
+    name: "un jardín",
+    summary: "crecimiento cultivado, el cuidado paciente y sus frutos visibles, un espacio interior propio y lo que florece o se marchita según tu atención",
+    aliases: ["jardín", "soñar con un jardín", "soñar con jardines", "jardín en sueños", "soñar con un huerto", "el jardín de la casa"],
+  },
+  "beautiful-garden": {
+    name: "un jardín hermoso",
+    focus: "una temporada de florecimiento, un trabajo que por fin se nota, paz interior o una relación en flor",
+  },
+  "vegetable-garden": {
+    name: "un huerto",
+    focus: "resultados prácticos, proveer para ti y los tuyos, paciencia recompensada y un trabajo que se mide en cosechas y no en aplausos",
+  },
+  "overgrown-garden": {
+    name: "un jardín descuidado",
+    focus: "potencial abandonado, una parte de la vida sin atender o una belleza que espera bajo la maleza a que vuelva tu atención",
+  },
+  "planting-a-garden": {
+    name: "plantar un jardín",
+    focus: "comienzos que tomarán tiempo, fe en una estación futura o una inversión en algo que no se puede apurar",
+  },
+  "watering-a-garden": {
+    name: "regar un jardín",
+    focus: "cuidado constante, mantener algo vivo a fuerza de atención o el mantenimiento silencioso del que está hecho el amor",
+  },
+  "secret-garden": {
+    name: "un jardín secreto",
+    focus: "una vida interior privada, una fuente oculta de alegría o una parte de ti que todavía no has mostrado a nadie",
+  },
+  "garden-of-eden": {
+    name: "el jardín del Edén",
+    focus: "nostalgia de una plenitud perdida, la inocencia antes de una elección o el recuerdo de un tiempo en que todo estaba dado",
+  },
   // Added 2026-10-03: new animals + mythical creatures (native copy, not translated).
   scorpion: {
     name: "un escorpión",
