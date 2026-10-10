@@ -6,6 +6,7 @@ import { clampDreamText, DREAM_MAX_CHARS } from "@/lib/dreamLength";
 import { readHomeDreamQueue, removeHomeDreamPending, writeHomeDreamPending, type HomeDreamPending } from "@/lib/homeDreamPending";
 import { DreamLensSelect, useDreamLens } from "./DreamLensChips";
 import DreamWordCounter from "./DreamWordCounter";
+import EscapeNote from "./EscapeNote";
 import { DreamSymbolIcons } from "./DreamSymbolIcons";
 import ShareAnonPrompt from "./ShareAnonPrompt";
 import { useDreamAsk } from "./useDreamAsk";
@@ -48,6 +49,7 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
       {expanded && ask.analysis && (
         <section className="mt-4 rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold">{t.app.analysis}</h3>
+          {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} /></div> : null}
           <p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{ask.analysis}</p>
           <ShareAnonPrompt status={ask.anonShare} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>

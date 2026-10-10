@@ -84,7 +84,7 @@ export function useDreamAsk({
       // The redirect from the homepage lands here: keep showing the escape note
       // as long as the creatures are still waiting in the catcher.
       const esc = readEscapePending();
-      if (esc) setEscaped(esc.emojis);
+      if (esc && (!esc.key || esc.key === pending.text)) setEscaped(esc.emojis);
       onResultChange?.(true);
     } else if (takeAdUnlockPending("analysis")) {
       // Back from the Offerwall (/ad/unlock): the ad credit is booked, the retry
@@ -240,7 +240,7 @@ export function useDreamAsk({
           .filter(Boolean)
           .slice(0, Number(data.escape.granted));
         if (natives.length) {
-          writeEscapePending({ emojis: natives, at: Date.now() });
+          writeEscapePending({ emojis: natives, at: Date.now(), key: dream });
           setEscaped(natives);
         }
       }

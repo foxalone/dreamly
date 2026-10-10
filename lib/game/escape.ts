@@ -61,7 +61,12 @@ export function addEscape(
 // The analysis flows write this right after the server grants an escape; the game
 // clears it once the creatures are caught. Display only — the server owns the balance.
 
-export type EscapePending = { emojis: string[]; at: number };
+export type EscapePending = {
+  emojis: string[];
+  at: number;
+  /** The dream the escape came from (its text) — only that card shows the note. */
+  key?: string;
+};
 
 export const ESCAPE_LS_KEY = "dreamly_game_escape_v1";
 /** Fired on the window after the localStorage entry changes, so the FAB updates at once. */

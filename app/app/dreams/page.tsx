@@ -1295,7 +1295,7 @@ export default function DreamsPage() {
           : [];
         const natives = (fromApi.length ? fromApi : fromItem).slice(0, Number(data2.escape.granted));
         if (natives.length) {
-          writeEscapePending({ emojis: natives, at: Date.now() });
+          writeEscapePending({ emojis: natives, at: Date.now(), key: t });
           setEscapedFor({ id: dreamId, emojis: natives });
         }
       }
