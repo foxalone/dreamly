@@ -376,6 +376,7 @@ export const ES_MESSAGES: UiMessages = {
     watchAdTranslate: "Mira un anuncio corto y traduce este sueño",
     adCardTitle: "Anuncio corto",
     adCardCta: "Ver anuncio",
+    guestSignInCardDesc: "Cuenta gratuita: tus sueños, diario y criaturas se guardan",
     savesLimitTitle: "Se acabaron los guardados gratis de hoy",
     savesLimitBody: "Cada día puedes guardar algunos sueños gratis. Mira un anuncio corto para guardar este, o suscríbete para guardar sin límites.",
     unlimitedNote: "Traducciones ilimitadas, diario, lecturas con IA y más.",

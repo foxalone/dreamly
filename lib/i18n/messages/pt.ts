@@ -376,6 +376,7 @@ export const PT_MESSAGES: UiMessages = {
     watchAdTranslate: "Assista a um anúncio curto e traduza este sonho",
     adCardTitle: "Anúncio curto",
     adCardCta: "Assistir ao anúncio",
+    guestSignInCardDesc: "Conta gratuita — seus sonhos, diário e criaturas ficam salvos",
     savesLimitTitle: "Os salvamentos grátis de hoje acabaram",
     savesLimitBody: "Todo dia você pode salvar alguns sonhos de graça. Assista a um anúncio curto para salvar este, ou assine para salvar sem limites.",
     unlimitedNote: "Traduções ilimitadas, diário, leituras com IA e mais.",

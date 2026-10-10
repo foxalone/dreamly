@@ -376,6 +376,7 @@ export const EN_MESSAGES: UiMessages = {
     watchAdTranslate: "Watch a short ad — translate this dream",
     adCardTitle: "Short ad",
     adCardCta: "Watch ad",
+    guestSignInCardDesc: "Free account — your dreams, journal and creatures are saved",
     savesLimitTitle: "Today's free saves are used up",
     savesLimitBody: "You can save a few dreams for free every day. Watch a short ad to save this one, or subscribe to save without limits.",
     unlimitedNote: "Unlimited translations, journal, AI readings and more.",

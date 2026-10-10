@@ -331,6 +331,8 @@ export type UiMessages = {
     watchAdTranslate: string;
     adCardTitle: string;
     adCardCta: string;
+    /** Sign-in choice card in the guest limit dialog. */
+    guestSignInCardDesc: string;
     savesLimitTitle: string;
     savesLimitBody: string;
     unlimitedNote: string;
