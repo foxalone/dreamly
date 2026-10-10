@@ -93,13 +93,27 @@ service cloud.firestore {
         || (isSignedIn() && resource.data.ownerUid == request.auth.uid)
         || (isSignedIn()
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['reactions', 'updatedAt']));
+                 .hasOnly(['reactions', 'commentCount', 'updatedAt']));
 
       allow delete: if isAdmin();
 
       match /reactions/{reactorUid} {
         allow read, create, update: if isSignedIn() && request.auth.uid == reactorUid;
         allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == reactorUid);
+      }
+
+      // Комментарии-толкования под публичным сном (/dream/<id>). Читают все
+      // (в т.ч. гости); публикует только залогиненный от своего uid; текст
+      // 1..2000 символов; badge — уровень существа (lib/shareBadges.ts).
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+        allow update: if isAdmin();
+        allow delete: if isAdmin() || (isSignedIn() && resource.data.authorUid == request.auth.uid);
       }
 
       // Текст переводов + статистика — только админ; юзеры получают текст

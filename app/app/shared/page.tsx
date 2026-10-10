@@ -29,6 +29,7 @@ import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { formatMessage } from "@/lib/i18n/messages";
+import LocaleLink from "@/lib/i18n/LocaleLink";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
 
@@ -80,6 +81,9 @@ type SharedDream = {
   // app/api/dreams/_lib/translationLedger.ts)
   translatedLangs?: string[];
   translationCount?: number;
+
+  // comments ("interpretations") under the public dream page /dream/<id>
+  commentCount?: number;
 
   reactions?: {
     heart?: number;
@@ -805,9 +809,14 @@ export default function SharedPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words">
+                  {/* ✅ the text opens the dream's permanent public page (/dream/<id>) */}
+                  <LocaleLink
+                    href={`/dream/${d.id}`}
+                    title={t.dreamPage.openDream}
+                    className="block mt-3 text-[var(--text)] whitespace-pre-wrap break-words hover:opacity-85 transition-opacity"
+                  >
                     {showingTranslation[d.id] ?? d.text}
-                  </div>
+                  </LocaleLink>
 
                   <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
 
@@ -839,6 +848,17 @@ export default function SharedPage() {
                           </button>
                         );
                       })}
+
+                      {/* 💬 comment count — opens the dream page at the comments */}
+                      <LocaleLink
+                        href={`/dream/${d.id}#comments`}
+                        className="react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
+                        title={t.dreamPage.commentsLabel}
+                        aria-label={t.dreamPage.commentsLabel}
+                      >
+                        <span>💬</span>
+                        <span className="tabular-nums">{safeNum(d.commentCount)}</span>
+                      </LocaleLink>
                     </div>
 
                     {(() => {

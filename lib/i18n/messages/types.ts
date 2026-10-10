@@ -363,6 +363,21 @@ export type UiMessages = {
     youAreHere: string;
     timelineHint: string;
   };
+  dreamPage: {
+    openDream: string;
+    commentsLabel: string;
+    backToFeed: string;
+    metaTitleFallback: string;
+    metaDescription: string;
+    commentsTitle: string;
+    commentsEmpty: string;
+    commentPlaceholder: string;
+    publish: string;
+    publishing: string;
+    signInToPublish: string;
+    commentFailed: string;
+    deleteComment: string;
+  };
   game: {
     title: string;
     fabLabel: string;
