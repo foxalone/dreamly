@@ -14,6 +14,7 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
+import { takeAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -85,6 +86,10 @@ export function useDreamAsk({
       const esc = readEscapePending();
       if (esc) setEscaped(esc.emojis);
       onResultChange?.(true);
+    } else if (takeAdUnlockPending("analysis")) {
+      // Back from the Offerwall (/ad/unlock): the ad credit is booked, the retry
+      // closure did not survive the navigation — run the interpretation now.
+      window.setTimeout(() => void submitRef.current(), 300);
     }
     // Restore once on mount so a later login still finds the same cache.
     // eslint-disable-next-line react-hooks/exhaustive-deps

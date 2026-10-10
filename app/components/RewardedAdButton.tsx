@@ -1,6 +1,6 @@
 "use client";
 
-import { adUnlockUrl } from "@/lib/adUnlock";
+import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 import type { PaywallKind } from "@/lib/paywall";
 
@@ -29,6 +29,9 @@ type Props = {
 export default function RewardedAdButton({ label, kind, translation, source, card }: Props) {
   const start = () => {
     trackEvent("rewarded_ad_open", { source, kind });
+    // An interpretation started from the home/inline ask resumes itself after the
+    // Offerwall (useDreamAsk takes this mark on return); other kinds have their own.
+    if (kind === "analysis") setAdUnlockPending({ kind: "analysis" });
     window.location.assign(adUnlockUrl(kind, undefined, translation));
   };
   if (card) {

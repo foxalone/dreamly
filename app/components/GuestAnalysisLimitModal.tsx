@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { PaywallRequest } from "@/lib/paywall";
-import { adUnlockUrl } from "@/lib/adUnlock";
+import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 
 /**
@@ -68,6 +68,9 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
 
   function watchAd() {
     trackEvent("rewarded_ad_open", { source: request.source, kind });
+    // The retry closure dies with the navigation: useDreamAsk resumes the
+    // interpretation from this sessionStorage mark when we come back.
+    if (kind === "analysis") setAdUnlockPending({ kind: "analysis" });
     window.location.assign(adUnlockUrl(kind, undefined, request.translation));
   }
 
