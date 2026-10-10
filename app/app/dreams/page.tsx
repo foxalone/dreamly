@@ -1231,6 +1231,10 @@ export default function DreamsPage() {
           text: t,
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           lens: analysisLens,
+          // The escape must be exactly this dream's icons, not a fresh pick.
+          ...(Array.isArray((dream as any)?.emojis) && (dream as any).emojis.length
+            ? { escapeEmojis: ((dream as any).emojis as Array<{ native?: string }>).map((e) => ({ native: e?.native })) }
+            : {}),
           idToken,
         }),
       });
@@ -1293,7 +1297,8 @@ export default function DreamsPage() {
         const fromItem = Array.isArray((dream as any)?.emojis)
           ? ((dream as any).emojis as Array<{ native?: string }>).map((e) => (typeof e?.native === "string" ? e.native : "")).filter(Boolean)
           : [];
-        const natives = (fromApi.length ? fromApi : fromItem).slice(0, Number(data2.escape.granted));
+        // The dream's own icons first — they are what escaped (see escapeEmojis above).
+        const natives = (fromItem.length ? fromItem : fromApi).slice(0, Number(data2.escape.granted));
         if (natives.length) {
           writeEscapePending({ emojis: natives, at: Date.now(), key: t });
           setEscapedFor({ id: dreamId, emojis: natives });

@@ -27,7 +27,8 @@ export function matchEscapes(emojis: Array<{ native?: string } | null | undefine
   const map = buildMap();
   return (emojis ?? [])
     .map((e) => (typeof e?.native === "string" ? e.native.trim() : ""))
-    .filter(Boolean)
+    // ZWJ sequences reach ~11 UTF-16 units; anything longer is not an emoji.
+    .filter((native) => native && native.length <= 12)
     .slice(0, ESCAPE_MAX)
     .map((native) => ({ native, slug: map.get(strip(native)) ?? null }));
 }

@@ -28,6 +28,9 @@ type Body = {
   lens?: string;
   idToken?: string;
   countTowardLimit?: boolean;
+  /** The dream's already-created emojis: the escape uses exactly these (re-analysis
+      would otherwise pick a fresh, different set). Falls back to this call's pick. */
+  escapeEmojis?: { native?: string }[];
 };
 
 function guessLang(text: string): string {
@@ -201,10 +204,12 @@ export async function POST(req: Request) {
     // exactly the icons this dream created, one dream per day. Never fails the reading.
     let escape: { granted: number; total: number } | null = null;
     const escapeOwnerKey = uid ? `u_${uid}` : guestId ? `g_${guestId}` : null;
-    if (escapeOwnerKey && (emojiPick?.emojis?.length ?? 0) > 0) {
+    const escapeSource =
+      Array.isArray(body?.escapeEmojis) && body.escapeEmojis.length ? body.escapeEmojis : emojiPick?.emojis ?? [];
+    if (escapeOwnerKey && escapeSource.length > 0) {
       escape = await grantEscapeForOwner(
         { ownerKey: escapeOwnerKey, uid, guestId: uid ? null : guestId, newGuest: false },
-        matchEscapes(emojiPick?.emojis ?? [])
+        matchEscapes(escapeSource)
       ).catch(() => null);
     }
 

@@ -184,6 +184,11 @@ export function useDreamAsk({
     try {
       await auth.authStateReady();
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
+      // The dream's already-created emojis (re-analysis in the guest journal):
+      // the escape must be exactly these icons, not a fresh pick.
+      const storedEmojis =
+        (initialDream?.text === dream ? initialDream.emojis : undefined) ??
+        readHomeDreamQueue().find((item) => item.text === dream)?.emojis;
       const res = await fetch("/api/dreams/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,6 +197,7 @@ export function useDreamAsk({
           text: dream,
           lang: locale,
           lens,
+          ...(storedEmojis?.length ? { escapeEmojis: storedEmojis.map((e) => ({ native: e.native })) } : {}),
           ...(idToken ? { idToken } : {}),
         }),
       });
@@ -234,8 +240,13 @@ export function useDreamAsk({
       setAnalysis(next);
       // Dream Kingdoms: the server granted an escape (first dream today) — remember it
       // for the catcher badge and show the note + fly-away above this reading.
-      if (Number(data?.escape?.granted ?? 0) > 0 && Array.isArray(data?.emojis)) {
-        const natives = (data.emojis as DreamEmojiEntry[])
+      if (Number(data?.escape?.granted ?? 0) > 0) {
+        const source: Array<{ native?: string }> = storedEmojis?.length
+          ? storedEmojis
+          : Array.isArray(data?.emojis)
+            ? (data.emojis as DreamEmojiEntry[])
+            : [];
+        const natives = source
           .map((e) => (typeof e?.native === "string" ? e.native : ""))
           .filter(Boolean)
           .slice(0, Number(data.escape.granted));
