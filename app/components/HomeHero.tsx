@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import HomeDreamAsk from "./HomeDreamAsk";
+import HomeExploreCard from "./HomeExploreCard";
 
 export default function HomeHero() {
   const t = useMessages();
@@ -17,8 +18,8 @@ export default function HomeHero() {
           : "relative flex min-h-[88svh] flex-col"
       }
     >
-      <div className={hasResult ? "w-full max-w-2xl text-center" : "flex flex-1 items-center justify-center"}>
-        <div className="w-full max-w-2xl text-center">
+      <div className={hasResult ? "w-full max-w-5xl text-center" : "flex w-full flex-1 items-center justify-center"}>
+        <div className="w-full max-w-5xl text-center">
           <p
             className="mb-8 bg-clip-text text-4xl font-semibold tracking-wide text-transparent sm:text-6xl"
             style={{
@@ -30,7 +31,15 @@ export default function HomeHero() {
           </p>
           <h1 className="text-xl font-medium sm:text-2xl">{t.home.h1}</h1>
           <p className="mt-6 text-base text-[var(--muted)] sm:text-lg">{t.home.lead}</p>
-          <HomeDreamAsk onResultChange={setHasResult} />
+          {/* 3/4 — the ask form, 1/4 — a way in for visitors who just want to look around. */}
+          <div className="mt-2 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-4">
+            <div className="lg:col-span-3 [&>div]:lg:max-w-none">
+              <HomeDreamAsk onResultChange={setHasResult} />
+            </div>
+            <div className="mt-4 lg:mt-10">
+              <HomeExploreCard />
+            </div>
+          </div>
         </div>
       </div>
       {hasResult ? null : (

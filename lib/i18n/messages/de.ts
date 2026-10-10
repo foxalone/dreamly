@@ -16,6 +16,8 @@ export const DE_MESSAGES: UiMessages = {
   },
   home: {
     h1: "Was bedeutet mein Traum? KI-Traumdeutung und Tagebuch",
+    exploreTitle: "Oder einfach stöbern",
+    explorePlaceholder: "Traumsymbole suchen…",
     lead: "KI-Deutung in Sekunden, ein privates Traumtagebuch und ein kostenloses Lexikon der meistgesuchten Traumsymbole.",
     cta: "Traum erkunden",
     askPlaceholder: "Beschreibe deinen Traum…",
