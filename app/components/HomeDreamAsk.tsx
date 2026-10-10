@@ -1,7 +1,6 @@
 "use client";
 
-import { BookOpenText, Loader2, Sparkles } from "lucide-react";
-import LocaleLink from "@/lib/i18n/LocaleLink";
+import { Loader2, Sparkles } from "lucide-react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "./DreamLensChips";
 import EscapeNote from "./EscapeNote";
@@ -93,19 +92,6 @@ export default function HomeDreamAsk({
           {error}
         </p>
       ) : null}
-
-      {analysis ? null : (
-        <div className="mt-4 text-center">
-          <p className="mb-3 text-xs text-[var(--muted)]">{t.home.askHint}</p>
-          <LocaleLink
-            href="/dreams"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--text)] hover:bg-[var(--surface)]"
-          >
-            <BookOpenText size={16} aria-hidden="true" />
-            {t.home.askOrDictionary}
-          </LocaleLink>
-        </div>
-      )}
 
       {analysis && journal ? (
         <div className="order-first mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
