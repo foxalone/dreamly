@@ -76,7 +76,8 @@ export function useDreamAsk({
     const pending = initialDream ?? readHomeDreamPending();
     if (!pending?.text) return;
     setTextState(pending.text);
-    setShareToFeedState(pending.shareToFeed !== false);
+    // The feed checkbox is ALWAYS on by default: an earlier un-tick saved in the
+    // device cache must not carry over to the next dream (dima, 2026-10-10).
     if (pending.guestSharedId) setAnonShare("done");
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
