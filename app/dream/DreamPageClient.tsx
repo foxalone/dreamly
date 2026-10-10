@@ -57,6 +57,12 @@ export type PublicSharedDream = {
   commentCount: number;
 };
 
+export type MoreDream = {
+  id: string;
+  excerpt: string;
+  emojis: string[];
+};
+
 type ReactionKey = "heart" | "like" | "star";
 type MyReactions = Record<ReactionKey, boolean>;
 
@@ -118,7 +124,7 @@ function TranslateIcon({ className }: { className?: string }) {
   );
 }
 
-export default function DreamPageClient({ dream }: { dream: PublicSharedDream }) {
+export default function DreamPageClient({ dream, more }: { dream: PublicSharedDream; more: MoreDream[] }) {
   const locale = useLocale();
   const t = useMessages();
 
@@ -671,6 +677,30 @@ export default function DreamPageClient({ dream }: { dream: PublicSharedDream })
           </div>
         </div>
       </section>
+
+      {/* server-rendered links to other dreams — people browse on, crawlers
+          walk the whole /dream/* graph from any one page */}
+      {more.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-[var(--text)]">{t.dreamPage.moreDreams}</h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {more.map((m) => (
+              <LocaleLink
+                key={m.id}
+                href={`/dream/${m.id}`}
+                className="block p-4 rounded-2xl bg-[var(--card)] border border-white/10 hover:border-purple-400/40 transition-colors"
+              >
+                {m.emojis.length > 0 ? (
+                  <span className="block text-[16px] leading-none select-none mb-2" aria-hidden>
+                    {m.emojis.join(" ")}
+                  </span>
+                ) : null}
+                <span className="block text-sm text-[var(--text)] break-words">{m.excerpt}</span>
+              </LocaleLink>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

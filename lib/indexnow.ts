@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { getDreamGuide } from "@/lib/dream-guides";
-import type { Locale } from "@/lib/i18n/config";
+import { PREFIX_LOCALES, type Locale } from "@/lib/i18n/config";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
 import { getLocalizedGuide } from "@/lib/i18n/localize-guides";
 import { isLocaleExemptPath, stripLocalePrefix } from "@/lib/i18n/path";
@@ -113,6 +113,13 @@ export function listPublicPagesUrls(): string[] {
 /** Whether a canonical absolute URL is part of the current public inventory (sitemap). */
 export function isKnownPublicUrl(url: string): boolean {
   return listPublicPages().some((page) => page.url === url);
+}
+
+/** Every locale URL of a public dream page (/dream/<id>) for an IndexNow ping. */
+export function dreamPageIndexNowPaths(dreamId: string): string[] {
+  const id = String(dreamId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,120}$/.test(id)) return [];
+  return ["", ...PREFIX_LOCALES.map((l) => `/${l}`)].map((prefix) => `${prefix}/dream/${id}`);
 }
 
 /* -------------------------------------------------------------- submission */

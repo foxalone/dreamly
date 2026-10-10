@@ -428,6 +428,7 @@ export const RU_MESSAGES: UiMessages = {
     signInToPublish: "Войдите, чтобы опубликовать комментарий — текст сохранится.",
     commentFailed: "Не удалось опубликовать комментарий. Попробуйте ещё раз.",
     deleteComment: "Удалить",
+    moreDreams: "Ещё сны",
   },
   game: {
     title: "Королевства снов",

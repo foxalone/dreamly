@@ -1150,6 +1150,15 @@ export default function DreamsPage() {
       // Detect + store the dream's language for the feed (one tiny model call, no credits).
       requestSharedDreamLang(u, sharedId);
 
+      // Bing/Yandex: ping IndexNow about the new public page /dream/<id>
+      // (fire-and-forget; Google finds it through the sitemap).
+      void fetch("/api/dreams/ping-indexnow", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dreamId: sharedId }),
+      }).catch(() => {});
+
       if (Array.isArray((item as any).emojis) && (item as any).emojis.some((em: { native?: string }) => em?.native)) {
         try {
           await ingestDreamForMap({

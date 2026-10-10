@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { dreamPageIndexNowPaths, notifyIndexNow } from "@/lib/indexnow";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
@@ -69,6 +70,9 @@ export async function POST(req: Request) {
     });
 
     if (!result) return NextResponse.json({ ok: false, code: "NOTHING_TO_CLAIM" });
+
+    // The public page moved from /dream/guest_<id> to /dream/<uid>_<dreamId>.
+    void notifyIndexNow(dreamPageIndexNowPaths(destId), { reason: "claim-guest-share" });
 
     return NextResponse.json({ ok: true, sharedId: destId, ...result });
   } catch (e: unknown) {

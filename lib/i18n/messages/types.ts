@@ -377,6 +377,7 @@ export type UiMessages = {
     signInToPublish: string;
     commentFailed: string;
     deleteComment: string;
+    moreDreams: string;
   };
   game: {
     title: string;

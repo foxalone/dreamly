@@ -428,6 +428,7 @@ export const PT_MESSAGES: UiMessages = {
     signInToPublish: "Entre para publicar seu comentário — o texto será mantido.",
     commentFailed: "Não foi possível publicar o comentário. Tente novamente.",
     deleteComment: "Excluir",
+    moreDreams: "Mais sonhos",
   },
   game: {
     title: "Reinos dos Sonhos",

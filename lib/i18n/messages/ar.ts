@@ -428,6 +428,7 @@ export const AR_MESSAGES: UiMessages = {
     signInToPublish: "سجّل الدخول لنشر تعليقك — سيتم الاحتفاظ بالنص.",
     commentFailed: "تعذّر نشر التعليق. حاول مرة أخرى.",
     deleteComment: "حذف",
+    moreDreams: "المزيد من الأحلام",
   },
   game: {
     title: "ممالك الأحلام",

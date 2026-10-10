@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { dreamPageIndexNowPaths, notifyIndexNow } from "@/lib/indexnow";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { detectDreamLang } from "@/lib/detectDreamLang";
@@ -157,6 +158,10 @@ export async function POST(req: Request) {
     if (outcome === "ip_limit") {
       return finish(NextResponse.json({ ok: false, code: "IP_LIMIT" }, { status: 429 }));
     }
+
+    // Bing/Yandex: the dream's public page (/dream/<id>) exists now. Google
+    // ignores IndexNow — it finds the page through the sitemap.
+    void notifyIndexNow(dreamPageIndexNowPaths(sharedId), { reason: "guest-share" });
 
     // Mark the admin snapshot of today's guest dream (written by
     // /api/map/ingest-guest when the map pin went through), if there is one.

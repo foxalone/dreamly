@@ -9,7 +9,7 @@ import { getMessages } from "@/lib/i18n/messages";
 import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 import { localePath } from "@/lib/i18n/path";
 
-import DreamPageClient, { type PublicSharedDream } from "./DreamPageClient";
+import DreamPageClient, { type MoreDream, type PublicSharedDream } from "./DreamPageClient";
 
 /**
  * Public, indexable page of one shared dream: /dream/<id> (+ locale prefixes).
@@ -81,6 +81,39 @@ export const loadSharedDream = cache(async (id: string): Promise<PublicSharedDre
   }
 });
 
+/**
+ * Up to 9 other recent public dreams — server-rendered links on every dream
+ * page, so a crawler that lands on one dream can walk to the rest without
+ * going through the sitemap.
+ */
+export const loadMoreDreams = cache(async (excludeId: string): Promise<MoreDream[]> => {
+  try {
+    const snap = await adminFirestore()
+      .collection("shared_dreams")
+      .orderBy("sharedAtMs", "desc")
+      .limit(16)
+      .get();
+    return snap.docs
+      .filter((d) => {
+        if (d.id === excludeId) return false;
+        const data = d.data() as any;
+        return data?.deleted !== true && String(data?.text ?? "").trim().length > 0;
+      })
+      .slice(0, 9)
+      .map((d) => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          excerpt: sharedDreamExcerpt(String(data?.text ?? ""), 90),
+          emojis: normalizeEmojiNatives(data?.emojis).slice(0, 3),
+        };
+      });
+  } catch (e) {
+    console.error("loadMoreDreams failed:", e);
+    return [];
+  }
+});
+
 export function sharedDreamExcerpt(text: string, max: number): string {
   const s = (text ?? "").replace(/\s+/g, " ").trim();
   if (s.length <= max) return s;
@@ -101,7 +134,7 @@ export function sharedDreamMetadata(dream: PublicSharedDream, id: string, locale
   };
 }
 
-export default function DreamPublicView({
+export default async function DreamPublicView({
   dream,
   locale,
 }: {
@@ -109,6 +142,7 @@ export default function DreamPublicView({
   locale: Locale;
 }) {
   const t = getMessages(locale);
+  const more = await loadMoreDreams(dream.id);
 
   // UGC page markup for search engines: an anonymous forum-style posting with
   // its comment count. The text itself is in the HTML (client components are
@@ -136,7 +170,7 @@ export default function DreamPublicView({
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      <DreamPageClient dream={dream} />
+      <DreamPageClient dream={dream} more={more} />
     </>
   );
 }
