@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 /** Compare emojis without the variation selector (🐍︎ vs 🐍). */
 const strip = (s: string) => s.replace(/️/g, "");
 
-const MAX_ROWS = 4;
+const MAX_ROWS = 3;
 const SCAN = 120;
 
 export async function GET(req: Request) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   const key = strip(e.trim());
 
   const snap = await adminFirestore().collection("shared_dreams").orderBy("sharedAtMs", "desc").limit(SCAN).get();
-  const dreams: { id: string; snippet: string }[] = [];
+  const pool: { id: string; snippet: string }[] = [];
   for (const doc of snap.docs) {
     const x = doc.data();
     const text = String(x.text ?? "").trim();
@@ -27,9 +27,15 @@ export async function GET(req: Request) {
     const emojis = Array.isArray(x.emojis) ? x.emojis : [];
     const has = emojis.some((em: { native?: string }) => typeof em?.native === "string" && strip(em.native) === key);
     if (!has) continue;
-    dreams.push({ id: doc.id, snippet: text.length > 64 ? `${text.slice(0, 64).trimEnd()}…` : text });
-    if (dreams.length >= MAX_ROWS) break;
+    pool.push({ id: doc.id, snippet: text.length > 64 ? `${text.slice(0, 64).trimEnd()}…` : text });
   }
+  // Up to MAX_ROWS random matches, so the popup stays short and varies between visits
+  // (re-rolled when the CDN cache expires).
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const dreams = pool.slice(0, MAX_ROWS);
 
   return NextResponse.json(
     { dreams },
