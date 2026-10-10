@@ -107,16 +107,6 @@ export default function HomeDreamAsk({
         </div>
       )}
 
-      {analysis && !journal && !busy ? (
-        <button
-          type="button"
-          onClick={() => goToJournal()}
-          className="mt-4 self-center rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
-        >
-          {t.app.analysis}
-        </button>
-      ) : null}
-
       {analysis && journal ? (
         <div className="order-first mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
           <h2 className="mb-3 font-semibold">{t.app.analysis}</h2>
