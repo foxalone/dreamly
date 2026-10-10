@@ -299,7 +299,7 @@ export default function MapPage() {
     if (info.filter === "kingdoms") {
       const locale = stripLocalePrefix(window.location.pathname).locale;
       const html = `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
+      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px; color: #1f2937;">
         <div style="font-size: 18px; line-height: 1.2;">${info.emoji} <b>${info.label ?? ""}</b></div>
         <div style="opacity: .85; margin-top: 6px;">${info.place}</div>
         <a href="${localePath("/app/game", locale)}" style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
@@ -316,7 +316,7 @@ export default function MapPage() {
       info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : "All";
 
     const html = `
-      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px;">
+      <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px; color: #1f2937;">
         <div style="font-size: 18px; line-height: 1.2;">
           ${info.emoji} <b>${info.count}</b>
         </div>
@@ -370,15 +370,19 @@ export default function MapPage() {
         .then((res: { dreams?: { id: string; snippet: string }[] } | null) => {
           const dreams = res?.dreams ?? [];
           if (!dreams.length) return;
-          list.innerHTML = dreams
+          const rows = dreams
             .map(
               (d) => `
-            <a href="${localePath(`/app/shared?dream=${encodeURIComponent(d.id)}`, locale)}"
-               style="display:block; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(0,0,0,.08); color: inherit; text-decoration: none; opacity: .85;">
-              ${info.emoji} “${esc(d.snippet)}” →
+            <a href="${localePath(`/app/shared?dream=${encodeURIComponent(d.id)}`, locale)}" dir="auto"
+               style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-top: 6px; color: #374151; text-decoration: none; font-size: 12px; line-height: 1.4;">
+              “${esc(d.snippet)}” <span style="color:#7c3aed; white-space:nowrap;">→</span>
             </a>`
             )
             .join("");
+          list.innerHTML = `
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,.1); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #9ca3af;">
+              Dreams with this icon
+            </div>${rows}`;
         })
         .catch(() => {});
     }
