@@ -10,8 +10,8 @@ import DreamSymbolView, { dreamSymbolMetadata } from "../../../dreams/DreamSymbo
 type Props = { params: Promise<{ locale: string; symbol: string }> };
 
 export const dynamicParams = false;
-// Text changes ship with a deploy; images invalidate by path. Daily fallback for missed updates.
-export const revalidate = 86400;
+// Text changes ship with a deploy; images invalidate by path. Weekly fallback for missed updates.
+export const revalidate = 604800;
 
 export function generateStaticParams() {
   const symbols = [...DREAM_SLUGS, ...DREAM_GUIDE_SLUGS];
