@@ -32,7 +32,11 @@ const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;
 const JOBS_COLLECTION = "adminVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/videoWorker";
-const ENGLISH_VOICE = "en-US-AriaNeural-Female";
+// edge-tts (en-US-AriaNeural) is broken globally since 2026-10-10: Microsoft changed
+// the endpoint/token (rany2/edge-tts#490) and every request times out, which failed the
+// nightly cycles of 2026-10-11/12. OpenAI TTS (via MoneyPrinterTurbo's openai: provider,
+// billed to the config.toml OpenAI key) until edge-tts ships a fix - then restore Aria.
+const ENGLISH_VOICE = env("ENGLISH_TTS_VOICE") || "openai:nova";
 const SCRIPT_GENERATION_ATTEMPTS = 3;
 const POOL_CLIP_COUNT = 10;
 // Stock Pool · YouTube 16:9 (mode "pool_wide"): a regular horizontal YouTube
