@@ -109,7 +109,7 @@ async function publishOne(
   deadlineMs: number,
 ) {
   if (platform === "tiktok") return publishLibraryVideoToTikTok(libraryId, "scheduler");
-  if (platform === "instagram" || platform === "facebook") {
+  if (platform === "instagram") {
     return publishLibraryVideoToMeta(libraryId, "scheduler", platform, {
       deadlineMs: Math.min(deadlineMs, Date.now() + META_PLATFORM_BUDGET_MS),
     });
@@ -441,7 +441,7 @@ export async function scheduleLibraryImagePublish(jobId: string, publishAtInput:
     throw new Error("Image is not ready");
   }
   const title = String(data.subject || "Untitled image").trim();
-  const queued = normalizeSchedulePlatforms(["instagram", "facebook", "threads"]);
+  const queued = normalizeSchedulePlatforms(["instagram", "threads"]);
   const libraryId = `image:${jobId}`;
   const queueId = await writeQueue({
     libraryId,
@@ -572,8 +572,8 @@ async function runDueImageJob(item: DueSchedule, deadlineMs: number) {
   const jobId = parseImageLibraryId(item.libraryId);
   const ref = adminDb().collection(AI_IMAGE_COLLECTION).doc(jobId);
   const results = await publishLibraryImageToAll(jobId, "scheduler");
-  const queuedImagePlatform = (platform: string): platform is "instagram" | "facebook" | "threads" =>
-    platform === "instagram" || platform === "facebook" || platform === "threads";
+  const queuedImagePlatform = (platform: string): platform is "instagram" | "threads" =>
+    platform === "instagram" || platform === "threads";
   const published: SocialSchedulePlatform[] = results
     .filter((entry) => entry.status === "published" || entry.status === "skipped")
     .map((entry) => entry.platform)

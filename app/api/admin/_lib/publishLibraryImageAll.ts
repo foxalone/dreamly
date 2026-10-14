@@ -21,7 +21,7 @@ function alreadyPublished(data: Record<string, unknown>, platform: ImageSocialPl
 }
 
 async function publishOne(platform: ImageSocialPlatform, jobId: string, adminUid: string) {
-  if (platform === "instagram" || platform === "facebook") {
+  if (platform === "instagram") {
     return publishLibraryImageToMeta(jobId, adminUid, platform);
   }
   if (platform === "threads") return publishLibraryImageToThreads(jobId, adminUid);

@@ -760,7 +760,6 @@ export default function VideoLibraryPanel({
     const pending: Platform[] = [];
     if (tiktok?.connected && !item.published?.tiktok && item.tiktokState !== "publishing") pending.push("tiktok");
     if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
-    if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
     if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
     if (bluesky?.ready && !item.published?.bluesky && item.blueskyState !== "publishing") pending.push("bluesky");
     if (

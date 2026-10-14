@@ -322,7 +322,6 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
   function pendingPlatforms(item: AdminImageLibraryItem): ImagePlatform[] {
     const pending: ImagePlatform[] = [];
     if (meta?.instagramReady && !item.published?.instagram) pending.push("instagram");
-    if (meta?.facebookReady && !item.published?.facebook) pending.push("facebook");
     if (threads?.connected && !item.published?.threads && item.threadsState !== "publishing") pending.push("threads");
     if (pinterest?.connected && !item.published?.pinterest && item.pinterestState !== "publishing") pending.push("pinterest");
     return pending;
@@ -567,7 +566,7 @@ export default function ImageLibraryPanel({ user }: { user: User }) {
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">Image library</p>
           <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Все сгенерированные картинки</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Sora · Veo · {items.length} готовых · публикация в Instagram, Facebook, Threads и Pinterest
+            Sora · Veo · {items.length} готовых · публикация в Instagram, Threads и Pinterest
           </p>
         </div>
         <button type="button" onClick={() => void load()} className="text-sm font-semibold text-[var(--muted)] underline">

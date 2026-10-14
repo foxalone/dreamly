@@ -16,7 +16,7 @@ import {
 const now = Date.parse("2026-08-31T10:00:00.000Z");
 const due = {
   scheduledAt: "2026-08-31T09:55:00.000Z",
-  platforms: ["tiktok", "instagram", "facebook"],
+  platforms: ["tiktok", "instagram", "threads"],
   status: "pending",
 };
 
@@ -56,9 +56,9 @@ test("холодный null не отменяет transaction до чтения 
 });
 
 test("нормализация удаляет дубли и неизвестные площадки", () => {
+  // facebook закрыт 14.10.2026 — нормализация выбрасывает его как неизвестную площадку.
   assert.deepEqual(normalizeSchedulePlatforms(["facebook", "pinterest", "bluesky", "myspace", "tiktok", "facebook"]), [
     "tiktok",
-    "facebook",
     "bluesky",
   ]);
 });
@@ -66,14 +66,14 @@ test("нормализация удаляет дубли и неизвестны
 test("Telegram-отчёт добавляет отдельно запланированный YouTube", () => {
   assert.deepEqual(
     notificationPublishedPlatforms(
-      ["tiktok", "instagram", "facebook", "threads"],
+      ["tiktok", "instagram", "threads"],
       {
         youtubeStatus: "scheduled",
         youtubeScheduledAt: "2026-08-31T09:55:00.000Z",
       },
       "2026-08-31T09:55:00.000Z",
     ),
-    ["tiktok", "instagram", "facebook", "threads", "youtube"],
+    ["tiktok", "instagram", "threads", "youtube"],
   );
 });
 
@@ -93,14 +93,14 @@ test("Telegram-отчёт не добавляет YouTube из другого р
 
 test("остаток по бюджету возвращается в pending без удаления scheduledAt", () => {
   const finish = buildFinishUpdate(
-    { published: ["tiktok"], failed: {}, pending: ["instagram", "facebook"], attempts: 2 },
+    { published: ["tiktok"], failed: {}, pending: ["instagram", "threads"], attempts: 2 },
     "2026-08-31T10:00:01.000Z",
   );
   assert.equal(finish.outcome, "retry");
   assert.equal("scheduledAt" in finish.update, false);
   assert.equal(finish.update.status, "pending");
   assert.equal(finish.update.attempts, 3);
-  assert.deepEqual(finish.update.platforms, ["instagram", "facebook"]);
+  assert.deepEqual(finish.update.platforms, ["instagram", "threads"]);
 });
 
 test("успех и окончательная ошибка удаляют due-поле", () => {
@@ -109,14 +109,14 @@ test("успех и окончательная ошибка удаляют due-�
     "2026-08-31T10:00:01.000Z",
   );
   const failed = buildFinishUpdate(
-    { published: ["tiktok"], failed: { facebook: "API_ERROR" }, pending: [], attempts: 0 },
+    { published: ["tiktok"], failed: { threads: "API_ERROR" }, pending: [], attempts: 0 },
     "2026-08-31T10:00:01.000Z",
   );
   assert.equal(done.outcome, "done");
   assert.equal(done.update.scheduledAt, null);
   assert.equal(failed.outcome, "failed");
   assert.equal(failed.update.scheduledAt, null);
-  assert.deepEqual(failed.update.error, { facebook: "API_ERROR" });
+  assert.deepEqual(failed.update.error, { threads: "API_ERROR" });
 });
 
 test("бесконечный processing завершается контролируемой ошибкой", () => {

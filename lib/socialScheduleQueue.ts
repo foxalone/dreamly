@@ -6,10 +6,11 @@ export const SOCIAL_SCHEDULE_LOCK_MS = 20 * 60 * 1000;
 export const SOCIAL_SCHEDULE_MAX_ATTEMPTS = 12;
 export const SOCIAL_SCHEDULE_BATCH_LIMIT = 4;
 
+// Facebook убран 14.10.2026: пользы не приносил, автоматизация его больше не
+// планирует. normalizeSchedulePlatforms молча выбрасывает его из старых записей.
 export const SOCIAL_SCHEDULE_PLATFORMS = [
   "tiktok",
   "instagram",
-  "facebook",
   "threads",
   "bluesky",
   "tumblr",

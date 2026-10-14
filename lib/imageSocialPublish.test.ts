@@ -17,9 +17,9 @@ test("treats already-published and disconnected errors as skippable", () => {
 
 test("detects full and partial image social publish state", () => {
   assert.equal(imageSocialsAnyPublished({ instagram: true }), true);
-  assert.equal(imageSocialsAllPublished({ instagram: true, facebook: true }), false);
+  assert.equal(imageSocialsAllPublished({ instagram: true, threads: true }), false);
   assert.equal(
-    imageSocialsAllPublished({ instagram: true, facebook: true, threads: true, pinterest: true }),
+    imageSocialsAllPublished({ instagram: true, threads: true, pinterest: true }),
     true,
   );
 });

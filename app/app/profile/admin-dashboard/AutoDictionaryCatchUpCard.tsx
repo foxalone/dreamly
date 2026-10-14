@@ -421,7 +421,7 @@ export default function AutoDictionaryCatchUpCard({ user }: { user: User }) {
     <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.06] p-4 space-y-3">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Ночная автоматизация</p>
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Каждый день — одно видео во все соцсети в 12:00 ET и одна картинка (Instagram, Facebook, Threads) в 19:00 ET. Если ночной запуск в 02:00 пропущен — одна кнопка. Она сама поднимает воркеры на этом Mac и повторяет цикл: {AUTO_PAIR_COUNT} Free Mix + {AUTO_PAIR_COUNT} Veo на ближайший свободный день. Терминал открывать не нужно.
+        Каждый день — одно видео во все соцсети в 12:00 ET и одна картинка (Instagram, Threads) в 19:00 ET. Если ночной запуск в 02:00 пропущен — одна кнопка. Она сама поднимает воркеры на этом Mac и повторяет цикл: {AUTO_PAIR_COUNT} Free Mix + {AUTO_PAIR_COUNT} Veo на ближайший свободный день. Терминал открывать не нужно.
       </p>
       <p className="text-sm font-semibold text-[var(--text)]">Ближайшие слоты: {slotText}</p>
       <div className="flex flex-wrap gap-2 text-xs font-semibold">

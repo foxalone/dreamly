@@ -1,4 +1,5 @@
-export const IMAGE_SOCIAL_PLATFORMS = ["instagram", "facebook", "threads", "pinterest"] as const;
+// Facebook убран из автопубликации картинок 14.10.2026.
+export const IMAGE_SOCIAL_PLATFORMS = ["instagram", "threads", "pinterest"] as const;
 
 export type ImageSocialPlatform = (typeof IMAGE_SOCIAL_PLATFORMS)[number];
 
