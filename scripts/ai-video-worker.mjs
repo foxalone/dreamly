@@ -10,6 +10,9 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
+// Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
+const OPENAI_MODEL = "gpt-5-mini";
+
 const JOBS_COLLECTION = "adminAiVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/aiVideoWorker";
 const VIDEO_SIZE = "720x1280";
@@ -370,7 +373,7 @@ async function generatePackage(job, reference) {
     };
     return { script: job.script, scenePrompts: job.scenePrompts, stockSearchTerms: job.stockSearchTerms, youtubeMetadata, tokenUsage: job.tokenUsage };
   }
-  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const model = OPENAI_MODEL;
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0, model };
   let validationError = "Invalid structured response";
@@ -397,6 +400,7 @@ async function generatePackage(job, reference) {
       headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         model,
+        reasoning_effort: "minimal",
         response_format: { type: "json_schema", json_schema: videoPackageSchema(job.soraSceneCount, job.stockSceneCount) },
         messages,
       }),

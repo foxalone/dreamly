@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { DETECT_LANG_MODEL } from "./aiModels";
 
 /**
  * Server-side language detection for a dream text (ISO 639-1, lowercase).
@@ -8,10 +9,8 @@ import OpenAI from "openai";
  *
  * Returns null when the model cannot tell (empty text, emoji only, ...).
  */
-export const DETECT_LANG_MODEL_ENV = "OPENAI_DETECT_LANG_MODEL";
-
 export function detectLangModel() {
-  return process.env[DETECT_LANG_MODEL_ENV]?.trim() || "gpt-5-nano";
+  return DETECT_LANG_MODEL;
 }
 
 export function normalizeLangCode(v: unknown): string | null {

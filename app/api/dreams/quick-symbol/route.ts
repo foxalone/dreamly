@@ -5,6 +5,7 @@ import {
   getMissingOneiroOpenAiKeyMessage,
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
+import { QUICK_SYMBOL_MODEL } from "@/lib/aiModels";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
@@ -211,7 +212,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const model = process.env.OPENAI_QUICK_SYMBOL_MODEL?.trim() || "gpt-5-nano";
+    const model = QUICK_SYMBOL_MODEL;
     const openai = new OpenAI({ apiKey });
 
     let answer = "";

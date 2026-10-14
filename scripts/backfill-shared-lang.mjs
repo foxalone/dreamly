@@ -18,7 +18,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import OpenAI from "openai";
 
 const WRITE = process.argv.includes("--write");
-const MODEL = env("OPENAI_DETECT_LANG_MODEL") || "gpt-5-nano";
+const MODEL = "gpt-5-nano";
 
 function env(name) {
   const value = process.env[name];

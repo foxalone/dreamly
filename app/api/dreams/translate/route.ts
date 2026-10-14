@@ -4,6 +4,7 @@ import {
   getMissingOneiroOpenAiKeyMessage,
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
+import { TRANSLATE_MODEL } from "@/lib/aiModels";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundAdTranslateGrant, refundFreeTranslation } from "../_lib/translationQuota";
@@ -216,7 +217,7 @@ export async function POST(req: Request) {
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) throw new Error(getMissingOneiroOpenAiKeyMessage());
 
-    const model = process.env.OPENAI_TRANSLATE_MODEL?.trim() || "gpt-5-nano";
+    const model = TRANSLATE_MODEL;
     const openai = new OpenAI({ apiKey });
     const langLabel = LANG_LABEL[targetLang];
 

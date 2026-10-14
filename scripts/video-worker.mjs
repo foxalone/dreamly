@@ -28,6 +28,9 @@ import {
 } from "./stockPool.mjs";
 import { buildYoutubeKit } from "./youtubeKit.mjs";
 
+// Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
+const OPENAI_MODEL = "gpt-5-mini";
+
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;
 const JOBS_COLLECTION = "adminVideoJobs";
@@ -231,7 +234,7 @@ function parseJsonContent(content) {
 
 async function createScript(topic) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
-  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const model = OPENAI_MODEL;
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0, model };
   let validationError = "The model did not return a usable response";
@@ -242,6 +245,7 @@ async function createScript(topic) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
+        reasoning_effort: "minimal",
         response_format: { type: "json_schema", json_schema: VIDEO_PACKAGE_SCHEMA },
         messages: [
           {
@@ -357,7 +361,7 @@ function parseWideContent(content) {
 
 async function createWideScript(topic) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
-  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const model = OPENAI_MODEL;
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0, model };
   let validationError = "The model did not return a usable response";
@@ -368,6 +372,7 @@ async function createWideScript(topic) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
+        reasoning_effort: "minimal",
         response_format: { type: "json_schema", json_schema: WIDE_VIDEO_PACKAGE_SCHEMA },
         messages: [
           {
@@ -643,7 +648,7 @@ function stockKeys(root) {
 // sequence; if the call fails the heuristic ranking alone is used.
 async function pickPoolClips(script, shortlist, count, orientation, sections = null, fallback = null) {
   const apiKey = env("ONEIRO_OPENAI_API_KEY") || env("OPENAI_API_KEY");
-  const model = env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini";
+  const model = OPENAI_MODEL;
   const baseUrl = (env("VIDEO_OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/$/, "");
   const usage = { prompt: 0, completion: 0, total: 0 };
   if (!apiKey) return { ...resolvePicks([], shortlist, count, fallback), usage, pickError: "no OpenAI key" };
@@ -653,6 +658,7 @@ async function pickPoolClips(script, shortlist, count, orientation, sections = n
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
+        reasoning_effort: "minimal",
         response_format: { type: "json_schema", json_schema: POOL_PICK_SCHEMA },
         messages: buildPickPrompt(script, shortlist, count, orientation, sections),
       }),
@@ -1059,7 +1065,7 @@ async function main() {
       firebaseProject: env("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
       storageBucket: bucket.name,
       moneyPrinterTurbo: root,
-      model: env("VIDEO_OPENAI_MODEL") || env("OPENAI_DREAM_MODEL") || "gpt-4o-mini",
+      model: OPENAI_MODEL,
       telegram: "configured",
       language: "English only",
       maxDurationSeconds: MAX_DURATION_SECONDS,

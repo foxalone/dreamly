@@ -2,6 +2,7 @@
 // The journal's root-word extraction (core symbols + English roots), shared by
 // /api/dreams/rootwords and the server-side enrichment after a diary save.
 import OpenAI from "openai";
+import { ROOT_WORDS_MODEL } from "../aiModels";
 
 export type RootWordsResult = {
   lang: "en" | "ru" | "he" | "unknown";
@@ -52,7 +53,7 @@ export async function extractRootWords(apiKey: string, text: string): Promise<Ro
     let resp: any;
     try {
       resp = await client.responses.create({
-        model: "gpt-4.1-mini",
+        model: ROOT_WORDS_MODEL,
         input: [
           {
             role: "system",
@@ -115,7 +116,7 @@ Return only valid JSON.
             },
           },
         },
-        temperature: 0.2,
+        reasoning: { effort: "minimal" },
       });
     } catch (e: any) {
       throw e instanceof Error ? e : new Error("Failed");
@@ -139,7 +140,7 @@ Return only valid JSON.
     if (roots.length > 0 && lang !== "en") {
       try {
         const tr = await client.responses.create({
-          model: "gpt-4.1-mini",
+          model: ROOT_WORDS_MODEL,
           input: [
             {
               role: "system",
@@ -170,7 +171,7 @@ Rules:
               },
             },
           },
-          temperature: 0.1,
+          reasoning: { effort: "minimal" },
         });
 
         const trJsonText = toStr((tr as any).output_text);

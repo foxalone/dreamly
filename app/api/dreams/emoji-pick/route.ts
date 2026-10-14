@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { DREAM_EMOJI_MODEL } from "@/lib/aiModels";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { requirePaidAccess } from "../_lib/subscription";
 
@@ -116,7 +117,7 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey });
-    const model = toStr(process.env.OPENAI_EMOJI_MODEL) || "gpt-4o-mini";
+    const model = DREAM_EMOJI_MODEL;
 
     const schema = {
       type: "object",
@@ -161,7 +162,7 @@ export async function POST(req: Request) {
             schema,
           },
         },
-        temperature: 0.2,
+        reasoning: { effort: "minimal" },
       });
 
       const outText = extractOutputText(resp);
@@ -177,7 +178,7 @@ export async function POST(req: Request) {
           input:
             `Choose exactly ONE emoji from candidates. Return ONLY JSON like {"native":"...","reason":"..."}.\n\n` +
             JSON.stringify(payload, null, 2),
-          temperature: 0.2,
+          reasoning: { effort: "minimal" },
         });
 
         const txt2 = extractOutputText(resp2);

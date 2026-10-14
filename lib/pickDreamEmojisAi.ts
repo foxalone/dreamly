@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { DREAM_EMOJI_MODEL } from "./aiModels";
 import emojiData from "@emoji-mart/data";
 import {
   createEmojiResolver,
@@ -18,10 +19,8 @@ import {
  * (journal). Never throws on model trouble — returns an empty list so the
  * caller can fall back to the keyword picker.
  */
-export const DREAM_EMOJI_MODEL_ENV = "OPENAI_EMOJI_MODEL";
-
 export function dreamEmojiModel() {
-  return process.env[DREAM_EMOJI_MODEL_ENV]?.trim() || "gpt-4.1-mini";
+  return DREAM_EMOJI_MODEL;
 }
 
 let resolver: EmojiResolver | null = null;
@@ -76,7 +75,7 @@ export async function pickDreamEmojisAi(apiKey: string, text: string): Promise<P
           },
         },
       },
-      temperature: 0.3,
+      reasoning: { effort: "minimal" },
     });
     const parsed = JSON.parse(String(resp.output_text ?? "").trim() || "{}");
     raw = Array.isArray(parsed?.emojis) ? parsed.emojis.map((x: unknown) => String(x ?? "")) : [];

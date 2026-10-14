@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
+import { DREAM_ANALYSIS_MODEL } from "@/lib/aiModels";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { isDreamTooLong } from "@/lib/dreamLength";
@@ -161,7 +162,7 @@ export async function POST(req: Request) {
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
     const lens = parseDreamLens(body?.lens);
 
-    const model = process.env.OPENAI_DREAM_MODEL?.trim() || "gpt-4o-mini";
+    const model = DREAM_ANALYSIS_MODEL;
     const openai = new OpenAI({ apiKey });
 
     // Emoji pick runs alongside the analysis call; it never fails the request.
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
     try {
       const resp = await openai.chat.completions.create({
         model,
-        temperature: 0.3,
+        reasoning_effort: "minimal",
         messages: dreamAnalysisMessages(text, lang, lens),
       });
       analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
