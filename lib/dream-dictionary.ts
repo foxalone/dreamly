@@ -3355,12 +3355,18 @@ const CLUSTERS: ClusterSeed[] = [
     summary: "grace, faithful love, inner beauty, transformation, and calm on the surface with effort underneath",
     aliases: ["swan dreams", "dream about a swan", "swan dream meaning", "dreaming of swans"],
     relatedSymbols: ["bird", "water", "wedding"],
-    updatedAt: "2026-10-03",
+    updatedAt: "2026-10-15",
     variations: [
       { slug: "white-swan", name: "a white swan", focus: "purity, a gentle new love, or grace arriving in a difficult time" },
       { slug: "black-swan", name: "a black swan", focus: "the unexpected, a rare event that changes everything, or hidden beauty in a dark season" },
       { slug: "pair-of-swans", name: "a pair of swans", focus: "devotion, a partnership for life, or longing for a love that stays" },
       { slug: "swan-attacking", name: "a swan attacking you", focus: "a gentle person turning fierce, protective anger, or beauty that defends its territory" },
+      {
+        slug: "golden-swan",
+        name: "a golden swan",
+        focus: "rare worth made visible: grace revealed as treasure, a love or talent shown to be precious, or beauty that asks to be kept rather than spent",
+        aliases: ["golden swans", "gold swan", "dream about a golden swan", "swan made of gold", "swan of gold"],
+      },
     ],
   },
   {
@@ -3863,6 +3869,7 @@ const GSC_ENHANCED_SLUGS = new Set([
 const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
 const UPDATED_AT_OVERRIDES: Record<string, string> = {
+  "golden-swan": "2026-10-15",
   "flying-cow": "2026-10-15",
   "plane-crash": "2026-08-08",
   "lion-and-tiger": "2026-09-16",
@@ -3888,6 +3895,47 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  "golden-swan": {
+    introduction: [
+      "A swan already arrives in dreams carrying grace, faithful love, and quiet transformation; gilding it adds one more claim, worth. A golden swan is the dream insisting that something graceful in your life is also precious: a relationship that never raised its voice, a talent that works without applause, a person whose value the household quietly runs on. The image tends to appear at moments of recognition, when what has been gliding by unremarked is suddenly seen for what it is worth.",
+      "Culture has been preparing this image for a long time. The ugly duckling's whole story ends in worth recognized late; Aesop's goose laid golden eggs and was ruined by impatience; fairy tales keep a golden bird in the king's garden as the prize that cannot simply be bought. Your dream splices that old treasure-bird onto the [swan's](/dreams/swan) grace. Before reading on, recall how the [gold](/dreams/gold) behaved: living feathers that gleamed speak of genuine worth, while a bird gone stiff and metallic may warn that something alive is being treated as an asset.",
+    ],
+    general: [
+      "The core reading joins the swan's meanings, grace, devotion, beauty with effort hidden beneath the surface, to gold's meanings: lasting value, aspiration, and the precious thing that demands discernment. A golden swan often marks a season when worth becomes visible, yours or someone else's: a quiet contribution finally priced correctly, a late-blooming talent catching the light, a steady love understood, perhaps with a start, to be the most valuable thing in the house.",
+      "The scene sharpens the message. A golden swan swimming toward you suggests value arriving on its own schedule; one sailing away, a chance to recognize worth before it passes. Calm [water](/dreams/water) under the bird points to worth resting on settled feeling, while dark or troubled water puts treasure and emotion in tension. And note the difference from its shadow cousin: the [black swan](/dreams/black-swan) announces the rare event; the golden swan announces the rare value.",
+    ],
+    psychological: [
+      "Psychologically, gold on a living creature is usually projection or recognition, and the dream is asking which. Recognition sounds like: I have been underpricing this, my own skill, my partner's patience, a friendship that never demands attention. Projection sounds like: I have gilded someone, wrapped a person or plan in so much shine that their ordinary human metal no longer shows. A golden swan that feels serene tends to accompany the first; one that feels untouchable, museum-lit and distant, often accompanies the second.",
+      "The goose that laid golden eggs adds the practical warning: do not kill grace by extracting from it. If the valuable thing in your life is a person or a practice, it produces its gold at its own pace, and squeezing, monetizing every hour, demanding constant proof, ends the supply. Useful waking questions: what am I undervaluing, what am I over-polishing, and where have I started treating a living source of good as a vault to be opened?",
+    ],
+    spiritual: [
+      "Spiritually, the golden swan has a distinguished ancestor: in Hindu tradition the hamsa, the celestial swan, is the bird of discernment, said to drink only the milk from a mixture of milk and water, and paramahamsa, the supreme swan, is the title given to souls who can tell the eternal from the passing. A golden swan in this key is not wealth at all but wisdom: the capacity to glide through mixed circumstances and take in only what is true.",
+      "Read this way, the dream may be an invitation to discernment rather than acquisition. Something in your life needs to be separated, milk from water, the genuinely precious from the merely shiny, and the dream presents the faculty that can do it as already yours, already afloat. Treasure of this kind is contemplated rather than spent; the response it asks for is attention, gratitude, and a quieter eye for what actually [gleams](/dreams/gold).",
+    ],
+    islamic: [
+      "In classical Islamic interpretation water birds are a favorable family of symbols: Ibn Sirin and later interpreters read them toward people of standing and provision, since such a bird is at home in water, on land, and in the air. Gold, by contrast, is handled with care in the same literature, for men it is often disliked, hinting at fines, debt, or grief dressed as gain, while as women's ornament it can simply be adornment. A golden swan therefore reads as an honorable figure or provision whose glitter must be weighed: rank and beauty on one side, a costly shine on the other.",
+      "The usual manners apply. A beautiful dream is a glad tiding to be received with gratitude, not a deed to someone else's treasure, and a strange one is not knowledge of the unseen. If the dream pleased you, thank Allah and keep working honestly; if the gold in it felt heavy or false, let that be a private prompt to check what glitters in your waking affairs, and judge real decisions by evidence and sound counsel.",
+    ],
+    biblical: [
+      "Scripture owns one of the loveliest golden-bird verses: \"the wings of a dove covered with silver, and her feathers with yellow gold\" (Psalm 68:13), beauty given after hardship, to people who had lain among the pots. A golden swan sits naturally beside that promise: grace that has been through the kitchen and the mud and is now shown in its true finish. The dream's question, in this key, is whether you can see the gilding God has already put on the ordinary, faithful things of your life.",
+      "Gold in the Bible is also always tested gold: refined in the furnace (Proverbs 17:3), faith more precious than gold proved by fire (1 Peter 1:7). If your golden [bird](/dreams/bird) appeared in a hard season, the image leans toward worth being refined rather than awarded, what is steady and graceful in you is being shown as the valuable thing precisely because it has held. The fitting response is stewardship: guard the precious, faithful thing; do not trade it for shine.",
+    ],
+    commonScenarios: [
+      { title: "A golden swan on a calm lake", meaning: "Worth at rest: something precious in your life is safe, settled, and finally visible for what it is." },
+      { title: "A golden swan swimming toward you", meaning: "Value arriving on its own schedule, recognition, an offer, or a person whose worth you are about to see." },
+      { title: "A golden swan flying away", meaning: "A chance to honor something precious before it passes; worth unrecognized tends to move on." },
+      { title: "A swan turning to gold before your eyes", meaning: "Recognition happening in real time, or a warning that something alive is hardening into an asset." },
+      { title: "Holding or catching a golden swan", meaning: "Responsibility for a precious thing: keep it alive and graceful rather than locking it away." },
+      { title: "A pair of golden swans", meaning: "A devoted bond revealed as the true treasure, a partnership whose quiet fidelity is the wealth." },
+    ],
+    faq: [
+      { question: "What does a golden swan dream mean?", answer: "It joins the swan's grace, devotion, and quiet effort to gold's lasting value. Something graceful in your life, a love, a talent, a person, is being revealed as precious, or you are being asked to recognize it as such." },
+      { question: "Is a golden swan a good sign?", answer: "Usually, yes: it is a recognition image. The caution appears only when the bird feels stiff or metallic, which can warn that something living is being treated as an asset or over-idealized." },
+      { question: "Why golden and not white?", answer: "A white swan speaks of purity and new love; gold adds worth. The dream is not describing innocence but value, something or someone whose true price has just come into view." },
+      { question: "What does it mean in Islam?", answer: "Water birds are read toward people of standing and provision, while gold is weighed carefully, sometimes adornment, sometimes a costly shine. The themes are balanced together, and no real decision should rest on a dream alone." },
+      { question: "I caught the golden swan. What now?", answer: "Holding it usually means responsibility rather than possession: a precious, living thing has been entrusted to you. The dream favors keeping it graceful, fed, and free over locking it in the vault." },
+    ],
+  },
   "flying-cow": {
     introduction: [
       "A flying cow is one of those dream images that makes you smile on waking, and the smile is part of the message. The cow is among the heaviest, most grounded creatures a dream can summon: slow, patient, tied to its field, feeding others before itself. To watch it rise into the sky is to watch stability itself become weightless. Dreams reach for this kind of cheerful impossibility when something you have filed under permanent, usually a source of income, a duty of care, a family role, or a routine that feeds everyone, quietly shows that it can move.",
@@ -7034,6 +7082,11 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  "golden-swan": {
+    seoTitle: "Golden Swan Dream Meaning: Grace Revealed as Treasure",
+    seoDescription:
+      "A golden swan gliding through your dream? What this rare image says about worth, devotion and talents coming to light, plus psychological, Islamic and biblical readings.",
+  },
   "flying-cow": {
     seoTitle: "Flying Cow Dream Meaning: Provision Taking Wing",
     seoDescription:

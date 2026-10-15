@@ -6,6 +6,52 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
+  "golden-swan": {
+    seoTitle: "Soñar con un cisne dorado: la gracia revelada como tesoro",
+    seoDescription:
+      "¿Un cisne dorado deslizándose por tu sueño? Qué dice esta imagen rara del valor, la devoción y los talentos que salen a la luz: lectura psicológica, islámica y bíblica.",
+    sections: {
+      introduction: [
+        "El cisne ya llega al sueño con su propia dote: gracia, amor fiel, transformación silenciosa. El oro añade una palabra más: valor. Un cisne dorado es el sueño insistiendo en que algo lleno de gracia en tu vida es además precioso: una relación que nunca levantó la voz, un talento que trabaja sin aplausos, una persona sobre la que la casa entera se sostiene en silencio. La imagen suele llegar en momentos de reconocimiento, cuando lo que pasaba inadvertido se ve de pronto por lo que vale.",
+        "La cultura llevaba tiempo preparando esta imagen: el cuento del patito feo termina justamente en un valor reconocido tarde; la gallina de los huevos de oro murió por la impaciencia de sus dueños; y en los cuentos el ave dorada vive en el jardín del rey como premio que no se puede comprar. Tu sueño injerta esa vieja ave-tesoro en la gracia del [cisne](/dreams/swan). Antes de seguir, recuerda cómo se comportaba el [oro](/dreams/gold): plumas vivas y brillantes hablan de valor genuino; un ave rígida y metálica puede advertir que algo vivo empieza a tratarse como un activo.",
+      ],
+      general: [
+        "La lectura central une los significados del cisne — gracia, devoción, belleza con esfuerzo escondido bajo la superficie — con los del oro: valor duradero, aspiración y lo precioso que exige discernimiento. El cisne dorado suele marcar una temporada en que el valor se hace visible, tuyo o de otro: una contribución callada por fin tasada como merece, un talento tardío que atrapa la luz, un amor sereno entendido — a veces con sobresalto — como lo más valioso de la casa.",
+        "La escena afina el mensaje. Un cisne dorado que nada hacia ti es valor que llega a su propio ritmo; uno que se aleja, la oportunidad de reconocer lo que vale antes de que pase. El [agua](/dreams/water) en calma bajo el ave apunta a un valor asentado sobre un sentir resuelto; el agua oscura o agitada pone tesoro y emoción en tensión. Y nota la diferencia con su primo sombrío: el [cisne negro](/dreams/black-swan) anuncia el suceso raro; el dorado, el valor raro.",
+      ],
+      psychological: [
+        "Psicológicamente, el oro sobre una criatura viva casi siempre es reconocimiento o idealización, y el sueño pregunta cuál de los dos. El reconocimiento suena así: «lo estaba tasando de menos» — mi oficio, la paciencia de mi pareja, una amistad que nunca exige atención. La idealización suena así: «lo doré» — envolví a una persona o un plan en tanto brillo que ya no se ve su metal humano corriente. Un cisne dorado sereno acompaña más bien lo primero; uno intocable, iluminado como pieza de museo, lo segundo.",
+        "La gallina de los huevos de oro añade la advertencia práctica: no mates la gracia por extraerle rendimiento. Si lo valioso de tu vida es una persona o una práctica, produce su oro a su propio paso, y exprimirlo — monetizar cada hora, exigir pruebas constantes — corta el caudal. Preguntas útiles despierto: ¿qué estoy subestimando, qué estoy puliendo de más, y dónde empecé a tratar una fuente viva de bien como caja fuerte por abrir?",
+      ],
+      spiritual: [
+        "El cisne dorado tiene un antepasado ilustre: en la tradición hindú el hamsa, cisne celeste, es el ave del discernimiento — se dice que de una mezcla de leche y agua bebe solo la leche — y «paramahamsa», cisne supremo, es el título del alma que distingue lo eterno de lo pasajero. En esta clave, el cisne dorado no es riqueza sino sabiduría: la capacidad de deslizarse por circunstancias mezcladas y quedarse solo con lo verdadero.",
+        "Leído así, el sueño invita al discernimiento más que a la adquisición. Algo en tu vida pide ser separado — la leche del agua, lo de veras precioso de lo meramente brillante — y el sueño presenta la facultad capaz de hacerlo como ya tuya, ya a flote. Un tesoro de esta clase se contempla, no se gasta; la respuesta que pide es atención, gratitud y un ojo más sereno para lo que de verdad [reluce](/dreams/gold).",
+      ],
+      islamic: [
+        "En la interpretación islámica clásica las aves acuáticas son una familia favorable de símbolos: Ibn Sirin y los intérpretes posteriores las leen hacia personas de rango y provisión, pues un ave así está en casa en el agua, en la tierra y en el aire. El oro, en cambio, se maneja con cuidado en esa misma literatura: para el hombre suele ser desaconsejado — insinúa multas, deuda o pena vestida de ganancia —, mientras que como adorno femenino puede ser simple ornamento. Un cisne dorado se lee, pues, como figura honorable o provisión cuyo brillo hay que pesar: rango y belleza en un platillo, un lustre costoso en el otro.",
+        "Rigen los modales de siempre. Un sueño hermoso es albricia que se recibe con gratitud, no escritura sobre el tesoro ajeno; y un sueño extraño no es conocimiento de lo oculto. Si te alegró, agradece a Alá y sigue en el esfuerzo honesto; si su oro se sintió pesado o falso, que sea un aviso privado para revisar qué reluce en tus asuntos despiertos, y decide lo real con evidencia y buen consejo.",
+      ],
+      biblical: [
+        "A la Escritura pertenece uno de los versos más bellos sobre un ave dorada: «alas de paloma cubiertas de plata, y sus plumas con amarillez de oro» (Salmo 68:13) — belleza otorgada tras la fatiga a quienes antes yacían entre los tiestos. El cisne dorado se sienta con naturalidad junto a esa promesa: gracia que pasó por la cocina y el barro y ahora se muestra en su acabado verdadero. La pregunta del sueño, en esta clave, es si sabes ver el dorado que Dios ya puso sobre las cosas corrientes y fieles de tu vida.",
+        "El oro bíblico es además oro probado: se afina en el crisol (Proverbios 17:3), y la fe es más preciosa que el oro probado por fuego (1 Pedro 1:7). Si tu [ave](/dreams/bird) dorada apareció en una temporada dura, la imagen se inclina a que el valor no se otorga sino que se refina: lo sereno y lleno de gracia en ti se muestra precioso justamente porque resistió. La respuesta que corresponde es mayordomía: guarda lo fiel y precioso, y no lo cambies por brillo.",
+      ],
+      commonScenarios: [
+        { title: "Un cisne dorado en un lago tranquilo", meaning: "Valor en reposo: algo precioso de tu vida está a salvo, asentado y por fin visible tal como es." },
+        { title: "Un cisne dorado nada hacia ti", meaning: "Valor que llega a su propio ritmo: un reconocimiento, una oferta o una persona cuyo precio estás por ver." },
+        { title: "Un cisne dorado se aleja volando", meaning: "La ocasión de honrar lo precioso mientras está aquí; el valor no reconocido tiende a marcharse." },
+        { title: "El cisne se vuelve de oro ante tus ojos", meaning: "Reconocimiento en tiempo real — o aviso de que algo vivo se endurece en activo." },
+        { title: "Sostener o atrapar al cisne dorado", meaning: "Responsabilidad por lo precioso: mantenerlo vivo y lleno de gracia, no encerrarlo en la caja fuerte." },
+        { title: "Una pareja de cisnes dorados", meaning: "Un vínculo devoto revelado como el verdadero tesoro: la fidelidad callada es la riqueza." },
+      ],
+      faq: [
+        { question: "¿Qué significa soñar con un cisne dorado?", answer: "Une la gracia, la devoción y el esfuerzo oculto del cisne con el valor duradero del oro. Algo lleno de gracia en tu vida — un amor, un talento, una persona — se revela precioso, o se te pide reconocerlo." },
+        { question: "¿Es buena señal?", answer: "Por lo general sí: es una imagen de reconocimiento. La cautela aparece solo si el ave se siente rígida o metálica, lo que puede advertir que algo vivo se trata como activo o se idealiza de más." },
+        { question: "¿Por qué dorado y no blanco?", answer: "El cisne blanco habla de pureza y amor nuevo; el oro añade precio. El sueño no describe inocencia sino valor: algo o alguien cuya verdadera valía acaba de asomar." },
+        { question: "¿Qué significa en el islam?", answer: "Las aves acuáticas se leen hacia personas de rango y provisión, y el oro se pesa con cuidado: a veces adorno, a veces lustre costoso. Los temas se toman juntos, y lo real no se decide por un sueño." },
+        { question: "Atrapé al cisne dorado, ¿y ahora?", answer: "Sostenerlo suele significar responsabilidad, no posesión: te confiaron algo precioso y vivo. El sueño prefiere que lo mantengas con gracia, alimentado y libre, antes que bajo llave." },
+      ],
+    },
+  },
   "flying-cow": {
     seoTitle: "Soñar con una vaca voladora: cuando lo imposible despega",
     seoDescription:

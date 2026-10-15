@@ -6,6 +6,52 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
+  "golden-swan": {
+    seoTitle: "Goldener Schwan im Traum: Anmut, die sich als Schatz erweist",
+    seoDescription:
+      "Ein goldener Schwan in Ihrem Traum? Was das seltene Bild über Wert, Hingabe und ans Licht kommende Gaben sagt – mit psychologischer, islamischer und biblischer Deutung.",
+    sections: {
+      introduction: [
+        "Der Schwan bringt schon ohne Vergoldung eine Mitgift in den Traum: Anmut, treue Liebe, stille Verwandlung. Das Gold fügt ein weiteres Wort hinzu – Wert. Ein goldener Schwan ist der Traum, der darauf besteht, dass etwas Anmutiges in Ihrem Leben zugleich kostbar ist: eine Beziehung, die nie laut wurde, eine Begabung, die ohne Applaus arbeitet, ein Mensch, auf dem der ganze Haushalt leise ruht. Das Bild kommt gern in Augenblicken des Erkennens – wenn das, was unbemerkt vorbeiglitt, plötzlich nach seinem wahren Wert gesehen wird.",
+        "Die Kultur hat dieses Bild lange vorbereitet: Das hässliche Entlein endet genau in spät erkanntem Wert; die Gans mit den goldenen Eiern starb an der Ungeduld ihrer Besitzer; im Märchen bewacht der König den goldenen Vogel als Preis, der sich nicht kaufen lässt – und der Schwanenritter Lohengrin wie der »Märchenkönig« mit seinem Schloss zeigen, wie tief der edle Schwan im deutschen Gedächtnis sitzt. Ihr Traum pfropft diesen alten Schatzvogel auf die Anmut des [Schwans](/dreams/swan). Ehe Sie weiterlesen: Wie verhielt sich das [Gold](/dreams/gold)? Lebendig glänzende Federn sprechen von echtem Wert; ein starr-metallischer Vogel kann warnen, dass Lebendiges als Vermögenswert behandelt wird.",
+      ],
+      general: [
+        "Die Kernlesart verbindet die Bedeutungen des Schwans – Anmut, Hingabe, Schönheit mit Mühe unter der Oberfläche – mit denen des Goldes: bleibender Wert, Streben und das Kostbare, das Unterscheidung verlangt. Der goldene Schwan markiert oft eine Zeit, in der Wert sichtbar wird, der eigene oder fremde: ein stiller Beitrag endlich richtig bemessen, eine späte Begabung im Licht, eine ruhige Liebe – manchmal mit Schrecken – als das Wertvollste im Haus begriffen.",
+        "Die Szene schärft die Botschaft. Ein goldener Schwan, der auf Sie zuschwimmt, ist Wert, der im eigenen Takt eintrifft; einer, der davonzieht, die Gelegenheit, Wert zu erkennen, ehe er vorübergeht. Ruhiges [Wasser](/dreams/water) unter dem Vogel deutet auf Wert, der auf geklärtem Gefühl ruht; dunkles, unruhiges Wasser setzt Schatz und Gefühl unter Spannung. Und beachten Sie den Unterschied zum dunklen Vetter: Der [schwarze Schwan](/dreams/black-swan) kündigt das seltene Ereignis an, der goldene den seltenen Wert.",
+      ],
+      psychological: [
+        "Psychologisch ist Gold auf einem lebendigen Wesen fast immer Erkennen oder Idealisierung, und der Traum fragt, welches von beiden. Erkennen klingt so: »Ich habe es unter Wert gehandelt« – das eigene Können, die Geduld des Partners, eine Freundschaft, die nie Aufmerksamkeit fordert. Idealisierung klingt so: »Ich habe vergoldet« – einen Menschen oder Plan in so viel Glanz gewickelt, dass das gewöhnliche menschliche Metall nicht mehr zu sehen ist. Ein gelassener goldener Schwan begleitet eher das Erste; ein unberührbarer, wie im Museum ausgeleuchteter eher das Zweite.",
+        "Die Gans mit den goldenen Eiern liefert die praktische Warnung dazu: Töten Sie die Anmut nicht durchs Herauspressen. Ist das Wertvolle in Ihrem Leben ein Mensch oder eine Praxis, bringt es sein Gold im eigenen Tempo, und Auspressen – jede Stunde verwerten, ständig Beweise verlangen – versiegt die Quelle. Nützliche Fragen im Wachen: Was unterschätze ich, was poliere ich über, und wo habe ich begonnen, eine lebendige Quelle des Guten als Tresor zu behandeln, den man knackt?",
+      ],
+      spiritual: [
+        "Der goldene Schwan hat einen vornehmen Ahnen: In der hinduistischen Tradition ist der Hamsa, der himmlische Schwan, der Vogel der Unterscheidung – aus einem Gemisch von Milch und Wasser, heißt es, trinke er nur die Milch –, und »Paramahamsa«, höchster Schwan, ist der Ehrentitel der Seele, die Ewiges von Vergänglichem scheidet. In diesem Schlüssel ist der goldene Schwan gar kein Reichtum, sondern Weisheit: die Fähigkeit, durch gemischte Umstände zu gleiten und nur das Wahre aufzunehmen.",
+        "So gelesen lädt der Traum zur Unterscheidung ein, nicht zum Erwerb. Etwas in Ihrem Leben will getrennt werden – Milch von Wasser, das wirklich Kostbare vom bloß Glänzenden –, und der Traum zeigt die Fähigkeit dazu als bereits Ihre, bereits schwimmend. Ein Schatz dieser Art wird betrachtet, nicht ausgegeben; die Antwort, um die er bittet, sind Aufmerksamkeit, Dankbarkeit und ein stillerer Blick für das, was wirklich [glänzt](/dreams/gold).",
+      ],
+      islamic: [
+        "In der klassischen islamischen Deutung sind Wasservögel eine günstige Zeichenfamilie: Ibn Sirin und spätere Ausleger lesen sie in Richtung angesehener Menschen und Versorgung, denn ein solcher Vogel ist im Wasser, an Land und in der Luft zu Hause. Gold dagegen wird in derselben Literatur behutsam behandelt – für Männer gilt es oft als unschön, ein Hinweis auf Bußen, Schuld oder Kummer im Gewand des Gewinns, während es als Frauenschmuck schlicht Zierde sein kann. Ein goldener Schwan liest sich daher als ehrenwerte Gestalt oder Versorgung, deren Glanz zu wägen ist: Rang und Schönheit auf der einen Schale, ein teurer Schimmer auf der anderen.",
+        "Es gelten die üblichen Regeln. Ein schöner Traum ist eine frohe Botschaft, die man dankbar empfängt, keine Urkunde über fremden Schatz; ein seltsamer Traum ist kein Wissen über das Verborgene. Hat er Sie gefreut, danken Sie Allah und arbeiten Sie ehrlich weiter; fühlte sich sein Gold schwer oder falsch an, nehmen Sie das als stillen Anlass zu prüfen, was in Ihren wachen Angelegenheiten glänzt – und entscheiden Sie das Echte nach Belegen und gutem Rat.",
+      ],
+      biblical: [
+        "Der Schrift gehört einer der schönsten Verse über einen goldenen Vogel: Flügel der Taube, mit Silber überzogen, ihr Gefieder mit schimmerndem Gold (Psalm 68,14) – Schönheit, nach der Mühsal denen geschenkt, die zuvor zwischen den Töpfen lagen. Der goldene Schwan sitzt ganz natürlich neben dieser Zusage: Anmut, die durch Küche und Schlamm gegangen ist und nun in ihrer wahren Fassung gezeigt wird. Die Frage des Traums lautet in diesem Schlüssel, ob Sie die Vergoldung sehen können, die Gott auf die gewöhnlichen, treuen Dinge Ihres Lebens schon gelegt hat.",
+        "Biblisches Gold ist zudem stets geprüftes Gold: Es wird im Tiegel geläutert (Sprüche 17,3), und der Glaube ist kostbarer als Gold, das durchs Feuer bewährt wird (1. Petrus 1,7). Erschien Ihr goldener [Vogel](/dreams/bird) in einer harten Zeit, neigt das Bild dazu, dass Wert geläutert und nicht verliehen wird: Das Stetige, Anmutige in Ihnen erweist sich gerade deshalb als das Kostbare, weil es gehalten hat. Die passende Antwort ist Haushalterschaft: Bewahren Sie das Treue, Kostbare – und tauschen Sie es nicht gegen Glanz.",
+      ],
+      commonScenarios: [
+        { title: "Ein goldener Schwan auf stillem See", meaning: "Wert in Ruhe: Etwas Kostbares in Ihrem Leben ist sicher, geordnet und endlich als das sichtbar, was es ist." },
+        { title: "Ein goldener Schwan schwimmt auf Sie zu", meaning: "Wert trifft im eigenen Takt ein: eine Anerkennung, ein Angebot oder ein Mensch, dessen Wert Sie gleich sehen werden." },
+        { title: "Ein goldener Schwan fliegt davon", meaning: "Die Gelegenheit, das Kostbare zu ehren, solange es da ist; unerkannter Wert zieht gern weiter." },
+        { title: "Der Schwan wird vor Ihren Augen zu Gold", meaning: "Erkennen in Echtzeit – oder die Warnung, dass Lebendiges zum Vermögenswert erstarrt." },
+        { title: "Einen goldenen Schwan halten oder fangen", meaning: "Verantwortung für das Kostbare: Es lebendig und anmutig halten, statt es wegzuschließen." },
+        { title: "Ein Paar goldener Schwäne", meaning: "Ein hingebungsvolles Band, als der wahre Schatz enthüllt: Die stille Treue ist der Reichtum." },
+      ],
+      faq: [
+        { question: "Was bedeutet ein goldener Schwan im Traum?", answer: "Er verbindet Anmut, Hingabe und die verborgene Mühe des Schwans mit dem bleibenden Wert des Goldes. Etwas Anmutiges in Ihrem Leben – eine Liebe, eine Begabung, ein Mensch – erweist sich als kostbar, oder Sie werden gebeten, es so zu erkennen." },
+        { question: "Ist das ein gutes Zeichen?", answer: "Meist ja: Es ist ein Bild des Erkennens. Vorsicht ist nur geboten, wenn der Vogel starr oder metallisch wirkt – das kann warnen, dass Lebendiges als Vermögenswert behandelt oder überidealisiert wird." },
+        { question: "Warum golden und nicht weiß?", answer: "Der weiße Schwan spricht von Reinheit und neuer Liebe; Gold fügt den Preis hinzu. Der Traum beschreibt nicht Unschuld, sondern Wert: etwas oder jemanden, dessen wahrer Wert gerade sichtbar wurde." },
+        { question: "Was bedeutet er im Islam?", answer: "Wasservögel werden in Richtung angesehener Menschen und Versorgung gelesen, Gold dagegen behutsam gewogen: mal Zierde, mal teurer Schimmer. Die Themen gehören zusammen – und echte Entscheidungen fallen nicht nach einem Traum." },
+        { question: "Ich habe den goldenen Schwan gefangen – was nun?", answer: "Ihn zu halten bedeutet meist Verantwortung, nicht Besitz: Ihnen wurde etwas Kostbares, Lebendiges anvertraut. Der Traum rät, es anmutig, genährt und frei zu halten, statt es einzuschließen." },
+      ],
+    },
+  },
   "flying-cow": {
     seoTitle: "Fliegende Kuh im Traum: wenn das Unmögliche abhebt",
     seoDescription:

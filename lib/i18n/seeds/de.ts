@@ -3951,6 +3951,11 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "ein Schwan, der dich angreift",
     focus: "ein sanfter Mensch, der wild wird, schützender Zorn oder Schönheit, die ihr Revier verteidigt",
   },
+  "golden-swan": {
+    name: "ein goldener Schwan",
+    focus: "seltener Wert wird sichtbar: Anmut, die sich als Schatz erweist, eine Liebe oder Begabung, die kostbar ist, oder Schönheit, die bewahrt und nicht ausgegeben werden will",
+    aliases: ["goldener Schwan", "Schwan aus Gold", "goldene Schwäne"],
+  },
   panda: {
     name: "ein Panda",
     summary: "Sanftmut, Gleichgewicht, Ruhe, friedliche Stärke und eine weichere Art, mächtig zu sein",

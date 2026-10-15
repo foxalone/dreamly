@@ -3973,6 +3973,11 @@ export const SEEDS_ES: Record<string, SeedL10n> = {
     name: "un cisne que te ataca",
     focus: "una persona dulce que se vuelve feroz, una ira protectora o una belleza que defiende su territorio",
   },
+  "golden-swan": {
+    name: "un cisne dorado",
+    focus: "valor raro hecho visible: gracia revelada como tesoro, un amor o talento mostrado como precioso, o belleza que pide ser cuidada y no gastada",
+    aliases: ["cisne dorado", "cisne de oro", "soñar con un cisne dorado", "cisnes dorados"],
+  },
   panda: {
     name: "un oso panda",
     summary: "dulzura, equilibrio, descanso, fuerza serena y una forma más suave de ser poderoso",
