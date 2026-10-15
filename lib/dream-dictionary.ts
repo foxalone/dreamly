@@ -335,7 +335,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#8b5cf6",
     summary: "freedom, ambition, perspective, escape, confidence, and the desire to move beyond limits",
     aliases: ["flight", "dream about flying", "flying in a dream", "flying dream meaning"],
-    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane", "dragon", "eagle", "unicorn", "phoenix", "fairy"],
+    relatedSymbols: ["falling", "being-chased", "car", "airport", "bird", "butterfly", "tornado", "heights", "plane", "dragon", "eagle", "unicorn", "phoenix", "fairy", "cow"],
     variations: [
       { slug: "flying-high", name: "flying high", focus: "big ambition, expanded perspective, confidence, or distance from practical concerns on the ground" },
       { slug: "flying-over-water", name: "flying over water", focus: "gaining perspective on strong emotions or moving between freedom and emotional depth" },
@@ -3072,14 +3072,20 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of a cow",
       "dreaming of cows",
     ],
-    relatedSymbols: ["goat", "horse", "elephant", "eating", "pig", "chicken", "sheep"],
-    updatedAt: "2026-09-09",
+    relatedSymbols: ["goat", "horse", "elephant", "eating", "pig", "chicken", "sheep", "flying"],
+    updatedAt: "2026-10-15",
     variations: [
       { slug: "white-cow", name: "a white cow", focus: "sacred provision, a cleaner patience, or a gift of nourishment that asks to be treated as more than meat" },
       { slug: "milking-a-cow", name: "milking a cow", focus: "drawing nourishment from patience, daily provision, or work that asks you to sit still and receive" },
       { slug: "herd-of-cows", name: "a herd of cows", focus: "collective provision, slow wealth in numbers, or a community that lives by grazing the same field" },
       { slug: "bull", name: "a bull", focus: "raw force, stubborn potency, a charge you cannot reason with, or masculine strength that will not graze quietly" },
       { slug: "dead-cow", name: "a dead cow", focus: "ended provision, a sacred life spent, or grief for the patience that used to feed the house" },
+      {
+        slug: "flying-cow",
+        name: "a flying cow",
+        focus: "the impossible taking off: provision loosed from the ground, a sacred duty coming untethered, or a hope that refuses to stay realistic",
+        aliases: ["flying cows", "cow flying in the sky", "dream about a flying cow", "cow with wings", "winged cow", "cow flying"],
+      },
     ],
   },
   {
@@ -3857,6 +3863,7 @@ const GSC_ENHANCED_SLUGS = new Set([
 const GSC_ENHANCEMENT_UPDATED_AT = "2026-07-25";
 
 const UPDATED_AT_OVERRIDES: Record<string, string> = {
+  "flying-cow": "2026-10-15",
   "plane-crash": "2026-08-08",
   "lion-and-tiger": "2026-09-16",
   "cat-and-snake": "2026-09-16",
@@ -3881,6 +3888,47 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  "flying-cow": {
+    introduction: [
+      "A flying cow is one of those dream images that makes you smile on waking, and the smile is part of the message. The cow is among the heaviest, most grounded creatures a dream can summon: slow, patient, tied to its field, feeding others before itself. To watch it rise into the sky is to watch stability itself become weightless. Dreams reach for this kind of cheerful impossibility when something you have filed under permanent, usually a source of income, a duty of care, a family role, or a routine that feeds everyone, quietly shows that it can move.",
+      "The image has deep cultural roots. English says pigs fly to mean never, Spanish says the same thing with cows, the nursery rhyme sends the cow jumping over the moon, and Marc Chagall painted cattle drifting contentedly over village rooftops. Your dream is working the same vein: it takes the most earthbound thing it can find and grants it the freedom of [flying](/dreams/flying). Before dismissing it as nonsense, notice what the [cow](/dreams/cow) was doing up there and how you felt watching: delight points to a welcome release, alarm suggests that something dependable has come loose without your permission.",
+    ],
+    general: [
+      "The core reading joins the cow's meaning, provision, patience, and nourishment, with the meaning of flight: freedom, ambition, escape from limits. A flying cow often appears when the dependable part of life and the aspiring part of life stop being opposites, or when you wish they would. It can mark a season when a steady thing, a job, a marriage, a caregiving role, is asked to become lighter or more mobile, or when a hope you keep calling unrealistic refuses to stay on the ground.",
+      "Details steer the meaning. A cow gliding calmly suggests ease: provision travels with you, and a change of place or pace will not cost you what feeds you. A cow flapping absurd little wings points at effort spent making a heavy thing act light. A cow snatched upward by wind belongs with the [tornado](/dreams/tornado) family, stability pulled loose by forces outside your choosing, while a whole airborne herd usually speaks about a system, a family, a team, a workplace, shifting all at once.",
+    ],
+    psychological: [
+      "Psychologically, absurd juxtaposition is the mind loosening a category it had sealed shut. English even keeps the phrase sacred cow for a belief no one is allowed to question; when the sacred cow is suddenly airborne, some untouchable assumption, about what you owe, what is realistic, what can never change, has come unfastened and is drifting where you can finally look at it. The dream often lands in the middle of decisions people call impossible: leaving a stable job, moving a settled household, asking a dependable person for something new.",
+      "There is also a simpler wish inside the image: that the heavy thing would carry itself for a while. People who do the feeding, parents, providers, the responsible sibling, the one who always drives, dream the weight of it in cow form, and the flight is the fantasy of lightness. Ask what duty you most wish would lift on its own. The useful waking move is rarely to drop it; it is to let someone else hold a corner, to automate, to renegotiate, or to admit out loud that the load has grown.",
+    ],
+    spiritual: [
+      "Spiritually, the cow is one of humanity's oldest images of generous provision, in some traditions sacred precisely because it gives, milk, labor, abundance, without being consumed. Lifting that figure into the sky reads as elevation of the nurturing principle itself: care is not merely a burden of the ground but something exalted. A dream like this can arrive when ordinary service, cooking, providing, tending, is quietly asking to be honored rather than just performed.",
+      "The flight can also pose a gentle question about trust. Provision that floats cannot be fenced, milked on schedule, or counted; it must be received as it comes. If your security has rested entirely on what you can control, the airborne cow may be inviting a looser grip, gratitude for what feeds you rather than white knuckles around it, the same lesson the best dreams of [flying](/dreams/flying) tend to teach.",
+    ],
+    islamic: [
+      "In classical Islamic interpretation the cow is a weighty, well-attested symbol: the seven fat and lean cows in Surah Yusuf (12:43-49) stand for years of plenty and famine, so interpreters such as Ibn Sirin read cows toward provision, the year ahead, and fruitful abundance. Flight, in the same literature, is often connected with travel, or with a rise in rank and circumstance. A flying cow has no fixed classical entry of its own, so it is best weighed through those themes together: provision that is in motion, sustenance connected with a journey, or livelihood whose level is changing.",
+      "The usual manners of interpretation apply. A strange or comic dream is not knowledge of the unseen and should not settle a real decision about work, money, or family on its own. If the dream felt good, let it encourage gratitude for rizq and honest effort; if it unsettled you, seek refuge in Allah, keep it private, and judge waking matters by evidence and sound counsel rather than by one surreal image.",
+    ],
+    biblical: [
+      "Cattle carry one of the Bible's most famous dream passages: Pharaoh's seven sleek cows devoured by seven gaunt ones (Genesis 41), a dream about provision across time that was answered not with panic but with stewardship, storing in plenty for the lean years. Read against that background, a cow leaving the ground invites a sober question underneath the comedy: how settled is the provision I am counting on for the season ahead, and am I managing plenty wisely while I have it?",
+      "Scripture also knows the ox with wings. Among the four living creatures of Ezekiel's vision, one has the face of an ox (Ezekiel 1:10), and tradition gave that winged ox to Luke the Evangelist as an emblem of service and sacrifice lifted into worship. In that light the flying cow is not only provision at risk but service exalted, the humble, daily, feeding kind of work shown briefly from heaven's side, closer to an [angel](/dreams/angel) than to an omen.",
+    ],
+    commonScenarios: [
+      { title: "A cow flying over your house", meaning: "Provision close to home is in motion: a household income, caregiving duty, or family routine is changing altitude." },
+      { title: "A cow with wings", meaning: "A heavy responsibility has been given means to move, or you are working hard to make a settled thing act light." },
+      { title: "A whole herd in the sky", meaning: "A system of support, family, team, or workplace, is shifting all at once rather than one piece at a time." },
+      { title: "A cow lifted by a storm", meaning: "Stability pulled loose by outside forces, not by choice; the question is what to secure, not what to blame." },
+      { title: "Riding a flying cow", meaning: "Making the impossible carry you: an unrealistic plan is working, with duty and adventure on the same back." },
+      { title: "The cow lands safely", meaning: "Reassurance that what rose, and frightened you, can settle again; a disrupted dependable thing finds the ground." },
+    ],
+    faq: [
+      { question: "What does a flying cow dream mean?", answer: "It joins the cow's meaning, provision, patience, duty, with flight's meaning of freedom and escape from limits. Something dependable in your life is moving, or an impossible hope refuses to stay grounded." },
+      { question: "Is a flying cow a bad sign?", answer: "No. Absurd is not ominous. How you felt watching it decides the reading: delight points to welcome release, alarm to a dependable thing coming loose without your consent." },
+      { question: "Why a cow and not a bird?", answer: "Birds are supposed to fly, so they carry no surprise. The dream chose the heaviest, most dutiful animal it could find precisely to show the least movable part of your life in motion." },
+      { question: "What does it mean in Islam?", answer: "There is no fixed classical entry for a flying cow. Cows point to provision and the years ahead, as in Surah Yusuf, and flight to travel or rising circumstance, so the themes are weighed together, with the usual caution against deciding real matters by a dream." },
+      { question: "I laughed in the dream. Does that matter?", answer: "Yes, and it is good news. Laughter inside a dream usually marks release: a weight briefly seen as light, a rule briefly seen as optional. It often comes when a tense season is starting to ease." },
+    ],
+  },
   pope: {
     introduction: [
       "The pope is one of the few figures on earth whom almost everyone recognizes and almost no one has met, which makes him ideal material for a dream. He arrives as the human face of an institution: white cassock, the balcony, the crowd, the sense that the person in front of you speaks for something enormous. Catholics, lapsed Catholics, people of other faiths, and people of none all report this dream, and it appears far more often in the weeks around a papal death, a conclave, or a widely televised visit, when the figure is simply more available in memory.",
@@ -6986,6 +7034,11 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  "flying-cow": {
+    seoTitle: "Flying Cow Dream Meaning: Provision Taking Wing",
+    seoDescription:
+      "A cow sailing through your dream sky? What this surreal image says about duty, provision and impossible hopes, plus psychological, Islamic and biblical readings.",
+  },
   pope: {
     seoTitle: "Pope Dream Meaning: Authority, Blessing & Conscience",
     seoDescription:

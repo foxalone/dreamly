@@ -6,6 +6,52 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
+  "flying-cow": {
+    seoTitle: "Sonhar com vaca voadora: quando o impossível levanta voo",
+    seoDescription:
+      "Uma vaca cruzando o céu do sonho? O que essa imagem surreal diz sobre sustento, dever e esperanças impossíveis: leitura psicológica, islâmica e bíblica.",
+    sections: {
+      introduction: [
+        "O português já avisou antes do seu sonho: «nem que a vaca tussa» é o nosso jeito de dizer nunca — e eis que a vaca, em vez de tossir, voa. É daqueles sonhos que acordam a gente sorrindo, e o sorriso faz parte do recado. A vaca é dos bichos mais pesados e terrestres que a mente pode convocar: lenta, paciente, presa ao pasto, alimentando os outros antes de si mesma. Vê-la subir ao céu é ver a própria estabilidade perder peso — bem quando algo arquivado como «permanente» (uma renda, um cuidado, um papel na família) mostra em silêncio que sabe se mover.",
+        "A imagem tem boa linhagem: Marc Chagall passou décadas pintando vacas flutuando serenas sobre os telhados da aldeia, como figura de amor e memória, não de disparate. E há um detalhe bem brasileiro: quando o dinheiro precisa aparecer do nada, a gente «faz uma vaquinha» — a vaca já é, na nossa língua, o sustento que se junta e circula. Antes de descartar o sonho, lembre o que a [vaca](/dreams/cow) fazia lá em cima e o que você sentiu: encanto aponta para uma liberação bem-vinda; susto, para algo confiável que se soltou sem a sua licença.",
+      ],
+      general: [
+        "A leitura central soma o sentido da vaca — provisão, paciência, alimento — ao sentido do voo: liberdade, ambição, saída dos limites. A vaca voadora costuma aparecer quando a parte confiável da vida e a parte sonhadora deixam de ser opostas, ou quando você queria muito que deixassem: pede-se ao estável (um emprego, um casamento, o cuidado de alguém) que fique mais leve e móvel, e uma esperança que você chama de «irrealista» se recusa a ficar no chão.",
+        "Os detalhes orientam. Uma vaca planando tranquila promete folga: o sustento viaja com você, e mudar de lugar ou de ritmo não vai tirar o que alimenta. Uma vaca batendo asinhas absurdas mostra o esforço de obrigar o pesado a se passar por leve. Uma vaca arrancada pelo vento pertence à família do [tornado](/dreams/tornado): estabilidade arrancada por forças que você não escolheu. E uma boiada inteira no ar costuma falar de um sistema — família, equipe, trabalho — que se moveu todo de uma vez; o mecanismo desses sonhos está na página sobre [voar](/dreams/flying).",
+      ],
+      psychological: [
+        "Psicologicamente, a justaposição absurda é a mente afrouxando uma categoria que havia lacrado. Também temos nossas «vacas sagradas»: aquilo em que ninguém pode mexer. Quando a vaca sagrada aparece de repente no ar, alguma suposição intocável — sobre o que você deve, o que é realista, o que «nunca vai mudar» — se desprendeu e flutua onde enfim dá para olhar. Esse sonho gosta de chegar no meio de decisões que todos chamam de impossíveis: largar o emprego estável, mudar uma casa assentada, pedir algo novo à pessoa de confiança.",
+        "Dentro da imagem mora também um desejo simples: que o pesado se carregue sozinho por um tempo. Quem alimenta e sustenta — pais, provedores, o irmão responsável — sonha a própria carga em forma de vaca, e o voo é a fantasia da leveza. Pergunte-se a qual dever você desejaria asas. Acordado, o movimento útil raramente é largar tudo; é deixar alguém segurar uma ponta, simplificar, renegociar ou admitir em voz alta que a carga cresceu.",
+      ],
+      spiritual: [
+        "No plano espiritual, a vaca é uma das imagens mais antigas da provisão generosa: em algumas tradições é sagrada justamente porque dá — leite, trabalho, fartura — sem ser consumida. Erguer essa figura ao céu lê-se como exaltação do próprio princípio do cuidado: servir aos outros não só pesa para a terra; pode ser honrado. Um sonho assim chega quando o serviço comum — cozinhar, prover, cuidar — pede em silêncio para ser celebrado, e não apenas cumprido.",
+        "O voo também levanta uma pergunta sobre confiança. Provisão que flutua não se cerca, não se ordenha no horário nem se conta; só se recebe como vem. Se a sua segurança descansava inteira no que você controla, a vaca aérea pode estar convidando a afrouxar a mão: gratidão pelo que alimenta, em vez de dedos brancos em volta — a mesma lição dos melhores sonhos de [voar](/dreams/flying).",
+      ],
+      islamic: [
+        "Na interpretação islâmica clássica a vaca é símbolo de peso e bem atestado: as sete vacas gordas e magras da surata Yusuf (12:43–49) representam anos de fartura e de fome, e por isso intérpretes como Ibn Sirin leem a vaca na direção da provisão, do ano que vem e da abundância fecunda. O voo, na mesma literatura, liga-se com frequência à viagem ou à elevação de posição. A vaca voadora não tem verbete clássico próprio, então pesa-se pelos temas juntos: sustento em movimento, provisão ligada a um caminho, ou um nível de vida em mudança.",
+        "Valem as boas maneiras de sempre. Um sonho estranho ou cômico não é conhecimento do oculto e não deve decidir sozinho um assunto real de trabalho, dinheiro ou família. Se o sonho foi bom, que anime a gratidão pelo rizq e o esforço honesto; se inquietou, busca-se refúgio em Allah, guarda-se o sonho em privado e julga-se a vida desperta por evidências e bom conselho, não por uma única imagem surreal.",
+      ],
+      biblical: [
+        "Às vacas pertence uma das passagens oníricas mais célebres da Bíblia: as sete vacas formosas devoradas por sete magras (Gênesis 41), um sonho sobre provisão no tempo que foi respondido sem pânico, com mordomia: guardar na fartura para os anos magros. Sobre esse fundo, uma vaca que deixa o chão esconde sob a comédia uma pergunta séria: quão firme é o sustento com que conto para a próxima estação, e administro com sabedoria a fartura enquanto ela dura?",
+        "A Escritura também conhece o boi com asas. Entre os quatro seres viventes da visão de Ezequiel, um tem rosto de boi (Ezequiel 1:10), e a tradição entregou esse boi alado ao evangelista Lucas como emblema do serviço e do sacrifício elevados em adoração. A essa luz, a vaca voadora não é só provisão em dúvida, mas serviço exaltado: o trabalho humilde e diário de alimentar, visto por um instante do lado do céu, mais perto de um [anjo](/dreams/angel) do que de mau agouro.",
+      ],
+      commonScenarios: [
+        { title: "Uma vaca voando sobre a sua casa", meaning: "A provisão perto de casa está em movimento: uma renda, um cuidado ou uma rotina doméstica muda de altura." },
+        { title: "Uma vaca com asas", meaning: "Uma responsabilidade pesada ganhou meios de se mover — ou você se esforça para que o assentado finja leveza." },
+        { title: "Uma boiada inteira no céu", meaning: "Um sistema de apoio — família, equipe, trabalho — moveu-se todo de uma vez, e não peça por peça." },
+        { title: "O vento leva a vaca", meaning: "Estabilidade arrancada por forças externas, não por escolha; a pergunta é o que firmar, não quem culpar." },
+        { title: "Montar numa vaca voadora", meaning: "O impossível carrega você: o plano «irrealista» funciona, com o dever e a aventura no mesmo lombo." },
+        { title: "A vaca pousa em segurança", meaning: "Consolo: o que subiu e assustou sabe voltar ao chão; o confiável encontra terra de novo." },
+      ],
+      faq: [
+        { question: "O que significa sonhar com vaca voadora?", answer: "Soma o sentido da vaca — provisão, paciência, dever — ao do voo: liberdade e saída dos limites. Algo confiável da sua vida está em movimento, ou uma esperança impossível se recusa a ficar no chão." },
+        { question: "É mau presságio?", answer: "Não. Absurdo não é agourento. Decide o que você sentiu: encanto aponta para liberação bem-vinda; susto, para algo confiável que se soltou sem o seu consentimento." },
+        { question: "Por que uma vaca e não um pássaro?", answer: "Pássaro voa por ofício; não surpreende. O sonho escolheu de propósito o bicho mais pesado e mais obrigado para mostrar em movimento a parte menos móvel da sua vida." },
+        { question: "O que significa no islã?", answer: "Não há verbete clássico próprio. A vaca aponta para a provisão e os anos que vêm, como na surata Yusuf, e o voo para viagem ou elevação; pesam-se os temas juntos, com a cautela de não decidir a vida por um sonho." },
+        { question: "Eu ri no sonho — isso importa?", answer: "Sim, e é boa notícia. Rir dentro do sonho costuma marcar alívio: a carga vista por um momento como leve, a regra como opcional. Aparece quando uma fase tensa começa a ceder." },
+      ],
+    },
+  },
   snake: {
     seoDescription:
       "O que significa sonhar com cobra? Explore picadas, cores e perseguições, com interpretações psicológicas e espirituais no dicionário de sonhos Dreamly.",

@@ -6,6 +6,52 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
+  "flying-cow": {
+    seoTitle: "Fliegende Kuh im Traum: wenn das Unmögliche abhebt",
+    seoDescription:
+      "Eine Kuh am Traumhimmel? Was das surreale Bild über Versorgung, Pflicht und unmögliche Hoffnungen sagt – mit psychologischer, islamischer und biblischer Deutung.",
+    sections: {
+      introduction: [
+        "Eine fliegende Kuh gehört zu den Träumen, über die man beim Aufwachen lächelt – und das Lächeln ist Teil der Botschaft. Die Kuh ist eines der schwersten, bodenständigsten Tiere, die ein Traum aufbieten kann: langsam, geduldig, an ihre Weide gebunden, und sie nährt andere, bevor sie sich selbst nährt. Sie in den Himmel steigen zu sehen heißt, der Stabilität selbst beim Schwerelos-Werden zuzusehen. Zu solch heiterem Unsinn greift der Traum, wenn etwas aus der Ablage »unverrückbar« – ein Einkommen, eine Sorgepflicht, eine Familienrolle – leise zeigt, dass es sich bewegen kann.",
+        "Das Bild hat eine gute Herkunft: Marc Chagall malte jahrzehntelang Kühe, die gelassen über Dorfdächern schweben – als Bild von Liebe und Erinnerung, nicht von Unsinn. Und das Deutsche kennt die »heilige Kuh«, an die niemand rühren darf, genauso wie die Redensart, man müsse »die Kuh vom Eis holen« – Ihr Traum hat sie stattdessen gleich in die Luft gehoben. Ehe Sie abwinken, prüfen Sie, was die [Kuh](/dreams/cow) dort oben tat und was Sie beim Zusehen fühlten: Vergnügen deutet auf eine willkommene Befreiung, Schreck darauf, dass sich etwas Verlässliches ohne Ihre Erlaubnis losgerissen hat.",
+      ],
+      general: [
+        "Die Kernlesart verbindet die Bedeutung der Kuh – Versorgung, Geduld, Nahrung – mit der des Fliegens: Freiheit, Ehrgeiz, Ausbruch aus Grenzen. Die fliegende Kuh erscheint oft, wenn der verlässliche und der träumende Teil des Lebens aufhören, Gegensätze zu sein – oder wenn Sie sich das sehr wünschen: Das Beständige (eine Stelle, eine Ehe, die Pflege eines Menschen) soll leichter und beweglicher werden, und eine Hoffnung, die Sie »unrealistisch« nennen, weigert sich, am Boden zu bleiben.",
+        "Die Einzelheiten steuern die Deutung. Eine ruhig dahingleitende Kuh verspricht Leichtigkeit: Die Versorgung reist mit, ein Orts- oder Tempowechsel kostet nicht, was Sie nährt. Eine Kuh, die mit absurd kleinen Flügeln schlägt, zeigt die Mühe, Schweres leicht erscheinen zu lassen. Eine vom Wind fortgerissene Kuh gehört zur Familie des [Tornados](/dreams/tornado): Stabilität, die äußere Kräfte losreißen, nicht Ihre Wahl. Und eine ganze Herde am Himmel spricht meist von einem System – Familie, Team, Arbeitsplatz –, das sich auf einmal bewegt hat; wie solche Träume arbeiten, erklärt die Seite übers [Fliegen](/dreams/flying).",
+      ],
+      psychological: [
+        "Psychologisch ist die absurde Verbindung der Verstand, der eine versiegelte Schublade lockert. Wenn die heilige Kuh plötzlich in der Luft hängt, hat sich eine unantastbare Annahme – darüber, was Sie schulden, was realistisch ist, was »immer so bleibt« – losgemacht und treibt dort, wo Sie sie endlich betrachten können. Dieser Traum kommt gern mitten in Entscheidungen, die alle unmöglich nennen: die sichere Stelle kündigen, einen eingerichteten Haushalt verpflanzen, einen verlässlichen Menschen um Neues bitten.",
+        "Im Bild steckt auch ein schlichter Wunsch: Das Schwere möge sich eine Weile selbst tragen. Wer nährt und trägt – Eltern, Versorger, das verantwortliche Geschwister – träumt die eigene Last in Kuhgestalt, und der Flug ist die Fantasie der Leichtigkeit. Fragen Sie sich, welcher Pflicht Sie am ehesten Flügel wünschen. Der nützliche Schritt im Wachen ist selten, alles fallen zu lassen; eher: jemanden eine Ecke halten lassen, vereinfachen, neu verhandeln oder laut zugeben, dass die Last gewachsen ist.",
+      ],
+      spiritual: [
+        "Spirituell ist die Kuh eines der ältesten Bilder großzügiger Versorgung: In manchen Traditionen ist sie heilig, gerade weil sie gibt – Milch, Arbeit, Fülle –, ohne verzehrt zu werden. Diese Gestalt in den Himmel zu heben liest sich als Erhöhung des Fürsorge-Prinzips selbst: Für andere zu sorgen zieht nicht nur zur Erde; es kann gewürdigt werden. Ein solcher Traum kommt, wenn der gewöhnliche Dienst – kochen, versorgen, pflegen – leise darum bittet, geehrt und nicht nur erledigt zu werden.",
+        "Der Flug stellt zudem eine Frage nach dem Vertrauen. Schwebende Versorgung lässt sich nicht einzäunen, nicht nach Plan melken, nicht zählen; man kann sie nur empfangen, wie sie kommt. Ruhte Ihre Sicherheit ganz auf dem, was Sie kontrollieren, lädt die Kuh am Himmel vielleicht zu einem lockereren Griff ein: Dankbarkeit für das, was Sie nährt, statt weißer Knöchel darum – dieselbe Lektion, die die besten Träume vom [Fliegen](/dreams/flying) erteilen.",
+      ],
+      islamic: [
+        "In der klassischen islamischen Deutung ist die Kuh ein gewichtiges, gut bezeugtes Symbol: Die sieben fetten und mageren Kühe der Sure Yusuf (12:43–49) stehen für Jahre der Fülle und des Hungers, weshalb Ausleger wie Ibn Sirin die Kuh in Richtung Versorgung, kommendes Jahr und fruchtbaren Wohlstand lesen. Das Fliegen wird in derselben Literatur häufig mit Reise oder mit dem Aufstieg von Rang und Lage verbunden. Für die fliegende Kuh gibt es keinen eigenen klassischen Eintrag; am ehrlichsten wägt man die Themen gemeinsam: Versorgung in Bewegung, Unterhalt, der mit einem Weg zusammenhängt, oder ein Lebensstand im Wandel.",
+        "Es gelten die üblichen Regeln des Anstands. Ein seltsamer oder komischer Traum ist kein Wissen über das Verborgene und sollte allein keine echte Frage von Arbeit, Geld oder Familie entscheiden. War der Traum gut, möge er die Dankbarkeit für den Rizq und das ehrliche Bemühen stärken; hat er beunruhigt, sucht man Zuflucht bei Allah, behält ihn für sich und beurteilt das Wachleben nach Belegen und gutem Rat, nicht nach einem einzigen surrealen Bild.",
+      ],
+      biblical: [
+        "Den Kühen gehört eine der berühmtesten Traumstellen der Bibel: die sieben schönen Kühe, von sieben mageren verschlungen (1. Mose 41) – ein Traum über Versorgung in der Zeit, dem nicht mit Panik, sondern mit Haushalterschaft geantwortet wurde: in der Fülle sammeln für die mageren Jahre. Vor diesem Hintergrund stellt eine Kuh, die den Boden verlässt, unter der Komik eine nüchterne Frage: Wie gesichert ist die Versorgung, auf die ich für die nächste Zeit zähle – und verwalte ich die Fülle klug, solange sie da ist?",
+        "Die Schrift kennt auch den Stier mit Flügeln. Unter den vier lebendigen Wesen in Hesekiels Vision trägt eines das Gesicht eines Stieres (Hesekiel 1,10), und die Tradition gab den geflügelten Stier dem Evangelisten Lukas als Zeichen von Dienst und Opfer, die zur Anbetung erhoben sind. In diesem Licht ist die fliegende Kuh nicht nur gefährdete Versorgung, sondern erhöhter Dienst: die demütige, tägliche, nährende Arbeit, für einen Augenblick von der Himmelsseite gezeigt – näher am [Engel](/dreams/angel) als am bösen Omen.",
+      ],
+      commonScenarios: [
+        { title: "Eine Kuh fliegt über Ihr Haus", meaning: "Versorgung nah am Zuhause ist in Bewegung: ein Einkommen, eine Sorgepflicht oder eine Haushaltsroutine wechselt die Höhe." },
+        { title: "Eine Kuh mit Flügeln", meaning: "Eine schwere Verantwortung hat Mittel zur Bewegung bekommen – oder Sie mühen sich, Beständiges leicht wirken zu lassen." },
+        { title: "Eine ganze Herde am Himmel", meaning: "Ein Stützsystem – Familie, Team, Arbeitsplatz – hat sich auf einmal bewegt, nicht Stück für Stück." },
+        { title: "Der Sturm reißt die Kuh fort", meaning: "Stabilität, von äußeren Kräften losgerissen, nicht gewählt; die Frage ist, was zu sichern ist, nicht wen man beschuldigt." },
+        { title: "Auf einer fliegenden Kuh reiten", meaning: "Das Unmögliche trägt Sie: Der »unrealistische« Plan funktioniert, Pflicht und Abenteuer auf demselben Rücken." },
+        { title: "Die Kuh landet sicher", meaning: "Beruhigung: Was aufstieg und erschreckte, kann wieder Boden finden; das Verlässliche kommt zurück zur Erde." },
+      ],
+      faq: [
+        { question: "Was bedeutet eine fliegende Kuh im Traum?", answer: "Sie verbindet die Bedeutung der Kuh – Versorgung, Geduld, Pflicht – mit der des Fliegens: Freiheit und Ausbruch aus Grenzen. Etwas Verlässliches in Ihrem Leben bewegt sich, oder eine unmögliche Hoffnung bleibt nicht länger am Boden." },
+        { question: "Ist das ein schlechtes Zeichen?", answer: "Nein. Absurd heißt nicht unheilvoll. Entscheidend ist Ihr Gefühl beim Zusehen: Vergnügen deutet auf willkommene Befreiung, Schreck darauf, dass sich Verlässliches ohne Ihre Zustimmung gelöst hat." },
+        { question: "Warum eine Kuh und kein Vogel?", answer: "Vögel fliegen von Berufs wegen; das überrascht nicht. Der Traum wählte absichtlich das schwerste, pflichtbewussteste Tier, um den unbeweglichsten Teil Ihres Lebens in Bewegung zu zeigen." },
+        { question: "Was bedeutet der Traum im Islam?", answer: "Einen eigenen klassischen Eintrag gibt es nicht. Die Kuh weist auf Versorgung und die kommenden Jahre, wie in der Sure Yusuf, das Fliegen auf Reise oder Aufstieg; man wägt die Themen gemeinsam – und entscheidet echte Fragen nicht nach einem Traum." },
+        { question: "Ich habe im Traum gelacht – heißt das etwas?", answer: "Ja, und es ist eine gute Nachricht. Lachen im Traum markiert meist Entlastung: Die Last erscheint für einen Moment leicht, die Regel verhandelbar. Es kommt oft, wenn eine angespannte Zeit nachzulassen beginnt." },
+      ],
+    },
+  },
   snake: {
     seoDescription:
       "Was bedeutet eine Schlange im Traum? Entdecke Deutungen zu Bissen, Verfolgung und Farben sowie psychologische und spirituelle Perspektiven bei Dreamly.",

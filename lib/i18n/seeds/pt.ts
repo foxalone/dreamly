@@ -3498,6 +3498,11 @@ export const SEEDS_PT: Record<string, SeedL10n> = {
     name: "uma vaca morta",
     focus: "provisão encerrada, uma vida sagrada gasta ou luto pela paciência que alimentava a casa",
   },
+  "flying-cow": {
+    name: "uma vaca voadora",
+    focus: "o impossível levantando voo: a provisão solta do chão, um dever sagrado que se desamarra ou uma esperança que se recusa a ser realista",
+    aliases: ["vaca voando", "sonhar com vaca voadora", "vaca com asas", "vacas voando"],
+  },
   heaven: {
     name: "o céu",
     summary: "reencontro, descanso depois do esforço, um lar desejado e o desejo de que um fim se abra a algo mais amável que a morte",

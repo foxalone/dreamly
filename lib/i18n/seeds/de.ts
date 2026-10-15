@@ -3509,6 +3509,11 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "eine tote Kuh",
     focus: "beendete Versorgung, ein verbrauchtes heiliges Leben oder Trauer um die Geduld, die das Haus nährte",
   },
+  "flying-cow": {
+    name: "eine fliegende Kuh",
+    focus: "das Unmögliche hebt ab: Versorgung, die sich vom Boden löst, eine heilige Pflicht, die sich losmacht, oder eine Hoffnung, die nicht vernünftig bleiben will",
+    aliases: ["fliegende Kuh", "Kuh fliegt", "Kuh mit Flügeln", "fliegende Kühe"],
+  },
   heaven: {
     name: "der Himmel",
     summary: "Wiedersehen, Ruhe nach dem Streben, ein ersehntes Zuhause und der Wunsch, dass ein Ende sich zu etwas Sanfterem öffnet als der Tod",

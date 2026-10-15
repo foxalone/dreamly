@@ -6,6 +6,52 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
+  "flying-cow": {
+    seoTitle: "Soñar con una vaca voladora: cuando lo imposible despega",
+    seoDescription:
+      "¿Una vaca cruzando el cielo de tu sueño? Qué dice esta imagen surrealista del sustento, el deber y las esperanzas imposibles: lectura psicológica, islámica y bíblica.",
+    sections: {
+      introduction: [
+        "El español ya lo dijo antes que tu sueño: «cuando las vacas vuelen» es nuestra manera de decir nunca. Por eso una vaca voladora es de esos sueños que te despiertan con una sonrisa, y la sonrisa es parte del mensaje. La vaca es de los animales más pesados y terrestres que la mente puede convocar: lenta, paciente, atada al potrero, la que alimenta a otros antes que a sí misma. Verla subir al cielo es ver la estabilidad misma volverse ingrávida — justo cuando algo archivado como «permanente» (un ingreso, un cuidado, un papel en la familia) muestra en silencio que puede moverse.",
+        "La imagen tiene buena genealogía: Marc Chagall pintó durante décadas vacas flotando serenas sobre los tejados de su aldea, como imagen de amor y memoria y no de disparate. Tu sueño trabaja la misma veta: toma lo más terrestre que encuentra y le concede la libertad de [volar](/dreams/flying). Antes de descartarlo, recuerda qué hacía la [vaca](/dreams/cow) allá arriba y qué sentiste al mirarla: el deleite apunta a una liberación bienvenida; la alarma, a que algo confiable se soltó sin tu permiso.",
+      ],
+      general: [
+        "La lectura central une el significado de la vaca — provisión, paciencia, alimento — con el del vuelo: libertad, ambición, salida de los límites. La vaca voladora suele aparecer cuando la parte confiable de la vida y la parte soñadora dejan de ser opuestas, o cuando deseas que dejen de serlo: a lo estable (un trabajo, un matrimonio, el cuidado de alguien) se le pide volverse más ligero y móvil, y una esperanza que llamas «poco realista» se niega a quedarse en el suelo.",
+        "Los detalles orientan. Una vaca que planea tranquila promete soltura: el sustento viaja contigo, y un cambio de lugar o de ritmo no te quitará lo que alimenta. Una vaca que aletea con alitas absurdas señala el esfuerzo de hacer que lo pesado actúe como ligero. Una vaca arrebatada por el viento pertenece a la familia del [tornado](/dreams/tornado): estabilidad arrancada por fuerzas ajenas a tu elección. Y una manada entera en el aire suele hablar de un sistema — familia, equipo, trabajo — que se movió todo a la vez.",
+      ],
+      psychological: [
+        "Psicológicamente, la yuxtaposición absurda es la mente aflojando una categoría que había sellado. También en español hay «vacas sagradas»: aquello que nadie puede tocar. Cuando la vaca sagrada aparece de pronto en el aire, alguna suposición intocable — sobre lo que debes, lo que es realista, lo que «nunca cambiará» — se desabrochó y flota donde por fin puedes mirarla. Este sueño llega en medio de decisiones que todos llaman imposibles: dejar el empleo estable, mudar una casa asentada, pedirle algo nuevo a la persona confiable.",
+        "Dentro de la imagen hay además un deseo sencillo: que lo pesado se cargue solo un rato. Quienes alimentan y sostienen — padres, proveedores, el hermano responsable — sueñan su carga en forma de vaca, y el vuelo es la fantasía de la ligereza. Pregúntate a qué deber le desearías alas. El movimiento útil despierto rara vez es soltarlo todo; más bien dejar que alguien sostenga una esquina, simplificar, renegociar o admitir en voz alta que la carga creció.",
+      ],
+      spiritual: [
+        "En lo espiritual, la vaca es una de las imágenes más antiguas de la provisión generosa: en algunas tradiciones es sagrada precisamente porque da — leche, trabajo, abundancia — sin ser consumida. Elevar esa figura al cielo se lee como exaltación del principio mismo del cuidado: atender a otros no solo pesa hacia la tierra; puede ser honrado. Un sueño así llega cuando el servicio ordinario — cocinar, proveer, cuidar — pide en silencio ser celebrado y no solo cumplido.",
+        "El vuelo también plantea una pregunta sobre la confianza. La provisión que flota no se puede cercar, ordeñar a horario ni contar; solo se recibe como viene. Si tu seguridad descansaba por completo en lo que controlas, la vaca aérea puede invitarte a aflojar la mano: gratitud por lo que te alimenta en vez de nudillos blancos alrededor — la misma lección de los mejores sueños de [volar](/dreams/flying).",
+      ],
+      islamic: [
+        "En la interpretación islámica clásica la vaca es un símbolo de peso y bien atestiguado: las siete vacas gordas y flacas de la sura Yusuf (12:43–49) representan años de abundancia y de hambre, por lo que intérpretes como Ibn Sirin leen la vaca hacia la provisión, el año por venir y la abundancia fecunda. El vuelo, en esa misma literatura, suele vincularse con el viaje o con la elevación de rango y circunstancia. La vaca voladora no tiene entrada clásica propia, así que se pesa por esos temas juntos: sustento en movimiento, provisión ligada a un camino, o un nivel de vida que está cambiando.",
+        "Rigen los modales de siempre. Un sueño extraño o cómico no es conocimiento de lo oculto y no debe decidir por sí solo un asunto real de trabajo, dinero o familia. Si el sueño fue grato, que anime la gratitud por el rizq y el esfuerzo honesto; si inquietó, se busca refugio en Alá, se guarda en privado y lo despierto se juzga con evidencia y buen consejo, no con una sola imagen surrealista.",
+      ],
+      biblical: [
+        "A las vacas les pertenece uno de los pasajes oníricos más célebres de la Biblia: las siete vacas hermosas devoradas por siete flacas (Génesis 41), un sueño sobre la provisión en el tiempo que se respondió sin pánico, con mayordomía: almacenar en la abundancia para los años flacos. Sobre ese fondo, una vaca que deja el suelo esconde bajo la comedia una pregunta seria: ¿qué tan firme es el sustento con el que cuento para la próxima temporada, y administro con sabiduría la abundancia mientras dura?",
+        "La Escritura también conoce al buey con alas. Entre los cuatro seres vivientes de la visión de Ezequiel, uno tiene rostro de buey (Ezequiel 1:10), y la tradición entregó ese buey alado al evangelista Lucas como emblema del servicio y el sacrificio elevados en adoración. A esa luz, la vaca voladora no es solo provisión en duda sino servicio exaltado: el trabajo humilde y cotidiano de alimentar, visto por un instante del lado del cielo, más cerca de un [ángel](/dreams/angel) que de un mal agüero.",
+      ],
+      commonScenarios: [
+        { title: "Una vaca vuela sobre tu casa", meaning: "La provisión cercana al hogar está en movimiento: un ingreso, un cuidado o una rutina de la casa cambia de altura." },
+        { title: "Una vaca con alas", meaning: "A una responsabilidad pesada le dieron medios para moverse — o te esfuerzas por hacer que lo asentado actúe como ligero." },
+        { title: "Una manada entera en el cielo", meaning: "Un sistema de apoyo — familia, equipo, trabajo — se movió todo a la vez y no pieza por pieza." },
+        { title: "El viento se lleva a la vaca", meaning: "Estabilidad arrancada por fuerzas externas, no por elección; la pregunta es qué asegurar, no a quién culpar." },
+        { title: "Montar una vaca voladora", meaning: "Lo imposible te lleva: el plan «poco realista» funciona, con el deber y la aventura sobre el mismo lomo." },
+        { title: "La vaca aterriza sana y salva", meaning: "Consuelo: lo que subió y asustó sabe volver a tierra; lo confiable encuentra de nuevo el suelo." },
+      ],
+      faq: [
+        { question: "¿Qué significa soñar con una vaca voladora?", answer: "Une el significado de la vaca — provisión, paciencia, deber — con el del vuelo: libertad y salida de los límites. Algo confiable de tu vida está en movimiento, o una esperanza imposible se niega a quedarse en el suelo." },
+        { question: "¿Es un mal presagio?", answer: "No. Lo absurdo no es ominoso. Decide lo que sentiste al mirarla: deleite apunta a liberación bienvenida; alarma, a que algo confiable se soltó sin tu consentimiento." },
+        { question: "¿Por qué una vaca y no un pájaro?", answer: "Al pájaro le corresponde volar; no sorprende. El sueño eligió a propósito al animal más pesado y más obligado para mostrar en movimiento la parte menos móvil de tu vida." },
+        { question: "¿Qué significa en el islam?", answer: "No tiene entrada clásica propia. La vaca apunta a la provisión y los años por venir, como en la sura Yusuf, y el vuelo al viaje o la elevación; los temas se pesan juntos, con la cautela de no decidir asuntos reales por un sueño." },
+        { question: "Me reí en el sueño, ¿importa?", answer: "Sí, y es buena señal. La risa dentro del sueño suele marcar un alivio: la carga vista un momento como ligera, la regla como opcional. Aparece cuando una temporada tensa empieza a ceder." },
+      ],
+    },
+  },
   snake: {
     seoDescription:
       "¿Qué significa soñar con serpientes? Explora mordeduras, colores y persecuciones, con interpretaciones psicológicas y espirituales en el diccionario Dreamly.",
