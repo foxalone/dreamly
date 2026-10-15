@@ -33,7 +33,7 @@ export default function DreamGuidePage({
     dateModified: guide.updatedAt,
     mainEntityOfPage: pageUrl,
     inLanguage: locale,
-    author: { "@type": "Organization", name: "Dreamly" },
+    author: { "@type": "Organization", name: "Dreamly", url: SITE_URL },
     publisher: { "@type": "Organization", name: "Dreamly", url: SITE_URL },
     isPartOf: { "@type": "CollectionPage", name: t.dictionary.h1, url: absoluteLocaleUrl("/dreams", locale) },
   };

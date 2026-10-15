@@ -188,7 +188,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
     isPartOf: entry.parentSlug
       ? { "@type": "CreativeWorkSeries", name: parent.title, url: absoluteLocaleUrl(`/dreams/${parent.slug}`, locale) }
       : { "@type": "CollectionPage", name: t.dictionary.h1, url: absoluteLocaleUrl("/dreams", locale) },
-    author: { "@type": "Organization", name: "Dreamly" },
+    author: { "@type": "Organization", name: "Dreamly", url: SITE_URL },
     publisher: { "@type": "Organization", name: "Dreamly", url: SITE_URL },
   };
 

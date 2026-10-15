@@ -154,7 +154,7 @@ export default async function DreamPublicView({
     articleBody: dream.text,
     url: `${SITE_URL}${localePath(`/dream/${dream.id}`, locale)}`,
     ...(dream.sharedAtMs ? { datePublished: new Date(dream.sharedAtMs).toISOString() } : {}),
-    author: { "@type": "Person", name: t.shareBadges.anonymous },
+    author: { "@type": "Person", name: t.shareBadges.anonymous, url: SITE_URL },
     commentCount: dream.commentCount,
     interactionStatistic: {
       "@type": "InteractionCounter",
