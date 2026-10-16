@@ -8,6 +8,8 @@ import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 import { localePath } from "@/lib/i18n/path";
+import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
+import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
 import DreamPageClient, { type MoreDream, type PublicSharedDream } from "./DreamPageClient";
 
@@ -114,6 +116,38 @@ export const loadMoreDreams = cache(async (excludeId: string): Promise<MoreDream
   }
 });
 
+/**
+ * Comments for the structured data: Google's DiscussionForumPosting markup
+ * wants a "comment" field, not just commentCount (GSC: Missing field "comment").
+ * Oldest first, same order as the visible thread.
+ */
+export const loadDreamComments = cache(
+  async (id: string): Promise<{ text: string; badge: string | null; createdAtMs: number | null }[]> => {
+    try {
+      const snap = await adminFirestore()
+        .collection("shared_dreams")
+        .doc(id)
+        .collection("comments")
+        .orderBy("createdAtMs", "asc")
+        .limit(40)
+        .get();
+      return snap.docs
+        .map((d) => {
+          const data = d.data() as any;
+          return {
+            text: str(data?.text).trim(),
+            badge: str(data?.badge) || null,
+            createdAtMs: num(data?.createdAtMs) || null,
+          };
+        })
+        .filter((c) => c.text.length > 0);
+    } catch (e) {
+      console.error("loadDreamComments failed:", e);
+      return [];
+    }
+  }
+);
+
 export function sharedDreamExcerpt(text: string, max: number): string {
   const s = (text ?? "").replace(/\s+/g, " ").trim();
   if (s.length <= max) return s;
@@ -142,7 +176,7 @@ export default async function DreamPublicView({
   locale: Locale;
 }) {
   const t = getMessages(locale);
-  const more = await loadMoreDreams(dream.id);
+  const [more, comments] = await Promise.all([loadMoreDreams(dream.id), loadDreamComments(dream.id)]);
 
   // UGC page markup for search engines: an anonymous forum-style posting with
   // its comment count. The text itself is in the HTML (client components are
@@ -155,7 +189,20 @@ export default async function DreamPublicView({
     url: `${SITE_URL}${localePath(`/dream/${dream.id}`, locale)}`,
     ...(dream.sharedAtMs ? { datePublished: new Date(dream.sharedAtMs).toISOString() } : {}),
     author: { "@type": "Person", name: t.shareBadges.anonymous, url: SITE_URL },
-    commentCount: dream.commentCount,
+    commentCount: Math.max(dream.commentCount, comments.length),
+    ...(comments.length
+      ? {
+          comment: comments.map((c) => ({
+            "@type": "Comment",
+            text: c.text,
+            ...(c.createdAtMs ? { datePublished: new Date(c.createdAtMs).toISOString() } : {}),
+            author: {
+              "@type": "Person",
+              name: `${t.shareBadges.anonymous} \u00b7 ${shareBadgeLabel(t, shareBadgeById(c.badge) ?? shareBadgeFor(0))}`,
+            },
+          })),
+        }
+      : {}),
     interactionStatistic: {
       "@type": "InteractionCounter",
       interactionType: "https://schema.org/CommentAction",
