@@ -80,6 +80,7 @@ export function useDreamAsk({
     // The feed checkbox is ALWAYS on by default: an earlier un-tick saved in the
     // device cache must not carry over to the next dream (dima, 2026-10-10).
     if (pending.guestSharedId) setAnonShare("done");
+    else if (pending.guestShareFailed) setAnonShare(pending.guestShareFailed);
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
       setAnalysis(pending.analysis);
@@ -395,15 +396,27 @@ export function useDreamAsk({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.ok && data?.sharedId) {
-        writeHomeDreamPending(dream, { guestSharedId: String(data.sharedId), lang: locale, lens });
+        writeHomeDreamPending(dream, { guestSharedId: String(data.sharedId), guestShareFailed: undefined, lang: locale, lens });
         setAnonShare("done");
         trackEvent("share", { method: "guest_anonymous", content_type: "dream" });
         return;
       }
-      if (data?.code === "ALREADY_SHARED") setAnonShare("already");
-      else if (data?.code === "REJECTED") setAnonShare("rejected");
-      else setAnonShare("failed");
+      if (data?.code === "ALREADY_SHARED") {
+        // This very dream is in the feed already (per-dream ids) — keep its id
+        // so sign-in claims it and the journal shows the real state.
+        if (data?.sharedId) {
+          writeHomeDreamPending(dream, { guestSharedId: String(data.sharedId), guestShareFailed: undefined, lang: locale, lens });
+        }
+        setAnonShare("already");
+        return;
+      }
+      // The outcome must survive the redirect to the journal — the card there
+      // starts a fresh hook and would otherwise show the untouched prompt.
+      const failure = data?.code === "REJECTED" ? ("rejected" as const) : ("failed" as const);
+      writeHomeDreamPending(dream, { guestShareFailed: failure, lang: locale, lens });
+      setAnonShare(failure);
     } catch {
+      writeHomeDreamPending(dream, { guestShareFailed: "failed", lang: locale, lens });
       setAnonShare("failed");
     }
   }

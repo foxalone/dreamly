@@ -163,18 +163,19 @@ async function shareImportedDream(
 }
 
 /**
- * The guest already shared this dream anonymously (shared_dreams/guest_{id}).
- * Move that doc to the account instead of publishing a second copy.
- * Returns the account's shared count, or false when there was nothing to claim
- * (other browser, already claimed) and the caller should share normally.
+ * The guest already shared this dream anonymously (shared_dreams doc in
+ * `guestSharedId`). Move that doc to the account instead of publishing a
+ * second copy. Returns the account's shared count, or false when there was
+ * nothing to claim (other browser, already claimed) and the caller should
+ * share normally.
  */
-async function claimGuestShare(user: User, dreamId: string): Promise<number | null | false> {
+async function claimGuestShare(user: User, dreamId: string, guestSharedId: string): Promise<number | null | false> {
   const idToken = await user.getIdToken();
   const res = await fetch("/api/dreams/claim-guest-share", {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idToken, dreamId }),
+    body: JSON.stringify({ idToken, dreamId, sharedId: guestSharedId }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data?.ok !== true) return false;
@@ -295,7 +296,9 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
     let shareCount: number | null | undefined;
     if (wantsShare) {
       try {
-        const claimed = pending.guestSharedId ? await claimGuestShare(user, dreamId).catch(() => false as const) : false;
+        const claimed = pending.guestSharedId
+          ? await claimGuestShare(user, dreamId, pending.guestSharedId).catch(() => false as const)
+          : false;
         shareCount =
           claimed !== false
             ? claimed

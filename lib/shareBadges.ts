@@ -93,9 +93,31 @@ export function checkShareableDreamText(text: unknown, maxChars: number): ShareT
   return { ok: true };
 }
 
-/** shared_dreams doc id of a guest's (one and only) anonymous share. */
+/**
+ * Legacy shared_dreams doc id from the one-share-per-guest era. New guest
+ * shares use guestSharedDreamDocId; this id is still read so an old doc can
+ * be claimed on sign-in and removed by the admin.
+ */
 export function guestSharedDocId(guestId: string) {
   return `guest_${guestId}`;
+}
+
+/** FNV-1a over the dream text — stable, isomorphic (no node:crypto). */
+function dreamTextHash(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/**
+ * shared_dreams doc id of a guest's anonymous share, one per DREAM (same
+ * guest + same text → same id, so re-sharing the same dream is a no-op).
+ */
+export function guestSharedDreamDocId(guestId: string, text: string) {
+  return `guest_${guestId}_${dreamTextHash(String(text ?? "").trim())}`;
 }
 
 /** "0", "1", "2–5", "51+" — the share counts a level covers. */

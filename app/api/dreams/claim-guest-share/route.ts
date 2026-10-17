@@ -9,16 +9,20 @@ import { requireSignedInUid } from "../_lib/requireUser";
 
 export const runtime = "nodejs";
 
-type Body = { idToken?: string; dreamId?: string };
+type Body = { idToken?: string; dreamId?: string; sharedId?: string };
 
 /**
- * POST { idToken, dreamId } — right after sign-in, the homepage-dream import
- * hands the guest's anonymous share over to the new account.
+ * POST { idToken, dreamId, sharedId? } — right after sign-in, the
+ * homepage-dream import hands the guest's anonymous share over to the new
+ * account, one dream at a time.
  *
- * shared_dreams/guest_{guestId} (owner = cookie) is copied to
- * shared_dreams/{uid}_{dreamId}, the id every other code path expects (journal
- * delete, admin), and the guest doc is removed. Ownership is proven by the
- * guest cookie — the same browser that shared it.
+ * sharedId is the guest doc from the device cache
+ * (shared_dreams/guest_{guestId}_{textHash}, see ../share-guest); old caches
+ * without one fall back to the legacy one-per-guest id guest_{guestId}. The
+ * doc (owner = cookie) is copied to shared_dreams/{uid}_{dreamId}, the id
+ * every other code path expects (journal delete, admin), and the guest doc is
+ * removed. Ownership is proven by the guest cookie — the same browser that
+ * shared it — so the id must belong to that guest.
  */
 export async function POST(req: Request) {
   try {
@@ -35,8 +39,16 @@ export async function POST(req: Request) {
     const guestId = readGuestId(req);
     if (!guestId) return NextResponse.json({ ok: false, code: "NO_GUEST" });
 
+    // The guest doc to claim. Only ids of THIS guest's docs are accepted —
+    // the transaction re-checks ownerGuestId anyway.
+    const requestedId = String(body?.sharedId ?? "").trim();
+    const srcId =
+      requestedId && /^[\w-]{1,120}$/.test(requestedId) && requestedId.startsWith(`guest_${guestId}`)
+        ? requestedId
+        : guestSharedDocId(guestId);
+
     const db = adminDb();
-    const srcRef = db.collection("shared_dreams").doc(guestSharedDocId(guestId));
+    const srcRef = db.collection("shared_dreams").doc(srcId);
     const destId = `${uid}_${dreamId}`;
     const destRef = db.collection("shared_dreams").doc(destId);
 

@@ -69,6 +69,8 @@ type DreamAdmin = {
 
   // guest_dreams only (homepage Ask without sign-in, pinned to the map)
   guestId?: string;
+  /** shared_dreams doc id written back by share-guest onto the day's snapshot. */
+  sharedId?: string;
   imported?: boolean;
   importedUid?: string | null;
   importedDreamId?: string | null;
@@ -185,6 +187,8 @@ function pickUserIdFromPath(refPath: string) {
   return "unknown";
 }
 
+type GuestSharedEntry = { id: string; sharedAtMs: number; text: string };
+
 function isGuestRow(d: DreamAdmin) {
   return d.sourceType === "guest";
 }
@@ -196,6 +200,7 @@ function guestRowFromDoc(id: string, data: any): DreamAdmin {
     userId: guestId ? `guest:${guestId}` : "guest",
     sourceType: "guest",
     guestId,
+    sharedId: String(data?.sharedId ?? "").trim() || undefined,
     text: data?.text,
     analysis: data?.analysis,
     analysisModel: "home_ask",
@@ -663,10 +668,11 @@ export default function AdminDashboardPage() {
   }, [user?.uid, isAdmin, pageSize, onlyShared]);
 
   // ✅ Guest dreams CAN be in the public feed since share-guest
-  // (shared_dreams/guest_{guestId}, app/api/dreams/share-guest). Track which
-  // guests currently have one, so guest rows show the real shared state and
-  // "Hide from Shared" / deletes also remove the feed copy.
-  const [guestShared, setGuestShared] = useState<Map<string, number>>(() => new Map());
+  // (shared_dreams/guest_{guestId}_{textHash}, app/api/dreams/share-guest —
+  // a guest can have SEVERAL, plus a legacy guest_{guestId} doc). Track them
+  // per guest, so guest rows show the real shared state and "Hide from
+  // Shared" / deletes remove the matching feed copy.
+  const [guestShared, setGuestShared] = useState<Map<string, GuestSharedEntry[]>>(() => new Map());
   useEffect(() => {
     if (!user || !isAdmin) {
       setGuestShared(new Map());
@@ -676,14 +682,17 @@ export default function AdminDashboardPage() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const next = new Map<string, number>();
+        const next = new Map<string, GuestSharedEntry[]>();
         snap.docs.forEach((d) => {
           // a share claimed into an account lives at {uid}_{dreamId} — that
           // copy belongs to the user's own row, not to the guest row
           if (!d.id.startsWith("guest_")) return;
-          const data = d.data() as { ownerGuestId?: unknown; sharedAtMs?: unknown };
+          const data = d.data() as { ownerGuestId?: unknown; sharedAtMs?: unknown; text?: unknown };
           const g = String(data?.ownerGuestId ?? "").trim();
-          if (g) next.set(g, Number(data?.sharedAtMs ?? 0));
+          if (!g) return;
+          const list = next.get(g) ?? [];
+          list.push({ id: d.id, sharedAtMs: Number(data?.sharedAtMs ?? 0), text: String(data?.text ?? "").trim() });
+          next.set(g, list);
         });
         setGuestShared(next);
       },
@@ -692,6 +701,21 @@ export default function AdminDashboardPage() {
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, isAdmin]);
+
+  /** The feed doc behind a guest row: by the snapshot's sharedId, else by text. */
+  function guestSharedDocsFor(d: DreamAdmin): GuestSharedEntry[] {
+    if (!d.guestId) return [];
+    const list = guestShared.get(d.guestId) ?? [];
+    if (d.sharedId) {
+      const byId = list.filter((x) => x.id === d.sharedId);
+      if (byId.length) return byId;
+    }
+    const text = String(d.text ?? "").trim();
+    const byText = text ? list.filter((x) => x.text === text) : [];
+    // Old rows (pre-multi-share) have neither a sharedId nor a feed doc with a
+    // matching text snapshot — fall back to the legacy one-per-guest doc.
+    return byText.length ? byText : list.filter((x) => x.id === guestSharedDocId(d.guestId!));
+  }
 
   // ✅ RTDB: live load config JSON
   useEffect(() => {
@@ -889,8 +913,8 @@ export default function AdminDashboardPage() {
     // guestRowFromDoc cannot know about the feed copy — overlay the live map
     r = r.map((x) => {
       if (!isGuestRow(x) || !x.guestId) return x;
-      const atMs = guestShared.get(x.guestId);
-      return atMs !== undefined ? { ...x, shared: true, sharedAtMs: atMs || x.sharedAtMs } : x;
+      const docs = guestSharedDocsFor(x);
+      return docs.length ? { ...x, shared: true, sharedAtMs: docs[0].sharedAtMs || x.sharedAtMs } : x;
     });
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);
@@ -900,10 +924,11 @@ export default function AdminDashboardPage() {
   async function hideFromShared(d: DreamAdmin) {
     if (!isAdmin) return;
     if (isGuestRow(d)) {
-      // guest share lives at shared_dreams/guest_{guestId} (share-guest route)
-      if (!d.guestId || !guestShared.has(d.guestId)) return;
+      // guest share lives at shared_dreams/guest_{guestId}_{textHash} (share-guest route)
+      const docs = guestSharedDocsFor(d);
+      if (!docs.length) return;
       if (!confirm("Hide this dream from Shared?")) return;
-      await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      await Promise.all(docs.map((x) => deleteDoc(doc(firestore, "shared_dreams", x.id))));
       return;
     }
     if (!confirm("Hide this dream from Shared?")) return;
@@ -929,8 +954,9 @@ export default function AdminDashboardPage() {
         deletedAtMs: Date.now(),
         deletedBy: "admin",
       });
-      if (d.guestId && guestShared.has(d.guestId)) {
-        await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      const sharedDocs = guestSharedDocsFor(d);
+      if (sharedDocs.length) {
+        await Promise.all(sharedDocs.map((x) => deleteDoc(doc(firestore, "shared_dreams", x.id))));
       }
       return;
     }
@@ -955,8 +981,9 @@ export default function AdminDashboardPage() {
     if (isGuestRow(d)) {
       // note: city_emoji_stats counters are not decremented (same as for user dreams)
       await deleteDoc(doc(firestore, "guest_dreams", d.id));
-      if (d.guestId && guestShared.has(d.guestId)) {
-        await deleteDoc(doc(firestore, "shared_dreams", guestSharedDocId(d.guestId)));
+      const sharedDocs = guestSharedDocsFor(d);
+      if (sharedDocs.length) {
+        await Promise.all(sharedDocs.map((x) => deleteDoc(doc(firestore, "shared_dreams", x.id))));
       }
       return;
     }

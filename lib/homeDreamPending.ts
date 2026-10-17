@@ -27,9 +27,17 @@ export type HomeDreamPending = {
   rootsEn?: string[];
   city?: HomeDreamCity;
   guestMapIngested?: boolean;
-  /** shared_dreams/guest_{guestId} when the guest shared this dream anonymously; claimed on sign-in. */
+  /** shared_dreams doc id when the guest shared this dream anonymously; claimed on sign-in. */
   guestSharedId?: string;
+  /** Why the automatic guest share after the reading did not happen (shown after the redirect). */
+  guestShareFailed?: GuestShareFailure;
 };
+
+export type GuestShareFailure = "rejected" | "failed";
+
+function normalizeShareFailure(raw: unknown): GuestShareFailure | undefined {
+  return raw === "rejected" || raw === "failed" ? raw : undefined;
+}
 
 function normalizeCity(raw: unknown): HomeDreamCity | undefined {
   if (!raw || typeof raw !== "object") return undefined;
@@ -76,6 +84,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
     city: normalizeCity(parsed.city),
     guestMapIngested: parsed.guestMapIngested === true,
     guestSharedId: typeof parsed.guestSharedId === "string" && parsed.guestSharedId ? parsed.guestSharedId : undefined,
+    guestShareFailed: normalizeShareFailure(parsed.guestShareFailed),
   };
 }
 
@@ -133,6 +142,8 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       city: extra && "city" in extra ? extra.city : prevRaw?.city,
       guestMapIngested: extra?.guestMapIngested ?? prev?.guestMapIngested,
       guestSharedId: extra?.guestSharedId ?? prev?.guestSharedId,
+      // "guestShareFailed in extra" so a successful share can clear the flag.
+      guestShareFailed: extra && "guestShareFailed" in extra ? extra.guestShareFailed : prev?.guestShareFailed,
     };
     if (index >= 0) queue[index] = next;
     else queue.push(next);
