@@ -75,6 +75,6 @@ test('admin API rejects unauthenticated overview, results and writes before read
   for (const handler of [GET, POST]) {
     const response = await handler(new Request('https://dreamly.art/api/admin/seo-opportunities?view=results', { method: handler === POST ? 'POST' : 'GET' }));
     assert.equal(response.status, 401);
-    assert.deepEqual(await response.json(), { error: 'Войдите в аккаунт.' });
+    assert.deepEqual(await response.json(), { error: 'Войдите в аккаунт.', code: 'SEO_AUTH' });
   }
 });
