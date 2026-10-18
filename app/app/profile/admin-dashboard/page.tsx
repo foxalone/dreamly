@@ -35,6 +35,7 @@ import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
+import SeoOpportunitiesPanel from "./SeoOpportunitiesPanel";
 import GscQueriesPanel from "./GscQueriesPanel";
 import IndexNowPanel from "./IndexNowPanel";
 import QuickSymbolQueries from "./QuickSymbolQueries";
@@ -168,7 +169,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -435,6 +436,7 @@ export default function AdminDashboardPage() {
       requested === "QUERIES" ||
       requested === "SYMBOL_CLICKS" ||
       requested === "GSC" ||
+      requested === "SEO_OPPORTUNITIES" ||
       requested === "DOCS" ||
       requested === "GAME" ||
       requested === "FREE_VIDEOS" ||
@@ -1644,6 +1646,7 @@ async function loadUsers() {
           Search Console
         </button>
 
+        <button onClick={() => setTab("SEO_OPPORTUNITIES")} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${tab === "SEO_OPPORTUNITIES" ? "bg-[var(--text)] text-[var(--bg)]" : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]"}`}>🚀 SEO Возможности</button>
         <button
           onClick={() => setTab("DOCS")}
           className={[
@@ -2504,6 +2507,8 @@ async function loadUsers() {
       )}
 
       {tab === "SYMBOL_CLICKS" && <DictionarySymbolClicks />}
+
+      {tab === "SEO_OPPORTUNITIES" && <SeoOpportunitiesPanel />}
 
       {tab === "GSC" && (
         <>

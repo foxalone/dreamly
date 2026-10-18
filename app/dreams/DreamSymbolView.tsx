@@ -1,3 +1,4 @@
+import { getSeoOverride } from "@/lib/seo/overrides";
 import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -116,10 +117,11 @@ export async function dreamSymbolMetadata(symbol: string, locale: Locale): Promi
   // CTR experiment (docs/seo/ctr-experiment-2026-09.md): Google-facing title/description only.
   // OpenGraph, Twitter and the page's JSON-LD keep entry.seoTitle / entry.seoDescription.
   const experiment = getCtrExperimentMeta(entry.slug, locale);
+  const seoOverride = await getSeoOverride(entry.canonicalSlug, locale);
 
   return {
-    title: experiment?.title ?? entry.seoTitle,
-    description: experiment?.description ?? entry.seoDescription,
+    title: seoOverride.title ?? experiment?.title ?? entry.seoTitle,
+    description: seoOverride.description ?? experiment?.description ?? entry.seoDescription,
     ...localeMetadata(url, locale),
     openGraph: {
       ...localeOpenGraph(url, locale, entry.seoTitle, entry.seoDescription, "article"),
