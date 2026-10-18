@@ -5374,8 +5374,34 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
   },
   work: {
     introduction: [
-      "Dreaming about work is so common that people often dismiss it as leftover stress — yet the spiritual meaning of dreaming about work is usually sharper than that. The office, the boss, the late shift, the pink slip: these scenes stage duty, identity, and the question of whether your effort still serves a life you recognize.",
-      "When the dream feels heavy, it is rarely predicting tomorrow's meeting. It is asking whether vocation has crowded out rest, whether performance has replaced worth, or whether a role is ending while you keep showing up in sleep.",
+      "This article offers spiritual, reflective readings of recurring work dreams, not prophetic claims. Ask yourself: What role is work playing in my identity? What am I avoiding? What concrete step can I take this week? Dreams are for reflection, not decisions.",
+      "When a work dream feels heavy, consider whether work has crowded out rest or performance has become your measure of worth. These are possibilities to explore alongside your circumstances, not conclusions the dream can establish.",
+    ],
+    general: [
+      "Start with the strongest feeling and a concrete detail: an unfinished task, a familiar desk, or a conversation with your boss. Compare them with recent experiences before settling on an interpretation.",
+      "If the scene centers on job security, explore dreams of [being fired](/dreams/being-fired). For deadline pressure, compare [being late for work](/dreams/being-late-for-work) with the broader experience of [being late](/dreams/being-late). Notice which details fit your own situation.",
+      "If financial worries are already on your mind, the pages on [money dreams](/dreams/money) and [debt dreams](/dreams/debt) offer related reflections. Check actual expenses and obligations rather than treating the dream as evidence of financial trouble.",
+      "If this dream bothers you — try these steps:",
+      "• Journal the strongest feeling and one concrete detail from the dream. Note where that feeling also appears during your day.",
+      "• Name one boundary or small change to test this week, such as a clearer stopping time or asking which task takes priority.",
+      "• Share the dream with a trusted friend, mentor, or spiritual adviser for perspective. Ask what they notice without treating their interpretation as a verdict.",
+      "• When anxiety spikes, try a simple grounding pause: take three comfortable breaths or rest for two minutes. Notice your surroundings before returning to what needs your attention.",
+    ],
+    islamic: [
+      "An Islamic reflection on a work dream can begin with humility about its meaning and attention to honesty, responsibility, and rest. The dream is not certain knowledge of the unseen or evidence that a colleague intends harm.",
+      "Make du’a and seek trustworthy counsel if you want perspective. Let the dream prompt reflection, while decisions about employment remain grounded in real circumstances, faith, and practical judgment.",
+    ],
+    biblical: [
+      "A biblical reflection on a work dream can consider stewardship, integrity, and the place of rest. Approach the image with humility rather than assuming it is a divine instruction or a forecast of your career.",
+      "Bring your concerns to prayer and trusted counsel. Dreams may prompt reflection, but final decisions about staying, leaving, or taking on more work need waking evidence and careful discernment.",
+    ],
+    commonScenarios: [
+      { title: "Being Fired", meaning: "This scene can bring up insecurity, fear of rejection, or questions about whether a role still fits; it does not predict dismissal. What to check in waking life: distinguish actual feedback about your position from fears you have not verified." },
+      { title: "Being Late For Work", meaning: "Lateness can echo pressure to meet expectations or a sense of falling behind. What to check in waking life: review whether your schedule, commute, and deadlines leave realistic room for delays and rest." },
+      { title: "An Old Job", meaning: "A former workplace may bring back unfinished feelings, familiar habits, or comparisons with your current role. What to check in waking life: identify one pattern from that job you want to keep or change today." },
+      { title: "Angry Boss", meaning: "An angry boss can evoke authority pressure, self-criticism, or fear of evaluation. What to check in waking life: separate what your manager has actually said from what your own inner critic expects." },
+      { title: "A New Job", meaning: "A new role can bring together curiosity, ambition, and uncertainty about unfamiliar responsibilities. What to check in waking life: name the information or support you need before accepting a new commitment." },
+      { title: "Being Overwhelmed", meaning: "Too much work in a dream can echo a waking sense of overload or duty crowding out other needs. What to check in waking life: list current commitments and choose one to clarify, defer, or discuss with someone who can help." },
     ],
     spiritual: [
       "Spiritually, work dreams invite discernment about calling versus compulsion. Effort can be stewardship — skill offered with integrity — or it can become an idol that measures the soul in output. A dream of being overwhelmed, late, or fired often marks the moment that balance has tipped and the inner life is filing a complaint.",
