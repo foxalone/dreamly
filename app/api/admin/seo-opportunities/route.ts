@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '../_lib/auth';
 import { adminDb } from '../_lib/firebaseAdmin';
+import { manualProgress, updateManualTask } from '@/lib/seo/history';
 import { seoErrorResponse } from '@/lib/seo/errors';
 import { parseUpload } from '@/lib/seo/import';
 import { seoPage } from '@/lib/seo/page';
@@ -34,6 +35,34 @@ export async function GET(req: Request) {
   try {
     await requireAdmin(req);
     const params = new URL(req.url).searchParams;
+    if (params.get('view') === 'analysis') {
+      const id = params.get('id') || '';
+      if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('Некорректный анализ.');
+      const snapshot = await analyses().doc(id).get();
+      if (!snapshot.exists) throw new Error('Сохранённый анализ не найден. Откройте историю.');
+      const analysis = { ...snapshot.data(), id } as Analysis;
+      if (!analysis.reportId && !analysis.archived) {
+        const reports = await loadReports();
+        analysis.reportId = reports.find(r => seoId(`${analysis.url}:${r.id}`) === id)?.id;
+      }
+      return NextResponse.json({ analysis });
+    }
+    if (params.get('view') === 'history') {
+      let query = analyses().orderBy('createdAt', 'desc').limit(21);
+      const cursor = params.get('cursor');
+      if (cursor) {
+        if (!/^[a-f0-9]{64}$/.test(cursor)) throw new Error('Некорректная страница истории.');
+        const snapshot = await analyses().doc(cursor).get();
+        if (!snapshot.exists) throw new Error('Обновите историю.');
+        query = query.startAfter(snapshot);
+      }
+      const snapshot = await query.get();
+      const items = snapshot.docs.slice(0, 20).map(doc => {
+        const a = { ...doc.data(), id: doc.id } as Analysis;
+        return { id: a.id, url: a.url, createdAt: a.createdAt, updatedAt: a.updatedAt, language: a.language, archived: !!a.archived, progress: manualProgress(a), titleState: a.title.state, descriptionState: a.description.state };
+      });
+      return NextResponse.json({ items, nextCursor: snapshot.docs.length > 20 ? items[items.length - 1].id : null });
+    }
     if (params.get('view') === 'results') {
       const reports = await loadReports(); const events = await changes().orderBy('at', 'desc').limit(20).get();
       const cache = new Map<string, SearchRow[]>();
@@ -140,14 +169,14 @@ export async function POST(req: Request) {
       if (!Array.isArray(raw.content) || raw.content.length < 2 || raw.content.length > 5 || !Array.isArray(raw.links) || raw.links.length > 5) throw new Error('ИИ вернул неполные рекомендации. Повторите анализ.');
       const links = [...new Map<string, { url: string; reason: unknown }>(raw.links.filter((l: { url: string }) => page.links.includes(l.url)).map((l: { url: string; reason: unknown }) => [l.url, l])).values()];
       if (links.length < Math.min(3, page.links.length)) throw new Error('ИИ не подобрал достаточно существующих ссылок. Повторите анализ.');
-      const analysis: Analysis = { id, url: page.url, createdAt: new Date().toISOString(), language: page.locale, original, title: rec(raw.title, 150), description: rec(raw.description, 400), intent: text(raw.intent, 2000), queryCount: queries.length,
+      const analysis: Analysis = { id, url: page.url, createdAt: new Date().toISOString(), reportId, language: page.locale, original, title: rec(raw.title, 150), description: rec(raw.description, 400), intent: text(raw.intent, 2000), queryCount: queries.length,
         content: raw.content.map((c: { text: unknown; reason: unknown }) => ({ text: text(c.text, 2000), reason: text(c.reason, 1000), state: 'pending' })),
         links: links.map((l: { url: string; reason: unknown }) => ({ url: l.url, reason: text(l.reason, 1000), state: 'pending' })),
       };
-      await adminDb().runTransaction(async tx => { const existing = await tx.get(ref); if (existing.exists && (!body.refresh || existing.data()?.createdAt !== cached.data()?.createdAt || ['title', 'description'].some(f => existing.data()?.[f]?.state === 'applied'))) throw new Error('Анализ изменился. Откройте его повторно.'); tx.set(ref, analysis); });
+      await adminDb().runTransaction(async tx => { const existing = await tx.get(ref); if (existing.exists && (!body.refresh || existing.data()?.createdAt !== cached.data()?.createdAt || ['title', 'description'].some(f => existing.data()?.[f]?.state === 'applied'))) throw new Error('Анализ изменился. Откройте его повторно.'); if (existing.exists) { const archived = existing.data()!; const archiveId = seoId(`${id}:${archived.createdAt}`); tx.set(analyses().doc(archiveId), { ...archived, id: archiveId, archived: true, updatedAt: new Date().toISOString() }); } tx.set(ref, analysis); });
       return NextResponse.json({ analysis });
     }
-    if (['apply', 'reject', 'edit', 'rollback'].includes(body.action)) {
+    if (['apply', 'reject', 'edit', 'rollback', 'handoff', 'complete', 'reopen'].includes(body.action)) {
       const id = String(body.id || ''); if (!/^[a-f0-9]{64}$/.test(id) && !(body.action === 'rollback' && /^[A-Za-z0-9]{20}$/.test(id))) throw new Error('Некорректная запись.');
       let publicPath = '';
       await adminDb().runTransaction(async tx => {
@@ -166,13 +195,12 @@ export async function POST(req: Request) {
         const ref = analyses().doc(id), snapshot = await tx.get(ref), a = snapshot.data() as Analysis | undefined;
         if (!a) throw new Error('Рекомендация не найдена.');
         if (body.group === 'content' || body.group === 'links') {
-          if (!['edit', 'reject'].includes(body.action)) throw new Error('Содержание и ссылки требуют ручного изменения исходной страницы.');
-          const group = body.group as 'content' | 'links'; const items = [...a[group]]; const index = Number(body.index);
-          if (!Number.isInteger(index) || index < 0 || index >= items.length) throw new Error('Рекомендация не найдена.');
-          if (body.action === 'reject') items[index] = { ...items[index], state: 'rejected' };
-          else { const value = String(body.value || '').trim(); if (!value || value.length > 2000 || /<[^>]*>/.test(value)) throw new Error('Введите текст длиной до 2000 символов без HTML.'); if (group === 'links') throw new Error('Выберите ссылку из существующих страниц вручную.'); items[index] = { ...items[index], text: value }; }
-          tx.update(ref, { [group]: items }); return;
+          const group = body.group as 'content' | 'links';
+          const items = updateManualTask(a, group, Number(body.index), body.action, body.value);
+          tx.update(ref, { [group]: items, updatedAt: new Date().toISOString() }); return;
         }
+        if (['handoff', 'complete', 'reopen'].includes(body.action)) throw new Error('Выберите задачу по содержанию или ссылкам.');
+        if (a.archived) throw new Error('Это предыдущая версия анализа. Откройте актуальный анализ из истории.');
         const field = body.field as SeoField; if (field !== 'title' && field !== 'description') throw new Error('Неизвестное поле.');
         if (body.action === 'apply' && a[field].state !== 'pending') throw new Error('Рекомендация больше не ожидает применения. Откройте её повторно.');
         if (a[field].state === 'applied') throw new Error('Сначала отмените опубликованное изменение.');

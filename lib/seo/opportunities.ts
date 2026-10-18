@@ -4,7 +4,9 @@ export type SearchRow = Metrics & { page: string; query: string; date: string };
 export type Report = { id: string; name: string; importedAt: string; start: string; end: string; chunks: number; rowCount: number; warnings: string[] };
 export type SeoField = 'title' | 'description';
 export type Recommendation = { value: string; reason: string; state: 'pending' | 'applied' | 'rejected' };
-export type Analysis = { id: string; url: string; createdAt: string; language: string; original: Record<SeoField, string>; title: Recommendation; description: Recommendation; intent: string; content: { text: string; reason: string; state: 'pending' | 'rejected' }[]; links: { url: string; reason: string; state: 'pending' | 'rejected' }[]; queryCount: number };
+export type ManualTaskState = 'pending' | 'rejected' | 'handed_off' | 'done';
+export type ManualTaskTracking = { state: ManualTaskState; handedOffAt?: string | null; completedAt?: string | null };
+export type Analysis = { id: string; url: string; createdAt: string; reportId?: string; updatedAt?: string; archived?: boolean; language: string; original: Record<SeoField, string>; title: Recommendation; description: Recommendation; intent: string; content: ({ text: string; reason: string } & ManualTaskTracking)[]; links: ({ url: string; reason: string } & ManualTaskTracking)[]; queryCount: number };
 export type Change = { id: string; url: string; field: SeoField; before: string; after: string; at: string; revertedAt?: string; analysisId: string; beforeChangeId?: string | null };
 export function validDate(s: string) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s; }
 export function day(s: string, n: number) { return new Date(Date.parse(s) + n * 86400000).toISOString().slice(0, 10); }

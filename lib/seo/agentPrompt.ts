@@ -4,8 +4,8 @@ type Selection = { group: 'content' | 'links'; index: number };
 
 /** Export only manual tasks. Copying never applies changes or alters review states. */
 export function buildSeoAgentPrompt(analysis: Analysis, selection?: Selection): string | null {
-  const content = analysis.content.filter((item, index) => item.state !== 'rejected' && (!selection || selection.group === 'content' && selection.index === index));
-  const links = analysis.links.filter((item, index) => item.state !== 'rejected' && (!selection || selection.group === 'links' && selection.index === index));
+  const content = analysis.content.filter((item, index) => item.state !== 'rejected' && item.state !== 'done' && (!selection || selection.group === 'content' && selection.index === index));
+  const links = analysis.links.filter((item, index) => item.state !== 'rejected' && item.state !== 'done' && (!selection || selection.group === 'links' && selection.index === index));
   if (!content.length && !links.length) return null;
 
   const data = {
