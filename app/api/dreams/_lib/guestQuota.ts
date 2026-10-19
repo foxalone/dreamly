@@ -66,7 +66,7 @@ export function setGuestCookie<T extends NextResponse>(res: T, guestId: string):
 }
 
 /**
- * Books one free anonymous lookup. Reads both counters before writing so the
+ * Books one anonymous AI lookup, requiring an ad credit from the first lookup. Reads both counters before writing so the
  * whole thing stays inside a single Firestore transaction.
  */
 export async function consumeGuestAsk(

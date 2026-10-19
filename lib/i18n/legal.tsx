@@ -329,8 +329,8 @@ function TermsEn() {
       <section>
         <h2>7. Paid features, subscriptions, and refunds</h2>
         <p>
-          Saving dreams and extra AI interpretations require a Dreamly subscription after one free guest
-          interpretation. Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
+          Guests unlock each AI interpretation, including their first, by watching a short ad when available.
+          Signed-in users receive limited free interpretations and can subscribe for more. Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
           <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
         </p>
         <p>
@@ -689,8 +689,8 @@ function TermsEs() {
       <section>
         <h2>7. Funciones de pago, suscripciones y reembolsos</h2>
         <p>
-          Guardar sueños e interpretaciones extra con IA requieren una suscripción Dreamly después de una interpretación
-          gratuita como invitado. Los precios, la prueba de 3 días y los límites diarios se indican en el momento del
+          Los visitantes desbloquean cada interpretación con IA, incluida la primera, viendo un anuncio corto cuando esté disponible.
+          Al iniciar sesión, hay un número limitado de interpretaciones gratis y la opción de suscribirse para obtener más. Los precios, la prueba de 3 días y los límites diarios se indican en el momento del
           pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta el pago a través
           de PayPal.
         </p>
@@ -1033,7 +1033,7 @@ function TermsAr() {
       <section>
         <h2>7. الميزات المدفوعة والاشتراكات والاسترداد</h2>
         <p>
-          حفظ الأحلام والتفسيرات الإضافية بالذكاء الاصطناعي يتطلبان اشتراك Dreamly بعد تفسير مجاني واحد للضيف. وتُعرض
+          يفتح الزائر كل تفسير بالذكاء الاصطناعي، بما في ذلك الأول، بمشاهدة إعلان قصير عند توفره. ويحصل المستخدم المسجّل على عدد محدود من التفسيرات المجانية ويمكنه الاشتراك للمزيد. وتُعرض
           الأسعار وتجربة 3 أيام والحدود اليومية عند إتمام الشراء وفي صفحة{" "}
           <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويقبل البائع الدفع عبر PayPal.
         </p>
@@ -1384,8 +1384,8 @@ function TermsPt() {
       <section>
         <h2>7. Recursos pagos, assinaturas e reembolsos</h2>
         <p>
-          Salvar sonhos e interpretações extras com IA exigem uma assinatura Dreamly depois de uma interpretação grátis
-          como convidado. Preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
+          Visitantes desbloqueiam cada interpretação com IA, inclusive a primeira, assistindo a um anúncio curto quando disponível.
+          Quem entra recebe um número limitado de interpretações grátis e pode assinar para ter mais. Preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
           <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
         </p>
         <p>
@@ -1748,7 +1748,8 @@ function TermsDe() {
       <section>
         <h2>7. Kostenpflichtige Funktionen, Abos und Erstattungen</h2>
         <p>
-          Träume speichern und weitere KI-Deutungen erfordern nach einer kostenlosen Gastdeutung ein Dreamly-Abo.
+          Gäste schalten jede KI-Deutung, auch die erste, mit einer kurzen Werbung frei, sofern verfügbar.
+          Angemeldete Nutzer erhalten eine begrenzte Anzahl kostenloser Deutungen und können für weitere ein Abo abschließen.
           Preise, die 3-tägige Testphase und Tageslimits stehen beim Abschluss und auf der Seite{" "}
           <LocaleLink href="/pricing">Preise</LocaleLink>. Der Verkäufer nimmt die Zahlung über PayPal entgegen.
         </p>
@@ -2107,8 +2108,8 @@ function TermsRu() {
       <section>
         <h2>7. Платные функции, подписки и возвраты</h2>
         <p>
-          Сохранение снов и дополнительные толкования с ИИ требуют подписки Dreamly после одного бесплатного гостевого
-          толкования. Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
+          Гости открывают каждое толкование с ИИ, включая первое, за просмотр короткой рекламы, если она доступна.
+          После входа доступно ограниченное число бесплатных разборов; подписка позволяет получить больше. Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
           <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
         </p>
         <p>

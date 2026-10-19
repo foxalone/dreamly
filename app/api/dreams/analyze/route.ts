@@ -17,7 +17,6 @@ import {
   refundGuestAsk,
   setGuestCookie,
 } from "../_lib/guestQuota";
-import { readGuestAskDedup, writeGuestAskDedup } from "../_lib/guestDedup";
 import { grantEscapeForOwner } from "../../game/_lib/player";
 import { matchEscapes } from "../../game/_lib/escapeMatch";
 import { parseDreamLens } from "@/lib/dream-lenses";
@@ -102,38 +101,14 @@ export async function POST(req: Request) {
     if (!uid) {
       guestId = readGuestId(req) ?? newGuestId();
       clientIp = readClientIp(req);
-      // Same text from the same network today (cookie reset / incognito):
-      // a FREE repeat gets the stored answer — no OpenAI call, no quota
-      // spent. A repeat paid with an ad credit (e.g. the same dream through
-      // another lens) falls through and buys a fresh analysis, like any
-      // paid path — users who play by the rules get a real new reading.
-      const dedup = await readGuestAskDedup(clientIp, text).catch(() => null);
+      // Require an earned credit even for the first request or a repeated text.
+      // Previously stored answers must never bypass the guest ad gate.
       const booked = await consumeGuestAsk(guestId, clientIp);
-      if (dedup?.analysis && (!booked.ok || booked.charge === "free")) {
-        // Not ad-paid: hand back the free slot (if one was taken) and serve
-        // the cache.
-        if (booked.ok) await refundGuestAsk(guestId, clientIp, booked);
-        return finish(
-          NextResponse.json({
-            analysis: dedup.analysis,
-            model: dedup.model ?? null,
-            lens: dedup.lens ?? null,
-            guest: true,
-            cost: 0,
-            emojis: dedup.emojis ?? [],
-            emojiModel: dedup.emojiModel ?? null,
-            cached: true,
-          })
-        );
-      }
       if (!booked.ok) {
         return finish(
           NextResponse.json(
             {
-              error:
-                booked.reason === "ip_limit"
-                  ? "Too many free interpretations from this network. Sign in to continue."
-                  : "That was your free interpretation. Sign in to continue.",
+              error: "Watch a short ad or sign in to interpret your dream.",
               code: "GUEST_LIMIT_REACHED",
               reason: booked.reason,
             },
@@ -191,18 +166,6 @@ export async function POST(req: Request) {
     const emojiPick = await emojiPromise;
     const fallbackEmojis = emojiPick?.emojis?.length ? [] : (await pickDreamMapVisuals(text).catch(() => null))?.emojis ?? [];
     const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
-
-    if (isGuest) {
-      // Remember the answer for today's repeats of this text from this network.
-      await writeGuestAskDedup(clientIp, text, {
-        analysis,
-        model,
-        lens: lens ?? null,
-        emojis: dreamEmojis,
-        emojiModel: emojiPick?.model ?? null,
-        createdAtMs: Date.now(),
-      }).catch(() => {});
-    }
 
     // Every analysis paid with an ad credit grants its own icons. Free/plan
     // analyses retain the once-per-day rule. Never fails the reading.

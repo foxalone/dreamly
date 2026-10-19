@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Anonymous visitors get GUEST_FREE_ASKS model answers before signing in.
+    // Anonymous visitors need an ad credit for every AI answer.
     const isGuest = !uid;
     const guestId = isGuest ? readGuestId(req) ?? newGuestId() : null;
     const clientIp = isGuest ? readClientIp(req) : "";
@@ -162,8 +162,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Same rule as every AI interpretation: guest one free lookup,
-    // then sign-in; signed in → consumeAnalysisAccess (free / ad credit / plan).
+    // Miss → GPT. Guests need an earned ad credit from their first lookup;
+    // signed in → consumeAnalysisAccess (free / ad credit / plan).
     let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
     let charge: "slot" | "free" | "ad" | null = null;
     if (isGuest && guestId) {
@@ -172,10 +172,7 @@ export async function POST(req: Request) {
         return finish(
           NextResponse.json(
             {
-              error:
-                booked.reason === "ip_limit"
-                  ? "Too many free lookups from this network. Sign in to continue."
-                  : "That was your free lookup. Sign in to keep asking.",
+              error: "Watch a short ad or sign in to interpret your dream.",
               code: "GUEST_LIMIT_REACHED",
               reason: booked.reason,
             },

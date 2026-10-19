@@ -22,7 +22,7 @@ export const EN_MESSAGES: UiMessages = {
     askPlaceholder: "Describe your dream…",
     askSubmit: "Interpret",
     askBusy: "Reading your dream…",
-    askHint: "First interpretation is free — no sign-in.",
+    askHint: "Watch a short ad for an AI interpretation — no sign-in needed.",
     askShareFeed: "Share anonymously in the feed",
     askSave: "Save to journal",
     askMore: "Ask more",
@@ -30,7 +30,7 @@ export const EN_MESSAGES: UiMessages = {
     askCached: "This dream is saved on this device. If you shared it, it’s already on the anonymous map. Sign in later and we’ll move it into your journal.",
     askEmpty: "Write a few words from the dream first.",
     askOrDictionary: "Or browse the dream dictionary",
-    askGuestLimit: "You already had one free interpretation. Sign in to get more.",
+    askGuestLimit: "Watch a short ad or sign in to interpret your dream.",
     discover: "Discover Dreamly",
     featuresTitle: "Everything your dreams deserve",
     featuresLead:
@@ -61,7 +61,7 @@ export const EN_MESSAGES: UiMessages = {
     browseFull: "Browse the full dream dictionary",
     faqTitle: "Frequently asked questions",
     closingTitle: "Start understanding your dreams tonight",
-    closingLead: "Start free with one interpretation. Subscribe for the journal and more AI readings.",
+    closingLead: "Watch a short ad for an interpretation, or sign in for free AI readings.",
     faqs: [
       {
         question: "What does my dream mean? Can AI interpret it?",
@@ -76,7 +76,7 @@ export const EN_MESSAGES: UiMessages = {
       {
         question: "Is Dreamly free to use?",
         answer:
-          "The dictionary, gallery, and map are free, and you can save a few dreams to your journal for free every day (more by watching a short ad). Your first AI interpretation as a guest is free too; sign in for a few more free interpretations. After that, AI readings are part of the Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, with unlimited saving, 400 characters per dream.",
+          "The dictionary, gallery, and map are free, and you can save a few dreams to your journal for free every day (more by watching a short ad). As a guest, watch a short ad for each AI interpretation, including your first; sign in for a few free interpretations. After that, AI readings are part of the Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, with unlimited saving, 400 characters per dream.",
       },
       {
         question: "How does AI dream interpretation work?",
@@ -194,7 +194,7 @@ export const EN_MESSAGES: UiMessages = {
   },
   pricing: {
     h1: "Pricing",
-    lead: "Start with one free interpretation. Then subscribe for the dream journal and AI readings.",
+    lead: "Watch a short ad for a guest interpretation, or sign in for free AI readings. Subscribe for more.",
     plansTitle: "Plans",
     monthly: "Monthly",
     yearly: "Yearly",
@@ -206,11 +206,11 @@ export const EN_MESSAGES: UiMessages = {
     limitsNote: "Up to 3 AI interpretations per day — including during the trial.",
     accessFeatures: "Journal, map, photos, and more.",
     useFor: "Subscription unlocks AI interpretations and unlimited saving in the app.",
-    freeNote: "The dictionary, gallery, map, a few saved dreams every day, and your first interpretations stay free.",
+    freeNote: "The dictionary, gallery, and map are free. Guests unlock each AI interpretation with a short ad; signed-in users get a limited number of free readings.",
     refundNote: "Cancel during the trial and you are not charged. See the Refund Policy.",
     seoTitle: "Dreamly Pricing — Monthly and Yearly AI Dream Interpretation",
     seoDescription:
-      "Subscribe to Dreamly for AI dream interpretations: $6.99/month or $69.99/year with a 3-day free trial. First interpretation, dictionary, and gallery stay free.",
+      "Subscribe to Dreamly for AI dream interpretations: $6.99/month or $69.99/year with a 3-day free trial. Guests unlock AI readings with short ads. Dictionary and gallery are free.",
     subscribeCta: "Subscribe",
     cancelAnytime: "Cancel anytime in your profile.",
     yearlySave: "2 months free",
@@ -355,8 +355,8 @@ export const EN_MESSAGES: UiMessages = {
   },
   plansModal: {
     guestTitle: "Continue your interpretation",
-    guestBody: "Guests get one free AI interpretation. That limit is used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
-    guestNetworkBody: "Today’s free AI interpretations for this network are used up. Sign in, or watch a short ad to get one more interpretation for free without signing in.",
+    guestBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
+    guestNetworkBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
     guestTranslateTitle: "Translate this dream",
     guestTranslateBody: "Sign in with Google to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
     signInWithGoogle: "Continue with Google",
@@ -372,7 +372,7 @@ export const EN_MESSAGES: UiMessages = {
     saveBody: "Your free interpretations are used up. AI interpretations are part of the Dreamly subscription — start a 3-day free trial to keep going.",
     saveDailyTitle: "Free: one interpretation a day",
     saveDailyBody: "Come back tomorrow for another free interpretation, or subscribe for up to 3 a day.",
-    watchAd: "Watch a short ad — get one more interpretation",
+    watchAd: "Watch a short ad to unlock this interpretation",
     watchAdSave: "Watch a short ad — save this dream",
     watchAdTranslate: "Watch a short ad — translate this dream",
     adCardTitle: "Short ad",

@@ -1,5 +1,6 @@
 /** Shared by the server quota and its regression tests. */
-export const GUEST_FREE_ASKS = 1;
+// Guests earn every AI reading through an ad, including their first.
+export const GUEST_FREE_ASKS = 0;
 // 2 per network per day: one real second visitor still gets a reading, but
 // clearing the guest cookie to re-ask stops paying off (2026-10-09).
 export const GUEST_IP_DAILY_LIMIT = 2;

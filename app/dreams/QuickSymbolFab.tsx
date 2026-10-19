@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import { openPaywall } from "@/lib/paywall";
 
@@ -90,6 +90,7 @@ function clearPending() {
 export default function QuickSymbolFab() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useMessages();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -363,7 +364,7 @@ export default function QuickSymbolFab() {
                       Up to {QUICK_SYMBOL_MAX_WORDS} words. Dictionary matches are always free.
                       {user
                         ? " Unknown symbols cost 1 credit."
-                        : " Your first AI answer is free — no sign-in."}
+                        : ` ${t.home.askHint}`}
                     </p>
                   </div>
                   <button

@@ -22,7 +22,7 @@ export const DE_MESSAGES: UiMessages = {
     askPlaceholder: "Beschreibe deinen Traum…",
     askSubmit: "Deuten",
     askBusy: "Dein Traum wird gelesen…",
-    askHint: "Die erste Deutung ist kostenlos — ohne Anmeldung.",
+    askHint: "Sieh dir eine kurze Werbung für eine KI-Traumdeutung an — ohne Anmeldung.",
     askShareFeed: "Anonym im Feed teilen",
     askSave: "Im Tagebuch speichern",
     askMore: "Weiterfragen",
@@ -30,7 +30,7 @@ export const DE_MESSAGES: UiMessages = {
     askCached: "Dieser Traum ist auf diesem Gerät gespeichert. Wenn du ihn geteilt hast, ist er schon auf der anonymen Karte. Melde dich später an — wir legen ihn in dein Tagebuch.",
     askEmpty: "Schreib zuerst ein paar Worte aus dem Traum.",
     askOrDictionary: "Oder das Traumlexikon durchsuchen",
-    askGuestLimit: "Du hattest bereits eine kostenlose Deutung. Melde dich an, um mehr zu bekommen.",
+    askGuestLimit: "Sieh dir eine kurze Werbung an oder melde dich an, um deinen Traum zu deuten.",
     discover: "Dreamly entdecken",
     featuresTitle: "Alles, was deine Träume verdienen",
     featuresLead:
@@ -61,7 +61,7 @@ export const DE_MESSAGES: UiMessages = {
     browseFull: "Ganzes Lexikon durchsuchen",
     faqTitle: "Häufige Fragen",
     closingTitle: "Verstehe deine Träume noch heute Nacht",
-    closingLead: "Kostenlos mit einer Deutung starten. Abonnieren fürs Tagebuch und weitere KI-Lesungen.",
+    closingLead: "Sieh dir eine kurze Werbung für eine Deutung an oder melde dich für kostenlose KI-Deutungen an.",
     faqs: [
       {
         question: "Was bedeutet mein Traum? Kann KI ihn deuten?",
@@ -76,7 +76,7 @@ export const DE_MESSAGES: UiMessages = {
       {
         question: "Ist Dreamly kostenlos?",
         answer:
-          "Lexikon, Galerie und Karte sind kostenlos, und du kannst jeden Tag ein paar Träume kostenlos im Tagebuch speichern (mehr nach einer kurzen Werbung). Deine erste KI-Deutung als Gast ist ebenfalls gratis; nach der Anmeldung bekommst du noch ein paar weitere. Danach gehören KI-Deutungen zum Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test) — bis zu 3 pro Tag, unbegrenztes Speichern, je 400 Zeichen pro Traum.",
+          "Lexikon, Galerie und Karte sind kostenlos, und du kannst jeden Tag ein paar Träume kostenlos im Tagebuch speichern (mehr nach einer kurzen Werbung). Als Gast siehst du dir für jede KI-Deutung eine kurze Werbung an, auch für die erste. Nach der Anmeldung erhältst du einige kostenlose Deutungen. Danach gehören KI-Deutungen zum Dreamly-Abo (6,99 USD/Monat oder 69,99 USD/Jahr, mit 3 Tagen Test) — bis zu 3 pro Tag, unbegrenztes Speichern, je 400 Zeichen pro Traum.",
       },
       {
         question: "Wie funktioniert die KI-Traumdeutung?",
@@ -194,7 +194,7 @@ export const DE_MESSAGES: UiMessages = {
   },
   pricing: {
     h1: "Preise",
-    lead: "Starte mit einer kostenlosen Deutung. Danach abonnieren für Tagebuch und KI-Lesungen.",
+    lead: "Als Gast schaltest du eine Deutung mit kurzer Werbung frei. Melde dich für kostenlose KI-Deutungen an oder abonniere für mehr.",
     plansTitle: "Pläne",
     monthly: "Monatlich",
     yearly: "Jährlich",
@@ -206,11 +206,11 @@ export const DE_MESSAGES: UiMessages = {
     limitsNote: "Bis zu 3 KI-Deutungen pro Tag — auch in der Testphase.",
     accessFeatures: "Tagebuch, Karte, Fotos und mehr.",
     useFor: "Das Abo schaltet KI-Deutungen und unbegrenztes Speichern in der App frei.",
-    freeNote: "Lexikon, Galerie, Karte, ein paar gespeicherte Träume pro Tag und deine ersten Deutungen bleiben kostenlos.",
+    freeNote: "Lexikon, Galerie und Karte sind kostenlos. Gäste schalten jede KI-Deutung mit kurzer Werbung frei; angemeldete Nutzer erhalten eine begrenzte Anzahl kostenloser Deutungen.",
     refundNote: "Kündigst du in der Testphase, wird nichts berechnet. Siehe die Erstattungsrichtlinie.",
     seoTitle: "Dreamly-Preise — monatliche und jährliche KI-Traumdeutung",
     seoDescription:
-      "Dreamly abonnieren für KI-Traumdeutungen: 6,99 USD/Monat oder 69,99 USD/Jahr mit 3 Tagen Test. Erste Deutung, Lexikon und Galerie bleiben kostenlos.",
+      "Dreamly abonnieren: 6,99 USD/Monat oder 69,99 USD/Jahr mit 3 Tagen Test. Gäste schalten KI-Deutungen mit kurzer Werbung frei. Lexikon und Galerie sind kostenlos.",
     subscribeCta: "Abonnieren",
     cancelAnytime: "Jederzeit im Profil kündigen.",
     yearlySave: "2 Monate gratis",
@@ -355,8 +355,8 @@ export const DE_MESSAGES: UiMessages = {
   },
   plansModal: {
     guestTitle: "Weiter zur Traumdeutung",
-    guestBody: "Als Gast erhältst du eine kostenlose KI-Deutung. Diese hast du bereits genutzt. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
-    guestNetworkBody: "Die kostenlosen KI-Deutungen für dieses Netzwerk sind heute aufgebraucht. Melde dich an oder sieh dir eine kurze Werbung an, um ohne Anmeldung eine weitere kostenlose Deutung zu erhalten.",
+    guestBody: "Sieh dir eine kurze Werbung an, um diese KI-Deutung ohne Anmeldung freizuschalten — auch deine erste. Oder melde dich für kostenlose KI-Deutungen an.",
+    guestNetworkBody: "Sieh dir eine kurze Werbung an, um diese KI-Deutung ohne Anmeldung freizuschalten — auch deine erste. Oder melde dich für kostenlose KI-Deutungen an.",
     guestTranslateTitle: "Diesen Traum übersetzen",
     guestTranslateBody: "Melde dich mit Google an und erhalte eine kostenlose Übersetzung pro Tag, oder sieh dir eine kurze Werbung an, um ohne Anmeldung zu übersetzen. Die Übersetzung bleibt deine – wenn du dich später anmeldest, wandert sie in dein Konto.",
     signInWithGoogle: "Mit Google fortfahren",
@@ -372,7 +372,7 @@ export const DE_MESSAGES: UiMessages = {
     saveBody: "Deine kostenlosen Deutungen sind aufgebraucht. KI-Deutungen sind Teil des Dreamly-Abos — starte eine 3-tägige kostenlose Testphase, um weiterzumachen.",
     saveDailyTitle: "Gratis: eine Deutung pro Tag",
     saveDailyBody: "Komm morgen für eine weitere Gratis-Deutung wieder, oder abonniere für bis zu 3 pro Tag.",
-    watchAd: "Kurze Werbung ansehen — eine weitere Deutung erhalten",
+    watchAd: "Kurze Werbung ansehen und diese Deutung freischalten",
     watchAdSave: "Kurze Werbung ansehen — diesen Traum speichern",
     watchAdTranslate: "Kurze Werbung ansehen — diesen Traum übersetzen",
     adCardTitle: "Kurze Werbung",

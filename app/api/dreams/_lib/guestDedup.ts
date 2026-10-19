@@ -5,14 +5,10 @@ import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { hashIp } from "./guestQuota";
 
 /**
- * One guest asking the SAME dream text from the SAME network on the SAME day
- * is one reading, however many times the dreamly_guest cookie is reset
- * (incognito windows minted a fresh free ask per cookie). /api/dreams/analyze
- * serves the stored answer instead of calling OpenAI or spending quota, and
- * /api/map/ingest-guest skips creating a second guest_dreams doc / map pin.
- *
- * The lens is deliberately NOT part of the key: re-asking the same text with
- * another lens was exactly the cookie-reset pattern this closes.
+ * Deduplicates map ingestion of the same text from the same network and day.
+ * Legacy records may contain an analysis, but AI routes never serve those
+ * answers: every new guest AI request must spend an earned ad credit.
+ * The lens is deliberately not part of the map deduplication key.
  */
 
 const COLLECTION = "guestAskDedup";

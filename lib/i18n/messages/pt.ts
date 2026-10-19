@@ -22,7 +22,7 @@ export const PT_MESSAGES: UiMessages = {
     askPlaceholder: "Descreva seu sonho…",
     askSubmit: "Interpretar",
     askBusy: "Lendo seu sonho…",
-    askHint: "A primeira interpretação é grátis — sem login.",
+    askHint: "Assista a um anúncio curto para interpretar seu sonho com IA, sem fazer login.",
     askShareFeed: "Compartilhar anonimamente no feed",
     askSave: "Salvar no diário",
     askMore: "Perguntar mais",
@@ -30,7 +30,7 @@ export const PT_MESSAGES: UiMessages = {
     askCached: "Este sonho ficou salvo neste aparelho. Se você compartilhou, ele já está no mapa anônimo. Entre depois e nós o colocamos no seu diário.",
     askEmpty: "Escreva primeiro algumas palavras do sonho.",
     askOrDictionary: "Ou abra o dicionário de sonhos",
-    askGuestLimit: "Você já usou sua interpretação grátis. Entre para obter mais.",
+    askGuestLimit: "Assista a um anúncio curto ou entre para interpretar seu sonho.",
     discover: "Conheça a Dreamly",
     featuresTitle: "Tudo o que seus sonhos merecem",
     featuresLead:
@@ -61,7 +61,7 @@ export const PT_MESSAGES: UiMessages = {
     browseFull: "Ver o dicionário completo",
     faqTitle: "Perguntas frequentes",
     closingTitle: "Comece a entender seus sonhos esta noite",
-    closingLead: "Comece grátis com uma interpretação. Assine para o diário e mais leituras com IA.",
+    closingLead: "Assista a um anúncio curto para obter uma interpretação ou entre para receber leituras grátis com IA.",
     faqs: [
       {
         question: "O que significa o meu sonho? A IA consegue interpretar?",
@@ -76,7 +76,7 @@ export const PT_MESSAGES: UiMessages = {
       {
         question: "A Dreamly é grátis?",
         answer:
-          "O dicionário, a galeria e o mapa são grátis, e todo dia você pode salvar alguns sonhos no diário de graça (mais assistindo a um anúncio curto). Sua primeira interpretação com IA como convidado também é grátis; entre para ganhar mais algumas. Depois disso, as interpretações com IA fazem parte da assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste) — até 3 por dia, salvamento ilimitado, 400 caracteres por sonho.",
+          "O dicionário, a galeria e o mapa são grátis, e todo dia você pode salvar alguns sonhos no diário de graça (mais assistindo a um anúncio curto). Como visitante, assista a um anúncio curto por interpretação com IA, inclusive a primeira; entre para receber algumas interpretações grátis. Depois disso, as interpretações com IA fazem parte da assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste) — até 3 por dia, salvamento ilimitado, 400 caracteres por sonho.",
       },
       {
         question: "Como funciona a interpretação com IA?",
@@ -194,7 +194,7 @@ export const PT_MESSAGES: UiMessages = {
   },
   pricing: {
     h1: "Preços",
-    lead: "Comece com uma interpretação grátis. Depois assine para o diário e as leituras com IA.",
+    lead: "Assista a um anúncio curto para interpretar seu sonho como visitante ou entre para receber leituras grátis com IA. Assine para ter mais.",
     plansTitle: "Planos",
     monthly: "Mensal",
     yearly: "Anual",
@@ -206,11 +206,11 @@ export const PT_MESSAGES: UiMessages = {
     limitsNote: "Até 3 interpretações com IA por dia — inclusive no teste.",
     accessFeatures: "Diário, mapa, fotos e mais.",
     useFor: "A assinatura libera as interpretações com IA e o salvamento ilimitado no app.",
-    freeNote: "O dicionário, a galeria, o mapa, alguns sonhos salvos por dia e suas primeiras interpretações continuam grátis.",
+    freeNote: "O dicionário, a galeria e o mapa são grátis. Visitantes desbloqueiam cada interpretação com IA assistindo a um anúncio curto; quem entra recebe um número limitado de leituras grátis.",
     refundNote: "Cancele no teste e você não é cobrado. Veja a Política de reembolso.",
     seoTitle: "Preços da Dreamly — interpretação de sonhos com IA mensal e anual",
     seoDescription:
-      "Assine a Dreamly para interpretações com IA: US$ 6,99/mês ou US$ 69,99/ano com 3 dias de teste. A primeira interpretação, o dicionário e a galeria continuam grátis.",
+      "Assine a Dreamly: US$ 6,99/mês ou US$ 69,99/ano com 3 dias de teste. Visitantes desbloqueiam interpretações com IA assistindo a anúncios curtos. Dicionário e galeria grátis.",
     subscribeCta: "Assinar",
     cancelAnytime: "Cancele quando quiser no perfil.",
     yearlySave: "2 meses grátis",
@@ -355,8 +355,8 @@ export const PT_MESSAGES: UiMessages = {
   },
   plansModal: {
     guestTitle: "Continue sua interpretação",
-    guestBody: "Visitantes têm direito a uma interpretação grátis com IA, e ela já foi usada. Entre ou assista a um anúncio curto para ganhar outra grátis sem fazer login.",
-    guestNetworkBody: "As interpretações grátis com IA disponíveis para esta rede hoje já foram usadas. Entre ou assista a um anúncio curto para ganhar outra grátis sem fazer login.",
+    guestBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
+    guestNetworkBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
     guestTranslateTitle: "Traduzir este sonho",
     guestTranslateBody: "Entre com o Google para ganhar uma tradução grátis por dia, ou assista a um anúncio curto para traduzir sem fazer login. A tradução fica sua: se você entrar depois, ela passa para a sua conta.",
     signInWithGoogle: "Continuar com o Google",
@@ -372,7 +372,7 @@ export const PT_MESSAGES: UiMessages = {
     saveBody: "Suas interpretações gratuitas acabaram. As interpretações com IA fazem parte da assinatura Dreamly — comece um teste gratuito de 3 dias para continuar.",
     saveDailyTitle: "Grátis: uma interpretação por dia",
     saveDailyBody: "Volte amanhã para mais uma interpretação grátis, ou assine para ter até 3 por dia.",
-    watchAd: "Assista a um anúncio curto e ganhe mais uma interpretação",
+    watchAd: "Assista a um anúncio curto para desbloquear esta interpretação",
     watchAdSave: "Assista a um anúncio curto e salve este sonho",
     watchAdTranslate: "Assista a um anúncio curto e traduza este sonho",
     adCardTitle: "Anúncio curto",
