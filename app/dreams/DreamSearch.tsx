@@ -6,13 +6,12 @@ import type { DreamCategory } from "@/lib/dream-categories";
 import { getCategoryCopy } from "@/lib/i18n/categories";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
-import DreamWordCounter from "@/app/components/DreamWordCounter";
 import { DREAM_MAX_CHARS, clampDreamText } from "@/lib/dreamLength";
 import { openQuickSymbol } from "./quickSymbolEvents";
 import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
 import { trackEvent } from "@/lib/analytics";
 import { formatMessage } from "@/lib/i18n/messages";
-import { QUICK_SYMBOL_MAX_WORDS, countWords } from "@/lib/quickSymbolLimits";
+import { countWords } from "@/lib/quickSymbolLimits";
 import { useDreamAsk } from "@/app/components/useDreamAsk";
 import {
   containsWholePhrase,
@@ -49,8 +48,9 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     source: "dictionary_search",
     interpretedEvent: "dictionary_dream_interpreted",
     eventParams: { via: "search_field" },
+    redirectToJournal: true,
   });
-  const [askOpen, setAskOpen] = useState(false);
+  const [submitRequest, setSubmitRequest] = useState(0);
   const pendingSubmit = useRef<string | null>(null);
 
   useEffect(() => {
@@ -59,24 +59,18 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
       void ask.submit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ask.text]);
+  }, [ask.text, submitRequest]);
 
   function startDreamAsk(raw: string = query, via: "search_field" | "ai_field" = "search_field") {
     const dream = clampDreamText(raw.trim()).trim();
-    if (!dream) return;
+    if (!dream || ask.busy) return;
     trackEvent("dictionary_search_to_interpret", { word_count: countWords(dream), via });
     pendingSubmit.current = dream;
     ask.chooseLens(lens);
     ask.setText(dream);
-    setAskOpen(true);
-    if (via === "ai_field") setAiQuery("");
-    else setQuery("");
-  }
-
-  function closeDreamAsk() {
-    if (ask.busy) return;
-    ask.reset();
-    setAskOpen(false);
+    setSubmitRequest((request) => request + 1);
+    setAiQuery(dream);
+    if (via === "search_field") setQuery("");
   }
 
   function chooseLens(next: typeof lens) {
@@ -171,13 +165,9 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     event.preventDefault();
     const nextQuery = aiQuery.trim();
     if (!nextQuery) return;
-    // A whole dream doesn't fit Quick Symbol's 10-word cap — send it to the full interpreter.
-    if (countWords(nextQuery) > QUICK_SYMBOL_MAX_WORDS) {
-      startDreamAsk(nextQuery, "ai_field");
-      return;
-    }
-    trackEvent("quick_symbol_opened", { source: "dictionary_search" });
-    openQuickSymbol(nextQuery, lens);
+    // This field asks about a dream, including short descriptions. Symbol
+    // lookups remain available through the separate dictionary search.
+    startDreamAsk(nextQuery, "ai_field");
   }
 
   return (
@@ -285,6 +275,7 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
           id="dream-ai-query"
           type="text"
           value={aiQuery}
+          disabled={ask.busy}
           onChange={(event) => setAiQuery(event.target.value)}
           placeholder={t.dictionary.askPlaceholder}
           autoComplete="off"
@@ -293,110 +284,41 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
         />
         <button
           type="submit"
-          disabled={!aiQuery.trim()}
-          aria-label="Open AI dream query"
+          disabled={ask.busy || !aiQuery.trim()}
+          aria-label={t.home.askSubmit}
           className="grid size-8 shrink-0 place-items-center rounded-full bg-violet-500 text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <ArrowRight size={15} aria-hidden="true" />
+          {ask.busy ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}
         </button>
       </form>
       </div>
 
-      {askOpen ? (
-        <section
-          aria-label={t.dictionary.dreamTextPanelLabel}
-          className="relative mt-3 overflow-hidden rounded-2xl border border-violet-400/35 bg-[var(--dd-surface)] p-4 shadow-sm sm:p-5"
-        >
-          <div className="pointer-events-none absolute -end-16 -top-20 size-56 rounded-full bg-violet-500/20 blur-[70px]" aria-hidden="true" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--dd-accent-text)]">{t.brand.name}</p>
-                <h3 className="mt-1 text-base font-semibold leading-snug text-[var(--dd-text)]">{t.symbolPrompt.title}</h3>
-                <p className="mt-1 text-[13px] leading-5 text-[var(--dd-muted)]">{ask.analysis ? t.symbolPrompt.saved : t.symbolPrompt.lead}</p>
-              </div>
-              <button
-                type="button"
-                onClick={closeDreamAsk}
-                disabled={ask.busy}
-                aria-label={t.dictionary.dreamTextClose}
-                className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--dd-subtle)] transition hover:bg-[var(--dd-surface-hover)] hover:text-[var(--dd-text)] disabled:opacity-50"
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            </div>
-
-            <form onSubmit={ask.submit} className="mt-4 space-y-3">
-              <label htmlFor="dictionary-dream-text" className="sr-only">{t.symbolPrompt.placeholder}</label>
-              <textarea
-                id="dictionary-dream-text"
-                value={ask.text}
-                onChange={(e) => ask.setText(e.target.value)}
-                rows={3}
-                maxLength={ask.maxChars}
-                placeholder={t.symbolPrompt.placeholder}
-                disabled={ask.busy}
-                className="w-full resize-none rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] px-3.5 py-3 text-[15px] leading-6 text-[var(--dd-text)] outline-none transition placeholder:text-[var(--dd-faint)] focus:border-violet-400 disabled:opacity-70"
-              />
-              <div className="flex items-center justify-end text-[11px] font-medium tabular-nums text-[var(--dd-subtle)]">
-                <DreamWordCounter text={ask.text} fullClassName="text-amber-500" />
-              </div>
-              <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
-                <label className="flex min-w-0 cursor-pointer items-start gap-2 text-xs text-[var(--dd-muted)]">
-                  <input
-                    type="checkbox"
-                    checked={ask.shareToFeed}
-                    disabled={ask.busy}
-                    onChange={(e) => ask.setShareToFeed(e.target.checked)}
-                    className="mt-0.5 size-3.5 shrink-0 rounded border-[var(--dd-border-strong)] accent-violet-500"
-                  />
-                  <span>{t.home.askShareFeed}</span>
-                </label>
-                <button
-                  type="submit"
-                  disabled={ask.busy || !ask.text.trim()}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 self-end rounded-full bg-[var(--dd-text)] px-4 py-2 text-sm font-semibold text-[var(--dd-bg)] transition hover:opacity-90 disabled:opacity-50 sm:self-auto"
-                >
-                  {ask.busy ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
-                  {ask.busy ? t.home.askBusy : t.home.askSubmit}
-                </button>
-              </div>
-            </form>
-
-            {ask.error ? (
-              <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500" role="alert">
-                {ask.error}
-              </p>
-            ) : null}
-
-            {ask.analysis ? (
-              <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
-                <p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--dd-text)]">{ask.analysis}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => ask.goToJournal()}
-                    className="inline-flex items-center gap-2 rounded-full bg-violet-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-400"
-                  >
-                    {t.home.askSave}
-                    <ArrowRight size={15} className="rtl:rotate-180" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => ask.goToJournal()}
-                    className="rounded-full border border-[var(--dd-border)] px-4 py-2 text-sm font-semibold text-[var(--dd-text)] transition hover:bg-[var(--dd-surface-hover)]"
-                  >
-                    {t.home.askMore}
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
+      {ask.busy ? (
+        <p className="mt-3 text-xs text-[var(--dd-muted)]" role="status">{t.home.askBusy}</p>
+      ) : null}
+      {ask.error ? (
+        <p className="mt-3 text-sm text-red-500" role="alert">{ask.error}</p>
       ) : null}
 
       <div className="mt-3">
-        <DreamLensChips value={lens} onChange={chooseLens} disabled={ask.busy} tone="onDictionary" />
+        <DreamLensChips
+          value={lens}
+          onChange={chooseLens}
+          disabled={ask.busy}
+          tone="onDictionary"
+          headerAction={
+            <label className="flex min-w-0 cursor-pointer items-start gap-2 text-[11px] text-[var(--dd-muted)]">
+              <input
+                type="checkbox"
+                checked={ask.shareToFeed}
+                disabled={ask.busy}
+                onChange={(event) => ask.setShareToFeed(event.target.checked)}
+                className="mt-0.5 size-3.5 shrink-0 rounded border-[var(--dd-border-strong)] accent-violet-500"
+              />
+              <span>{t.home.askShareFeed}</span>
+            </label>
+          }
+        />
       </div>
     </div>
   );

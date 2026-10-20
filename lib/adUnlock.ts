@@ -23,6 +23,8 @@ const PENDING_KEY = "dreamly.adUnlock";
 
 export type AdUnlockPending = {
   kind: PaywallKind;
+  /** Full guest dream: only its journal card may consume the analysis retry. */
+  dreamText?: string;
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
   targetLang?: string;
@@ -67,12 +69,13 @@ export function clearAdUnlockPending() {
 }
 
 /** Returns and clears the pending action, if any and recent (10 min). */
-export function takeAdUnlockPending(kind?: PaywallKind): AdUnlockPending | null {
+export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdUnlockPending | null {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as AdUnlockPending;
     if (kind && p.kind !== kind) return null;
+    if (dreamText !== undefined && p.dreamText && p.dreamText !== dreamText) return null;
     sessionStorage.removeItem(PENDING_KEY);
     if (!p || typeof p.atMs !== "number" || Date.now() - p.atMs > 10 * 60_000) return null;
     return p;

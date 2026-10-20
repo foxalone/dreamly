@@ -14,7 +14,7 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
-import { takeAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -77,8 +77,9 @@ export function useDreamAsk({
     const pending = initialDream ?? readHomeDreamPending();
     if (!pending?.text) return;
     setTextState(pending.text);
-    // The feed checkbox is ALWAYS on by default: an earlier un-tick saved in the
-    // device cache must not carry over to the next dream (dima, 2026-10-10).
+    // An existing journal entry keeps its choice when the ad resumes it. New
+    // dreams in the homepage form still default to sharing (dima, 2026-10-10).
+    if (initialDream) setShareToFeedState(pending.shareToFeed !== false);
     if (pending.guestSharedId) setAnonShare("done");
     else if (pending.guestShareFailed) setAnonShare(pending.guestShareFailed);
     if (pending.lens) setLens(pending.lens);
@@ -89,7 +90,7 @@ export function useDreamAsk({
       const esc = readEscapePending();
       if (esc && (!esc.key || esc.key === pending.text)) setEscaped(esc.latestEmojis ?? esc.emojis);
       onResultChange?.(true);
-    } else if (takeAdUnlockPending("analysis")) {
+    } else if (takeAdUnlockPending("analysis", pending.text)) {
       // Back from the Offerwall (/ad/unlock): the ad credit is booked, the retry
       // closure did not survive the navigation — run the interpretation now.
       window.setTimeout(() => void submitRef.current(), 300);
@@ -209,20 +210,16 @@ export function useDreamAsk({
         }),
       });
       const data = await res.json().catch(() => ({}));
+      const attemptId = res.headers.get("X-Dreamly-Attempt");
+      if (attemptId) writeHomeDreamPending(dream, { analysisAttemptId: attemptId, lang: locale, lens, shareToFeed });
 
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source });
           persistPending(dream, "");
-          openPaywall({
-            kind: "analysis",
-            source,
-            guest: {
-              reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
-              signIn: () => goToJournal(dream, true),
-            },
-            retry: () => void submitRef.current(),
-          });
+          setAdUnlockPending({ kind: "analysis", dreamText: dream });
+          trackEvent("rewarded_ad_open", { source, kind: "analysis" });
+          window.location.assign(adUnlockUrl("analysis", localePath("/app/dreams", locale)));
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {

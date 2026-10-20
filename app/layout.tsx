@@ -52,6 +52,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <script dangerouslySetInnerHTML={{ __html: PWA_LAUNCH_SCRIPT }} />
         <link
           rel="preload"

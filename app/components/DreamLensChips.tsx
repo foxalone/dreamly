@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   DREAM_LENSES,
@@ -79,11 +79,13 @@ export default function DreamLensChips({
   onChange,
   disabled,
   tone = "onSurface",
+  headerAction,
 }: {
   value: DreamLens;
   onChange: (lens: DreamLens) => void;
   disabled?: boolean;
   tone?: "onBrand" | "onSurface" | "onDictionary";
+  headerAction?: ReactNode;
 }) {
   const t = useMessages();
   const onBrand = tone === "onBrand";
@@ -91,17 +93,20 @@ export default function DreamLensChips({
 
   return (
     <div>
-      <p
-        className={
-          onBrand
-            ? "mb-1.5 px-0.5 text-[11px] font-medium text-white/75"
-            : onDictionary
-              ? "mb-1.5 text-[11px] font-medium text-[var(--dd-subtle)]"
-              : "mb-1.5 text-[11px] font-medium text-[var(--muted)]"
-        }
-      >
-        {t.lens.label}
-      </p>
+      <div className="mb-1.5 flex items-start justify-between gap-4">
+        <p
+          className={
+            onBrand
+              ? "px-0.5 text-[11px] font-medium text-white/75"
+              : onDictionary
+                ? "text-[11px] font-medium text-[var(--dd-subtle)]"
+                : "text-[11px] font-medium text-[var(--muted)]"
+          }
+        >
+          {t.lens.label}
+        </p>
+        {headerAction}
+      </div>
       <div
         role="radiogroup"
         aria-label={t.lens.label}

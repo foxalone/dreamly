@@ -16,6 +16,7 @@ export type HomeDreamCity = {
 export type HomeDreamPending = {
   text: string;
   analysis?: string;
+  analysisAttemptId?: string;
   resumeAnalysis?: boolean;
   /** Share this dream anonymously to the public feed. (Map pins happen for every dream.) */
   shareToFeed?: boolean;
@@ -72,6 +73,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
   return {
     text,
     analysis: analysis || undefined,
+    analysisAttemptId: typeof parsed.analysisAttemptId === "string" && /^[a-f0-9]{64}$/.test(parsed.analysisAttemptId) ? parsed.analysisAttemptId : undefined,
     resumeAnalysis: parsed.resumeAnalysis === true,
     // Older caches stored the same choice as `shareToMap`.
     shareToFeed: (parsed.shareToFeed ?? (parsed as { shareToMap?: boolean }).shareToMap) !== false,
@@ -132,6 +134,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       text: nextText,
       resumeAnalysis: extra?.resumeAnalysis ?? prev?.resumeAnalysis,
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
+      analysisAttemptId: extra?.analysisAttemptId ?? prev?.analysisAttemptId,
       shareToFeed: extra?.shareToFeed ?? prev?.shareToFeed ?? prevRaw?.shareToFeed ?? true,
       lang: extra?.lang || prev?.lang || prevRaw?.lang,
       lens: extra?.lens || prev?.lens || prevRaw?.lens,

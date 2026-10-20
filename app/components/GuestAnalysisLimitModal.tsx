@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { localePath } from "@/lib/i18n/path";
 import type { PaywallRequest } from "@/lib/paywall";
 import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
@@ -17,6 +18,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   onClose: () => void;
 }) {
   const t = useMessages();
+  const locale = useLocale();
   const pm = t.plansModal;
   const translate = request.kind === "translate";
   const kind = translate ? "translate" : "analysis";
@@ -70,8 +72,11 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
     trackEvent("rewarded_ad_open", { source: request.source, kind });
     // The retry closure dies with the navigation: useDreamAsk resumes the
     // interpretation from this sessionStorage mark when we come back.
-    if (kind === "analysis") setAdUnlockPending({ kind: "analysis" });
-    window.location.assign(adUnlockUrl(kind, undefined, request.translation));
+    if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamText: request.analysisDreamText });
+    const next = kind === "analysis" && request.analysisDreamText
+      ? localePath("/app/dreams", locale)
+      : undefined;
+    window.location.assign(adUnlockUrl(kind, next, request.translation));
   }
 
   if (ad === "loading") return (

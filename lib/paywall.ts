@@ -25,6 +25,8 @@ export type PaywallRequest = {
   reason?: "limit" | "daily";
   /** GA4 upgrade_prompt source. */
   source: string;
+  /** Full-dream guest interpretation to resume in the journal after the ad. */
+  analysisDreamText?: string;
   /** Re-run the blocked action after the ad credit was granted. */
   retry?: () => void;
 };

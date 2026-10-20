@@ -22,6 +22,7 @@ import { matchEscapes } from "../../game/_lib/escapeMatch";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
+import { startAnalysisAttempt, finishAnalysisAttempt } from "../_lib/analysisAttempts";
 
 type Body = {
   text: string;
@@ -54,9 +55,15 @@ export async function POST(req: Request) {
   let guestId: string | null = null;
   let clientIp = "";
   let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
+  let attemptId: string | null = null;
+  let failureCode: string | undefined;
 
-  const finish = <T extends NextResponse>(res: T): T =>
-    guestId ? setGuestCookie(res, guestId) : res;
+  const finish = async <T extends NextResponse>(res: T): Promise<T> => {
+    const result = await res.clone().json().catch(() => ({}));
+    await finishAnalysisAttempt(attemptId, res.status, failureCode ?? result.code);
+    if (attemptId) res.headers.set("X-Dreamly-Attempt", attemptId);
+    return guestId ? setGuestCookie(res, guestId) : res;
+  };
 
   const refundCharge = async () => {
     if (chargedUid) {
@@ -98,8 +105,15 @@ export async function POST(req: Request) {
       if (!("error" in auth)) uid = auth.uid;
     }
 
+    if (!uid) guestId = readGuestId(req) ?? newGuestId();
+    attemptId = await startAnalysisAttempt({
+      text, uid, guestId: readGuestId(req) ?? guestId,
+      lang: String(body.lang ?? "").trim() || guessLang(text),
+      lens: parseDreamLens(body.lens),
+    });
+
     if (!uid) {
-      guestId = readGuestId(req) ?? newGuestId();
+      guestId ??= newGuestId();
       clientIp = readClientIp(req);
       // Require an earned credit even for the first request or a repeated text.
       // Previously stored answers must never bypass the guest ad gate.
@@ -121,7 +135,7 @@ export async function POST(req: Request) {
       // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
       // subscription: 3 free analyses in total, max 1 a day.
       const access = await consumeAnalysisAccess(uid);
-      if ("error" in access) return access.error;
+      if ("error" in access) return finish(access.error);
       if (access.charge === "slot") chargedUid = uid;
       if (access.charge === "free") freeAnalysisUid = uid;
       if (access.charge === "ad") adCreditUid = uid;
@@ -130,6 +144,7 @@ export async function POST(req: Request) {
 
     const apiKey = getOneiroOpenAiApiKey();
     if (!apiKey) {
+      failureCode = "API_KEY_MISSING";
       await refundCharge();
       return finish(NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 }));
     }
@@ -159,6 +174,7 @@ export async function POST(req: Request) {
     }
 
     if (!analysis) {
+      failureCode = "EMPTY_ANALYSIS";
       await refundCharge();
       return finish(NextResponse.json({ error: "Empty analysis" }, { status: 500 }));
     }

@@ -2,21 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { onAuthStateChanged, type User } from "firebase/auth";
+import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/auth";
+import { FcGoogle } from "react-icons/fc";
+import { Loader2 } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
-import { clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
-import { trackEvent } from "@/lib/analytics";
+import { clearAdUnlockPending, clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
+import { readHomeDreamQueue, writeHomeDreamPending } from "@/lib/homeDreamPending";
+import { trackAuth, trackEvent } from "@/lib/analytics";
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
-import { localeFromPathname, localePath } from "@/lib/i18n/path";
+import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
+import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
 type Phase = "waiting" | "showing" | "granting" | "done" | "unavailable" | "failed";
 
 // How long Google gets to render the Offerwall before we give up.
 const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
+const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
 function kindFrom(value: string | null): PaywallKind {
   return value === "save" ? "save" : value === "translate" ? "translate" : "analysis";
@@ -70,6 +78,8 @@ export default function AdUnlockClient() {
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [signInBusy, setSignInBusy] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
   const rewardId = useRef<string>("");
   const autoClicked = useRef(false);
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
@@ -77,6 +87,24 @@ export default function AdUnlockClient() {
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
+
+  useEffect(() => { router.prefetch(next); }, [next, router]);
+
+  // Android's Google flow reloads this page. Resume the same destination after
+  // authentication instead of starting another ad or showing another sign-in.
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const raw = sessionStorage.getItem(GOOGLE_RETURN_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { next: string; atMs: number };
+      sessionStorage.removeItem(GOOGLE_RETURN_KEY);
+      if (saved.next !== next || Date.now() - saved.atMs > 10 * 60_000) return;
+      void ensureUserProfileOnSignIn(user).then(() => router.replace(next));
+    } catch {
+      // A normal popup sign-in does not need session storage.
+    }
+  }, [user, next, router]);
 
   // Watch the DOM for the Offerwall overlay.
   useEffect(() => {
@@ -92,9 +120,10 @@ export default function AdUnlockClient() {
           setPhase("showing");
         } else if (Date.now() - started > APPEAR_TIMEOUT_MS) {
           trackEvent("offerwall_unavailable", { kind });
+          if (kind === "analysis") reportAnalysisAttempt("ad_unavailable");
           setPhase("unavailable");
         }
-        return;
+        if (!seen) return;
       }
       // Skip Google's "View a short ad" choice screen — start the ad at once.
       if (visible && !autoClicked.current && clickOfferwallCta()) {
@@ -103,8 +132,21 @@ export default function AdUnlockClient() {
       }
       if (!visible) setPhase("granting");
     };
+    // React as soon as Google inserts or changes its overlay. Polling remains
+    // as a fallback for visibility changes that don't mutate the DOM.
+    let frame = 0;
+    const observer = new MutationObserver(() => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => { frame = 0; tick(); });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    tick();
     const id = setInterval(tick, POLL_MS);
-    return () => clearInterval(id);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      clearInterval(id);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase === "waiting" || phase === "showing"]);
 
@@ -140,6 +182,7 @@ export default function AdUnlockClient() {
         }
         if (cancelled) return;
         if (!res.ok) {
+          if (kind === "analysis") reportAnalysisAttempt("ad_reward_failed");
           trackEvent("offerwall_grant_failed", { kind, status: res.status });
           setPhase("failed");
           return;
@@ -147,8 +190,9 @@ export default function AdUnlockClient() {
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
         clearOfferwallEntitlement();
         setPhase("done");
-        setTimeout(() => router.replace(next), 600);
+        router.replace(next);
       } catch {
+        if (kind === "analysis") reportAnalysisAttempt("ad_reward_failed");
         if (!cancelled) setPhase("failed");
       }
     })();
@@ -156,6 +200,43 @@ export default function AdUnlockClient() {
       cancelled = true;
     };
   }, [phase, user, kind, next, router, sp]);
+
+  async function signIn() {
+    if (signInBusy) return;
+    setSignInBusy(true);
+    setSignInError(null);
+    const action = kind === "analysis" ? peekAdUnlockPending("analysis") : null;
+    if (action?.dreamText) {
+      const dream = readHomeDreamQueue().find((item) => item.text === action.dreamText);
+      if (dream && !dream.analysis) writeHomeDreamPending(dream.text, { resumeAnalysis: true });
+      // Sign-in resumes via the journal import; no ad reward was granted.
+      clearAdUnlockPending();
+    }
+    try {
+      if (isDreamlyAndroidApp()) {
+        try {
+          sessionStorage.setItem(GOOGLE_RETURN_KEY, JSON.stringify({ next, atMs: Date.now() }));
+        } catch {
+          // Google authentication can still proceed without storage.
+        }
+      }
+      // Start directly from the click so browsers allow Google's account popup.
+      const credential = await signInWithGoogle();
+      if (!credential) return;
+      await ensureUserProfileOnSignIn(credential.user);
+      trackAuth(!!getAdditionalUserInfo(credential)?.isNewUser);
+      router.replace(next);
+    } catch (error) {
+      if (kind === "analysis") reportAnalysisAttempt(
+        (error as { code?: string })?.code === "auth/unauthorized-domain" ? "auth_unauthorized_domain" : "auth_failed",
+        action?.dreamText,
+      );
+      try { sessionStorage.removeItem(GOOGLE_RETURN_KEY); } catch { /* ignore */ }
+      setSignInError(error instanceof Error ? error.message : t.game.error);
+    } finally {
+      setSignInBusy(false);
+    }
+  }
 
   const m = t.adUnlock;
   const text =
@@ -182,13 +263,32 @@ export default function AdUnlockClient() {
           </div>
         ) : null}
         {phase === "unavailable" || phase === "failed" ? (
-          <button type="button" className="dream-primary-btn mt-5 w-full" onClick={() => router.replace(next)}>
-            {m.back}
-          </button>
+          <>
+            <button type="button" disabled={signInBusy} className="dream-primary-btn mt-5 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60" onClick={() => {
+              // An unavailable/failed ad did not buy an analysis. Returning to
+              // the journal must not consume the retry and reopen the ad flow.
+              if (kind === "analysis") {
+                reportAnalysisAttempt("back");
+                clearAdUnlockPending();
+              }
+              router.replace(next);
+            }}>
+              {m.back}
+            </button>
+            {user === null ? (
+              <button
+                type="button"
+                disabled={signInBusy}
+                className="dream-primary-btn mt-3 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60"
+                onClick={signIn}
+              >
+                {signInBusy ? <Loader2 size={20} className="animate-spin" aria-hidden="true" /> : <FcGoogle className="shrink-0 text-xl" aria-hidden="true" />}
+                <span>{t.plansModal.signInWithGoogle}</span>
+              </button>
+            ) : null}
+          </>
         ) : null}
-        <a href={localePath("/app/upgrade", locale)} className="mt-4 block text-sm text-[var(--muted)] underline">
-          {t.plansModal.choosePlan}
-        </a>
+        {signInError ? <p role="alert" className="mt-3 text-sm text-red-500">{signInError}</p> : null}
       </div>
     </main>
   );
