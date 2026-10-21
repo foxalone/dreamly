@@ -1,3 +1,4 @@
+import { MUD_CONTENT } from "./dreams/mud-content";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 
 export { DREAM_CATEGORIES, type DreamCategory };
@@ -72,6 +73,21 @@ const DICTIONARY_UPDATED_AT = "2026-08-22";
 
 const CLUSTERS: ClusterSeed[] = [
   {
+    slug: "mud",
+    name: "mud",
+    category: "nature",
+    icon: "🟤",
+    accent: "#a16207",
+    summary: "mess, slow progress, embarrassment, unfinished work, and the search for firmer ground",
+    aliases: ["muddy", "mud dreams", "mud dream meaning", "dream about mud", "muddy ground", "covered in mud", "mud on clothes", "muddy shoes", "washing off mud", "playing in mud"],
+    relatedSymbols: ["water", "rain", "dirty-water", "shoes", "pig", "pig-in-mud", "drowning"],
+    updatedAt: "2026-10-21",
+    variations: [
+      { slug: "walking-in-mud", name: "walking in mud", focus: "effortful progress, pressure to keep pace, hidden work, and choosing a more manageable route", aliases: ["walking through mud", "walking on mud", "walking in muddy water", "muddy path", "muddy road", "walking in the mud", "feet stuck in mud"] },
+      { slug: "sinking-in-mud", name: "sinking in mud", focus: "losing support, feeling trapped by obligations, setting limits, and accepting help", aliases: ["stuck in mud", "stuck in the mud", "sinking into mud", "trapped in mud", "getting out of mud", "being pulled out of mud"] },
+    ],
+  },
+  {
     slug: "snake",
     name: "snake",
     category: "animals",
@@ -144,6 +160,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dream dictionary water",
     ],
     relatedSymbols: [
+      "mud",
       "snake",
       "death",
       "baby",
@@ -167,6 +184,7 @@ const CLUSTERS: ClusterSeed[] = [
       "frog",
       "beaver", "whale", "turtle", "octopus", "swan", "penguin", "crab", "mermaid"
     ],
+    updatedAt: "2026-10-21",
     variations: [
       { slug: "flood", name: "flood", focus: "feelings, demands, or changes that seem to be exceeding your current capacity" },
       { slug: "ocean", name: "ocean", focus: "vast emotion, freedom, uncertainty, or contact with forces larger than the conscious self" },
@@ -2291,8 +2309,8 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of shoes",
       "lost shoes dream",
     ],
-    relatedSymbols: ["being-naked", "being-lost", "work", "money", "clothes"],
-    updatedAt: "2026-09-05",
+    relatedSymbols: ["mud", "being-naked", "being-lost", "work", "money", "clothes"],
+    updatedAt: "2026-10-21",
     variations: [
       { slug: "lost-shoes", name: "lost shoes", focus: "unprepared to walk the next path, missing public identity, or a journey you cannot start barefoot" },
       { slug: "new-shoes", name: "new shoes", focus: "a fresh path, upgraded presentation, or a role you are still breaking in" },
@@ -3252,8 +3270,8 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#db2777",
     summary: "abundance, appetite, comfort and excess, prosperity at home, and the question of what you allow yourself to take",
     aliases: ["pig dreams", "dream about a pig", "pig dream meaning", "dreaming of pigs", "pigs in a dream"],
-    relatedSymbols: ["cow", "goat", "money", "eating"],
-    updatedAt: "2026-10-03",
+    relatedSymbols: ["mud", "cow", "goat", "money", "eating"],
+    updatedAt: "2026-10-21",
     variations: [
       { slug: "piglets", name: "piglets", focus: "small gains multiplying, a playful fresh start, or abundance that still needs care" },
       { slug: "pig-in-mud", name: "a pig in mud", focus: "enjoying a mess, guilt about indulgence, or comfort found where others see dirt" },
@@ -3895,6 +3913,7 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, entry]) => [slug, entry.sections])),
   "golden-swan": {
     introduction: [
       "A swan already arrives in dreams carrying grace, faithful love, and quiet transformation; gilding it adds one more claim, worth. A golden swan is the dream insisting that something graceful in your life is also precious: a relationship that never raised its voice, a talent that works without applause, a person whose value the household quietly runs on. The image tends to appear at moments of recognition, when what has been gliding by unremarked is suddenly seen for what it is worth.",
@@ -7108,6 +7127,7 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, { seoTitle, seoDescription }]) => [slug, { seoTitle, seoDescription }])),
   "golden-swan": {
     seoTitle: "Golden Swan Dream Meaning: Grace Revealed as Treasure",
     seoDescription:

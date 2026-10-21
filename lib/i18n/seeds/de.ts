@@ -1,6 +1,9 @@
 import type { SeedL10n } from "./types";
 
 export const SEEDS_DE: Record<string, SeedL10n> = {
+  "mud": {"name": "Schlamm", "summary": "sichtbare Spuren, Sorge um den eigenen Eindruck und Vorhaben, die noch keine feste Form haben", "aliases": ["Matsch", "schlammig", "matschig", "Schlamm an der Kleidung"]},
+  "walking-in-mud": {"name": "durch Schlamm gehen", "focus": "mühsames Vorankommen, fremde Zeitvorgaben und die Suche nach günstigeren Bedingungen", "aliases": ["im Schlamm gehen", "durch Matsch laufen", "schlammiger Weg", "im Matsch laufen"]},
+  "sinking-in-mud": {"name": "im Schlamm versinken", "focus": "fehlender Halt, schwer lösbare Verpflichtungen und erreichbare Unterstützung", "aliases": ["im Schlamm stecken", "im Matsch versinken", "im Schlamm feststecken", "aus Schlamm befreit werden"]},
   snake: {
     name: "Schlange",
     summary: "Verwandlung, verborgene Angst, Instinkt, Heilung und Lagen, die Wachsamkeit verlangen",
