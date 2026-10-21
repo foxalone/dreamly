@@ -11,7 +11,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { createOrGetDirectChat } from "@/lib/chat/chatDb";
 import { trackAuth } from "@/lib/analytics";
 
@@ -167,11 +167,12 @@ export default function InvitePage() {
       setError("");
       setJoining(false);
 
-      const cred = await signInWithGoogle();
+      const cred = await signInWithOptions();
       if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
     } catch (e) {
+      if ((e as { code?: string }).code === "auth/popup-closed-by-user") return;
       console.error("Sign in failed", e);
       setError("Sign in failed.");
       setJoining(false);

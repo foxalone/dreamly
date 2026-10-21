@@ -1,5 +1,6 @@
 import { ArrowRight, ArrowUpRight, BookOpen, ChevronRight, Layers3 } from "lucide-react";
 import DreamSearch from "./DreamSearch";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import GuideLinkCards from "./GuideLinkCards";
 import {
   ALL_DREAM_ENTRIES,
@@ -132,6 +133,10 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
             })}
           </nav>
         </section>
+
+        <div className="mx-auto mt-10 max-w-4xl" data-dictionary-banner>
+          <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+        </div>
 
         <section id="how-dreaming-works" className="mt-14 scroll-mt-24" aria-labelledby="how-dreaming-works-title">
           <div>

@@ -22,6 +22,7 @@ import { isoDurationSeconds, youtubeThumbnail, youtubeWatchPageUrl } from "@/lib
 import GuideLinkCards from "./GuideLinkCards";
 import InlineDreamPrompt from "./InlineDreamPrompt";
 import LinkedText from "./LinkedText";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import {
   getCategorySiblings,
   getCombosForSymbol,
@@ -338,6 +339,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                       rest={opening.rest ? <LinkedText text={opening.rest} /> : null}
                     />
                   ) : null}
+                  {openingParagraph ? <ArticleAdBanner key={entry.slug} locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} /> : null}
                   {remainingParagraphs.map((paragraph) => (
                     <p key={paragraph}>
                       <LinkedText text={paragraph} />

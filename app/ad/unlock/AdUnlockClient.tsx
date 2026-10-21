@@ -3,15 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/auth";
-import { FcGoogle } from "react-icons/fc";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
 import { clearAdUnlockPending, clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { readHomeDreamQueue, writeHomeDreamPending } from "@/lib/homeDreamPending";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
@@ -213,20 +212,25 @@ export default function AdUnlockClient() {
       clearAdUnlockPending();
     }
     try {
-      if (isDreamlyAndroidApp()) {
+      const credential = await signInWithOptions({ beforeGoogle: () => {
+        if (!isDreamlyAndroidApp()) return;
         try {
           sessionStorage.setItem(GOOGLE_RETURN_KEY, JSON.stringify({ next, atMs: Date.now() }));
         } catch {
           // Google authentication can still proceed without storage.
         }
-      }
-      // Start directly from the click so browsers allow Google's account popup.
-      const credential = await signInWithGoogle();
+      }, onAuthError: (error) => {
+        if (kind === "analysis") reportAnalysisAttempt(
+          (error as { code?: string }).code === "auth/unauthorized-domain" ? "auth_unauthorized_domain" : "auth_failed",
+          action?.dreamText,
+        );
+      } });
       if (!credential) return;
       await ensureUserProfileOnSignIn(credential.user);
       trackAuth(!!getAdditionalUserInfo(credential)?.isNewUser);
       router.replace(next);
     } catch (error) {
+      if ((error as { code?: string }).code === "auth/popup-closed-by-user") return;
       if (kind === "analysis") reportAnalysisAttempt(
         (error as { code?: string })?.code === "auth/unauthorized-domain" ? "auth_unauthorized_domain" : "auth_failed",
         action?.dreamText,
@@ -282,8 +286,8 @@ export default function AdUnlockClient() {
                 className="dream-primary-btn mt-3 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60"
                 onClick={signIn}
               >
-                {signInBusy ? <Loader2 size={20} className="animate-spin" aria-hidden="true" /> : <FcGoogle className="shrink-0 text-xl" aria-hidden="true" />}
-                <span>{t.plansModal.signInWithGoogle}</span>
+                {signInBusy ? <Loader2 size={20} className="animate-spin" aria-hidden="true" /> : <LogIn size={20} aria-hidden="true" />}
+                <span>{t.common.signIn}</span>
               </button>
             ) : null}
           </>

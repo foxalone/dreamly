@@ -358,7 +358,7 @@ export const PT_MESSAGES: UiMessages = {
     guestBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
     guestNetworkBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
     guestTranslateTitle: "Traduzir este sonho",
-    guestTranslateBody: "Entre com o Google para ganhar uma tradução grátis por dia, ou assista a um anúncio curto para traduzir sem fazer login. A tradução fica sua: se você entrar depois, ela passa para a sua conta.",
+    guestTranslateBody: "Entre para ganhar uma tradução grátis por dia, ou assista a um anúncio curto para traduzir sem fazer login. A tradução fica sua: se você entrar depois, ela passa para a sua conta.",
     signInWithGoogle: "Continuar com o Google",
     translateNow: "Traduzir",
     adLoading: "Buscando um anúncio disponível…",

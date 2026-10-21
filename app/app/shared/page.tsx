@@ -18,7 +18,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
@@ -613,7 +613,7 @@ export default function SharedPage() {
 
     // Guests may translate too: the API identifies them by the dreamly_guest
     // cookie and charges an ad credit (402 GUEST_AD_REQUIRED → modal with
-    // "continue with Google" / "watch an ad"). Their target language is the
+    // sign in / "watch an ad"). Their target language is the
     // browser's, since there is no profile preference yet.
     const u = auth.currentUser;
 
@@ -658,7 +658,7 @@ export default function SharedPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
-          // Guest: sign in with Google (one free translation a day, and the
+          // Guest: sign in (one free translation a day, and the
           // translations unlocked with ads move to the account) or watch an ad.
           setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang });
           openPaywall({
@@ -669,7 +669,7 @@ export default function SharedPage() {
               reason: "translate",
               signIn: () => {
                 pendingAfterSignInRef.current = d;
-                signInWithGoogle().catch((e) => {
+                signInWithOptions().catch((e) => {
                   pendingAfterSignInRef.current = null;
                   // popup closed by the user is not an error worth showing
                   if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {

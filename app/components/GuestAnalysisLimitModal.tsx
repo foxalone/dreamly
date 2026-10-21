@@ -23,7 +23,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   const translate = request.kind === "translate";
   const kind = translate ? "translate" : "analysis";
   const copy = translate
-    ? { title: pm.guestTranslateTitle, body: pm.guestTranslateBody, ad: pm.watchAdTranslate, again: pm.translateNow, signIn: pm.signInWithGoogle }
+    ? { title: pm.guestTranslateTitle, body: pm.guestTranslateBody, ad: pm.watchAdTranslate, again: pm.translateNow, signIn: t.common.signIn }
     : {
         title: pm.guestTitle,
         body: request.guest?.reason === "ip_limit" ? pm.guestNetworkBody : pm.guestBody,

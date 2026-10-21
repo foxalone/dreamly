@@ -358,7 +358,7 @@ export const EN_MESSAGES: UiMessages = {
     guestBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
     guestNetworkBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
     guestTranslateTitle: "Translate this dream",
-    guestTranslateBody: "Sign in with Google to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
+    guestTranslateBody: "Sign in to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
     signInWithGoogle: "Continue with Google",
     translateNow: "Translate",
     adLoading: "Looking for an available ad…",

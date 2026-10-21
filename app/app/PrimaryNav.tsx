@@ -13,7 +13,7 @@ import {
 } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth } from "@/lib/firebase";
 import { trackAuth } from "@/lib/analytics";
 
@@ -287,13 +287,15 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
     [t]
   );
 
-  async function signInGoogle() {
+  async function signIn() {
     try {
       setBusy(true);
-      const cred = await signInWithGoogle();
+      const cred = await signInWithOptions();
       if (!cred) return;
       await ensureUserProfileOnSignIn(cred.user);
       trackAuth(!!getAdditionalUserInfo(cred)?.isNewUser);
+    } catch (error) {
+      if ((error as { code?: string }).code !== "auth/popup-closed-by-user") console.warn("Sign-in failed", error);
     } finally {
       setBusy(false);
     }
@@ -348,7 +350,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
       ) : (
         <button
           type="button"
-          onClick={signInGoogle}
+          onClick={signIn}
           disabled={busy}
           className={cls(
             itemClass,

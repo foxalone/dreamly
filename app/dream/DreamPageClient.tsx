@@ -27,7 +27,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
-import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
@@ -234,7 +234,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     if (!uid) {
       // same popup flow as comments: stay on the page
       try {
-        await signInWithGoogle();
+        await signInWithOptions();
       } catch (e: any) {
         if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
           setError(e?.message ?? "Sign-in failed.");
@@ -313,7 +313,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               reason: "translate",
               signIn: () => {
                 pendingAfterSignInRef.current = true;
-                signInWithGoogle().catch((e) => {
+                signInWithOptions().catch((e) => {
                   pendingAfterSignInRef.current = false;
                   if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
                     setError(e?.message ?? "Sign-in failed.");
@@ -349,7 +349,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   }
   translateRef.current = translateDream;
 
-  // a guest signed in from the paywall's "continue with Google" — run the translation
+  // a guest signed in from the paywall's sign-in option — run the translation
   useEffect(() => {
     if (!uid || !languageReady || !pendingAfterSignInRef.current) return;
     pendingAfterSignInRef.current = false;
@@ -411,7 +411,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       pendingCommentRef.current = text;
       setNeedSignIn(true);
       try {
-        await signInWithGoogle();
+        await signInWithOptions();
       } catch (e: any) {
         pendingCommentRef.current = null;
         if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {

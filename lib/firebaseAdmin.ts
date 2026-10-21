@@ -1,30 +1,11 @@
 // lib/firebaseAdmin.ts
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
+import { loadServiceAccount, type FirebaseServiceAccount } from "./firebaseServiceAccount";
 
-let cachedServiceAccount: any | null = null;
+let cachedServiceAccount: FirebaseServiceAccount | null = null;
 
 function getServiceAccount() {
-  if (cachedServiceAccount) return cachedServiceAccount;
-
-  // Prefer JSON env (Vercel / admin routes), fallback to file path (local)
-  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
-  if (json) {
-    cachedServiceAccount = JSON.parse(json);
-    return cachedServiceAccount;
-  }
-
-  const p = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (!p) {
-    throw new Error(
-      "Missing FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH"
-    );
-  }
-
-  const abs = path.isAbsolute(p) ? p : path.join(process.cwd(), p);
-  const raw = fs.readFileSync(abs, "utf8");
-  cachedServiceAccount = JSON.parse(raw);
+  cachedServiceAccount ??= loadServiceAccount();
   return cachedServiceAccount;
 }
 
@@ -35,8 +16,13 @@ function ensureAdmin() {
   // does not exist".
   if (admin.apps.some((a) => a?.name === "[DEFAULT]")) return;
 
+  const account = getServiceAccount();
   admin.initializeApp({
-    credential: admin.credential.cert(getServiceAccount()),
+    credential: admin.credential.cert({
+      projectId: account.project_id,
+      clientEmail: account.client_email,
+      privateKey: account.private_key,
+    }),
     // databaseURL нужен только если используешь Realtime Database
     ...(process.env.FIREBASE_DATABASE_URL
       ? { databaseURL: process.env.FIREBASE_DATABASE_URL }
