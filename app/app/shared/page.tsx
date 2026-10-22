@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import { useRouter } from "next/navigation";
 import { Keyboard, Mic } from "lucide-react";
 import {
@@ -749,167 +750,169 @@ export default function SharedPage() {
               const aInit = badge ? badge.emoji : initialsFromEmailOrText(aLabel);
 
               return (
-                <div
-                  key={d.id}
-                  id={`shared-${d.id}`}
-                  // ✅ the whole card opens the dream's public page; clicks on the
-                  // buttons and links inside (reactions, translate, 💬, the text
-                  // link) keep their own behaviour
-                  onClick={(e) => {
-                    if ((e.target as HTMLElement).closest("a, button")) return;
-                    router.push(localePath(`/dream/${d.id}`, locale));
-                  }}
-                  className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow cursor-pointer"
-                >
-                  {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
-                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <div className="min-w-0 max-w-full flex items-center gap-3">
-                      {/* ✅ author initials (email-based; never uuid) */}
-                      <div
-                        className={[
-                          "shrink-0 rounded-full flex items-center justify-center",
-                          badge
-                            ? // the author's creature: bigger than the dream icons and in its own
-                              // circle, so it never reads as one of them (light and dark theme)
-                              "size-11 text-[26px] leading-none cursor-help bg-[color-mix(in_srgb,#a855f7_14%,var(--card))] ring-1 ring-purple-400/60"
-                            : "w-7 h-7 border border-[var(--border)] text-[10px] text-[var(--muted)]",
-                        ].join(" ")}
-                        title={aLabel}
-                        aria-label={aLabel}
-                      >
-                        {aInit}
-                      </div>
-                      {badge && emojis.length > 0 ? (
-                        <span aria-hidden className="h-6 w-px shrink-0 bg-[var(--border)]" />
-                      ) : null}
-
-                      {/* icons */}
-                      {emojis.length > 0 ? (
-                        <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
-                          {emojis.slice(0, 5).map((em, i) => (
-                            <span
-                              key={`${d.id}:${em.native}:${i}`}
-                              title={em.name || em.id || "emoji"}
-                              className="cursor-help"
-                            >
-                              {em.native}
-                            </span>
-                          ))}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {/* input method + date */}
-                    <div className="text-xs text-[var(--muted)] whitespace-nowrap inline-flex items-center gap-2">
-                      <span
-                        className="opacity-70 inline-flex items-center"
-                        title={d.source === "voice" ? "Recorded" : "Typed"}
-                        aria-label={d.source === "voice" ? "Recorded" : "Typed"}
-                      >
-                        {d.source === "voice" ? (
-                          <Mic size={14} strokeWidth={1.8} aria-hidden />
-                        ) : (
-                          <Keyboard size={14} strokeWidth={1.8} aria-hidden />
-                        )}
-                      </span>
-                      <span className="opacity-70">
-                        {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ✅ the text opens the dream's permanent public page (/dream/<id>) */}
-                  <LocaleLink
-                    href={`/dream/${d.id}`}
-                    title={t.dreamPage.openDream}
-                    className="block mt-3 text-[var(--text)] whitespace-pre-wrap break-words hover:opacity-85 transition-opacity"
+                <Fragment key={d.id}>
+                  <div
+                    id={`shared-${d.id}`}
+                    // ✅ the whole card opens the dream's public page; clicks on the
+                    // buttons and links inside (reactions, translate, 💬, the text
+                    // link) keep their own behaviour
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest("a, button")) return;
+                      router.push(localePath(`/dream/${d.id}`, locale));
+                    }}
+                    className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow cursor-pointer"
                   >
-                    {showingTranslation[d.id] ?? d.text}
-                  </LocaleLink>
+                    {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
+                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <div className="min-w-0 max-w-full flex items-center gap-3">
+                        {/* ✅ author initials (email-based; never uuid) */}
+                        <div
+                          className={[
+                            "shrink-0 rounded-full flex items-center justify-center",
+                            badge
+                              ? // the author's creature: bigger than the dream icons and in its own
+                                // circle, so it never reads as one of them (light and dark theme)
+                                "size-11 text-[26px] leading-none cursor-help bg-[color-mix(in_srgb,#a855f7_14%,var(--card))] ring-1 ring-purple-400/60"
+                              : "w-7 h-7 border border-[var(--border)] text-[10px] text-[var(--muted)]",
+                          ].join(" ")}
+                          title={aLabel}
+                          aria-label={aLabel}
+                        >
+                          {aInit}
+                        </div>
+                        {badge && emojis.length > 0 ? (
+                          <span aria-hidden className="h-6 w-px shrink-0 bg-[var(--border)]" />
+                        ) : null}
 
-                  <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
+                        {/* icons */}
+                        {emojis.length > 0 ? (
+                          <span className="inline-flex items-baseline gap-2 text-[18px] leading-none select-none">
+                            {emojis.slice(0, 5).map((em, i) => (
+                              <span
+                                key={`${d.id}:${em.native}:${i}`}
+                                title={em.name || em.id || "emoji"}
+                                className="cursor-help"
+                              >
+                                {em.native}
+                              </span>
+                            ))}
+                          </span>
+                        ) : null}
+                      </div>
 
-                  <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex gap-2">
-                      {REACTIONS.map((x) => {
-                        const active = !!myR[x.key];
-                        const isBusy = busyKey === `${d.id}:${x.key}`;
-                        const count = safeNum((r as any)[x.key]);
-
-                        const cls = [
-                          "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
-                          active ? `react-btn--${x.key}` : "",
-                          isBusy ? "opacity-70 cursor-wait" : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ");
-
-                        return (
-                          <button
-                            key={x.key}
-                            onClick={() => toggleReaction(d.id, x.key)}
-                            disabled={isBusy}
-                            className={cls}
-                            title={uid ? x.label : `Sign in to ${x.label.toLowerCase()}`}
-                          >
-                            <span>{x.emoji}</span>
-                            <span className="tabular-nums">{count}</span>
-                          </button>
-                        );
-                      })}
-
-                      {/* 💬 comment count — opens the dream page at the comments */}
-                      <LocaleLink
-                        href={`/dream/${d.id}#comments`}
-                        className="react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
-                        title={t.dreamPage.commentsLabel}
-                        aria-label={t.dreamPage.commentsLabel}
-                      >
-                        <span>💬</span>
-                        <span className="tabular-nums">{safeNum(d.commentCount)}</span>
-                      </LocaleLink>
+                      {/* input method + date */}
+                      <div className="text-xs text-[var(--muted)] whitespace-nowrap inline-flex items-center gap-2">
+                        <span
+                          className="opacity-70 inline-flex items-center"
+                          title={d.source === "voice" ? "Recorded" : "Typed"}
+                          aria-label={d.source === "voice" ? "Recorded" : "Typed"}
+                        >
+                          {d.source === "voice" ? (
+                            <Mic size={14} strokeWidth={1.8} aria-hidden />
+                          ) : (
+                            <Keyboard size={14} strokeWidth={1.8} aria-hidden />
+                          )}
+                        </span>
+                        <span className="opacity-70">
+                          {(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}
+                        </span>
+                      </div>
                     </div>
 
-                    {(() => {
-                      const text = (d.text ?? "").trim();
-                      // Already in the viewer's language — nothing to translate.
-                      if (!text || dreamLang(d) === targetLang) return null;
+                    {/* ✅ the text opens the dream's permanent public page (/dream/<id>) */}
+                    <LocaleLink
+                      href={`/dream/${d.id}`}
+                      title={t.dreamPage.openDream}
+                      className="block mt-3 text-[var(--text)] whitespace-pre-wrap break-words hover:opacity-85 transition-opacity"
+                    >
+                      {showingTranslation[d.id] ?? d.text}
+                    </LocaleLink>
 
-                      const isShowing = !!showingTranslation[d.id];
-                      const isBusy = translateBusyId === d.id;
-                      // this viewer already paid for this dream+lang
-                      const hasMine = unlocked.has(`${d.id}:${targetLang}`);
-                      const label = isBusy
-                        ? t.profile.translating
-                        : isShowing
-                          ? t.profile.showOriginal
-                          : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
-                      const title = isBusy || isShowing || hasMine
-                        ? label
-                        : `${label} (${uid ? t.profile.translationAllowance : t.profile.guestTranslationAllowance})`;
+                    <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
 
-                      return (
-                        <button
-                          onClick={() => translateDream(d)}
-                          disabled={isBusy || !languageReady}
-                          aria-label={label}
-                          className={[
-                            "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
-                            isShowing || hasMine ? "react-btn--translate-on" : "",
+                    <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex gap-2">
+                        {REACTIONS.map((x) => {
+                          const active = !!myR[x.key];
+                          const isBusy = busyKey === `${d.id}:${x.key}`;
+                          const count = safeNum((r as any)[x.key]);
+
+                          const cls = [
+                            "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                            active ? `react-btn--${x.key}` : "",
                             isBusy ? "opacity-70 cursor-wait" : "",
                           ]
                             .filter(Boolean)
-                            .join(" ")}
-                          title={title}
+                            .join(" ");
+
+                          return (
+                            <button
+                              key={x.key}
+                              onClick={() => toggleReaction(d.id, x.key)}
+                              disabled={isBusy}
+                              className={cls}
+                              title={uid ? x.label : `Sign in to ${x.label.toLowerCase()}`}
+                            >
+                              <span>{x.emoji}</span>
+                              <span className="tabular-nums">{count}</span>
+                            </button>
+                          );
+                        })}
+
+                        {/* 💬 comment count — opens the dream page at the comments */}
+                        <LocaleLink
+                          href={`/dream/${d.id}#comments`}
+                          className="react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
+                          title={t.dreamPage.commentsLabel}
+                          aria-label={t.dreamPage.commentsLabel}
                         >
-                          <TranslateIcon
-                            className={isBusy ? "animate-pulse" : undefined}
-                          />
-                        </button>
-                      );
-                    })()}
+                          <span>💬</span>
+                          <span className="tabular-nums">{safeNum(d.commentCount)}</span>
+                        </LocaleLink>
+                      </div>
+
+                      {(() => {
+                        const text = (d.text ?? "").trim();
+                        // Already in the viewer's language — nothing to translate.
+                        if (!text || dreamLang(d) === targetLang) return null;
+
+                        const isShowing = !!showingTranslation[d.id];
+                        const isBusy = translateBusyId === d.id;
+                        // this viewer already paid for this dream+lang
+                        const hasMine = unlocked.has(`${d.id}:${targetLang}`);
+                        const label = isBusy
+                          ? t.profile.translating
+                          : isShowing
+                            ? t.profile.showOriginal
+                            : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
+                        const title = isBusy || isShowing || hasMine
+                          ? label
+                          : `${label} (${uid ? t.profile.translationAllowance : t.profile.guestTranslationAllowance})`;
+
+                        return (
+                          <button
+                            onClick={() => translateDream(d)}
+                            disabled={isBusy || !languageReady}
+                            aria-label={label}
+                            className={[
+                              "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
+                              isShowing || hasMine ? "react-btn--translate-on" : "",
+                              isBusy ? "opacity-70 cursor-wait" : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                            title={title}
+                          >
+                            <TranslateIcon
+                              className={isBusy ? "animate-pulse" : undefined}
+                            />
+                          </button>
+                        );
+                      })()}
+                    </div>
                   </div>
-                </div>
+                  <ArticleAdBanner locale={locale} variant="feed" />
+                </Fragment>
               );
             })}
           </div>

@@ -1,3 +1,6 @@
+import { Fragment } from "react";
+import { preload } from "react-dom";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import {
   DREAM_PAGE_IMAGE_HEIGHT,
   DREAM_PAGE_IMAGE_WIDTH,
@@ -39,6 +42,14 @@ export default function GalleryView({
   });
 
   const pageUrl = absoluteLocaleUrl("/gallery", locale);
+  for (const item of items.slice(0, 4)) {
+    preload(galleryThumbUrl(item, GALLERY_THUMB_DEFAULT_WIDTH), {
+      as: "image",
+      imageSrcSet: galleryThumbSrcSet(item),
+      imageSizes: GALLERY_THUMB_SIZES,
+      fetchPriority: "high",
+    });
+  }
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -75,36 +86,40 @@ export default function GalleryView({
         <GalleryHeartsProvider initialCounts={heartCounts}>
         <section className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-label={t.gallery.h1}>
           {items.map((item, index) => (
-            <article
-              key={item.slug}
-              className="group relative overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
-            >
-              <LocaleLink href={`/dreams/${item.slug}`} className="block">
-                <span className="relative block">
-                  <img
-                    src={galleryThumbUrl(item, GALLERY_THUMB_DEFAULT_WIDTH)}
-                    srcSet={galleryThumbSrcSet(item)}
-                    sizes={GALLERY_THUMB_SIZES}
-                    alt={item.alt}
-                    width={DREAM_PAGE_IMAGE_WIDTH}
-                    height={DREAM_PAGE_IMAGE_HEIGHT}
-                    // First row is above the fold on phones and desktop: fetch it right away.
-                    loading={index < 4 ? "eager" : "lazy"}
-                    fetchPriority={index < 2 ? "high" : "auto"}
-                    decoding="async"
-                    className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
-                  <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
-                    <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
+            <Fragment key={item.slug}>
+              <article
+                className="group relative overflow-hidden rounded-[1.15rem] bg-[var(--dd-surface-soft)] ring-1 ring-[var(--dd-border)] transition hover:-translate-y-0.5 hover:ring-[var(--dd-border-strong)] sm:rounded-[1.35rem]"
+              >
+                <LocaleLink href={`/dreams/${item.slug}`} className="block">
+                  <span className="relative block">
+                    <img
+                      src={galleryThumbUrl(item, GALLERY_THUMB_DEFAULT_WIDTH)}
+                      srcSet={galleryThumbSrcSet(item)}
+                      sizes={GALLERY_THUMB_SIZES}
+                      alt={item.alt}
+                      width={DREAM_PAGE_IMAGE_WIDTH}
+                      height={DREAM_PAGE_IMAGE_HEIGHT}
+                      // First row is above the fold on phones and desktop: fetch it right away.
+                      loading={index < 4 ? "eager" : "lazy"}
+                      fetchPriority={index < 2 ? "high" : "auto"}
+                      decoding="async"
+                      className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                    <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
+                      <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
+                    </span>
                   </span>
-                </span>
-              </LocaleLink>
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-end px-2 pt-2 sm:px-2.5 sm:pt-2.5">
-                <div className="pointer-events-auto">
-                  <GalleryHeartButton slug={item.slug} />
+                </LocaleLink>
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-end px-2 pt-2 sm:px-2.5 sm:pt-2.5">
+                  <div className="pointer-events-auto">
+                    <GalleryHeartButton slug={item.slug} />
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+              {(index + 1) % 6 === 0 ? (
+                <ArticleAdBanner locale={locale} variant="gallery" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+              ) : null}
+            </Fragment>
           ))}
         </section>
         </GalleryHeartsProvider>

@@ -147,7 +147,7 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--dd-muted)] sm:text-base">{t.dictionary.learnLead}</p>
           </div>
           <div className="mt-6">
-            <GuideLinkCards guides={guides} />
+            <GuideLinkCards guides={guides} adLocale={locale} />
           </div>
         </section>
 

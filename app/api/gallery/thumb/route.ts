@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
-import { readDreamPageImageAssignment } from "@/lib/getDreamPageImage";
-import { galleryThumbVersion, parseGalleryThumbWidth } from "@/lib/dreamPageImage";
+import { parseGalleryThumbWidth } from "@/lib/dreamPageImage";
+import {
+  ChangedGalleryImage,
+  MissingGalleryImage,
+  getCachedGalleryThumbnail,
+  resolveVersionedGalleryImage,
+} from "@/lib/galleryThumbnail";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -20,26 +25,22 @@ export async function GET(request: Request) {
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
   let imageUrl = "";
+  let fresh = true;
   try {
-    imageUrl = (await readDreamPageImageAssignment(slug))?.imageUrl || "";
-  } catch {
-    return NextResponse.json({ error: "Lookup failed" }, { status: 503, headers: { "Cache-Control": "no-store" } });
-  }
-  if (!imageUrl) {
-    return NextResponse.json({ error: "Not found" }, { status: 404, headers: { "Cache-Control": "public, s-maxage=300" } });
+    imageUrl = await resolveVersionedGalleryImage(slug, params.get("v") || "");
+  } catch (error) {
+    if (error instanceof ChangedGalleryImage) {
+      imageUrl = error.imageUrl;
+      fresh = false;
+    } else if (error instanceof MissingGalleryImage) {
+      return NextResponse.json({ error: "Not found" }, { status: 404, headers: { "Cache-Control": "public, s-maxage=300" } });
+    } else {
+      return NextResponse.json({ error: "Lookup failed" }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
   }
 
-  const fresh = params.get("v") === galleryThumbVersion(imageUrl);
   try {
-    const source = await fetch(imageUrl, { cache: "no-store" });
-    if (!source.ok) throw new Error(`source ${source.status}`);
-    const input = Buffer.from(await source.arrayBuffer());
-    const sharp = (await import("sharp")).default;
-    const output = await sharp(input)
-      .rotate()
-      .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 72, effort: 4 })
-      .toBuffer();
+    const output = Buffer.from(await getCachedGalleryThumbnail(imageUrl, width), "base64");
     return new NextResponse(new Uint8Array(output), {
       headers: {
         "Content-Type": "image/webp",

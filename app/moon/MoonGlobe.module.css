@@ -1,0 +1,80 @@
+.shell {
+  position: relative;
+  width: 100%;
+  height: calc(100dvh - var(--app-nav-height, 4rem));
+  min-height: 240px;
+  overflow: hidden;
+  color: #f3f1ec;
+  background: #030407;
+}
+.globe { position: absolute; inset: 0; }
+.globe :global(.mapboxgl-canvas) { outline: none; }
+.globe :global(.mapboxgl-ctrl-top-right) { top: 18px; right: 18px; }
+.globe :global(.mapboxgl-ctrl-group) { border: 1px solid #ffffff20; background: #202128; }
+.globe :global(.mapboxgl-ctrl-icon) { filter: invert(1); }
+.globe :global(.mapboxgl-ctrl-attrib) { background: #111318cc; color: #9b9ca6; }
+.globe :global(.mapboxgl-ctrl-attrib a) { color: inherit; }
+.footer { position: absolute; inset: auto 0 27px; display: flex; flex-direction: column; align-items: center; gap: 11px; pointer-events: none; }
+.controls { display: flex; align-items: center; gap: 4px; padding: 5px; border: 1px solid #ffffff24; border-radius: 30px; background: #121318eb; backdrop-filter: blur(16px); pointer-events: auto; }
+.controls button { min-height: 40px; padding: 9px 18px; border: 0; border-radius: 24px; background: transparent; color: #b9b7c3; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.controls button[aria-pressed="true"] { color: #17171b; background: #eeece7; }
+.controls button:hover { color: white; background: #ffffff16; }
+.controls button[aria-pressed="true"]:hover { color: #17171b; background: white; }
+.controls button:disabled { opacity: .4; cursor: default; }
+.controls button:focus-visible, .status button:focus-visible { outline: 2px solid #c7b9ff; outline-offset: 3px; }
+.divider { width: 1px; height: 18px; background: #ffffff20; }
+.hint { margin: 0; padding-inline: 20px; text-align: center; font-size: 11px; color: #777784; }
+.status { position: absolute; inset: 44% 20px auto; margin-inline: auto; max-width: 420px; padding: 20px; text-align: center; border-radius: 20px; background: #111318d9; color: #c7c5ce; font-size: 14px; }
+.status button { margin-top: 14px; border-radius: 20px; padding: 8px 16px; border: 1px solid #ffffff30; cursor: pointer; }
+@media (max-width: 640px) {
+  .footer { bottom: max(32px, env(safe-area-inset-bottom)); gap: 12px; }
+  .controls button { padding-inline: 13px; font-size: 12px; }
+  .globe :global(.mapboxgl-ctrl-top-right) { top: 16px; right: 10px; }
+}
+
+.resident { display: block; padding: 0; border: 0; background: transparent; width: 32px; height: 32px; line-height: 32px; text-align: center; cursor: pointer; filter: drop-shadow(0 1px 2px #0009); }
+.resident:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 6px; }
+.mine { filter: drop-shadow(0 0 4px #efd18b99); }
+.symbols { display: flex; gap: 10px; flex-wrap: wrap; max-height: 180px; overflow-y: auto; padding: 10px; color: #eee; background: #181622; font-size: 22px; }
+.globe :global(.mapboxgl-popup-content) { background: #181622; padding: 0; border-radius: 14px; }
+.globe :global(.mapboxgl-popup-tip) { border-top-color: #181622; }
+
+.dreamCount { position: absolute; inset-inline-start: 26px; top: 18px; min-width: 16px; padding: 0 4px; border: 1px solid #ffffff35; border-radius: 9px; background: #15141ee8; color: #f4eefb; font-size: 11px; font-weight: 600; line-height: 16px; white-space: nowrap; pointer-events: none; }
+
+.residentCard { position: relative; width: min(280px, calc(100vw - 60px)); max-height: min(420px, 65dvh); overflow-y: auto; padding: 20px; box-sizing: border-box; border-radius: 16px; background: #191722; color: #f4f0fa; font-size: 13px; line-height: 1.5; }
+.residentCard h2 { margin: 0 24px 8px 0; font-size: 21px; line-height: 1.3; }
+.residentCard h3 { margin: 16px 0 6px; font-size: 11px; color: #aaa4b9; font-weight: 500; }
+.residentCard p { margin: 8px 0; }
+.residentCard blockquote { margin: 0; color: #d2ccdf; font-size: 13px; overflow-wrap: anywhere; }
+.cardMuted { color: #aaa4b9; font-size: 11px; }
+.cardEmojis { font-size: 23px; line-height: 1.5; }
+.cardProgress { padding: 10px; border-radius: 10px; background: #bd9cff16; color: #ddc5ff; font-size: 12px; }
+.cardClose { position: absolute; top: 5px; inset-inline-end: 5px; width: 32px; height: 32px; border: 0; background: transparent; color: #c6bed6; font-size: 23px; cursor: pointer; }
+.readDreams { display: block; width: 100%; margin-top: 16px; padding: 10px 12px; border: 1px solid #a78bfa55; border-radius: 14px; background: #685286; color: white; font-size: 12px; line-height: 1.5; cursor: pointer; }
+.dreamsDialog { width: min(600px, calc(100vw - 24px)); max-height: 85dvh; margin: auto; padding: 0; border: 1px solid #ffffff30; border-radius: 22px; background: #191722; color: #f4f0fa; }
+.dreamsDialog::backdrop { background: #0009; backdrop-filter: blur(5px); }
+.dreamsHeader { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 16px 20px; background: #191722; border-bottom: 1px solid #ffffff18; }
+.dreamsHeader h2 { margin: 0; font-size: 18px; line-height: 1.4; }
+.dreamsHeader button { flex-shrink: 0; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #ffffff0c; color: white; font-size: 26px; cursor: pointer; }
+.dreamsBody { padding: 0 22px 20px; }
+.dreamsBody article { padding: 20px 0; border-bottom: 1px solid #ffffff18; }
+.dreamsBody time { color: #aaa4b9; font-size: 12px; }
+.dreamText { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.75; }
+
+.residentPanel { position: absolute; top: 0; right: 0; bottom: 0; z-index: 20; width: 340px; overflow: auto; overscroll-behavior: contain; background: #191722; border-inline-start: 1px solid #ffffff20; box-shadow: -12px 0 45px #0004; }
+.residentPanel .residentCard { width: 100%; max-height: none; min-height: 100%; overflow: visible; border-radius: 0; padding: 28px 24px; }
+.shell[data-resident-open="true"] .globe { right: 340px; }
+.shell[data-resident-open="true"] .footer { right: 340px; }
+@media(max-width: 640px) {
+  .residentPanel { top: auto; left: 0; width: 100%; height: 55%; border-inline-start: 0; border-top: 1px solid #ffffff20; border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box; }
+  .residentPanel .residentCard { padding: 24px; }
+  .shell[data-resident-open="true"] .globe { right: 0; bottom: 55%; }
+  .shell[data-resident-open="true"] .footer { display: none; }
+  .shell[data-resident-open="true"] .globe :global(.mapboxgl-ctrl-top-right) { top: 16px; }
+}
+
+.residentPanel { overflow: hidden; }
+.panelContent { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+.panelClose { position: absolute; z-index: 2; top: 8px; right: 8px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #191722; color: #ddd5e9; font-size: 26px; cursor: pointer; }
+.residentPanel .cardClose { display: none; }
+.shell[data-resident-open="true"] .controls { max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; }

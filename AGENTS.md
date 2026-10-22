@@ -1,5 +1,9 @@
 # Agent notes (Dreamly)
 
+## Project memory
+
+Read `MEMORY.md` for saved project facts, including the dated Google Analytics baseline requested by the user. Preserve reporting periods and metric limitations when using these figures.
+
 ## i18n (mandatory)
 
 Every user-facing addition must ship in **English + Spanish + Arabic + Portuguese (Brazil) + German + Russian**.

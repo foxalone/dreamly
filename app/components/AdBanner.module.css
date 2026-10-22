@@ -1,0 +1,13 @@
+.mapAd {
+  height: 50px;
+}
+
+.feedAd {
+  height: 50px;
+}
+
+@media (min-width: 768px) {
+  .mapAd {
+    height: 90px;
+  }
+}

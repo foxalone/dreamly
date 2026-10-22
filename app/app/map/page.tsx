@@ -8,6 +8,7 @@ import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 import { BUILDINGS } from "@/lib/game/buildings";
+import MoonGate from "@/app/components/moon/MoonGate";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -558,6 +559,9 @@ export default function MapPage() {
 
     mapRef.current = map;
 
+    const sizeObserver = new ResizeObserver(() => map.resize());
+    sizeObserver.observe(mapElRef.current);
+
     map.on("style.load", () => {
       applyFog(map, getAppTheme());
     });
@@ -594,6 +598,7 @@ export default function MapPage() {
     systemTheme.addEventListener("change", onSystemThemeChange);
 
     return () => {
+      sizeObserver.disconnect();
       obs.disconnect();
       systemTheme.removeEventListener("change", onSystemThemeChange);
       try {
@@ -608,11 +613,12 @@ export default function MapPage() {
   }, []);
 
   return (
-    <div style={{ height: "calc(100dvh - var(--app-nav-height, 4rem))", width: "100%", position: "relative" }}>
+    <div style={{ height: "100%", width: "100%", position: "relative" }}>
       <div
         ref={mapElRef}
         style={{ height: "100%", width: "100%", borderRadius: 16, overflow: "hidden" }}
       />
+      <MoonGate portal />
 
       <div
         className="absolute top-3 left-3 z-10 inline-flex rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_88%,transparent)] p-1 gap-1 backdrop-blur-sm shadow-sm"

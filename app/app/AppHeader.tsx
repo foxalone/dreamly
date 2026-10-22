@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useEffect, useRef } from "react";
 import { MoonStar } from "lucide-react";
 import PrimaryNav from "./PrimaryNav";
@@ -32,7 +32,7 @@ export default function AppHeader({ hidden }: { hidden?: boolean }) {
       className="app-top-nav sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_86%,transparent)] backdrop-blur-xl"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-1 px-3 py-2 md:grid-cols-[auto_minmax(0,1fr)] md:gap-3 sm:px-6 sm:py-2.5 lg:px-8">
-        <Link
+        <LocaleLink
           href="/app/dreams"
           className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-wide text-[var(--text)]"
         >
@@ -40,7 +40,7 @@ export default function AppHeader({ hidden }: { hidden?: boolean }) {
             <MoonStar size={17} aria-hidden="true" />
           </span>
           <span>Dreamly</span>
-        </Link>
+        </LocaleLink>
         <div className="min-w-0 md:flex md:justify-center">
           <PrimaryNav tone="app" />
         </div>
