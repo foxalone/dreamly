@@ -159,7 +159,7 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
               {t.chrome.dreamCategories}
             </h2>
           </div>
-          <nav className="mt-6 grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label={t.chrome.dreamCategories}>
+          <nav className="mt-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label={t.chrome.dreamCategories}>
             {(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category, index) => {
               const info = categories[category];
               const count = entries.filter((entry) => entry.category === category).length;
@@ -196,7 +196,7 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
               </h2>
             </div>
           </div>
-          <div className="mt-6 grid min-w-0 grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {parents.map((entry, index) => (
               <Fragment key={entry.slug}>
                 <article className="rounded-3xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-6">

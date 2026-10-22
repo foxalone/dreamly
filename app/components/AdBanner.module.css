@@ -1,3 +1,15 @@
+.gridCard {
+  contain: size;
+}
+
+.gridCardContent {
+  position: absolute;
+  inset: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .mapAd {
   height: 50px;
 }
