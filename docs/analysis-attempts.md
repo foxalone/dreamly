@@ -12,6 +12,18 @@ Firestore permission is needed.
 
 A valid, submitted `/api/dreams/analyze` request records text, account/guest ID,
 UI language, lens, request count, server timestamps and its last known outcome.
+New submissions also record IP-derived city, region and country using the same
+resolver as ordinary dreams (Vercel headers first, then an IP lookup capped at
+1.5 seconds). Country-only headers are retained when a city cannot be resolved.
+Missing locations are shown explicitly; older attempts are not retroactively
+geolocated. The data includes the submitted source (homepage, guest journal,
+dictionary search, symbol prompt or signed-in journal), journal dream ID when
+available, word/character counts and a bounded browser user-agent string.
+The final server result records HTTP status, request duration and, on success,
+analysis text, model, emoji model and emojis. A retry clears the previous result
+while preserving the original creation time and incrementing the request count.
+Location and source are searchable; technical details and analysis expand in the
+admin card. All new labels are available in the six UI languages.
 Retries with the same guest/account, text, language, lens and UTC date reuse one
 record. An existing guest cookie keeps that record associated through sign-in.
 The record does not store auth tokens, raw IP addresses or provider error messages.
@@ -33,3 +45,19 @@ Tracking starts with this release. Text only typed or saved locally without an
 analysis API submission is not uploaded. Historical local-only attempts cannot
 be reconstructed. Browser reports are best-effort; the server records still
 show the original analysis outcome if no later browser event arrives.
+
+
+The admin card now also shows sign-in evidence and a bounded history of the last
+80 browser events, timestamped when the server receives them. It records opening
+the ad page, appearance of the ad overlay (not proof of an available rewarded ad),
+availability of the fallback sign-in button, opening the sign-in dialog, Google
+or email submission, account creation, reset requests, cancellation, success and
+allowlisted failure categories. Passwords, email form values, auth tokens and raw
+provider errors are never included. Sign-in success is browser-reported and does
+not mean an analysis completed. The server's successful analysis remains protected
+from late browser events. History survives retries, unlike the last known reason.
+The sign-in flow captures the attempt ID before clearing/importing the pending
+dream, so subsequent events still refer to that attempt. Standalone sign-in is
+correlated only when opened for the guest analysis limit. Missing events mean
+unknown, not that the user never clicked sign-in. Past interactions without these
+events cannot be reconstructed. Browser delivery remains best-effort.

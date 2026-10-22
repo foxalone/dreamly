@@ -46,7 +46,7 @@ import AiImageAdminPanel from "./AiImageAdminPanel";
 import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
 import DreamTranslationsInfo from "./DreamTranslationsInfo";
-import AnalysisAttempts from "./AnalysisAttempts";
+import DreamsTabs from "./DreamsTabs";
 import { guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
 import { EN_MESSAGES } from "@/lib/i18n/messages/en";
 
@@ -1831,8 +1831,7 @@ async function loadUsers() {
 
       {/* DREAMS TAB */}
       {tab === "DREAMS" && (
-        <>
-          {!onlyShared && isAdmin ? <AnalysisAttempts /> : null}
+        <DreamsTabs isAdmin={isAdmin}>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button onClick={() => setOnlyShared((v) => !v)} className={`${pillBase} ${pillSurface}`}>
               {onlyShared ? "Only Shared: ON" : "Only Shared: OFF"}
@@ -2157,7 +2156,7 @@ async function loadUsers() {
               </button>
             </div>
           ) : null}
-        </>
+        </DreamsTabs>
       )}
 
       {/* EMOJIS TAB */}

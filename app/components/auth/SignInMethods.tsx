@@ -5,11 +5,13 @@ import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmail
 import { FcGoogle } from "react-icons/fc";
 import { auth } from "@/lib/firebase";
 import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
+import { authAttemptFailure } from "@/lib/analysisAttempts";
 import { authMessages } from "@/lib/i18n/auth";
 import type { Locale } from "@/lib/i18n/config";
 
-export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeGoogle, onAuthError }: {
+export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeGoogle, onAuthError, onAuthEvent }: {
   locale: Locale;
+  onAuthEvent?: (event: import("@/lib/analysisAttempts").AttemptEvent) => void;
   beforeGoogle?: () => void;
   onAuthError?: (error: unknown) => void;
   onSuccess: (credential: UserCredential) => void | Promise<void>;
@@ -39,10 +41,12 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
     onBusyChange?.(true);
     setError("");
     setNotice("");
+    let authenticated = false;
     try {
       const credential = await action();
-      if (credential) await onSuccess(credential);
+      if (credential) { authenticated = true; onAuthEvent?.("auth_succeeded"); await onSuccess(credential); }
     } catch (error) {
+      if (!authenticated) onAuthEvent?.(authAttemptFailure(error));
       const code = (error as { code?: string }).code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
       onAuthError?.(error);
@@ -66,12 +70,14 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
     event.preventDefault();
     void run(async () => {
       auth.languageCode = locale === "pt" ? "pt-BR" : locale;
+      onAuthEvent?.(mode === "reset" ? "auth_reset_started" : mode === "signup" ? "auth_signup_started" : "auth_email_started");
       if (mode === "reset") {
         try {
           await sendPasswordResetEmail(auth, email.trim());
         } catch (error) {
           if ((error as { code?: string }).code !== "auth/user-not-found") throw error;
         }
+        onAuthEvent?.("auth_reset_sent");
         setNotice(m.resetSent);
         return;
       }
@@ -83,7 +89,7 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
 
   return (
     <div className="mt-5 text-start">
-      <button type="button" disabled={busy} onClick={() => void run(() => { beforeGoogle?.(); return signInWithGoogle(); })}
+      <button type="button" disabled={busy} onClick={() => void run(() => { onAuthEvent?.("auth_google_started"); beforeGoogle?.(); return signInWithGoogle(); })}
         className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 font-semibold text-black disabled:opacity-60">
         <FcGoogle aria-hidden="true" className="text-xl" />{m.google}
       </button>

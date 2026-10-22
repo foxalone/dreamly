@@ -203,6 +203,7 @@ export function useDreamAsk({
         credentials: "same-origin",
         body: JSON.stringify({
           text: dream,
+          source,
           lang: locale,
           lens,
           ...(storedEmojis?.length ? { escapeEmojis: storedEmojis.map((e) => ({ native: e.native })) } : {}),

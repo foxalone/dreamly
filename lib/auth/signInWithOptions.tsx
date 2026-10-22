@@ -8,9 +8,9 @@ import { authMessages } from "@/lib/i18n/auth";
 import { isLocale, localeDir, type Locale } from "@/lib/i18n/config";
 import { localeFromPathname } from "@/lib/i18n/path";
 
-type SignInOptions = { beforeGoogle?: () => void; onAuthError?: (error: unknown) => void };
+type SignInOptions = { beforeGoogle?: () => void; onAuthError?: (error: unknown) => void; onAuthEvent?: (event: import("@/lib/analysisAttempts").AttemptEvent) => void };
 
-function SignInDialog({ locale, finish, beforeGoogle, onAuthError }: SignInOptions & { locale: Locale; finish: (value: UserCredential | null) => void }) {
+function SignInDialog({ locale, finish, beforeGoogle, onAuthError, onAuthEvent }: SignInOptions & { locale: Locale; finish: (value: UserCredential | null) => void }) {
   const m = authMessages[locale];
   const [busy, setBusy] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -23,7 +23,7 @@ function SignInDialog({ locale, finish, beforeGoogle, onAuthError }: SignInOptio
       className="m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-sm overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-[var(--text)] shadow-2xl backdrop:bg-black/60">
       <h2 id="auth-dialog-title" className="text-xl font-bold">{m.title}</h2>
       <p className="mt-2 text-sm text-[var(--muted)]">{m.subtitle}</p>
-      <SignInMethods locale={locale} onSuccess={finish} onBusyChange={setBusy} beforeGoogle={beforeGoogle} onAuthError={onAuthError} />
+      <SignInMethods locale={locale} onSuccess={finish} onBusyChange={setBusy} beforeGoogle={beforeGoogle} onAuthError={onAuthError} onAuthEvent={onAuthEvent} />
       <button type="button" disabled={busy} onClick={() => finish(null)} className="mt-4 w-full py-2 text-sm text-[var(--muted)] disabled:opacity-60">{m.cancel}</button>
     </dialog>
   );
@@ -40,16 +40,18 @@ export function signInWithOptions(options: SignInOptions = {}): Promise<UserCred
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
+    options.onAuthEvent?.("auth_opened");
     let finished = false;
     function finish(credential: UserCredential | null) {
       if (finished) return;
       finished = true;
       queueMicrotask(() => { root.unmount(); container.remove(); });
       active = null;
+      if (!credential) options.onAuthEvent?.("auth_cancelled");
       if (credential) resolve(credential);
       else reject(Object.assign(new Error(authMessages[locale].cancel), { code: "auth/popup-closed-by-user" }));
     }
-    root.render(<SignInDialog locale={locale} finish={finish} beforeGoogle={options.beforeGoogle} onAuthError={options.onAuthError} />);
+    root.render(<SignInDialog locale={locale} finish={finish} beforeGoogle={options.beforeGoogle} onAuthError={options.onAuthError} onAuthEvent={options.onAuthEvent} />);
   });
   return active;
 }

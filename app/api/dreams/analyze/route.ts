@@ -26,6 +26,8 @@ import { startAnalysisAttempt, finishAnalysisAttempt } from "../_lib/analysisAtt
 
 type Body = {
   text: string;
+  source?: string;
+  dreamId?: string;
   lang?: string;
   lens?: string;
   idToken?: string;
@@ -49,6 +51,7 @@ function guessLang(text: string): string {
 }
 
 export async function POST(req: Request) {
+  const startedAtMs = Date.now();
   let chargedUid: string | null = null;
   let freeAnalysisUid: string | null = null;
   let adCreditUid: string | null = null;
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
 
   const finish = async <T extends NextResponse>(res: T): Promise<T> => {
     const result = await res.clone().json().catch(() => ({}));
-    await finishAnalysisAttempt(attemptId, res.status, failureCode ?? result.code);
+    await finishAnalysisAttempt(attemptId, res.status, failureCode ?? result.code, result, startedAtMs);
     if (attemptId) res.headers.set("X-Dreamly-Attempt", attemptId);
     return guestId ? setGuestCookie(res, guestId) : res;
   };
@@ -110,7 +113,8 @@ export async function POST(req: Request) {
       text, uid, guestId: readGuestId(req) ?? guestId,
       lang: String(body.lang ?? "").trim() || guessLang(text),
       lens: parseDreamLens(body.lens),
-    });
+      source: body.source, dreamId: body.dreamId,
+    }, req);
 
     if (!uid) {
       guestId ??= newGuestId();

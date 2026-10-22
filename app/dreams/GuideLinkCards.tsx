@@ -17,7 +17,7 @@ export default function GuideLinkCards({
   if (guides.length === 0) return null;
 
   return (
-    <div className={`grid gap-3 ${compact ? "sm:grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+    <div className={`grid items-start gap-3 ${compact ? "sm:grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
       {guides.map((guide, index) => (
         <Fragment key={guide.slug}>
           <LocaleLink

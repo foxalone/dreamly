@@ -1,4 +1,5 @@
 import { ArrowRight, ArrowUpRight, BookOpen, ChevronRight, Layers3 } from "lucide-react";
+import { Fragment } from "react";
 import DreamSearch from "./DreamSearch";
 import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import GuideLinkCards from "./GuideLinkCards";
@@ -158,21 +159,26 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
               {t.chrome.dreamCategories}
             </h2>
           </div>
-          <nav className="mt-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label={t.chrome.dreamCategories}>
-            {(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category) => {
+          <nav className="mt-6 grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label={t.chrome.dreamCategories}>
+            {(Object.keys(DREAM_CATEGORIES) as DreamCategory[]).map((category, index) => {
               const info = categories[category];
               const count = entries.filter((entry) => entry.category === category).length;
               return (
-                <LocaleLink key={category} href={`/dreams/categories/${category}`} className="group rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--dd-border-strong)]">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="text-3xl" aria-hidden="true">{DREAM_CATEGORIES[category].icon}</span>
-                    <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold text-[var(--dd-subtle)]">
-                      {count} {t.chrome.pages}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 font-semibold text-[var(--dd-text)]">{info.label}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[var(--dd-muted)]">{info.description}</p>
-                </LocaleLink>
+                <Fragment key={category}>
+                  <LocaleLink href={`/dreams/categories/${category}`} className="group rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--dd-border-strong)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-3xl" aria-hidden="true">{DREAM_CATEGORIES[category].icon}</span>
+                      <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold text-[var(--dd-subtle)]">
+                        {count} {t.chrome.pages}
+                      </span>
+                    </div>
+                    <h3 className="mt-4 font-semibold text-[var(--dd-text)]">{info.label}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[var(--dd-muted)]">{info.description}</p>
+                  </LocaleLink>
+                  {(index + 1) % 5 === 0 ? (
+                    <ArticleAdBanner locale={locale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+                  ) : null}
+                </Fragment>
               );
             })}
           </nav>
@@ -190,28 +196,33 @@ export default function DreamHubView({ locale }: { locale: Locale }) {
               </h2>
             </div>
           </div>
-          <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {parents.map((entry) => (
-              <article key={entry.slug} className="rounded-3xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <span className="text-4xl" aria-hidden="true">{entry.icon}</span>
-                  <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--dd-subtle)]">
-                    {entry.variationSlugs.length} {t.dictionary.variations}
-                  </span>
-                </div>
-                <h3 className="mt-5 text-xl font-semibold tracking-tight">{entry.title}</h3>
-                <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--dd-muted)]">{entry.shortMeaning}</p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {entry.variationSlugs.slice(0, 3).map((slug) => (
-                    <LocaleLink key={slug} href={`/dreams/${slug}`} className="rounded-full border border-[var(--dd-border)] px-2.5 py-1 text-[11px] text-[var(--dd-muted)] transition hover:border-[var(--dd-border-strong)] hover:text-[var(--dd-text)]">
-                      {dict[slug]?.name}
-                    </LocaleLink>
-                  ))}
-                </div>
-                <LocaleLink href={`/dreams/${entry.slug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold" style={{ color: entry.accent }}>
-                  {t.dictionary.exploreCluster} <ArrowUpRight size={15} aria-hidden="true" />
-                </LocaleLink>
-              </article>
+          <div className="mt-6 grid min-w-0 grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {parents.map((entry, index) => (
+              <Fragment key={entry.slug}>
+                <article className="rounded-3xl border border-[var(--dd-border)] bg-[var(--dd-surface)] p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-4xl" aria-hidden="true">{entry.icon}</span>
+                    <span className="rounded-full bg-[var(--dd-surface-soft)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--dd-subtle)]">
+                      {entry.variationSlugs.length} {t.dictionary.variations}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold tracking-tight">{entry.title}</h3>
+                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--dd-muted)]">{entry.shortMeaning}</p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {entry.variationSlugs.slice(0, 3).map((slug) => (
+                      <LocaleLink key={slug} href={`/dreams/${slug}`} className="rounded-full border border-[var(--dd-border)] px-2.5 py-1 text-[11px] text-[var(--dd-muted)] transition hover:border-[var(--dd-border-strong)] hover:text-[var(--dd-text)]">
+                        {dict[slug]?.name}
+                      </LocaleLink>
+                    ))}
+                  </div>
+                  <LocaleLink href={`/dreams/${entry.slug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold" style={{ color: entry.accent }}>
+                    {t.dictionary.exploreCluster} <ArrowUpRight size={15} aria-hidden="true" />
+                  </LocaleLink>
+                </article>
+                {(index + 1) % 5 === 0 ? (
+                  <ArticleAdBanner locale={locale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+                ) : null}
+              </Fragment>
             ))}
           </div>
         </section>

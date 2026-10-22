@@ -16,7 +16,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
-import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
+import { analysisAttemptReporter } from "@/lib/reportAnalysisAttempt";
 
 type Phase = "waiting" | "showing" | "granting" | "done" | "unavailable" | "failed";
 
@@ -79,6 +79,15 @@ export default function AdUnlockClient() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [signInBusy, setSignInBusy] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
+  const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
+  useEffect(() => {
+    if (kind !== "analysis" || report.current) return;
+    report.current = analysisAttemptReporter();
+    report.current("ad_page_opened");
+  }, [kind]);
+  useEffect(() => {
+    if (kind === "analysis" && user === null && (phase === "unavailable" || phase === "failed")) report.current?.("ad_signin_available");
+  }, [kind, user, phase]);
   const rewardId = useRef<string>("");
   const autoClicked = useRef(false);
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
@@ -99,6 +108,7 @@ export default function AdUnlockClient() {
       const saved = JSON.parse(raw) as { next: string; atMs: number };
       sessionStorage.removeItem(GOOGLE_RETURN_KEY);
       if (saved.next !== next || Date.now() - saved.atMs > 10 * 60_000) return;
+      report.current?.("auth_succeeded");
       void ensureUserProfileOnSignIn(user).then(() => router.replace(next));
     } catch {
       // A normal popup sign-in does not need session storage.
@@ -116,10 +126,11 @@ export default function AdUnlockClient() {
         if (visible) {
           seen = true;
           trackEvent("offerwall_shown", { kind });
+          report.current?.("ad_shown");
           setPhase("showing");
         } else if (Date.now() - started > APPEAR_TIMEOUT_MS) {
           trackEvent("offerwall_unavailable", { kind });
-          if (kind === "analysis") reportAnalysisAttempt("ad_unavailable");
+          report.current?.("ad_unavailable");
           setPhase("unavailable");
         }
         if (!seen) return;
@@ -181,17 +192,18 @@ export default function AdUnlockClient() {
         }
         if (cancelled) return;
         if (!res.ok) {
-          if (kind === "analysis") reportAnalysisAttempt("ad_reward_failed");
+          report.current?.("ad_reward_failed");
           trackEvent("offerwall_grant_failed", { kind, status: res.status });
           setPhase("failed");
           return;
         }
+        report.current?.("ad_reward_confirmed");
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
         clearOfferwallEntitlement();
         setPhase("done");
         router.replace(next);
       } catch {
-        if (kind === "analysis") reportAnalysisAttempt("ad_reward_failed");
+        report.current?.("ad_reward_failed");
         if (!cancelled) setPhase("failed");
       }
     })();
@@ -219,22 +231,13 @@ export default function AdUnlockClient() {
         } catch {
           // Google authentication can still proceed without storage.
         }
-      }, onAuthError: (error) => {
-        if (kind === "analysis") reportAnalysisAttempt(
-          (error as { code?: string }).code === "auth/unauthorized-domain" ? "auth_unauthorized_domain" : "auth_failed",
-          action?.dreamText,
-        );
-      } });
+      }, onAuthEvent: (event) => report.current?.(event) });
       if (!credential) return;
       await ensureUserProfileOnSignIn(credential.user);
       trackAuth(!!getAdditionalUserInfo(credential)?.isNewUser);
       router.replace(next);
     } catch (error) {
       if ((error as { code?: string }).code === "auth/popup-closed-by-user") return;
-      if (kind === "analysis") reportAnalysisAttempt(
-        (error as { code?: string })?.code === "auth/unauthorized-domain" ? "auth_unauthorized_domain" : "auth_failed",
-        action?.dreamText,
-      );
       try { sessionStorage.removeItem(GOOGLE_RETURN_KEY); } catch { /* ignore */ }
       setSignInError(error instanceof Error ? error.message : t.game.error);
     } finally {
@@ -272,7 +275,7 @@ export default function AdUnlockClient() {
               // An unavailable/failed ad did not buy an analysis. Returning to
               // the journal must not consume the retry and reopen the ad flow.
               if (kind === "analysis") {
-                reportAnalysisAttempt("back");
+                report.current?.("back");
                 clearAdUnlockPending();
               }
               router.replace(next);

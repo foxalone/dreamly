@@ -12,6 +12,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import SignInMethods from "@/app/components/auth/SignInMethods";
 import { authMessages } from "@/lib/i18n/auth";
 import { auth } from "@/lib/firebase";
+import { analysisAttemptReporter } from "@/lib/reportAnalysisAttempt";
 import { trackAuth } from "@/lib/analytics";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -28,6 +29,12 @@ export default function SignInClient() {
   const t = useMessages();
   const m = authMessages[locale];
   const authenticatingRef = useRef(false);
+  const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
+  useEffect(() => {
+    if (sp.get("reason") !== "guest_limit") return;
+    report.current = analysisAttemptReporter();
+    report.current("auth_opened");
+  }, [sp]);
 
   const next = useMemo(() => {
     return safeInternalPath(sp.get("next")) ?? localePath("/app/dreams", locale);
@@ -61,6 +68,7 @@ export default function SignInClient() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       if (!u || authenticatingRef.current) return;
+      report.current?.("auth_succeeded");
       setBusy(true);
       ensureUserProfileOnSignIn(u)
         .then(() => goNext())
@@ -83,14 +91,14 @@ export default function SignInClient() {
           {subtitle}
         </p>
 
-        <SignInMethods locale={locale} onSuccess={handleSignIn} onBusyChange={(value) => {
+        <SignInMethods onAuthEvent={(event) => report.current?.(event)} locale={locale} onSuccess={handleSignIn} onBusyChange={(value) => {
           authenticatingRef.current = value;
           setBusy(value);
         }} />
 
         <button
           disabled={busy}
-          onClick={() => router.replace(cancelTo)}
+          onClick={() => { report.current?.("auth_cancelled"); router.replace(cancelTo); }}
           className="w-full mt-3 py-2 text-sm text-[var(--muted)] disabled:opacity-60"
         >
           {sp.get("reason") === "guest_limit" ? t.home.askOrDictionary : m.cancel}

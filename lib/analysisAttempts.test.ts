@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { attemptOutcome, clientAttemptUpdate, isAttemptEvent, ownsAnalysisAttempt } from "./analysisAttempts";
+import { ATTEMPT_EVENTS, authAttemptFailure, attemptOutcome, clientAttemptUpdate, isAttemptEvent, ownsAnalysisAttempt } from "./analysisAttempts";
 import { ANALYSIS_ATTEMPT_COPY } from "./i18n/analysisAttempts";
 
 test("quota gates are waiting or blocked, AI errors fail, and successful retries complete", () => {
@@ -40,4 +40,17 @@ test("all six locales describe every recorded reason and have the same controls"
     assert.deepEqual(Object.keys(copy.reasons).sort(), Object.keys(en.reasons).sort());
     for (const text of Object.values(copy.reasons)) assert.ok(text.trim());
   }
+});
+
+
+test("every browser event has a label in all six locales and auth errors are classified without payloads", () => {
+  for (const copy of Object.values(ANALYSIS_ATTEMPT_COPY)) {
+    for (const event of ATTEMPT_EVENTS) assert.ok(copy.reasons[event]);
+  }
+  assert.equal(authAttemptFailure({ code: "auth/popup-blocked", message: "private" }), "auth_popup_blocked");
+  assert.equal(authAttemptFailure({ code: "auth/popup-closed-by-user" }), "auth_cancelled");
+  assert.equal(authAttemptFailure({ code: "auth/network-request-failed" }), "auth_network_failed");
+  assert.equal(authAttemptFailure({ code: "auth/invalid-credential" }), "auth_invalid_credential");
+  assert.equal(authAttemptFailure(null), "auth_failed");
+  assert.equal(clientAttemptUpdate({ status: "incomplete", reason: "ad_unavailable" }, "auth_opened")?.reason, "ad_unavailable");
 });

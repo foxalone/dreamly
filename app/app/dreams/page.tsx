@@ -1238,6 +1238,8 @@ export default function DreamsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: t,
+          source: "journal",
+          dreamId,
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           lens: analysisLens,
           // The escape must be exactly this dream's icons, not a fresh pick.

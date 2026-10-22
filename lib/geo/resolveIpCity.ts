@@ -73,13 +73,14 @@ function fromVercelHeaders(req: Request): IpCity | null {
   };
 }
 
-async function fromIpWhoIs(ip: string): Promise<IpCity | null> {
+async function fromIpWhoIs(ip: string, timeoutMs?: number): Promise<IpCity | null> {
   if (isLocalIp(ip)) return null;
 
   const url = `https://ipwho.is/${encodeURIComponent(ip)}`;
   const resp = await fetch(url, {
     headers: { Accept: "application/json" },
     cache: "no-store",
+    ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
   });
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok || data?.success === false) return null;
@@ -110,11 +111,11 @@ export function readForwardedIp(req: Request): string {
   return firstForwardedIp(req);
 }
 
-export async function resolveIpCity(req: Request): Promise<(IpCity & { ip: string }) | null> {
+export async function resolveIpCity(req: Request, timeoutMs?: number): Promise<(IpCity & { ip: string }) | null> {
   const vercel = fromVercelHeaders(req);
   const ip = firstForwardedIp(req);
   if (vercel) return { ...vercel, ip };
-  const lookup = await fromIpWhoIs(ip);
+  const lookup = await fromIpWhoIs(ip, timeoutMs);
   if (!lookup) return null;
   return { ...lookup, ip };
 }

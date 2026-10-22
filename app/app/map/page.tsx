@@ -9,6 +9,7 @@ import { firestore } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 import { BUILDINGS } from "@/lib/game/buildings";
 import MoonGate from "@/app/components/moon/MoonGate";
+import { startMapGlobeRotation } from "@/lib/mapGlobeRotation";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -558,6 +559,18 @@ export default function MapPage() {
     );
 
     mapRef.current = map;
+    const stopRotation = startMapGlobeRotation(map, () => !!popupRef.current?.isOpen());
+
+    // Mapbox rounds DOM marker transforms to whole pixels. Restore the fractional
+    // part after its DOM tasks run, so slow globe motion does not look like jitter.
+    // Individual CSS translate leaves Mapbox's anchor transform and occlusion intact.
+    const smoothMarkerPositions = () => {
+      markersRef.current.forEach(({ marker, el }) => {
+        const point = map.project(marker.getLngLat());
+        el.style.translate = `${point.x - Math.round(point.x)}px ${point.y - Math.round(point.y)}px`;
+      });
+    };
+    map.on("render", smoothMarkerPositions);
 
     const sizeObserver = new ResizeObserver(() => map.resize());
     sizeObserver.observe(mapElRef.current);
@@ -598,6 +611,8 @@ export default function MapPage() {
     systemTheme.addEventListener("change", onSystemThemeChange);
 
     return () => {
+      stopRotation();
+      map.off("render", smoothMarkerPositions);
       sizeObserver.disconnect();
       obs.disconnect();
       systemTheme.removeEventListener("change", onSystemThemeChange);
