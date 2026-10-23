@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import {
   ArrowRight,
   BookOpenText,
@@ -14,6 +16,8 @@ import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
+import HomeRandomDreams from "@/app/components/HomeRandomDreams";
+import HomeUniverse from "@/app/components/HomeUniverse";
 import HomeHero from "@/app/components/HomeHero";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 
@@ -74,23 +78,28 @@ export default function HomeView({ locale }: { locale: Locale }) {
 
       <HomeHero />
 
+      <HomeUniverse locale={locale} />
+
       <section id="features" aria-labelledby="features-title" className="mx-auto max-w-4xl scroll-mt-8 pb-20 pt-6">
         <div className="text-center">
           <h2 id="features-title" className="text-2xl sm:text-3xl font-semibold tracking-tight">{t.home.featuresTitle}</h2>
           <p className="mt-4 text-[var(--muted)] text-base sm:text-lg">{t.home.featuresLead}</p>
         </div>
         <div className="mt-10 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-          {features.map(({ icon: Icon, title, description, href, linkLabel }) => (
-            <div key={title} className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
-              <span className="grid size-11 place-items-center rounded-xl bg-purple-600/15 text-purple-400">
-                <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
-              </span>
-              <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-              <p className="mt-2 flex-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
-              <LocaleLink href={href} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300">
-                {linkLabel} <ArrowRight size={14} aria-hidden="true" />
-              </LocaleLink>
-            </div>
+          {features.map(({ icon: Icon, title, description, href, linkLabel }, index) => (
+            <Fragment key={title}>
+              <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+                <span className="grid size-11 place-items-center rounded-xl bg-purple-600/15 text-purple-400">
+                  <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
+                <LocaleLink href={href} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-purple-400 transition-colors hover:text-purple-300">
+                  {linkLabel} <ArrowRight size={14} aria-hidden="true" />
+                </LocaleLink>
+              </div>
+              {index === 1 ? <ArticleAdBanner locale={locale} variant="home-feature" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} /> : null}
+            </Fragment>
           ))}
         </div>
       </section>
@@ -101,21 +110,23 @@ export default function HomeView({ locale }: { locale: Locale }) {
           <p className="mt-4 text-[var(--muted)] text-base sm:text-lg">{t.home.popularLead}</p>
         </div>
         <div className="mt-10 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {popularDreams.map((entry) => (
-            <LocaleLink
-              key={entry!.slug}
-              href={`/dreams/${entry!.slug}`}
-              className="group flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--text)] hover:bg-[var(--surface)]"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface)] text-2xl" aria-hidden="true">
-                {entry!.icon}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">{entry!.title}</span>
-                <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">{entry!.shortMeaning}</span>
-              </span>
-              <ArrowRight size={15} className="shrink-0 text-[var(--muted)] transition group-hover:translate-x-0.5 group-hover:text-[var(--text)]" aria-hidden="true" />
-            </LocaleLink>
+          {popularDreams.map((entry, index) => (
+            <Fragment key={entry!.slug}>
+              <LocaleLink
+                href={`/dreams/${entry!.slug}`}
+                className="group flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--text)] hover:bg-[var(--surface)]"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface)] text-2xl" aria-hidden="true">
+                  {entry!.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{entry!.title}</span>
+                  <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">{entry!.shortMeaning}</span>
+                </span>
+                <ArrowRight size={15} className="shrink-0 text-[var(--muted)] transition group-hover:translate-x-0.5 group-hover:text-[var(--text)]" aria-hidden="true" />
+              </LocaleLink>
+              {(index + 1) % 4 === 0 ? <ArticleAdBanner locale={locale} variant="home-symbol" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} /> : null}
+            </Fragment>
           ))}
         </div>
         <div className="mt-10 text-center">
@@ -128,6 +139,8 @@ export default function HomeView({ locale }: { locale: Locale }) {
           </LocaleLink>
         </div>
       </section>
+
+      <HomeRandomDreams locale={locale} />
 
       <section aria-labelledby="faq-title" className="mx-auto max-w-3xl pb-20">
         <h2 id="faq-title" className="text-center text-2xl sm:text-3xl font-semibold tracking-tight">{t.home.faqTitle}</h2>

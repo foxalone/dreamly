@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { HOME_DREAM_PENDING_KEY, readHomeDreamQueue, removeHomeDreamPending, readHomeDreamPending, writeHomeDreamPending, takeHomeDreamPending } from "./homeDreamPending";
+import { hasWrittenGuestDream } from "./guestDreamHistory";
 import { needsImportedRootRepair } from "./importedDreamRoots";
 
 test("interrupted analysis survives sign-in, is claimed once, and never leaks to another dream", () => {
@@ -114,4 +115,22 @@ test("queue preserves dream texts and analyses in all six site languages", () =>
   for (const text of texts) writeHomeDreamPending(text, { analysis: `Analysis: ${text}` });
   assert.deepEqual(readHomeDreamQueue().map((dream) => [dream.text, dream.analysis]),
     texts.map((text) => [text, `Analysis: ${text}`]));
+}));
+
+test("guest first-dream history survives deletion and import without retaining dream text", () => withStorage((values) => {
+  assert.equal(hasWrittenGuestDream(), false);
+  writeHomeDreamPending("A first dream about a forest");
+  assert.equal(hasWrittenGuestDream(), true);
+  const dream = readHomeDreamPending()!;
+  removeHomeDreamPending(dream);
+  assert.equal(readHomeDreamQueue().length, 0);
+  assert.equal(hasWrittenGuestDream(), true);
+  assert.ok(!JSON.stringify([...values]).includes("forest"));
+}));
+
+test("removing a legacy guest dream also preserves that it was written", () => withStorage((values) => {
+  values.set(HOME_DREAM_PENDING_KEY, JSON.stringify([{ text: "Legacy guest dream" }]));
+  const dream = readHomeDreamPending()!;
+  removeHomeDreamPending(dream);
+  assert.equal(hasWrittenGuestDream(), true);
 }));

@@ -23,3 +23,25 @@
     height: 90px;
   }
 }
+
+/* Home ads occupy one grid cell and inherit the neighboring content height. */
+.homeCard {
+  border-color: var(--border);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.compactContent {
+  inset: 6px;
+}
+
+.compactLabel {
+  margin: 0 0 2px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

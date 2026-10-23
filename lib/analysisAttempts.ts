@@ -1,4 +1,4 @@
-export const ATTEMPT_EVENTS = ["ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
+export const ATTEMPT_EVENTS = ["access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
 export type AttemptEvent = typeof ATTEMPT_EVENTS[number];
 export function ownsAnalysisAttempt(row: { uid?: string | null; guestId?: string | null }, uid: string | null, guestId: string | null): boolean {
   return Boolean((uid && row.uid === uid) || (guestId && row.guestId === guestId));
@@ -15,8 +15,8 @@ export function attemptOutcome(status: number, code?: string) {
 }
 /** Never downgrade a completed reading with a late browser event. Keep the actual failure on Back. */
 export function clientAttemptUpdate(previous: { status?: string; reason?: string }, event: AttemptEvent) {
-  if (previous.status === "succeeded") return null;
-  if (["ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent"].includes(event)) {
+  if (previous.status === "succeeded" || event === "analysis_displayed") return null;
+  if (["access_choice_opened", "ad_video_selected", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent"].includes(event)) {
     return { status: previous.status || "waiting", reason: previous.reason || "ad_required", lastEvent: event };
   }
   return { status: "incomplete", reason: event === "back" ? previous.reason || "back" : event, lastEvent: event };
@@ -66,4 +66,10 @@ export function authAttemptFailure(error: unknown): AttemptEvent {
   if (code === "auth/too-many-requests") return "auth_throttled";
   if (["auth/operation-not-allowed", "auth/user-disabled"].includes(code ?? "")) return "auth_disabled";
   return "auth_failed";
+}
+
+/** Bounded history shared by server and browser writes; server receipt order is authoritative. */
+export function appendAttemptEvent(row: { events?: unknown }, event: string, source: "server" | "browser", atMs = Date.now(), extra: Record<string, unknown> = {}) {
+  const events = Array.isArray(row.events) ? row.events : [];
+  return [...events.slice(-79), { event, atMs, source, ...extra }];
 }

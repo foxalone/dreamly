@@ -1,14 +1,11 @@
-/** Shared by the server quota and its regression tests. */
-// Guests earn every AI reading through an ad, including their first.
-export const GUEST_FREE_ASKS = 0;
-// 2 per network per day: one real second visitor still gets a reading, but
-// clearing the guest cookie to re-ask stops paying off (2026-10-09).
-export const GUEST_IP_DAILY_LIMIT = 2;
+/** One free AI reading per network per UTC day, shared by all guest cookies. */
+export const GUEST_FREE_ASKS = 1;
+export const GUEST_IP_DAILY_LIMIT = GUEST_FREE_ASKS;
 
-export function guestAnalysisAccess(used: number, ipUsed: number, adCredits: number) {
-  // Earned credits must also work when the network's free quota is exhausted.
+export function guestAnalysisAccess(_used: number, ipUsed: number, adCredits: number) {
+  // Lifetime guest usage is diagnostic only; a returning guest gets a new daily slot.
+  // Spend the daily free slot before any earned credit.
+  if (ipUsed < GUEST_IP_DAILY_LIMIT) return "free" as const;
   if (adCredits > 0) return "ad" as const;
-  if (used >= GUEST_FREE_ASKS) return "guest_limit" as const;
-  if (ipUsed >= GUEST_IP_DAILY_LIMIT) return "ip_limit" as const;
-  return "free" as const;
+  return "ip_limit" as const;
 }

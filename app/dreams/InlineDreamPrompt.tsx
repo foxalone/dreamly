@@ -1,4 +1,5 @@
 "use client";
+import AnalysisDisplay from "../components/AnalysisDisplay";
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ArrowRight, Loader2, Sparkles, X } from "lucide-react";
@@ -247,7 +248,7 @@ export default function InlineDreamPrompt({
 
               {analysis ? (
                 <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
-                  <p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--dd-text)]">{analysis}</p>
+                  <AnalysisDisplay attemptId={ask.analysisAttemptId}><p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--dd-text)]">{analysis}</p></AnalysisDisplay>
                   <ShareAnonPrompt
                     status={ask.anonShare}
                     onShare={ask.shareAnonymously}

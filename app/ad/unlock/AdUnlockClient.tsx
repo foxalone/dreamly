@@ -16,7 +16,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
-import { analysisAttemptReporter } from "@/lib/reportAnalysisAttempt";
+import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 
 type Phase = "waiting" | "showing" | "granting" | "done" | "unavailable" | "failed";
 
@@ -179,7 +179,7 @@ export default function AdUnlockClient() {
             method: "POST",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, ...translation }),
+            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
           });
         } else {
           res = await fetch("/api/dreams/guest-ad-reward", {
@@ -187,7 +187,7 @@ export default function AdUnlockClient() {
             credentials: "same-origin",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kind, rewardId: rewardId.current, ...translation }),
+            body: JSON.stringify({ kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
           });
         }
         if (cancelled) return;

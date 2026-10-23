@@ -1,11 +1,14 @@
 "use client";
+import AnalysisDisplay from "./AnalysisDisplay";
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
-import { clampDreamText, DREAM_MAX_CHARS } from "@/lib/dreamLength";
+import { analyzeDreamMessages, firstDreamMessages } from "@/lib/i18n/first-dream";
+import { hasWrittenGuestDream, rememberGuestDreamWritten } from "@/lib/guestDreamHistory";
+import { DREAM_MAX_CHARS } from "@/lib/dreamLength";
 import { readHomeDreamQueue, removeHomeDreamPending, writeHomeDreamPending, type HomeDreamPending } from "@/lib/homeDreamPending";
-import { DreamLensSelect, useDreamLens } from "./DreamLensChips";
-import DreamWordCounter from "./DreamWordCounter";
+import { DreamLensSelect } from "./DreamLensChips";
+import DreamComposerForm from "./DreamComposerForm";
 import EscapeNote from "./EscapeNote";
 import { DreamSymbolIcons } from "./DreamSymbolIcons";
 import ShareAnonPrompt from "./ShareAnonPrompt";
@@ -51,7 +54,7 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
           <h3 className="font-semibold">{t.app.analysis}</h3>
           {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} /></div> : null}
           {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
-          <p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{ask.analysis}</p>
+          <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{ask.analysis}</p></AnalysisDisplay>
           <ShareAnonPrompt status={ask.anonShare} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>
       )}
@@ -63,9 +66,22 @@ export default function GuestDreamJournal() {
   const t = useMessages();
   const locale = useLocale();
   const [dreams, setDreams] = useState<HomeDreamPending[]>([]);
-  const [text, setText] = useState("");
-  const [lens, setLens] = useDreamLens();
-  const refresh = () => setDreams(readHomeDreamQueue().reverse());
+  const [historyReady, setHistoryReady] = useState(false);
+  const [hasWrittenDream, setHasWrittenDream] = useState(false);
+  const refresh = () => {
+    const queue = readHomeDreamQueue();
+    if (queue.length) rememberGuestDreamWritten();
+    setDreams(queue.reverse());
+    setHasWrittenDream((before) => before || queue.length > 0 || hasWrittenGuestDream());
+    setHistoryReady(true);
+  };
+  const composer = useDreamAsk({
+    source: "guest_journal",
+    interpretedEvent: "guest_journal_interpreted",
+    onResultChange: (ready) => { if (ready) refresh(); },
+  });
+  const { text, setText, lens, chooseLens, busy } = composer;
+  const dreamPrompt = historyReady && !hasWrittenDream ? firstDreamMessages[locale] : t.app.writeDream;
 
   useEffect(() => {
     refresh();
@@ -73,11 +89,12 @@ export default function GuestDreamJournal() {
     return () => window.removeEventListener("storage", refresh);
   }, []);
 
-  function save(event: FormEvent) {
+  async function analyze(event: FormEvent) {
     event.preventDefault();
-    if (!text.trim()) return;
-    writeHomeDreamPending(text, { lens, lang: locale, shareToFeed: false });
-    setText("");
+    if (!text.trim() || busy) return;
+    // Preserve the journal entry even if the request needs an ad/sign-in or fails.
+    writeHomeDreamPending(text, { lens, lang: locale, shareToFeed: composer.shareToFeed });
+    await composer.submit();
     refresh();
   }
 
@@ -86,23 +103,20 @@ export default function GuestDreamJournal() {
       <h1 className="inline-flex rounded-full border border-[var(--border)] bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)]">
         {t.nav.dreams} ({dreams.length})
       </h1>
-      <form onSubmit={save} className="mt-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <textarea value={text} onChange={(event) => setText(clampDreamText(event.target.value))}
-            onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === "Enter") save(event); }}
-            maxLength={DREAM_MAX_CHARS} rows={3} placeholder={t.app.writeDream} aria-label={t.app.writeDream}
-            className="w-full min-w-0 flex-1 resize-none rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3.5 text-[var(--text)] outline-none placeholder:text-[var(--muted)]" />
-          <div className="flex gap-2 sm:w-48 sm:shrink-0 sm:flex-col">
-            <DreamLensSelect value={lens} onChange={setLens} className="min-h-11 min-w-0 flex-1" />
-            <button type="submit" disabled={!text.trim()} className="dream-primary-btn h-11 disabled:opacity-60">{t.app.save}</button>
-          </div>
-        </div>
-        <div className="mt-2 text-end text-xs text-[var(--muted)]"><DreamWordCounter text={text} /></div>
-      </form>
+      <DreamComposerForm
+        className="mt-5" autoFocus
+        text={text} onTextChange={setText} onSubmit={analyze}
+        lens={lens} onLensChange={chooseLens}
+        placeholder={dreamPrompt} label={t.app.writeDream}
+        maxChars={DREAM_MAX_CHARS} busy={busy} submitDisabled={!text.trim()}
+        submitLabel={analyzeDreamMessages[locale]} busyLabel={t.app.analyzing}
+        share={{ checked: composer.shareToFeed, onChange: composer.setShareToFeed }}
+      />
+      {composer.error ? <p role="alert" className="mt-3 text-sm text-red-500">{composer.error}</p> : null}
       <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
       <div className="mt-8 space-y-3">
         {dreams.map((dream, index) => (
-          <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}`} dream={dream} number={dreams.length - index} refresh={refresh} />
+          <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={dreams.length - index} refresh={refresh} />
         ))}
         {!dreams.length && <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-[var(--muted)]">{t.app.noDreams}</p>}
       </div>

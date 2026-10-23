@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { analysisAttemptReporter } from "./reportAnalysisAttempt";
+import { analysisAttemptReporter, reportAnalysisAttempt } from "./reportAnalysisAttempt";
 
 test("sign-in reporting keeps the captured attempt after import removes local data", async (t) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "window");
@@ -31,4 +31,12 @@ test("sign-in reporting keeps the captured attempt after import removes local da
     { attemptId, event: "auth_opened" }, { attemptId, event: "auth_succeeded" },
   ]);
   assert.ok(!JSON.stringify(bodies).includes("private dream"));
+});
+
+test("signed-in display reporting authenticates without relying on pending local data", async (t) => {
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init?: RequestInit) => {
+    assert.deepEqual(JSON.parse(String(init?.body)), { attemptId: "b".repeat(64), event: "analysis_displayed", idToken: "verified-token" });
+    return new Response("{}");
+  });
+  reportAnalysisAttempt("analysis_displayed", undefined, "b".repeat(64), "verified-token");
 });

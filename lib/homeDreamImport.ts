@@ -250,6 +250,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
       tzOffsetMin: now.getTimezoneOffset(),
       wordCount: countWords(text),
       charCount: text.length,
+      ...(pending.analysisAttemptId ? { analysisAttemptId: pending.analysisAttemptId } : {}),
       langGuess: pending.lang || guessLang(text),
       tags: [] as string[],
       summary: "",

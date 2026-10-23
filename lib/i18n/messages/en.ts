@@ -22,7 +22,7 @@ export const EN_MESSAGES: UiMessages = {
     askPlaceholder: "Describe your dream…",
     askSubmit: "Interpret",
     askBusy: "Reading your dream…",
-    askHint: "Watch a short ad for an AI interpretation — no sign-in needed.",
+    askHint: "Describe your dream in your own words.",
     askShareFeed: "Share anonymously in the feed",
     askSave: "Save to journal",
     askMore: "Ask more",
@@ -61,7 +61,7 @@ export const EN_MESSAGES: UiMessages = {
     browseFull: "Browse the full dream dictionary",
     faqTitle: "Frequently asked questions",
     closingTitle: "Start understanding your dreams tonight",
-    closingLead: "Watch a short ad for an interpretation, or sign in for free AI readings.",
+    closingLead: "Explore what your dream could mean.",
     faqs: [
       {
         question: "What does my dream mean? Can AI interpret it?",
@@ -76,7 +76,7 @@ export const EN_MESSAGES: UiMessages = {
       {
         question: "Is Dreamly free to use?",
         answer:
-          "The dictionary, gallery, and map are free, and you can save a few dreams to your journal for free every day (more by watching a short ad). As a guest, watch a short ad for each AI interpretation, including your first; sign in for a few free interpretations. After that, AI readings are part of the Dreamly subscription ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, with unlimited saving, 400 characters per dream.",
+          "The dictionary, gallery, and map are free, and you can save a few dreams to your journal for free every day (more by watching a short ad). The Dreamly subscription includes AI readings ($6.99/month or $69.99/year, with a 3-day trial) — up to 3 a day, with unlimited saving, 400 characters per dream.",
       },
       {
         question: "How does AI dream interpretation work?",
@@ -194,7 +194,7 @@ export const EN_MESSAGES: UiMessages = {
   },
   pricing: {
     h1: "Pricing",
-    lead: "Watch a short ad for a guest interpretation, or sign in for free AI readings. Subscribe for more.",
+    lead: "Choose a plan for more AI dream interpretations.",
     plansTitle: "Plans",
     monthly: "Monthly",
     yearly: "Yearly",
@@ -206,11 +206,11 @@ export const EN_MESSAGES: UiMessages = {
     limitsNote: "Up to 3 AI interpretations per day — including during the trial.",
     accessFeatures: "Journal, map, photos, and more.",
     useFor: "Subscription unlocks AI interpretations and unlimited saving in the app.",
-    freeNote: "The dictionary, gallery, and map are free. Guests unlock each AI interpretation with a short ad; signed-in users get a limited number of free readings.",
+    freeNote: "The dictionary, gallery, and map are free.",
     refundNote: "Cancel during the trial and you are not charged. See the Refund Policy.",
     seoTitle: "Dreamly Pricing — Monthly and Yearly AI Dream Interpretation",
     seoDescription:
-      "Subscribe to Dreamly for AI dream interpretations: $6.99/month or $69.99/year with a 3-day free trial. Guests unlock AI readings with short ads. Dictionary and gallery are free.",
+      "Subscribe to Dreamly for AI dream interpretations: $6.99/month or $69.99/year with a 3-day free trial. Dictionary and gallery are free.",
     subscribeCta: "Subscribe",
     cancelAnytime: "Cancel anytime in your profile.",
     yearlySave: "2 months free",
@@ -355,8 +355,8 @@ export const EN_MESSAGES: UiMessages = {
   },
   plansModal: {
     guestTitle: "Continue your interpretation",
-    guestBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
-    guestNetworkBody: "Watch a short ad to unlock this AI interpretation without signing in, including your first. Or sign in for free AI readings.",
+    guestBody: "Sign in or watch a short video to continue.",
+    guestNetworkBody: "Sign in or watch a short video to continue.",
     guestTranslateTitle: "Translate this dream",
     guestTranslateBody: "Sign in to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
     signInWithGoogle: "Continue with Google",

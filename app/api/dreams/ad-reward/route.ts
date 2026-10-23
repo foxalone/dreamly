@@ -1,3 +1,5 @@
+import { readGuestId } from "../_lib/guestQuota";
+import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { grantAdReward } from "../_lib/subscription";
@@ -5,7 +7,7 @@ import { grantAdReward } from "../_lib/subscription";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
-type Body = { idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
+type Body = { attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
 
 /**
  * POST /api/dreams/ad-reward — called by the browser after GPT fires
@@ -23,6 +25,7 @@ export async function POST(req: Request) {
     if (kind === "translate" && !target) return NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 });
     const res = await grantAdReward(auth.uid, kind, body.rewardId, undefined, target ?? undefined);
     if ("error" in res) return res.error;
+    if (kind === "analysis") await recordAttemptAccess(body.attemptId, auth.uid, readGuestId(req));
     return NextResponse.json({ ok: true, credits: res.credits, leftToday: res.leftToday });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";

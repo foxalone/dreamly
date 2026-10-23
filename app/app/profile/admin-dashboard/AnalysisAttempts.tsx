@@ -9,7 +9,8 @@ type Row = {
   source?: string; dreamId?: string; createdAtMs?: number; startedAtMs?: number;
   wordCount?: number; charCount?: number; durationMs?: number; httpStatus?: number;
   analysis?: string; model?: string; emojiModel?: string; emojis?: { native: string }[];
-  events?: { event: string; atMs: number }[];
+  displayedAtMs?: number | null;
+  events?: { event: string; atMs: number; source?: "server" | "browser"; httpStatus?: number }[];
   userAgent?: string; lastEvent?: string;
   id: string; text: string; uid?: string; guestId?: string; lang?: string; lens?: string; status: string; reason: string; requestCount?: number; updatedAtMs: number; clientReported?: boolean;
 };
@@ -19,7 +20,7 @@ export default function AnalysisAttempts() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const [completed, setCompleted] = useState(true);
   const [search, setSearch] = useState("");
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,7 +36,7 @@ export default function AnalysisAttempts() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
-  const reason = (row: Row) => t.reasons[row.reason as keyof typeof t.reasons] ?? t.reasons.unknown;
+  const reason = (row: Row) => row.status === "succeeded" ? t.reasons.analysis_ready : t.reasons[row.reason as keyof typeof t.reasons] ?? t.reasons.unknown;
   const visible = rows.filter((row) => (completed || row.status !== "succeeded") &&
     [row.text, row.uid, row.guestId, row.id, row.city, row.country, row.admin1, row.source, row.dreamId, reason(row)].join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   return (
@@ -68,7 +69,8 @@ export default function AnalysisAttempts() {
             </p>
             {row.emojis?.length ? <p className="mt-2">{row.emojis.map((e) => e.native).join(" ")}</p> : null}
             <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{row.text}</p>
-            <p className={`mt-2 font-medium ${row.status === "succeeded" ? "text-green-500" : "text-amber-500"}`}>{reason(row)}</p>
+            <p className={`mt-2 font-medium ${row.status === "succeeded" ? "text-green-500" : "text-amber-500"}`}>{row.displayedAtMs ? t.reasons.analysis_displayed : reason(row)}</p>
+            {row.status === "succeeded" && !row.displayedAtMs ? <p className="mt-1 text-xs text-[var(--muted)]">{t.displayUnknown}</p> : null}
             <p className="mt-1 text-xs text-[var(--muted)]">{t.signIn}: {authEvent ? t.reasons[authEvent as keyof typeof t.reasons] ?? t.reasons.unknown : t.noSignIn}</p>
             <p className="mt-1 text-xs text-[var(--muted)]">{t.requests}: {row.requestCount ?? 1}{row.clientReported ? ` · ${t.browser}` : ""}</p>
             <details className="mt-2 text-xs text-[var(--muted)]">
@@ -86,12 +88,14 @@ export default function AnalysisAttempts() {
                 {row.userAgent ? <div>{t.userAgent}: {row.userAgent}</div> : null}
               </div>
             </details>
-            {row.events?.length ? <details className="mt-2 text-xs text-[var(--muted)]">
+            {row.events?.length ? <details open className="mt-2 text-xs text-[var(--muted)]">
               <summary className="cursor-pointer">{t.history}</summary>
               <ol className="mt-2 space-y-1">
                 {row.events.map((item, index) => <li key={`${item.atMs}-${index}`}>
                   <time dateTime={new Date(item.atMs).toISOString()}>{new Date(item.atMs).toLocaleString(locale)}</time>
                   {" · "}{t.reasons[item.event as keyof typeof t.reasons] ?? t.reasons.unknown}
+                  {" · "}{item.source === "server" ? t.eventServer : t.eventBrowser}
+                  {item.httpStatus != null ? ` · HTTP ${item.httpStatus}` : ""}
                 </li>)}
               </ol>
             </details> : null}

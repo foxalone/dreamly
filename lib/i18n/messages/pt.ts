@@ -22,7 +22,7 @@ export const PT_MESSAGES: UiMessages = {
     askPlaceholder: "Descreva seu sonho…",
     askSubmit: "Interpretar",
     askBusy: "Lendo seu sonho…",
-    askHint: "Assista a um anúncio curto para interpretar seu sonho com IA, sem fazer login.",
+    askHint: "Descreva seu sonho com suas próprias palavras.",
     askShareFeed: "Compartilhar anonimamente no feed",
     askSave: "Salvar no diário",
     askMore: "Perguntar mais",
@@ -61,7 +61,7 @@ export const PT_MESSAGES: UiMessages = {
     browseFull: "Ver o dicionário completo",
     faqTitle: "Perguntas frequentes",
     closingTitle: "Comece a entender seus sonhos esta noite",
-    closingLead: "Assista a um anúncio curto para obter uma interpretação ou entre para receber leituras grátis com IA.",
+    closingLead: "Explore o que seu sonho pode significar.",
     faqs: [
       {
         question: "O que significa o meu sonho? A IA consegue interpretar?",
@@ -76,7 +76,7 @@ export const PT_MESSAGES: UiMessages = {
       {
         question: "A Dreamly é grátis?",
         answer:
-          "O dicionário, a galeria e o mapa são grátis, e todo dia você pode salvar alguns sonhos no diário de graça (mais assistindo a um anúncio curto). Como visitante, assista a um anúncio curto por interpretação com IA, inclusive a primeira; entre para receber algumas interpretações grátis. Depois disso, as interpretações com IA fazem parte da assinatura Dreamly (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste) — até 3 por dia, salvamento ilimitado, 400 caracteres por sonho.",
+          "O dicionário, a galeria e o mapa são grátis, e todo dia você pode salvar alguns sonhos no diário de graça (mais assistindo a um anúncio curto). A assinatura Dreamly inclui interpretações com IA (US$ 6,99/mês ou US$ 69,99/ano, com 3 dias de teste) — até 3 por dia, salvamento ilimitado, 400 caracteres por sonho.",
       },
       {
         question: "Como funciona a interpretação com IA?",
@@ -194,7 +194,7 @@ export const PT_MESSAGES: UiMessages = {
   },
   pricing: {
     h1: "Preços",
-    lead: "Assista a um anúncio curto para interpretar seu sonho como visitante ou entre para receber leituras grátis com IA. Assine para ter mais.",
+    lead: "Escolha um plano para ter mais interpretações com IA.",
     plansTitle: "Planos",
     monthly: "Mensal",
     yearly: "Anual",
@@ -206,11 +206,11 @@ export const PT_MESSAGES: UiMessages = {
     limitsNote: "Até 3 interpretações com IA por dia — inclusive no teste.",
     accessFeatures: "Diário, mapa, fotos e mais.",
     useFor: "A assinatura libera as interpretações com IA e o salvamento ilimitado no app.",
-    freeNote: "O dicionário, a galeria e o mapa são grátis. Visitantes desbloqueiam cada interpretação com IA assistindo a um anúncio curto; quem entra recebe um número limitado de leituras grátis.",
+    freeNote: "O dicionário, a galeria e o mapa são grátis.",
     refundNote: "Cancele no teste e você não é cobrado. Veja a Política de reembolso.",
     seoTitle: "Preços da Dreamly — interpretação de sonhos com IA mensal e anual",
     seoDescription:
-      "Assine a Dreamly: US$ 6,99/mês ou US$ 69,99/ano com 3 dias de teste. Visitantes desbloqueiam interpretações com IA assistindo a anúncios curtos. Dicionário e galeria grátis.",
+      "Assine a Dreamly: US$ 6,99/mês ou US$ 69,99/ano com 3 dias de teste. Dicionário e galeria grátis.",
     subscribeCta: "Assinar",
     cancelAnytime: "Cancele quando quiser no perfil.",
     yearlySave: "2 meses grátis",
@@ -355,8 +355,8 @@ export const PT_MESSAGES: UiMessages = {
   },
   plansModal: {
     guestTitle: "Continue sua interpretação",
-    guestBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
-    guestNetworkBody: "Assista a um anúncio curto para desbloquear esta interpretação com IA sem fazer login, inclusive se for a primeira. Ou entre para receber leituras grátis com IA.",
+    guestBody: "Entre ou assista a um vídeo curto para continuar.",
+    guestNetworkBody: "Entre ou assista a um vídeo curto para continuar.",
     guestTranslateTitle: "Traduzir este sonho",
     guestTranslateBody: "Entre para ganhar uma tradução grátis por dia, ou assista a um anúncio curto para traduzir sem fazer login. A tradução fica sua: se você entrar depois, ela passa para a sua conta.",
     signInWithGoogle: "Continuar com o Google",

@@ -48,7 +48,7 @@ export default function HomeHero() {
       </div>
       {hasResult ? null : (
         <a
-          href="#features"
+          href="#home-universe"
           className="flex flex-col items-center gap-1.5 pb-5 text-[var(--muted)] transition-colors hover:text-[var(--text)]"
         >
           <span className="text-sm font-medium">{t.home.discover}</span>

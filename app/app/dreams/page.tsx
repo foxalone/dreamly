@@ -1,6 +1,10 @@
 "use client";
+import AnalysisDisplay from "@/app/components/AnalysisDisplay";
+import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { firstDreamMessages } from "@/lib/i18n/first-dream";
+import DreamComposerForm from "@/app/components/DreamComposerForm";
 import GuestDreamJournal from "@/app/components/GuestDreamJournal";
 import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -32,7 +36,7 @@ import {
   type UserBillingFields,
 } from "@/lib/subscriptions/status";
 import { formatMessage } from "@/lib/i18n/messages";
-import { DreamLensSelect, useDreamLens } from "@/app/components/DreamLensChips";
+import { useDreamLens } from "@/app/components/DreamLensChips";
 import { openPaywall } from "@/lib/paywall";
 import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { type DreamLens, isDreamLens } from "@/lib/dream-lenses";
@@ -96,6 +100,7 @@ type Dream = {
   rootsUpdatedAt?: any;
 
   analysisText?: string;
+  analysisAttemptId?: string;
   analysisAtMs?: number;
   analysisModel?: string;
   analysisLens?: string;
@@ -437,6 +442,7 @@ export default function DreamsPage() {
   const resumedAnalyses = useRef(new Set<string>());
   const repairedRoots = useRef(new Set<string>());
   const [dreams, setDreams] = useState<Dream[]>([]);
+  const [dreamHistoryUid, setDreamHistoryUid] = useState<string | null>(null);
   const [stories, setStories] = useState<Dream[]>([]);
   const [uid, setUid] = useState<string | null>(null);
   const [billing, setBilling] = useState<UserBillingFields | null>(null);
@@ -755,6 +761,7 @@ export default function DreamsPage() {
   useEffect(() => {
     if (!uid) {
       setDreams([]);
+      setDreamHistoryUid(null);
       return;
     }
 
@@ -772,6 +779,7 @@ export default function DreamsPage() {
           ...(d.data() as any),
         }));
         setDreams(items);
+        setDreamHistoryUid(uid);
       },
       (err) => {
         console.error("dreams onSnapshot error:", err);
@@ -1231,14 +1239,19 @@ export default function DreamsPage() {
     setError(null);
     setAnalysisBusyId(dreamId);
 
+    let requestAttemptId = dream?.analysisAttemptId;
+    let requestToken: string | undefined;
+    let requestRejected = false;
     try {
       const idToken = await u.getIdToken();
+      requestToken = idToken;
       const res = await fetch("/api/dreams/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: t,
           source: "journal",
+          attemptId: requestAttemptId,
           dreamId,
           lang: locale !== "en" ? locale : ((dream as any)?.langGuess ?? guessLang(t)),
           lens: analysisLens,
@@ -1250,6 +1263,8 @@ export default function DreamsPage() {
         }),
       });
 
+      requestRejected = !res.ok;
+      requestAttemptId = res.headers.get("X-Dreamly-Attempt") ?? requestAttemptId;
       const data2 = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data2?.code === "DAILY_LIMIT") {
@@ -1274,6 +1289,7 @@ export default function DreamsPage() {
 
       await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         analysisText,
+        ...(requestAttemptId ? { analysisAttemptId: requestAttemptId } : {}),
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
         analysisLens: data2?.lens ?? analysisLens,
@@ -1286,6 +1302,7 @@ export default function DreamsPage() {
             ? {
                 ...x,
                 analysisText,
+                analysisAttemptId: requestAttemptId,
                 analysisAtMs: nowMs,
                 analysisModel: data2?.model ?? undefined,
                 analysisLens: data2?.lens ?? analysisLens,
@@ -1320,6 +1337,7 @@ export default function DreamsPage() {
       }
       openAnalysis(dreamId);
     } catch (e: any) {
+      if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken);
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "INSUFFICIENT_CREDITS_ANALYZE") {
         openPaywall({
           kind: "analysis",
@@ -1619,56 +1637,22 @@ export default function DreamsPage() {
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <textarea
-            value={text}
-            onChange={(e) => {
-              const raw = e.target.value ?? "";
-              const v = clampDreamText(raw);
-              setText(v);
-              const next = detectRecLangFromText(v);
-              if (next) setRecLang(next);
-            }}
-            onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                void save();
-              }
-            }}
-            maxLength={MAX_DREAM_CHARS}
-            placeholder={tab === "STORIES" ? t.app.writeStory : t.app.writeDream}
-            rows={3}
-            disabled={saving}
-            className="
-              w-full min-w-0 flex-1 resize-none rounded-2xl p-3.5
-              bg-[var(--card)] text-[var(--text)]
-              border border-[var(--border)] outline-none
-              placeholder:text-[var(--muted)]
-              focus:border-[color-mix(in_srgb,var(--text)_22%,var(--border))]
-              disabled:opacity-60
-            "
-          />
-          <div className="flex gap-2 sm:w-[12rem] sm:shrink-0 sm:flex-col">
-            {tab !== "STORIES" ? (
-              <DreamLensSelect
-                value={lens}
-                onChange={setLens}
-                disabled={!!analysisBusyId}
-                className="min-h-11 min-w-0 flex-1"
-              />
-            ) : null}
-            <button
-              type="button"
-              onClick={() => {
-                void save();
-              }}
-              disabled={!canSave}
-              className={["dream-primary-btn h-11 shrink-0 sm:w-full", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
-            >
-              {saving ? t.app.saving : t.app.save}
-            </button>
-          </div>
-        </div>
+        <DreamComposerForm
+          className="mt-5" autoFocus
+          text={text}
+          onTextChange={(raw) => {
+            const nextText = clampDreamText(raw);
+            setText(nextText);
+            const nextLang = detectRecLangFromText(nextText);
+            if (nextLang) setRecLang(nextLang);
+          }}
+          onSubmit={(event) => { event.preventDefault(); void save(); }}
+          lens={lens} onLensChange={setLens}
+          showLens={tab !== "STORIES"} lensDisabled={!!analysisBusyId}
+          placeholder={tab === "STORIES" ? t.app.writeStory : dreamHistoryUid === uid && dreams.length === 0 ? firstDreamMessages[locale] : t.app.writeDream}
+          maxChars={MAX_DREAM_CHARS} busy={saving} submitDisabled={!canSave}
+          submitLabel={t.app.save} busyLabel={t.app.saving}
+        />
       </div>
 
       {/* Error */}
@@ -2051,7 +2035,7 @@ export default function DreamsPage() {
                   {!txt ? (
                     <div className="text-sm text-[var(--muted)]">No analysis found.</div>
                   ) : (
-                    <div className="text-[var(--text)] whitespace-pre-wrap break-words text-sm leading-relaxed">{txt}</div>
+                    <AnalysisDisplay attemptId={d?.analysisAttemptId}><div className="text-[var(--text)] whitespace-pre-wrap break-words text-sm leading-relaxed">{txt}</div></AnalysisDisplay>
                   )}
                 </div>
 

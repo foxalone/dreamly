@@ -66,7 +66,7 @@ export function setGuestCookie<T extends NextResponse>(res: T, guestId: string):
 }
 
 /**
- * Books one anonymous AI lookup, requiring an ad credit from the first lookup. Reads both counters before writing so the
+ * Books one anonymous AI lookup: one free per IP per UTC day, then earned ad credits. Reads both counters before writing so the
  * whole thing stays inside a single Firestore transaction.
  */
 export async function consumeGuestAsk(
@@ -87,7 +87,6 @@ export async function consumeGuestAsk(
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
 
       const access = guestAnalysisAccess(used, ipUsed, Number(guestSnap.data()?.adAnalysisCredits ?? 0));
-      if (access === "guest_limit") throw new Error("GUEST_LIMIT");
       if (access === "ip_limit") throw new Error("IP_LIMIT");
       if (access === "ad") {
         tx.set(guestRef, { adAnalysisCredits: FieldValue.increment(-1) }, { merge: true });

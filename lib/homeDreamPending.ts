@@ -1,3 +1,4 @@
+import { rememberGuestDreamWritten } from "@/lib/guestDreamHistory";
 import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
 
 import { DREAM_MAX_CHARS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
@@ -116,7 +117,9 @@ export function readHomeDreamPending(): HomeDreamPending | null {
 
 /** Remove only the acknowledged entry, preserving dreams added in the meantime. */
 export function removeHomeDreamPending(pending: HomeDreamPending) {
-  saveQueue(readHomeDreamQueue().filter((item) =>
+  const queue = readHomeDreamQueue();
+  if (queue.length) rememberGuestDreamWritten();
+  saveQueue(queue.filter((item) =>
     item.createdAtMs !== pending.createdAtMs || item.text !== pending.text
   ));
 }
@@ -151,6 +154,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
     if (index >= 0) queue[index] = next;
     else queue.push(next);
     saveQueue(queue);
+    rememberGuestDreamWritten();
   } catch {
     // ignore quota / private mode
   }

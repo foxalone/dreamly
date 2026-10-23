@@ -5,6 +5,7 @@ import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { PaywallRequest } from "@/lib/paywall";
 import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
+import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 import { trackEvent } from "@/lib/analytics";
 
 /**
@@ -34,7 +35,16 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   const [ad, setAd] = useState<"loading" | "ready" | "credit" | "limit" | "failed">("loading");
   const closeRef = useRef(onClose);
   const signInRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => { closeRef.current = onClose; }, [onClose]);
+  useEffect(() => {
+    closeRef.current = () => {
+      if (!translate && request.analysisDreamText) reportAnalysisAttempt("access_choice_dismissed", request.analysisDreamText);
+      onClose();
+    };
+  }, [onClose, translate, request.analysisDreamText]);
+  useEffect(() => {
+    if (ad !== "loading" && !translate && request.analysisDreamText) reportAnalysisAttempt("access_choice_opened", request.analysisDreamText);
+  }, [ad, translate, request.analysisDreamText]);
+  const dismiss = () => closeRef.current();
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +79,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   }
 
   function watchAd() {
+    if (!translate && request.analysisDreamText) reportAnalysisAttempt("ad_video_selected", request.analysisDreamText);
     trackEvent("rewarded_ad_open", { source: request.source, kind });
     // The retry closure dies with the navigation: useDreamAsk resumes the
     // interpretation from this sessionStorage mark when we come back.
@@ -92,7 +103,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-      onClick={onClose}>
+      onClick={dismiss}>
       <div role="dialog" aria-modal="true" aria-labelledby="guest-limit-title" aria-describedby="guest-limit-body"
         className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
@@ -108,7 +119,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
           <h2 id="guest-limit-title" className="text-lg font-semibold text-[var(--text)]">{copy.title}</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={dismiss}
             aria-label={pm.notNow}
             className="rounded-full px-2 text-lg leading-none text-[var(--muted)] hover:text-[var(--text)]"
           >
@@ -163,7 +174,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <button type="button" className="dream-btn dream-btn--neutral text-sm" onClick={onClose}>{pm.notNow}</button>
+          <button type="button" className="dream-btn dream-btn--neutral text-sm" onClick={dismiss}>{pm.notNow}</button>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
+import { mapPopupMessages } from "@/lib/i18n/map-popup";
 import { BUILDINGS } from "@/lib/game/buildings";
 import MoonGate from "@/app/components/moon/MoonGate";
 import { startMapGlobeRotation } from "@/lib/mapGlobeRotation";
@@ -314,6 +315,9 @@ export default function MapPage() {
       popupRef.current.setLngLat(info.lngLat).setHTML(html).addTo(map);
       return;
     }
+    const locale = stripLocalePrefix(window.location.pathname).locale;
+    const popupCopy = mapPopupMessages[locale];
+
     // Which map layer the count belongs to; on the combined layer the label says nothing, so skip it.
     const kindLabel = info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : null;
 
@@ -330,6 +334,10 @@ export default function MapPage() {
           ${info.emoji} Dream meaning →
         </a>
         <div data-emoji-dreams></div>
+        <a href="${localePath("/app/dreams", locale)}" data-analyze-own-dream
+           style="display:block; margin-top:12px; padding-top:10px; border-top:1px solid rgba(0,0,0,.1); color:#7c3aed; font-size:13px; font-weight:600; text-decoration:none;" dir="auto">
+          ${popupCopy.analyzeDream} →
+        </a>
       </div>
     `;
 
@@ -360,7 +368,7 @@ export default function MapPage() {
         .catch(() => {});
     }
 
-    // Rows below: the latest feed dreams that got this icon, deep-linked into the feed.
+    // Rows below: up to three random matches from recent feed dreams with this icon.
     const list = popupRef.current.getElement()?.querySelector<HTMLDivElement>("div[data-emoji-dreams]");
     if (list) {
       const locale = stripLocalePrefix(window.location.pathname).locale;

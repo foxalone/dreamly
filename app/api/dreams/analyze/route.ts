@@ -22,12 +22,13 @@ import { matchEscapes } from "../../game/_lib/escapeMatch";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
-import { startAnalysisAttempt, finishAnalysisAttempt } from "../_lib/analysisAttempts";
+import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess } from "../_lib/analysisAttempts";
 
 type Body = {
   text: string;
   source?: string;
   dreamId?: string;
+  attemptId?: string;
   lang?: string;
   lens?: string;
   idToken?: string;
@@ -113,14 +114,14 @@ export async function POST(req: Request) {
       text, uid, guestId: readGuestId(req) ?? guestId,
       lang: String(body.lang ?? "").trim() || guessLang(text),
       lens: parseDreamLens(body.lens),
-      source: body.source, dreamId: body.dreamId,
+      source: body.source, dreamId: body.dreamId, attemptId: body.attemptId,
     }, req);
 
     if (!uid) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
-      // Require an earned credit even for the first request or a repeated text.
-      // Previously stored answers must never bypass the guest ad gate.
+      // One free guest reading per IP per UTC day; later readings need an ad credit.
+      // Previously stored answers must never bypass quota accounting.
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
         return finish(
@@ -135,6 +136,7 @@ export async function POST(req: Request) {
         );
       }
       guestBooking = booked;
+      await recordAttemptAccess(attemptId, null, guestId, booked.charge === "free" ? "guest_free_access" : "ad_credit_used");
     } else {
       // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
       // subscription: 3 free analyses in total, max 1 a day.

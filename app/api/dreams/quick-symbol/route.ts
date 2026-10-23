@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Anonymous visitors need an ad credit for every AI answer.
+    // Anonymous visitors share one free AI answer per IP per UTC day.
     const isGuest = !uid;
     const guestId = isGuest ? readGuestId(req) ?? newGuestId() : null;
     const clientIp = isGuest ? readClientIp(req) : "";
@@ -162,7 +162,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Guests need an earned ad credit from their first lookup;
+    // Miss → GPT. Guests use the daily network free slot, then earned ad credits;
     // signed in → consumeAnalysisAccess (free / ad credit / plan).
     let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
     let charge: "slot" | "free" | "ad" | null = null;

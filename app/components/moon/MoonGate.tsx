@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
+import { analyzeDreamMessages } from "@/lib/i18n/first-dream";
 import { moonAccessMessages } from "@/lib/i18n/moon-access";
 import type { MoonAccess } from "@/lib/moon/model";
 import styles from "./MoonGate.module.css";
@@ -79,9 +80,11 @@ export default function MoonGate({ portal = false, children }: { portal?: boolea
         {access ? <p>{m.progress.replace("{count}", String(access.count))}</p> : null}
         {access?.eligible ? <p className={styles.consent}>{m.consent}</p> : null}
         <div className={styles.actions}>
-          {authReady && !user ? <a href={localePath(`/signin?next=${encodeURIComponent(localePath("/moon", locale))}`, locale)}>{m.signin}</a> : access?.eligible ?
-            access.joined ? <a href={localePath("/moon", locale)}>{m.enter}</a> : <button disabled={busy} onClick={() => void check(true)}>{m.enter}</button> : user && access ? <a href={localePath("/app/dreams", locale)}>{m.share}</a> : null}
-          <button onClick={close}>{portal ? m.close : m.home}</button>
+          {access?.eligible ? (
+            access.joined ? <a href={localePath("/moon", locale)}>{m.enter}</a> : <button disabled={busy} onClick={() => void check(true)}>{m.enter}</button>
+          ) : (
+            <a href={localePath("/app/dreams", locale)}>{analyzeDreamMessages[locale]}</a>
+          )}
         </div>
       </div>
     </dialog>

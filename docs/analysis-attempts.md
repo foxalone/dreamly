@@ -2,7 +2,7 @@
 
 The Dreams tab in the admin dashboard includes an Analysis attempts panel when
 Only Shared is off. Its authenticated admin API lists the 150 most recently
-updated records. Completed readings are hidden by default; refresh and search
+updated records. Completed readings are included by default; refresh and search
 apply to this panel independently of the dream list.
 
 `analysis_attempts` is private server-written diagnostic data, not public dream
@@ -61,3 +61,36 @@ dream, so subsequent events still refer to that attempt. Standalone sign-in is
 correlated only when opened for the guest analysis limit. Missing events mean
 unknown, not that the user never clicked sign-in. Past interactions without these
 events cannot be reconstructed. Browser delivery remains best-effort.
+
+
+## Complete flow for new activity
+
+New server events record submission/retry, guest daily free-slot reservation or
+ad-credit use, access granted by the reward endpoint, and the final HTTP outcome.
+Server and browser events share a transactional history capped at 80 entries;
+retries retain the history. Each new entry identifies its source. Opening the ad
+overlay alone still does not prove a video was completed: the server access event
+means the reward endpoint accepted the grant under the existing reward model.
+
+The analysis response ID is carried through the local queue and journal import.
+An explicit retry ID is reused only for its owning guest/account and matching
+text, language and lens, including across UTC midnight. Changed content or an
+unowned ID cannot attach a request to that history.
+
+A browser display event is sent only when the answer element intersects the
+viewport in a visible tab, on home/journal results, inline prompts, guest cards
+and the signed-in analysis dialog. The server accepts it only after a successful
+analysis, deduplicates repeated displays, and retains the successful server result
+if a later browser error arrives. The admin card distinguishes a prepared answer
+from confirmed browser display. This is evidence of display, not proof of reading;
+missing browser events remain unknown. Browser events are best-effort.
+Historical activity is not backfilled.
+
+## Guest daily allowance
+
+Guests share one free AI analysis per IP per UTC day across full-dream and
+AI quick-symbol requests. Guest lifetime usage is diagnostic, not a lifetime
+limit. The IP counter is reserved transactionally, so a fresh cookie does not
+provide another free slot. The free slot is spent before earned ad credits.
+Further requests offer sign-in or a video ad. Errors refund the exact balance
+and original UTC day that were charged. Dictionary matches remain free.

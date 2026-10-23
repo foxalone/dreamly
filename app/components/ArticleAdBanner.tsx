@@ -9,7 +9,7 @@ const AD_CLIENT = "ca-pub-2484539106050736";
 const ARTICLE_AD_SLOT = "7289632304";
 
 /** The shared layout loads AdSense; each mounted placement requests its ad once. */
-export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" }) {
+export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" | "home-feature" | "home-symbol" }) {
   const ad = useRef<HTMLModElement>(null);
   const cardBox = useRef<HTMLElement>(null);
   const cardSlot = useRef<HTMLDivElement>(null);
@@ -22,20 +22,26 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
   const gallery = variant === "gallery";
   const map = variant === "map";
   const feed = variant === "feed";
-  const gridCard = variant === "card";
+  const homeCard = variant === "home-feature" || variant === "home-symbol";
+  const lazy = feed || homeCard;
+  const compactCard = variant === "home-symbol";
+  const gridCard = variant === "card" || homeCard;
 
   useEffect(() => {
     if (!gridCard) return;
     const box = cardBox.current;
     const grid = box?.parentElement;
     if (!box || !grid) return;
-    // With one column the ad has its own row: use the preceding content card.
-    // In wider grids, size containment lets the content alone set the row height.
+    // Content cards set the row height. A row containing only an ad uses the
+    // preceding content card, including the final row in a multi-column grid.
     const siblings = Array.from(grid.children).filter((item) => !item.hasAttribute("data-article-ad"));
     const previous = siblings.filter((item) => item.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).at(-1) ?? siblings[0];
     function measure() {
       const columns = getComputedStyle(grid!).gridTemplateColumns.trim().split(/\s+/).length;
-      const minHeight = columns === 1 ? previous?.getBoundingClientRect().height || 160 : undefined;
+      const children = Array.from(grid!.children);
+      const rowStart = Math.floor(children.indexOf(box!) / columns) * columns;
+      const hasContentPeer = children.slice(rowStart, rowStart + columns).some((item) => !item.hasAttribute("data-article-ad"));
+      const minHeight = !hasContentPeer ? previous?.getBoundingClientRect().height || 160 : undefined;
       setCardLayout((before) => before.ready && before.minHeight === minHeight ? before : { ready: true, minHeight });
     }
     measure();
@@ -49,7 +55,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     if (preview || !configured || (gridCard && !cardLayout.ready)) return;
     const element = ad.current;
     if (!element) return;
-    let visible = !feed || typeof IntersectionObserver === "undefined";
+    let visible = !lazy || typeof IntersectionObserver === "undefined";
     function requestAd() {
       if (gridCard && element && cardSlot.current) {
         // Fixed available height, not an auto-sized creative that can grow the row.
@@ -70,7 +76,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     const observer = new ResizeObserver(requestAd);
     observer.observe(element);
     if (gridCard && cardSlot.current) observer.observe(cardSlot.current);
-    const intersection = feed && typeof IntersectionObserver !== "undefined"
+    const intersection = lazy && typeof IntersectionObserver !== "undefined"
       ? new IntersectionObserver((entries) => {
         visible = entries.some((entry) => entry.isIntersecting);
         requestAd();
@@ -81,21 +87,21 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       observer.disconnect();
       intersection?.disconnect();
     };
-  }, [configured, feed, preview, slot, gridCard, cardLayout.ready]);
+  }, [configured, lazy, preview, slot, gridCard, cardLayout.ready]);
 
   if (!preview && !configured) return null;
 
   return (
-    <aside ref={cardBox} style={gridCard ? { minHeight: cardLayout.minHeight } : undefined} aria-label={m.label} data-article-ad={feed ? "feed-banner" : map ? "map-banner" : gallery ? "gallery-card" : card ? "guide-card" : "after-first-paragraph"} className={feed
+    <aside ref={cardBox} style={gridCard ? { minHeight: cardLayout.minHeight } : undefined} aria-label={m.label} data-article-ad={homeCard ? `${variant}-card` : feed ? "feed-banner" : map ? "map-banner" : gallery ? "gallery-card" : card ? "guide-card" : "after-first-paragraph"} className={feed
       ? "not-prose w-full min-w-0 py-2"
       : map
       ? "not-prose w-full min-w-0"
       : gallery
       ? "not-prose flex aspect-[2/3] w-full min-w-0 flex-col self-start rounded-[1.15rem] bg-[var(--dd-surface-soft)] p-3 ring-1 ring-[var(--dd-border)] sm:rounded-[1.35rem] sm:p-5"
-      : gridCard ? `not-prose relative w-full min-w-0 self-stretch rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] ${styles.gridCard}`
+      : gridCard ? `not-prose relative w-full min-w-0 self-stretch rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] ${styles.gridCard}${homeCard ? ` ${styles.homeCard}` : ""}`
       : "not-prose my-6 w-full min-w-0"}>
-      <div className={gridCard ? styles.gridCardContent : "contents"}>
-      <p className="mb-2 text-center text-[10px] font-normal uppercase leading-4 tracking-widest text-[var(--dd-subtle)]">{m.label}</p>
+      <div className={gridCard ? `${styles.gridCardContent}${compactCard ? ` ${styles.compactContent}` : ""}` : "contents"}>
+      <p className={compactCard ? styles.compactLabel : "mb-2 text-center text-[10px] font-normal uppercase leading-4 tracking-widest text-[var(--dd-subtle)]"}>{m.label}</p>
       <div ref={cardSlot} className={gridCard ? "min-h-0 flex-1" : "contents"}>
       {preview ? (
         <div className={`flex w-full items-center justify-center rounded-xl border border-dashed border-[var(--dd-border-strong)] bg-[var(--dd-surface-soft)] px-4 text-center text-sm text-[var(--dd-muted)] ${feed ? styles.feedAd : map ? styles.mapAd : gridCard ? "h-full" : card ? "min-h-[100px] flex-1" : "min-h-[100px] sm:min-h-[90px]"}`}>

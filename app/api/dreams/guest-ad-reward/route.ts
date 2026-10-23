@@ -1,3 +1,4 @@
+import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { guestAdReward, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
 
@@ -26,6 +27,7 @@ async function handle(req: Request, grant: boolean) {
     if (grant && result.credits === 0 && !result.replayed) {
       return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
     }
+    if (grant && kind === "analysis") await recordAttemptAccess(body.attemptId, null, guestId);
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ code: "AD_REWARD_FAILED" }, { status: 500 });

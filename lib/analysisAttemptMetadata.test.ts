@@ -3,7 +3,7 @@ import test from "node:test";
 import { initializeApp, deleteApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { analysisAttemptContext, analysisAttemptResult } from "./analysisAttempts";
-import { startAnalysisAttempt, finishAnalysisAttempt, reportAttemptEvent } from "../app/api/dreams/_lib/analysisAttempts";
+import { startAnalysisAttempt, finishAnalysisAttempt, reportAttemptEvent, recordAttemptAccess } from "../app/api/dreams/_lib/analysisAttempts";
 
 test("metadata retains country-only locations and excludes sensitive headers and unknown sources", () => {
   const context = analysisAttemptContext({ text: "two words", source: "untrusted" }, new Headers({
@@ -57,7 +57,7 @@ test("attempt lifecycle stores location and successful results, resets retries, 
     assert.equal(await reportAttemptEvent(id, null, input.guestId, event), true);
   }
   const eventsBeforeSuccess = records.get(path)?.events;
-  assert.equal((eventsBeforeSuccess as unknown[]).length, 4);
+  assert.equal((eventsBeforeSuccess as unknown[]).length, 5);
   assert.equal(records.get(path)?.reason, "auth_popup_blocked");
   await finishAnalysisAttempt(id, 200, undefined, { analysis: "Reading", model: "test-model", emojis: [{ native: "🐍", secret: "omit" }] }, Date.now() - 100);
   assert.equal(records.get(path)?.analysis, "Reading");
@@ -66,15 +66,42 @@ test("attempt lifecycle stores location and successful results, resets retries, 
   await reportAttemptEvent(id, null, input.guestId, "auth_cancelled");
   assert.equal(records.get(path)?.status, "succeeded");
   assert.equal(records.get(path)?.reason, "succeeded");
-  assert.equal((records.get(path)?.events as unknown[]).length, 5);
+  assert.equal((records.get(path)?.events as unknown[]).length, 7);
   assert.equal(await startAnalysisAttempt(input, req), id);
-  assert.equal((records.get(path)?.events as unknown[]).length, 5);
+  assert.equal((records.get(path)?.events as unknown[]).length, 8);
   for (let i = 0; i < 85; i++) await reportAttemptEvent(id, null, input.guestId, "auth_opened");
   assert.equal((records.get(path)?.events as unknown[]).length, 80);
   assert.equal(records.get(path)?.requestCount, 2);
   assert.equal(records.get(path)?.createdAtMs, first.createdAtMs);
   assert.equal(records.get(path)?.analysis, null);
   assert.equal(records.get(path)?.httpStatus, null);
+
+  // Keep the same journey across a date change, with ownership and content checks.
+  const proto = Object.getPrototypeOf(db.doc(path));
+  t.mock.method(proto, "get", async function (this: { path: string }) {
+    return { data: () => records.get(this.path) };
+  });
+  const originalNow = Date.now;
+  t.mock.method(Date, "now", () => originalNow() + 86_400_000);
+  assert.equal(await startAnalysisAttempt({ ...input, uid: "signed-user", attemptId: id }, req), id);
+  assert.equal(records.get(path)?.uid, "signed-user");
+  assert.notEqual(await startAnalysisAttempt({ ...input, guestId: "other-guest", attemptId: id }, req), id);
+  assert.notEqual(await startAnalysisAttempt({ ...input, text: "Changed dream", attemptId: id }, req), id);
+  await recordAttemptAccess(id, null, "other-guest");
+  assert.notEqual((records.get(path)?.events as { event: string }[]).at(-1)?.event, "ad_access_granted");
+  await recordAttemptAccess(id, "signed-user", null);
+  assert.equal((records.get(path)?.events as { event: string; source: string }[]).at(-1)?.source, "server");
+  await reportAttemptEvent(id, "signed-user", null, "analysis_displayed");
+  assert.equal(records.get(path)?.displayedAtMs, null); // Cannot claim a pending answer was displayed.
+  await finishAnalysisAttempt(id, 200, undefined, { analysis: "Final reading" });
+  await reportAttemptEvent(id, "signed-user", null, "analysis_displayed");
+  assert.ok(records.get(path)?.displayedAtMs);
+  const confirmedHistory = records.get(path)?.events;
+  await reportAttemptEvent(id, "signed-user", null, "analysis_displayed");
+  assert.deepEqual(records.get(path)?.events, confirmedHistory); // Reopening does not flood the history.
+  await reportAttemptEvent(id, "signed-user", null, "analysis_client_failed");
+  assert.equal(records.get(path)?.status, "succeeded");
+  assert.equal(records.get(path)?.analysis, "Final reading");
 
   t.mock.method(globalThis, "fetch", async (_url: string | URL | Request, options?: RequestInit) => {
     assert.ok(options?.signal);

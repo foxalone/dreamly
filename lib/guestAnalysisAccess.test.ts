@@ -9,12 +9,14 @@ import { POST as quickSymbol } from "../app/api/dreams/quick-symbol/route";
 import { guestAskDedupId } from "../app/api/dreams/_lib/guestDedup";
 import { GET, POST } from "../app/api/dreams/guest-ad-reward/route";
 
-test("guest analysis requires earned credits from the first request", () => {
-  assert.equal(guestAnalysisAccess(0, 0, 0), "guest_limit");
-  assert.equal(guestAnalysisAccess(1, 1, 0), "guest_limit");
-  assert.equal(guestAnalysisAccess(0, 5, 0), "guest_limit");
+test("guests share one free reading per IP per day, before spending earned credits", () => {
+  assert.equal(guestAnalysisAccess(0, 0, 0), "free");
+  assert.equal(guestAnalysisAccess(100, 0, 0), "free"); // Returning guest, new day/network.
+  assert.equal(guestAnalysisAccess(0, 1, 0), "ip_limit"); // Clearing cookies cannot reset the IP.
+  assert.equal(guestAnalysisAccess(1, 1, 0), "ip_limit");
+  assert.equal(guestAnalysisAccess(0, 5, 0), "ip_limit");
   assert.equal(guestAnalysisAccess(1, 5, 1), "ad");
-  assert.equal(guestAnalysisAccess(0, 0, 1), "ad");
+  assert.equal(guestAnalysisAccess(0, 0, 1), "free");
 });
 
 test("guest quota and reward routes preserve balances and enforce daily caps", async (t) => {
@@ -59,7 +61,14 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   });
 
   assert.equal((await GET(new Request("http://localhost/api/dreams/guest-ad-reward"))).status, 401);
-  // Even a legacy cached answer cannot bypass the gate on the first request.
+  const free = await consumeGuestAsk(id, ip);
+  assert.ok(free.ok);
+  assert.equal(free.charge, "free");
+  assert.deepEqual(await consumeGuestAsk("another-cookie", ip), { ok: false, reason: "ip_limit" });
+  await refundGuestAsk(id, ip, free);
+  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 0);
+  assert.ok((await consumeGuestAsk(id, ip)).ok);
+  // Even a legacy cached answer cannot bypass today's exhausted network quota.
   const text = "I am floating through an unfamiliar corridor and every door is humming.";
   records.set(`guestAskDedup/${guestAskDedupId(ip, text)}`, { analysis: "legacy answer" });
   const refPrototype = Object.getPrototypeOf(db.doc("guestAskDedup/example"));
@@ -85,7 +94,7 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   assert.equal(quickBlocked.status, 401);
   assert.equal((await quickBlocked.json()).code, "GUEST_LIMIT_REACHED");
 
-  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "guest_limit" });
+  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "ip_limit" });
   assert.deepEqual(await (await GET(request())).json(), { credits: 0, leftToday: 3 });
   assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: 2 });
   // A retried reward request cannot accumulate an extra unspent credit.
@@ -93,11 +102,11 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   const earned = await consumeGuestAsk(id, ip);
   assert.ok(earned.ok);
   assert.equal(earned.charge, "ad");
-  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "guest_limit" });
+  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "ip_limit" });
   await refundGuestAsk(id, ip, earned);
-  assert.equal(records.get(`guestQuickSymbol/${id}`)?.used, undefined);
+  assert.equal(records.get(`guestQuickSymbol/${id}`)?.used, 1);
   assert.equal(records.get(`guestQuickSymbol/${id}`)?.adAnalysisCredits, 1);
-  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, undefined);
+  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 1);
   assert.ok((await consumeGuestAsk(id, ip)).ok);
   for (let n = 0; n < 2; n++) {
     assert.equal((await POST(grant())).status, 200);
@@ -109,7 +118,7 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
 
   const networkIp = "192.0.2.2";
   records.set(`guestQuickSymbolIp/${hashIp(networkIp)}_${today}`, { used: 5 });
-  assert.deepEqual(await consumeGuestAsk("network-guest", networkIp), { ok: false, reason: "guest_limit" });
+  assert.deepEqual(await consumeGuestAsk("network-guest", networkIp), { ok: false, reason: "ip_limit" });
   await guestAdReward("network-guest", networkIp, true, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c91");
   const networkEarned = await consumeGuestAsk("network-guest", networkIp);
   assert.ok(networkEarned.ok);
@@ -120,5 +129,21 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   records.set(`guestQuickSymbolIp/${hashIp(ip)}_${yesterday}`, { used: 1 });
   await refundGuestAsk(id, ip, { ok: true, used: 1, charge: "free", dayKey: yesterday });
   assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${yesterday}`)?.used, 0);
-  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, undefined);
+  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 1);
+
+  // The daily quota resets for the same guest/IP, without spending an existing credit.
+  records.set(`guestQuickSymbol/${id}`, { used: 50, adAnalysisCredits: 1 });
+  t.mock.timers.enable({ apis: ["Date"], now: Date.now() });
+  t.mock.timers.tick(86_400_000);
+  const tomorrowFree = await consumeGuestAsk(id, ip);
+  assert.ok(tomorrowFree.ok);
+  assert.equal(tomorrowFree.charge, "free");
+  assert.notEqual(tomorrowFree.dayKey, today);
+  assert.equal(records.get(`guestQuickSymbol/${id}`)?.adAnalysisCredits, 1);
+  assert.deepEqual(await consumeGuestAsk("fresh-cookie-tomorrow", ip), { ok: false, reason: "ip_limit" });
+  const tomorrowAd = await consumeGuestAsk(id, ip);
+  assert.ok(tomorrowAd.ok);
+  assert.equal(tomorrowAd.charge, "ad");
+  assert.equal(records.get(`guestQuickSymbol/${id}`)?.adAnalysisCredits, 0);
+  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 1);
 });

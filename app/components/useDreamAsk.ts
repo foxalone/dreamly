@@ -14,12 +14,13 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
-import { adUnlockUrl, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { takeAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
+import { reportAnalysisAttempt, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { openPaywall } from "@/lib/paywall";
 
 /**
@@ -64,6 +65,7 @@ export function useDreamAsk({
   const [text, setTextState] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [analysisAttemptId, setAnalysisAttemptId] = useState<string | undefined>();
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [shareToFeed, setShareToFeedState] = useState(true);
   const [lens, setLens] = useDreamLens();
@@ -84,6 +86,7 @@ export function useDreamAsk({
     else if (pending.guestShareFailed) setAnonShare(pending.guestShareFailed);
     if (pending.lens) setLens(pending.lens);
     if (pending.analysis) {
+      setAnalysisAttemptId(pending.analysisAttemptId);
       setAnalysis(pending.analysis);
       // The redirect from the homepage lands here: keep showing the escape note
       // as long as the creatures are still waiting in the catcher.
@@ -189,9 +192,13 @@ export function useDreamAsk({
     setEscapeAlreadyToday(false);
     onResultChange?.(false);
 
+    let requestAttemptId = pendingAnalysisAttemptId(dream);
+    let requestToken: string | null | undefined;
+    let requestRejected = false;
     try {
       await auth.authStateReady();
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
+      requestToken = idToken;
       // The dream's already-created emojis (re-analysis in the guest journal):
       // the escape must be exactly these icons, not a fresh pick.
       const storedEmojis =
@@ -203,6 +210,7 @@ export function useDreamAsk({
         credentials: "same-origin",
         body: JSON.stringify({
           text: dream,
+          attemptId: requestAttemptId,
           source,
           lang: locale,
           lens,
@@ -210,17 +218,25 @@ export function useDreamAsk({
           ...(idToken ? { idToken } : {}),
         }),
       });
+      requestRejected = !res.ok;
       const data = await res.json().catch(() => ({}));
       const attemptId = res.headers.get("X-Dreamly-Attempt");
+      requestAttemptId = attemptId ?? requestAttemptId;
+      setAnalysisAttemptId(attemptId ?? undefined);
       if (attemptId) writeHomeDreamPending(dream, { analysisAttemptId: attemptId, lang: locale, lens, shareToFeed });
 
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source });
           persistPending(dream, "");
-          setAdUnlockPending({ kind: "analysis", dreamText: dream });
-          trackEvent("rewarded_ad_open", { source, kind: "analysis" });
-          window.location.assign(adUnlockUrl("analysis", localePath("/app/dreams", locale)));
+          openPaywall({
+            kind: "analysis", source, analysisDreamText: dream,
+            guest: {
+              reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
+              signIn: () => goToJournal(dream, true, true),
+            },
+            retry: () => void submitRef.current(),
+          });
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {
@@ -349,6 +365,7 @@ export function useDreamAsk({
       });
       if (redirectToJournal) router.push(localePath("/app/dreams", locale));
     } catch (err: unknown) {
+      if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken ?? undefined);
       setError(err instanceof Error ? err.message : "Analyze failed");
     } finally {
       setBusy(false);
@@ -430,6 +447,7 @@ export function useDreamAsk({
     busy,
     error,
     analysis,
+    analysisAttemptId,
     shareToFeed,
     setShareToFeed,
     lens,
