@@ -1,3 +1,4 @@
+import { MUSIC_CONTENT } from "./dreams/music-content";
 import { MUD_CONTENT } from "./dreams/mud-content";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 
@@ -72,6 +73,18 @@ type ClusterSeed = {
 const DICTIONARY_UPDATED_AT = "2026-08-22";
 
 const CLUSTERS: ClusterSeed[] = [
+  {
+    slug: "music",
+    name: "music",
+    category: "life-events",
+    icon: "🎶",
+    accent: "#a78bfa",
+    summary: "emotional expression, personal memories, belonging, creative rhythm, and the space to hear your own voice",
+    aliases: ["musical notes", "music notes", "musical note", "notes", "music in a dream", "hearing music", "song", "songs", "singing", "melody", "concert", "playing an instrument", "loud music", "sheet music"],
+    relatedSymbols: ["singing-bird", "wedding", "church", "phone", "celebrity", "school", "mother", "child", "crying"],
+    updatedAt: "2026-10-23",
+    variations: [],
+  },
   {
     slug: "mud",
     name: "mud",
@@ -649,7 +662,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#3b82f6",
     summary: "performance pressure, evaluation, growth, social belonging, and unfinished lessons from earlier life",
     aliases: ["schoolyard", "classroom", "dream about school", "school in a dream"],
-    relatedSymbols: ["house", "being-chased", "falling", "hospital", "being-naked", "work", "old-friend", "test", "being-late", "child"],
+    relatedSymbols: ["music", "house", "being-chased", "falling", "hospital", "being-naked", "work", "old-friend", "test", "being-late", "child"],
     variations: [
       { slug: "old-school", name: "old school", focus: "nostalgia, unresolved memories from an earlier stage of life, or comparing past growth with where you stand now" },
       { slug: "being-late-to-school", name: "being late to school", focus: "fear of falling behind, missed responsibility, or anxiety about meeting an important expectation" },
@@ -689,7 +702,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#a855f7",
     summary: "faith, community, conscience, ritual, and the search for meaning, forgiveness, or moral clarity",
     aliases: ["chapel", "cathedral", "dream about church", "church in a dream"],
-    relatedSymbols: ["house", "death", "cemetery", "castle", "wedding", "angel", "god", "heaven", "pope"],
+    relatedSymbols: ["music", "house", "death", "cemetery", "castle", "wedding", "angel", "god", "heaven", "pope"],
     variations: [
       { slug: "praying-in-church", name: "praying in church", focus: "sincere reflection, a need for guidance, or surrender of a burden too heavy to carry alone" },
       { slug: "empty-church", name: "an empty church", focus: "spiritual loneliness, doubt, or a quiet space waiting to be filled with renewed meaning" },
@@ -1232,7 +1245,7 @@ const CLUSTERS: ClusterSeed[] = [
       "what does a wedding dream mean",
       "wedding dream meaning",
     ],
-    relatedSymbols: ["ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex", "celebrity", "ring", "flowers", "clothes", "divorce", "swan"],
+    relatedSymbols: ["music", "ex", "cheating", "kissing", "baby", "church", "death", "mother", "pregnancy", "blood", "eating", "sex", "celebrity", "ring", "flowers", "clothes", "divorce", "swan"],
     variations: [
       { slug: "your-own-wedding", name: "your own wedding", focus: "a major commitment approaching, readiness for union, or anxiety about a binding choice" },
       { slug: "someone-elses-wedding", name: "someone else's wedding", focus: "witnessing change in others, comparison, or your own questions about commitment" },
@@ -1327,7 +1340,7 @@ const CLUSTERS: ClusterSeed[] = [
     summary: "nurture, origin, protection, family patterns, and the earliest template of love and care",
     updatedAt: "2026-07-31",
     aliases: ["mom", "dream about mother", "mother in a dream", "dreaming of your mom"],
-    relatedSymbols: ["baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents", "eating", "child", "divorce"],
+    relatedSymbols: ["music", "baby", "death", "house", "wedding", "ex", "father", "brother", "sister", "grandparents", "eating", "child", "divorce"],
     variations: [
       {
         slug: "walking-with-my-mother",
@@ -1623,7 +1636,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#6366f1",
     summary: "connection, communication, urgency, dependence, and the channels that link you to others",
     aliases: ["mobile phone", "cell phone", "dream about phone", "phone in a dream"],
-    relatedSymbols: ["money", "car", "being-ignored", "parrot"],
+    relatedSymbols: ["music", "money", "car", "being-ignored", "parrot"],
     variations: [
       { slug: "losing-your-phone", name: "losing your phone", focus: "fear of disconnection, lost access to others, or dependence on constant contact" },
       { slug: "broken-phone", name: "a broken phone", focus: "failed communication, a relationship channel damaged, or messages not getting through" },
@@ -2159,7 +2172,7 @@ const CLUSTERS: ClusterSeed[] = [
       "celebrity dream meaning",
       "dreaming of a famous person",
     ],
-    relatedSymbols: ["kissing", "sex", "work", "ex", "being-ignored", "wedding", "pope"],
+    relatedSymbols: ["music", "kissing", "sex", "work", "ex", "being-ignored", "wedding", "pope"],
     updatedAt: "2026-09-05",
     variations: [
       {
@@ -2842,7 +2855,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of crying",
       "tears in a dream",
     ],
-    relatedSymbols: ["baby", "ex", "being-ignored"],
+    relatedSymbols: ["music", "baby", "ex", "being-ignored"],
     updatedAt: "2026-09-05",
     variations: [
       { slug: "crying-in-public", name: "crying in public", focus: "grief without a private room, shame about feeling, or a need that will not wait for a better setting" },
@@ -3015,7 +3028,7 @@ const CLUSTERS: ClusterSeed[] = [
       "dreaming of a child",
       "dream about children",
     ],
-    relatedSymbols: ["baby", "pregnancy", "mother", "father", "school"],
+    relatedSymbols: ["music", "baby", "pregnancy", "mother", "father", "school"],
     updatedAt: "2026-09-09",
     variations: [
       { slug: "my-child", name: "your own child", focus: "a real bond replayed at night, protectiveness, or seeing a quality of theirs that waking life has been too busy to notice" },
@@ -3913,6 +3926,7 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 };
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
+  music: MUSIC_CONTENT.en.sections,
   ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, entry]) => [slug, entry.sections])),
   "golden-swan": {
     introduction: [
@@ -7127,6 +7141,7 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  * up front; descriptions for ~150-160 chars with a reason to click.
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
+  music: { seoTitle: MUSIC_CONTENT.en.seoTitle, seoDescription: MUSIC_CONTENT.en.seoDescription },
   ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, { seoTitle, seoDescription }]) => [slug, { seoTitle, seoDescription }])),
   "golden-swan": {
     seoTitle: "Golden Swan Dream Meaning: Grace Revealed as Treasure",

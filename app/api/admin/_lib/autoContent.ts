@@ -1,3 +1,4 @@
+import { nextRequestedDictionaryVideo } from "./dictionaryVideoQueue";
 import { saveDreamPageImage } from "@/lib/dreamPageImageStore.mjs";
 import { FieldValue, type QueryDocumentSnapshot } from "firebase-admin/firestore";
 import {
@@ -151,12 +152,37 @@ export async function enqueueAutoDictionaryContent(options: {
   createdBy: string;
   sendToTelegram?: boolean;
   imageProvider?: AiImageProvider;
+  preferRequested?: boolean;
 }) {
   const sendToTelegram = options.sendToTelegram !== false;
   const imageProvider: AiImageProvider = options.imageProvider === "sora" ? "sora" : "veo";
   const db = adminDb();
+  const requested = options.preferRequested ? await nextRequestedDictionaryVideo(db) : null;
+  const requestedEntry = requested ? getDreamEntry(requested.id) : null;
+  // Resume the same pair after a failed/interrupted night, never generate duplicates.
+  if (requested && requestedEntry) {
+    const reservation = await db.collection(AUTO_USED_SLUGS_COLLECTION).doc(requested.id).get();
+    if (reservation.exists) {
+      const videoJobId = String(reservation.get("videoJobId") || "");
+      const imageJobId = String(reservation.get("imageJobId") || "");
+      if (!videoJobId || !imageJobId) throw new Error("INVALID_QUEUED_RESERVATION");
+      await db.runTransaction(async (transaction) => {
+        const refs = [db.collection(FREE_VIDEO_COLLECTION).doc(videoJobId), db.collection(AI_IMAGE_COLLECTION).doc(imageJobId)];
+        const jobs = await transaction.getAll(...refs);
+        if (jobs.some((job) => !job.exists)) throw new Error("MISSING_QUEUED_JOB");
+        jobs.forEach((job) => {
+          if (job.get("status") === "failed") transaction.update(job.ref, {
+            status: "queued", stage: "queued-for-resume", error: "",
+            retryCount: FieldValue.increment(1), retryTelegramOnly: false,
+          });
+        });
+        transaction.update(requested.ref, { status: "processing" });
+      });
+      return { entry: autoContentPreview(requestedEntry), videoJobId, imageJobId, imageReused: Boolean(reservation.get("imageReused")), createdAt: new Date().toISOString() };
+    }
+  }
   const used = await listUsedDictionarySlugs();
-  const entry = pickUnusedDictionaryEntry(used);
+  const entry = requestedEntry || pickUnusedDictionaryEntry(used);
   const topic = videoTopicForEntry(entry);
   const subjectSource = imageSubjectForEntry(entry);
   const promptSnapshot = await db.doc(AI_IMAGE_PROMPT_DOCUMENT).get();
@@ -198,6 +224,8 @@ export async function enqueueAutoDictionaryContent(options: {
         updatedAt: FieldValue.serverTimestamp(),
       }, { merge: true });
     }
+
+    if (requested) transaction.update(requested.ref, { status: "processing" });
 
     transaction.create(reservedRef, {
       slug: entry.slug,

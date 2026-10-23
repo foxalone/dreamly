@@ -28,45 +28,33 @@ export function isUsefulContainedSlug(query: string, slug: string) {
   return compactSlugLength >= 4 && containsWholePhrase(query, normalizedSlug);
 }
 
+export function prepareSearchCandidate(candidate: { title: string; slug: string; aliases: string[] }) {
+  return {
+    title: normalizeMatchText(candidate.title),
+    slug: normalizeMatchText(candidate.slug),
+    aliases: candidate.aliases.map(normalizeMatchText),
+  };
+}
+
+/** Both query and candidate are normalized; bulk lookups can reuse the prepared index. */
+export function scorePreparedSearchCandidate(
+  normalizedQuery: string,
+  candidate: ReturnType<typeof prepareSearchCandidate>,
+) {
+  if (!normalizedQuery) return 0;
+  const { title, slug, aliases } = candidate;
+  if (title === normalizedQuery || slug === normalizedQuery || aliases.includes(normalizedQuery)) return 4;
+  if (title.startsWith(normalizedQuery) || slug.startsWith(normalizedQuery)) return 3;
+  const contains = (value: string, phrase: string) => Boolean(value && phrase && ` ${value} `.includes(` ${phrase} `));
+  if ((slug.replaceAll(" ", "").length >= 4 && contains(normalizedQuery, slug))
+    || aliases.some((alias) => contains(alias, normalizedQuery) || contains(normalizedQuery, alias))) return 2;
+  if (contains(title, normalizedQuery) || contains(slug, normalizedQuery)) return 1;
+  return 0;
+}
+
 export function scoreSearchCandidate(
   query: string,
   candidate: { title: string; slug: string; aliases: string[] },
 ) {
-  const normalizedQuery = normalizeMatchText(query);
-  if (!normalizedQuery) return 0;
-
-  const title = normalizeMatchText(candidate.title);
-  const slug = normalizeMatchText(candidate.slug);
-  const aliases = candidate.aliases.map(normalizeMatchText);
-
-  if (
-    title === normalizedQuery ||
-    slug === normalizedQuery ||
-    aliases.some((alias) => alias === normalizedQuery)
-  ) {
-    return 4;
-  }
-  if (
-    startsWithSearchText(title, normalizedQuery) ||
-    startsWithSearchText(slug, normalizedQuery)
-  ) {
-    return 3;
-  }
-  if (
-    isUsefulContainedSlug(normalizedQuery, slug) ||
-    aliases.some(
-      (alias) =>
-        containsWholePhrase(alias, normalizedQuery) ||
-        containsWholePhrase(normalizedQuery, alias),
-    )
-  ) {
-    return 2;
-  }
-  if (
-    containsWholePhrase(title, normalizedQuery) ||
-    containsWholePhrase(slug, normalizedQuery)
-  ) {
-    return 1;
-  }
-  return 0;
+  return scorePreparedSearchCandidate(normalizeMatchText(query), prepareSearchCandidate(candidate));
 }

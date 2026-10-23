@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { Youtube } from "lucide-react";
+import type { DictionaryVideoState } from "@/lib/adminDictionaryVideoQueue";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { dictionaryVideoQueueCopy } from "@/lib/i18n/dictionaryVideoQueue";
 import { auth } from "@/lib/firebase";
 import {
   SYMBOL_CLICK_SOURCE_LABELS,
@@ -10,6 +14,7 @@ import {
 } from "@/lib/symbolClicks";
 
 type ClickRow = {
+  videoState: DictionaryVideoState;
   slug: string;
   title: string;
   icon: string;
@@ -44,6 +49,8 @@ function csvCell(value: string | number) {
 }
 
 export default function DictionarySymbolClicks() {
+  const copy = dictionaryVideoQueueCopy[useLocale()];
+  const [saving, setSaving] = useState<Set<string>>(new Set());
   const [days, setDays] = useState<number>(7);
   const [rows, setRows] = useState<ClickRow[]>([]);
   const [daily, setDaily] = useState<DailyRow[]>([]);
@@ -75,6 +82,33 @@ export default function DictionarySymbolClicks() {
   useEffect(() => {
     void load(days);
   }, [days, load]);
+
+  useEffect(() => {
+    if (!rows.some((row) => row.videoState === "queued")) return;
+    const timer = setInterval(() => { void load(days); }, 30_000);
+    return () => clearInterval(timer);
+  }, [rows, days, load]);
+
+  async function queueVideo(slug: string) {
+    setSaving((current) => new Set(current).add(slug));
+    setError(null);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error("UNAUTHENTICATED");
+      const response = await fetch("/api/admin/dictionary-symbol-clicks", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error("QUEUE_FAILED");
+      setRows((current) => current.map((row) => row.slug === slug ? { ...row, videoState: data.videoState } : row));
+    } catch {
+      setError(copy.error);
+    } finally {
+      setSaving((current) => { const next = new Set(current); next.delete(slug); return next; });
+    }
+  }
 
   const totalClicks = rows.reduce((sum, row) => sum + row.period, 0);
   const sourceTotals = SYMBOL_CLICK_SOURCES.map((source) => ({
@@ -181,6 +215,8 @@ export default function DictionarySymbolClicks() {
         </div>
       ) : null}
 
+      <p className="text-xs text-[var(--muted)]">{copy.help}</p>
+
       <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-[color-mix(in_srgb,var(--card)_80%,transparent)] text-xs text-[var(--muted)]">
@@ -192,12 +228,13 @@ export default function DictionarySymbolClicks() {
               <th className="p-3 font-semibold">Where clicked (all time)</th>
               <th className="p-3 font-semibold">Lang</th>
               <th className="p-3 font-semibold">Last click</th>
+              <th className="p-3 font-semibold">YouTube</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && !loading ? (
               <tr>
-                <td colSpan={7} className="p-4 text-[var(--muted)]">
+                <td colSpan={8} className="p-4 text-[var(--muted)]">
                   No icon clicks in this period yet.
                 </td>
               </tr>
@@ -241,6 +278,18 @@ export default function DictionarySymbolClicks() {
                       .join(" · ") || "—"}
                   </td>
                   <td className="whitespace-nowrap p-3 text-xs text-[var(--muted)]">{formatWhen(row.lastAtMs)}</td>
+                  <td className="p-3">
+                    <button
+                      type="button"
+                      onClick={() => void queueVideo(row.slug)}
+                      disabled={saving.has(row.slug) || row.videoState !== "idle"}
+                      aria-label={saving.has(row.slug) ? copy.saving : copy[row.videoState]}
+                      title={saving.has(row.slug) ? copy.saving : copy[row.videoState]}
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-current/20 transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default ${row.videoState === "completed" ? "text-green-500" : row.videoState === "queued" ? "text-yellow-400" : "text-gray-500 hover:bg-white/10 hover:text-gray-300"}`}
+                    >
+                      <Youtube size={22} aria-hidden="true" />
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

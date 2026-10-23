@@ -1,3 +1,4 @@
+import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import type { EntryL10nOverride } from "./types";
 
@@ -7,6 +8,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_AR: Record<string, EntryL10nOverride> = {
+  music: MUSIC_CONTENT.ar,
   ...MUD_CONTENT.ar,
   "golden-swan": {
     seoTitle: "تفسير حلم البجعة الذهبية: رشاقة تتكشف كنزًا",

@@ -1,6 +1,7 @@
 import type { SeedL10n } from "./types";
 
 export const SEEDS_PT: Record<string, SeedL10n> = {
+  music: {"name": "música", "title": "Sonhar com música", "summary": "expressão dos sentimentos, memórias pessoais, companhia e espaço para encontrar a própria voz", "aliases": ["notas musicais", "canção", "canções", "cantar", "melodia", "show", "ouvir música"]},
   "mud": {"name": "lama", "summary": "cobrança por aparência, bagunça passageira e processos que ainda estão ganhando forma", "aliases": ["barro", "lamacento", "enlameado", "sonhar com barro"]},
   "walking-in-mud": {"name": "andar na lama", "focus": "trabalho invisível, ritmo pesado e alternativas para diminuir a sobrecarga", "aliases": ["caminhar na lama", "andar no barro", "caminhar no barro", "estrada de lama"]},
   "sinking-in-mud": {"name": "afundar na lama", "focus": "ficar atolado em obrigações, reconhecer limites e aceitar apoio concreto", "aliases": ["atolado na lama", "ficar preso na lama", "sair da lama", "afundar no barro"]},

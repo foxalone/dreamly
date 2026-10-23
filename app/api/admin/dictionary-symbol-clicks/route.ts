@@ -1,3 +1,4 @@
+import { dictionaryVideoStates, requestDictionaryVideo } from "../_lib/dictionaryVideoQueue";
 import { NextResponse } from "next/server";
 
 import { getDreamEntry } from "@/lib/dream-dictionary";
@@ -72,11 +73,28 @@ export async function GET(req: Request) {
       .filter((row) => row.period > 0)
       .sort((a, b) => b.period - a.period || b.total - a.total || a.title.localeCompare(b.title));
 
-    return NextResponse.json({ ok: true, days, rows, daily });
+    const states = await dictionaryVideoStates(rows.map((row) => row.slug));
+    return NextResponse.json({ ok: true, days, rows: rows.map((row) => ({ ...row, videoState: states.get(row.slug) })), daily });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load clicks";
     const status =
       message === "FORBIDDEN" ? 403 : message === "UNAUTHENTICATED" ? 401 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+/** A click only records intent; the nightly runner creates the jobs. */
+export async function POST(req: Request) {
+  try {
+    const uid = await requireAdmin(req);
+    const body = await req.json();
+    const slug = typeof body.slug === "string" ? body.slug : "";
+    if (!getDreamEntry(slug)) return NextResponse.json({ error: "INVALID_SLUG" }, { status: 400 });
+    const videoState = await requestDictionaryVideo(slug, uid);
+    return NextResponse.json({ ok: true, slug, videoState });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    const status = message === "FORBIDDEN" ? 403 : message === "UNAUTHENTICATED" ? 401 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

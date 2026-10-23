@@ -1,3 +1,4 @@
+import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import type { EntryL10nOverride } from "./types";
 
@@ -7,6 +8,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
+  music: MUSIC_CONTENT.de,
   ...MUD_CONTENT.de,
   "golden-swan": {
     seoTitle: "Goldener Schwan im Traum: Anmut, die sich als Schatz erweist",

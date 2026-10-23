@@ -35,6 +35,9 @@ import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
+import EmojiDictionaryPanel from "./EmojiDictionaryPanel";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { emojiDictionaryCopy } from "@/lib/i18n/emojiDictionary";
 import SeoOpportunitiesPanel from "./SeoOpportunitiesPanel";
 import GscQueriesPanel from "./GscQueriesPanel";
 import IndexNowPanel from "./IndexNowPanel";
@@ -170,7 +173,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -421,6 +424,7 @@ async function readRtdbNum(path: string): Promise<number> {
 }
 
 export default function AdminDashboardPage() {
+  const emojiCopy = emojiDictionaryCopy[useLocale()];
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -436,6 +440,7 @@ export default function AdminDashboardPage() {
       requested === "USERS" ||
       requested === "QUERIES" ||
       requested === "SYMBOL_CLICKS" ||
+      requested === "EMOJI_DICTIONARY" ||
       requested === "GSC" ||
       requested === "SEO_OPPORTUNITIES" ||
       requested === "DOCS" ||
@@ -1504,6 +1509,8 @@ async function loadUsers() {
                 <span className="font-mono">dictionary_symbol_clicks</span> +{" "}
                 <span className="font-mono">dictionary_symbol_clicks_daily</span>)
               </>
+            ) : tab === "EMOJI_DICTIONARY" ? (
+              <>{emojiCopy.help}</>
             ) : tab === "GSC" ? (
               <>
                 Google Search Console queries (Firestore:{" "}
@@ -1633,6 +1640,14 @@ async function loadUsers() {
           ].join(" ")}
         >
           Icon clicks
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTab("EMOJI_DICTIONARY")}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tab === "EMOJI_DICTIONARY" ? "bg-[var(--text)] text-[var(--bg)]" : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]"}`}
+        >
+          {emojiCopy.tab}
         </button>
 
         <button
@@ -2508,6 +2523,7 @@ async function loadUsers() {
       )}
 
       {tab === "SYMBOL_CLICKS" && <DictionarySymbolClicks />}
+      {tab === "EMOJI_DICTIONARY" && <EmojiDictionaryPanel />}
 
       {tab === "SEO_OPPORTUNITIES" && <SeoOpportunitiesPanel />}
 

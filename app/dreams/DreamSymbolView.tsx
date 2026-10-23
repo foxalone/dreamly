@@ -365,26 +365,28 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
           </DreamPageImageProvider>
         </section>
 
-        <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="variations-title">
-          <div className="flex items-start gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
-              <Link2 size={20} aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">
-                {entry.parentSlug ? t.chrome.siblingPages : t.chrome.longTail}
-              </p>
-              <h2 id="variations-title" className="mt-1.5 text-2xl font-semibold tracking-tight">
-                {entry.parentSlug
-                  ? formatMessage(t.chrome.relatedVariations, { name: parent.name })
-                  : t.chrome.commonVariations}
-              </h2>
+        {relatedVariations.length > 0 && (
+          <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="variations-title">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
+                <Link2 size={20} aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">
+                  {entry.parentSlug ? t.chrome.siblingPages : t.chrome.longTail}
+                </p>
+                <h2 id="variations-title" className="mt-1.5 text-2xl font-semibold tracking-tight">
+                  {entry.parentSlug
+                    ? formatMessage(t.chrome.relatedVariations, { name: parent.name })
+                    : t.chrome.commonVariations}
+                </h2>
+              </div>
             </div>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {relatedVariations.map((variation) => <EntryCard key={variation.slug} entry={variation} />)}
-          </div>
-        </section>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedVariations.map((variation) => <EntryCard key={variation.slug} entry={variation} />)}
+            </div>
+          </section>
+        )}
 
         <InterpretationSection id="psychology" eyebrow={t.symbol.psychologicalEyebrow} title={t.symbol.psychologicalTitle} icon={Brain} accent={entry.accent} paragraphs={entry.sections.psychological} />
         <InterpretationSection id="spiritual" eyebrow={t.symbol.spiritualEyebrow} title={t.symbol.spiritualTitle} icon={Sparkles} accent={entry.accent} paragraphs={entry.sections.spiritual} />

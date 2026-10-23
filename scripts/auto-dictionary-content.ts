@@ -6,6 +6,8 @@ import {
   scheduleAutoDictionaryPair,
   waitForAutoDictionaryContent,
 } from "../app/api/admin/_lib/autoContent";
+import { DICTIONARY_VIDEO_QUEUE_COLLECTION } from "../lib/adminDictionaryVideoQueue";
+import { adminDb } from "../app/api/admin/_lib/firebaseAdmin";
 import { AUTO_CONTENT_CREATED_BY } from "../lib/adminAutoDictionary";
 import { AUTO_PAIR_COUNT } from "../lib/adminAutoSlots";
 import { mintAdminIdToken } from "../app/api/admin/_lib/youtubeRemote";
@@ -104,6 +106,7 @@ async function main() {
       createdBy: AUTO_CONTENT_CREATED_BY,
       sendToTelegram: true,
       imageProvider: "veo",
+      preferRequested: true,
     });
     pairs.push({
       slug: queued.entry.slug,
@@ -151,6 +154,12 @@ async function main() {
       youtubeError = booked.youtubeError;
       imageScheduled = booked.imageScheduled;
       imageError = booked.imageError;
+    }
+    if (result.video.status === "completed" && result.video.url) {
+      const requestRef = adminDb().collection(DICTIONARY_VIDEO_QUEUE_COLLECTION).doc(pair.slug);
+      await adminDb().runTransaction(async (transaction) => {
+        if ((await transaction.get(requestRef)).exists) transaction.update(requestRef, { status: "completed" });
+      });
     }
     results.push({
       ...pair,

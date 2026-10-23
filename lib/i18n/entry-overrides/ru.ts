@@ -1,3 +1,4 @@
+import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import type { EntryL10nOverride } from "./types";
 
@@ -7,6 +8,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_RU: Record<string, EntryL10nOverride> = {
+  music: MUSIC_CONTENT.ru,
   ...MUD_CONTENT.ru,
   "golden-swan": {
     seoTitle: "К чему снится золотой лебедь: грация, оказавшаяся сокровищем",
