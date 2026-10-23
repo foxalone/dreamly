@@ -9,10 +9,13 @@ export default function GuideLinkCards({
   guides,
   compact = false,
   adLocale,
+  adEvery = 5,
 }: {
   guides: DreamGuide[];
   compact?: boolean;
   adLocale?: Locale;
+  /** Number of content cards between ads; three makes every fourth cell an ad. */
+  adEvery?: number;
 }) {
   if (guides.length === 0) return null;
 
@@ -39,7 +42,7 @@ export default function GuideLinkCards({
               <span className="mt-2 block text-sm leading-6 text-[var(--dd-muted)]">{guide.summary}</span>
             </span>
           </LocaleLink>
-          {adLocale && (index + 1) % 5 === 0 ? (
+          {adLocale && (index + 1) % adEvery === 0 ? (
             <ArticleAdBanner locale={adLocale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
           ) : null}
         </Fragment>

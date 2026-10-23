@@ -389,6 +389,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
         )}
 
         <InterpretationSection id="psychology" eyebrow={t.symbol.psychologicalEyebrow} title={t.symbol.psychologicalTitle} icon={Brain} accent={entry.accent} paragraphs={entry.sections.psychological} />
+        <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
         <InterpretationSection id="spiritual" eyebrow={t.symbol.spiritualEyebrow} title={t.symbol.spiritualTitle} icon={Sparkles} accent={entry.accent} paragraphs={entry.sections.spiritual} />
         <InterpretationSection id="islamic" eyebrow={t.symbol.islamicEyebrow} title={t.symbol.islamicTitle} icon={MoonStar} accent={entry.accent} paragraphs={entry.sections.islamic} />
         <InterpretationSection id="biblical" eyebrow={t.symbol.biblicalEyebrow} title={t.symbol.biblicalTitle} icon={LibraryBig} accent={entry.accent} paragraphs={entry.sections.biblical} />
@@ -442,6 +443,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                 label={related.parentSlug ? t.chrome.relatedVariation : t.chrome.relatedParent}
               />
             ))}
+            <ArticleAdBanner locale={locale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
           </div>
         </section>
 

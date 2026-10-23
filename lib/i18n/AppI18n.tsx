@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LocaleProvider } from "./LocaleProvider";
 import { getMessages } from "./messages";
 import { localeFromPathname } from "./path";
+import BrowserLanguageSuggestion from "./BrowserLanguageSuggestion";
 
 export default function AppI18n({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/";
@@ -12,6 +13,7 @@ export default function AppI18n({ children }: { children: ReactNode }) {
   return (
     <LocaleProvider locale={locale} messages={getMessages(locale)}>
       {children}
+      <BrowserLanguageSuggestion />
     </LocaleProvider>
   );
 }

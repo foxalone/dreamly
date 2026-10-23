@@ -1,4 +1,6 @@
 import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
+import { Fragment } from "react";
+import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import type { DreamGuide } from "@/lib/dream-guides";
 import { guideTextPlain } from "@/lib/guideLinks";
 import type { Locale } from "@/lib/i18n/config";
@@ -83,10 +85,13 @@ export default function DreamGuidePage({
           </p>
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">{guide.title}</h1>
           <div className="mt-5 max-w-3xl space-y-4 text-base leading-7 text-[var(--dd-muted)] sm:text-lg sm:leading-8">
-            {guide.intro.map((paragraph) => (
-              <p key={paragraph}>
-                <LinkedText text={paragraph} />
-              </p>
+            {guide.intro.map((paragraph, index) => (
+              <Fragment key={paragraph}>
+                <p>
+                  <LinkedText text={paragraph} />
+                </p>
+                {index === 0 ? <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} /> : null}
+              </Fragment>
             ))}
           </div>
         </header>
@@ -152,7 +157,7 @@ export default function DreamGuidePage({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">{t.guide.howDreamingWorks}</p>
           <h2 id="other-guides-title" className="mt-1.5 text-2xl font-semibold tracking-tight">{t.guide.moreAbout}</h2>
           <div className="mt-6">
-            <GuideLinkCards guides={siblings} />
+            <GuideLinkCards guides={siblings} adLocale={locale} adEvery={3} />
           </div>
         </section>
 
