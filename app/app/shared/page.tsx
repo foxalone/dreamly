@@ -7,6 +7,7 @@ import { Keyboard, Mic } from "lucide-react";
 import {
   collection,
   doc,
+  getCountFromServer,
   getDoc,
   limit,
   onSnapshot,
@@ -14,6 +15,7 @@ import {
   query,
   runTransaction,
   serverTimestamp,
+  where,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -25,6 +27,7 @@ import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import { feedPaginationCopy } from "@/lib/i18n/feedPagination";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
@@ -34,6 +37,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 
 const SIGNIN_NEXT = "/signin?next=/app/shared";
+const FEED_PAGE_SIZE = 50;
 
 type ReactionKey = "heart" | "like" | "star";
 
@@ -229,6 +233,11 @@ export default function SharedPage() {
   const [uid, setUid] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [items, setItems] = useState<SharedDream[]>([]);
+  const [feedLimit, setFeedLimit] = useState(FEED_PAGE_SIZE);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedFailed, setFeedFailed] = useState(false);
+  const [feedTotal, setFeedTotal] = useState<number | null>(null);
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -368,34 +377,75 @@ export default function SharedPage() {
     window.setTimeout(() => el.classList.remove("ring-2", "ring-purple-400"), 4500);
   }, [items]);
 
-  // ✅ realtime shared_dreams feed
+  // Grow the live window in batches. One listener keeps every loaded card
+  // current, including deletions/reactions, without overlapping page boundaries.
   useEffect(() => {
+    setFeedLoading(true);
+    setFeedFailed(false);
     const q = query(
       collection(firestore, "shared_dreams"),
       orderBy("sharedAtMs", "desc"),
-      limit(50)
+      limit(feedLimit + 1)
     );
 
     const unsub = onSnapshot(
       q,
       (snap) => {
         // Author-deleted dreams keep a stripped doc (emojis/city only) — never show it.
-        const next: SharedDream[] = snap.docs
+        // Look ahead before filtering tombstones: a batch containing deleted
+        // dreams must still allow the viewer to reach older entries.
+        setFeedHasMore(snap.docs.length > feedLimit);
+        const next: SharedDream[] = snap.docs.slice(0, feedLimit)
           .filter((d) => d.data()?.deleted !== true)
           .map((d) => ({
             id: d.id,
             ...(d.data() as any),
           }));
         setItems(next);
+        setFeedLoading(false);
+        setFeedFailed(false);
       },
       (err) => {
         console.error("shared_dreams onSnapshot error:", err);
-        setError(err?.message ?? "Failed to load shared dreams.");
+        setFeedFailed(true);
+        setFeedLoading(false);
       }
     );
 
     return () => unsub();
-  }, []);
+  }, [feedLimit]);
+
+  // Number cards against the whole public feed, including legacy shares that
+  // have no `deleted` field. Never use the size of the loaded window as a total.
+  // Membership changes refresh the total; reaction updates need no extra counts.
+  const feedMembership = JSON.stringify(items.map((item) => item.id));
+  useEffect(() => {
+    let cancelled = false;
+    let request = 0;
+    const refreshTotal = async () => {
+      const currentRequest = ++request;
+      try {
+        const shares = collection(firestore, "shared_dreams");
+        const [all, deleted] = await Promise.all([
+          getCountFromServer(shares),
+          getCountFromServer(query(shares, where("deleted", "==", true))),
+        ]);
+        if (!cancelled && currentRequest === request) {
+          setFeedTotal(Math.max(0, all.data().count - deleted.data().count));
+        }
+      } catch (err) {
+        console.warn("shared_dreams count error:", err);
+        if (!cancelled && currentRequest === request) setFeedTotal(null);
+      }
+    };
+    setFeedTotal(null);
+    void refreshTotal();
+    window.addEventListener("focus", refreshTotal);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", refreshTotal);
+    };
+  }, [feedMembership]);
 
   // ✅ my translation unlocks (only when signed in). Read-only optimisation:
   // the server is the authority, so a rules error here just means one extra
@@ -726,7 +776,7 @@ export default function SharedPage() {
         )}
 
 
-        {list.length === 0 ? (
+        {list.length === 0 && !feedLoading && !feedFailed ? (
           <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
             No shared items yet.
           </div>
@@ -737,7 +787,7 @@ export default function SharedPage() {
               const r = d.reactions ?? {};
               const emojis = normalizeEmojis(d.emojis);
               const sourceLabel = getSharedTypeLabel(d);
-              const sourceNum = list.length - index;
+              const sourceNum = feedTotal === null ? null : feedTotal - index;
 
               // creature the author had at THIS share (stamped at share time), so
               // one person's older dreams can show a lower level than newer ones;
@@ -828,7 +878,9 @@ export default function SharedPage() {
                       {showingTranslation[d.id] ?? d.text}
                     </LocaleLink>
 
-                    <div className="mt-2 text-xs text-[var(--muted)]">{sourceLabel} #{sourceNum}</div>
+                    <div className="mt-2 text-xs text-[var(--muted)]">
+                      {sourceLabel}{sourceNum !== null && sourceNum > 0 ? ` #${sourceNum}` : ""}
+                    </div>
 
                     <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
                       <div className="flex gap-2">
@@ -917,6 +969,24 @@ export default function SharedPage() {
             })}
           </div>
         )}
+        <div className="mt-5 flex flex-col items-center gap-3" aria-live="polite">
+          {feedFailed && (
+            <p className="text-sm text-red-200">{feedPaginationCopy[locale].error}</p>
+          )}
+          {(feedLoading || feedHasMore || feedFailed) && (
+            <button
+              type="button"
+              disabled={feedLoading}
+              onClick={() => {
+                setFeedLoading(true);
+                setFeedLimit((value) => value + FEED_PAGE_SIZE);
+              }}
+              className="rounded-full border border-[var(--border)] px-5 py-3 text-sm text-[var(--text)] disabled:opacity-60 disabled:cursor-wait"
+            >
+              {feedLoading ? feedPaginationCopy[locale].loading : feedPaginationCopy[locale].loadMore}
+            </button>
+          )}
+        </div>
       </div>
 
     </main>
