@@ -14,7 +14,7 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
-import { takeAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -229,6 +229,11 @@ export function useDreamAsk({
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source });
           persistPending(dream, "");
+          if (data.reason === "first_ad") {
+            setAdUnlockPending({ kind: "analysis", dreamText: dream });
+            window.location.assign(adUnlockUrl("analysis", localePath("/app/dreams", locale)));
+            return;
+          }
           openPaywall({
             kind: "analysis", source, analysisDreamText: dream,
             guest: {

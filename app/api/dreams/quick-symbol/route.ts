@@ -162,7 +162,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Guests use the daily network free slot, then earned ad credits;
+    // Miss → GPT. Guests need an ad, with a no-fill fallback for the first reading;
     // signed in → consumeAnalysisAccess (free / ad credit / plan).
     let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
     let charge: "slot" | "free" | "ad" | null = null;

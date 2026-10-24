@@ -2,6 +2,7 @@
 
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import { adUnlockUrl, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 
 import { useEffect, useRef, useState } from "react";
@@ -234,9 +235,15 @@ export default function QuickSymbolFab() {
       if (!res.ok) {
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source: "quick_symbol" });
+          if (data.reason === "first_ad") {
+            setAdUnlockPending({ kind: "analysis", quickSymbol: { query: q, lens: nextLens } });
+            window.location.assign(adUnlockUrl("analysis"));
+            return;
+          }
           openPaywall({
             kind: "analysis",
             source: "quick_symbol",
+            analysisQuickSymbol: { query: q, lens: nextLens },
             guest: {
               reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
               signIn: () => goToSignIn(q),
@@ -291,8 +298,8 @@ export default function QuickSymbolFab() {
       } catch (err) {
         console.warn("quick symbol diary save failed", err);
       }
-    } catch (err: any) {
-      setError(err?.message ?? "Something went wrong");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(false);
     }
@@ -321,14 +328,16 @@ export default function QuickSymbolFab() {
     await runLookup(q, user);
   }
 
-  // After sign-in return: restore query and auto-fetch answer
+  // After sign-in or ad return: restore the exact query and lens.
   useEffect(() => {
-    if (!authReady || !user || resumeStarted.current) return;
-
-    const pending = readPending();
+    if (!authReady || resumeStarted.current) return;
+    const adPending = peekAdUnlockPending("analysis")?.quickSymbol;
+    if (!user && !adPending) return;
+    const pending = adPending ?? readPending();
     if (!pending) return;
 
     resumeStarted.current = true;
+    if (adPending) takeAdUnlockPending("analysis");
     clearPending();
     setOpen(true);
     setQuery(pending.query);

@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     if (!uid) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
-      // One free guest reading per IP per UTC day; later readings need an ad credit.
+      // Try an ad from the first guest reading; only its no-fill fallback is free.
       // Previously stored answers must never bypass quota accounting.
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {

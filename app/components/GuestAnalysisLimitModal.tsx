@@ -83,7 +83,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
     trackEvent("rewarded_ad_open", { source: request.source, kind });
     // The retry closure dies with the navigation: useDreamAsk resumes the
     // interpretation from this sessionStorage mark when we come back.
-    if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamText: request.analysisDreamText });
+    if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamText: request.analysisDreamText, quickSymbol: request.analysisQuickSymbol });
     const next = kind === "analysis" && request.analysisDreamText
       ? localePath("/app/dreams", locale)
       : undefined;

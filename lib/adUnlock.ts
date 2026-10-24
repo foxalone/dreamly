@@ -25,6 +25,7 @@ export type AdUnlockPending = {
   kind: PaywallKind;
   /** Full guest dream: only its journal card may consume the analysis retry. */
   dreamText?: string;
+  quickSymbol?: { query: string; lens: import("@/lib/dream-lenses").DreamLens };
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
   targetLang?: string;
@@ -75,6 +76,7 @@ export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdU
     if (!raw) return null;
     const p = JSON.parse(raw) as AdUnlockPending;
     if (kind && p.kind !== kind) return null;
+    if (dreamText !== undefined && p.quickSymbol) return null;
     if (dreamText !== undefined && p.dreamText && p.dreamText !== dreamText) return null;
     sessionStorage.removeItem(PENDING_KEY);
     if (!p || typeof p.atMs !== "number" || Date.now() - p.atMs > 10 * 60_000) return null;

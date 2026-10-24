@@ -38,6 +38,11 @@ test("guest ad returns to the localized journal and only the submitted dream res
       assert.equal(takeAdUnlockPending("analysis", submitted.text)?.dreamText, submitted.text);
       assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
 
+      // A quick-symbol retry must never be consumed by a guest journal card.
+      setAdUnlockPending({ kind: "analysis", quickSymbol: { query: "a humming doorway", lens: "spiritual" } });
+      assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
+      assert.deepEqual(takeAdUnlockPending("analysis")?.quickSymbol, { query: "a humming doorway", lens: "spiritual" });
+
       // Back after an unavailable ad keeps the dream but must not retry it
       // automatically and reopen the same ad flow in the journal.
       setAdUnlockPending({ kind: "analysis", dreamText: submitted.text });

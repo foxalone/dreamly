@@ -16,7 +16,7 @@ const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 export type GuestConsumeResult =
   | { ok: true; used: number; charge: "free" | "ad"; dayKey: string }
-  | { ok: false; reason: "guest_limit" | "ip_limit" };
+  | { ok: false; reason: "guest_limit" | "ip_limit" | "first_ad" };
 
 function utcDayKey(d = new Date()) {
   return d.toISOString().slice(0, 10);
@@ -66,7 +66,7 @@ export function setGuestCookie<T extends NextResponse>(res: T, guestId: string):
 }
 
 /**
- * Books one anonymous AI lookup: one free per IP per UTC day, then earned ad credits. Reads both counters before writing so the
+ * Books one anonymous AI lookup: ad first, with a no-fill fallback only for the first analysis. Reads both counters before writing so the
  * whole thing stays inside a single Firestore transaction.
  */
 export async function consumeGuestAsk(
@@ -86,17 +86,14 @@ export async function consumeGuestAsk(
       const used = Number(guestSnap.data()?.used ?? 0);
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
 
-      const access = guestAnalysisAccess(used, ipUsed, Number(guestSnap.data()?.adAnalysisCredits ?? 0));
-      if (access === "ip_limit") throw new Error("IP_LIMIT");
-      if (access === "ad") {
-        tx.set(guestRef, { adAnalysisCredits: FieldValue.increment(-1) }, { merge: true });
-        return { ok: true as const, used, charge: "ad" as const, dayKey };
-      }
+      const access = guestAnalysisAccess(used, ipUsed, Number(guestSnap.data()?.adAnalysisCredits ?? 0), guestSnap.data()?.firstAnalysisNoAd === true);
+      if (access === "ip_limit" || access === "guest_limit" || access === "first_ad") return { ok: false as const, reason: access };
 
       tx.set(
         guestRef,
         {
           used: FieldValue.increment(1),
+          ...(access === "ad" ? { adAnalysisCredits: FieldValue.increment(-1) } : {}),
           lastAt: FieldValue.serverTimestamp(),
           ...(guestSnap.exists ? {} : { firstAt: FieldValue.serverTimestamp() }),
         },
@@ -113,7 +110,7 @@ export async function consumeGuestAsk(
         { merge: true }
       );
 
-      return { ok: true as const, used: used + 1, charge: "free" as const, dayKey };
+      return { ok: true as const, used: used + 1, charge: access, dayKey };
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "";
@@ -135,18 +132,30 @@ export async function refundGuestAsk(
     const guestRef = db.collection("guestQuickSymbol").doc(guestId);
     if (booking.charge === "ad") {
       batch.set(guestRef, { adAnalysisCredits: FieldValue.increment(1) }, { merge: true });
-    } else {
-      batch.set(guestRef, { used: FieldValue.increment(-1) }, { merge: true });
-      batch.set(
-        db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${booking.dayKey}`),
-        { used: FieldValue.increment(-1) },
-        { merge: true }
-      );
     }
+    batch.set(guestRef, { used: FieldValue.increment(-1) }, { merge: true });
+    batch.set(
+      db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${booking.dayKey}`),
+      { used: FieldValue.increment(-1) },
+      { merge: true }
+    );
     await batch.commit();
   } catch (e) {
     console.warn("refundGuestAsk failed:", e);
   }
+}
+
+/** No-fill never grants credits; only an unused first analysis may use it. */
+export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: string) {
+  const db = adminDb();
+  return db.runTransaction(async (tx) => {
+    const ref = db.collection("guestQuickSymbol").doc(guestId);
+    const guest = (await tx.get(ref)).data() ?? {};
+    const network = (await tx.get(db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${utcDayKey()}`))).data() ?? {};
+    if (guestAnalysisAccess(Number(guest.used ?? 0), Number(network.used ?? 0), 0) !== "first_ad") return false;
+    tx.set(ref, { firstAnalysisNoAd: true }, { merge: true });
+    return true;
+  });
 }
 
 /**

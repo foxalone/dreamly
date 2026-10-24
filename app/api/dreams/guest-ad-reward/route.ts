@@ -1,6 +1,6 @@
 import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
-import { guestAdReward, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
+import { allowGuestFirstAnalysisWithoutAd, guestAdReward, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
 
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
@@ -16,6 +16,11 @@ async function handle(req: Request, grant: boolean) {
   if (!guestId) return NextResponse.json({ code: "GUEST_REQUIRED" }, { status: 401 });
   try {
     const body = grant ? await req.json().catch(() => ({})) : {};
+    if (grant && body.noAdAvailable === true) {
+      if (body.kind !== "analysis") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
+      const allowed = await allowGuestFirstAnalysisWithoutAd(guestId, readClientIp(req));
+      return NextResponse.json({ firstAnalysisFree: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
+    }
     if (grant && !validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
     const query = new URL(req.url).searchParams;
     const kind = normalizeGuestAdKind(grant ? body.kind : query.get("kind"));

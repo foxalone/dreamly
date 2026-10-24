@@ -212,6 +212,27 @@ export default function AdUnlockClient() {
     };
   }, [phase, user, kind, next, router, sp]);
 
+  // No-fill falls back only for the first guest analysis. The server checks
+  // lifetime and network usage again; subsequent requests stay behind access choices.
+  useEffect(() => {
+    if (phase !== "unavailable" || user !== null || kind !== "analysis") return;
+    let cancelled = false;
+    void fetch("/api/dreams/guest-ad-reward", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),
+    }).then(async (res) => {
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!cancelled && data.firstAnalysisFree) {
+        setPhase("done");
+        router.replace(next);
+      }
+    }).catch(() => { /* Keep the existing sign-in and return options. */ });
+    return () => { cancelled = true; };
+  }, [phase, user, kind, next, router]);
+
   async function signIn() {
     if (signInBusy) return;
     setSignInBusy(true);
