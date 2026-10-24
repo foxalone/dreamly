@@ -20,6 +20,7 @@ import { DreamPageVideoAdminDot, DreamPageVideoPlayer, DreamPageVideoProvider, D
 import { getDreamPageVideo } from "@/lib/getDreamPageVideo";
 import { isoDurationSeconds, youtubeThumbnail, youtubeWatchPageUrl } from "@/lib/dreamPageVideo";
 import GuideLinkCards from "./GuideLinkCards";
+import RelatedSymbolGrid from "./RelatedSymbolGrid";
 import InlineDreamPrompt from "./InlineDreamPrompt";
 import LinkedText from "./LinkedText";
 import ArticleAdBanner from "@/app/components/ArticleAdBanner";
@@ -347,6 +348,9 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                   ))}
                 </div>
                 <DreamPageVideoPlayer />
+                <div className="sm:hidden">
+                  <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+                </div>
                 <div className="mt-9 flex items-center gap-2">
                   <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-[var(--dd-subtle)]">{t.chrome.commonScenarios}</h3>
                   <DreamPageVideoAdminDot />
@@ -367,6 +371,9 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
 
         {relatedVariations.length > 0 && (
           <section className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="variations-title">
+            <div className="sm:hidden">
+              <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+            </div>
             <div className="flex items-start gap-4">
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl" style={{ backgroundColor: `${entry.accent}18`, color: entry.accent }}>
                 <Link2 size={20} aria-hidden="true" />
@@ -392,6 +399,9 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
         <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
         <InterpretationSection id="spiritual" eyebrow={t.symbol.spiritualEyebrow} title={t.symbol.spiritualTitle} icon={Sparkles} accent={entry.accent} paragraphs={entry.sections.spiritual} />
         <InterpretationSection id="islamic" eyebrow={t.symbol.islamicEyebrow} title={t.symbol.islamicTitle} icon={MoonStar} accent={entry.accent} paragraphs={entry.sections.islamic} />
+        <div className="sm:hidden">
+          <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+        </div>
         <InterpretationSection id="biblical" eyebrow={t.symbol.biblicalEyebrow} title={t.symbol.biblicalTitle} icon={LibraryBig} accent={entry.accent} paragraphs={entry.sections.biblical} />
 
         <section id="questions" className="scroll-mt-24 border-t border-[var(--dd-border)] py-10 sm:py-14">
@@ -419,6 +429,9 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
 
         {relatedGuides.length > 0 ? (
           <aside className="border-t border-[var(--dd-border)] py-10 sm:py-14" aria-labelledby="symbol-guides-title">
+            <div className="sm:hidden">
+              <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+            </div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">{t.dictionary.learnTitle}</p>
             <h2 id="symbol-guides-title" className="mt-1.5 text-2xl font-semibold tracking-tight">{t.chrome.howConnects}</h2>
             <div className="mt-6">
@@ -435,7 +448,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
             <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--dd-subtle)]">{t.chrome.crossCluster}</p>
             <h2 className="mt-1.5 text-2xl font-semibold tracking-tight">{t.chrome.relatedSymbols}</h2>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <RelatedSymbolGrid ad={<ArticleAdBanner locale={locale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />}>
             {relatedSymbols.map((related) => (
               <EntryCard
                 key={related.slug}
@@ -443,8 +456,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
                 label={related.parentSlug ? t.chrome.relatedVariation : t.chrome.relatedParent}
               />
             ))}
-            <ArticleAdBanner locale={locale} variant="card" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
-          </div>
+          </RelatedSymbolGrid>
         </section>
 
         {combos.length > 0 ? (
