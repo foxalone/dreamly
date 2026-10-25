@@ -55,8 +55,9 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false}:{locale:Locale;s
   }
   if(sessionOnly)return null;
   const guest=user==null,free=!!user&&!!info&&info.freeLeft>0;
+  const message=guest?t.guest:info?free?(info.tier==='paid'?t.paid:null):t.limit:t.busy;
   return <div aria-busy={busy}>
-    <p>{guest?t.guest:info?free?(info.tier==='paid'?t.paid:t.member):t.limit:t.busy}</p>
+    {message?<p>{message}</p>:null}
     <div className="hc-button-row">
       {guest?<button type="button" className="hc-button" disabled={busy||user===undefined} onClick={()=>void signIn()}><LogIn size={16} aria-hidden/>{t.signIn}</button>:null}
       <button type="button" className="hc-button hc-button-gold" disabled={busy||user===undefined||(!guest&&!info)} onClick={()=>void perform(!free)}>{free?<Sparkles size={16} aria-hidden/>:<Play size={16} aria-hidden/>}{busy?t.busy:free?t.open:t.ad}</button>

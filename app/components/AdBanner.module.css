@@ -45,3 +45,27 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+
+/* Match the mobile zodiac grid; desktop keeps all twelve sign cells together. */
+.zodiacCard {
+  display: none;
+  border-color: var(--hc-line);
+  background: #20172c55;
+  overflow: hidden;
+}
+
+.zodiacCard .compactLabel {
+  color: var(--hc-muted);
+}
+
+.zodiacCard .compactContent > div > div {
+  padding-inline: 4px;
+  font-size: 10px;
+  color: var(--hc-muted);
+}
+
+@media (max-width: 539px) {
+  .zodiacCard {
+    display: block;
+  }
+}

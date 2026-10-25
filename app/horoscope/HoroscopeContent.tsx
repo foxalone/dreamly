@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Fragment } from 'react';
 import { Heart, BriefcaseBusiness, Wallet, Sun, Sparkles, Orbit, Quote } from 'lucide-react';
 import { localeDir, type Locale } from '@/lib/i18n/config';
 import { absoluteLocaleUrl, localePath } from '@/lib/i18n/path';
@@ -58,7 +59,19 @@ export function HoroscopeContent({locale,sign,today,forecast,sky,accessAllowed=f
       <section className="hc-panel hc-positions" aria-labelledby="positions-title"><h2 id="positions-title">{d.positions}</h2><p className="hc-timestamp">{t.reference} · <time dateTime={displaySky.referenceTime}>{horoscopeDate(displaySky.day,locale)}</time></p><div className="hc-planets">{displaySky.planets.map(planet=><div key={planet.body}><strong>{t.planets[planet.body]}</strong><span>{t.signs[planet.sign]} · <bdi>{n.format(planet.degree)}°</bdi></span><small>{planet.retrograde?t.retrograde:t.direct}</small></div>)}</div></section>
       <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined}/>
       <section className="hc-panel hc-share" aria-labelledby="share-title"><Sparkles size={22} aria-hidden/><h2 id="share-title">{d.share}</h2><ShareForecast locale={locale} url={url} name={name} date={horoscopeDate(dated,locale)}/></section>
-      <section className="hc-explore" aria-labelledby="signs-title"><div className="hc-section-label"><span/><h2 id="signs-title">{d.explore}</h2><span/></div><nav className="hc-zodiac-nav" aria-label={d.explore}>{SIGNS.map((value,i)=><Link key={value} href={localePath(`/horoscope/${value}`,locale)} data-sign={value} className="hc-sign" aria-current={sign===value?'page':undefined}><span className="hc-symbol" aria-hidden>{SYMBOLS[i]}</span><span>{t.signs[value]}</span>{!sign&&forecast?.locales[locale]?.[value]?<p>{forecast.locales[locale][value].general}</p>:null}</Link>)}</nav></section>
+      <section className="hc-explore" aria-labelledby="signs-title">
+        <div className="hc-section-label"><span/><h2 id="signs-title">{d.explore}</h2><span/></div>
+        <nav className="hc-zodiac-nav" aria-label={d.explore}>
+          {SIGNS.map((value,i)=><Fragment key={value}>
+            {/* Including ads, these cells occupy mobile positions 2, 5 and 10. */}
+            {[1,3,7].includes(i)?<ArticleAdBanner locale={locale} variant="zodiac" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined}/>:null}
+            <Link href={localePath(`/horoscope/${value}`,locale)} data-sign={value} className="hc-sign" aria-current={sign===value?'page':undefined}>
+              <span className="hc-symbol" aria-hidden>{SYMBOLS[i]}</span><span>{t.signs[value]}</span>
+              {!sign&&forecast?.locales[locale]?.[value]?<p>{forecast.locales[locale][value].general}</p>:null}
+            </Link>
+          </Fragment>)}
+        </nav>
+      </section>
       <details className="hc-panel hc-details"><summary>{d.details}</summary><div className="hc-details-content"><p className="hc-timestamp">{t.reference} · <time dateTime={displaySky.referenceTime}>{horoscopeDate(displaySky.day,locale)}</time></p><ul className="hc-aspects">{displaySky.aspects.map(a=><li key={`${a.a}-${a.b}`}>{t.planets[a.a]} · {t.aspects[a.name]} · {t.planets[a.b]} <bdi>({n.format(a.angle)}° ± {n.format(a.orb)}°)</bdi></li>)}</ul><h2>{t.method}</h2><p>{t.methodology}</p><p>{d.artwork}</p><a href="https://github.com/cosinekitty/astronomy" rel="noopener noreferrer">Astronomy Engine</a></div></details>
     </main>
     <DictionaryFooter/>

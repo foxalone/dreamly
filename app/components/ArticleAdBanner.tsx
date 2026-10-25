@@ -9,7 +9,7 @@ const AD_CLIENT = "ca-pub-2484539106050736";
 const ARTICLE_AD_SLOT = "7289632304";
 
 /** The shared layout loads AdSense; each mounted placement requests its ad once. */
-export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" | "home-feature" | "home-symbol" }) {
+export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" | "home-feature" | "home-symbol" | "zodiac" }) {
   const ad = useRef<HTMLModElement>(null);
   const cardBox = useRef<HTMLElement>(null);
   const cardSlot = useRef<HTMLDivElement>(null);
@@ -23,9 +23,10 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
   const map = variant === "map";
   const feed = variant === "feed";
   const homeCard = variant === "home-feature" || variant === "home-symbol";
-  const lazy = feed || homeCard;
-  const compactCard = variant === "home-symbol";
-  const gridCard = variant === "card" || homeCard;
+  const zodiac = variant === "zodiac";
+  const lazy = feed || homeCard || zodiac;
+  const compactCard = variant === "home-symbol" || zodiac;
+  const gridCard = variant === "card" || homeCard || zodiac;
 
   useEffect(() => {
     if (!gridCard) return;
@@ -92,13 +93,13 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
   if (!preview && !configured) return null;
 
   return (
-    <aside ref={cardBox} style={gridCard ? { minHeight: cardLayout.minHeight } : undefined} aria-label={m.label} data-article-ad={homeCard ? `${variant}-card` : feed ? "feed-banner" : map ? "map-banner" : gallery ? "gallery-card" : card ? "guide-card" : "after-first-paragraph"} className={feed
+    <aside ref={cardBox} style={gridCard ? { minHeight: cardLayout.minHeight } : undefined} aria-label={m.label} data-article-ad={zodiac ? "zodiac-card" : homeCard ? `${variant}-card` : feed ? "feed-banner" : map ? "map-banner" : gallery ? "gallery-card" : card ? "guide-card" : "after-first-paragraph"} className={feed
       ? "not-prose w-full min-w-0 py-2"
       : map
       ? "not-prose w-full min-w-0"
       : gallery
       ? "not-prose flex aspect-[2/3] w-full min-w-0 flex-col self-start rounded-[1.15rem] bg-[var(--dd-surface-soft)] p-3 ring-1 ring-[var(--dd-border)] sm:rounded-[1.35rem] sm:p-5"
-      : gridCard ? `not-prose relative w-full min-w-0 self-stretch rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] ${styles.gridCard}${homeCard ? ` ${styles.homeCard}` : ""}`
+      : gridCard ? `not-prose relative w-full min-w-0 self-stretch rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] ${styles.gridCard}${homeCard ? ` ${styles.homeCard}` : ""}${zodiac ? ` ${styles.zodiacCard}` : ""}`
       : "not-prose my-6 w-full min-w-0"}>
       <div className={gridCard ? `${styles.gridCardContent}${compactCard ? ` ${styles.compactContent}` : ""}` : "contents"}>
       <p className={compactCard ? styles.compactLabel : "mb-2 text-center text-[10px] font-normal uppercase leading-4 tracking-widest text-[var(--dd-subtle)]"}>{m.label}</p>
