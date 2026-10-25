@@ -1,20 +1,13 @@
 import { NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
 import { requireCronSecret } from '@/app/api/admin/_lib/gsc';
-import { generateDailyHoroscope } from '@/lib/horoscope/generate';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300;
+/** Retired bulk endpoint: old schedulers cannot generate unrequested content. */
 export async function GET(request: Request) {
   try {
     requireCronSecret(request);
-    const result = await generateDailyHoroscope();
-    if (result.status === 'published') revalidateTag('horoscope', { expire: 0 });
-    return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
+    return NextResponse.json({ status: 'retired', worker: '/api/cron/horoscope-worker' }, { status: 410 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'UNKNOWN';
-    const status = message === 'UNAUTHENTICATED' ? 401 : message.includes('not configured') ? 503 : 500;
-    if (status === 500) console.error('[cron/horoscope]', error instanceof Error ? error.name : 'Error');
-    return NextResponse.json({ error: status === 401 ? 'UNAUTHENTICATED' : 'HOROSCOPE_UNAVAILABLE' }, { status });
+    return NextResponse.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'UNAUTHENTICATED' ? 401 : 503 });
   }
 }

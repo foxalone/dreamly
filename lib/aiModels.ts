@@ -25,5 +25,7 @@ export const TRANSLATE_MODEL = "gpt-5-nano";
 /** Tiny language-detection call at share time. */
 export const DETECT_LANG_MODEL = "gpt-5-nano";
 
-/** One daily Sun-sign batch; translations reuse TRANSLATE_MODEL. */
-export const HOROSCOPE_MODEL = DREAM_ANALYSIS_MODEL;
+/** On-demand horoscope master and translations; unrelated translation models stay unchanged. */
+export const HOROSCOPE_MODEL = "gpt-5-mini";
+
+export const HOROSCOPE_TRANSLATE_MODEL = HOROSCOPE_MODEL;

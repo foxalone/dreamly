@@ -8,6 +8,7 @@ import { adminFirestore } from "@/lib/firebaseAdmin";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
 import { cityRank, hasPlayed, mergeGuestIntoUser, mergeGuestStash, playerRef, readPlayer, toState } from "../_lib/player";
 import { resolveOwner, withOwner } from "../_lib/owner";
+import { resolveBuildingCity, settlePendingBuildings } from "../_lib/placement";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
 
   const ref = playerRef(owner.ownerKey);
   const snap = await ref.get();
-  const p = readPlayer(snap.data(), owner, now);
+  let p = readPlayer(snap.data(), owner, now);
 
   // Buildings placed before the server kept balances: adopt them into the player doc.
   if (!Object.keys(p.placed).length && !owner.newGuest) {
@@ -39,6 +40,11 @@ export async function GET(req: Request) {
       if (p.lastCollectAt == null) p.lastCollectAt = now;
       await ref.set(p, { merge: true });
     }
+  }
+
+  if (owner.uid && Object.values(p.placed).some(city => !city)) {
+    const city = await resolveBuildingCity(req, owner).catch(() => null);
+    if (city) p = (await settlePendingBuildings(owner, city).catch(() => null)) ?? p;
   }
 
   const rank = snap.exists ? await cityRank(p).catch(() => null) : null;

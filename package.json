@@ -28,7 +28,8 @@
     "backfill-share-badges": "node --env-file=.env.local scripts/backfill-share-badges.mjs",
     "migrate-translations-private": "node --env-file=.env.local scripts/migrate-translations-private.mjs",
     "paypal-check": "node --env-file=.env.local scripts/paypal-check.mjs",
-    "paypal-setup": "node --env-file=.env.local scripts/paypal-setup.mjs"
+    "paypal-setup": "node --env-file=.env.local scripts/paypal-setup.mjs",
+    "horoscope-worker": "tsx --env-file=.env.local scripts/horoscope-worker.ts"
   },
   "dependencies": {
     "@atproto/api": "^0.19.19",

@@ -34,6 +34,7 @@ import ProDocs from "./ProDocs";
 import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
+import MoonClicks from "./MoonClicks";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import EmojiDictionaryPanel from "./EmojiDictionaryPanel";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -1567,6 +1568,8 @@ async function loadUsers() {
   ) : null}
 </div>
       </div>
+
+      {user && isAdmin ? <MoonClicks user={user} /> : null}
 
       {/* Tabs */}
       <div className="mt-5 flex w-fit flex-wrap rounded-3xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">

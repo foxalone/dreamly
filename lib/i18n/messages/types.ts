@@ -395,6 +395,7 @@ export type UiMessages = {
     buildingNames: Record<"hut" | "cottage" | "dream-mill" | "tower" | "lighthouse" | "castle" | "palace" | "dream-temple" | "wonder-circus" | "dream-gates" | "cloud-citadel" | "moon-city" | "oneiros-palace", string>;
     tapToBuild: string;
     buyMore: string;
+    signInToBuildMore: string;
     lifetimeLabel: string;
     progressHint: string;
     liveHint: string;
@@ -411,6 +412,7 @@ export type UiMessages = {
     copyToast: string;
     placing: string;
     onMap: string;
+    awaitingCity: string;
     perMin: string;
     placedToast: string;
     placedToastCity: string;

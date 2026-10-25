@@ -133,5 +133,11 @@ export async function ensureUser(user?: User | null): Promise<User> {
   }
 
   await ensureUserCity(u);
+  // Claim guest purchases and place any buildings that were saved before a city was known.
+  try {
+    await fetch("/api/game/state", {
+      headers: { Authorization: `Bearer ${await u.getIdToken()}` }, cache: "no-store",
+    });
+  } catch { /* Saved buildings remain pending until the next successful visit. */ }
   return u;
 }

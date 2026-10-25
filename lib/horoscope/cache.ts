@@ -2,7 +2,7 @@ import type { Locale } from '@/lib/i18n/config';
 import { completeLocales, referenceTime, type Readings } from './model';
 import { ASPECTS, BODIES, zodiacAt, type Sky } from './astronomy';
 import { isSign } from './model';
-function validSky(sky: Sky, day: string) {
+export function validSky(sky: Sky, day: string) {
   if (!sky || sky.day !== day || sky.referenceTime !== referenceTime(day).toISOString() || !Array.isArray(sky.planets) || sky.planets.length !== BODIES.length) return false;
   if (!BODIES.every(body => sky.planets.filter(p => p?.body === body).length === 1)) return false;
   if (!sky.planets.every(p => Number.isFinite(p.longitude) && p.longitude >= 0 && p.longitude < 360 && Number.isFinite(p.dailyMotion) && p.retrograde === (p.dailyMotion < 0) && p.sign === zodiacAt(p.longitude).sign && Math.abs(p.degree - zodiacAt(p.longitude).degree) < 1e-8)) return false;
@@ -16,7 +16,10 @@ export function validForecast(value: unknown): value is Forecast {
   try { referenceTime(v.day); } catch { return false; }
   return v.version === 1 && v.complete === true && Number.isFinite(Date.parse(v.publishedAt)) && validSky(v.sky, v.day) && !!v.locales && completeLocales(v.locales);
 }
-export function selectForecast(today: string, current: unknown, previous: unknown): { forecast: Forecast | null; stale: boolean } {
-  const forecast = validForecast(current) && current.day === today ? current : validForecast(previous) && previous.day <= today ? previous : null;
-  return { forecast, stale: !!forecast && forecast.day !== today };
+export function selectForecast(today: string, current: unknown): { forecast: Forecast | null; stale: boolean } {
+  const forecast = validForecast(current) && current.day === today ? current : null;
+  return { forecast, stale: false };
 }
+
+/** A page may publish one requested combination without requiring 72 readings. */
+export type ForecastEdition = { day: string; publishedAt?: string; sky: Sky; locales: Partial<Record<Locale, Partial<Readings>>> };

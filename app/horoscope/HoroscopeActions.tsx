@@ -1,14 +1,57 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, Share2, RefreshCw, Check } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/config';
 import { horoscopeDesign } from '@/lib/i18n/horoscope-design';
 import { trackEvent } from '@/lib/analytics';
+import { horoscopeJobs } from '@/lib/i18n/horoscope-jobs';
+import type { Sign } from '@/lib/horoscope/model';
+import type { PublicStatus } from '@/lib/horoscope/jobs';
+import { watchReading } from '@/lib/horoscope/polling';
+import { ForecastWaiting } from './CosmicForecast';
 
-export function RefreshReading({locale}:{locale:Locale}) {
-  const router=useRouter(), [pending,start]=useTransition(), t=horoscopeDesign[locale];
-  return <button className="hc-button" type="button" disabled={pending} onClick={()=>start(()=>router.refresh())}><RefreshCw size={16} aria-hidden/>{pending?t.refreshing:t.refresh}</button>;
+export function RefreshReading({locale,sign,day}:{locale:Locale;sign:Sign;day:string}) {
+  const router = useRouter(), [, start] = useTransition(), copy = horoscopeJobs[locale];
+  const [phase, setPhase] = useState<PublicStatus['status'] | 'timedOut' | 'unavailable' | 'rateLimited'>('missing');
+  const [checking, setChecking] = useState(true), [cycle, setCycle] = useState(0), [canRetry, setCanRetry] = useState(false);
+  const requestController = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const stop = watchReading(async () => {
+      const response = await fetch(`/api/horoscope/request?sign=${sign}&locale=${locale}`, { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) throw new Error('Unavailable');
+      return response.json() as Promise<PublicStatus>;
+    }, {
+      day,
+      update: status => { setPhase(status.status); setCanRetry(!!status.canRetry); setChecking(false); },
+      ready: () => { setChecking(false); setPhase('ready'); start(() => router.refresh()); },
+      timedOut: () => { setPhase('timedOut'); setChecking(false); },
+      unavailable: () => { setPhase('unavailable'); setChecking(false); },
+    });
+    return () => { stop(); controller.abort(); };
+  }, [day, sign, locale, router, cycle]);
+  useEffect(() => () => requestController.current?.abort(), []);
+  const request = async () => {
+    if (checking) return;
+    setChecking(true); setPhase('queued'); setCanRetry(false);
+    const controller = new AbortController(); requestController.current = controller;
+    try {
+      const response = await fetch('/api/horoscope/request', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-horoscope-request': '1' }, body: JSON.stringify({ sign, locale }), signal: controller.signal });
+      if (!response.ok) { setPhase(response.status === 429 ? 'rateLimited' : 'unavailable'); setChecking(false); return; }
+      const result = await response.json() as PublicStatus;
+      if (result.day !== day || result.status === 'ready') { setChecking(false); setPhase('ready'); start(() => router.refresh()); return; }
+      setPhase(result.status); setCanRetry(!!result.canRetry); setChecking(false); setCycle(value => value + 1);
+    } catch { if (!controller.signal.aborted) { setPhase('unavailable'); setChecking(false); } }
+  };
+  const active = phase === 'queued' || phase === 'processing' || phase === 'retrying';
+  const enqueue = phase === 'missing' || phase === 'unavailable' || (phase === 'retrying' && canRetry);
+  const message = phase === 'missing' || phase === 'ready' ? null : copy[phase as keyof typeof copy];
+  return <ForecastWaiting active={phase==='queued'||phase==='processing'} busy={checking || active} message={message??undefined}>
+    <button className="hc-button" type="button" disabled={checking || (active && !canRetry)} onClick={() => {
+      if (enqueue) void request(); else { setChecking(true); setCycle(value => value + 1); }
+    }}><RefreshCw size={16} aria-hidden/>{phase==='missing'?copy.start:checking?horoscopeDesign[locale].refreshing:enqueue?copy.retry:copy.check}</button>
+  </ForecastWaiting>;
 }
 export function ShareForecast({locale,url,name,date}:{locale:Locale;url:string;name:string;date:string}) {
   const t=horoscopeDesign[locale], [status,setStatus]=useState<'copied'|'error'|null>(null);

@@ -6,7 +6,7 @@ import { localeMetadata, localeOpenGraph } from '@/lib/i18n/page-locale';
 import { horoscopeCopy } from '@/lib/i18n/horoscope';
 import { isSign, utcDay, type Sign } from '@/lib/horoscope/model';
 import { calculateSky } from '@/lib/horoscope/astronomy';
-import { getForecast } from '@/lib/horoscope/store';
+import { getForecast, canReadForecast } from '@/lib/horoscope/store';
 import { HoroscopeContent } from './HoroscopeContent';
 
 export async function horoscopeMetadata(locale: Locale, sign?: string): Promise<Metadata> {
@@ -15,12 +15,11 @@ export async function horoscopeMetadata(locale: Locale, sign?: string): Promise<
   const path = `/horoscope${sign ? `/${sign}` : ''}`;
   const title = `${sign ? `${name} · ` : ''}${t.title} | Dreamly`;
   const description = t.description.replace('{sign}', name);
-  const { forecast } = await getForecast();
-  return { title, description, ...localeMetadata(path,locale), openGraph: localeOpenGraph(path,locale,title,description), robots: { index: !!forecast, follow: true } };
+  return { title, description, ...localeMetadata(path,locale), openGraph: localeOpenGraph(path,locale,title,description), robots: { index: true, follow: true } };
 }
 export default async function HoroscopeView({ locale, sign: rawSign }: { locale: Locale; sign?: string }) {
   if (rawSign && !isSign(rawSign)) notFound();
   const today = utcDay();
-  const { forecast, stale } = await getForecast(today);
-  return <HoroscopeContent locale={locale} sign={rawSign as Sign | undefined} today={today} forecast={forecast} stale={stale} sky={calculateSky(today)} />;
+  const { forecast, stale } = await getForecast(today, rawSign as Sign | undefined, locale);
+  return <HoroscopeContent locale={locale} sign={rawSign as Sign | undefined} today={today} forecast={forecast} stale={stale} accessAllowed={await canReadForecast(rawSign as Sign | undefined)} sky={calculateSky(today)} />;
 }

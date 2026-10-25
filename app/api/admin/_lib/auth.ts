@@ -4,6 +4,10 @@ export const PRIMARY_ADMIN_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
 
 const ADMIN_UIDS = new Set<string>([PRIMARY_ADMIN_UID]);
 
+export function isAdminUid(uid: string) {
+  return ADMIN_UIDS.has(uid);
+}
+
 export async function requireAdmin(req: Request) {
   const authHeader = req.headers.get("authorization") ?? "";
 
@@ -23,7 +27,7 @@ export async function requireAdmin(req: Request) {
     throw new Error("UNAUTHENTICATED");
   }
 
-  if (!ADMIN_UIDS.has(uid)) {
+  if (!isAdminUid(uid)) {
     throw new Error("FORBIDDEN");
   }
 

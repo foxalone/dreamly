@@ -4,6 +4,7 @@ import { LOCALES } from '../lib/i18n/config';
 import { SIGNS } from '../lib/horoscope/model';
 import { localePath } from '../lib/i18n/path';
 import { horoscopeDesign } from '../lib/i18n/horoscope-design';
+import { horoscopeAccess } from '../lib/i18n/horoscope-access';
 import { horoscopeCopy } from '../lib/i18n/horoscope';
 async function main() {
   const origin = process.argv[2] || 'http://localhost:3107';
@@ -22,13 +23,23 @@ async function main() {
       assert.ok(html.includes('class="hc-lunar-disc"'),`SSR lunar phase ${path}`);
       assert.ok(html.includes('<details class="hc-panel hc-details">'),`technical details collapsed ${path}`);
       assert.ok(html.indexOf('id="forecast-title"')<html.indexOf('id="moon-title"'),`reading before astronomy ${path}`);
-      if (sign) assert.ok(html.includes(horoscopeCopy[locale].signs[sign]),`SSR sign ${path}`);
+      if (sign) {
+        assert.ok(html.includes(horoscopeCopy[locale].signs[sign]),`SSR sign ${path}`);
+        assert.ok(html.includes(horoscopeAccess[locale].ad),`ad gate ${path}`);
+        assert.ok(!html.includes('class="hc-reading-text"'),`no locked prose ${path}`);
+        assert.ok(!html.includes('Private changes stir public courage and clarity.'),`no cached Cancer prose ${path}`);
+      }
       assert.ok(html.includes(`lang="${locale}" dir="${locale==='ar' ? 'rtl':'ltr'}"`),`direction ${path}`);
     }));
   }
   assert.equal((await fetch(origin+'/horoscope/invalid-sign')).status,404);
-  const cron=await fetch(origin+'/api/cron/horoscope');
+  const cron=await fetch(origin+'/api/cron/horoscope-worker');
   assert.ok([401,503].includes(cron.status),'unauthorized cron must fail closed');
+  assert.equal((await fetch(origin+'/api/horoscope/request?sign=invalid&locale=en')).status,400);
+  assert.equal((await fetch(origin+'/api/horoscope/request?sign=leo&locale=en&day=2026-10-25')).status,400);
+  assert.equal((await fetch(origin+'/api/horoscope/request',{method:'POST',headers:{origin:'https://invalid.example','Content-Type':'application/json','x-horoscope-request':'1'},body:JSON.stringify({sign:'leo',locale:'en'})})).status,403);
+  assert.equal((await fetch(origin+'/api/horoscope/request?sign=cancer&locale=en')).status,402);
+  assert.equal((await fetch(origin+'/api/horoscope/request',{method:'POST',headers:{origin,'Content-Type':'application/json','x-horoscope-request':'1'},body:JSON.stringify({sign:'cancer',locale:'en'})})).status,402);
   console.log(`Verified ${paths.length} localized pages: SSR, metadata, canonical URLs, hreflang, direction; invalid signs 404; cron fails closed.`);
 }
 main().catch(error=>{ console.error(error); process.exitCode=1; });

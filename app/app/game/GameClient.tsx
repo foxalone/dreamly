@@ -10,6 +10,8 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { BUILDINGS, shortNumber } from "@/lib/game/buildings";
+import BuildingUnlockFlight from "./BuildingUnlockFlight";
+import { celebrateBuildingPlacement } from "@/lib/game/buildingPlacementEffect";
 import { CHAPTER1_LAST_TIER, CREATURE_TIERS, chapterOneDone, creatureWeight, nextTier, openTier } from "@/lib/game/creatureTiers";
 import {
   MAX_TAPS_PER_SEC,
@@ -274,6 +276,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   const [overtaken, setOvertaken] = useState<Rank | null>(null);
 
   const catcherRef = useRef<HTMLImageElement | null>(null);
+  const placementAnimation = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    placementAnimation.current = controller;
+    return () => controller.abort();
+  }, []);
   const mainRef = useRef<HTMLElement | null>(null);
   const [box, setBox] = useState<Box>({ w: 0, h: 0 });
   const [mainTop, setMainTop] = useState(0);
@@ -639,6 +647,9 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string; city?: string; copies?: number; state?: ServerState };
       const name = t.buildingNames[b.id as keyof typeof t.buildingNames] ?? b.name;
       if (data.ok) {
+        if (mainRef.current && placementAnimation.current) {
+          void celebrateBuildingPlacement(mainRef.current, b, placementAnimation.current.signal);
+        }
         if (data.state) acceptServer(data.state);
         showToast(
           (data.copies ?? 1) > 1
@@ -805,6 +816,14 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       style={{ height: `calc(100dvh - ${mainTop}px)` }}
     >
       <style>{CSS}</style>
+      {loaded && authReady && box.w > 0 ? <BuildingUnlockFlight
+        key={user?.uid ?? "guest"}
+        playerKey={user?.uid ?? "guest"}
+        root={mainRef}
+        catcher={catcherRef}
+        balance={creaturesShown}
+        placed={placed}
+      /> : null}
 
       {/* Top: title, counter, progress to the next tier */}
       <div className="pointer-events-none absolute left-0 top-0 z-10 px-4 pt-3" style={{ right: colW }}>
@@ -964,6 +983,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       {/* Buildings column (right). Grey = not affordable yet; lit = enough creatures to build it. */}
       {box.w > 0 ? (
         <aside
+          data-building-panel
           className="dk-scroll absolute bottom-0 right-0 top-0 z-10 flex flex-col justify-start gap-1.5 overflow-y-auto overscroll-contain border-l border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-1.5 py-3"
           style={{ width: colW }}
           aria-label={t.buildings}
@@ -995,7 +1015,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                   <span className="bdim relative text-2xl leading-none">
                     {b.emoji}
                     {isPlaced ? (
-                      <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden title={t.onMap}>
+                      <span className="absolute -bottom-1 -right-2 text-sm" aria-hidden title={placed[b.id] ? t.onMap : t.awaitingCity}>
                         🌍
                       </span>
                     ) : null}
@@ -1018,7 +1038,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     {isPlaced ? (
                       <>
                         <span className="block truncate text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          {t.onMap}{placed[b.id] ? ` · ${placed[b.id]}` : ""}
+                          {placed[b.id] ? `${t.onMap} · ${placed[b.id]}` : t.awaitingCity}
                         </span>
                         {cube ? (
                           <Cube amount={cube.amount} full={cube.full} title={formatMessage(t.collect, { n: cube.amount.toLocaleString() })} />
@@ -1044,7 +1064,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             const title = `${bName} · ${b.cost.toLocaleString()} · ${formatMessage(t.perMin, { n: b.perMin })}`;
             // A built building is its own "cube": it keeps filling with creatures; a tap releases them.
             return isPlaced ? (
-              <div key={b.id} className="relative">
+              <div key={b.id} data-building-id={b.id} className="relative">
                 <button
                   type="button"
                   onClick={() => {
@@ -1071,7 +1091,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                         if (can && !busy) void placeBuilding(b);
                       }}
                       aria-disabled={!can || busy}
-                      title={`${t.buyMore} · ${price.toLocaleString()}`}
+                      title={user ? `${t.buyMore} · ${price.toLocaleString()}` : t.signInToBuildMore}
                       className={`mt-1 flex w-full items-center gap-2 rounded-lg border px-2 py-0.5 text-[11px] font-semibold transition ${
                         can
                           ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] hover:scale-[1.02]"
@@ -1089,7 +1109,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     </button>
                   );
                 })()}
-                {wideCol ? (
+                {wideCol && placed[b.id] ? (
                   <LocaleLink
                     href="/app/map?layer=kingdoms"
                     className="absolute right-2 top-1.5 text-xs opacity-60 hover:opacity-100"
@@ -1103,6 +1123,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
             ) : (
               <button
                 key={b.id}
+                data-unlock-building={b.id}
+                data-building-id={b.id}
                 type="button"
                 aria-disabled={!ready || busy}
                 onClick={() => {
@@ -1129,6 +1151,11 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* All-time catch counter (Cookie Clicker's "baked all time"), bottom-left, fairy-tale numerals. */}
       {loaded ? (
+        <LocaleLink href="/app/map?layer=kingdoms" data-game-earth className="dk-earth absolute bottom-16 left-4 z-20 block h-12 w-12 rounded-full sm:h-16 sm:w-16" title={t.onMap} aria-label={t.onMap}>
+          <span className="dk-earth-sphere" aria-hidden="true"><span className="dk-earth-surface" /></span>
+        </LocaleLink>
+      ) : null}
+      {loaded ? (
         <div className="group pointer-events-auto absolute bottom-3 left-4 z-10 cursor-default select-none" aria-live="polite" title={t.lifetimeLabel}>
           <div
             key={Math.floor(lifetimeShown / 1000)}
@@ -1145,7 +1172,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       ) : null}
 
       {/* Bottom line: first hint, and for guests the sign-in offer (stronger once there is something to lose). */}
-      <div className="absolute bottom-0 left-0 z-10 px-4 pb-3 text-center text-xs text-[var(--muted)] sm:pl-56 sm:pr-20" style={{ right: colW }}>
+      <div className="absolute bottom-24 left-0 z-10 pl-20 pr-3 pb-3 text-center text-xs text-[var(--muted)] sm:bottom-0 sm:pl-56 sm:pr-20" style={{ right: colW }}>
         {authReady && !user && loaded && (creaturesShown >= 200 || placed.hut !== undefined) ? (
           <div className="dk-card mx-auto inline-flex max-w-md flex-wrap items-center justify-center gap-2 rounded-2xl border border-purple-400/50 bg-[color-mix(in_srgb,#a855f7_10%,var(--card))] px-3 py-2 text-sm text-[var(--text)]">
             <span>{formatMessage(t.keepProgress, { n: creatures.toLocaleString(), u: PER_TAP_SIGNED_IN, g: PER_TAP_GUEST })}</span>
@@ -1400,6 +1427,13 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 }
 
 const CSS = `
+.dk-earth { box-shadow: 0 0 18px #38bdf84d; transition: box-shadow .2s; }
+.dk-earth:hover { box-shadow: 0 0 26px #38bdf88c; }
+.dk-earth:focus-visible { outline: 2px solid #fbbf24; outline-offset: 5px; }
+.dk-earth-sphere { position: absolute; inset: 0; overflow: hidden; border-radius: 50%; background: #176cbb; border: 1px solid #9de4ff99; }
+.dk-earth-surface { position: absolute; inset: 0; background: url('/game/earth-surface.svg') repeat-x 0 center / 200% 100%; animation: dk-earth-spin 24s linear infinite; }
+.dk-earth-sphere::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at 28% 25%, #c8f6ff55, transparent 40%, #010b3280 75%, #01051be6); box-shadow: inset 2px 1px 5px #bcf0ff66; }
+@keyframes dk-earth-spin { to { background-position: -200% center; } }
 .dk-title { background: linear-gradient(90deg, #7c3aed, #c026d3 45%, #f59e0b); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 1px 6px rgba(168,85,247,.25)); letter-spacing: .02em; }
 .dk-ring { animation: dk-ring 2.4s ease-in-out infinite; transform-origin: 50% 20%; }
@@ -1442,7 +1476,7 @@ const CSS = `
 @keyframes dk-bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); background:#f59e0b; } 100% { transform: scale(1); } }
 .dk-card { animation: dk-land .2s ease-out both; }
 @media (prefers-reduced-motion: reduce) {
-  .dk-sway, .dk-catcher, .dk-halo, .dk-float, .dk-ring, .dk-puzzle { animation: none; }
+  .dk-sway, .dk-catcher, .dk-halo, .dk-float, .dk-ring, .dk-puzzle, .dk-earth-surface { animation: none; }
   .dk-fly { animation-duration: 1ms !important; }
 }
 `;

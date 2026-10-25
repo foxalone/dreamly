@@ -33,7 +33,7 @@ export type PlayerDoc = {
   collectedAt: Record<string, number>;
   /** Copies of each building (missing = 1 for a placed building). */
   owned: Record<string, number>;
-  /** buildingId → city name */
+  /** Purchased buildingId → city name; empty string until its location is known. */
   placed: Record<string, string>;
   cityId: string | null;
   city: string | null;
@@ -361,15 +361,14 @@ export function importLocal(p: PlayerDoc, local: { creatures?: unknown; caught?:
 
 /**
  * A guest signs in: their guest save is added to the account, guest buildings move over
- * (unless the account already has that building). Returns how many creatures were moved.
+ * including purchases still waiting for a city. Returns how many creatures were moved.
  */
-export async function mergeGuestIntoUser(owner: Owner): Promise<number> {
+export async function mergeGuestIntoUser(owner: Owner, db = adminFirestore()): Promise<number> {
   if (!owner.uid || !owner.guestId) return 0;
-  const db = adminFirestore();
   const guestKey = `g_${owner.guestId}`;
   const userKey = owner.ownerKey;
-  const gRef = playerRef(guestKey);
-  const uRef = playerRef(userKey);
+  const gRef = db.collection(PLAYER_COLLECTION).doc(guestKey);
+  const uRef = db.collection(PLAYER_COLLECTION).doc(userKey);
   const now = Date.now();
 
   return db.runTransaction(async (tx) => {
@@ -388,25 +387,25 @@ export async function mergeGuestIntoUser(owner: Owner): Promise<number> {
     u.importedLocal = u.importedLocal || g.importedLocal;
 
     // Firestore transactions need every read before the first write.
-    const toMove = Object.keys(g.placed).filter((bId) => u.placed[bId] === undefined);
+    const toMove = Object.keys(g.placed);
     const fromRefs = toMove.map((bId) => db.collection(KINGDOM_COLLECTION).doc(`${guestKey}_${bId}`));
     const fromSnaps = await Promise.all(fromRefs.map((r) => tx.get(r)));
+    const targetRefs = toMove.map(bId => db.collection(KINGDOM_COLLECTION).doc(`${userKey}_${bId}`));
+    const targetSnaps = await Promise.all(targetRefs.map(ref => tx.get(ref)));
 
     const moved: string[] = [];
     toMove.forEach((bId, i) => {
       const fromSnap = fromSnaps[i];
-      if (!fromSnap.exists) return;
-      tx.set(db.collection(KINGDOM_COLLECTION).doc(`${userKey}_${bId}`), {
-        ...fromSnap.data(),
-        ownerKey: userKey,
-        ownerType: "user",
-        uid: owner.uid,
-        guestId: null,
+      const userCopies = u.placed[bId] === undefined ? 0 : Math.max(1, u.owned[bId] ?? 1);
+      const count = userCopies + Math.max(1, g.owned[bId] ?? 1);
+      const mapData = targetSnaps[i].data() ?? fromSnap.data();
+      if (mapData) tx.set(targetRefs[i], {
+        ...mapData, count, ownerKey: userKey, ownerType: "user", uid: owner.uid, guestId: null,
       });
-      tx.delete(fromRefs[i]);
-      u.placed[bId] = g.placed[bId];
+      if (fromSnap.exists) tx.delete(fromRefs[i]);
+      u.placed[bId] = String(mapData?.city || u.placed[bId] || g.placed[bId] || "");
       u.collectedAt = { ...(u.collectedAt ?? {}), [bId]: now };
-      u.owned = { ...(u.owned ?? {}), [bId]: Math.max(1, g.owned?.[bId] ?? 1) };
+      u.owned = { ...(u.owned ?? {}), [bId]: count };
       moved.push(bId);
     });
     if (moved.length) {
@@ -417,7 +416,7 @@ export async function mergeGuestIntoUser(owner: Owner): Promise<number> {
     u.updatedAt = now;
 
     tx.set(uRef, u);
-    tx.set(gRef, { ...g, creatures: 0, mergedInto: owner.uid, updatedAt: now });
+    tx.set(gRef, { ...g, creatures: 0, placed: {}, owned: {}, collectedAt: {}, mergedInto: owner.uid, updatedAt: now });
     return g.creatures;
   });
 }

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { trackMoonClick } from "@/lib/trackMoonClick";
 import { auth } from "@/lib/firebase";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 import { analyzeDreamMessages } from "@/lib/i18n/first-dream";
@@ -53,6 +54,7 @@ export default function MoonGate({ portal = false, children }: { portal?: boolea
     else dialog.current?.close();
   }, [open, unlocked, resolving]);
   async function openPortal() {
+    void trackMoonClick("map");
     if (!user) { setOpen(true); return; }
     const next = await check();
     if (next?.eligible && next.joined) {

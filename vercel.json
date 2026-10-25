@@ -13,8 +13,8 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/horoscope",
-      "schedule": "5 0 * * *"
+      "path": "/api/cron/horoscope-worker",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

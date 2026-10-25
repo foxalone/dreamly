@@ -25,7 +25,8 @@ const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
-function kindFrom(value: string | null): PaywallKind {
+function kindFrom(value: string | null): PaywallKind | "horoscope" {
+  if(value === "horoscope") return "horoscope";
   return value === "save" ? "save" : value === "translate" ? "translate" : "analysis";
 }
 
@@ -140,7 +141,10 @@ export default function AdUnlockClient() {
         autoClicked.current = true;
         trackEvent("offerwall_auto_start", { kind });
       }
-      if (!visible) setPhase("granting");
+      if (!visible) {
+        const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
+        setPhase(kind === "horoscope" && !entitled ? "failed" : "granting");
+      }
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
     // as a fallback for visibility changes that don't mutate the DOM.
@@ -173,7 +177,11 @@ export default function AdUnlockClient() {
     (async () => {
       try {
         let res: Response;
-        if (user) {
+        if (kind === "horoscope") {
+          const headers: Record<string,string> = {"Content-Type":"application/json","x-horoscope-request":"1"};
+          if(user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
+          res = await fetch("/api/horoscope/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
+        } else if (user) {
           const idToken = await user.getIdToken();
           res = await fetch("/api/dreams/ad-reward", {
             method: "POST",
@@ -197,6 +205,10 @@ export default function AdUnlockClient() {
           setPhase("failed");
           return;
         }
+        if(kind === "horoscope") {
+          const grant = await res.json();
+          await fetch("/api/horoscope/request",{method:"POST",headers:{"Content-Type":"application/json","x-horoscope-request":"1"},body:JSON.stringify({sign:grant.sign,locale})});
+        }
         report.current?.("ad_reward_confirmed");
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
         clearOfferwallEntitlement();
@@ -210,7 +222,7 @@ export default function AdUnlockClient() {
     return () => {
       cancelled = true;
     };
-  }, [phase, user, kind, next, router, sp]);
+  }, [phase, user, kind, next, router, sp, locale]);
 
   // No-fill falls back only for the first guest analysis. The server checks
   // lifetime and network usage again; subsequent requests stay behind access choices.
