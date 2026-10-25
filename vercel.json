@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/dream-page-images",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/horoscope",
+      "schedule": "5 0 * * *"
     }
   ]
 }

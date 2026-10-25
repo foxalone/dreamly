@@ -1,4 +1,5 @@
 import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
+import { SIGNS } from "@/lib/horoscope/model";
 import { LOCALES } from "@/lib/i18n/config";
 import { localePath } from "@/lib/i18n/path";
 
@@ -52,7 +53,7 @@ export const HUB_PATHS = [
 export type PublicPage = {
   url: string;
   lastModified?: string;
-  changeFrequency: "weekly" | "monthly" | "yearly";
+  changeFrequency: "daily" | "weekly" | "monthly" | "yearly";
   priority: number;
   /** English dictionary slugs used by sitemap image lookup. */
   slug?: string;
@@ -150,5 +151,8 @@ export function listPublicPages(): PublicPage[] {
     })),
   );
 
-  return [...core, ...hubs, ...dictionary];
+  const horoscopes: PublicPage[] = ["/horoscope", ...SIGNS.map(sign => `/horoscope/${sign}`)].flatMap(path =>
+    localizedUrls(path).map(url => ({ url, changeFrequency: "daily" as const, priority: 0.7 })),
+  );
+  return [...core, ...hubs, ...dictionary, ...horoscopes];
 }

@@ -1,0 +1,27 @@
+.button { position:fixed; left:max(16px,env(safe-area-inset-left)); bottom:calc(var(--dreamly-fab-center) - var(--dreamly-planet-size) / 2); width:var(--dreamly-planet-size); height:var(--dreamly-planet-size); z-index:35; border-radius:50%; display:grid; place-items:center; outline-offset:5px; -webkit-tap-highlight-color:transparent }
+.orb { position:relative; isolation:isolate; width:100%; height:100%; border-radius:50%; overflow:hidden; background:#176cbb; border:1px solid #a9e9ff80; box-shadow:0 0 12px #67d5ff40,0 0 23px #8b5cf624 }
+.surface { position:absolute; inset:0; background:url('/game/earth-surface.svg') repeat-x 0 center / 200% 100%; animation:dream-map-turn 48s linear infinite }
+/* The light stays still while the continents move, so the Earth turns on its
+   axis instead of spinning like a flat icon. Match the homepage Earth palette. */
+.orb::after { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:radial-gradient(circle at 27% 23%,#7bdbe966,transparent 48%),radial-gradient(circle at 28% 25%,transparent 35%,#020818d9 100%); box-shadow:inset 1px 1px 3px #a9e9ff66,inset -5px -4px 8px #02081866 }
+/* Reuse the Moon's staggered creature flight and reduced-motion rules. Keep
+   the flight origin centered and drift inward, away from the screen edge. */
+.button .creatures span { left:calc(50% - 11px) }
+.button:focus-visible { outline:2px solid #c4b5fd }
+.celebrating .orb { box-shadow:0 0 24px #fbbf2499; border-color:#fde68a }
+.tooltip { pointer-events:none; position:absolute; left:calc(var(--dreamly-planet-size) + 8px); white-space:nowrap; padding:6px 10px; border-radius:8px; color:#f5f3ff; background:#21153e; opacity:0; font-size:12px }
+.button:hover .tooltip,.button:focus-visible .tooltip { opacity:1 }
+@keyframes dream-map-turn { from { background-position:0 center } to { background-position:200% center } }
+@media(prefers-reduced-motion:reduce) { .surface { animation:none } }
+@media(max-height:480px) { .button { display:none } }
+
+/* Keep the creatures within the horoscope's reserved floating-control rail. */
+@media(max-width:1279px) {
+ .button[data-horoscope] .creatures span { animation-name:dream-map-rail-flight }
+}
+@keyframes dream-map-rail-flight {
+ 0% { opacity:0; transform:translate(0,0) scale(.25) }
+ 15% { opacity:1 }
+ 75% { opacity:.8 }
+ 100% { opacity:0; transform:translate(var(--drift),-28px) scale(1) }
+}

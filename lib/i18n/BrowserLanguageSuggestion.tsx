@@ -38,6 +38,7 @@ export default function BrowserLanguageSuggestion() {
 
   return (
     <aside
+      data-floating-obstacle
       lang={meta.htmlLang}
       dir={meta.dir}
       aria-label={m.title}

@@ -97,8 +97,11 @@ export default function DreamCatcherFab() {
       onMouseEnter={onHover}
       onFocus={onHover}
       onClick={onClick}
-      className={`dcf group fixed end-4 z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${path === "/app/map" ? "bottom-[calc(118px+env(safe-area-inset-bottom))] md:bottom-[calc(158px+env(safe-area-inset-bottom))]" : "bottom-4"}`}
-      style={{ WebkitTapHighlightColor: "transparent" }}
+      className="dcf group fixed right-[max(16px,env(safe-area-inset-right))] z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+      style={{
+        WebkitTapHighlightColor: "transparent",
+        bottom: `calc(var(${path === "/app/map" ? "--dreamly-map-fab-center" : "--dreamly-fab-center"}) - 36px)`,
+      }}
     >
       <style>{`
         .dcf img { transform-origin: 50% 0%; animation: dcf-sway 4.5s ease-in-out infinite;
@@ -112,8 +115,6 @@ export default function DreamCatcherFab() {
           20% { opacity: 1; }
           70% { opacity: 1; transform: translate(calc(var(--x) * var(--dir, 1)), var(--y)) scale(1); }
           100% { opacity: 0; transform: translate(calc(var(--x) * var(--dir, 1)), calc(var(--y) - 10px)) scale(.9); }
-        }
-        [dir="rtl"] .dcf { --dir: -1;
         }
         @keyframes dcf-sway { 0%,100% { rotate: -5deg; } 50% { rotate: 5deg; } }
         @media (prefers-reduced-motion: reduce) { .dcf img, .dcf:hover .dcf-peek { animation: none; } }

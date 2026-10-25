@@ -12,6 +12,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { TRANSLATION_LANGUAGES } from "@/lib/translationLanguage";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 
+import HoroscopeClient from "@/app/horoscope/HoroscopeClient";
 import ThemeSwitcher from "@/app/components/ThemeSwitcher";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -242,6 +243,11 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <section aria-label={t.nav.horoscope} className={`${card} mt-4 p-5`}>
+        <h2 className={`font-semibold ${titleText}`}>{t.nav.horoscope}</h2>
+        <HoroscopeClient mode="profile" />
+      </section>
 
       <section className={`${card} mt-4 p-5`}>
         <label htmlFor="preferred-translation-language" className={`block font-semibold ${titleText}`}>

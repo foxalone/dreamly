@@ -2,6 +2,7 @@ export type UiMessages = {
   brand: { name: string; dictionary: string };
   launch: { tagline: string; art: string; enter: string };
   nav: {
+    horoscope: string;
     dreams: string;
     feed: string;
     gallery: string;

@@ -13,7 +13,18 @@
   --border: rgba(255,255,255,0.10);
   --shadow: 0 -12px 30px rgba(0,0,0,0.35);
   --app-nav-height: 4rem;
+  /* Shared vertical centers keep the catcher and planet buttons on one row. */
+  --dreamly-fab-center: calc(52px + env(safe-area-inset-bottom));
+  --dreamly-map-fab-center: calc(194px + env(safe-area-inset-bottom));
+  --dreamly-planet-size: 88px;
   color-scheme: dark;
+}
+
+@media (max-width: 767px) {
+  :root { --dreamly-map-fab-center: calc(154px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 640px) {
+  :root { --dreamly-planet-size: 64px; }
 }
 
 /* Автоматическая светлая тема если система light */

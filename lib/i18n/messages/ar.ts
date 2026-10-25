@@ -4,6 +4,7 @@ export const AR_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "قاموس Dreamly للأحلام" },
   launch: {"tagline": "ادخل إلى عالم الأحلام", "art": "من مجموعة دريملي الفنية", "enter": "دخول"},
   nav: {
+    horoscope: "الأبراج",
     dreams: "الأحلام",
     feed: "الخلاصة",
     gallery: "فن",

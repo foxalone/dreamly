@@ -4,6 +4,7 @@ export const ES_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "Diccionario Dreamly" },
   launch: {"tagline": "Entra en un mundo de sueños", "art": "De la colección de arte de Dreamly", "enter": "Entrar"},
   nav: {
+    horoscope: "Horóscopo",
     dreams: "Sueños",
     feed: "Feed",
     gallery: "Arte",

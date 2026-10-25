@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
+import DreamMapGlobe from "./components/DreamMapGlobe";
 import DreamCatcherFab from "./components/DreamCatcherFab";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import SymbolClickTracker from "./components/SymbolClickTracker";
@@ -80,6 +81,7 @@ export default function RootLayout({
           <PwaLaunch>
             {children}
             <DreamCatcherFab />
+            <DreamMapGlobe />
             <InstallPwaBanner />
             <PaywallHost />
           </PwaLaunch>

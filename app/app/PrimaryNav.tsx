@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { stripLocalePrefix } from "@/lib/i18n/path";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { Orbit } from "lucide-react";
 
 import {
   User,
@@ -147,27 +148,6 @@ function IconSignIn({ active }: { active: boolean }) {
   );
 }
 
-function IconMap({ active }: { active: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
-      <path
-        d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-        opacity={active ? 1 : 0.75}
-      />
-      <path
-        d="M9 4v14M15 6v14"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        opacity={active ? 1 : 0.75}
-      />
-    </svg>
-  );
-}
-
 function AvatarIcon({
   user,
   active,
@@ -220,7 +200,6 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
   const [signinNext, setSigninNext] = useState<string | null>(null);
-
   useEffect(() =>
     onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -278,9 +257,9 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
         activeClass: "text-amber-400",
       },
       {
-        href: "/app/map",
-        label: t.nav.map,
-        icon: (a) => <IconMap active={a} />,
+        href: "/horoscope",
+        label: t.nav.horoscope,
+        icon: (a) => <Orbit size={20} aria-hidden opacity={a ? 1 : 0.75} />,
         activeClass: "text-purple-500",
       },
     ],

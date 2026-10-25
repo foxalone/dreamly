@@ -109,6 +109,7 @@ export default function InstallPwaBanner() {
 
   return (
     <div
+      data-floating-obstacle
       style={{
         position: "fixed",
         left: 12,
