@@ -347,11 +347,12 @@ export const PT_MESSAGES: UiMessages = {
     jewish: "Judaico",
   },
   adUnlock: {
+    incomplete: "Não recebemos a confirmação de que o anúncio terminou, então a análise ainda não começou. Seu sonho está salvo. Toque em Analisar para tentar novamente, inicie o anúncio pelo botão do Google e mantenha a aba aberta até ele terminar.",
     stalled: "O anúncio não terminou após três minutos. A análise ainda não começou. Você pode voltar ou entrar na sua conta; se o anúncio terminar, continuaremos automaticamente.",
     dailyLimit: "O limite de anúncios de hoje deste visitante ou endereço IP foi atingido. Entre na sua conta ou tente amanhã.",
     title: "Assista a um anúncio curto",
     waiting: "Carregando o anúncio…",
-    watching: "Assista ao anúncio até o fim para continuar.",
+    watching: "Escolha o anúncio curto na tela do Google, assista até o fim e feche pelo botão do próprio anúncio. Mantenha esta aba aberta para continuarmos automaticamente.",
     done: "Obrigado! Voltando…",
     none: "Nenhum anúncio disponível agora. Tente novamente mais tarde.",
     back: "Voltar",

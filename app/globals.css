@@ -466,3 +466,19 @@ html.locale-ru,
 html.locale-ru body {
   font-family: var(--font-noto-sans), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
+
+@keyframes dream-analysis-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(350%); }
+}
+
+.dream-analysis-progress-bar {
+  animation: dream-analysis-progress 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-analysis-progress-bar {
+    animation: none;
+    margin-inline: auto;
+  }
+}

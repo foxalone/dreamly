@@ -70,6 +70,12 @@ export function recoverOfferwallSession(cookie: string) {
   return session;
 }
 
+/** A journal return without completion must be visible, never a silent stall. */
+export function hasUnconfirmedOfferwallReturn(text: string, cookie: string): boolean {
+  const session = recoverOfferwallSession(cookie);
+  return session?.dreamText === text && session.shown && session.status === "watching";
+}
+
 /** Capture the same close signal as the live observer before a document leaves.
  * requestAnimationFrame/polling can stop during navigation, so persisting this
  * synchronously lets the return page book the existing receipt. A visible ad

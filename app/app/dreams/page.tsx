@@ -1,5 +1,6 @@
 "use client";
 import AnalysisDisplay from "@/app/components/AnalysisDisplay";
+import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1552,6 +1553,7 @@ export default function DreamsPage() {
 
   return (
     <main className="relative min-h-screen px-5 sm:px-6 pt-4 pb-8 sm:pt-5 sm:pb-10 max-w-3xl mx-auto">
+      <DreamAnalysisProgress active={analysisBusyId !== null} />
       <div>
       {/* Header */}
       <div>

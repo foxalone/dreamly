@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { clearAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
-import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
+import { captureOfferwallDeparture, hasUnconfirmedOfferwallReturn, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
 import { localePath } from "./i18n/path";
 
 test("a completed guest ad survives Safari back/restore and reuses its reward receipt in every locale", () => {
@@ -19,10 +19,13 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       setAdUnlockPending({ kind: "analysis", dreamText: "The dream awaiting analysis" });
       const session = startOfferwallSession(next, "receipt-for-this-ad", "FCOEC=old-entitlement");
       assert.ok(session);
+      assert.equal(hasUnconfirmedOfferwallReturn("The dream awaiting analysis", "FCOEC=old-entitlement"), false);
       // Opening/leaving the page, or an entitlement left by an earlier ad,
       // must never buy a new analysis.
       assert.equal(recoverOfferwallSession("FCOEC=new-entitlement")?.status, "watching");
       updateOfferwallSession({ shown: true });
+      assert.equal(hasUnconfirmedOfferwallReturn("The dream awaiting analysis", "FCOEC=old-entitlement"), true);
+      assert.equal(hasUnconfirmedOfferwallReturn("Another dream", "FCOEC=old-entitlement"), false);
       // Source forms can mount before recovery. They must leave the pending
       // dream and receipt intact while Google has not confirmed completion.
       assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
@@ -35,12 +38,14 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       // the polling callback notices the overlay disappearing.
       const completed = recoverOfferwallSession("other=cookie; FCOEC=new-entitlement");
       assert.equal(completed?.status, "completed");
+      assert.equal(hasUnconfirmedOfferwallReturn("The dream awaiting analysis", "FCOEC=new-entitlement"), false);
       // Even a completed ad still needs a successful server credit grant.
       assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
       assert.equal(completed?.next, next);
       assert.equal(startOfferwallSession(next, "reload-receipt", "FCOEC=new-entitlement")?.rewardId, session.rewardId);
       updateOfferwallSession({ status: "granted" });
       assert.equal(recoverOfferwallSession("")?.status, "granted");
+      assert.equal(hasUnconfirmedOfferwallReturn("The dream awaiting analysis", ""), false);
 
       // Only the matching dream consumes the action; after consumption a
       // cached source page cannot reopen the ad or repeat the grant.
@@ -74,6 +79,7 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       const pending = JSON.parse(values.get("dreamly.adUnlock")!);
       values.set("dreamly.adUnlock", JSON.stringify({ ...pending, atMs: Date.now() - 11 * 60_000 }));
       assert.equal(recoverOfferwallSession("FCOEC=another-entitlement"), null);
+      assert.equal(hasUnconfirmedOfferwallReturn("A newly submitted dream", ""), false);
     }
   } finally {
     if (previous) Object.defineProperty(globalThis, "sessionStorage", previous);

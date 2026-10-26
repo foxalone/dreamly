@@ -347,11 +347,12 @@ export const ES_MESSAGES: UiMessages = {
     jewish: "Judío",
   },
   adUnlock: {
+    incomplete: "No recibimos la confirmación de que el anuncio terminó, así que el análisis no ha comenzado. Tu sueño está guardado. Pulsa Analizar para intentarlo de nuevo, inicia el anuncio con el botón de Google y mantén la pestaña abierta hasta que termine.",
     stalled: "El anuncio lleva tres minutos sin finalizar. El análisis no ha comenzado. Puedes volver o iniciar sesión; si el anuncio termina, continuaremos automáticamente.",
     dailyLimit: "Se alcanzó el límite de anuncios de hoy para este visitante o dirección IP. Inicia sesión o vuelve mañana.",
     title: "Mira un anuncio corto",
     waiting: "Cargando el anuncio…",
-    watching: "Mira el anuncio hasta el final para continuar.",
+    watching: "Elige el anuncio corto en la pantalla de Google, míralo hasta el final y ciérralo con el botón del propio anuncio. Mantén esta pestaña abierta para que podamos continuar automáticamente.",
     done: "¡Gracias! Volviendo…",
     none: "No hay anuncios disponibles ahora. Inténtalo más tarde.",
     back: "Volver",

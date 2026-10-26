@@ -347,11 +347,12 @@ export const EN_MESSAGES: UiMessages = {
     jewish: "Jewish",
   },
   adUnlock: {
+    incomplete: "We did not receive confirmation that the ad finished, so analysis has not started. Your dream is saved. Press Analyze to try again, then start the ad using Google’s button and keep the tab open until it finishes.",
     stalled: "The ad has not finished after three minutes. Analysis has not started. You can return or sign in; if the ad finishes, we will continue automatically.",
     dailyLimit: "Today’s ad limit for this visitor or IP address has been reached. Sign in or try again tomorrow.",
     title: "Watch a short ad",
     waiting: "Loading the ad…",
-    watching: "Watch the ad to the end to continue.",
+    watching: "Choose the short ad on Google’s screen, watch it to the end, then close it using the ad’s own button. Keep this tab open so we can continue automatically.",
     done: "Thanks! Taking you back…",
     none: "No ad is available right now. Please try again later.",
     back: "Back",

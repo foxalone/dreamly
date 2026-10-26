@@ -347,11 +347,12 @@ export const DE_MESSAGES: UiMessages = {
     jewish: "Jüdisch",
   },
   adUnlock: {
+    incomplete: "Wir haben keine Bestätigung erhalten, dass die Werbung beendet wurde. Deshalb hat die Analyse noch nicht begonnen. Dein Traum ist gespeichert. Klicke erneut auf Analysieren, starte die Werbung über die Google-Schaltfläche und lass den Tab bis zum Ende geöffnet.",
     stalled: "Die Werbung ist nach drei Minuten noch nicht beendet. Die Analyse hat noch nicht begonnen. Du kannst zurückgehen oder dich anmelden; wenn die Werbung endet, geht es automatisch weiter.",
     dailyLimit: "Das heutige Werbelimit für diesen Gast oder diese IP-Adresse ist erreicht. Melde dich an oder versuche es morgen erneut.",
     title: "Sieh dir eine kurze Werbung an",
     waiting: "Werbung wird geladen…",
-    watching: "Sieh dir die Werbung bis zum Ende an, um fortzufahren.",
+    watching: "Wähle im Google-Fenster die kurze Werbung, sieh sie dir bis zum Ende an und schließe sie mit ihrer eigenen Schaltfläche. Lass diesen Tab geöffnet, damit es automatisch weitergeht.",
     done: "Danke! Du wirst zurückgeleitet…",
     none: "Gerade ist keine Werbung verfügbar. Bitte versuche es später noch einmal.",
     back: "Zurück",

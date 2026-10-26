@@ -6,7 +6,7 @@ import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/a
 import { Loader2, LogIn } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
-import { clearAdUnlockPending, markAdUnlockReady, clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
+import { clearAdUnlockPending, markAdUnlockReady, clearOfferwallEntitlement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { readHomeDreamQueue, writeHomeDreamPending } from "@/lib/homeDreamPending";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
@@ -30,29 +30,6 @@ const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 function kindFrom(value: string | null): PaywallKind | "horoscope" {
   if(value === "horoscope") return "horoscope";
   return value === "save" ? "save" : value === "translate" ? "translate" : "analysis";
-}
-
-/**
- * The user already picked "Watch ad" on Dreamly's own paywall, so the
- * Offerwall's intermediate "Unlock more content → View a short ad" screen is
- * a second, redundant click. Press its single rewarded option automatically
- * as soon as it renders; if the button cannot be found the screen simply
- * stays and the user clicks it manually (the old behavior).
- */
-function clickOfferwallCta(): boolean {
-  const roots = document.querySelectorAll<HTMLElement>('[class*="fc-"], [id^="fc-"]');
-  for (const root of roots) {
-    if (!isOfferwallElement(root)) continue;
-    const candidates = root.querySelectorAll<HTMLElement>('button, [role="button"], [class*="rewarded"]');
-    for (const el of candidates) {
-      const label = `${el.className} ${el.textContent ?? ""}`.toLowerCase();
-      if (/reward|watch|view a short ad|short ad/.test(label)) {
-        el.click();
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 /**
@@ -114,7 +91,6 @@ export default function AdUnlockClient() {
     if (kind === "analysis" && user === null && (phase === "unavailable" || phase === "failed")) report.current?.("ad_signin_available");
   }, [kind, user, phase]);
   const rewardId = useRef<string>("");
-  const autoClicked = useRef(false);
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
   if (pending.current === undefined) pending.current = kind === "translate" ? peekAdUnlockPending("translate") : null;
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
@@ -176,11 +152,9 @@ export default function AdUnlockClient() {
         }
         if (!seen) return;
       }
-      // Skip Google's "View a short ad" choice screen — start the ad at once.
-      if (visible && !autoClicked.current && clickOfferwallCta()) {
-        autoClicked.current = true;
-        trackEvent("offerwall_auto_start", { kind });
-      }
+      // Google owns its start button. A real click supplies browser user
+      // activation for media playback and the fullscreen history entry.
+      // A synthetic .click() cannot provide that activation in Safari.
       if (!visible) {
         if (kind === "analysis") updateOfferwallSession({ status: "completed" });
         report.current?.("ad_overlay_closed");

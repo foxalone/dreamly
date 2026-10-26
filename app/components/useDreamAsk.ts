@@ -23,6 +23,7 @@ import { useDreamLens } from "./DreamLensChips";
 import { reportAnalysisAttempt, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { queueDreamAnalysis, takeDreamAnalysisResume } from "@/lib/dreamAnalysisHandoff";
 import { openPaywall } from "@/lib/paywall";
+import { hasUnconfirmedOfferwallReturn } from "@/lib/offerwallSession";
 
 /**
  * Anonymous share right after a reading.
@@ -63,6 +64,12 @@ export function useDreamAsk({
   const router = useRouter();
   const [text, setTextState] = useState("");
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [analysisAttemptId, setAnalysisAttemptId] = useState<string | undefined>();
   const [analysis, setAnalysis] = useState<string | null>(null);
@@ -93,21 +100,30 @@ export function useDreamAsk({
       if (esc && (!esc.key || esc.key === pending.text)) setEscaped(esc.latestEmojis ?? esc.emojis);
       onResultChange?.(true);
     }
+    let resumeTimer: number | undefined;
     const resume = () => {
       // Only the journal card owns this request. A restored homepage form
       // must not consume it before the destination has mounted.
       if (!initialDream || window.location.pathname.replace(/\/$/, "") !== localePath("/app/dreams", locale)) return;
-      if (!pending.analysis && takeDreamAnalysisResume(pending.text)) {
-        // Only server-confirmed access may consume the retry. Also resume when
-        // Safari restores this mounted card from its back/forward cache.
-        window.setTimeout(() => void submitRef.current(), 300);
-      }
+      if (submitting.current) return;
+      if (resumeTimer !== undefined) return;
+      resumeTimer = window.setTimeout(() => {
+        resumeTimer = undefined;
+        if (!mounted.current || submitting.current || window.location.pathname.replace(/\/$/, "") !== localePath("/app/dreams", locale)) return;
+        if (!pending.analysis && takeDreamAnalysisResume(pending.text)) {
+          // Claim only when still on the journal, including Safari restores.
+          void submitRef.current();
+        } else if (!pending.analysis && hasUnconfirmedOfferwallReturn(pending.text, document.cookie)) {
+          setError((previous) => previous ?? t.adUnlock.incomplete);
+        }
+      }, 300);
     };
     resume();
     window.addEventListener("pageshow", resume);
     window.addEventListener("focus", resume);
     const poll = window.setInterval(resume, 1000);
     return () => {
+      window.clearTimeout(resumeTimer);
       window.removeEventListener("pageshow", resume);
       window.removeEventListener("focus", resume);
       window.clearInterval(poll);
@@ -190,7 +206,7 @@ export function useDreamAsk({
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();
-    if (busy) return;
+    if (submitting.current) return;
 
     const dream = text.trim();
     if (!dream) {
@@ -204,6 +220,7 @@ export function useDreamAsk({
       return;
     }
 
+    submitting.current = true;
     setBusy(true);
     setError(null);
     setAnalysis(null);
@@ -218,6 +235,7 @@ export function useDreamAsk({
     try {
       await auth.authStateReady();
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
+      if (!mounted.current || window.location.pathname.replace(/\/$/, "") !== journalPath) return;
       requestToken = idToken;
       // The dream's already-created emojis (re-analysis in the guest journal):
       // the escape must be exactly these icons, not a fresh pick.
@@ -246,6 +264,9 @@ export function useDreamAsk({
       if (attemptId) writeHomeDreamPending(dream, { analysisAttemptId: attemptId, lang: locale, lens, shareToFeed });
 
       if (!res.ok) {
+        // A late quota response belongs to the journal that started it, not
+        // whichever page the user has since opened.
+        if (!mounted.current || window.location.pathname.replace(/\/$/, "") !== journalPath) return;
         if (data?.code === "GUEST_LIMIT_REACHED") {
           trackEvent("guest_limit_reached", { source });
           persistPending(dream, "");
@@ -394,6 +415,7 @@ export function useDreamAsk({
       if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken ?? undefined);
       setError(err instanceof Error ? err.message : "Analyze failed");
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }

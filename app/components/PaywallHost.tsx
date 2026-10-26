@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
@@ -19,6 +20,12 @@ import PlansModal from "./PlansModal";
  * action from sessionStorage (lib/adUnlock.ts).
  */
 export default function PaywallHost() {
+  const pathname = usePathname();
+  // The layout persists across navigation; an action's modal must not.
+  return <PagePaywallHost key={pathname} />;
+}
+
+function PagePaywallHost() {
   const t = useMessages();
   const [req, setReq] = useState<PaywallRequest | null>(null);
   const [checking, setChecking] = useState(false);
