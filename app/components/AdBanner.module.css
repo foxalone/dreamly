@@ -7,6 +7,17 @@
   display: none;
 }
 
+/* A no-fill response must not leave an empty block between home sections. */
+.homeBanner {
+  max-width: 56rem;
+  margin: 0 auto 5rem;
+}
+
+.homeBanner:has(:global(ins.adsbygoogle[data-ad-status="unfilled"])),
+.homeBanner[data-ad-timeout]:not(:has(:global(ins.adsbygoogle[data-ad-status="filled"]))) {
+  display: none;
+}
+
 .gridCardContent {
   position: absolute;
   inset: 20px;

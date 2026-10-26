@@ -143,9 +143,7 @@ export default function HomeView({ locale }: { locale: Locale }) {
 
       <HomeRandomDreams locale={locale} />
 
-      <div className="mx-auto max-w-4xl pb-20">
-        <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
-      </div>
+      <ArticleAdBanner locale={locale} variant="home-banner" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
 
       <HomeHoroscope locale={locale} />
 

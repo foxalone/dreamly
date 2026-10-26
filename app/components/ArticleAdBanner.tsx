@@ -9,7 +9,7 @@ const AD_CLIENT = "ca-pub-2484539106050736";
 const ARTICLE_AD_SLOT = "7289632304";
 
 /** The shared layout loads AdSense; each mounted placement requests its ad once. */
-export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" | "home-feature" | "home-symbol" | "zodiac" }) {
+export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, variant = "banner" }: { locale: Locale; slot?: string; variant?: "banner" | "card" | "gallery" | "map" | "feed" | "home-banner" | "home-feature" | "home-symbol" | "zodiac" }) {
   const ad = useRef<HTMLModElement>(null);
   const cardBox = useRef<HTMLElement>(null);
   const cardSlot = useRef<HTMLDivElement>(null);
@@ -23,9 +23,10 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
   const map = variant === "map";
   const feed = variant === "feed";
   const homeCard = variant === "home-feature" || variant === "home-symbol";
+  const homeBanner = variant === "home-banner";
   const homeFeature = variant === "home-feature";
   const zodiac = variant === "zodiac";
-  const lazy = feed || homeCard || zodiac;
+  const lazy = feed || homeBanner || homeCard || zodiac;
   const compactCard = variant === "home-symbol" || zodiac;
   const gridCard = variant === "card" || homeCard || zodiac;
 
@@ -62,6 +63,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     const element = ad.current;
     if (!element) return;
     let visible = !lazy || typeof IntersectionObserver === "undefined";
+    let timeout: number | undefined;
     function requestAd() {
       if (!element || !visible || requested.current || element.getBoundingClientRect().width <= 0) return;
       if (element.hasAttribute("data-adsbygoogle-status")) return;
@@ -78,6 +80,11 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       }
       if (gridCard && element.getBoundingClientRect().height <= 0) return;
       requested.current = true;
+      if (homeBanner) {
+        // A blocked script never reports filled/unfilled. Clear its empty space
+        // after a reasonable wait; a late filled response can reveal it again.
+        timeout = window.setTimeout(() => cardBox.current?.setAttribute("data-ad-timeout", ""), 20_000);
+      }
       try {
         const adsWindow = window as Window & { adsbygoogle?: Record<string, never>[] };
         (adsWindow.adsbygoogle = adsWindow.adsbygoogle || []).push({});
@@ -99,10 +106,11 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       : null;
     intersection?.observe(element);
     return () => {
+      window.clearTimeout(timeout);
       observer.disconnect();
       intersection?.disconnect();
     };
-  }, [configured, lazy, preview, slot, gridCard, cardLayout.ready, homeCard, homeFeature]);
+  }, [configured, lazy, preview, slot, gridCard, cardLayout.ready, homeBanner, homeCard, homeFeature]);
 
   if (!preview && !configured) return null;
 
@@ -114,6 +122,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       : gallery
       ? "not-prose flex aspect-[2/3] w-full min-w-0 flex-col self-start rounded-[1.15rem] bg-[var(--dd-surface-soft)] p-3 ring-1 ring-[var(--dd-border)] sm:rounded-[1.35rem] sm:p-5"
       : gridCard ? `not-prose relative w-full min-w-0 self-stretch rounded-2xl border border-[var(--dd-border)] bg-[var(--dd-surface)] ${styles.gridCard}${homeCard ? ` ${styles.homeCard}` : ""}${zodiac ? ` ${styles.zodiacCard}` : ""}`
+      : homeBanner ? `not-prose w-full min-w-0 ${styles.homeBanner}`
       : "not-prose my-6 w-full min-w-0"}>
       <div className={gridCard ? `${styles.gridCardContent}${compactCard ? ` ${styles.compactContent}` : ""}` : "contents"}>
       <p className={compactCard ? styles.compactLabel : "mb-2 text-center text-[10px] font-normal uppercase leading-4 tracking-widest text-[var(--dd-subtle)]"}>{m.label}</p>
@@ -124,7 +133,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
         </div>
       ) : (
         <ins ref={ad} className={`adsbygoogle${gallery ? " min-h-0 flex-1" : feed ? ` ${styles.feedAd}` : map ? ` ${styles.mapAd}` : ""}`} style={{ display: "block", width: "100%", height: gridCard ? "100%" : undefined, minHeight: gallery || map || feed || gridCard ? undefined : 90 }}
-          data-ad-client={AD_CLIENT} data-ad-slot={slot} data-ad-format={map || feed || gridCard ? undefined : gallery ? "vertical" : "horizontal"} data-full-width-responsive={homeCard ? undefined : "false"} />
+          data-ad-client={AD_CLIENT} data-ad-slot={slot} data-ad-format={map || feed || gridCard ? undefined : gallery ? "vertical" : homeBanner ? "auto" : "horizontal"} data-full-width-responsive={homeBanner ? "true" : homeCard ? undefined : "false"} />
       )}
       </div>
       </div>
