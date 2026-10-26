@@ -14,13 +14,14 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
-import { adUnlockUrl, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
 import { reportAnalysisAttempt, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
+import { queueDreamAnalysis, takeDreamAnalysisResume } from "@/lib/dreamAnalysisHandoff";
 import { openPaywall } from "@/lib/paywall";
 
 /**
@@ -41,7 +42,6 @@ export type DreamAskOptions = {
   /** Restore the device-cached dream on mount (homepage does; inline prompts don't). */
   restorePending?: boolean;
   initialDream?: HomeDreamPending;
-  redirectToJournal?: boolean;
   onResultChange?: (hasResult: boolean) => void;
 };
 
@@ -56,7 +56,6 @@ export function useDreamAsk({
   eventParams,
   restorePending = false,
   initialDream,
-  redirectToJournal = false,
   onResultChange,
 }: DreamAskOptions) {
   const t = useMessages();
@@ -93,11 +92,23 @@ export function useDreamAsk({
       const esc = readEscapePending();
       if (esc && (!esc.key || esc.key === pending.text)) setEscaped(esc.latestEmojis ?? esc.emojis);
       onResultChange?.(true);
-    } else if (takeAdUnlockPending("analysis", pending.text)) {
-      // Back from the Offerwall (/ad/unlock): the ad credit is booked, the retry
-      // closure did not survive the navigation — run the interpretation now.
-      window.setTimeout(() => void submitRef.current(), 300);
     }
+    const resume = () => {
+      if (!pending.analysis && takeDreamAnalysisResume(pending.text)) {
+        // Only server-confirmed access may consume the retry. Also resume when
+        // Safari restores this mounted card from its back/forward cache.
+        window.setTimeout(() => void submitRef.current(), 300);
+      }
+    };
+    resume();
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
+    const poll = window.setInterval(resume, 1000);
+    return () => {
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("focus", resume);
+      window.clearInterval(poll);
+    };
     // Restore once on mount so a later login still finds the same cache.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -181,6 +192,12 @@ export function useDreamAsk({
     const dream = text.trim();
     if (!dream) {
       setError(t.home.askEmpty);
+      return;
+    }
+
+    const journalPath = localePath("/app/dreams", locale);
+    if (window.location.pathname.replace(/\/$/, "") !== journalPath) {
+      router.push(queueDreamAnalysis(dream, locale, lens, shareToFeed));
       return;
     }
 
@@ -368,7 +385,7 @@ export function useDreamAsk({
         lens,
         ...(eventParams ?? {}),
       });
-      if (redirectToJournal) router.push(localePath("/app/dreams", locale));
+      if (window.location.pathname !== journalPath) router.push(journalPath);
     } catch (err: unknown) {
       if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken ?? undefined);
       setError(err instanceof Error ? err.message : "Analyze failed");

@@ -6,7 +6,7 @@ import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/a
 import { Loader2, LogIn } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
-import { clearAdUnlockPending, clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
+import { clearAdUnlockPending, markAdUnlockReady, clearOfferwallEntitlement, isOfferwallElement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { readHomeDreamQueue, writeHomeDreamPending } from "@/lib/homeDreamPending";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
@@ -14,10 +14,10 @@ import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
-import { localeFromPathname } from "@/lib/i18n/path";
+import { localePath, localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
-import { recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
+import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -73,11 +73,14 @@ export default function AdUnlockClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const kind = kindFrom(sp.get("kind"));
-  const next = safeNext(sp.get("next"));
+  const requestedNext = safeNext(sp.get("next"));
   const localeParam = sp.get("locale");
-  const locale = isLocale(localeParam) ? localeParam : localeFromPathname(next);
+  const locale = isLocale(localeParam) ? localeParam : localeFromPathname(requestedNext);
+  const next = kind === "analysis" ? localePath("/app/dreams", locale) : requestedNext;
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
+  const [adStalled, setAdStalled] = useState(false);
+  const [adDailyLimit, setAdDailyLimit] = useState(false);
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [signInBusy, setSignInBusy] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
@@ -92,7 +95,8 @@ export default function AdUnlockClient() {
   useEffect(() => {
     if (kind !== "analysis") return;
     const leave = () => {
-      recoverOfferwallSession(document.cookie);
+      const saved = captureOfferwallDeparture(document.cookie, offerwallVisible());
+      if (saved?.status === "completed") report.current?.("ad_overlay_closed");
       if (phaseRef.current !== "done") report.current?.("ad_page_left");
     };
     window.addEventListener("pagehide", leave);
@@ -101,7 +105,10 @@ export default function AdUnlockClient() {
   // Record a stalled overlay without mistaking elapsed time for ad completion.
   useEffect(() => {
     if (phase !== "showing") return;
-    const timer = setTimeout(() => report.current?.("ad_stalled"), 180_000);
+    const timer = setTimeout(() => {
+      report.current?.("ad_stalled");
+      setAdStalled(true);
+    }, 180_000);
     return () => clearTimeout(timer);
   }, [phase]);
   useEffect(() => {
@@ -154,6 +161,7 @@ export default function AdUnlockClient() {
     const tick = () => {
       const recovered = kind === "analysis" ? recoverOfferwallSession(document.cookie) : null;
       if (recovered?.status === "granted") {
+        markAdUnlockReady();
         setPhase("done");
         router.replace(recovered.next);
         return;
@@ -191,17 +199,14 @@ export default function AdUnlockClient() {
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
     // as a fallback for visibility changes that don't mutate the DOM.
-    let frame = 0;
-    const observer = new MutationObserver(() => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => { frame = 0; tick(); });
-    });
+    // Do not defer this to requestAnimationFrame: Google may navigate/restore
+    // the source page as it removes the overlay, before another frame runs.
+    const observer = new MutationObserver(tick);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     tick();
     const id = setInterval(tick, POLL_MS);
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(frame);
       clearInterval(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -254,6 +259,8 @@ export default function AdUnlockClient() {
         }
         if (cancelled) return;
         if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          setAdDailyLimit(res.status === 429 && error.code === "AD_DAILY_LIMIT");
           report.current?.("ad_grant_rejected", { httpStatus: res.status });
           trackEvent("offerwall_grant_failed", { kind, status: res.status });
           setPhase("failed");
@@ -265,7 +272,10 @@ export default function AdUnlockClient() {
         }
         report.current?.("ad_reward_confirmed");
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
-        if (kind === "analysis") updateOfferwallSession({ status: "granted" });
+        if (kind === "analysis") {
+          updateOfferwallSession({ status: "granted" });
+          markAdUnlockReady();
+        }
         clearOfferwallEntitlement();
         setPhase("done");
         report.current?.("ad_resume_started");
@@ -301,6 +311,7 @@ export default function AdUnlockClient() {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
       if (data?.firstAnalysisFree === true) {
+        markAdUnlockReady();
         setPhase("done");
         report.current?.("ad_resume_started");
         router.replace(next);
@@ -353,9 +364,9 @@ export default function AdUnlockClient() {
       : phase === "unavailable"
         ? m.none
         : phase === "failed"
-          ? t.plansModal.adFailed
+          ? adDailyLimit ? m.dailyLimit : t.plansModal.adFailed
           : phase === "showing"
-            ? m.watching
+            ? adStalled ? m.stalled : m.watching
             : m.waiting;
 
   return (
@@ -365,12 +376,12 @@ export default function AdUnlockClient() {
         <p role="status" className="mt-3 text-sm text-[var(--muted)]">
           {text}
         </p>
-        {phase === "waiting" || phase === "showing" || phase === "checking" || phase === "granting" ? (
+        {phase === "waiting" || (phase === "showing" && !adStalled) || phase === "checking" || phase === "granting" ? (
           <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
             <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--text)]/60" />
           </div>
         ) : null}
-        {phase === "unavailable" || phase === "failed" ? (
+        {phase === "unavailable" || phase === "failed" || (phase === "showing" && adStalled) ? (
           <>
             <button type="button" disabled={signInBusy} className="dream-primary-btn mt-5 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60" onClick={() => {
               // An unavailable/failed ad did not buy an analysis. Returning to

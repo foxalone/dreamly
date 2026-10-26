@@ -347,6 +347,8 @@ export const ES_MESSAGES: UiMessages = {
     jewish: "Judío",
   },
   adUnlock: {
+    stalled: "El anuncio lleva tres minutos sin finalizar. El análisis no ha comenzado. Puedes volver o iniciar sesión; si el anuncio termina, continuaremos automáticamente.",
+    dailyLimit: "Se alcanzó el límite de anuncios de hoy para este visitante o dirección IP. Inicia sesión o vuelve mañana.",
     title: "Mira un anuncio corto",
     waiting: "Cargando el anuncio…",
     watching: "Mira el anuncio hasta el final para continuar.",
@@ -357,7 +359,7 @@ export const ES_MESSAGES: UiMessages = {
   plansModal: {
     guestTitle: "Continúa con tu interpretación",
     guestBody: "Inicia sesión o mira un video corto para continuar.",
-    guestNetworkBody: "Inicia sesión o mira un video corto para continuar.",
+    guestNetworkBody: "Se alcanzó el límite diario de análisis gratuitos para esta dirección IP. Inicia sesión o mira un anuncio disponible para continuar. Aún puedes usar un crédito obtenido por un anuncio.",
     guestTranslateTitle: "Traducir este sueño",
     guestTranslateBody: "Inicia sesión para obtener una traducción gratis al día, o mira un anuncio corto para traducir sin iniciar sesión. La traducción es tuya: si entras más tarde, pasará a tu cuenta.",
     signInWithGoogle: "Continuar con Google",
@@ -366,7 +368,7 @@ export const ES_MESSAGES: UiMessages = {
     adUnavailable: "No hay anuncios disponibles ahora. Puedes entrar o intentarlo más tarde.",
     adUnavailableSignedIn: "No hay anuncios disponibles ahora. Inténtalo más tarde.",
     adFailed: "No pudimos confirmar la recompensa del anuncio. Inténtalo de nuevo.",
-    adDailyLimit: "Ya se alcanzó el límite de anuncios de hoy. Entra o vuelve mañana.",
+    adDailyLimit: "Se alcanzó el límite de anuncios de hoy para este visitante o dirección IP. Inicia sesión o vuelve mañana.",
     translateTitle: "Ya usaste tu traducción gratuita de hoy",
     translateBody: "Tienes una traducción gratis al día. Después, puedes ver un anuncio corto cuando haya uno disponible o suscribirte para traducir sin límites. Cada traducción queda guardada en tu cuenta para siempre, sin volver a pagar por el mismo sueño en el mismo idioma.",
     saveTitle: "Has agotado tu límite gratuito",

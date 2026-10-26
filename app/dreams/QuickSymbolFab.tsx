@@ -2,7 +2,9 @@
 
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
-import { adUnlockUrl, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { peekAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { queueDreamAnalysis } from "@/lib/dreamAnalysisHandoff";
+import { writeHomeDreamPending } from "@/lib/homeDreamPending";
 import { openPaywall } from "@/lib/paywall";
 
 import { useEffect, useRef, useState } from "react";
@@ -233,37 +235,10 @@ export default function QuickSymbolFab() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        if (data?.code === "GUEST_LIMIT_REACHED") {
-          trackEvent("guest_limit_reached", { source: "quick_symbol" });
-          if (data.reason === "first_ad") {
-            setAdUnlockPending({ kind: "analysis", quickSymbol: { query: q, lens: nextLens } });
-            window.location.assign(adUnlockUrl("analysis"));
-            return;
-          }
-          openPaywall({
-            kind: "analysis",
-            source: "quick_symbol",
-            analysisQuickSymbol: { query: q, lens: nextLens },
-            guest: {
-              reason: data.reason === "ip_limit" ? "ip_limit" : "guest_limit",
-              signIn: () => goToSignIn(q),
-            },
-            retry: () => void runLookup(q, auth.currentUser, nextLens),
-          });
-          return;
-        }
-        if (data?.code === "AUTH_REQUIRED") {
-          goToSignIn(q);
-          return;
-        }
-        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || data?.code === "FREE_DAILY_LIMIT") {
-          // Same paywall as everywhere: plans + "watch an ad" → re-run this lookup.
-          openPaywall({
-            kind: "analysis",
-            reason: data?.code === "FREE_DAILY_LIMIT" ? "daily" : "limit",
-            source: "quick_symbol",
-            retry: () => void runLookup(q, auth.currentUser, nextLens),
-          });
+        if (["GUEST_LIMIT_REACHED", "AUTH_REQUIRED", "SUBSCRIPTION_REQUIRED", "INSUFFICIENT_CREDITS", "FREE_DAILY_LIMIT"].includes(data?.code)) {
+          // AI interpretations are continued and displayed in Dreams, including
+          // when the short-symbol endpoint first discovers an access requirement.
+          router.push(queueDreamAnalysis(q, locale, nextLens, false));
           return;
         }
         throw new Error(data?.error ?? "Quick symbol failed");
@@ -276,6 +251,11 @@ export default function QuickSymbolFab() {
         href: data.href ? String(data.href) : null,
         match: data.match ?? null,
       };
+      if (!next.matched) {
+        writeHomeDreamPending(q, { analysis: next.answer, resumeAnalysis: false, lang: locale, lens: nextLens, shareToFeed: false });
+        router.push(localePath("/app/dreams", locale));
+        return;
+      }
       setResult(next);
       setResultIsGuest(!currentUser);
       trackEvent("quick_symbol_completed", {
@@ -331,13 +311,21 @@ export default function QuickSymbolFab() {
   // After sign-in or ad return: restore the exact query and lens.
   useEffect(() => {
     if (!authReady || resumeStarted.current) return;
-    const adPending = peekAdUnlockPending("analysis")?.quickSymbol;
+    const action = peekAdUnlockPending("analysis");
+    // Keep an interrupted ad pending until recovery has booked its credit.
+    if (action && !action.ready) return;
+    const adPending = action?.quickSymbol;
     if (!user && !adPending) return;
     const pending = adPending ?? readPending();
     if (!pending) return;
 
     resumeStarted.current = true;
-    if (adPending) takeAdUnlockPending("analysis");
+    if (adPending) {
+      takeAdUnlockPending("analysis");
+      clearPending();
+      router.push(queueDreamAnalysis(pending.query, locale, pending.lens ?? lens, false));
+      return;
+    }
     clearPending();
     setOpen(true);
     setQuery(pending.query);

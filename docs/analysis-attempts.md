@@ -102,3 +102,55 @@ limit. The IP counter is reserved transactionally, so a fresh cookie does not
 provide another free slot. The free slot is spent before earned ad credits.
 Further requests offer sign-in or a video ad. Errors refund the exact balance
 and original UTC day that were charged. Dictionary matches remain free.
+
+### Explicit quota explanations (2026-10-26)
+
+Guest analysis HTTP 401 responses retain the existing `GUEST_LIMIT_REACHED` code
+and `reason` contract. Diagnostics now preserve `ip_limit` as
+`network_free_limit` and `guest_limit` as `guest_free_limit`, instead of losing
+them under the general ad/sign-in requirement. These limits apply to the free
+fallback; an available ad credit still takes precedence. Historical records
+without the reason cannot establish whether the IP limit was reached.
+
+The ad page shows the daily visitor/network ad limit for an `AD_DAILY_LIMIT`
+rejection. After three minutes with an overlay still open it displays an
+explicit incomplete-ad message and return/sign-in controls, while continuing
+to monitor for a late completion. Timeout alone never grants a credit. All
+messages are provided in the six UI languages. Google may cover these controls
+with its own overlay; the application cannot diagnose a Google frequency cap
+from an overlay appearing or the browser leaving the page.
+
+### Preserve the analysis retry until the reward is booked
+
+An analysis pending action now has a `ready` flag. Only a successful reward
+response or allowed first-free fallback sets it. Returning to a source form
+cannot consume an unconfirmed action before `AdUnlockRecovery` checks the
+entitlement and books the same reward receipt. The quick-symbol form follows
+the same rule. Recovery polls for a late entitlement after pageshow/focus, and
+restored guest cards poll for a newly ready action so a cached document can
+resume without a second ad. A completed-but-unbooked ad remains pending; a
+reload reuses the receipt. These are browser recovery fixes, not evidence that
+the historical attempts completed their ads. Live AdSense completion and
+production delivery must still be checked after deployment.
+
+Overlay DOM mutations are checked synchronously rather than via a deferred
+animation frame. `pagehide` also captures an already-disappeared overlay before
+leaving, using the same close heuristic as the live flow. This preserves a
+completed session when navigation beats the next poll/cookie update. An overlay
+that is still visible, an unseen overlay, or departure alone does not complete
+the session. Offerwall close remains a browser heuristic, not Google SSV.
+
+### Always show interpretation in Dreams
+
+Full-dream forms queue text, language, lens and sharing preference and navigate
+to the localized `/app/dreams` before analysis starts. Guest cards claim that
+request once; signed-in imports use their existing automatic analysis handoff.
+The ad URL, ad page and recovered session all force analysis returns to that
+same journal. Signed-in ad actions retain the document ID and resume that exact
+dream. AI results from the short-symbol form are also handed into Dreams.
+
+A head script suppresses only a repeat Offerwall on `/ad/unlock` when restoring
+a matching completed/granted receipt or server-confirmed ready action. It runs
+before AdSense and uses Google's documented `controlledMessagingFunction` and
+message-type filtering, leaving consent messages enabled.
+Reference: https://developers.google.com/funding-choices/fc-api-docs

@@ -54,3 +54,11 @@ test("every browser event has a label in all six locales and auth errors are cla
   assert.equal(authAttemptFailure(null), "auth_failed");
   assert.equal(clientAttemptUpdate({ status: "incomplete", reason: "ad_unavailable" }, "auth_opened")?.reason, "ad_unavailable");
 });
+
+
+test("guest access reasons preserve the network limit without calling it an analysis failure", () => {
+  assert.deepEqual(attemptOutcome(401, "GUEST_LIMIT_REACHED", "ip_limit"), { status: "waiting", reason: "network_free_limit" });
+  assert.deepEqual(attemptOutcome(401, "GUEST_LIMIT_REACHED", "guest_limit"), { status: "waiting", reason: "guest_free_limit" });
+  assert.equal(attemptOutcome(401, "GUEST_LIMIT_REACHED", "first_ad").reason, "ad_required");
+  assert.equal(attemptOutcome(401, "GUEST_LIMIT_REACHED", "untrusted").reason, "ad_required");
+});

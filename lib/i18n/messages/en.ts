@@ -347,6 +347,8 @@ export const EN_MESSAGES: UiMessages = {
     jewish: "Jewish",
   },
   adUnlock: {
+    stalled: "The ad has not finished after three minutes. Analysis has not started. You can return or sign in; if the ad finishes, we will continue automatically.",
+    dailyLimit: "Today’s ad limit for this visitor or IP address has been reached. Sign in or try again tomorrow.",
     title: "Watch a short ad",
     waiting: "Loading the ad…",
     watching: "Watch the ad to the end to continue.",
@@ -357,7 +359,7 @@ export const EN_MESSAGES: UiMessages = {
   plansModal: {
     guestTitle: "Continue your interpretation",
     guestBody: "Sign in or watch a short video to continue.",
-    guestNetworkBody: "Sign in or watch a short video to continue.",
+    guestNetworkBody: "The daily free analysis limit for this IP address has been reached. Sign in or watch an available ad to continue. A completed ad credit can still be used.",
     guestTranslateTitle: "Translate this dream",
     guestTranslateBody: "Sign in to get one free translation a day, or watch a short ad to translate without signing in. The translation stays yours — if you sign in later, it moves to your account.",
     signInWithGoogle: "Continue with Google",
@@ -366,7 +368,7 @@ export const EN_MESSAGES: UiMessages = {
     adUnavailable: "No ad is available right now. You can sign in or try again later.",
     adUnavailableSignedIn: "No ad is available right now. Please try again later.",
     adFailed: "We couldn’t confirm the ad reward. Please try again.",
-    adDailyLimit: "Today’s ad limit has been reached. Sign in or come back tomorrow.",
+    adDailyLimit: "Today’s ad limit for this visitor or IP address has been reached. Sign in or try again tomorrow.",
     translateTitle: "You've used today's free translation",
     translateBody: "You get one free translation a day. After that, watch a short ad when available or subscribe for unlimited translations. Each translation stays saved to your account forever, with no repeat charge for the same dream and language.",
     saveTitle: "You've used your free limit",

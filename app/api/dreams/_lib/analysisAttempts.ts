@@ -34,7 +34,7 @@ export async function finishAnalysisAttempt(id: string | null, status: number, c
     await db.runTransaction(async (tx) => {
       const row = (await tx.get(ref)).data();
       if (!row) return;
-      const outcome = attemptOutcome(status, code);
+      const outcome = attemptOutcome(status, code, result.reason);
       const now = Date.now();
       tx.update(ref, { ...outcome, ...analysisAttemptResult(result), durationMs: Math.max(0, now - startedAtMs), clientReported: false, httpStatus: status, updatedAtMs: now,
         events: appendAttemptEvent(row, outcome.status === "succeeded" ? "analysis_ready" : outcome.reason, "server", now, { httpStatus: status }) });

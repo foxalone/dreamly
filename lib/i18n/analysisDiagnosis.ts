@@ -2,6 +2,8 @@ import type { Locale } from "./config";
 
 export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
   "en": {
+    "network_free_limit": "The daily free analysis limit for this IP address has been reached. Sign in or watch an available ad to continue. A completed ad credit can still be used.",
+    "guest_free_limit": "Your free guest analysis has been used. Sign in or watch an available ad to continue.",
     "title": "Outcome",
     "service": "Technical issue — investigate our service, provider or connection",
     "access": "Access requirement",
@@ -16,11 +18,13 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "Access was not completed; see the recorded cancellation or credential error below.",
     "resume_missing": "Access or sign-in succeeded, but no subsequent analysis result was recorded. Check automatic resume and connectivity.",
     "server_unfinished": "The server request has no recorded result after two minutes. A timeout, process failure or logging gap is possible.",
-    "ad_unfinished": "The ad overlay appeared, but no successful unlock was recorded. It may have stalled, the page may have closed, or tracking may be incomplete.",
+    "ad_unfinished": "The ad overlay appeared, but no successful unlock was recorded. It may have stalled, the page may have closed, or tracking may be incomplete. These events do not establish an IP or ad frequency limit.",
     "access_unknown": "Access remained incomplete with no recorded explanation. There is no evidence that the user chose to leave.",
     "unlock_rejected": "Access or sign-in was confirmed before this retry, but the server requested access again. Investigate session continuity and credit consumption."
   },
   "es": {
+    "network_free_limit": "Se alcanzó el límite diario de análisis gratuitos para esta dirección IP. Inicia sesión o mira un anuncio disponible para continuar. Aún puedes usar un crédito obtenido por un anuncio.",
+    "guest_free_limit": "Ya usaste tu análisis gratuito como visitante. Inicia sesión o mira un anuncio disponible para continuar.",
     "title": "Resultado",
     "service": "Problema técnico: revisar servicio, proveedor o conexión",
     "access": "Requisito de acceso",
@@ -35,11 +39,13 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "No se completó el acceso; consulta la cancelación o el error de credenciales registrado.",
     "resume_missing": "El acceso se completó, pero no se registró un resultado posterior. Revisa la reanudación automática y la conexión.",
     "server_unfinished": "La solicitud del servidor lleva más de dos minutos sin resultado registrado. Puede haber una espera agotada, un fallo o un vacío en el registro.",
-    "ad_unfinished": "Apareció el anuncio, pero no se registró el desbloqueo. Pudo trabarse, cerrarse la página o faltar eventos.",
+    "ad_unfinished": "Apareció el anuncio, pero no se registró el desbloqueo. Pudo trabarse, cerrarse la página o faltar eventos. Estos eventos no confirman un límite por IP ni por frecuencia de anuncios.",
     "access_unknown": "El acceso quedó incompleto sin explicación registrada. No hay evidencia de que la persona decidiera irse.",
     "unlock_rejected": "Se confirmó el acceso antes de este reintento, pero el servidor volvió a pedirlo. Revisa la continuidad de la sesión y el consumo de créditos."
   },
   "ar": {
+    "network_free_limit": "تم بلوغ الحد اليومي للتحليلات المجانية لعنوان IP هذا. سجّل الدخول أو شاهد إعلانًا متاحًا للمتابعة. لا يزال بإمكانك استخدام رصيد إعلان مكتمل.",
+    "guest_free_limit": "استخدمت تحليلك المجاني كزائر. سجّل الدخول أو شاهد إعلانًا متاحًا للمتابعة.",
     "title": "النتيجة",
     "service": "مشكلة تقنية: راجع الخدمة أو المزوّد أو الاتصال",
     "access": "متطلب الوصول",
@@ -54,11 +60,13 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "لم يكتمل الوصول؛ راجع الإلغاء أو خطأ بيانات الدخول المسجّل.",
     "resume_missing": "نجح الوصول أو الدخول، لكن لم تُسجّل نتيجة تحليل لاحقة. راجع الاستئناف التلقائي والاتصال.",
     "server_unfinished": "مرّت دقيقتان دون تسجيل نتيجة طلب الخادم. قد تكون المهلة انتهت أو تعطلت العملية أو انقطع التسجيل.",
-    "ad_unfinished": "ظهر الإعلان لكن لم يُسجّل فتح الوصول بنجاح. ربما تعلّق الإعلان أو أُغلقت الصفحة أو نقصت الأحداث.",
+    "ad_unfinished": "ظهر الإعلان لكن لم يُسجّل فتح الوصول بنجاح. ربما تعلّق الإعلان أو أُغلقت الصفحة أو نقصت الأحداث. لا تثبت هذه الأحداث وجود حد لعنوان IP أو لتكرار الإعلانات.",
     "access_unknown": "لم يكتمل الوصول ولا يوجد تفسير مسجّل. لا دليل على أن المستخدم اختار المغادرة.",
     "unlock_rejected": "تأكد الوصول أو الدخول قبل إعادة المحاولة، لكن الخادم طلب الوصول مجددًا. راجع استمرار الجلسة واستهلاك الرصيد."
   },
   "pt": {
+    "network_free_limit": "O limite diário de análises gratuitas deste endereço IP foi atingido. Entre na sua conta ou assista a um anúncio disponível para continuar. Créditos obtidos por anúncios ainda podem ser usados.",
+    "guest_free_limit": "Você já usou sua análise gratuita como visitante. Entre na sua conta ou assista a um anúncio disponível para continuar.",
     "title": "Resultado",
     "service": "Problema técnico: investigar serviço, provedor ou conexão",
     "access": "Requisito de acesso",
@@ -73,11 +81,13 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "O acesso não foi concluído; confira o cancelamento ou erro de credenciais registrado.",
     "resume_missing": "O acesso ou login foi concluído, mas não houve resultado posterior registrado. Verifique a retomada automática e a conexão.",
     "server_unfinished": "A solicitação está há mais de dois minutos sem resultado registrado. Pode haver tempo esgotado, falha ou lacuna no registro.",
-    "ad_unfinished": "O anúncio apareceu, mas o desbloqueio não foi registrado. Ele pode ter travado, a página pode ter fechado ou podem faltar eventos.",
+    "ad_unfinished": "O anúncio apareceu, mas o desbloqueio não foi registrado. Ele pode ter travado, a página pode ter fechado ou podem faltar eventos. Esses eventos não confirmam um limite por IP nem de frequência de anúncios.",
     "access_unknown": "O acesso ficou incompleto sem explicação registrada. Não há evidência de que a pessoa decidiu sair.",
     "unlock_rejected": "O acesso ou login foi confirmado antes desta tentativa, mas o servidor voltou a exigir acesso. Verifique a sessão e o consumo de créditos."
   },
   "de": {
+    "network_free_limit": "Das Tageslimit für kostenlose Analysen dieser IP-Adresse ist erreicht. Melde dich an oder sieh dir eine verfügbare Werbung an, um fortzufahren. Bereits erworbenes Werbeguthaben kann weiterhin genutzt werden.",
+    "guest_free_limit": "Deine kostenlose Gastanalyse ist aufgebraucht. Melde dich an oder sieh dir eine verfügbare Werbung an, um fortzufahren.",
     "title": "Ergebnis",
     "service": "Technisches Problem: Dienst, Anbieter oder Verbindung prüfen",
     "access": "Zugangsvoraussetzung",
@@ -92,11 +102,13 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "Der Zugang wurde nicht abgeschlossen; erfassten Abbruch oder Anmeldedatenfehler unten prüfen.",
     "resume_missing": "Zugang oder Anmeldung war erfolgreich, aber kein späteres Analyseergebnis wurde erfasst. Automatische Fortsetzung und Verbindung prüfen.",
     "server_unfinished": "Seit über zwei Minuten fehlt ein Ergebnis der Serveranfrage. Zeitüberschreitung, Prozessfehler oder eine Erfassungslücke sind möglich.",
-    "ad_unfinished": "Die Werbung erschien, aber keine erfolgreiche Freigabe wurde erfasst. Die Werbung könnte hängen, die Seite geschlossen worden sein oder Ereignisse fehlen.",
+    "ad_unfinished": "Die Werbung erschien, aber keine erfolgreiche Freigabe wurde erfasst. Die Werbung könnte hängen, die Seite geschlossen worden sein oder Ereignisse fehlen. Diese Ereignisse belegen weder ein IP-Limit noch eine Begrenzung der Werbehäufigkeit.",
     "access_unknown": "Der Zugang blieb ohne erfasste Erklärung unvollständig. Ein freiwilliges Verlassen ist nicht belegt.",
     "unlock_rejected": "Zugang oder Anmeldung wurde vor diesem Versuch bestätigt, aber der Server verlangte erneut Zugang. Sitzung und Guthabenverbrauch prüfen."
   },
   "ru": {
+    "network_free_limit": "Дневной лимит бесплатных анализов для этого IP-адреса исчерпан. Войдите или посмотрите доступную рекламу, чтобы продолжить. Полученный за рекламу кредит по-прежнему можно использовать.",
+    "guest_free_limit": "Бесплатный гостевой анализ уже использован. Войдите или посмотрите доступную рекламу, чтобы продолжить.",
     "title": "Итог",
     "service": "Техническая проблема: проверить сервис, провайдера или соединение",
     "access": "Условие доступа",
@@ -111,7 +123,7 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "access_incomplete": "Доступ не завершён; ниже указана зафиксированная отмена или ошибка данных входа.",
     "resume_missing": "Доступ выдан или вход выполнен, но последующий результат анализа не записан. Проверьте автоматическое продолжение и соединение.",
     "server_unfinished": "Более двух минут нет результата запроса к серверу. Возможен тайм-аут, сбой процесса или пробел в журнале.",
-    "ad_unfinished": "Рекламное окно появилось, но успешная выдача доступа не записана. Реклама могла зависнуть, страница могла закрыться, либо не все события записались.",
+    "ad_unfinished": "Рекламное окно появилось, но успешная выдача доступа не записана. Реклама могла зависнуть, страница могла закрыться, либо не все события записались. Эти события не подтверждают ограничение по IP или частоте показа рекламы.",
     "access_unknown": "Доступ остался незавершённым без записанного объяснения. Нет доказательств, что пользователь решил уйти.",
     "unlock_rejected": "Перед повторным запросом доступ или вход был подтверждён, но сервер снова потребовал доступ. Проверьте сохранение сессии и списание кредитов."
   }

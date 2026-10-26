@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { clearAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
-import { recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
+import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
 import { localePath } from "./i18n/path";
 
 test("a completed guest ad survives Safari back/restore and reuses its reward receipt in every locale", () => {
@@ -23,14 +23,20 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       // must never buy a new analysis.
       assert.equal(recoverOfferwallSession("FCOEC=new-entitlement")?.status, "watching");
       updateOfferwallSession({ shown: true });
+      // Source forms can mount before recovery. They must leave the pending
+      // dream and receipt intact while Google has not confirmed completion.
+      assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
       assert.equal(recoverOfferwallSession("")?.status, "watching");
       assert.equal(recoverOfferwallSession("FCOEC=old-entitlement")?.status, "watching");
+      assert.equal(captureOfferwallDeparture("FCOEC=old-entitlement", true)?.status, "watching");
       assert.equal(startOfferwallSession(next, "another-receipt", "FCOEC=old-entitlement")?.rewardId, session.rewardId);
 
       // The Google entitlement can arrive as Safari leaves the ad page, before
       // the polling callback notices the overlay disappearing.
       const completed = recoverOfferwallSession("other=cookie; FCOEC=new-entitlement");
       assert.equal(completed?.status, "completed");
+      // Even a completed ad still needs a successful server credit grant.
+      assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
       assert.equal(completed?.next, next);
       assert.equal(startOfferwallSession(next, "reload-receipt", "FCOEC=new-entitlement")?.rewardId, session.rewardId);
       updateOfferwallSession({ status: "granted" });
@@ -41,6 +47,19 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       assert.equal(takeAdUnlockPending("analysis", "Another dream"), null);
       assert.ok(takeAdUnlockPending("analysis", "The dream awaiting analysis"));
       assert.equal(recoverOfferwallSession("FCOEC=new-entitlement"), null);
+
+      // Capture a close followed immediately by navigation, before another
+      // animation frame or cookie update. The return still needs to book credit.
+      setAdUnlockPending({ kind: "analysis", dreamText: "Ad closed during navigation" });
+      startOfferwallSession(next, "departure-receipt", "");
+      assert.equal(captureOfferwallDeparture("", false)?.status, "watching");
+      updateOfferwallSession({ shown: true });
+      assert.equal(captureOfferwallDeparture("", true)?.status, "watching");
+      assert.equal(captureOfferwallDeparture("", false)?.status, "completed");
+      assert.equal(takeAdUnlockPending("analysis", "Ad closed during navigation"), null);
+      assert.equal(startOfferwallSession(next, "do-not-replace-receipt", "")?.rewardId, "departure-receipt");
+      updateOfferwallSession({ status: "granted" });
+      assert.ok(takeAdUnlockPending("analysis", "Ad closed during navigation"));
 
       // Unavailable/cancelled flows clear the pending action and cannot revive.
       setAdUnlockPending({ kind: "analysis", dreamText: "Another dream" });

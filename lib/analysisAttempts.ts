@@ -6,9 +6,9 @@ export function ownsAnalysisAttempt(row: { uid?: string | null; guestId?: string
 export function isAttemptEvent(value: unknown): value is AttemptEvent {
   return typeof value === "string" && ATTEMPT_EVENTS.includes(value as AttemptEvent);
 }
-export function attemptOutcome(status: number, code?: string) {
+export function attemptOutcome(status: number, code?: string, accessReason?: unknown) {
   if (status < 400) return { status: "succeeded", reason: "succeeded" };
-  if (code === "GUEST_LIMIT_REACHED") return { status: "waiting", reason: "ad_required" };
+  if (code === "GUEST_LIMIT_REACHED") return { status: "waiting", reason: accessReason === "ip_limit" ? "network_free_limit" : accessReason === "guest_limit" ? "guest_free_limit" : "ad_required" };
   if (["FREE_DAILY_LIMIT", "DAILY_LIMIT"].includes(code ?? "")) return { status: "blocked", reason: "daily_limit" };
   if (["SUBSCRIPTION_REQUIRED", "INSUFFICIENT_CREDITS"].includes(code ?? "")) return { status: "blocked", reason: "credits_required" };
   if (["AI_TIMEOUT", "AI_RATE_LIMITED", "AI_UNAVAILABLE"].includes(code ?? "")) return { status: "failed", reason: code!.toLowerCase() };

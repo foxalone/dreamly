@@ -347,6 +347,8 @@ export const DE_MESSAGES: UiMessages = {
     jewish: "Jüdisch",
   },
   adUnlock: {
+    stalled: "Die Werbung ist nach drei Minuten noch nicht beendet. Die Analyse hat noch nicht begonnen. Du kannst zurückgehen oder dich anmelden; wenn die Werbung endet, geht es automatisch weiter.",
+    dailyLimit: "Das heutige Werbelimit für diesen Gast oder diese IP-Adresse ist erreicht. Melde dich an oder versuche es morgen erneut.",
     title: "Sieh dir eine kurze Werbung an",
     waiting: "Werbung wird geladen…",
     watching: "Sieh dir die Werbung bis zum Ende an, um fortzufahren.",
@@ -357,7 +359,7 @@ export const DE_MESSAGES: UiMessages = {
   plansModal: {
     guestTitle: "Weiter zur Traumdeutung",
     guestBody: "Melde dich an oder sieh dir ein kurzes Video an, um fortzufahren.",
-    guestNetworkBody: "Melde dich an oder sieh dir ein kurzes Video an, um fortzufahren.",
+    guestNetworkBody: "Das Tageslimit für kostenlose Analysen dieser IP-Adresse ist erreicht. Melde dich an oder sieh dir eine verfügbare Werbung an, um fortzufahren. Bereits erworbenes Werbeguthaben kann weiterhin genutzt werden.",
     guestTranslateTitle: "Diesen Traum übersetzen",
     guestTranslateBody: "Melde dich an und erhalte eine kostenlose Übersetzung pro Tag, oder sieh dir eine kurze Werbung an, um ohne Anmeldung zu übersetzen. Die Übersetzung bleibt deine – wenn du dich später anmeldest, wandert sie in dein Konto.",
     signInWithGoogle: "Mit Google fortfahren",
@@ -366,7 +368,7 @@ export const DE_MESSAGES: UiMessages = {
     adUnavailable: "Zurzeit ist keine Werbung verfügbar. Du kannst dich anmelden oder es später erneut versuchen.",
     adUnavailableSignedIn: "Zurzeit ist keine Werbung verfügbar. Bitte versuche es später erneut.",
     adFailed: "Die Werbebelohnung konnte nicht bestätigt werden. Bitte versuche es erneut.",
-    adDailyLimit: "Das heutige Werbelimit ist erreicht. Melde dich an oder komm morgen wieder.",
+    adDailyLimit: "Das heutige Werbelimit für diesen Gast oder diese IP-Adresse ist erreicht. Melde dich an oder versuche es morgen erneut.",
     translateTitle: "Deine kostenlose Übersetzung für heute ist aufgebraucht",
     translateBody: "Du erhältst täglich eine kostenlose Übersetzung. Danach kannst du, sofern verfügbar, eine kurze Werbung ansehen oder mit einem Abo unbegrenzt übersetzen. Jede Übersetzung bleibt dauerhaft in deinem Konto gespeichert. Für denselben Traum in derselben Sprache zahlst du kein zweites Mal.",
     saveTitle: "Du hast dein Gratis-Limit aufgebraucht",

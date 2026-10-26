@@ -11,6 +11,7 @@ import AppI18n from "@/lib/i18n/AppI18n";
 import PwaLaunch from "./components/PwaLaunch";
 import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
 import PaywallHost from "./components/PaywallHost";
+import { OFFERWALL_RECOVERY_SCRIPT } from "@/lib/offerwallRecoveryScript";
 import AdUnlockRecovery from "./components/AdUnlockRecovery";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
@@ -68,6 +69,7 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";["ar","ru"].forEach(function(l){c.toggle("locale-"+l,loc===l)});}catch(e){}})();`,
           }}
         />
+        <script dangerouslySetInnerHTML={{ __html: OFFERWALL_RECOVERY_SCRIPT }} />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2484539106050736"

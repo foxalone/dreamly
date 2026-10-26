@@ -15,7 +15,7 @@
  * cannot survive the navigation).
  */
 import type { PaywallKind } from "@/lib/paywall";
-import { localeFromPathname } from "@/lib/i18n/path";
+import { localePath, localeFromPathname } from "@/lib/i18n/path";
 
 export const AD_UNLOCK_PATH = "/ad/unlock";
 
@@ -31,6 +31,8 @@ export type AdUnlockPending = {
   targetLang?: string;
   /** Keep an unsaved journal entry across the Offerwall's full navigation. */
   draft?: { text: string; tab: "DREAMS" | "STORIES"; usedVoice: boolean };
+  /** Set only after the server confirms ad access or the first-free fallback. */
+  ready?: boolean;
   atMs: number;
 };
 
@@ -41,8 +43,9 @@ export function adUnlockUrl(kind: PaywallKind, next?: string, translation?: { sh
     params.set("targetLang", translation.targetLang);
   }
   const target = next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
-  params.set("next", safeNext(target));
-  if (typeof window !== "undefined") params.set("locale", localeFromPathname(window.location.pathname));
+  const locale = localeFromPathname(typeof window !== "undefined" ? window.location.pathname : target);
+  params.set("next", kind === "analysis" ? localePath("/app/dreams", locale) : safeNext(target));
+  if (typeof window !== "undefined") params.set("locale", locale);
   return `${AD_UNLOCK_PATH}?${params.toString()}`;
 }
 
@@ -69,15 +72,24 @@ export function clearAdUnlockPending() {
   }
 }
 
-/** Returns and clears the pending action, if any and recent (10 min). */
+/** A navigation back is not a grant. Keep the action until access is confirmed. */
+export function markAdUnlockReady() {
+  try {
+    const pending = peekAdUnlockPending();
+    if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...pending, ready: true }));
+  } catch { /* Storage may be unavailable. */ }
+}
+
+/** Returns and clears a ready action, if any and recent (10 min). */
 export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdUnlockPending | null {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as AdUnlockPending;
     if (kind && p.kind !== kind) return null;
-    if (dreamText !== undefined && p.quickSymbol) return null;
+    if (dreamText !== undefined && (p.quickSymbol || (p.dreamId && !p.dreamText))) return null;
     if (dreamText !== undefined && p.dreamText && p.dreamText !== dreamText) return null;
+    if (p?.kind === "analysis" && p.ready !== true) return null;
     sessionStorage.removeItem(PENDING_KEY);
     if (!p || typeof p.atMs !== "number" || Date.now() - p.atMs > 10 * 60_000) return null;
     return p;

@@ -48,7 +48,6 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
     source: "dictionary_search",
     interpretedEvent: "dictionary_dream_interpreted",
     eventParams: { via: "search_field" },
-    redirectToJournal: true,
   });
   const [submitRequest, setSubmitRequest] = useState(0);
   const pendingSubmit = useRef<string | null>(null);

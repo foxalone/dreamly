@@ -66,3 +66,14 @@ test("every diagnosis and category has native copy in all six locales", () => {
     for (const value of Object.values(copy)) assert.ok(value.trim());
   }
 });
+
+
+test("network free quota is explicit, while later ad failures and confirmed access take precedence", () => {
+  const limited = row(["analysis_retried", "network_free_limit", "ad_shown", "ad_page_left"], { reason: "network_free_limit" });
+  assert.deepEqual(analysisDiagnosis(limited, now), { code: "network_free_limit", kind: "access" });
+  limited.events!.push({ event: "ad_grant_timeout", atMs: now });
+  assert.equal(analysisDiagnosis(limited, now).code, "flow_failed");
+  limited.events!.push({ event: "ad_access_granted", atMs: now });
+  assert.equal(analysisDiagnosis(limited, now).code, "pending");
+  assert.equal(analysisDiagnosis(row(["ad_access_granted", "analysis_retried", "network_free_limit"], { reason: "network_free_limit" }), now).code, "unlock_rejected");
+});

@@ -438,7 +438,7 @@ export default function DreamsPage() {
     setOpen(true);
   }, []);
 
-  const [resumeAnalysis, setResumeAnalysis] = useState<{ id: string; lens?: DreamLens } | null>(null);
+  const [resumeAnalysis, setResumeAnalysis] = useState<{ id: string; lens?: DreamLens; afterAd?: boolean } | null>(null);
   const resumedAnalyses = useRef(new Set<string>());
   const repairedRoots = useRef(new Set<string>());
   const [dreams, setDreams] = useState<Dream[]>([]);
@@ -509,7 +509,8 @@ export default function DreamsPage() {
               setAnalysisOpenType("dream");
               setAnalysisOpenId(result.dreamId);
             }
-            if (result.shared) setTab("SHARED");
+            if (result.analysis || result.resumeAnalysis) setTab("DREAMS");
+            else if (result.shared) setTab("SHARED");
             if (result.resumeAnalysis) setResumeAnalysis({ id: result.dreamId, lens: result.lens });
             continue;
           }
@@ -1227,11 +1228,12 @@ export default function DreamsPage() {
           kind: "analysis",
           reason,
           source: "dream_analysis",
+          analysisDreamId: dreamId,
           retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
         return;
       }
-    } else if (remainingDreamsToday(billing) < 1) {
+    } else if (hasPaidAccess(billing) && remainingDreamsToday(billing) < 1) {
       setError(dailyLimitCopy);
       return;
     }
@@ -1343,6 +1345,7 @@ export default function DreamsPage() {
           kind: "analysis",
           reason: "limit",
           source: "dream_analysis",
+          analysisDreamId: dreamId,
           retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
       } else if (e?.message === "FREE_DAILY_LIMIT") {
@@ -1350,6 +1353,7 @@ export default function DreamsPage() {
           kind: "analysis",
           reason: "daily",
           source: "dream_analysis",
+          analysisDreamId: dreamId,
           retry: () => void analyzeRef.current(dreamId, { ...opts, afterAd: true }),
         });
       } else if (e?.message === "DAILY_LIMIT") {
@@ -1365,13 +1369,29 @@ export default function DreamsPage() {
   analyzeRef.current = analyzeDream;
 
   useEffect(() => {
+    if (!uid || billingLoading) return;
+    const resumeAd = () => {
+      const pending = peekAdUnlockPending("analysis");
+      if (!pending?.ready || !pending.dreamId || !dreams.some(dream => dream.id === pending.dreamId)) return;
+      if (!takeAdUnlockPending("analysis")) return;
+      // A previous queued run may have opened the paywall for this same dream.
+      resumedAnalyses.current.delete(`${uid}:${pending.dreamId}`);
+      setResumeAnalysis({ id: pending.dreamId, afterAd: true });
+    };
+    resumeAd();
+    window.addEventListener("pageshow", resumeAd);
+    const poll = window.setInterval(resumeAd, 1000);
+    return () => { window.removeEventListener("pageshow", resumeAd); window.clearInterval(poll); };
+  }, [uid, billingLoading, dreams]);
+
+  useEffect(() => {
     if (!resumeAnalysis || billingLoading || analysisBusyId || deletingId || sharingId || rootsBusyId) return;
     if (!dreams.some((dream) => dream.id === resumeAnalysis.id)) return;
     const key = `${uid}:${resumeAnalysis.id}`;
     if (resumedAnalyses.current.has(key)) return;
     resumedAnalyses.current.add(key);
     setResumeAnalysis(null);
-    void analyzeRef.current(resumeAnalysis.id, { lens: resumeAnalysis.lens });
+    void analyzeRef.current(resumeAnalysis.id, { lens: resumeAnalysis.lens, afterAd: resumeAnalysis.afterAd });
   }, [uid, resumeAnalysis, billingLoading, dreams, analysisBusyId, deletingId, sharingId, rootsBusyId]);
 
   useEffect(() => {

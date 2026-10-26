@@ -24,6 +24,7 @@ type Props = {
   rewarded?: {
     label: string;
     kind: PaywallKind;
+    analysisDreamId?: string;
     translation?: { sharedDreamId: string; targetLang: string };
   } | null;
 };
@@ -142,6 +143,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
             <RewardedAdButton
               label={t.plansModal.adCardCta}
               kind={rewarded.kind}
+              analysisDreamId={rewarded.analysisDreamId}
               translation={rewarded.translation}
               source={source}
               card={{ title: t.plansModal.adCardTitle, price: t.pricing.free, description: rewarded.label }}

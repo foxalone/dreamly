@@ -37,7 +37,6 @@ export default function HomeDreamAsk({
     source: "home_ask",
     interpretedEvent: "home_dream_interpreted",
     restorePending: true,
-    redirectToJournal: !journal,
     onResultChange,
   });
 

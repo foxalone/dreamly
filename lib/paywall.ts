@@ -27,6 +27,7 @@ export type PaywallRequest = {
   source: string;
   /** Full-dream guest interpretation to resume in the journal after the ad. */
   analysisDreamText?: string;
+  analysisDreamId?: string;
   analysisQuickSymbol?: { query: string; lens: import("@/lib/dream-lenses").DreamLens };
   /** Re-run the blocked action after the ad credit was granted. */
   retry?: () => void;

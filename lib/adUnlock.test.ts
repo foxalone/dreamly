@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { adUnlockUrl, clearAdUnlockPending, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
+import { adUnlockUrl, clearAdUnlockPending, markAdUnlockReady, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
 import { localePath } from "./i18n/path";
 import { readHomeDreamQueue, writeHomeDreamPending } from "./homeDreamPending";
 
@@ -35,12 +35,18 @@ test("guest ad returns to the localized journal and only the submitted dream res
       assert.equal(submitted.lens, "spiritual");
       assert.equal(submitted.lang, locale);
       assert.equal(submitted.shareToFeed, false);
+      // Returning before the grant must not consume the recovery record.
+      assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
+      assert.equal(peekAdUnlockPending("analysis")?.dreamText, submitted.text);
+      markAdUnlockReady();
       assert.equal(takeAdUnlockPending("analysis", submitted.text)?.dreamText, submitted.text);
       assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
 
       // A quick-symbol retry must never be consumed by a guest journal card.
       setAdUnlockPending({ kind: "analysis", quickSymbol: { query: "a humming doorway", lens: "spiritual" } });
       assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
+      assert.equal(takeAdUnlockPending("analysis"), null);
+      markAdUnlockReady();
       assert.deepEqual(takeAdUnlockPending("analysis")?.quickSymbol, { query: "a humming doorway", lens: "spiritual" });
 
       // Back after an unavailable ad keeps the dream but must not retry it
