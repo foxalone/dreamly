@@ -23,6 +23,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
   const map = variant === "map";
   const feed = variant === "feed";
   const homeCard = variant === "home-feature" || variant === "home-symbol";
+  const homeFeature = variant === "home-feature";
   const zodiac = variant === "zodiac";
   const lazy = feed || homeCard || zodiac;
   const compactCard = variant === "home-symbol" || zodiac;
@@ -42,7 +43,11 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       const children = Array.from(grid!.children);
       const rowStart = Math.floor(children.indexOf(box!) / columns) * columns;
       const hasContentPeer = children.slice(rowStart, rowStart + columns).some((item) => !item.hasAttribute("data-article-ad"));
-      const minHeight = !hasContentPeer ? previous?.getBoundingClientRect().height || 160 : undefined;
+      const contentHeight = !hasContentPeer ? previous?.getBoundingClientRect().height || 160 : 0;
+      // Reserve room for a standard creative plus the label and padding. The
+      // neighboring card can otherwise leave only 48px for a 50/60px banner.
+      const minimum = homeFeature ? 316 : homeCard ? 86 : 0;
+      const minHeight = Math.max(contentHeight, minimum) || undefined;
       setCardLayout((before) => before.ready && before.minHeight === minHeight ? before : { ready: true, minHeight });
     }
     measure();
@@ -50,7 +55,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     observer.observe(grid);
     if (previous) observer.observe(previous);
     return () => observer.disconnect();
-  }, [gridCard]);
+  }, [gridCard, homeCard, homeFeature]);
 
   useEffect(() => {
     if (preview || !configured || (gridCard && !cardLayout.ready)) return;
@@ -58,13 +63,20 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     if (!element) return;
     let visible = !lazy || typeof IntersectionObserver === "undefined";
     function requestAd() {
-      if (gridCard && element && cardSlot.current) {
-        // Fixed available height, not an auto-sized creative that can grow the row.
-        element.style.height = `${cardSlot.current.clientHeight}px`;
-      }
       if (!element || !visible || requested.current || element.getBoundingClientRect().width <= 0) return;
-      if (gridCard && element.getBoundingClientRect().height <= 0) return;
       if (element.hasAttribute("data-adsbygoogle-status")) return;
+      if (gridCard && element && cardSlot.current) {
+        const availableWidth = cardSlot.current.clientWidth;
+        const width = homeFeature ? (availableWidth >= 300 ? 300 : availableWidth >= 250 ? 250 : 200) : 234;
+        const height = homeFeature ? (width === 200 ? 200 : 250) : 60;
+        if (homeCard && (availableWidth < width || cardSlot.current.clientHeight < height)) return;
+        // Use standard home ad sizes, centered in the card. Freeze dimensions
+        // after the request so resize callbacks cannot overwrite Google's result.
+        element.style.width = homeCard ? `${width}px` : "100%";
+        element.style.height = `${homeCard ? height : cardSlot.current.clientHeight}px`;
+        if (homeCard) element.style.marginInline = "auto";
+      }
+      if (gridCard && element.getBoundingClientRect().height <= 0) return;
       requested.current = true;
       try {
         const adsWindow = window as Window & { adsbygoogle?: Record<string, never>[] };
@@ -90,7 +102,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       observer.disconnect();
       intersection?.disconnect();
     };
-  }, [configured, lazy, preview, slot, gridCard, cardLayout.ready]);
+  }, [configured, lazy, preview, slot, gridCard, cardLayout.ready, homeCard, homeFeature]);
 
   if (!preview && !configured) return null;
 
@@ -112,7 +124,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
         </div>
       ) : (
         <ins ref={ad} className={`adsbygoogle${gallery ? " min-h-0 flex-1" : feed ? ` ${styles.feedAd}` : map ? ` ${styles.mapAd}` : ""}`} style={{ display: "block", width: "100%", height: gridCard ? "100%" : undefined, minHeight: gallery || map || feed || gridCard ? undefined : 90 }}
-          data-ad-client={AD_CLIENT} data-ad-slot={slot} data-ad-format={map || feed || gridCard ? undefined : gallery ? "vertical" : "horizontal"} data-full-width-responsive="false" />
+          data-ad-client={AD_CLIENT} data-ad-slot={slot} data-ad-format={map || feed || gridCard ? undefined : gallery ? "vertical" : "horizontal"} data-full-width-responsive={homeCard ? undefined : "false"} />
       )}
       </div>
       </div>

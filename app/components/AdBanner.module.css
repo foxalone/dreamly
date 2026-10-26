@@ -2,6 +2,11 @@
   contain: size;
 }
 
+/* Collapse the label and reserved card only after Google confirms no fill. */
+.gridCard:has(:global(ins.adsbygoogle[data-ad-status="unfilled"])) {
+  display: none;
+}
+
 .gridCardContent {
   position: absolute;
   inset: 20px;
