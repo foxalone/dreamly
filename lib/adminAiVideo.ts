@@ -3,6 +3,8 @@ export const AI_VIDEO_WORKER_DOCUMENT = "adminSystem/aiVideoWorker";
 export const AI_VIDEO_MAX_DURATION_SECONDS = 45;
 export const AI_VIDEO_SIZE = "720x1280" as const;
 
+// Legacy mode metadata is retained only to deserialize existing library items.
+// New generation is restricted by isAiVideoMode and the Veo-only worker.
 export const AI_VIDEO_MODES = {
   preview: { sceneCount: 1, soraSceneCount: 1, stockSceneCount: 0, sceneSeconds: 4, generatedSeconds: 4 },
   standard: { sceneCount: 4, soraSceneCount: 4, stockSceneCount: 0, sceneSeconds: 8, generatedSeconds: 32 },
@@ -99,17 +101,15 @@ export type AdminAiVideoJob = {
 
 export type AiVideoPublicConfig = {
   paidGenerationEnabled: boolean;
-  pricePerSecondUsd: number;
   veoPricePerSecondUsd: number;
   dailyBudgetUsd: number;
   maxJobsPerDay: number;
-  model: string;
   veoModel: string;
-  prices: Record<AiVideoMode, number>;
+  prices: Record<"veo", number>;
 };
 
-export function isAiVideoMode(value: unknown): value is AiVideoMode {
-  return value === "preview" || value === "standard" || value === "combined" || value === "veo";
+export function isAiVideoMode(value: unknown): value is "veo" {
+  return value === "veo";
 }
 
 export function roundUsd(value: number) {

@@ -8,8 +8,6 @@ import {
   AI_IMAGE_ASPECT_RATIO,
   AI_IMAGE_GEMINI_SIZE,
   AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
-  AI_IMAGE_QUALITY,
-  AI_IMAGE_SIZE,
   AI_IMAGE_SUBJECT_MAX_LENGTH,
   AI_IMAGE_TEMPLATE_MAX_LENGTH,
   buildGothicImagePrompt,
@@ -34,13 +32,10 @@ const DEFAULT_CONFIG: AiImagePublicConfig = {
   paidGenerationEnabled: false,
   dailyBudgetUsd: 10,
   maxJobsPerDay: 50,
-  soraModel: "gpt-image-1-mini",
   veoModel: "gemini-3.1-flash-image",
-  soraSize: AI_IMAGE_SIZE,
-  soraQuality: AI_IMAGE_QUALITY,
   veoSize: AI_IMAGE_GEMINI_SIZE,
   veoAspectRatio: AI_IMAGE_ASPECT_RATIO,
-  prices: { sora: 0.015, veo: 0.07 },
+  prices: { veo: 0.07 },
   promptTemplate: AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
 };
 
@@ -57,8 +52,7 @@ function costLabel(job: AdminAiImageJob, usd: Intl.NumberFormat) {
   return `оценка ${usd.format(job.estimatedCostUsd)}`;
 }
 
-export default function AiImageAdminPanel({ user, studio }: { user: User; studio: "sora" | "veo" }) {
-  const isVeo = studio === "veo";
+export default function AiImageAdminPanel({ user, studio }: { user: User; studio: "veo" }) {
   const [subject, setSubject] = useState("");
   const [promptPreviewOpen, setPromptPreviewOpen] = useState(false);
   const [promptTemplate, setPromptTemplate] = useState(AI_IMAGE_GOTHIC_PROMPT_TEMPLATE);
@@ -80,7 +74,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short" }), []);
   const numberFormatter = useMemo(() => new Intl.NumberFormat("ru-RU"), []);
   const usd = useMemo(() => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 }), []);
-  const estimatedPrice = isVeo ? config.prices.veo : config.prices.sora;
+  const estimatedPrice = config.prices.veo;
   const fullPrompt = useMemo(() => buildGothicImagePrompt(subject, promptTemplate), [promptTemplate, subject]);
   const templateHasSubject = promptTemplate.includes("[SUBJECT]");
 
@@ -100,7 +94,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
         error?: string;
       };
       if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Не удалось загрузить задания");
-      setJobs((payload.jobs ?? []).filter((job) => (isVeo ? job.provider === "veo" : job.provider === "sora")));
+      setJobs((payload.jobs ?? []).filter((job) => (job.provider === "veo")));
       setConfig(payload.config ?? DEFAULT_CONFIG);
       if (!templateDirtyRef.current) setPromptTemplate(payload.config?.promptTemplate ?? AI_IMAGE_GOTHIC_PROMPT_TEMPLATE);
       setBudget(payload.budget ?? { date: "", reservedUsd: 0, jobsCount: 0 });
@@ -113,7 +107,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
-  }, [isVeo, user]);
+  }, [user]);
 
   const quietReload = useCallback(() => {
     return loadJobs(true);
@@ -176,7 +170,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       setSubject("");
       setCostConfirmed(false);
       setPromptPreviewOpen(false);
-      setNotice({ type: "ok", text: `${isVeo ? "Veo" : "Sora"}-картинка поставлена в очередь. После генерации появится приблизительная стоимость.` });
+      setNotice({ type: "ok", text: `Veo-картинка поставлена в очередь. После генерации появится приблизительная стоимость.` });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
     } finally {
@@ -246,9 +240,9 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <form onSubmit={submit} className={`${card} space-y-5 p-6`}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isVeo ? "Image · Veo / Gemini Flash" : "Image · Sora / GPT Image mini"}</p>
-            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isVeo ? "Картинка через Vertex (тот же аккаунт, что Veo)" : "Картинка через OpenAI (тот же ключ, что Sora)"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isVeo ? "Sora и Veo — видеомодели. Для картинок берём самую дешёвую image-модель того же Vertex-проекта: Gemini 3.1 Flash Image, 9:16, 1K." : "Sora не умеет stills. Берём самый дешёвый OpenAI image API: gpt-image-1-mini, portrait 1024×1536, quality medium. Медленнее — дешевле, это нормально."}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">Image · Veo / Gemini Flash</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">Картинка через Vertex (тот же аккаунт, что Veo)</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Для картинок берём самую дешёвую image-модель того же Vertex-проекта: Gemini 3.1 Flash Image, 9:16, 1K.</p>
           </div>
 
           {!config.paidGenerationEnabled && (
@@ -309,7 +303,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
                   </button>
                 </div>
               </div>
-              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Оставь плейсхолдер <code>[SUBJECT]</code> — туда подставится сюжет из поля выше. Шаблон общий для Sora и Veo.</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Оставь плейсхолдер <code>[SUBJECT]</code> — туда подставится сюжет из поля выше. </p>
               <textarea
                 value={promptTemplate}
                 onChange={(event) => {
@@ -335,9 +329,9 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Формат", isVeo ? `9:16 · ${config.veoSize}` : `9:16 · ${config.soraSize}`],
-              ["Качество", isVeo ? "Flash Image" : config.soraQuality],
-              ["Модель", isVeo ? config.veoModel : config.soraModel],
+              ["Формат", `9:16 · ${config.veoSize}`],
+              ["Качество", "Flash Image"],
+              ["Модель", config.veoModel],
             ].map(([label, value]) => (
               <div key={label} className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4">
                 <p className="text-[11px] uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
@@ -350,7 +344,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
             <div className="flex items-end justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Оценка до запуска</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{isVeo ? "Vertex · Gemini 3.1 Flash Image · ~1120 image tokens." : "OpenAI · gpt-image-1-mini · medium · 1024×1536."}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">Vertex · Gemini 3.1 Flash Image · ~1120 image tokens.</p>
               </div>
               <p className="text-3xl font-black text-[var(--text)]">{usd.format(estimatedPrice)}</p>
             </div>
@@ -365,7 +359,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
 
           <label className="flex cursor-pointer gap-3 rounded-xl border border-red-500/25 bg-red-500/[.035] p-4">
             <input type="checkbox" checked={costConfirmed} onChange={(event) => setCostConfirmed(event.target.checked)} className="mt-1 h-4 w-4 accent-red-500" />
-            <span className="text-sm font-semibold leading-6 text-[var(--text)]">Я подтверждаю платную генерацию {isVeo ? "Veo/Gemini" : "Sora/GPT Image"} с оценочной стоимостью {usd.format(estimatedPrice)}. Подтверждение будет повторно проверено сервером.</span>
+            <span className="text-sm font-semibold leading-6 text-[var(--text)]">Я подтверждаю платную генерацию Veo/Gemini с оценочной стоимостью {usd.format(estimatedPrice)}. Подтверждение будет повторно проверено сервером.</span>
           </label>
 
           <button type="submit" disabled={submitting || subject.trim().length < 2 || !costConfirmed || !config.paidGenerationEnabled} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-45">
@@ -376,7 +370,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
         <aside className={`${card} h-fit p-6`}>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]">{isVeo ? "Veo image worker" : "Sora image worker"}</p>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]">Veo image worker</p>
               <h3 className="mt-1 text-xl font-bold text-[var(--text)]">{worker.online ? "Worker подключён" : "Worker не подключён"}</h3>
               <p className="mt-1 text-xs text-[var(--muted)]">{worker.online ? `${worker.state}${worker.host ? ` · ${worker.host}` : ""}` : "Запустите локальный процесс"}</p>
             </div>
@@ -389,8 +383,8 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
             <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Это отдельный процесс от видео-worker. Видео-пайплайн не менялся.</p>
           </div>
           <div className="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4 text-xs leading-6 text-[var(--muted)]">
-            <p><b className="text-[var(--text)]">Модель:</b> {isVeo ? `${config.veoModel} · Vertex AI` : `${config.soraModel} · Images API`}</p>
-            <p><b className="text-[var(--text)]">Размер:</b> {isVeo ? `${config.veoAspectRatio} · ${config.veoSize}` : `${config.soraSize} · ${config.soraQuality}`}</p>
+            <p><b className="text-[var(--text)]">Модель:</b> {`${config.veoModel} · Vertex AI`}</p>
+            <p><b className="text-[var(--text)]">Размер:</b> {`${config.veoAspectRatio} · ${config.veoSize}`}</p>
             <p><b className="text-[var(--text)]">Выход:</b> JPEG/PNG в Firebase Storage + библиотека</p>
           </div>
         </aside>
@@ -401,7 +395,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
       <section className={`${card} p-6`}>
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">{isVeo ? "История Veo Image" : "История Sora Image"}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">История Veo Image</p>
             <h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Задания и стоимость</h2>
           </div>
           <button type="button" onClick={() => void loadJobs()} className="text-sm font-semibold text-[var(--muted)] underline">Обновить</button>
@@ -409,7 +403,7 @@ export default function AiImageAdminPanel({ user, studio }: { user: User; studio
         {loading ? (
           <div className="mt-6 h-28 animate-pulse rounded-2xl bg-[color-mix(in_srgb,var(--text)_8%,transparent)]" />
         ) : jobs.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--muted)]">{isVeo ? "Veo-картинки ещё не создавались." : "Sora-картинки ещё не создавались."}</div>
+          <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--muted)]">Veo-картинки ещё не создавались.</div>
         ) : (
           <div className="mt-6 space-y-4">
             {jobs.map((job) => (

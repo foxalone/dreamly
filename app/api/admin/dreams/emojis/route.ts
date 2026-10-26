@@ -199,7 +199,7 @@ export async function POST(req: Request) {
       if (target.kind === "guest") {
         const guestSnap = await tx.get(itemRef);
         const guest = guestSnap.data() ?? {};
-        const ingestRef = db.collection("map_ingested").doc(target.guestDreamId);
+        const ingestRef = db.collection("map_ingested").doc(s(guest.mapIngestId) || target.guestDreamId);
         const ingestSnap = await tx.get(ingestRef);
         const ingest = ingestSnap.exists ? ingestSnap.data() ?? {} : null;
         const cityId = s(ingest?.cityId || guest.cityId);

@@ -17,12 +17,6 @@ const LEASE_MS = 90_000;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const workerId = `${hostname()}:${process.pid}:${randomUUID()}`;
 
-const SORA_RATES = {
-  textInputPerMillion: 2,
-  imageInputPerMillion: 2.5,
-  imageOutputPerMillion: 8,
-};
-
 const VEO_RATES = {
   textInputPerMillion: 0.5,
   textOutputPerMillion: 3,
@@ -107,10 +101,6 @@ function initializeFirebase() {
   if (!getApps().length) initializeApp({ credential: googleCredential, storageBucket });
   db = getFirestore();
   bucket = getStorage().bucket(storageBucket);
-}
-
-function openAiKey() {
-  return env("ONEIRO_OPENAI_API_KEY") || requiredEnv("OPENAI_API_KEY");
 }
 
 function workRoot() {
@@ -227,7 +217,8 @@ async function assignDreamPageImage(job, imageUrl) {
 }
 
 async function claimNextJob() {
-  const snapshot = await db.collection(JOBS_COLLECTION).where("status", "in", ["queued", "processing"]).limit(30).get();
+  // Include the full active queue so retired provider jobs cannot hide Veo jobs behind a limit.
+  const snapshot = await db.collection(JOBS_COLLECTION).where("status", "in", ["queued", "processing"]).get();
   const candidates = [...snapshot.docs].sort((left, right) =>
     (left.get("createdAt")?.toMillis?.() ?? 0) - (right.get("createdAt")?.toMillis?.() ?? 0));
   for (const candidate of candidates) {
@@ -236,6 +227,7 @@ async function claimNextJob() {
       const fresh = await transaction.get(candidate.ref);
       if (!fresh.exists) return;
       const data = fresh.data();
+      if (data.provider !== "veo" && !data.retryTelegramOnly) return;
       const status = data.status;
       const leaseExpires = data.leaseExpiresAt?.toMillis?.() ?? 0;
       if (status !== "queued" && !(status === "processing" && leaseExpires < Date.now())) return;
@@ -274,27 +266,6 @@ async function paidJson(url, options, attempts = 3) {
   throw lastError ?? new Error("Paid request failed");
 }
 
-function soraUsageCost(usage, model) {
-  const input = Number(usage?.input_tokens ?? 0);
-  const output = Number(usage?.output_tokens ?? 0);
-  const textInput = Number(usage?.input_tokens_details?.text_tokens ?? input);
-  const imageInput = Number(usage?.input_tokens_details?.image_tokens ?? 0);
-  const usd = tokensToUsd(textInput, SORA_RATES.textInputPerMillion)
-    + tokensToUsd(imageInput, SORA_RATES.imageInputPerMillion)
-    + tokensToUsd(output, SORA_RATES.imageOutputPerMillion);
-  return {
-    tokenUsage: {
-      input,
-      output,
-      total: Number(usage?.total_tokens ?? input + output),
-      imageOutput: output,
-      textOutput: 0,
-      model,
-    },
-    actualCostUsd: roundUsd(usd),
-  };
-}
-
 function veoUsageCost(usage, model) {
   const details = [
     ...(usage?.promptTokensDetails ?? usage?.prompt_tokens_details ?? []),
@@ -321,56 +292,6 @@ function veoUsageCost(usage, model) {
       model,
     },
     actualCostUsd: roundUsd(usd),
-  };
-}
-
-async function generateSoraImage(prompt) {
-  const model = env("SORA_IMAGE_MODEL") || "gpt-image-1-mini";
-  const size = env("SORA_IMAGE_SIZE") || "1024x1536";
-  const quality = env("SORA_IMAGE_QUALITY") || "medium";
-  const body = {
-    model,
-    prompt,
-    size,
-    quality,
-    n: 1,
-    output_format: "jpeg",
-    output_compression: 80,
-  };
-  let payload;
-  try {
-    payload = await paidJson("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openAiKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-      timeoutMs: 180_000,
-    });
-  } catch (error) {
-    if (!String(error?.message || "").includes("HTTP 400")) throw error;
-    payload = await paidJson("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openAiKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model, prompt, size, quality, n: 1 }),
-      timeoutMs: 180_000,
-    });
-  }
-  const encoded = payload?.data?.[0]?.b64_json;
-  if (!encoded) throw new Error("OpenAI image response did not include image data");
-  const { tokenUsage, actualCostUsd } = soraUsageCost(payload.usage, model);
-  return {
-    buffer: Buffer.from(encoded, "base64"),
-    mimeType: "image/jpeg",
-    tokenUsage,
-    actualCostUsd: actualCostUsd || Number(env("SORA_IMAGE_PRICE_USD") || 0.015),
-    model,
-    size,
-    quality,
   };
 }
 
@@ -499,9 +420,8 @@ async function processJob(job) {
     }
 
     await updateJob(reference, { stage: "generating", progress: 15 });
-    const generated = job.provider === "veo"
-      ? await generateVeoImage(job.prompt)
-      : await generateSoraImage(job.prompt);
+    if (job.provider !== "veo") throw new Error("Unsupported image provider");
+    const generated = await generateVeoImage(job.prompt);
     const mimeType = detectImageMime(generated.buffer) || generated.mimeType;
     const filePath = path.join(directory, `image.${extensionFor(mimeType)}`);
     await writeFile(filePath, generated.buffer);
@@ -565,7 +485,6 @@ async function processJob(job) {
 
 async function runCheck() {
   const checks = {
-    openAiKey: Boolean(env("ONEIRO_OPENAI_API_KEY") || env("OPENAI_API_KEY")),
     firebaseCredentials: false,
     storageBucket: Boolean(env("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET")),
     telegramBotToken: Boolean(env("TELEGRAM_BOT_TOKEN")),
@@ -577,17 +496,15 @@ async function runCheck() {
     checks.firebaseCredentials = Boolean(account?.project_id && account?.private_key && account?.client_email);
     checks.vertexAiProject = Boolean(veoImageConfig().projectId);
   } catch {}
-  const required = ["openAiKey", "firebaseCredentials", "storageBucket", "vertexAiProject"];
+  const required = ["firebaseCredentials", "storageBucket", "vertexAiProject"];
   const ok = required.every((key) => checks[key]);
   console.log(JSON.stringify({
     ok,
     readOnly: true,
     checks,
     paidGenerationEnabled: paidGenerationEnabled(),
-    soraModel: env("SORA_IMAGE_MODEL") || "gpt-image-1-mini",
     veoModel: veoImageConfig().model,
     veoLocation: veoImageConfig().location,
-    soraPriceUsd: Number(env("SORA_IMAGE_PRICE_USD") || 0.015),
     veoPriceUsd: Number(env("VEO_IMAGE_PRICE_USD") || 0.07),
   }, null, 2));
   if (!ok) process.exitCode = 1;
@@ -597,7 +514,7 @@ async function main() {
   if (process.argv.includes("--check")) return runCheck();
   initializeFirebase();
   await mkdir(workRoot(), { recursive: true, mode: 0o700 });
-  console.log(`[ai-image-worker] ready on ${hostname()} · GPT Image mini + Gemini Flash Image · paid calls ${paidGenerationEnabled() ? "enabled" : "disabled"}`);
+  console.log(`[ai-image-worker] ready on ${hostname()} · Gemini Flash Image · paid calls ${paidGenerationEnabled() ? "enabled" : "disabled"}`);
   await heartbeat();
   while (!stopping) {
     const job = await claimNextJob();

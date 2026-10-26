@@ -21,7 +21,7 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
     await adminDb().runTransaction(async (transaction) => {
       const snapshot = await transaction.get(reference);
       if (!snapshot.exists) throw new Error("NOT_FOUND");
-      const data = snapshot.data() as { status?: string; imageUrl?: string };
+      const data = snapshot.data() as { provider?: string; status?: string; imageUrl?: string };
       if (action === "telegram") {
         if (data.status !== "completed" || !data.imageUrl) throw new Error("TELEGRAM_NOT_READY");
         transaction.update(reference, {
@@ -37,6 +37,7 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
         });
         return;
       }
+      if (data.provider !== "veo") throw new Error("NOT_RETRYABLE");
       if (data.status !== "failed") throw new Error("NOT_RETRYABLE");
       transaction.update(reference, {
         status: "queued",

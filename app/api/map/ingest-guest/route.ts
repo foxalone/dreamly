@@ -1,3 +1,4 @@
+import { guestDreamSnapshotId } from "@/app/api/dreams/_lib/guestDreamSnapshot";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
@@ -18,7 +19,7 @@ const GUEST_MAP_IP_DAILY_LIMIT = 8;
 type Body = {
   emojis?: { native?: string; id?: string; name?: string }[];
   // Optional snapshot of the guest dream itself, so the admin dashboard can
-  // show guest pins as rows (collection: guest_dreams, doc id = ingestId).
+  // enrich guest analysis rows (collection: guest_dreams).
   text?: string;
   analysis?: string;
   lang?: string;
@@ -108,13 +109,15 @@ export async function POST(req: Request) {
 
     const cityStatsRef = db.collection("city_emoji_stats").doc(geo.cityId);
     const cityDailyRef = db.collection("city_emoji_daily").doc(`${geo.cityId}_${dateKey}`);
-    const guestDreamRef = db.collection("guest_dreams").doc(ingestId);
+    const guestDreamId = dedupText ? guestDreamSnapshotId(guestId, dedupText) : ingestId;
+    const guestDreamRef = db.collection("guest_dreams").doc(guestDreamId);
     const nowMs = Date.now();
 
     await db.runTransaction(async (tx) => {
       const ing = await tx.get(ingestRef);
       if (ing.exists) return;
 
+      const snapshot = await tx.get(guestDreamRef);
       const ipSnap = await tx.get(ipRef);
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
       if (Number.isFinite(ipUsed) && ipUsed >= GUEST_MAP_IP_DAILY_LIMIT) {
@@ -159,7 +162,7 @@ export async function POST(req: Request) {
         uid: null,
         guestId,
         dreamId: null,
-        guestDreamId: ingestId,
+        guestDreamId,
         sourceType: "dream",
         cityId: geo.cityId,
         dateKey,
@@ -168,33 +171,20 @@ export async function POST(req: Request) {
         emojisCount: natives.length,
       });
 
-      // Admin-visible snapshot of the guest dream. Before this existed a guest
-      // pin only bumped city counters and could never be traced back.
+      // Map enrichment must not overwrite the server-verified analysis or flags.
       tx.set(guestDreamRef, {
-        guestId,
-        sourceType: "guest",
-        text: s(body?.text).slice(0, GUEST_TEXT_MAX),
-        analysis: s(body?.analysis).slice(0, GUEST_ANALYSIS_MAX),
-        lang: s(body?.lang) || null,
-        lens: s(body?.lens) || null,
-        emojis: emojiObjs,
-        iconsEn: strList(body?.iconsEn),
-        rootsEn: strList(body?.rootsEn),
-        cityId: geo.cityId,
-        city: geo.city ?? null,
-        country: geo.country ?? null,
-        admin1: geo.admin1 ?? null,
-        citySource: "ip",
-        dateKey,
-        createdAtMs: nowMs,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        shared: false,
-        deleted: false,
-        imported: false,
-        importedUid: null,
-        importedDreamId: null,
-        importedAtMs: null,
-      });
+        ...(!snapshot.exists ? {
+          guestId, sourceType: "guest", text: dedupText.slice(0, GUEST_TEXT_MAX),
+          analysis: s(body?.analysis).slice(0, GUEST_ANALYSIS_MAX),
+          lang: s(body?.lang) || null, lens: s(body?.lens) || null,
+          emojis: emojiObjs, createdAtMs: nowMs,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          shared: false, deleted: false, imported: false,
+        } : {}),
+        iconsEn: strList(body?.iconsEn), rootsEn: strList(body?.rootsEn),
+        cityId: geo.cityId, city: geo.city ?? null, country: geo.country ?? null,
+        admin1: geo.admin1 ?? null, citySource: "ip", dateKey, mapIngestId: ingestId,
+      }, { merge: true });
 
       tx.set(
         ipRef,
@@ -210,7 +200,7 @@ export async function POST(req: Request) {
     if (dedupText) {
       // Link today's text to the created doc, so the next cookie-reset repeat
       // is skipped above.
-      await writeGuestAskDedup(clientIp, dedupText, { guestDreamId: ingestId }).catch(() => {});
+      await writeGuestAskDedup(clientIp, dedupText, { guestDreamId }).catch(() => {});
     }
 
     if (!geo.lat || !geo.lng) {

@@ -6,7 +6,6 @@ import {
   AI_IMAGE_GEMINI_SIZE,
   AI_IMAGE_GOTHIC_PROMPT_TEMPLATE,
   AI_IMAGE_QUALITY,
-  AI_IMAGE_SIZE,
   AI_IMAGE_PROMPT_DOCUMENT,
   AI_IMAGE_SUBJECT_MAX_LENGTH,
   AI_IMAGE_TEMPLATE_MAX_LENGTH,
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Subject must contain 2–${AI_IMAGE_SUBJECT_MAX_LENGTH} characters` }, { status: 400 });
     }
     if (!isAiImageProvider(payload.provider)) {
-      return NextResponse.json({ error: "Provider must be sora or veo" }, { status: 400 });
+      return NextResponse.json({ error: "Provider must be veo" }, { status: 400 });
     }
     if (payload.costConfirmed !== true) {
       return NextResponse.json({ error: "Paid generation must be explicitly confirmed" }, { status: 400 });
@@ -138,8 +137,8 @@ export async function POST(request: Request) {
         budgetReservationStatus: "reserved",
         tokenUsage: null,
         providerUsage: {
-          model: provider === "veo" ? config.veoModel : config.soraModel,
-          size: provider === "veo" ? AI_IMAGE_GEMINI_SIZE : AI_IMAGE_SIZE,
+          model: config.veoModel,
+          size: AI_IMAGE_GEMINI_SIZE,
           quality: AI_IMAGE_QUALITY,
           aspectRatio: AI_IMAGE_ASPECT_RATIO,
         },

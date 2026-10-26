@@ -174,7 +174,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VIDEOS" | "COMBINED_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "SORA_IMAGES" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -209,9 +209,9 @@ function guestRowFromDoc(id: string, data: any): DreamAdmin {
     sharedId: String(data?.sharedId ?? "").trim() || undefined,
     text: data?.text,
     analysis: data?.analysis,
-    analysisModel: "home_ask",
+    analysisModel: data?.analysisModel ?? "home_ask",
     analysisLens: data?.lens ?? null,
-    analysisAtMs: data?.createdAtMs,
+    analysisAtMs: data?.analysisAtMs ?? data?.createdAtMs,
     createdAtMs: data?.createdAtMs,
     dateKey: data?.dateKey,
     shared: false,
@@ -450,11 +450,8 @@ export default function AdminDashboardPage() {
       requested === "FREE_MIX_VIDEOS" ||
       requested === "STOCK_POOL_VIDEOS" ||
       requested === "STOCK_POOL_WIDE_VIDEOS" ||
-      requested === "VIDEOS" ||
-      requested === "COMBINED_VIDEOS" ||
       requested === "VEO_VIDEOS" ||
       requested === "VIDEO_LIBRARY" ||
-      requested === "SORA_IMAGES" ||
       requested === "VEO_IMAGES" ||
       requested === "IMAGE_LIBRARY" ||
       requested === "CONNECTIONS" ||
@@ -1530,20 +1527,14 @@ async function loadUsers() {
               <>Stock Pool · Pexels + Pixabay + Coverr in one pool · AI picks the best clips for the script</>
             ) : tab === "STOCK_POOL_WIDE_VIDEOS" ? (
               <>YouTube 16:9 · horizontal video from Pexels + Pixabay + Coverr · AI picks the best clips · YouTube only</>
-            ) : tab === "VIDEOS" ? (
-              <>Sora 2 Slow · Batch API · English Shorts · private admin studio</>
-            ) : tab === "COMBINED_VIDEOS" ? (
-              <>Combined · one Sora scene + three free stock scenes · English Shorts</>
             ) : tab === "VEO_VIDEOS" ? (
               <>Video · Veo 3.1 Lite · four vertical Vertex AI scenes · English Shorts</>
             ) : tab === "VIDEO_LIBRARY" ? (
-              <>All Videos · Instagram grid · Free · Sora · Combined · Veo</>
-            ) : tab === "SORA_IMAGES" ? (
-              <>Image · Sora · GPT Image mini · same OpenAI key as Sora video</>
+              <>All Videos · Instagram grid · Free · Veo</>
             ) : tab === "VEO_IMAGES" ? (
               <>Image · Veo · Gemini 3.1 Flash Image · same Vertex project as Veo</>
             ) : tab === "IMAGE_LIBRARY" ? (
-              <>All Images · Sora · Veo · approx cost after generation</>
+              <>All Images · Veo · approx cost after generation</>
             ) : tab === "CONNECTIONS" ? (
               <>Social connections · TikTok · Meta · Threads · YouTube · Pinterest · Tumblr</>
             ) : tab === "SOCIAL_MAP" ? (
@@ -1739,30 +1730,6 @@ async function loadUsers() {
         </button>
 
         <button
-          onClick={() => setTab("VIDEOS")}
-          className={[
-            "px-4 py-2 rounded-full text-sm font-semibold transition",
-            tab === "VIDEOS"
-              ? "bg-[var(--text)] text-[var(--bg)]"
-              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-          ].join(" ")}
-        >
-          Sora 2 · Slow
-        </button>
-
-        <button
-          onClick={() => setTab("COMBINED_VIDEOS")}
-          className={[
-            "px-4 py-2 rounded-full text-sm font-semibold transition",
-            tab === "COMBINED_VIDEOS"
-              ? "bg-[var(--text)] text-[var(--bg)]"
-              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-          ].join(" ")}
-        >
-          Combined
-        </button>
-
-        <button
           onClick={() => setTab("VEO_VIDEOS")}
           className={[
             "px-4 py-2 rounded-full text-sm font-semibold transition",
@@ -1784,18 +1751,6 @@ async function loadUsers() {
           ].join(" ")}
         >
           All Videos
-        </button>
-
-        <button
-          onClick={() => setTab("SORA_IMAGES")}
-          className={[
-            "px-4 py-2 rounded-full text-sm font-semibold transition",
-            tab === "SORA_IMAGES"
-              ? "bg-[var(--text)] text-[var(--bg)]"
-              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-          ].join(" ")}
-        >
-          Image · Sora
         </button>
 
         <button
@@ -2552,15 +2507,9 @@ async function loadUsers() {
 
       {tab === "STOCK_POOL_WIDE_VIDEOS" && user && <VideoAdminPanel user={user} studio="pool_wide" />}
 
-      {tab === "VIDEOS" && user && <AiVideoAdminPanel user={user} studio="sora" />}
-
-      {tab === "COMBINED_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="combined" />}
-
       {tab === "VEO_VIDEOS" && user && <AiVideoAdminPanel user={user} studio="veo" />}
 
       {tab === "VIDEO_LIBRARY" && user && <VideoLibraryPanel user={user} />}
-
-      {tab === "SORA_IMAGES" && user && <AiImageAdminPanel user={user} studio="sora" />}
 
       {tab === "VEO_IMAGES" && user && <AiImageAdminPanel user={user} studio="veo" />}
 

@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Topic must contain 5–500 characters" }, { status: 400 });
     }
     if (!isAiVideoMode(payload.mode)) {
-      return NextResponse.json({ error: "Mode must be preview, standard, combined, or veo" }, { status: 400 });
+      return NextResponse.json({ error: "Mode must be veo" }, { status: 400 });
     }
     if (payload.costConfirmed !== true) {
       return NextResponse.json({ error: "Paid generation must be explicitly confirmed" }, { status: 400 });
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
       transaction.create(jobRef, {
         topic,
         mode,
-        provider: mode === "veo" ? "veo" : "sora",
+        provider: "veo",
         language: "en-US",
         status: "queued",
         stage: "queued",
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
         batchStatus: "",
         tokenUsage: null,
         providerUsage: {
-          model: mode === "veo" ? config.veoModel : config.model,
+          model: config.veoModel,
           size: AI_VIDEO_SIZE,
           requestedSeconds: 0,
           generatedSeconds: 0,

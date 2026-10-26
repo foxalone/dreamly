@@ -18,7 +18,7 @@ import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 
-type Phase = "waiting" | "showing" | "granting" | "done" | "unavailable" | "failed";
+type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
 // How long Google gets to render the Offerwall before we give up.
 const APPEAR_TIMEOUT_MS = 12_000;
@@ -103,7 +103,7 @@ export default function AdUnlockClient() {
     return () => clearTimeout(timer);
   }, [phase]);
   useEffect(() => {
-    if (phase !== "granting" || user !== undefined) return;
+    if ((phase !== "granting" && phase !== "checking") || user !== undefined) return;
     const timer = setTimeout(() => {
       report.current?.("ad_auth_timeout");
       setPhase("failed");
@@ -156,7 +156,7 @@ export default function AdUnlockClient() {
         } else if (Date.now() - started > APPEAR_TIMEOUT_MS) {
           trackEvent("offerwall_unavailable", { kind });
           report.current?.("ad_unavailable");
-          setPhase("unavailable");
+          setPhase(kind === "analysis" ? "checking" : "unavailable");
         }
         if (!seen) return;
       }
@@ -264,25 +264,34 @@ export default function AdUnlockClient() {
     };
   }, [phase, user, kind, next, router, sp, locale]);
 
-  // No-fill falls back only for the first guest analysis. The server checks
-  // lifetime and network usage again; subsequent requests stay behind access choices.
+  // Keep loading until the server has decided eligibility. Do not flash access
+  // choices while the first-free fallback is still being checked.
   useEffect(() => {
-    if (phase !== "unavailable" || user !== null || kind !== "analysis") return;
+    if (phase !== "checking" || user === undefined) return;
+    if (user !== null || kind !== "analysis") { setPhase("unavailable"); return; }
     let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20_000);
     void fetch("/api/dreams/guest-ad-reward", {
       method: "POST",
       credentials: "same-origin",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kind: "analysis", noAdAvailable: true, attemptId: pendingAnalysisAttemptId() }),
     }).then(async (res) => {
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!cancelled && data.firstAnalysisFree) {
+      const data = res.ok ? await res.json() : null;
+      if (cancelled) return;
+      if (data?.firstAnalysisFree === true) {
         setPhase("done");
+        report.current?.("ad_resume_started");
         router.replace(next);
+      } else {
+        setPhase("unavailable");
       }
-    }).catch(() => { /* Keep the existing sign-in and return options. */ });
-    return () => { cancelled = true; };
+    }).catch(() => {
+      if (!cancelled) setPhase("failed");
+    }).finally(() => clearTimeout(timeout));
+    return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
   }, [phase, user, kind, next, router]);
 
   async function signIn() {
@@ -337,7 +346,7 @@ export default function AdUnlockClient() {
         <p role="status" className="mt-3 text-sm text-[var(--muted)]">
           {text}
         </p>
-        {phase === "waiting" || phase === "showing" || phase === "granting" ? (
+        {phase === "waiting" || phase === "showing" || phase === "checking" || phase === "granting" ? (
           <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
             <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--text)]/60" />
           </div>

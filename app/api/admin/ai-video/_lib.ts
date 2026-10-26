@@ -34,20 +34,14 @@ export function finiteEnv(name: string, fallback: number, minimum = 0) {
 }
 
 export function aiVideoConfig(): AiVideoPublicConfig {
-  const pricePerSecondUsd = finiteEnv("SORA_BATCH_PRICE_PER_SECOND_USD", 0.05);
   const veoPricePerSecondUsd = finiteEnv("VEO_LITE_PRICE_PER_SECOND_USD", 0.03);
   return {
     paidGenerationEnabled: process.env.AI_VIDEO_PAID_GENERATION_ENABLED?.trim().toLowerCase() === "true",
-    pricePerSecondUsd,
     veoPricePerSecondUsd,
     dailyBudgetUsd: finiteEnv("AI_VIDEO_DAILY_BUDGET_USD", 50),
     maxJobsPerDay: Math.floor(finiteEnv("AI_VIDEO_MAX_JOBS_PER_DAY", 20, 1)),
-    model: process.env.SORA_VIDEO_MODEL?.trim() || "sora-2",
     veoModel: process.env.VEO_VIDEO_MODEL?.trim() || "veo-3.1-lite-generate-001",
     prices: {
-      preview: roundUsd(AI_VIDEO_MODES.preview.generatedSeconds * pricePerSecondUsd),
-      standard: roundUsd(AI_VIDEO_MODES.standard.generatedSeconds * pricePerSecondUsd),
-      combined: roundUsd(AI_VIDEO_MODES.combined.generatedSeconds * pricePerSecondUsd),
       veo: roundUsd(AI_VIDEO_MODES.veo.generatedSeconds * veoPricePerSecondUsd),
     },
   };

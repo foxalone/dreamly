@@ -30,6 +30,7 @@ Avoid cartoon style, anime, childish fantasy, excessive horror, gore, monsters u
 
 The final image should look like part of a **luxurious unified gothic dream dictionary collection**, instantly recognizable as belonging to the same visual world.`;
 
+// Keep historical source values for existing image-library items.
 export type AiImageProvider = "sora" | "veo";
 export type AiImageJobStatus = "queued" | "processing" | "completed" | "failed";
 
@@ -80,18 +81,15 @@ export type AiImagePublicConfig = {
   paidGenerationEnabled: boolean;
   dailyBudgetUsd: number;
   maxJobsPerDay: number;
-  soraModel: string;
   veoModel: string;
-  soraSize: typeof AI_IMAGE_SIZE;
-  soraQuality: typeof AI_IMAGE_QUALITY;
   veoSize: typeof AI_IMAGE_GEMINI_SIZE;
   veoAspectRatio: typeof AI_IMAGE_ASPECT_RATIO;
-  prices: Record<AiImageProvider, number>;
+  prices: Record<"veo", number>;
   promptTemplate: string;
 };
 
-export function isAiImageProvider(value: unknown): value is AiImageProvider {
-  return value === "sora" || value === "veo";
+export function isAiImageProvider(value: unknown): value is "veo" {
+  return value === "veo";
 }
 
 export function roundUsd(value: number) {

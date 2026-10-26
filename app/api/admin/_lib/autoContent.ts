@@ -7,8 +7,6 @@ import {
   AI_IMAGE_GEMINI_SIZE,
   AI_IMAGE_PROMPT_DOCUMENT,
   AI_IMAGE_QUALITY,
-  AI_IMAGE_SIZE,
-  isAiImageProvider,
   normalizePromptTemplate,
   resolveImageGenerationPrompt,
   type AiImageProvider,
@@ -155,7 +153,7 @@ export async function enqueueAutoDictionaryContent(options: {
   preferRequested?: boolean;
 }) {
   const sendToTelegram = options.sendToTelegram !== false;
-  const imageProvider: AiImageProvider = options.imageProvider === "sora" ? "sora" : "veo";
+  const imageProvider = "veo" as const;
   const db = adminDb();
   const requested = options.preferRequested ? await nextRequestedDictionaryVideo(db) : null;
   const requestedEntry = requested ? getDreamEntry(requested.id) : null;
@@ -281,8 +279,8 @@ export async function enqueueAutoDictionaryContent(options: {
       budgetReservationStatus: "reserved",
       tokenUsage: null,
       providerUsage: {
-        model: imageProvider === "veo" ? config.veoModel : config.soraModel,
-        size: imageProvider === "veo" ? AI_IMAGE_GEMINI_SIZE : AI_IMAGE_SIZE,
+        model: config.veoModel,
+        size: AI_IMAGE_GEMINI_SIZE,
         quality: AI_IMAGE_QUALITY,
         aspectRatio: AI_IMAGE_ASPECT_RATIO,
       },

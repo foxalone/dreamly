@@ -22,6 +22,7 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
       const snapshot = await transaction.get(reference);
       if (!snapshot.exists) throw new Error("NOT_FOUND");
       const data = snapshot.data() as {
+        mode?: string;
         status?: string;
         videoUrl?: string;
         sceneStates?: AiVideoSceneState[];
@@ -43,6 +44,7 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
         });
         return;
       }
+      if (data.mode !== "veo") throw new Error("NOT_RETRYABLE");
       if (data.status !== "failed") throw new Error("NOT_RETRYABLE");
       const sceneStates = Array.isArray(data.sceneStates) ? data.sceneStates.map((scene) => ({ ...scene })) : [];
       const providerTaskIds = Array.isArray(data.providerTaskIds) ? [...data.providerTaskIds] : [];

@@ -1,4 +1,5 @@
 // src/app/api/dreams/analyze/route.ts
+import { saveGuestDreamSnapshot } from "../_lib/guestDreamSnapshot";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
@@ -190,6 +191,11 @@ export async function POST(req: Request) {
     const emojiPick = await emojiPromise;
     const fallbackEmojis = emojiPick?.emojis?.length ? [] : (await pickDreamMapVisuals(text).catch(() => null))?.emojis ?? [];
     const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
+
+    if (isGuest && guestId) {
+      await saveGuestDreamSnapshot({ guestId, text, analysis, model, lens, lang, emojis: dreamEmojis })
+        .catch((error) => console.warn("Guest dream snapshot failed", error));
+    }
 
     // Every analysis paid with an ad credit grants its own icons. Free/plan
     // analyses retain the once-per-day rule. Never fails the reading.

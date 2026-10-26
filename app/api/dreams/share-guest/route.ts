@@ -1,3 +1,4 @@
+import { guestDreamSnapshotId } from "../_lib/guestDreamSnapshot";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { dreamPageIndexNowPaths, notifyIndexNow } from "@/lib/indexnow";
@@ -186,11 +187,10 @@ export async function POST(req: Request) {
     // ignores IndexNow — it finds the page through the sitemap.
     void notifyIndexNow(dreamPageIndexNowPaths(sharedId), { reason: "guest-share" });
 
-    // Mark the admin snapshot of today's guest dream (written by
-    // /api/map/ingest-guest when the map pin went through), if there is one.
+    // Mark the matching private analysis record, including dreams without a map city.
     await db
       .collection("guest_dreams")
-      .doc(`guest_${guestId}_${dateKey}`)
+      .doc(guestDreamSnapshotId(guestId, text))
       .update({ shared: true, sharedId, sharedAtMs: nowMs })
       .catch(() => {});
 

@@ -38,20 +38,15 @@ function paidGenerationEnabled() {
 }
 
 export function aiImageConfig(promptTemplate = AI_IMAGE_GOTHIC_PROMPT_TEMPLATE): AiImagePublicConfig {
-  const soraPriceUsd = finiteEnv("SORA_IMAGE_PRICE_USD", 0.015);
   const veoPriceUsd = finiteEnv("VEO_IMAGE_PRICE_USD", 0.07);
   return {
     paidGenerationEnabled: paidGenerationEnabled(),
     dailyBudgetUsd: finiteEnv("AI_IMAGE_DAILY_BUDGET_USD", 10),
     maxJobsPerDay: Math.floor(finiteEnv("AI_IMAGE_MAX_JOBS_PER_DAY", 50, 1)),
-    soraModel: process.env.SORA_IMAGE_MODEL?.trim() || "gpt-image-1-mini",
     veoModel: process.env.VEO_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image",
-    soraSize: AI_IMAGE_SIZE,
-    soraQuality: AI_IMAGE_QUALITY,
     veoSize: AI_IMAGE_GEMINI_SIZE,
     veoAspectRatio: AI_IMAGE_ASPECT_RATIO,
     prices: {
-      sora: roundUsd(soraPriceUsd),
       veo: roundUsd(veoPriceUsd),
     },
     promptTemplate: normalizePromptTemplate(promptTemplate),

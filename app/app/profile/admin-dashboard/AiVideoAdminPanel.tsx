@@ -8,7 +8,6 @@ import {
   AI_VIDEO_MAX_DURATION_SECONDS,
   AI_VIDEO_MODES,
   type AdminAiVideoJob,
-  type AiVideoMode,
   type AiVideoPublicConfig,
 } from "@/lib/adminAiVideo";
 import { isAdminJobActive, useAdminActivePolling } from "./useAdminActivePolling";
@@ -27,13 +26,11 @@ type BudgetStatus = { date: string; reservedUsd: number; jobsCount: number };
 
 const DEFAULT_CONFIG: AiVideoPublicConfig = {
   paidGenerationEnabled: false,
-  pricePerSecondUsd: 0.05,
   veoPricePerSecondUsd: 0.03,
   dailyBudgetUsd: 50,
   maxJobsPerDay: 20,
-  model: "sora-2",
   veoModel: "veo-3.1-lite-generate-001",
-  prices: { preview: 0.2, standard: 1.6, combined: 0.4, veo: 0.96 },
+  prices: { veo: 0.96 },
 };
 
 function statusLabel(status: AdminAiVideoJob["status"]) {
@@ -44,11 +41,9 @@ function statusColor(status: AdminAiVideoJob["status"]) {
   return status === "completed" ? "text-emerald-500 bg-emerald-500/10" : status === "failed" ? "text-red-500 bg-red-500/10" : "text-violet-500 bg-violet-500/10";
 }
 
-export default function AiVideoAdminPanel({ user, studio }: { user: User; studio: "sora" | "combined" | "veo" }) {
-  const isCombined = studio === "combined";
-  const isVeo = studio === "veo";
+export default function AiVideoAdminPanel({ user, studio }: { user: User; studio: "veo" }) {
   const [topic, setTopic] = useState("");
-  const [mode, setMode] = useState<AiVideoMode>(isCombined ? "combined" : isVeo ? "veo" : "preview");
+  const mode = studio;
   const [sendToTelegram, setSendToTelegram] = useState(true);
   const [costConfirmed, setCostConfirmed] = useState(false);
   const [jobs, setJobs] = useState<AdminAiVideoJob[]>([]);
@@ -82,7 +77,7 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
         error?: string;
       };
       if (!response.ok) throw new AdminPollingError(response.status, payload.error || "Не удалось загрузить задания");
-      setJobs((payload.jobs ?? []).filter((job) => isCombined ? job.mode === "combined" : isVeo ? job.mode === "veo" : job.mode === "preview" || job.mode === "standard"));
+      setJobs((payload.jobs ?? []).filter((job) => job.mode === "veo"));
       setConfig(payload.config ?? DEFAULT_CONFIG);
       setBudget(payload.budget ?? { date: "", reservedUsd: 0, jobsCount: 0 });
       setWorker(payload.worker ?? { online: false, lastSeenAt: null, host: "", state: "offline", currentJobId: "" });
@@ -94,7 +89,7 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
       pollGate.current.finish();
       if (!quiet) setLoading(false);
     }
-  }, [isCombined, isVeo, user]);
+  }, [user]);
 
   const quietReload = useCallback(() => {
     return loadJobs(true);
@@ -133,7 +128,7 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
       setBudget((current) => ({ ...current, reservedUsd: current.reservedUsd + payload.job!.estimatedCostUsd, jobsCount: current.jobsCount + 1 }));
       setTopic("");
       setCostConfirmed(false);
-      setNotice({ type: "ok", text: `${isVeo ? "Veo" : "Sora"}-видео поставлено в очередь. Стоимость зарезервирована в дневном лимите.` });
+      setNotice({ type: "ok", text: `Veo-видео поставлено в очередь. Стоимость зарезервирована в дневном лимите.` });
     } catch (error) {
       setNotice({ type: "error", text: error instanceof Error ? error.message : "Ошибка создания задания" });
     } finally {
@@ -208,9 +203,9 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <form onSubmit={submit} className={`${card} space-y-5 p-6`}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">{isCombined ? "AI Video · Combined" : isVeo ? "Video · Veo 3.1 Lite" : "AI Video · Sora 2 Slow"}</p>
-            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">{isCombined ? "Sora + бесплатные стоки" : isVeo ? "YouTube Short через Veo Lite" : "Автоматический YouTube Short"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{isCombined ? "1 сцена Sora → 3 сцены Pexels → озвучка → караоке-субтитры → MP4 → обложка → Telegram." : isVeo ? "Тема → сценарий → 4 вертикальные сцены Veo Lite → озвучка → караоке-субтитры → MP4 → обложка → Telegram." : "Тема → сценарий → Sora-сцены через Batch API → озвучка → караоке-субтитры → MP4 → обложка → Telegram."}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-500">Video · Veo 3.1 Lite</p>
+            <h2 className="mt-2 text-2xl font-bold text-[var(--text)]">YouTube Short через Veo Lite</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Тема → сценарий → 4 вертикальные сцены Veo Lite → озвучка → караоке-субтитры → MP4 → обложка → Telegram.</p>
           </div>
 
           {!config.paidGenerationEnabled && (
@@ -225,36 +220,19 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
             <span className="mt-1 block text-right text-xs text-[var(--muted)]">{topic.length}/500</span>
           </label>
 
-          {!isCombined && !isVeo && <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-[var(--text)]">Режим</legend>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(["preview", "standard"] as const).map((value) => {
-                const details = AI_VIDEO_MODES[value];
-                return (
-                  <label key={value} className={`cursor-pointer rounded-xl border p-4 transition ${mode === value ? "border-violet-500 bg-violet-500/[.06]" : "border-[var(--border)]"}`}>
-                    <span className="flex items-center justify-between gap-2"><span className="font-bold capitalize text-[var(--text)]">{value}</span><input type="radio" name="mode" value={value} checked={mode === value} onChange={() => setMode(value)} className="accent-violet-500" /></span>
-                    <span className="mt-2 block text-xs leading-5 text-[var(--muted)]">{details.sceneCount} {details.sceneCount === 1 ? "сцена" : "сцены"} × {details.sceneSeconds} сек. · {usd.format(config.prices[value])}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </fieldset>}
-
-          {isCombined && <div className="rounded-xl border border-violet-500/30 bg-violet-500/[.06] p-4"><p className="font-bold text-[var(--text)]">Combined · 4 сцены</p><p className="mt-2 text-xs leading-5 text-[var(--muted)]">1 уникальная сцена Sora 2 (8 сек.) + 3 бесплатные вертикальные сцены Pexels. Монтаж, озвучка и субтитры такие же, как в полном режиме.</p></div>}
-
-          {isVeo && <div className="rounded-xl border border-violet-500/30 bg-violet-500/[.06] p-4"><p className="font-bold text-[var(--text)]">Veo 3.1 Lite · 4 сцены</p><p className="mt-2 text-xs leading-5 text-[var(--muted)]">4 уникальные вертикальные сцены по 8 сек. через Vertex AI. Нативный звук отключён: итоговая дорожка использует ту же озвучку и субтитры, что и остальные студии.</p></div>}
+          {<div className="rounded-xl border border-violet-500/30 bg-violet-500/[.06] p-4"><p className="font-bold text-[var(--text)]">Veo 3.1 Lite · 4 сцены</p><p className="mt-2 text-xs leading-5 text-[var(--muted)]">4 уникальные вертикальные сцены по 8 сек. через Vertex AI. Нативный звук отключён: итоговая дорожка использует ту же озвучку и субтитры, что и остальные студии.</p></div>}
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               ["Язык", "English only"],
-              ["Сцены", isCombined ? "1 Sora + 3 stock" : isVeo ? "4 Veo × 8 сек." : `${modeConfig.sceneCount} × ${modeConfig.sceneSeconds} сек.`],
+              ["Сцены", "4 Veo × 8 сек."],
               ["Формат", `9:16 · 720×1280 · ≤${AI_VIDEO_MAX_DURATION_SECONDS} сек.`],
             ].map(([label, value]) => <div key={label} className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4"><p className="text-[11px] uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p><p className="mt-1 text-sm font-bold text-[var(--text)]">{value}</p></div>)}
           </div>
 
           <div className="rounded-2xl border border-violet-500/25 bg-violet-500/[.05] p-4">
-            <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">{isVeo ? "Оценка Veo Lite" : "Оценка Sora Batch"}</p><p className="mt-1 text-sm text-[var(--muted)]">{modeConfig.generatedSeconds} платных сек. × {usd.format(isVeo ? config.veoPricePerSecondUsd : config.pricePerSecondUsd)}/сек.</p></div><p className="text-3xl font-black text-[var(--text)]">{usd.format(estimatedPrice)}</p></div>
-            <p className="mt-2 text-xs font-semibold text-violet-500">{isVeo ? "Vertex AI · Veo 3.1 Lite · 720p · audio off." : "Медленная очередь OpenAI Batch · completion window до 24 часов."}</p>
+            <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">Оценка Veo Lite</p><p className="mt-1 text-sm text-[var(--muted)]">{modeConfig.generatedSeconds} платных сек. × {usd.format(config.veoPricePerSecondUsd)}/сек.</p></div><p className="text-3xl font-black text-[var(--text)]">{usd.format(estimatedPrice)}</p></div>
+            <p className="mt-2 text-xs font-semibold text-violet-500">Vertex AI · Veo 3.1 Lite · 720p · audio off.</p>
             <p className="mt-3 text-xs leading-5 text-[var(--muted)]">Дневной лимит: {usd.format(budget.reservedUsd)} / {usd.format(config.dailyBudgetUsd)} · заданий {budget.jobsCount} / {config.maxJobsPerDay}</p>
           </div>
 
@@ -265,7 +243,7 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
 
           <label className="flex cursor-pointer gap-3 rounded-xl border border-red-500/25 bg-red-500/[.035] p-4">
             <input type="checkbox" checked={costConfirmed} onChange={(event) => setCostConfirmed(event.target.checked)} className="mt-1 h-4 w-4 accent-red-500" />
-            <span className="text-sm font-semibold leading-6 text-[var(--text)]">Я подтверждаю платную генерацию {isVeo ? "Veo" : "Sora"} с оценочной стоимостью {usd.format(estimatedPrice)}. Подтверждение будет повторно проверено сервером.</span>
+            <span className="text-sm font-semibold leading-6 text-[var(--text)]">Я подтверждаю платную генерацию Veo с оценочной стоимостью {usd.format(estimatedPrice)}. Подтверждение будет повторно проверено сервером.</span>
           </label>
 
           <button type="submit" disabled={submitting || topic.trim().length < 5 || !costConfirmed || !config.paidGenerationEnabled} className="rounded-full bg-violet-600 px-6 py-3 text-sm font-bold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-45">
@@ -275,18 +253,18 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
 
         <aside className={`${card} h-fit p-6`}>
           <div className="flex items-center justify-between gap-3">
-            <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]">{isCombined ? "Combined worker" : isVeo ? "Veo worker" : "Sora Batch worker"}</p><h3 className="mt-1 text-xl font-bold text-[var(--text)]">{worker.online ? "Worker подключён" : "Worker не подключён"}</h3><p className="mt-1 text-xs text-[var(--muted)]">{worker.online ? `${worker.state}${worker.host ? ` · ${worker.host}` : ""}` : "Запустите локальный процесс"}</p></div>
+            <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]">Veo worker</p><h3 className="mt-1 text-xl font-bold text-[var(--text)]">{worker.online ? "Worker подключён" : "Worker не подключён"}</h3><p className="mt-1 text-xs text-[var(--muted)]">{worker.online ? `${worker.state}${worker.host ? ` · ${worker.host}` : ""}` : "Запустите локальный процесс"}</p></div>
             <span className={`h-3 w-3 rounded-full ${worker.online ? "bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,.12)]" : "bg-amber-500"}`} />
           </div>
           <div className="mt-5 rounded-2xl border border-[var(--border)] p-4">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text)]">Команда worker</p>
             <code className="mt-3 block overflow-x-auto rounded-xl bg-[var(--text)] px-3 py-3 text-xs text-[var(--bg)]">{WORKER_COMMAND}</code>
             <button type="button" onClick={() => copy("worker", WORKER_COMMAND)} className="mt-3 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text)]">{copied === "worker" ? "Скопировано" : "Скопировать команду"}</button>
-            <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Worker возобновляет сохранённые {isVeo ? "Veo operation ID и готовые локальные сцены" : "Batch ID, Sora video ID, стоковые файлы и готовые локальные сцены"}. Не удаляйте рабочую папку во время незавершённых заданий.</p>
+            <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Worker возобновляет сохранённые Veo operation ID и готовые локальные сцены. Не удаляйте рабочую папку во время незавершённых заданий.</p>
           </div>
           <div className="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--text)_4%,transparent)] p-4 text-xs leading-6 text-[var(--muted)]">
-            <p><b className="text-[var(--text)]">Модель:</b> {isVeo ? `${config.veoModel} · Vertex AI` : `${config.model} · Batch API`}</p>
-            {isCombined && <p><b className="text-[var(--text)]">Стоки:</b> Pexels · бесплатно</p>}
+            <p><b className="text-[var(--text)]">Модель:</b> {`${config.veoModel} · Vertex AI`}</p>
+
             <p><b className="text-[var(--text)]">Размер:</b> 720×1280, 30 fps</p>
             <p><b className="text-[var(--text)]">Выход:</b> H.264 High · yuv420p · AAC</p>
           </div>
@@ -296,8 +274,8 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
       {notice && <p className={`rounded-xl px-4 py-3 text-sm font-semibold ${notice.type === "ok" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>{notice.text}</p>}
 
       <section className={`${card} p-6`}>
-        <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">{isCombined ? "История Combined" : isVeo ? "История Veo Lite" : "История Sora Batch"}</p><h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Задания и публикация</h2></div><button type="button" onClick={() => void loadJobs()} className="text-sm font-semibold text-[var(--muted)] underline">Обновить</button></div>
-        {loading ? <div className="mt-6 h-28 animate-pulse rounded-2xl bg-[color-mix(in_srgb,var(--text)_8%,transparent)]" /> : jobs.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--muted)]">{isCombined ? "Combined-видео ещё не создавались." : isVeo ? "Veo-видео ещё не создавались." : "Sora-видео ещё не создавались."}</div> : (
+        <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-500">История Veo Lite</p><h2 className="mt-1 text-2xl font-bold text-[var(--text)]">Задания и публикация</h2></div><button type="button" onClick={() => void loadJobs()} className="text-sm font-semibold text-[var(--muted)] underline">Обновить</button></div>
+        {loading ? <div className="mt-6 h-28 animate-pulse rounded-2xl bg-[color-mix(in_srgb,var(--text)_8%,transparent)]" /> : jobs.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--muted)]">Veo-видео ещё не создавались.</div> : (
           <div className="mt-6 space-y-4">
             {jobs.map((job) => {
               const metadata = job.youtubeMetadata;
@@ -329,13 +307,11 @@ export default function AiVideoAdminPanel({ user, studio }: { user: User; studio
                   <div className="mt-4 grid gap-2 sm:grid-cols-4">
                     <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Generated</p><p className="mt-1 font-bold text-[var(--text)]">{job.generatedSeconds} sec</p></div>
                     <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Provider cost</p><p className="mt-1 font-bold text-[var(--text)]">{usd.format(job.estimatedCostUsd)}</p></div>
-                    <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{job.provider === "veo" ? "Veo model" : "Sora model"}</p><p className="mt-1 truncate font-bold text-[var(--text)]">{job.providerUsage.model}</p></div>
-                    <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{job.provider === "veo" ? "Veo operations" : "Sora IDs"}</p><p className="mt-1 font-bold text-[var(--text)]">{job.providerTaskIds.filter(Boolean).length}/{job.soraSceneCount}</p></div>
+                    <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Veo model</p><p className="mt-1 truncate font-bold text-[var(--text)]">{job.providerUsage.model}</p></div>
+                    <div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">Veo operations</p><p className="mt-1 font-bold text-[var(--text)]">{job.providerTaskIds.filter(Boolean).length}/{job.soraSceneCount}</p></div>
                   </div>
 
-                  {job.sceneStates.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{job.sceneStates.map((scene) => <span key={scene.index} title={scene.taskId || scene.error || "Not submitted"} className={`rounded-full border px-3 py-1 text-xs font-semibold ${scene.status === "completed" ? "border-emerald-500/30 text-emerald-500" : scene.status === "failed" ? "border-red-500/30 text-red-500" : "border-[var(--border)] text-[var(--muted)]"}`}>{job.provider === "veo" ? "Veo" : "Sora"} {scene.index + 1} · {scene.status} {scene.progress ? `${Math.round(scene.progress)}%` : ""}</span>)}</div>}
-
-                  {job.mode === "combined" && <div className="mt-3 flex flex-wrap gap-2">{Array.from({ length: job.stockSceneCount }, (_, index) => { const asset = job.stockAssets[index]; return <span key={index} title={asset?.sourceUrl || job.stockSearchTerms[index] || "Pexels stock"} className={`rounded-full border px-3 py-1 text-xs font-semibold ${asset ? "border-emerald-500/30 text-emerald-500" : "border-[var(--border)] text-[var(--muted)]"}`}>Stock {index + 1} · {asset ? "ready" : "pending"}</span>; })}</div>}
+                  {job.sceneStates.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{job.sceneStates.map((scene) => <span key={scene.index} title={scene.taskId || scene.error || "Not submitted"} className={`rounded-full border px-3 py-1 text-xs font-semibold ${scene.status === "completed" ? "border-emerald-500/30 text-emerald-500" : scene.status === "failed" ? "border-red-500/30 text-red-500" : "border-[var(--border)] text-[var(--muted)]"}`}>Veo {scene.index + 1} · {scene.status} {scene.progress ? `${Math.round(scene.progress)}%` : ""}</span>)}</div>}
 
                   {job.tokenUsage && <div className="mt-4 grid gap-2 sm:grid-cols-4">{[["Prompt tokens", job.tokenUsage.prompt], ["Completion tokens", job.tokenUsage.completion], ["Total tokens", job.tokenUsage.total]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">{label}</p><p className="mt-1 font-bold text-[var(--text)]">{numberFormatter.format(Number(value))}</p></div>)}<div className="rounded-xl bg-[color-mix(in_srgb,var(--text)_5%,transparent)] px-3 py-2"><p className="text-[11px] uppercase text-[var(--muted)]">LLM</p><p className="mt-1 truncate text-sm font-bold text-[var(--text)]">{job.tokenUsage.model}</p></div></div>}
 

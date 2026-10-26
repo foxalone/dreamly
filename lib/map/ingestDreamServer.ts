@@ -225,6 +225,38 @@ export async function ingestDreamServer(params: {
       resolvedCity = await cityFromHistory(userRef, itemId);
     }
 
+    // Link the matching private guest record even when no map city is available.
+    if (sourceType === "dream" && params.guestId) {
+      const guestId = params.guestId;
+      if (guestId) {
+        try {
+          const snap = await db
+            .collection("guest_dreams")
+            .where("guestId", "==", guestId)
+            .where("imported", "==", false)
+            .get();
+          const newest = snap.docs
+            .filter((d) => String(d.data()?.text ?? "").trim() === String(item.text ?? "").trim())
+            .map((d) => ({ ref: d.ref, createdAtMs: Number(d.data()?.createdAtMs ?? 0) }))
+            .sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
+          if (newest) {
+            await newest.ref.set(
+              {
+                imported: true,
+                importedUid: uid,
+                importedDreamId: itemId,
+                importedAtMs: Date.now(),
+              },
+              { merge: true }
+            );
+          }
+        } catch (e) {
+          console.warn("guest_dreams link failed", e);
+        }
+      }
+    }
+
+
     // Callers without a request IP ask not to ingest a dream with no city at
     // all: the map_ingested marker would lock it out of a later, better ingest.
     if (!resolvedCity.cityId && params.requireCity) {
@@ -367,38 +399,6 @@ export async function ingestDreamServer(params: {
 
     if (resolvedCity.cityId) resolveCityCoordsIfNeeded(params.baseUrl, resolvedCity.cityId);
 
-    // skipCity === true means this dream was first pinned as a guest (homepage
-    // Ask before sign-in) and is now being imported into users/{uid}/dreams.
-    // Link the guest_dreams snapshot to the real document so the admin list
-    // does not show the same dream twice.
-    if (skipCity && sourceType === "dream") {
-      const guestId = params.guestId;
-      if (guestId) {
-        try {
-          const snap = await db
-            .collection("guest_dreams")
-            .where("guestId", "==", guestId)
-            .where("imported", "==", false)
-            .get();
-          const newest = snap.docs
-            .map((d) => ({ ref: d.ref, createdAtMs: Number(d.data()?.createdAtMs ?? 0) }))
-            .sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
-          if (newest) {
-            await newest.ref.set(
-              {
-                imported: true,
-                importedUid: uid,
-                importedDreamId: itemId,
-                importedAtMs: Date.now(),
-              },
-              { merge: true }
-            );
-          }
-        } catch (e) {
-          console.warn("guest_dreams link failed", e);
-        }
-      }
-    }
 
     return {
       ok: true,

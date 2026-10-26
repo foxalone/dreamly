@@ -18,9 +18,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Admin video studios
 
-The admin dashboard contains five separate studios: Free Video, Free Mix, Sora 2 Slow, Combined, and Video · Veo. Free Mix alternates free Pexels and Pixabay footage and keeps a local recent-use ledger to reduce repeated clips. Sora 2 Slow submits every Sora render through the OpenAI Batch API. Combined generates one 8-second Sora scene through Batch and downloads three free Pexels scenes. Video · Veo generates four 8-second portrait clips with `veo-3.1-lite-generate-001` on Vertex AI, with native audio disabled so the clips use the same narration, subtitle, editing, storage, and Telegram pipeline. Paid jobs are backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
+The admin dashboard contains Free Video, Free Mix, Stock Pool, YouTube 16:9, and Video · Veo studios. Free Mix alternates free Pexels and Pixabay footage and keeps a local recent-use ledger to reduce repeated clips. Video · Veo generates four 8-second portrait clips with `veo-3.1-lite-generate-001` on Vertex AI, with native audio disabled so the clips use the same narration, subtitle, editing, storage, and Telegram pipeline. Paid jobs are backed by `adminAiVideoJobs`, a transactionally reserved daily budget, and a resumable local worker. Generated content is English-only. Provider credentials and cost controls remain server-side.
 
-Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. Combined also needs `PEXELS_API_KEY`; when it is omitted, the worker safely reuses the existing key from `MONEYPRINTERTURBO_ROOT/config.toml`. Free Mix needs both Pexels and Pixabay keys and can reuse either key from the same MoneyPrinterTurbo config when the matching environment value is omitted. Video · Veo uses the Firebase service account by default and its project ID unless `VEO_PROJECT_ID` is set; that account must be allowed to call Vertex AI, and the Vertex AI API must be enabled. Veo scenes omit `storageUri` and receive `bytesBase64Encoded` from Vertex so generation does not depend on Vertex service-agent access to the Firebase bucket (which otherwise fails with “Service agents are being provisioned” on fresh projects). The worker also needs `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
+Copy the AI video values from `.env.example` into `.env.local`. Keep `AI_VIDEO_PAID_GENERATION_ENABLED=false` until paid generation is intentionally enabled. Free Mix needs both Pexels and Pixabay keys and can reuse either key from the same MoneyPrinterTurbo config when the matching environment value is omitted. Video · Veo uses the Firebase service account by default and its project ID unless `VEO_PROJECT_ID` is set; that account must be allowed to call Vertex AI, and the Vertex AI API must be enabled. Veo scenes omit `storageUri` and receive `bytesBase64Encoded` from Vertex so generation does not depend on Vertex service-agent access to the Firebase bucket (which otherwise fails with “Service agents are being provisioned” on fresh projects). The worker also needs `ffmpeg` and `ffprobe` on `PATH` (or explicit binary paths).
 
 Start the web app and worker in separate terminals:
 
@@ -41,7 +41,7 @@ npm run ai-video-check
 npm run ai-video-synthetic-test
 ```
 
-At the default Sora Batch price of $0.05/second, Preview reserves $0.20, Standard reserves $1.60, and Combined reserves $0.40. At the default Veo 3.1 Lite video-only 720p price of $0.03/second, Video · Veo reserves $0.96. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction. The worker saves OpenAI Batch IDs and Vertex AI operation names before polling so a restart resumes the same paid submission.
+At the default Veo 3.1 Lite video-only 720p price of $0.03/second, Video · Veo reserves $0.96. The authenticated enqueue API derives pricing and durations from server configuration, requires explicit `costConfirmed=true`, rejects requests while paid generation is disabled, and reserves both dollars and the daily job count in one Firestore transaction. The worker saves Vertex AI operation names before polling so a restart resumes the same paid submission.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -64,7 +64,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Admin image studios
 
-The admin dashboard also has Image · Sora, Image · Veo, and All Images. These reuse the same OpenAI key and Vertex service account as the video studios, but they call cheaper still-image models (`gpt-image-1-mini` and `gemini-3.1-flash-image`) instead of Sora/Veo video. After each job finishes, the card and Telegram caption show the approximate cost from provider usage. Start the image worker in a separate terminal:
+The admin dashboard also has Image · Veo and All Images. Image · Veo reuses the Vertex service account from the video studio and calls the still-image model `gemini-3.1-flash-image`. Existing images and videos remain available in the libraries. After each job finishes, the card and Telegram caption show the approximate cost from provider usage. Start the image worker in a separate terminal:
 
 ```bash
 npm run ai-image-worker
