@@ -271,16 +271,16 @@ export default function DreamSearch({ items }: { items: DreamSearchItem[] }) {
       >
         <MoonStar size={18} className="shrink-0 text-[var(--dd-accent-text)]" aria-hidden="true" />
         <label htmlFor="dream-ai-query" className="sr-only">{t.dictionary.askLabel}</label>
-        <input
+        <textarea
           id="dream-ai-query"
-          type="text"
+          rows={2}
           value={aiQuery}
           disabled={ask.busy}
           onChange={(event) => setAiQuery(event.target.value)}
           placeholder={t.dictionary.askPlaceholder}
           autoComplete="off"
           maxLength={DREAM_MAX_CHARS}
-          className="min-w-0 flex-1 bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"
+          className="min-w-0 flex-1 resize-y bg-transparent text-sm text-[var(--dd-text)] outline-none placeholder:text-[var(--dd-subtle)]"
         />
         <button
           type="submit"

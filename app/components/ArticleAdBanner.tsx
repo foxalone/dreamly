@@ -77,11 +77,13 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
     const observer = new ResizeObserver(requestAd);
     observer.observe(element);
     if (gridCard && cardSlot.current) observer.observe(cardSlot.current);
+    // Start fetching before scrolling reaches the placement, leaving time
+    // for Google's response and creative rendering without requesting the whole page.
     const intersection = lazy && typeof IntersectionObserver !== "undefined"
       ? new IntersectionObserver((entries) => {
         visible = entries.some((entry) => entry.isIntersecting);
         requestAd();
-      }, { rootMargin: "200px" })
+      }, { rootMargin: "1200px 0px" })
       : null;
     intersection?.observe(element);
     return () => {

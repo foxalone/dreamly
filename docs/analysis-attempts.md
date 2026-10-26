@@ -73,6 +73,14 @@ overlay alone still does not prove a video was completed: the server access even
 means the reward endpoint accepted the grant under the existing reward model.
 
 The analysis response ID is carried through the local queue and journal import.
+Guest full-dream Offerwall sessions also keep a session receipt tied to the selected
+dream and pending action timestamp. A new Google entitlement can complete the
+session even if the Funding Choices wrapper remains in the DOM. On pagehide and
+return/pageshow, the receipt preserves completion across Safari navigation and
+cache restoration; the ad page reuses the original reward ID when booking access.
+A recorded successful grant routes back to the journal without another grant.
+Merely leaving the page, elapsed time, or an unchanged prior entitlement does not
+complete a session. No completion is inferred for ordinary interstitial ads.
 An explicit retry ID is reused only for its owning guest/account and matching
 text, language and lens, including across UTC midnight. Changed content or an
 unowned ID cannot attach a request to that history.

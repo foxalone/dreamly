@@ -11,6 +11,7 @@ import AppI18n from "@/lib/i18n/AppI18n";
 import PwaLaunch from "./components/PwaLaunch";
 import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
 import PaywallHost from "./components/PaywallHost";
+import AdUnlockRecovery from "./components/AdUnlockRecovery";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
 // because Google started returning extensionless /l/font?kit= URLs that break the Turbopack
@@ -77,6 +78,7 @@ export default function RootLayout({
         <FirebaseAnalytics />
         <SymbolClickTracker />
         <GoogleRedirectHandler />
+        <AdUnlockRecovery />
         <AppI18n>
           <PwaLaunch>
             {children}

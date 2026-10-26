@@ -17,6 +17,7 @@ import { getMessages } from "@/lib/i18n/messages";
 import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
+import { recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -91,6 +92,7 @@ export default function AdUnlockClient() {
   useEffect(() => {
     if (kind !== "analysis") return;
     const leave = () => {
+      recoverOfferwallSession(document.cookie);
       if (phaseRef.current !== "done") report.current?.("ad_page_left");
     };
     window.addEventListener("pagehide", leave);
@@ -143,13 +145,28 @@ export default function AdUnlockClient() {
   // Watch the DOM for the Offerwall overlay.
   useEffect(() => {
     if (phase !== "waiting" && phase !== "showing") return;
+    const saved = kind === "analysis" ? startOfferwallSession(next, rewardId.current, document.cookie) : null;
+    if (saved) rewardId.current = saved.rewardId;
+    // A remembered appearance is not completion: after a reload Google may
+    // still need to resume an unfinished ad.
     let seen = phase === "showing";
     const started = Date.now();
     const tick = () => {
+      const recovered = kind === "analysis" ? recoverOfferwallSession(document.cookie) : null;
+      if (recovered?.status === "granted") {
+        setPhase("done");
+        router.replace(recovered.next);
+        return;
+      }
+      if (recovered?.status === "completed") {
+        setPhase("granting");
+        return;
+      }
       const visible = offerwallVisible();
       if (!seen) {
         if (visible) {
           seen = true;
+          if (kind === "analysis") updateOfferwallSession({ shown: true });
           trackEvent("offerwall_shown", { kind });
           report.current?.("ad_shown");
           setPhase("showing");
@@ -166,6 +183,7 @@ export default function AdUnlockClient() {
         trackEvent("offerwall_auto_start", { kind });
       }
       if (!visible) {
+        if (kind === "analysis") updateOfferwallSession({ status: "completed" });
         report.current?.("ad_overlay_closed");
         const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
         setPhase(kind === "horoscope" && !entitled ? "failed" : "granting");
@@ -247,6 +265,7 @@ export default function AdUnlockClient() {
         }
         report.current?.("ad_reward_confirmed");
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
+        if (kind === "analysis") updateOfferwallSession({ status: "granted" });
         clearOfferwallEntitlement();
         setPhase("done");
         report.current?.("ad_resume_started");
