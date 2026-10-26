@@ -35,6 +35,8 @@ import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import MoonClicks from "./MoonClicks";
+import HoroscopeRequests from "./HoroscopeRequests";
+import { adminHoroscopeRequestsCopy } from "@/lib/i18n/adminHoroscopeRequests";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import EmojiDictionaryPanel from "./EmojiDictionaryPanel";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -174,7 +176,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "HOROSCOPE_REQUESTS" | "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -425,7 +427,9 @@ async function readRtdbNum(path: string): Promise<number> {
 }
 
 export default function AdminDashboardPage() {
-  const emojiCopy = emojiDictionaryCopy[useLocale()];
+  const locale = useLocale();
+  const emojiCopy = emojiDictionaryCopy[locale];
+  const horoscopeRequestsCopy = adminHoroscopeRequestsCopy[locale];
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -435,6 +439,7 @@ export default function AdminDashboardPage() {
     const params = new URLSearchParams(window.location.search);
     const requested = params.get("tab");
     if (
+      requested === "HOROSCOPE_REQUESTS" ||
       requested === "DREAMS" ||
       requested === "EMOJIS" ||
       requested === "CONFIG" ||
@@ -1501,6 +1506,8 @@ async function loadUsers() {
                 <span className="font-mono">dictionary_search_queries</span> +{" "}
                 <span className="font-mono">quick_symbol_queries</span>)
               </>
+            ) : tab === "HOROSCOPE_REQUESTS" ? (
+              <>{horoscopeRequestsCopy.note}</>
             ) : tab === "SYMBOL_CLICKS" ? (
               <>
                 Symbol icon clicks (Firestore:{" "}
@@ -1564,6 +1571,11 @@ async function loadUsers() {
 
       {/* Tabs */}
       <div className="mt-5 flex w-fit flex-wrap rounded-3xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
+        <button type="button" onClick={() => setTab("HOROSCOPE_REQUESTS")} aria-pressed={tab === "HOROSCOPE_REQUESTS"}
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tab === "HOROSCOPE_REQUESTS" ? "bg-[var(--text)] text-[var(--bg)]" : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]"}`}>
+          {horoscopeRequestsCopy.title}
+        </button>
+
         <button
           onClick={() => setTab("DREAMS")}
           className={[
@@ -2480,6 +2492,7 @@ async function loadUsers() {
         </>
       )}
 
+      {tab === "HOROSCOPE_REQUESTS" && user && isAdmin ? <HoroscopeRequests user={user} /> : null}
       {tab === "SYMBOL_CLICKS" && <DictionarySymbolClicks />}
       {tab === "EMOJI_DICTIONARY" && <EmojiDictionaryPanel />}
 

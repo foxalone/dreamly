@@ -17,6 +17,7 @@ import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
 import HomeRandomDreams from "@/app/components/HomeRandomDreams";
+import HomeHoroscope from "@/app/components/HomeHoroscope";
 import HomeUniverse from "@/app/components/HomeUniverse";
 import HomeHero from "@/app/components/HomeHero";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
@@ -141,6 +142,12 @@ export default function HomeView({ locale }: { locale: Locale }) {
       </section>
 
       <HomeRandomDreams locale={locale} />
+
+      <div className="mx-auto max-w-4xl pb-20">
+        <ArticleAdBanner locale={locale} slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+      </div>
+
+      <HomeHoroscope locale={locale} />
 
       <section aria-labelledby="faq-title" className="mx-auto max-w-3xl pb-20">
         <h2 id="faq-title" className="text-center text-2xl sm:text-3xl font-semibold tracking-tight">{t.home.faqTitle}</h2>

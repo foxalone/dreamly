@@ -1,0 +1,30 @@
+.section { max-width:56rem; margin:0 auto; padding-bottom:5rem; scroll-margin-top:2rem }
+.card { overflow:hidden; border:1px solid #b7a1e538; border-radius:2rem; background:radial-gradient(ellipse at 85% 20%,#51316a55,transparent 60%),#110d1e; color:#f6f0ff }
+.intro { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); align-items:center; gap:1.5rem; padding:2.5rem }
+.eyebrow { display:flex; align-items:center; gap:.5rem; margin:0 0 1rem; color:#e8c779; font-size:.75rem; letter-spacing:.1em }
+.copy h2 { margin:0; font-family:Georgia,serif; font-size:clamp(2rem,4vw,3rem); font-weight:400; line-height:1.15; text-wrap:balance }
+.lead { margin:1rem 0; max-width:26rem; color:#c5bcd4; font-size:1rem; line-height:1.7 }
+.topics { display:flex; flex-wrap:wrap; gap:.5rem; padding:0; margin:0 0 1.5rem; list-style:none }
+.topics li { padding:.35rem .65rem; border:1px solid #d4b1ff26; border-radius:.6rem; color:#d9cfe5; font-size:.75rem }
+.cta { display:inline-flex; align-items:center; justify-content:center; gap:.75rem; min-height:44px; padding:.75rem 1.1rem; border-radius:.85rem; background:#e8c779; color:#261a33; font-size:.875rem; font-weight:600; text-decoration:none }
+.cta:hover { background:#f4d997 }
+.cta:focus-visible,.signs a:focus-visible { outline:2px solid #e8c779; outline-offset:4px }
+.art { color:#e8c779; width:100%; max-width:300px; justify-self:center; filter:drop-shadow(0 0 30px #ac78d044) }
+.art svg { display:block; width:100%; height:auto }
+.art :global(.hc-orbit) { fill:none; stroke:currentColor; stroke-width:.6; opacity:.3 }
+.art :global(.hc-orbit-inner) { stroke-dasharray:1 9 }
+.art :global(.hc-tick) { stroke:currentColor; stroke-width:.6; opacity:.4 }
+.art :global(.hc-dust) { fill:#e8daff; opacity:.6 }
+.art :global(.hc-wheel) text { fill:currentColor; font-size:18px }
+.art :global(.hc-wheel) path { fill:#c5a7ff22; stroke:currentColor; stroke-width:.6 }
+.signs { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.5rem; padding:1.5rem 2rem 2rem; border-top:1px solid #d4b1ff1a }
+.signs a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; min-height:70px; border:1px solid transparent; border-radius:.75rem; padding:.5rem .2rem; color:#d9cfe5; font-size:.75rem; text-decoration:none; text-align:center; overflow-wrap:anywhere }
+.signs a span { color:#e8c779; font-size:1.4rem }
+.signs a:hover { border-color:#d4b1ff44; background:#ffffff08 }
+[dir="rtl"] .cta svg { transform:rotate(180deg) }
+@media(max-width:640px) {
+  .card { border-radius:1.5rem }
+  .intro { grid-template-columns:1fr; gap:1rem; padding:1.75rem 1.25rem }
+  .art { max-width:200px; grid-row:1 }
+  .signs { grid-template-columns:repeat(3,minmax(0,1fr)); padding:1rem }
+}

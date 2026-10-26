@@ -1,0 +1,8 @@
+.composer > div { margin-top:0; height:100%; }
+.composer form { display:flex; flex:1; flex-direction:column; min-height:360px; }
+.composer textarea { flex:1; min-height:176px; }
+/* Both cards set the grid row's natural height, including wrapped translations. */
+@media(min-width:1024px) {
+  .widgets { min-height:400px; }
+  .composer > div { max-width:none; }
+}

@@ -16,6 +16,7 @@ export default function HomeExploreCard() {
     { href: "/app/shared", emoji: "🌙", label: t.nav.feed },
     { href: "/app/map", emoji: "🗺️", label: t.nav.map },
     { href: "/gallery", emoji: "🎨", label: t.nav.gallery },
+    { href: "/horoscope", emoji: "✨", label: t.nav.horoscope },
     { href: "/app/game", emoji: "🪄", label: t.game.title },
   ];
 
@@ -42,9 +43,9 @@ export default function HomeExploreCard() {
             href={l.href}
             onClick={() => trackEvent("home_explore", { action: "link", href: l.href })}
             style={{ "--hx-i": i, "--hx-n": links.length } as React.CSSProperties}
-            className="hx flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-violet-500/10"
+            className="hx flex min-h-11 shrink-0 items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-violet-500/10"
           >
-            <span aria-hidden="true" className="text-base leading-none">{l.emoji}</span>
+            <span aria-hidden="true" className="shrink-0 text-base leading-none">{l.emoji}</span>
             {l.label}
           </LocaleLink>
         ))}

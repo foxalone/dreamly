@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import HomeDreamAsk from "./HomeDreamAsk";
 import HomeExploreCard from "./HomeExploreCard";
+import styles from "./HomeHero.module.css";
 
 export default function HomeHero() {
   const t = useMessages();
@@ -32,16 +33,12 @@ export default function HomeHero() {
           <h1 className="text-xl font-medium sm:text-2xl">{t.home.h1}</h1>
           <p className="mt-6 text-base text-[var(--muted)] sm:text-lg">{t.home.lead}</p>
           {/* 3/4 — the ask form, 1/4 — a way in for visitors who just want to look around. */}
-          <div className="mt-2 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-4">
-            <div className="lg:col-span-3 [&>div]:lg:max-w-none">
+          <div className={`mt-12 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-4 ${styles.widgets}`}>
+            <div className={`min-w-0 lg:col-span-3 ${styles.composer}`}>
               <HomeDreamAsk onResultChange={setHasResult} />
             </div>
-            {/* lg: absolutely filled cell — the card takes exactly the form's height
-                instead of setting the row height itself. */}
-            <div className="mt-4 lg:relative lg:mt-10">
-              <div className="lg:absolute lg:inset-0">
-                <HomeExploreCard />
-              </div>
+            <div className="min-w-0">
+              <HomeExploreCard />
             </div>
           </div>
         </div>
