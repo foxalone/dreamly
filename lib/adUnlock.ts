@@ -72,6 +72,15 @@ export function clearAdUnlockPending() {
   }
 }
 
+/** Keep an ad retry attached when a cached dream becomes an account document. */
+export function bindAdUnlockDream(text: string, dreamId: string) {
+  try {
+    const pending = peekAdUnlockPending("analysis");
+    if (pending?.dreamText !== text || pending.quickSymbol) return;
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...pending, dreamId, dreamText: undefined }));
+  } catch { /* The saved dream remains available for a manual retry. */ }
+}
+
 /** A navigation back is not a grant. Keep the action until access is confirmed. */
 export function markAdUnlockReady() {
   try {

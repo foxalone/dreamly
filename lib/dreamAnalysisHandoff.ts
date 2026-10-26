@@ -2,10 +2,15 @@ import type { Locale } from "./i18n/config";
 import { localePath } from "./i18n/path";
 import type { DreamLens } from "./dream-lenses";
 import { readHomeDreamQueue, writeHomeDreamPending } from "./homeDreamPending";
-import { peekAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
+import { clearAdUnlockPending, peekAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
 
 /** All full-dream entry points hand the request to the journal before calling AI. */
 export function queueDreamAnalysis(text: string, locale: Locale, lens: DreamLens, shareToFeed: boolean) {
+  // A fresh submission supersedes an abandoned ad journey for an older dream.
+  clearAdUnlockPending();
+  for (const pending of readHomeDreamQueue()) {
+    if (pending.resumeAnalysis) writeHomeDreamPending(pending.text, { resumeAnalysis: false });
+  }
   writeHomeDreamPending(text, { analysis: "", resumeAnalysis: true, lang: locale, lens, shareToFeed });
   return localePath("/app/dreams", locale);
 }

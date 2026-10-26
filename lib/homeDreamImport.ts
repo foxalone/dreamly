@@ -2,6 +2,7 @@ import { getDoc, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firest
 import type { User } from "firebase/auth";
 import { firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
+import { bindAdUnlockDream } from "@/lib/adUnlock";
 import { pickDreamMapVisuals, type DreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
@@ -212,6 +213,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
     // A reload after the remote save must not consume another slot or overwrite it.
     const existing = await getDoc(doc(firestore, "users", user.uid, "dreams", dreamId));
     if (existing.exists()) {
+      bindAdUnlockDream(text, dreamId);
       removeHomeDreamPending(pending);
       return {
         status: "imported", dreamId, shared: existing.data().shared === true,
@@ -290,6 +292,7 @@ async function importOnce(user: User): Promise<HomeDreamImportResult> {
         : {}),
     });
 
+    bindAdUnlockDream(text, dreamId);
     removeHomeDreamPending(pending);
 
     // An explicit anonymous share as a guest counts even with the map box unticked.

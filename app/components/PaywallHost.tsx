@@ -84,7 +84,7 @@ export default function PaywallHost() {
       source={req.source}
       title={copy.title}
       body={copy.body}
-      rewarded={adEligible ? { label: adLabel, kind: req.kind, analysisDreamId: req.analysisDreamId, translation: req.translation } : null}
+      rewarded={adEligible ? { label: adLabel, kind: req.kind, analysisDreamId: req.analysisDreamId, analysisDreamText: req.analysisDreamText, translation: req.translation } : null}
     />
   );
 }

@@ -18,6 +18,7 @@ import { localePath, localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
+import { offerwallVisible } from "@/lib/offerwallVisibility";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -50,16 +51,6 @@ function clickOfferwallCta(): boolean {
         return true;
       }
     }
-  }
-  return false;
-}
-
-function offerwallVisible(): boolean {
-  const nodes = document.querySelectorAll<HTMLElement>('[class*="fc-"], [id^="fc-"]');
-  for (const el of nodes) {
-    if (!isOfferwallElement(el)) continue;
-    const r = el.getBoundingClientRect();
-    if (r.width * r.height > 10_000 && getComputedStyle(el).visibility !== "hidden") return true;
   }
   return false;
 }

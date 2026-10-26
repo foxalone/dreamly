@@ -94,6 +94,9 @@ export function useDreamAsk({
       onResultChange?.(true);
     }
     const resume = () => {
+      // Only the journal card owns this request. A restored homepage form
+      // must not consume it before the destination has mounted.
+      if (!initialDream || window.location.pathname.replace(/\/$/, "") !== localePath("/app/dreams", locale)) return;
       if (!pending.analysis && takeDreamAnalysisResume(pending.text)) {
         // Only server-confirmed access may consume the retry. Also resume when
         // Safari restores this mounted card from its back/forward cache.
@@ -267,6 +270,7 @@ export function useDreamAsk({
             kind: "analysis",
             reason: data?.code === "FREE_DAILY_LIMIT" ? "daily" : "limit",
             source,
+            analysisDreamText: dream,
             retry: () => void submitRef.current(),
           });
           return;
