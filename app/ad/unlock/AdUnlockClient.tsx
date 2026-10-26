@@ -81,11 +81,35 @@ export default function AdUnlockClient() {
   const [signInBusy, setSignInBusy] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
   const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
   useEffect(() => {
     if (kind !== "analysis" || report.current) return;
     report.current = analysisAttemptReporter();
     report.current("ad_page_opened");
   }, [kind]);
+  useEffect(() => {
+    if (kind !== "analysis") return;
+    const leave = () => {
+      if (phaseRef.current !== "done") report.current?.("ad_page_left");
+    };
+    window.addEventListener("pagehide", leave);
+    return () => window.removeEventListener("pagehide", leave);
+  }, [kind]);
+  // Record a stalled overlay without mistaking elapsed time for ad completion.
+  useEffect(() => {
+    if (phase !== "showing") return;
+    const timer = setTimeout(() => report.current?.("ad_stalled"), 180_000);
+    return () => clearTimeout(timer);
+  }, [phase]);
+  useEffect(() => {
+    if (phase !== "granting" || user !== undefined) return;
+    const timer = setTimeout(() => {
+      report.current?.("ad_auth_timeout");
+      setPhase("failed");
+    }, 20_000);
+    return () => clearTimeout(timer);
+  }, [phase, user]);
   useEffect(() => {
     if (kind === "analysis" && user === null && (phase === "unavailable" || phase === "failed")) report.current?.("ad_signin_available");
   }, [kind, user, phase]);
@@ -142,6 +166,7 @@ export default function AdUnlockClient() {
         trackEvent("offerwall_auto_start", { kind });
       }
       if (!visible) {
+        report.current?.("ad_overlay_closed");
         const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
         setPhase(kind === "horoscope" && !entitled ? "failed" : "granting");
       }
@@ -174,6 +199,15 @@ export default function AdUnlockClient() {
         : null;
     if (kind === "translate" && !translation) { setPhase("failed"); return; }
     let cancelled = false;
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      report.current?.("ad_grant_timeout");
+      if (!cancelled) setPhase("failed");
+    }, 20_000);
+    report.current?.("ad_grant_started");
     (async () => {
       try {
         let res: Response;
@@ -186,6 +220,7 @@ export default function AdUnlockClient() {
           res = await fetch("/api/dreams/ad-reward", {
             method: "POST",
             keepalive: true,
+            signal: controller.signal,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
           });
@@ -194,13 +229,14 @@ export default function AdUnlockClient() {
             method: "POST",
             credentials: "same-origin",
             keepalive: true,
+            signal: controller.signal,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
           });
         }
         if (cancelled) return;
         if (!res.ok) {
-          report.current?.("ad_reward_failed");
+          report.current?.("ad_grant_rejected", { httpStatus: res.status });
           trackEvent("offerwall_grant_failed", { kind, status: res.status });
           setPhase("failed");
           return;
@@ -213,14 +249,18 @@ export default function AdUnlockClient() {
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
         clearOfferwallEntitlement();
         setPhase("done");
+        report.current?.("ad_resume_started");
         router.replace(next);
       } catch {
-        report.current?.("ad_reward_failed");
+        if (!timedOut) report.current?.("ad_grant_network_failed");
         if (!cancelled) setPhase("failed");
+      } finally {
+        clearTimeout(timeout);
       }
     })();
     return () => {
       cancelled = true;
+      // A pending grant may still succeed after navigation; do not abort it.
     };
   }, [phase, user, kind, next, router, sp, locale]);
 
@@ -233,7 +273,7 @@ export default function AdUnlockClient() {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),
+      body: JSON.stringify({ kind: "analysis", noAdAvailable: true, attemptId: pendingAnalysisAttemptId() }),
     }).then(async (res) => {
       if (!res.ok) return;
       const data = await res.json();

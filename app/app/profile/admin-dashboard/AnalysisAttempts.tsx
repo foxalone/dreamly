@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ANALYSIS_ATTEMPT_COPY } from "@/lib/i18n/analysisAttempts";
+import { ANALYSIS_DIAGNOSIS_COPY } from "@/lib/i18n/analysisDiagnosis";
+import { analysisDiagnosis } from "@/lib/analysisDiagnosis";
 
 type Row = {
   city?: string; country?: string; admin1?: string; citySource?: string;
@@ -17,6 +19,12 @@ type Row = {
 export default function AnalysisAttempts() {
   const locale = useLocale();
   const t = ANALYSIS_ATTEMPT_COPY[locale];
+  const diagnosisCopy = ANALYSIS_DIAGNOSIS_COPY[locale];
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -38,7 +46,7 @@ export default function AnalysisAttempts() {
   useEffect(() => { void load(); }, [load]);
   const reason = (row: Row) => row.status === "succeeded" ? t.reasons.analysis_ready : t.reasons[row.reason as keyof typeof t.reasons] ?? t.reasons.unknown;
   const visible = rows.filter((row) => (completed || row.status !== "succeeded") &&
-    [row.text, row.uid, row.guestId, row.id, row.city, row.country, row.admin1, row.source, row.dreamId, reason(row)].join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
+    [row.text, row.uid, row.guestId, row.id, row.city, row.country, row.admin1, row.source, row.dreamId, reason(row), diagnosisCopy[analysisDiagnosis(row, now).code], diagnosisCopy[analysisDiagnosis(row, now).kind]].join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   return (
     <section className="mt-6 rounded-2xl border border-[var(--border)] p-4" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -54,6 +62,7 @@ export default function AnalysisAttempts() {
       <div className="mt-3 max-h-[36rem] space-y-3 overflow-y-auto">
         {!visible.length && !loading ? <p className="text-sm text-[var(--muted)]">{t.empty}</p> : null}
         {visible.map((row) => {
+          const diagnosis = analysisDiagnosis(row, now);
           const authEvent = [...(row.events ?? [])].reverse().find((item) => item.event.startsWith("auth_"))?.event
             ?? (row.lastEvent?.startsWith("auth_") ? row.lastEvent : undefined);
           return (
@@ -70,6 +79,14 @@ export default function AnalysisAttempts() {
             {row.emojis?.length ? <p className="mt-2">{row.emojis.map((e) => e.native).join(" ")}</p> : null}
             <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{row.text}</p>
             <p className={`mt-2 font-medium ${row.status === "succeeded" ? "text-green-500" : "text-amber-500"}`}>{row.displayedAtMs ? t.reasons.analysis_displayed : reason(row)}</p>
+            <div className={`mt-2 rounded-lg border p-2 ${diagnosis.kind === "service" ? "border-red-500/50" : "border-[var(--border)]"}`}>
+              <p className="font-medium">{diagnosisCopy.title}: {diagnosisCopy[diagnosis.kind]}</p>
+              {diagnosis.code !== diagnosis.kind ? <p className="mt-1 text-xs">{diagnosisCopy[diagnosis.code]}</p> : null}
+              {diagnosis.evidence ? <p className="mt-1 text-xs font-medium">
+                {t.reasons[diagnosis.evidence.event as keyof typeof t.reasons] ?? t.reasons.unknown}
+                {diagnosis.evidence.httpStatus ? ` · HTTP ${diagnosis.evidence.httpStatus}` : ""}
+              </p> : null}
+            </div>
             {row.status === "succeeded" && !row.displayedAtMs ? <p className="mt-1 text-xs text-[var(--muted)]">{t.displayUnknown}</p> : null}
             <p className="mt-1 text-xs text-[var(--muted)]">{t.signIn}: {authEvent ? t.reasons[authEvent as keyof typeof t.reasons] ?? t.reasons.unknown : t.noSignIn}</p>
             <p className="mt-1 text-xs text-[var(--muted)]">{t.requests}: {row.requestCount ?? 1}{row.clientReported ? ` · ${t.browser}` : ""}</p>

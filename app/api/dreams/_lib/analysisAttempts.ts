@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
-import { appendAttemptEvent, analysisAttemptContext, analysisAttemptResult } from "@/lib/analysisAttempts";
+import { attemptEventDetails, appendAttemptEvent, analysisAttemptContext, analysisAttemptResult } from "@/lib/analysisAttempts";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { attemptOutcome, clientAttemptUpdate, ownsAnalysisAttempt, type AttemptEvent } from "@/lib/analysisAttempts";
 
@@ -42,7 +42,7 @@ export async function finishAnalysisAttempt(id: string | null, status: number, c
   } catch (error) { console.warn("Analysis attempt result logging failed", error); }
 }
 
-export async function reportAttemptEvent(id: string, uid: string | null, guestId: string | null, event: AttemptEvent) {
+export async function reportAttemptEvent(id: string, uid: string | null, guestId: string | null, event: AttemptEvent, details?: unknown) {
   const db = adminFirestore();
   return db.runTransaction(async (tx) => {
     const ref = db.collection("analysis_attempts").doc(id);
@@ -51,15 +51,15 @@ export async function reportAttemptEvent(id: string, uid: string | null, guestId
     const update = clientAttemptUpdate(row, event);
     const now = Date.now();
     if (event === "analysis_displayed" && (row.status !== "succeeded" || row.displayedAtMs)) return true;
-    tx.update(ref, { ...update, events: appendAttemptEvent(row, event, "browser", now),
+    tx.update(ref, { ...update, events: appendAttemptEvent(row, event, "browser", now, attemptEventDetails(details)),
       ...(event === "analysis_displayed" ? { displayedAtMs: now } : {}),
       ...(update ? { clientReported: true } : {}), updatedAtMs: now });
     return true;
   });
 }
 
-/** Server evidence of granted access or a consumed quota slot, with ownership checked. */
-export async function recordAttemptAccess(id: unknown, uid: string | null, guestId: string | null, event: "ad_access_granted" | "guest_free_access" | "ad_credit_used" = "ad_access_granted") {
+/** Server evidence of granted/rejected access or a consumed quota slot, with ownership checked. */
+export async function recordAttemptAccess(id: unknown, uid: string | null, guestId: string | null, event: "ad_access_granted" | "guest_free_access" | "ad_credit_used" | "ad_grant_rejected" = "ad_access_granted", details?: unknown) {
   if (typeof id !== "string" || !/^[a-f0-9]{64}$/.test(id)) return;
   try {
     const db = adminFirestore();
@@ -68,7 +68,7 @@ export async function recordAttemptAccess(id: unknown, uid: string | null, guest
       const row = (await tx.get(ref)).data();
       if (!row || !ownsAnalysisAttempt(row, uid, guestId)) return;
       const now = Date.now();
-      tx.update(ref, { events: appendAttemptEvent(row, event, "server", now), updatedAtMs: now });
+      tx.update(ref, { events: appendAttemptEvent(row, event, "server", now, attemptEventDetails(details)), updatedAtMs: now });
     });
   } catch (error) { console.warn("Analysis access logging failed", error); }
 }

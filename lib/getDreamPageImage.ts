@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { optionalPageData } from "@/lib/optionalPageData";
 import type { Firestore } from "firebase-admin/firestore";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { getDreamEntry } from "@/lib/dream-dictionary";
@@ -49,13 +50,15 @@ export async function readDreamPageImageAssignment(
     return assignmentFromData(cleaned, snapshot.data() as StoredAssignment | undefined);
   } catch (error) {
     console.error("[dreamPageImage]", error);
-    // A failed read is not a removed image. Let ISR retain the last good page
-    // and retry instead of caching missing HTML/OG images for the daily TTL.
+    // A failed read is not a removed image. API/admin callers need the error;
+    // the public-page wrapper below serves an uncached fallback and retries.
     throw error;
   }
 }
 
-export const getDreamPageImage = cache(readDreamPageImageAssignment);
+export const getDreamPageImage = cache((slug: string) =>
+  optionalPageData("image", () => readDreamPageImageAssignment(slug), null),
+);
 
 export async function listDreamPageImageUrls(): Promise<Map<string, string>> {
   const urls = new Map<string, string>();

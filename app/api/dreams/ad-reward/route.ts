@@ -14,7 +14,7 @@ type Body = { attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?:
  * rewardedSlotGranted. Translation grants are bound to one dream and language;
  * analysis/save rewards retain their existing credit model.
  */
-export async function POST(req: Request) {
+async function grantReward(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
@@ -31,4 +31,16 @@ export async function POST(req: Request) {
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+/** Persist rejected grants on the server even if the browser loses the response. */
+export async function POST(req: Request) {
+  const body = (await req.clone().json().catch(() => ({}))) ?? {};
+  const response = await grantReward(req);
+  if (!response.ok && body.kind === "analysis") {
+    const auth = await requireSignedInUid(body.idToken).catch(() => null);
+    const uid = auth && !("error" in auth) ? auth.uid : null;
+    await recordAttemptAccess(body.attemptId, uid, readGuestId(req), "ad_grant_rejected", { httpStatus: response.status });
+  }
+  return response;
 }

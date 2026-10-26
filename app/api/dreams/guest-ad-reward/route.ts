@@ -45,5 +45,13 @@ export async function GET(req: Request) {
 
 // Called only after rewardedSlotGranted, like the signed-in /ad-reward route.
 export async function POST(req: Request) {
-  return handle(req, true);
+  const body = (await req.clone().json().catch(() => ({}))) ?? {};
+  const response = await handle(req, true);
+  if (body.kind === "analysis") {
+    const guestId = readGuestId(req);
+    // A denied first-free fallback is an eligibility decision, not a broken grant.
+    if (!response.ok && (body.noAdAvailable !== true || response.status >= 500)) await recordAttemptAccess(body.attemptId, null, guestId, "ad_grant_rejected", { httpStatus: response.status });
+    if (response.ok && body.noAdAvailable === true) await recordAttemptAccess(body.attemptId, null, guestId, "guest_free_access");
+  }
+  return response;
 }

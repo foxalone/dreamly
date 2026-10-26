@@ -40,3 +40,13 @@ test("signed-in display reporting authenticates without relying on pending local
   });
   reportAnalysisAttempt("analysis_displayed", undefined, "b".repeat(64), "verified-token");
 });
+
+test("ad grant rejection reports its HTTP status without sending the dream text", async (t) => {
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init?: RequestInit) => {
+    assert.deepEqual(JSON.parse(String(init?.body)), {
+      attemptId: "c".repeat(64), event: "ad_grant_rejected", details: { httpStatus: 503 },
+    });
+    return new Response("{}");
+  });
+  reportAnalysisAttempt("ad_grant_rejected", "private dream", "c".repeat(64), undefined, { httpStatus: 503 });
+});

@@ -19,6 +19,7 @@ import {
 } from "../_lib/guestQuota";
 import { grantEscapeForOwner } from "../../game/_lib/player";
 import { matchEscapes } from "../../game/_lib/escapeMatch";
+import { analysisProviderFailure } from "@/lib/analysisAttempts";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
@@ -172,10 +173,11 @@ export async function POST(req: Request) {
         messages: dreamAnalysisMessages(text, lang, lens),
       });
       analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
-    } catch (e: any) {
+    } catch (e: unknown) {
+      failureCode = analysisProviderFailure(e);
       await refundCharge();
       return finish(
-        NextResponse.json({ error: e?.message ?? "Analyze failed" }, { status: 500 })
+        NextResponse.json({ error: e instanceof Error ? e.message : "Analyze failed" }, { status: 500 })
       );
     }
 
@@ -216,10 +218,10 @@ export async function POST(req: Request) {
         escape,
       })
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     await refundCharge();
     return finish(
-      NextResponse.json({ error: e?.message ?? "Analyze failed" }, { status: 500 })
+      NextResponse.json({ error: e instanceof Error ? e.message : "Analyze failed" }, { status: 500 })
     );
   }
 }

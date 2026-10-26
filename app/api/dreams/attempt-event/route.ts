@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const signed = body.idToken ? await requireSignedInUid(String(body.idToken)) : null;
     const uid = signed && !("error" in signed) ? signed.uid : null;
     if (!uid && !guestId) return NextResponse.json({ ok: false }, { status: 401 });
-    const ok = await reportAttemptEvent(body.attemptId, uid, guestId, body.event);
+    const ok = await reportAttemptEvent(body.attemptId, uid, guestId, body.event, body.details);
     return NextResponse.json({ ok }, { status: ok ? 200 : 403 });
   } catch { return NextResponse.json({ ok: false }, { status: 500 }); }
 }

@@ -3,7 +3,7 @@ import { peekAdUnlockPending } from "@/lib/adUnlock";
 import { readHomeDreamQueue } from "@/lib/homeDreamPending";
 
 /** Best-effort diagnostics only: never delays the ad, navigation or sign-in. */
-export function reportAnalysisAttempt(event: AttemptEvent, dreamText?: string, explicitAttemptId?: string, idToken?: string) {
+export function reportAnalysisAttempt(event: AttemptEvent, dreamText?: string, explicitAttemptId?: string, idToken?: string, details?: { httpStatus?: number }) {
   const action = peekAdUnlockPending("analysis");
   const text = dreamText ?? action?.dreamText;
   const attemptId = explicitAttemptId ?? (text && readHomeDreamQueue().find((dream) => dream.text === text)?.analysisAttemptId);
@@ -11,7 +11,7 @@ export function reportAnalysisAttempt(event: AttemptEvent, dreamText?: string, e
   void fetch("/api/dreams/attempt-event", {
     method: "POST", credentials: "same-origin", keepalive: true,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ attemptId, event, ...(idToken ? { idToken } : {}) }),
+    body: JSON.stringify({ attemptId, event, details, ...(idToken ? { idToken } : {}) }),
   }).catch(() => {});
 }
 
@@ -28,5 +28,5 @@ export function analysisAttemptReporter(dreamText?: string) {
   const dream = text ? readHomeDreamQueue().find((item) => item.text === text)
     : readHomeDreamQueue().find((item) => item.resumeAnalysis && item.analysisAttemptId && !item.analysis);
   const id = dream?.analysisAttemptId;
-  return (event: AttemptEvent) => { if (id) reportAnalysisAttempt(event, undefined, id); };
+  return (event: AttemptEvent, details?: { httpStatus?: number }) => { if (id) reportAnalysisAttempt(event, undefined, id, undefined, details); };
 }

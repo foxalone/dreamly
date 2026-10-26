@@ -1,4 +1,4 @@
-export const ATTEMPT_EVENTS = ["access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
+export const ATTEMPT_EVENTS = ["ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_grant_timeout", "ad_grant_network_failed", "ad_grant_rejected", "ad_resume_started", "ad_auth_timeout", "access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
 export type AttemptEvent = typeof ATTEMPT_EVENTS[number];
 export function ownsAnalysisAttempt(row: { uid?: string | null; guestId?: string | null }, uid: string | null, guestId: string | null): boolean {
   return Boolean((uid && row.uid === uid) || (guestId && row.guestId === guestId));
@@ -11,12 +11,13 @@ export function attemptOutcome(status: number, code?: string) {
   if (code === "GUEST_LIMIT_REACHED") return { status: "waiting", reason: "ad_required" };
   if (["FREE_DAILY_LIMIT", "DAILY_LIMIT"].includes(code ?? "")) return { status: "blocked", reason: "daily_limit" };
   if (["SUBSCRIPTION_REQUIRED", "INSUFFICIENT_CREDITS"].includes(code ?? "")) return { status: "blocked", reason: "credits_required" };
+  if (["AI_TIMEOUT", "AI_RATE_LIMITED", "AI_UNAVAILABLE"].includes(code ?? "")) return { status: "failed", reason: code!.toLowerCase() };
   return { status: "failed", reason: code === "API_KEY_MISSING" ? "configuration_error" : code === "EMPTY_ANALYSIS" ? "empty_analysis" : "analysis_error" };
 }
 /** Never downgrade a completed reading with a late browser event. Keep the actual failure on Back. */
 export function clientAttemptUpdate(previous: { status?: string; reason?: string }, event: AttemptEvent) {
   if (previous.status === "succeeded" || event === "analysis_displayed") return null;
-  if (["access_choice_opened", "ad_video_selected", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent"].includes(event)) {
+  if (["ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_resume_started", "access_choice_opened", "ad_video_selected", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent"].includes(event)) {
     return { status: previous.status || "waiting", reason: previous.reason || "ad_required", lastEvent: event };
   }
   return { status: "incomplete", reason: event === "back" ? previous.reason || "back" : event, lastEvent: event };
@@ -72,4 +73,18 @@ export function authAttemptFailure(error: unknown): AttemptEvent {
 export function appendAttemptEvent(row: { events?: unknown }, event: string, source: "server" | "browser", atMs = Date.now(), extra: Record<string, unknown> = {}) {
   const events = Array.isArray(row.events) ? row.events : [];
   return [...events.slice(-79), { event, atMs, source, ...extra }];
+}
+
+/** Only numeric HTTP status is accepted from browser diagnostics. */
+export function attemptEventDetails(value: unknown): { httpStatus?: number } {
+  const status = (value as { httpStatus?: unknown } | null)?.httpStatus;
+  return typeof status === "number" && Number.isInteger(status) && status >= 400 && status <= 599 ? { httpStatus: status } : {};
+}
+
+/** Classify provider errors without persisting their messages, tokens or payloads. */
+export function analysisProviderFailure(error: unknown) {
+  const e = error as { status?: number; name?: string; code?: string } | null;
+  if (e?.status === 408 || e?.status === 504 || e?.name === "APIConnectionTimeoutError" || e?.code === "ETIMEDOUT") return "AI_TIMEOUT";
+  if (e?.status === 429) return "AI_RATE_LIMITED";
+  return "AI_UNAVAILABLE";
 }
