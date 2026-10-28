@@ -10,6 +10,7 @@ import GuestDreamJournal from "@/app/components/GuestDreamJournal";
 import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
 import { localePath } from "@/lib/i18n/path";
 
 import { pickDreamIconsEn, DREAM_ICONS_EN } from "@/lib/dream-icons/dreamIcons.en";
@@ -1282,7 +1283,7 @@ export default function DreamsPage() {
         if (data2?.code === "AUTH_REQUIRED" || res.status === 401) {
           throw new Error("Sign in required.");
         }
-        throw new Error(data2?.error ?? "Analyze API failed");
+        throw new Error(dreamAnalysisErrorMessage(data2?.code, locale) ?? data2?.error ?? "Analyze API failed");
       }
 
       const analysisText = String(data2?.analysis ?? "").trim();

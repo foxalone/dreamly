@@ -17,6 +17,7 @@ import {
 import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
@@ -300,7 +301,7 @@ export function useDreamAsk({
           setError(typeof data?.error === "string" ? data.error : t.app.dailyLimitReached);
           return;
         }
-        throw new Error(typeof data?.error === "string" ? data.error : "Analyze failed");
+        throw new Error(dreamAnalysisErrorMessage(data?.code, locale) ?? (typeof data?.error === "string" ? data.error : "Analyze failed"));
       }
 
       const next = String(data.analysis ?? "").trim();

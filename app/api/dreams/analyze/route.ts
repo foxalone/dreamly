@@ -21,6 +21,9 @@ import {
 import { grantEscapeForOwner } from "../../game/_lib/player";
 import { matchEscapes } from "../../game/_lib/escapeMatch";
 import { analysisProviderFailure } from "@/lib/analysisAttempts";
+import { dreamAnalysisErrorCode, generateDreamAnalysis } from "@/lib/dreamAnalysisProvider";
+import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
+import { isLocale } from "@/lib/i18n/config";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
@@ -160,25 +163,27 @@ export async function POST(req: Request) {
     const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
     const lens = parseDreamLens(body?.lens);
 
-    const model = DREAM_ANALYSIS_MODEL;
     const openai = new OpenAI({ apiKey });
-
-    // Emoji pick runs alongside the analysis call; it never fails the request.
-    const emojiPromise = pickDreamEmojisAi(apiKey, text).catch(() => null);
-
     let analysis = "";
+    let model: string = DREAM_ANALYSIS_MODEL;
     try {
-      const resp = await openai.chat.completions.create({
-        model,
-        reasoning_effort: "minimal",
-        messages: dreamAnalysisMessages(text, lang, lens),
+      const result = await generateDreamAnalysis(async (candidate) => {
+        const resp = await openai.chat.completions.create({
+          model: candidate,
+          reasoning_effort: "minimal",
+          messages: dreamAnalysisMessages(text, lang, lens),
+        });
+        return (resp.choices?.[0]?.message?.content ?? "").trim();
       });
-      analysis = (resp.choices?.[0]?.message?.content ?? "").trim();
+      analysis = result.analysis;
+      model = result.model;
     } catch (e: unknown) {
-      failureCode = analysisProviderFailure(e);
+      const code = dreamAnalysisErrorCode(e);
+      failureCode = code === "AI_QUOTA_EXHAUSTED" ? "AI_UNAVAILABLE" : analysisProviderFailure(e);
       await refundCharge();
       return finish(
-        NextResponse.json({ error: e instanceof Error ? e.message : "Analyze failed" }, { status: 500 })
+        NextResponse.json({ code, error: dreamAnalysisErrorMessage(code, isLocale(lang) ? lang : "en") },
+          { status: code === "AI_RATE_LIMITED" ? 429 : code === "AI_TIMEOUT" ? 504 : 503 })
       );
     }
 
@@ -188,7 +193,9 @@ export async function POST(req: Request) {
       return finish(NextResponse.json({ error: "Empty analysis" }, { status: 500 }));
     }
 
-    const emojiPick = await emojiPromise;
+    // Optional emoji generation must not compete with the primary analysis call.
+    // Skip it when the fallback model was needed; the local picker still works.
+    const emojiPick = model === DREAM_ANALYSIS_MODEL ? await pickDreamEmojisAi(apiKey, text).catch(() => null) : null;
     const fallbackEmojis = emojiPick?.emojis?.length ? [] : (await pickDreamMapVisuals(text).catch(() => null))?.emojis ?? [];
     const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
 

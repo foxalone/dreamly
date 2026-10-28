@@ -10,6 +10,9 @@
 /** Dream analysis shown to the user (homepage Ask). Quality-critical. */
 export const DREAM_ANALYSIS_MODEL = "gpt-5-mini";
 
+/** Used only when the primary dream model is temporarily rate limited. */
+export const DREAM_ANALYSIS_FALLBACK_MODEL = "gpt-5-nano";
+
 /** Emoji picks for dreams (journal, map, feed). */
 export const DREAM_EMOJI_MODEL = "gpt-5-mini";
 
