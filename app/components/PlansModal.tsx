@@ -27,6 +27,7 @@ type Props = {
     analysisDreamId?: string;
     analysisDreamText?: string;
     translation?: { sharedDreamId: string; targetLang: string };
+    reading?: { sharedDreamId: string };
   } | null;
 };
 
@@ -147,6 +148,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
               analysisDreamId={rewarded.analysisDreamId}
               analysisDreamText={rewarded.analysisDreamText}
               translation={rewarded.translation}
+              reading={rewarded.reading}
               source={source}
               card={{ title: t.plansModal.adCardTitle, price: t.pricing.free, description: rewarded.label }}
             />

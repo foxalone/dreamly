@@ -1,4 +1,4 @@
-import { AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
+import { AD_READING_REWARDS_PER_DAY, AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -32,6 +32,8 @@ export type UserBillingFields = {
   adTranslateCredits?: number | null;
   adTranslateRewardsDayKey?: string | null;
   adTranslateRewardsTodayCount?: number | null;
+  adReadingRewardsDayKey?: string | null;
+  adReadingRewardsTodayCount?: number | null;
 };
 
 export function utcDayKey(d = new Date()) {
@@ -94,10 +96,15 @@ export function adSaveRewardsLeftToday(data: UserBillingFields | null | undefine
 /** Rewarded ads left today for one paywall kind (see lib/paywall.ts). */
 export function adRewardsLeftFor(
   data: UserBillingFields | null | undefined,
-  kind: "analysis" | "save" | "translate",
+  kind: "analysis" | "save" | "translate" | "reading",
   now = new Date()
 ) {
   if (kind === "save") return adSaveRewardsLeftToday(data, now);
+  if (kind === "reading") {
+    const used =
+      String(data?.adReadingRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adReadingRewardsTodayCount) : 0;
+    return Math.max(0, AD_READING_REWARDS_PER_DAY - used);
+  }
   if (kind === "translate") {
     const used =
       String(data?.adTranslateRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adTranslateRewardsTodayCount) : 0;

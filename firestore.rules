@@ -21,6 +21,7 @@ service cloud.firestore {
         'adAnalysisCredits', 'adRewardsDayKey', 'adRewardsTodayCount', 'adRewardAt',
         'adSaveCredits', 'adSaveRewardsDayKey', 'adSaveRewardsTodayCount',
         'adTranslateCredits', 'adTranslateRewardsDayKey', 'adTranslateRewardsTodayCount',
+        'adReadingRewardsDayKey', 'adReadingRewardsTodayCount',
         // подписка и лимиты — пишет только сервер (lib/paypal/syncSubscription.ts,
         // consume-slot, translationLedger); иначе клиент мог бы выдать себе Pro
         'subscriptionStatus', 'subscriptionPlan', 'paypalSubscriptionId',
@@ -60,6 +61,13 @@ service cloud.firestore {
       // Переводы в ленте, которые этот юзер уже оплатил (дневной слот / Pro).
       // Пишет только сервер (admin SDK) — app/api/dreams/_lib/translationLedger.ts
       match /translationUnlocks/{sharedDreamId} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow write: if false;
+      }
+
+      // A public analysis this user already opened (author, subscription, or ad).
+      // Written only by the server.
+      match /readingUnlocks/{sharedDreamId} {
         allow read: if isOwner(uid) || isAdmin();
         allow write: if false;
       }

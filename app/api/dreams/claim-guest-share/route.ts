@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { dreamPageIndexNowPaths, notifyIndexNow } from "@/lib/indexnow";
 import { FieldValue } from "firebase-admin/firestore";
 
+import { publicAnalysisFields } from "@/lib/analysisPreview";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { readGuestId } from "../_lib/guestQuota";
@@ -62,14 +64,25 @@ export async function POST(req: Request) {
       .then((snap) => snap.data().count)
       .catch(() => 0);
 
+    const userDreamRef = db.collection("users").doc(uid).collection("dreams").doc(dreamId);
+    const srcPrivateRef = srcRef.collection("private").doc("analysis");
     const result = await db.runTransaction(async (tx) => {
-      const src = await tx.get(srcRef);
+      const [src, userDream, srcPrivate] = await Promise.all([
+        tx.get(srcRef),
+        tx.get(userDreamRef),
+        tx.get(srcPrivateRef),
+      ]);
       const data = src.data();
       if (!src.exists || !data || data.ownerGuestId !== guestId || data.ownerUid) return null;
 
       const count = before + 1;
+      const full =
+        cleanAnalysis(srcPrivate.data()?.text) ||
+        (data.analysisIsPreview === true ? cleanAnalysis(userDream.data()?.analysisText) : cleanAnalysis(data.analysisText)) ||
+        cleanAnalysis(userDream.data()?.analysisText);
       tx.set(destRef, {
         ...data,
+        ...publicAnalysisFields(full),
         ownerUid: uid,
         ownerDreamId: dreamId,
         claimedFromGuestId: guestId,
@@ -77,6 +90,10 @@ export async function POST(req: Request) {
         shareBadge: shareBadgeFor(count).id,
         updatedAt: FieldValue.serverTimestamp(),
       });
+      if (full) {
+        tx.set(destRef.collection("private").doc("analysis"), { text: full, updatedAtMs: Date.now() });
+      }
+      if (srcPrivate.exists) tx.delete(srcPrivateRef);
       tx.delete(srcRef);
       return { count, sharedAtMs: Number(data.sharedAtMs) || Date.now() };
     });

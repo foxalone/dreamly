@@ -55,6 +55,7 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
+import { publicAnalysisFields } from "@/lib/analysisPreview";
 import { nextShareBadge, shareBadgeFor, shareBadgeLevelUp, type ShareBadge } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
@@ -1144,6 +1145,7 @@ export default function DreamsPage() {
         updatedAt: serverTimestamp(),
 
         deleted: false,
+        ...publicAnalysisFields(item.analysisText),
 
         reactions: { heart: 0, like: 0, star: 0 },
 
@@ -1315,6 +1317,13 @@ export default function DreamsPage() {
         )
       );
 
+      if (dream?.shared) {
+        await updateDoc(doc(firestore, "shared_dreams", getSharedDocId(uid2, "dream", dreamId)), {
+          ...publicAnalysisFields(analysisText),
+          updatedAt: serverTimestamp(),
+        }).catch(() => {});
+      }
+
       trackEvent("dream_analysis_completed", {
         input_language: (dream as any)?.langGuess ?? guessLang(t),
         word_count: countWords(t),
@@ -1452,6 +1461,9 @@ export default function DreamsPage() {
         charCount: null,
         authorName: null,
         authorEmail: null,
+        analysisText: "",
+        analysisHasMore: false,
+        analysisIsPreview: true,
         updatedAt: serverTimestamp(),
       }).catch(() => {});
     } catch (e: any) {

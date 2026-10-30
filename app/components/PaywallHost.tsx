@@ -75,13 +75,15 @@ function PagePaywallHost() {
   const copy =
     req.kind === "save"
       ? { title: pm.savesLimitTitle, body: pm.savesLimitBody }
+      : req.kind === "reading"
+        ? { title: pm.readingTitle, body: pm.readingBody }
       : req.kind === "translate"
         ? { title: pm.translateTitle, body: pm.translateBody }
         : req.reason === "daily"
           ? { title: pm.saveDailyTitle, body: pm.saveDailyBody }
           : { title: pm.saveTitle, body: pm.saveBody };
   const adLabel =
-    req.kind === "translate" ? pm.watchAdTranslate : req.kind === "save" ? pm.watchAdSave : pm.watchAd;
+    req.kind === "reading" ? pm.watchAdReading : req.kind === "translate" ? pm.watchAdTranslate : req.kind === "save" ? pm.watchAdSave : pm.watchAd;
 
   return (
     <PlansModal
@@ -91,7 +93,7 @@ function PagePaywallHost() {
       source={req.source}
       title={copy.title}
       body={copy.body}
-      rewarded={adEligible ? { label: adLabel, kind: req.kind, analysisDreamId: req.analysisDreamId, analysisDreamText: req.analysisDreamText, translation: req.translation } : null}
+      rewarded={adEligible ? { label: adLabel, kind: req.kind, analysisDreamId: req.analysisDreamId, analysisDreamText: req.analysisDreamText, translation: req.translation, reading: req.reading } : null}
     />
   );
 }

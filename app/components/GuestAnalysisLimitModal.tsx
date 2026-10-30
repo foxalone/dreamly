@@ -22,8 +22,11 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   const locale = useLocale();
   const pm = t.plansModal;
   const translate = request.kind === "translate";
-  const kind = translate ? "translate" : "analysis";
-  const copy = translate
+  const reading = request.kind === "reading";
+  const kind = reading ? "reading" : translate ? "translate" : "analysis";
+  const copy = reading
+    ? { title: pm.guestReadingTitle, body: pm.guestReadingBody, ad: pm.watchAdReading, again: pm.readingNow, signIn: t.common.signIn }
+    : translate
     ? { title: pm.guestTranslateTitle, body: pm.guestTranslateBody, ad: pm.watchAdTranslate, again: pm.translateNow, signIn: t.common.signIn }
     : {
         title: pm.guestTitle,
@@ -37,13 +40,13 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   const signInRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeRef.current = () => {
-      if (!translate && request.analysisDreamText) reportAnalysisAttempt("access_choice_dismissed", request.analysisDreamText);
+      if (!translate && !reading && request.analysisDreamText) reportAnalysisAttempt("access_choice_dismissed", request.analysisDreamText);
       onClose();
     };
-  }, [onClose, translate, request.analysisDreamText]);
+  }, [onClose, translate, reading, request.analysisDreamText]);
   useEffect(() => {
-    if (ad !== "loading" && !translate && request.analysisDreamText) reportAnalysisAttempt("access_choice_opened", request.analysisDreamText);
-  }, [ad, translate, request.analysisDreamText]);
+    if (ad !== "loading" && !translate && !reading && request.analysisDreamText) reportAnalysisAttempt("access_choice_opened", request.analysisDreamText);
+  }, [ad, translate, reading, request.analysisDreamText]);
   const dismiss = () => closeRef.current();
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       if (event.key === "Escape") closeRef.current();
     };
     window.addEventListener("keydown", onKey);
-    const params = new URLSearchParams({ kind, ...(request.translation ?? {}) });
+    const params = new URLSearchParams({ kind, ...(request.translation ?? {}), ...(request.reading ?? {}) });
     void fetch(`/api/dreams/guest-ad-reward?${params}`, { credentials: "same-origin", cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error("ad status failed");
@@ -67,7 +70,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       window.removeEventListener("keydown", onKey);
       previousFocus?.focus();
     };
-  }, [kind, request.translation]);
+  }, [kind, request.translation, request.reading]);
 
   useEffect(() => {
     if (ad !== "loading") signInRef.current?.focus();
@@ -79,15 +82,16 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   }
 
   function watchAd() {
-    if (!translate && request.analysisDreamText) reportAnalysisAttempt("ad_video_selected", request.analysisDreamText);
+    if (!translate && !reading && request.analysisDreamText) reportAnalysisAttempt("ad_video_selected", request.analysisDreamText);
     trackEvent("rewarded_ad_open", { source: request.source, kind });
     // The retry closure dies with the navigation: useDreamAsk resumes the
     // interpretation from this sessionStorage mark when we come back.
     if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamText: request.analysisDreamText, quickSymbol: request.analysisQuickSymbol });
+    if (kind === "reading" && request.reading?.sharedDreamId) setAdUnlockPending({ kind: "reading", dreamId: request.reading.sharedDreamId });
     const next = kind === "analysis" && request.analysisDreamText
       ? localePath("/app/dreams", locale)
       : undefined;
-    window.location.assign(adUnlockUrl(kind, next, request.translation));
+    window.location.assign(adUnlockUrl(kind, next, request.translation, request.reading));
   }
 
   if (ad === "loading") return (

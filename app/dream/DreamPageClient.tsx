@@ -29,6 +29,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
+import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
+import { analysisPreview } from "@/lib/analysisPreview";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -55,6 +57,9 @@ export type PublicSharedDream = {
   emojis: string[];
   reactions: { heart: number; like: number; star: number };
   commentCount: number;
+  /** Public preview. The rest is loaded after the author opens it or a reader watches an ad. */
+  analysisText: string;
+  analysisHasMore: boolean;
 };
 
 export type MoreDream = {
@@ -142,9 +147,18 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const [showTranslation, setShowTranslation] = useState(false);
   const [translateBusy, setTranslateBusy] = useState(false);
   const translateRef = useRef<(lang?: TranslationLanguage) => Promise<void>>(async () => {});
-  const pendingAfterSignInRef = useRef(false);
+  const pendingAfterSignInRef = useRef<"translate" | "reading" | null>(null);
 
-  // comments
+  // the reading prepared for this dream, then ordinary comments under it
+  const [preview, setPreview] = useState(dream.analysisText);
+  const [hasMore, setHasMore] = useState(dream.analysisHasMore);
+  const [fullAnalysis, setFullAnalysis] = useState<string | null>(null);
+  const [readingBusy, setReadingBusy] = useState(false);
+  useEffect(() => {
+    setPreview(dream.analysisText);
+    setHasMore(dream.analysisHasMore);
+    setFullAnalysis(null);
+  }, [dream.id, dream.analysisText, dream.analysisHasMore]);
   const [comments, setComments] = useState<DreamComment[]>([]);
   const [draft, setDraft] = useState("");
   const [publishBusy, setPublishBusy] = useState(false);
@@ -179,6 +193,9 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
           },
           commentCount: safeNum(data?.commentCount),
         });
+        const nextAnalysis = typeof data?.analysisText === "string" ? data.analysisText.trim() : "";
+        if (nextAnalysis) setPreview(nextAnalysis);
+        if (typeof data?.analysisHasMore === "boolean") setHasMore(data.analysisHasMore);
       },
       (err) => console.warn("dream onSnapshot error:", err?.message ?? err)
     );
@@ -312,9 +329,9 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
             guest: {
               reason: "translate",
               signIn: () => {
-                pendingAfterSignInRef.current = true;
+                pendingAfterSignInRef.current = "translate";
                 signInWithOptions().catch((e) => {
-                  pendingAfterSignInRef.current = false;
+                  pendingAfterSignInRef.current = null;
                   if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
                     setError(e?.message ?? "Sign-in failed.");
                   }
@@ -351,12 +368,69 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
 
   // a guest signed in from the paywall's sign-in option — run the translation
   useEffect(() => {
-    if (!uid || !languageReady || !pendingAfterSignInRef.current) return;
-    pendingAfterSignInRef.current = false;
-    void translateRef.current();
+    const pending = pendingAfterSignInRef.current;
+    if (!uid || !languageReady || !pending) return;
+    pendingAfterSignInRef.current = null;
+    if (pending === "reading") void openAnalysisRef.current();
+    else void translateRef.current();
   }, [uid, languageReady]);
 
-  // back from the Offerwall (/ad/unlock): resume the paid-for translation
+  const openAnalysisRef = useRef<() => Promise<void>>(async () => {});
+  async function openAnalysis() {
+    if (readingBusy || fullAnalysis) return;
+    setReadingBusy(true);
+    setError(null);
+    try {
+      const u = auth.currentUser;
+      const idToken = u ? await u.getIdToken() : undefined;
+      const res = await fetch("/api/dreams/read-analysis", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sharedDreamId: dream.id, ...(idToken ? { idToken } : {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && typeof data?.analysis === "string" && data.analysis.trim()) {
+        setFullAnalysis(data.analysis.trim());
+        return;
+      }
+      const guest = data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402);
+      if (guest || data?.code === "AD_REQUIRED" || res.status === 402) {
+        setAdUnlockPending({ kind: "reading", dreamId: dream.id });
+        openPaywall({
+          kind: "reading",
+          reading: { sharedDreamId: dream.id },
+          source: guest ? "dream_page_reading_guest" : "dream_page_reading",
+          ...(guest
+            ? {
+                guest: {
+                  reason: "reading" as const,
+                  signIn: () => {
+                    pendingAfterSignInRef.current = "reading";
+                    signInWithOptions().catch((e) => {
+                      pendingAfterSignInRef.current = null;
+                      if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+                        setError(e?.message ?? "Sign-in failed.");
+                      }
+                    });
+                  },
+                },
+              }
+            : {}),
+          retry: () => void openAnalysisRef.current(),
+        });
+        return;
+      }
+      throw new Error(data?.error ?? "Couldn't open the analysis.");
+    } catch (e: any) {
+      setError(e?.message ?? "Couldn't open the analysis.");
+    } finally {
+      setReadingBusy(false);
+    }
+  }
+  openAnalysisRef.current = openAnalysis;
+
+  // back from the Offerwall (/ad/unlock): resume the paid-for translation or reading
   const resumedRef = useRef(false);
   useEffect(() => {
     if (resumedRef.current || !languageReady) return;
@@ -364,7 +438,10 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     const pending = takeAdUnlockPending("translate");
     if (pending?.dreamId === dream.id) {
       void translateRef.current(pending?.targetLang as TranslationLanguage | undefined);
+      return;
     }
+    const reading = takeAdUnlockPending("reading");
+    if (reading?.dreamId === dream.id) void openAnalysisRef.current();
   }, [languageReady, dream.id]);
 
   async function publishComment(text: string, forUid: string) {
@@ -488,6 +565,9 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     }
   }, [locale]);
 
+  const excerpt = analysisPreview(preview);
+  const shownAnalysis = (fullAnalysis ?? excerpt.preview).trim();
+  const collapsed = !fullAnalysis && (hasMore || excerpt.hasMore);
   const showTranslateButton = dream.text.trim() && dreamLang !== targetLang;
   const translateLabel = translateBusy
     ? t.profile.translating
@@ -581,7 +661,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               aria-label={t.dreamPage.commentsLabel}
             >
               <span>💬</span>
-              <span className="tabular-nums">{safeNum(live.commentCount)}</span>
+              <span className="tabular-nums">{safeNum(live.commentCount) + (shownAnalysis ? 1 : 0)}</span>
             </a>
           </div>
 
@@ -608,11 +688,33 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       <section id="comments" className="mt-8 scroll-mt-24">
         <h2 className="text-lg font-semibold text-[var(--text)]">
           {t.dreamPage.commentsTitle}{" "}
-          <span className="text-[var(--muted)] font-normal tabular-nums">({safeNum(live.commentCount)})</span>
+          <span className="text-[var(--muted)] font-normal tabular-nums">({safeNum(live.commentCount) + (shownAnalysis ? 1 : 0)})</span>
         </h2>
 
         <div className="mt-3 space-y-3">
-          {comments.length === 0 ? (
+          {shownAnalysis ? (
+            <article id="analysis" className="scroll-mt-24 p-4 rounded-2xl bg-[var(--card)] border border-purple-400/40">
+              {collapsed ? (
+                <AnalysisExcerpt
+                  className="mt-0"
+                  text={shownAnalysis}
+                  label={t.app.analysis}
+                  more={t.dreamPage.more}
+                  moreTitle={t.dreamPage.analysisMore}
+                  onMore={() => void openAnalysis()}
+                  busy={readingBusy}
+                />
+              ) : (
+                <>
+                  <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2.5 py-0.5 text-xs font-semibold text-purple-500">
+                    {t.app.analysis}
+                  </span>
+                  <div dir="auto" className="mt-2 text-sm leading-7 text-[var(--text)] whitespace-pre-wrap break-words">{shownAnalysis}</div>
+                </>
+              )}
+            </article>
+          ) : null}
+          {comments.length === 0 && !shownAnalysis ? (
             <div className="p-4 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10 text-sm">
               {t.dreamPage.commentsEmpty}
             </div>

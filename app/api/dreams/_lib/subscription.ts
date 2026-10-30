@@ -7,12 +7,14 @@ import {
   FREE_ANALYSES_TOTAL,
   AD_REWARDS_PER_DAY,
   AD_SAVE_REWARDS_PER_DAY,
+  AD_READING_REWARDS_PER_DAY,
   AD_TRANSLATE_REWARDS_PER_DAY,
   FREE_SAVES_PER_IP_PER_DAY,
   SAVES_PER_DAY_ABUSE_CAP,
 } from "@/lib/subscriptions/plans";
 import { hasPaidAccess, utcDayKey } from "@/lib/subscriptions/status";
 import { hashIp } from "./guestQuota";
+import { matchingReadingAdGrant, READING_AD_GRANT_MS } from "@/lib/readingAdGrant";
 import { matchingTranslationAdGrant, TRANSLATION_AD_GRANT_MS, type TranslationAdTarget } from "@/lib/translationAdGrant";
 
 export { DREAM_MAX_CHARS, DREAMS_PER_DAY } from "@/lib/subscriptions/plans";
@@ -305,6 +307,49 @@ export async function grantAdReward(
         { merge: true }
       );
       return { uid, credits: kind === "translate" ? 1 : credits, leftToday: f.cap - today - 1 };
+    });
+  } catch (e: unknown) {
+    return quotaError(e);
+  }
+}
+
+/** A rewarded ad opens one public dream's reading. Subscribers never need it. */
+export async function grantReadingReward(
+  uid: string,
+  rewardId: string,
+  sharedDreamId: string,
+  database?: Firestore,
+): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
+  if (!uid) return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
+  const db = database ?? adminDb();
+  const userRef = db.collection("users").doc(uid);
+  const receiptRef = userRef.collection("adRewardReceipts").doc(rewardId);
+  const grantRef = userRef.collection("readingUnlocks").doc("__adGrant");
+  const dayKey = utcDayKey();
+  try {
+    return await db.runTransaction(async (tx) => {
+      const receipt = await tx.get(receiptRef);
+      const snap = await tx.get(userRef);
+      const grant = await tx.get(grantRef);
+      const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
+      if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
+      const today = String(data.adReadingRewardsDayKey ?? "") === dayKey ? toCount(data.adReadingRewardsTodayCount) : 0;
+      if (receipt.exists) {
+        if (receipt.data()?.kind !== "reading" || receipt.data()?.sharedDreamId !== sharedDreamId) {
+          return { error: NextResponse.json({ code: "REWARD_TARGET_MISMATCH" }, { status: 409 }) };
+        }
+        return { uid, credits: Number(matchingReadingAdGrant(grant.data(), sharedDreamId)), leftToday: Math.max(0, AD_READING_REWARDS_PER_DAY - today) };
+      }
+      if (today >= AD_READING_REWARDS_PER_DAY) throw new Error("AD_DAILY_LIMIT");
+      tx.create(receiptRef, { kind: "reading", sharedDreamId, createdAt: FieldValue.serverTimestamp() });
+      tx.set(grantRef, { sharedDreamId, expiresAtMs: Date.now() + READING_AD_GRANT_MS });
+      tx.set(userRef, {
+        adReadingRewardsDayKey: dayKey,
+        adReadingRewardsTodayCount: today + 1,
+        adRewardAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      return { uid, credits: 1, leftToday: AD_READING_REWARDS_PER_DAY - today - 1 };
     });
   } catch (e: unknown) {
     return quotaError(e);

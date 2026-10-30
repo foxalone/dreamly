@@ -2,11 +2,12 @@ import { createHash, randomUUID } from "node:crypto";
 import { type Firestore, FieldValue } from "firebase-admin/firestore";
 import type { NextResponse } from "next/server";
 
-import { AD_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
+import { AD_READING_REWARDS_PER_DAY, AD_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
 import { guestAnalysisAccess } from "@/lib/guestAnalysisAccess";
 export { GUEST_FREE_ASKS } from "@/lib/guestAnalysisAccess";
 
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
+import { matchingReadingAdGrant, READING_AD_GRANT_MS } from "@/lib/readingAdGrant";
 import { matchingTranslationAdGrant, TRANSLATION_AD_GRANT_MS, type TranslationAdTarget } from "@/lib/translationAdGrant";
 
 /** Name of the anonymous-visitor cookie. */
@@ -242,6 +243,45 @@ export async function guestAdReward(
     }, { merge: true });
     tx.set(ipRef, { [f.today]: ipToday + 1 }, { merge: true });
     return { credits: credits + 1, leftToday: leftToday - 1 };
+  });
+}
+
+/** Guest ad for one public dream's reading. No banked credits: the pass names that dream. */
+export async function guestReadingAd(
+  guestId: string,
+  ip: string,
+  grant: boolean,
+  rewardId: string | undefined,
+  sharedDreamId: string,
+  database?: Firestore,
+) {
+  const db = database ?? adminDb();
+  const dayKey = utcDayKey();
+  const guestRef = db.collection("guestQuickSymbol").doc(guestId);
+  const ipRef = db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${dayKey}`);
+  return db.runTransaction(async (tx) => {
+    const receiptRef = grant && rewardId ? guestRef.collection("adRewardReceipts").doc(rewardId) : null;
+    const receipt = receiptRef ? await tx.get(receiptRef) : null;
+    const guest = (await tx.get(guestRef)).data() ?? {};
+    const network = (await tx.get(ipRef)).data() ?? {};
+    const today = guest.adReadingRewardsDayKey === dayKey ? Number(guest.adReadingRewardsTodayCount ?? 0) : 0;
+    const ipToday = Number(network.adReadingRewardsTodayCount ?? 0);
+    const leftToday = Math.max(0, AD_READING_REWARDS_PER_DAY - Math.max(today, ipToday));
+    const credits = Number(matchingReadingAdGrant(guest.readingAdGrant, sharedDreamId));
+    if (receipt?.exists) {
+      if (receipt.data()?.sharedDreamId !== sharedDreamId) throw new Error("REWARD_TARGET_MISMATCH");
+      return { credits, leftToday, replayed: true };
+    }
+    if (!grant || leftToday === 0) return { credits, leftToday };
+    if (!receiptRef) throw new Error("INVALID_REWARD_ID");
+    tx.create(receiptRef, { kind: "reading", sharedDreamId, createdAt: FieldValue.serverTimestamp() });
+    tx.set(guestRef, {
+      readingAdGrant: { sharedDreamId, expiresAtMs: Date.now() + READING_AD_GRANT_MS },
+      adReadingRewardsDayKey: dayKey,
+      adReadingRewardsTodayCount: today + 1,
+    }, { merge: true });
+    tx.set(ipRef, { adReadingRewardsTodayCount: ipToday + 1 }, { merge: true });
+    return { credits: 1, leftToday: leftToday - 1 };
   });
 }
 

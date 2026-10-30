@@ -28,8 +28,9 @@ const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
 function kindFrom(value: string | null): PaywallKind | "horoscope" {
-  if(value === "horoscope") return "horoscope";
-  return value === "save" ? "save" : value === "translate" ? "translate" : "analysis";
+  if (value === "horoscope") return "horoscope";
+  if (value === "save" || value === "translate" || value === "reading") return value;
+  return "analysis";
 }
 
 /**
@@ -92,7 +93,7 @@ export default function AdUnlockClient() {
   }, [kind, user, phase]);
   const rewardId = useRef<string>("");
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
-  if (pending.current === undefined) pending.current = kind === "translate" ? peekAdUnlockPending("translate") : null;
+  if (pending.current === undefined) pending.current = kind === "translate" || kind === "reading" ? peekAdUnlockPending(kind) : null;
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
@@ -186,6 +187,8 @@ export default function AdUnlockClient() {
         ? { sharedDreamId: sp.get("sharedDreamId")!, targetLang: sp.get("targetLang")! }
         : null;
     if (kind === "translate" && !translation) { setPhase("failed"); return; }
+    const readingId = kind === "reading" ? (pending.current?.dreamId || sp.get("sharedDreamId") || "") : "";
+    if (kind === "reading" && !readingId) { setPhase("failed"); return; }
     let cancelled = false;
     const controller = new AbortController();
     let timedOut = false;
@@ -210,7 +213,7 @@ export default function AdUnlockClient() {
             keepalive: true,
             signal: controller.signal,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
+            body: JSON.stringify({ idToken, kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation, ...(readingId ? { sharedDreamId: readingId } : {}) }),
           });
         } else {
           res = await fetch("/api/dreams/guest-ad-reward", {
@@ -219,7 +222,7 @@ export default function AdUnlockClient() {
             keepalive: true,
             signal: controller.signal,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation }),
+            body: JSON.stringify({ kind, rewardId: rewardId.current, attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined, ...translation, ...(readingId ? { sharedDreamId: readingId } : {}) }),
           });
         }
         if (cancelled) return;

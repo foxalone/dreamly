@@ -11,6 +11,7 @@ type Props = {
   analysisDreamId?: string;
   analysisDreamText?: string;
   translation?: { sharedDreamId: string; targetLang: string };
+  reading?: { sharedDreamId: string };
   source: string;
   /** Render as a choice card beside the subscription plans. */
   card?: { title: string; price: string; description: string };
@@ -28,13 +29,14 @@ type Props = {
  * time (no line items / Ad Exchange), so it only added a "looking for an
  * ad…" wait before the same fallback (lib/rewardedAd.ts still has the code).
  */
-export default function RewardedAdButton({ label, kind, analysisDreamId, analysisDreamText, translation, source, card }: Props) {
+export default function RewardedAdButton({ label, kind, analysisDreamId, analysisDreamText, translation, reading, source, card }: Props) {
   const start = () => {
     trackEvent("rewarded_ad_open", { source, kind });
     // An interpretation started from the home/inline ask resumes itself after the
     // Offerwall (useDreamAsk takes this mark on return); other kinds have their own.
     if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamId: analysisDreamId, dreamText: analysisDreamText });
-    window.location.assign(adUnlockUrl(kind, undefined, translation));
+    if (kind === "reading" && reading?.sharedDreamId) setAdUnlockPending({ kind: "reading", dreamId: reading.sharedDreamId });
+    window.location.assign(adUnlockUrl(kind, undefined, translation, reading));
   };
   if (card) {
     return (

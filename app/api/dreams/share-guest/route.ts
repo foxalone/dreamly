@@ -5,6 +5,8 @@ import { dreamPageIndexNowPaths, notifyIndexNow } from "@/lib/indexnow";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { detectDreamLang } from "@/lib/detectDreamLang";
+import { publicAnalysisFields } from "@/lib/analysisPreview";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { checkShareableDreamText, guestSharedDocId, guestSharedDreamDocId, shareBadgeFor } from "@/lib/shareBadges";
@@ -90,6 +92,7 @@ export async function POST(req: Request) {
     const sharedId = guestSharedDreamDocId(guestId, text);
     const sharedRef = db.collection("shared_dreams").doc(sharedId);
     const legacyRef = db.collection("shared_dreams").doc(guestSharedDocId(guestId));
+    const snapshotRef = db.collection("guest_dreams").doc(guestDreamSnapshotId(guestId, text));
     const quotaRef = db.collection("guestQuickSymbol").doc(guestId);
     const nowMs = Date.now();
     const { dateKey, timeKey } = utcKeys(nowMs);
@@ -109,11 +112,12 @@ export async function POST(req: Request) {
     const badge = shareBadgeFor(before + 1);
 
     const outcome = await db.runTransaction(async (tx) => {
-      const [sharedSnap, legacySnap, quotaSnap, ipSnap] = await Promise.all([
+      const [sharedSnap, legacySnap, quotaSnap, ipSnap, snapshotSnap] = await Promise.all([
         tx.get(sharedRef),
         tx.get(legacyRef),
         tx.get(quotaRef),
         tx.get(ipRef),
+        tx.get(snapshotRef),
       ]);
 
       if (sharedSnap.exists) return "already" as const;
@@ -122,6 +126,8 @@ export async function POST(req: Request) {
       if (legacySnap.exists && s(legacySnap.data()?.text) === text) return "already_legacy" as const;
       if (!(Number(quotaSnap.data()?.used ?? 0) >= 1)) return "no_reading" as const;
       if (Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT) return "ip_limit" as const;
+      const snapshotText = s(snapshotSnap.data()?.text);
+      const snapshotAnalysis = snapshotText === text ? cleanAnalysis(snapshotSnap.data()?.analysis) : "";
 
       tx.set(sharedRef, {
         ownerUid: null,
@@ -152,6 +158,7 @@ export async function POST(req: Request) {
         fromHomeAsk: true,
         fromGuest: true,
         shareBadge: badge.id,
+        ...publicAnalysisFields(snapshotAnalysis),
         ...(geo?.cityId
           ? {
               cityId: geo.cityId,
@@ -162,6 +169,12 @@ export async function POST(req: Request) {
             }
           : {}),
       });
+      if (snapshotAnalysis) {
+        tx.set(sharedRef.collection("private").doc("analysis"), {
+          text: snapshotAnalysis,
+          updatedAtMs: nowMs,
+        });
+      }
       tx.set(
         ipRef,
         { used: FieldValue.increment(1), dayKey: dateKey, lastAt: FieldValue.serverTimestamp() },

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import { useRouter } from "next/navigation";
 import { Keyboard, Mic } from "lucide-react";
@@ -27,6 +28,7 @@ import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
+import { analysisPreview } from "@/lib/analysisPreview";
 import { feedPaginationCopy } from "@/lib/i18n/feedPagination";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
@@ -90,6 +92,9 @@ type SharedDream = {
 
   // comments ("interpretations") under the public dream page /dream/<id>
   commentCount?: number;
+  /** Public preview of the reading. The rest stays private until it is opened. */
+  analysisText?: string;
+  analysisHasMore?: boolean;
 
   reactions?: {
     heart?: number;
@@ -238,6 +243,8 @@ export default function SharedPage() {
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedFailed, setFeedFailed] = useState(false);
   const [feedTotal, setFeedTotal] = useState<number | null>(null);
+  const [attachedAnalysis, setAttachedAnalysis] = useState<Record<string, string>>({});
+  const analysisAsked = useRef(new Set<string>());
   const [my, setMy] = useState<Record<string, MyReactions>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -445,6 +452,37 @@ export default function SharedPage() {
       cancelled = true;
       window.removeEventListener("focus", refreshTotal);
     };
+  }, [feedMembership]);
+
+  // Older shares kept the reading on the private dream. Ask the server to copy
+  // that reading onto the public doc, then show it without waiting for the snapshot.
+  useEffect(() => {
+    const ids = items
+      .filter((item) => !(item.analysisText ?? "").trim() && !analysisAsked.current.has(item.id))
+      .map((item) => item.id)
+      .slice(0, 50);
+    if (!ids.length) return;
+    ids.forEach((id) => analysisAsked.current.add(id));
+    let cancelled = false;
+    void fetch("/api/dreams/public-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.analyses || typeof data.analyses !== "object") return;
+        setAttachedAnalysis((prev) => ({ ...prev, ...data.analyses }));
+      })
+      .catch(() => {
+        if (!cancelled) ids.forEach((id) => analysisAsked.current.delete(id));
+      });
+    return () => {
+      cancelled = true;
+      ids.forEach((id) => analysisAsked.current.delete(id));
+    };
+    // Membership is the id set. Reaction updates must not cancel an in-flight copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedMembership]);
 
   // ✅ my translation unlocks (only when signed in). Read-only optimisation:
@@ -788,6 +826,9 @@ export default function SharedPage() {
               const emojis = normalizeEmojis(d.emojis);
               const sourceLabel = getSharedTypeLabel(d);
               const sourceNum = feedTotal === null ? null : feedTotal - index;
+              const published = analysisPreview((d.analysisText ?? attachedAnalysis[d.id] ?? "").trim());
+              const analysis = published.preview;
+              const analysisHasMore = published.hasMore || d.analysisHasMore === true;
 
               // creature the author had at THIS share (stamped at share time), so
               // one person's older dreams can show a lower level than newer ones;
@@ -878,6 +919,16 @@ export default function SharedPage() {
                       {showingTranslation[d.id] ?? d.text}
                     </LocaleLink>
 
+                    {analysis ? (
+                        <AnalysisExcerpt
+                          text={analysis}
+                          label={t.app.analysis}
+                          more={analysisHasMore ? t.dreamPage.more : undefined}
+                          moreTitle={t.dreamPage.analysisMore}
+                          href={analysisHasMore ? `/dream/${d.id}#analysis` : undefined}
+                        />
+                    ) : null}
+
                     <div className="mt-2 text-xs text-[var(--muted)]">
                       {sourceLabel}{sourceNum !== null && sourceNum > 0 ? ` #${sourceNum}` : ""}
                     </div>
@@ -919,7 +970,7 @@ export default function SharedPage() {
                           aria-label={t.dreamPage.commentsLabel}
                         >
                           <span>💬</span>
-                          <span className="tabular-nums">{safeNum(d.commentCount)}</span>
+                          <span className="tabular-nums">{safeNum(d.commentCount) + (analysis ? 1 : 0)}</span>
                         </LocaleLink>
                       </div>
 

@@ -36,11 +36,19 @@ export type AdUnlockPending = {
   atMs: number;
 };
 
-export function adUnlockUrl(kind: PaywallKind, next?: string, translation?: { sharedDreamId: string; targetLang: string }) {
+export function adUnlockUrl(
+  kind: PaywallKind,
+  next?: string,
+  translation?: { sharedDreamId: string; targetLang: string },
+  reading?: { sharedDreamId: string },
+) {
   const params = new URLSearchParams({ kind });
   if (kind === "translate" && translation) {
     params.set("sharedDreamId", translation.sharedDreamId);
     params.set("targetLang", translation.targetLang);
+  }
+  if (kind === "reading" && reading?.sharedDreamId) {
+    params.set("sharedDreamId", reading.sharedDreamId);
   }
   const target = next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
   const locale = localeFromPathname(typeof window !== "undefined" ? window.location.pathname : target);

@@ -316,8 +316,11 @@ export type UiMessages = {
     guestNetworkBody: string;
     guestTranslateTitle: string;
     guestTranslateBody: string;
+    guestReadingTitle: string;
+    guestReadingBody: string;
     signInWithGoogle: string;
     translateNow: string;
+    readingNow: string;
     adLoading: string;
     adUnavailable: string;
     adUnavailableSignedIn: string;
@@ -325,6 +328,8 @@ export type UiMessages = {
     adDailyLimit: string;
     translateTitle: string;
     translateBody: string;
+    readingTitle: string;
+    readingBody: string;
     saveTitle: string;
     saveBody: string;
     saveDailyTitle: string;
@@ -332,6 +337,7 @@ export type UiMessages = {
     watchAd: string;
     watchAdSave: string;
     watchAdTranslate: string;
+    watchAdReading: string;
     adCardTitle: string;
     adCardCta: string;
     /** Sign-in choice card in the guest limit dialog. */
@@ -379,6 +385,10 @@ export type UiMessages = {
     commentFailed: string;
     deleteComment: string;
     moreDreams: string;
+    /** Feed preview: opens the full reading on the dream page. */
+    more: string;
+    /** Accessible name for that link. */
+    analysisMore: string;
   };
   game: {
     title: string;

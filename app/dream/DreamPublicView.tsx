@@ -3,6 +3,8 @@ import "server-only";
 import { cache } from "react";
 import type { Metadata } from "next";
 
+import { analysisPreview } from "@/lib/analysisPreview";
+import { ensureSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
@@ -50,12 +52,25 @@ function normalizeEmojiNatives(v: any): string[] {
 export const loadSharedDream = cache(async (id: string): Promise<PublicSharedDream | null> => {
   if (!id || !/^[A-Za-z0-9_-]{1,120}$/.test(id)) return null;
   try {
-    const snap = await adminFirestore().collection("shared_dreams").doc(id).get();
+    const db = adminFirestore();
+    const snap = await db.collection("shared_dreams").doc(id).get();
     if (!snap.exists) return null;
     const data = snap.data() as any;
     if (data?.deleted === true) return null;
     const text = str(data?.text).trim();
     if (!text) return null;
+    let analysisText = "";
+    let analysisHasMore = false;
+    try {
+      const published = await ensureSharedDreamAnalysis(db, id, data);
+      analysisText = published.preview;
+      analysisHasMore = published.hasMore;
+    } catch (error) {
+      console.error("shared dream analysis failed:", error);
+      const fallback = analysisPreview(str(data?.analysisText).trim());
+      analysisText = fallback.preview;
+      analysisHasMore = data?.analysisHasMore === true || fallback.hasMore;
+    }
 
     return {
       id,
@@ -76,6 +91,8 @@ export const loadSharedDream = cache(async (id: string): Promise<PublicSharedDre
         star: num(data?.reactions?.star),
       },
       commentCount: num(data?.commentCount),
+      analysisText,
+      analysisHasMore,
     };
   } catch (e) {
     console.error("loadSharedDream failed:", e);
@@ -177,6 +194,13 @@ export default async function DreamPublicView({
 }) {
   const t = getMessages(locale);
   const [more, comments] = await Promise.all([loadMoreDreams(dream.id), loadDreamComments(dream.id)]);
+  const thread = [
+    ...(dream.analysisText
+      ? [{ text: dream.analysisText, badge: null, createdAtMs: dream.sharedAtMs, analysis: true as const }]
+      : []),
+    ...comments.map((comment) => ({ ...comment, analysis: false as const })),
+  ];
+  const commentCount = Math.max(dream.commentCount, comments.length) + (dream.analysisText ? 1 : 0);
 
   // UGC page markup for search engines: an anonymous forum-style posting with
   // its comment count. The text itself is in the HTML (client components are
@@ -189,24 +213,26 @@ export default async function DreamPublicView({
     url: `${SITE_URL}${localePath(`/dream/${dream.id}`, locale)}`,
     ...(dream.sharedAtMs ? { datePublished: new Date(dream.sharedAtMs).toISOString() } : {}),
     author: { "@type": "Person", name: t.shareBadges.anonymous, url: SITE_URL },
-    commentCount: Math.max(dream.commentCount, comments.length),
-    ...(comments.length
+    commentCount,
+    ...(thread.length
       ? {
-          comment: comments.map((c) => ({
+          comment: thread.map((c) => ({
             "@type": "Comment",
             text: c.text,
             ...(c.createdAtMs ? { datePublished: new Date(c.createdAtMs).toISOString() } : {}),
-            author: {
-              "@type": "Person",
-              name: `${t.shareBadges.anonymous} \u00b7 ${shareBadgeLabel(t, shareBadgeById(c.badge) ?? shareBadgeFor(0))}`,
-            },
+            author: c.analysis
+              ? { "@type": "Organization", name: "Dreamly" }
+              : {
+                  "@type": "Person",
+                  name: `${t.shareBadges.anonymous} \u00b7 ${shareBadgeLabel(t, shareBadgeById(c.badge) ?? shareBadgeFor(0))}`,
+                },
           })),
         }
       : {}),
     interactionStatistic: {
       "@type": "InteractionCounter",
       interactionType: "https://schema.org/CommentAction",
-      userInteractionCount: dream.commentCount,
+      userInteractionCount: commentCount,
     },
   };
 

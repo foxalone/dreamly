@@ -8,19 +8,22 @@
  *  - "analysis"  — AI interpretation (diary, homepage Ask, inline prompts, quick symbol)
  *  - "save"      — saving a dream to the journal
  *  - "translate" — feed translation
+ *  - "reading"  — the full analysis under a public dream
  */
-export type PaywallKind = "analysis" | "save" | "translate";
+export type PaywallKind = "analysis" | "save" | "translate" | "reading";
 
 export type PaywallRequest = {
   kind: PaywallKind;
   /** The one feed translation paid for by a rewarded ad. */
   translation?: { sharedDreamId: string; targetLang: string };
+  /** The one public dream whose analysis a rewarded ad opens. */
+  reading?: { sharedDreamId: string };
   /**
    * Guest choice: sign in (Google) or earn the action through a rewarded ad.
    * "guest_limit" / "ip_limit" are the analysis quotas; "translate" is a feed
    * translation (guests have no free one — ad or sign-in).
    */
-  guest?: { reason: "guest_limit" | "ip_limit" | "translate"; signIn: () => void };
+  guest?: { reason: "guest_limit" | "ip_limit" | "translate" | "reading"; signIn: () => void };
   /** analysis only: "daily" = today's free one is used, "limit" = all free ones are used. */
   reason?: "limit" | "daily";
   /** GA4 upgrade_prompt source. */

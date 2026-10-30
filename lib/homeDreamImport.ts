@@ -8,6 +8,7 @@ import { ingestDreamForMap } from "@/lib/map/ingestDreamForMap";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import { clampDreamText } from "@/lib/dreamLength";
 import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
+import { publicAnalysisFields } from "@/lib/analysisPreview";
 import { shareBadgeFor } from "@/lib/shareBadges";
 import {
   readHomeDreamQueue,
@@ -144,6 +145,7 @@ async function shareImportedDream(
     updatedAt: serverTimestamp(),
     deleted: false,
     reactions: { heart: 0, like: 0, star: 0 },
+    ...publicAnalysisFields(pending.analysis),
     fromHomeAsk: true,
     ...(before !== null ? { shareBadge: shareBadgeFor(before + 1).id } : {}),
     ...(pending.city?.cityId

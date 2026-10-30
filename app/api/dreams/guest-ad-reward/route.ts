@@ -1,7 +1,8 @@
 import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
-import { allowGuestFirstAnalysisWithoutAd, guestAdReward, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
+import { allowGuestFirstAnalysisWithoutAd, guestAdReward, guestReadingAd, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
 
+import { readingDreamId } from "@/lib/readingAdGrant";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
@@ -23,7 +24,17 @@ async function handle(req: Request, grant: boolean) {
     }
     if (grant && !validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
     const query = new URL(req.url).searchParams;
-    const kind = normalizeGuestAdKind(grant ? body.kind : query.get("kind"));
+    const requestedKind = grant ? body.kind : query.get("kind");
+    if (requestedKind === "reading") {
+      const sharedDreamId = readingDreamId(grant ? body.sharedDreamId : query.get("sharedDreamId"));
+      if (grant && !sharedDreamId) return NextResponse.json({ code: "READING_TARGET_REQUIRED" }, { status: 400 });
+      const result = await guestReadingAd(guestId, readClientIp(req), grant, body.rewardId, sharedDreamId ?? "", undefined);
+      if (grant && result.credits === 0 && !result.replayed) {
+        return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
+      }
+      return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+    }
+    const kind = normalizeGuestAdKind(requestedKind);
     const target = kind === "translate"
       ? translationAdTarget(grant ? body.sharedDreamId : query.get("sharedDreamId"), grant ? body.targetLang : query.get("targetLang"))
       : null;

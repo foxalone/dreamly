@@ -23,6 +23,9 @@ export const AD_SAVE_REWARDS_PER_DAY = 10;
 // Feed translations: after the free one of the day, one rewarded ad per
 // translation, at most AD_TRANSLATE_REWARDS_PER_DAY a day (decided 2026-10-04).
 export const AD_TRANSLATE_REWARDS_PER_DAY = 3;
+// Reading someone else's public analysis: one rewarded ad per dream, at most
+// this many ads a day. The dream's author reads their own analysis with no ad.
+export const AD_READING_REWARDS_PER_DAY = 3;
 export const FREE_ANALYSES_TOTAL = 3;
 export const FREE_ANALYSES_PER_DAY = 1;
 // Rewarded ad (Google Ad Manager): a signed-in user without a subscription

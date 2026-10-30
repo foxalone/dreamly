@@ -2,8 +2,9 @@ import { readGuestId } from "../_lib/guestQuota";
 import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
-import { grantAdReward } from "../_lib/subscription";
+import { grantAdReward, grantReadingReward } from "../_lib/subscription";
 
+import { readingDreamId } from "@/lib/readingAdGrant";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
@@ -20,6 +21,13 @@ async function grantReward(req: Request) {
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
     if (!validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
+    if (body.kind === "reading") {
+      const sharedDreamId = readingDreamId(body.sharedDreamId);
+      if (!sharedDreamId) return NextResponse.json({ code: "READING_TARGET_REQUIRED" }, { status: 400 });
+      const reading = await grantReadingReward(auth.uid, body.rewardId, sharedDreamId);
+      if ("error" in reading) return reading.error;
+      return NextResponse.json({ ok: true, credits: reading.credits, leftToday: reading.leftToday });
+    }
     const kind = body.kind === "save" ? "save" : body.kind === "translate" ? "translate" : "analysis";
     const target = kind === "translate" ? translationAdTarget(body.sharedDreamId, body.targetLang) : null;
     if (kind === "translate" && !target) return NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 });
