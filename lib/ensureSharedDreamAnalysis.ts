@@ -26,7 +26,7 @@ export async function lookupLinkedAnalysis(
   if (guestId && dreamText) {
     const snap = await db.collection("guest_dreams").doc(guestDreamSnapshotId(guestId, dreamText)).get();
     const row = snap.data() as Record<string, unknown> | undefined;
-    if (snap.exists && row?.deleted !== true && textOf(row) === dreamText) {
+    if (snap.exists && row && row.deleted !== true && textOf(row) === dreamText) {
       const analysis = cleanAnalysis(row.analysis);
       if (analysis) return analysis;
     }
@@ -37,7 +37,7 @@ export async function lookupLinkedAnalysis(
   if (uid && dreamId && data.sourceType !== "story") {
     const snap = await db.collection("users").doc(uid).collection("dreams").doc(dreamId).get();
     const row = snap.data() as Record<string, unknown> | undefined;
-    if (snap.exists && row?.deleted !== true) {
+    if (snap.exists && row && row.deleted !== true) {
       const analysis = cleanAnalysis(row.analysisText);
       if (analysis) return analysis;
     }
