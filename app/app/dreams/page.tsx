@@ -1,10 +1,11 @@
 "use client";
 import AnalysisDisplay from "@/app/components/AnalysisDisplay";
+import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { firstDreamMessages } from "@/lib/i18n/first-dream";
+import { analyzeDreamMessages, firstDreamMessages } from "@/lib/i18n/first-dream";
 import DreamComposerForm from "@/app/components/DreamComposerForm";
 import GuestDreamJournal from "@/app/components/GuestDreamJournal";
 import DiaryTabs from "@/app/components/DiaryTabs";
@@ -45,7 +46,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { useDreamLens } from "@/app/components/DreamLensChips";
 import { openPaywall } from "@/lib/paywall";
 import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
-import { type DreamLens, isDreamLens } from "@/lib/dream-lenses";
+import { type DreamLens } from "@/lib/dream-lenses";
 import { requestSharedDreamLang } from "@/lib/requestSharedDreamLang";
 import {
   collection,
@@ -59,7 +60,7 @@ import {
   setDoc,
   getDoc,
 } from "firebase/firestore";
-import { publicAnalysisFields } from "@/lib/analysisPreview";
+import { publicAnalysisFields, analysisPreview } from "@/lib/analysisPreview";
 import { nextShareBadge, shareBadgeFor, shareBadgeLevelUp, type ShareBadge } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
@@ -488,10 +489,9 @@ export default function DreamsPage() {
   const lastFinalChunkRef = useRef<string>("");
 
   const [analysisBusyId, setAnalysisBusyId] = useState<string | null>(null);
-  const [analysisOpenId, setAnalysisOpenId] = useState<string | null>(null);
-  /** Dream whose fresh reading made creatures escape into the catcher (shows the note in the popup). */
+  const [expandedAnalysis, setExpandedAnalysis] = useState<Set<string>>(() => new Set());
+  /** Dream whose fresh reading made creatures escape into the catcher. */
   const [escapedFor, setEscapedFor] = useState<{ id: string; emojis: string[] } | null>(null);
-  const [analysisOpenType, setAnalysisOpenType] = useState<ContentType>("dream");
 
   const hintsRef = useRef<Record<string, string>>({});
 
@@ -519,10 +519,7 @@ export default function DreamsPage() {
               const up = shareBadgeLevelUp(result.shareCount - 1, result.shareCount);
               if (up) setLevelUp(up);
             }
-            if (result.analysis) {
-              setAnalysisOpenType("dream");
-              setAnalysisOpenId(result.dreamId);
-            }
+            if (result.analysis) setExpandedAnalysis(new Set([result.dreamId]));
             if (result.analysis || result.resumeAnalysis) setTab("DREAMS");
             else if (result.shared) setTab("SHARED");
             if (result.resumeAnalysis) setResumeAnalysis({ id: result.dreamId, lens: result.lens });
@@ -581,12 +578,13 @@ export default function DreamsPage() {
     return () => off(p, "value", cb);
   }, []);
 
-  function openAnalysis(itemId: string, type: ContentType = "dream") {
-    setAnalysisOpenType(type);
-    setAnalysisOpenId(itemId);
-  }
-  function closeAnalysis() {
-    setAnalysisOpenId(null);
+  function openAnalysis(itemId: string) {
+    setExpandedAnalysis((prev) => {
+      if (prev.has(itemId)) return prev;
+      const next = new Set(prev);
+      next.add(itemId);
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -793,11 +791,24 @@ export default function DreamsPage() {
     const unsub = onSnapshot(
       q1,
       (snap) => {
-        const items: Dream[] = snap.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as any),
-        }));
-        setDreams(items);
+        setDreams((prev) => {
+          const local = new Map(prev.map((item) => [item.id, item]));
+          return snap.docs.map((d) => {
+            const data = d.data() as Dream;
+            const kept = local.get(d.id);
+            const serverAnalysis = String(data.analysisText ?? "").trim();
+            if (serverAnalysis || !kept?.analysisText) return { id: d.id, ...data };
+            return {
+              id: d.id,
+              ...data,
+              analysisText: kept.analysisText,
+              analysisAttemptId: kept.analysisAttemptId,
+              analysisAtMs: kept.analysisAtMs,
+              analysisModel: kept.analysisModel,
+              analysisLens: kept.analysisLens,
+            };
+          });
+        });
         setDreamHistoryUid(uid);
       },
       (err) => {
@@ -1020,22 +1031,24 @@ export default function DreamsPage() {
 
   const saveRef = useRef<() => Promise<void>>(async () => {});
   const analyzeRef = useRef<(id: string, opts?: { afterAd?: boolean; lens?: DreamLens }) => Promise<void>>(async () => {});
+  const freshDreamText = useRef(new Map<string, string>());
+  const [composerAnalyzing, setComposerAnalyzing] = useState(false);
 
-  async function save() {
+  async function save(): Promise<string | null> {
     const v = text.trim();
     const type: ContentType = tab === "STORIES" ? "story" : tab === "JOURNAL" ? "journal" : "dream";
     const journal = type === "journal";
     if (journal ? isTextTooLong(v, JOURNAL_LIMITS) : isDreamTooLong(v)) {
       setError(formatMessage(t.app.dreamTooLong, { n: journal ? JOURNAL_MAX_WORDS : DREAM_MAX_WORDS }));
-      return;
+      return null;
     }
 
-    if (!v || saving) return;
+    if (!v || saving) return null;
 
     setError(null);
 
     const u = auth.currentUser;
-    if (!u) return;
+    if (!u) return null;
     // Saving: subscribers unlimited; others 5 a day per network, then one
     // rewarded ad per save — enforced on the server (consumeSaveAccess).
 
@@ -1078,6 +1091,22 @@ export default function DreamsPage() {
       setSaving(false);
       setText("");
       setUsedVoice(false);
+      if (type !== "dream" || !saved?.id) return null;
+      const id = String(saved.id);
+      freshDreamText.current.set(id, v);
+      setDreams((prev) => prev.some((item) => item.id === id) ? prev : [{
+        id,
+        text: v,
+        createdAtMs: now.getTime(),
+        dateKey: toDateKeyLocal(now),
+        timeKey: toTimeKeyLocal(now),
+        source,
+        wordCount: countWords(v),
+        charCount: v.length,
+        shared: false,
+        sourceType: "dream",
+      }, ...prev]);
+      return id;
     } catch (e: any) {
       if (e?.message === "SAVE_IP_LIMIT") {
         // Free saves for today on this network are gone: offer an ad or a plan.
@@ -1091,14 +1120,13 @@ export default function DreamsPage() {
           },
         });
         openPaywall({ kind: "save", source: "diary_save", retry: () => void saveRef.current() });
-        return;
+        return null;
       }
       setError(e?.message ?? `Failed to save ${type}.`);
       setSaving(false);
+      return null;
     }
   }
-
-  saveRef.current = save;
 
   async function shareItem(itemId: string, type: ContentType) {
     const u = auth.currentUser;
@@ -1243,10 +1271,11 @@ export default function DreamsPage() {
     if (analysisBusyId || deletingId || sharingId || rootsBusyId) return;
 
     const dream = dreams.find((d) => d.id === dreamId);
-    const t = (dream?.text ?? "").trim();
+    const t = (freshDreamText.current.get(dreamId) ?? dream?.text ?? "").trim();
     if (!t) return;
 
     if ((dream?.analysisText ?? "").trim()) {
+      freshDreamText.current.delete(dreamId);
       openAnalysis(dreamId);
       return;
     }
@@ -1332,20 +1361,20 @@ export default function DreamsPage() {
         updatedAt: serverTimestamp(),
       });
 
-      setDreams((prev) =>
-        prev.map((x) =>
-          x.id === dreamId
-            ? {
-                ...x,
-                analysisText,
-                analysisAttemptId: requestAttemptId,
-                analysisAtMs: nowMs,
-                analysisModel: data2?.model ?? undefined,
-                analysisLens: data2?.lens ?? analysisLens,
-              }
-            : x
-        )
-      );
+      freshDreamText.current.delete(dreamId);
+      setDreams((prev) => {
+        const row = {
+          analysisText,
+          analysisAttemptId: requestAttemptId,
+          analysisAtMs: nowMs,
+          analysisModel: data2?.model ?? undefined,
+          analysisLens: data2?.lens ?? analysisLens,
+        };
+        if (!prev.some((item) => item.id === dreamId)) {
+          return [{ id: dreamId, text: t, shared: false, sourceType: "dream" as const, ...row }, ...prev];
+        }
+        return prev.map((item) => item.id === dreamId ? { ...item, ...row } : item);
+      });
 
       if (dream?.shared) {
         await updateDoc(doc(firestore, "shared_dreams", getSharedDocId(uid2, "dream", dreamId)), {
@@ -1408,6 +1437,22 @@ export default function DreamsPage() {
   }
 
   analyzeRef.current = analyzeDream;
+
+  async function submitComposer() {
+    if (tab === "STORIES" || tab === "JOURNAL") {
+      await save();
+      return;
+    }
+    setComposerAnalyzing(true);
+    try {
+      const id = await save();
+      if (id) await analyzeDream(id);
+    } finally {
+      setComposerAnalyzing(false);
+    }
+  }
+
+  saveRef.current = submitComposer;
 
   useEffect(() => {
     if (!uid || billingLoading) return;
@@ -1682,15 +1727,16 @@ export default function DreamsPage() {
             const nextLang = detectRecLangFromText(nextText);
             if (nextLang) setRecLang(nextLang);
           }}
-          onSubmit={(event) => { event.preventDefault(); void save(); }}
+          onSubmit={(event) => { event.preventDefault(); void submitComposer(); }}
           lens={lens} onLensChange={setLens}
           showLens={tab !== "STORIES" && tab !== "JOURNAL"} lensDisabled={!!analysisBusyId}
           placeholder={tab === "STORIES" ? t.app.writeStory : tab === "JOURNAL" ? t.app.writeJournal : dreamHistoryUid === uid && dreams.length === 0 ? firstDreamMessages[locale] : t.app.writeDream}
           maxChars={tab === "JOURNAL" ? JOURNAL_MAX_CHARS : MAX_DREAM_CHARS}
           maxWords={tab === "JOURNAL" ? JOURNAL_MAX_WORDS : undefined}
           showToday={tab === "JOURNAL"}
-          busy={saving} submitDisabled={!canSave}
-          submitLabel={t.app.save} busyLabel={t.app.saving}
+          busy={saving || (tab !== "STORIES" && tab !== "JOURNAL" && composerAnalyzing)} submitDisabled={!canSave}
+          submitLabel={tab === "STORIES" || tab === "JOURNAL" ? t.app.save : analyzeDreamMessages[locale]}
+          busyLabel={tab === "STORIES" || tab === "JOURNAL" ? t.app.saving : t.app.analyzing}
           />
           {tab === "JOURNAL" ? (
             <DiaryCalendar
@@ -1786,10 +1832,9 @@ export default function DreamsPage() {
                       </span>
                     )}
 
-                    {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && (() => {
-                      const hasAnalysis = !!(d.analysisText ?? "").trim();
+                    {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && !(d.analysisText ?? "").trim() && (() => {
                       const isAnalyzing = analysisBusyId === d.id;
-                      const pulse = !hasAnalysis && !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
+                      const pulse = !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
 
                       return (
                         <button
@@ -1797,14 +1842,14 @@ export default function DreamsPage() {
                           disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
                           className={[
                             "dream-btn",
-                            hasAnalysis ? "dream-btn--blue" : "dream-btn--neutral",
+                            "dream-btn--neutral",
                             pulse ? "dream-btn--pulse" : "",
                             isAnalyzing ? "opacity-80 cursor-wait" : "",
                             isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
                           ].join(" ")}
-                          title={hasAnalysis ? t.app.analysis : t.app.analyze}
+                          title={t.app.analyze}
                         >
-                          {isAnalyzing ? t.app.analyzing : hasAnalysis ? t.app.analysis : t.app.analyze}
+                          {isAnalyzing ? t.app.analyzing : t.app.analyze}
                         </button>
                       );
                     })()}
@@ -1829,6 +1874,32 @@ export default function DreamsPage() {
                 </div>
 
                 <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
+                {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && (d.analysisText ?? "").trim() ? (() => {
+                  const full = (d.analysisText ?? "").trim();
+                  const view = analysisPreview(full);
+                  if (expandedAnalysis.has(d.id)) {
+                    return (
+                      <AnalysisDisplay attemptId={d.analysisAttemptId}>
+                        <div className="mt-3">
+                          {escapedFor && escapedFor.id === d.id ? <EscapeNote emojis={escapedFor.emojis} /> : null}
+                          <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2 py-0 text-xs font-semibold leading-5 text-purple-500">
+                            {t.app.analysis}
+                          </span>
+                          <div dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--text)]">{full}</div>
+                        </div>
+                      </AnalysisDisplay>
+                    );
+                  }
+                  return (
+                    <AnalysisExcerpt
+                      text={view.preview}
+                      label={t.app.analysis}
+                      more={view.hasMore ? t.dreamPage.more : undefined}
+                      moreTitle={t.dreamPage.analysisMore}
+                      onMore={() => openAnalysis(d.id)}
+                    />
+                  );
+                })() : null}
                 {d.source === "dreamer" && (d.summary || d.analysisText) ? (
                   <div className="mt-3 rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_70%,transparent)] px-3 py-2.5 text-sm text-[var(--muted)] whitespace-pre-wrap break-words">
                     {(d.summary || d.analysisText || "").trim()}
@@ -2030,11 +2101,13 @@ export default function DreamsPage() {
                   </button>
 
                   <button
-                    onClick={save}
+                    onClick={() => void submitComposer()}
                     disabled={!canSave}
                     className={["dream-primary-btn", !canSave ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                   >
-                    {saving ? t.app.saving : t.app.save}
+                    {saving || composerAnalyzing
+                      ? (composerType === "story" ? t.app.saving : t.app.analyzing)
+                      : composerType === "story" ? t.app.save : analyzeDreamMessages[locale]}
                   </button>
                 </div>
               </div>
@@ -2042,75 +2115,6 @@ export default function DreamsPage() {
           </div>
         </div>
       </div>
-
-      {/* Analysis popup */}
-
-      {analysisOpenId &&
-        (() => {
-          const d = (analysisOpenType === "story" ? stories : dreams).find((x) => x.id === analysisOpenId);
-          const txt = (d?.analysisText ?? "").trim();
-
-          return (
-            <div
-              className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-              onClick={closeAnalysis}
-            >
-              <div
-                className="w-full max-w-lg rounded-2xl bg-[var(--card)] p-5 shadow-2xl border border-[var(--border)]"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-lg font-semibold text-[var(--text)]">Dream Analysis</div>
-                    {d?.analysisLens && isDreamLens(d.analysisLens) ? (
-                      <div className="mt-1 text-xs text-[var(--muted)]">{t.lens[d.analysisLens]}</div>
-                    ) : null}
-                    {d?.analysisAtMs ? (
-                      <div className="mt-1 text-xs text-[var(--muted)]">Saved: {new Date(d.analysisAtMs).toLocaleString()}</div>
-                    ) : null}
-                  </div>
-
-                  <button onClick={closeAnalysis} className={["dream-btn", "dream-btn--neutral"].join(" ")}>
-                    Close
-                  </button>
-                </div>
-
-                <div className="mt-4">
-                  {escapedFor && escapedFor.id === analysisOpenId ? <EscapeNote emojis={escapedFor.emojis} /> : null}
-                  {!txt ? (
-                    <div className="text-sm text-[var(--muted)]">No analysis found.</div>
-                  ) : (
-                    <AnalysisDisplay attemptId={d?.analysisAttemptId}><div className="text-[var(--text)] whitespace-pre-wrap break-words text-sm leading-relaxed">{txt}</div></AnalysisDisplay>
-                  )}
-                </div>
-
-                {d && txt && d.shared !== true && d.source !== "dreamer" ? (() => {
-                  // Right after a reading is when people are most willing to share.
-                  const nextBadge = shareBadgeFor(sharedItems.length + 1);
-                  const isSharing = sharingId === d.id;
-                  return (
-                    <div className="mt-5 rounded-xl border border-[var(--border)] p-4">
-                      <div className="text-sm font-semibold text-[var(--text)]">{t.shareBadges.promptTitle}</div>
-                      <div className="mt-1 text-xs text-[var(--muted)]">
-                        {formatMessage(t.shareBadges.promptBody, { badge: shareBadgeLabel(t, nextBadge) })}
-                      </div>
-                      <button
-                        onClick={() => {
-                          closeAnalysis();
-                          void shareItem(d.id, analysisOpenType);
-                        }}
-                        disabled={isSharing}
-                        className={["dream-primary-btn mt-3", isSharing ? "opacity-70 cursor-wait" : ""].join(" ")}
-                      >
-                        {isSharing ? t.shareBadges.sharing : `${nextBadge.emoji} ${t.shareBadges.shareCta}`}
-                      </button>
-                    </div>
-                  );
-                })() : null}
-              </div>
-            </div>
-          );
-        })()}
       </div>
 
     </main>
