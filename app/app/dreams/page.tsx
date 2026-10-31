@@ -794,13 +794,13 @@ export default function DreamsPage() {
         setDreams((prev) => {
           const local = new Map(prev.map((item) => [item.id, item]));
           return snap.docs.map((d) => {
-            const data = d.data() as Dream;
+            const data = d.data() as Omit<Dream, "id">;
             const kept = local.get(d.id);
             const serverAnalysis = String(data.analysisText ?? "").trim();
-            if (serverAnalysis || !kept?.analysisText) return { id: d.id, ...data };
+            if (serverAnalysis || !kept?.analysisText) return { ...data, id: d.id };
             return {
-              id: d.id,
               ...data,
+              id: d.id,
               analysisText: kept.analysisText,
               analysisAttemptId: kept.analysisAttemptId,
               analysisAtMs: kept.analysisAtMs,
