@@ -1,6 +1,14 @@
 import { DREAM_ANALYSIS_FALLBACK_MODEL, DREAM_ANALYSIS_MODEL } from "./aiModels";
 
-const BALANCE_CODES = new Set(["credit_balance_exhausted", "insufficient_quota", "billing_hard_limit_reached"]);
+const BALANCE_CODES = new Set([
+  "credit_balance_exhausted",
+  "insufficient_quota",
+  "billing_hard_limit_reached",
+  "organization_spend_limit_exceeded",
+  "project_spend_limit_exceeded",
+  "organization_usage_limit_exceeded",
+  "usage_limit_exceeded",
+]);
 
 export function isProviderBalanceExhausted(error: unknown): boolean {
   const code = (error as { code?: unknown } | null)?.code;

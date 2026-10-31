@@ -4,9 +4,11 @@ import DreamAnalysisProgress from "./DreamAnalysisProgress";
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
+import { formatMessage } from "@/lib/i18n/messages";
 import { analyzeDreamMessages, firstDreamMessages } from "@/lib/i18n/first-dream";
 import { hasWrittenGuestDream, rememberGuestDreamWritten } from "@/lib/guestDreamHistory";
-import { DREAM_MAX_CHARS } from "@/lib/dreamLength";
+import { readGuestNotes, removeGuestNote, writeGuestNote, type GuestNote } from "@/lib/guestNotes";
+import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, JOURNAL_LIMITS, JOURNAL_MAX_CHARS, JOURNAL_MAX_WORDS, clampText, isDreamTooLong, isTextTooLong } from "@/lib/dreamLength";
 import { readHomeDreamQueue, removeHomeDreamPending, writeHomeDreamPending, type HomeDreamPending } from "@/lib/homeDreamPending";
 import { DreamLensSelect } from "./DreamLensChips";
 import DreamComposerForm from "./DreamComposerForm";
@@ -14,6 +16,8 @@ import EscapeNote from "./EscapeNote";
 import { DreamSymbolIcons } from "./DreamSymbolIcons";
 import ShareAnonPrompt from "./ShareAnonPrompt";
 import { useDreamAsk } from "./useDreamAsk";
+import DiaryTabs from "./DiaryTabs";
+import DiaryCalendar, { localDateKey } from "./DiaryCalendar";
 
 function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; number: number; refresh: () => void }) {
   const t = useMessages();
@@ -64,16 +68,37 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
   );
 }
 
+function GuestNoteCard({ note, number, label, onDelete }: { note: GuestNote; number: number; label: string; onDelete: () => void }) {
+  const t = useMessages();
+  return (
+    <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h2 className="text-base font-semibold">{label} #{number}</h2>
+        <button type="button" className="dream-btn dream-btn--danger" onClick={onDelete}>{t.app.delete}</button>
+      </div>
+      <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{note.text}</p>
+    </article>
+  );
+}
+
+type GuestTab = "DREAMS" | "STORIES" | "JOURNAL" | "SHARED";
+
 export default function GuestDreamJournal() {
   const t = useMessages();
   const locale = useLocale();
+  const [tab, setTab] = useState<GuestTab>("DREAMS");
   const [dreams, setDreams] = useState<HomeDreamPending[]>([]);
+  const [stories, setStories] = useState<GuestNote[]>([]);
+  const [journal, setJournal] = useState<GuestNote[]>([]);
+  const [noteError, setNoteError] = useState<string | null>(null);
   const [historyReady, setHistoryReady] = useState(false);
   const [hasWrittenDream, setHasWrittenDream] = useState(false);
   const refresh = () => {
     const queue = readHomeDreamQueue();
     if (queue.length) rememberGuestDreamWritten();
     setDreams(queue.reverse());
+    setStories([...readGuestNotes("story")].reverse());
+    setJournal([...readGuestNotes("journal")].reverse());
     setHasWrittenDream((before) => before || queue.length > 0 || hasWrittenGuestDream());
     setHistoryReady(true);
   };
@@ -86,13 +111,60 @@ export default function GuestDreamJournal() {
   const dreamPrompt = historyReady && !hasWrittenDream ? firstDreamMessages[locale] : t.app.writeDream;
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) refresh(); });
+    const restoreRecovered = async () => {
+      const pending = readHomeDreamQueue().filter(dream => dream.analysisAttemptId &&
+        (!dream.analysis || !dream.guestSharedId));
+      for (const dream of pending) {
+        try {
+          const result = await fetch(`/api/dreams/recovered-attempt?id=${dream.analysisAttemptId}`, {
+            credentials: "same-origin", cache: "no-store",
+          });
+          if (!result.ok || cancelled) continue;
+          const data = await result.json();
+          if (!data?.ready || typeof data.analysis !== "string" || cancelled) continue;
+          writeHomeDreamPending(dream.text, {
+            analysis: data.analysis,
+            emojis: Array.isArray(data.emojis) ? data.emojis : undefined,
+            iconsEn: Array.isArray(data.iconsEn) ? data.iconsEn : undefined,
+            rootsEn: Array.isArray(data.rootsEn) ? data.rootsEn : undefined,
+            city: data.city ?? undefined,
+            guestMapIngested: data.mapIngested === true,
+            guestSharedId: typeof data.sharedId === "string" ? data.sharedId : undefined,
+          });
+          if (dream.shareToFeed !== false && !dream.guestSharedId && !data.sharedId) {
+            const shared = await fetch("/api/dreams/share-guest", {
+              method: "POST", credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: dream.text, lang: dream.lang, lens: dream.lens,
+                emojis: data.emojis, iconsEn: data.iconsEn }),
+            });
+            const share = await shared.json().catch(() => ({}));
+            if (share.sharedId && (shared.ok || share.code === "ALREADY_SHARED")) {
+              writeHomeDreamPending(dream.text, { guestSharedId: String(share.sharedId) });
+            }
+          }
+          if (!cancelled) refresh();
+        } catch (error) {
+          console.warn("Recovered dream restore failed", error);
+        }
+      }
+    };
+    void restoreRecovered();
     window.addEventListener("storage", refresh);
-    return () => window.removeEventListener("storage", refresh);
+    return () => { cancelled = true; window.removeEventListener("storage", refresh); };
   }, []);
+
+  const dreamTab = tab === "DREAMS" || tab === "SHARED";
+  const sharedDreams = dreams.filter((dream) => !!dream.guestSharedId);
 
   async function analyze(event: FormEvent) {
     event.preventDefault();
+    if (!dreamTab) {
+      saveNote(event);
+      return;
+    }
     if (!text.trim() || busy) return;
     // Preserve the journal entry even if the request needs an ad/sign-in or fails.
     writeHomeDreamPending(text, { lens, lang: locale, shareToFeed: composer.shareToFeed });
@@ -100,28 +172,70 @@ export default function GuestDreamJournal() {
     refresh();
   }
 
+  function saveNote(event: FormEvent) {
+    event.preventDefault();
+    const value = text.trim();
+    if (!value || busy) return;
+    const journal = tab === "JOURNAL";
+    if (journal ? isTextTooLong(value, JOURNAL_LIMITS) : isDreamTooLong(value)) {
+      setNoteError(formatMessage(t.app.dreamTooLong, { n: journal ? JOURNAL_MAX_WORDS : DREAM_MAX_WORDS }));
+      return;
+    }
+    writeGuestNote(tab === "JOURNAL" ? "journal" : "story", value);
+    setNoteError(null);
+    setText("");
+    refresh();
+  }
+
+  const visibleNotes = tab === "JOURNAL" ? journal : stories;
+  const emptyCopy = tab === "JOURNAL" ? t.app.noJournal : tab === "STORIES" ? t.app.noStories : tab === "SHARED" ? t.app.noShared : t.app.noDreams;
+
   return (
     <main className="relative mx-auto min-h-screen max-w-3xl px-5 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5">
       <DreamAnalysisProgress active={busy} />
-      <h1 className="inline-flex rounded-full border border-[var(--border)] bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)]">
-        {t.nav.dreams} ({dreams.length})
-      </h1>
-      <DreamComposerForm
-        className="mt-5" autoFocus
-        text={text} onTextChange={setText} onSubmit={analyze}
-        lens={lens} onLensChange={chooseLens}
-        placeholder={dreamPrompt} label={t.app.writeDream}
-        maxChars={DREAM_MAX_CHARS} busy={busy} submitDisabled={!text.trim()}
-        submitLabel={analyzeDreamMessages[locale]} busyLabel={t.app.analyzing}
-        share={{ checked: composer.shareToFeed, onChange: composer.setShareToFeed }}
+      <h1 className="sr-only">{t.nav.dreams}</h1>
+      <DiaryTabs
+        tab={tab}
+        onTab={setTab}
+        counts={{ DREAMS: dreams.length, STORIES: stories.length, JOURNAL: journal.length, SHARED: sharedDreams.length }}
       />
-      {composer.error ? <p role="alert" className="mt-3 text-sm text-red-500">{composer.error}</p> : null}
-      <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
+      <div className={tab === "JOURNAL" ? "mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch" : "mt-5"}>
+        <DreamComposerForm
+          className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""} autoFocus
+        text={text} onTextChange={(raw) => setText(tab === "JOURNAL" ? clampText(raw, JOURNAL_LIMITS) : raw)} onSubmit={analyze}
+        lens={lens} onLensChange={chooseLens}
+        showLens={dreamTab}
+        placeholder={tab === "STORIES" ? t.app.writeStory : tab === "JOURNAL" ? t.app.writeJournal : dreamPrompt}
+        label={tab === "STORIES" ? t.app.writeStory : tab === "JOURNAL" ? t.app.writeJournal : t.app.writeDream}
+        maxChars={tab === "JOURNAL" ? JOURNAL_MAX_CHARS : DREAM_MAX_CHARS}
+        maxWords={tab === "JOURNAL" ? JOURNAL_MAX_WORDS : undefined}
+        showToday={tab === "JOURNAL"}
+        busy={dreamTab && busy} submitDisabled={!text.trim()}
+        submitLabel={dreamTab ? analyzeDreamMessages[locale] : t.app.save}
+        busyLabel={t.app.analyzing}
+        share={dreamTab ? { checked: composer.shareToFeed, onChange: composer.setShareToFeed } : undefined}
+        />
+        {tab === "JOURNAL" ? <DiaryCalendar markedDays={journal.map((note) => localDateKey(note.createdAtMs))} /> : null}
+      </div>
+      {(dreamTab ? composer.error : noteError) ? <p role="alert" className="mt-3 text-sm text-red-500">{dreamTab ? composer.error : noteError}</p> : null}
+      {dreamTab ? <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p> : null}
       <div className="mt-8 space-y-3">
-        {dreams.map((dream, index) => (
-          <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={dreams.length - index} refresh={refresh} />
-        ))}
-        {!dreams.length && <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-[var(--muted)]">{t.app.noDreams}</p>}
+        {dreamTab
+          ? (tab === "SHARED" ? sharedDreams : dreams).map((dream, index, list) => (
+            <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={list.length - index} refresh={refresh} />
+          ))
+          : visibleNotes.map((note, index) => (
+            <GuestNoteCard
+              key={`${note.createdAtMs}:${note.text}`}
+              note={note}
+              number={visibleNotes.length - index}
+              label={tab === "JOURNAL" ? t.app.tabJournal : t.app.tabStories}
+              onDelete={() => { removeGuestNote(tab === "JOURNAL" ? "journal" : "story", note); refresh(); }}
+            />
+          ))}
+        {(dreamTab ? (tab === "SHARED" ? sharedDreams : dreams) : visibleNotes).length === 0 && (
+          <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-[var(--muted)]">{emptyCopy}</p>
+        )}
       </div>
     </main>
   );

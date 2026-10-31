@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, countDreamWords, isDreamTooLong } from "./dreamLength";
+import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, JOURNAL_LIMITS, JOURNAL_MAX_WORDS, clampDreamText, clampText, countDreamWords, isDreamTooLong, isTextTooLong } from "./dreamLength";
 
 const words = (n: number) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
 
@@ -27,4 +27,11 @@ test("clampDreamText cuts at the last allowed word", () => {
   assert.equal(countDreamWords(out), DREAM_MAX_WORDS);
   assert.ok(out.endsWith(`w${DREAM_MAX_WORDS - 1}`));
   assert.ok(clampDreamText("y".repeat(DREAM_MAX_CHARS + 50)).length <= DREAM_MAX_CHARS);
+});
+
+test("a diary note allows 500 words", () => {
+  assert.equal(isTextTooLong(words(JOURNAL_MAX_WORDS), JOURNAL_LIMITS), false);
+  assert.equal(isTextTooLong(words(JOURNAL_MAX_WORDS + 1), JOURNAL_LIMITS), true);
+  assert.equal(countDreamWords(clampText(words(400), JOURNAL_LIMITS)), 400);
+  assert.equal(countDreamWords(clampText(words(400))), DREAM_MAX_WORDS);
 });

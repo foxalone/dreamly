@@ -124,8 +124,13 @@ export async function POST(req: Request) {
       // The pre-multi-share doc: the same text is the same share, a different
       // text does not block any more.
       if (legacySnap.exists && s(legacySnap.data()?.text) === text) return "already_legacy" as const;
-      if (!(Number(quotaSnap.data()?.used ?? 0) >= 1)) return "no_reading" as const;
-      if (Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT) return "ip_limit" as const;
+      // A recovered server-verified interpretation is also proof of a reading:
+      // its failed ad charge was refunded, so the old used counter can be zero.
+      const recoveredReading = snapshotSnap.data()?.analysis && snapshotSnap.data()?.recoveredFrom === "ai_rate_limited" && snapshotSnap.data()?.deleted !== true;
+      if (!(Number(quotaSnap.data()?.used ?? 0) >= 1) && !recoveredReading) return "no_reading" as const;
+      if (Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT && !recoveredReading) return "ip_limit" as const;
+      const recoveredCity = recoveredReading && snapshotSnap.data()?.cityId
+        ? snapshotSnap.data() : null;
       const snapshotText = s(snapshotSnap.data()?.text);
       const snapshotAnalysis = snapshotText === text ? cleanAnalysis(snapshotSnap.data()?.analysis) : "";
 
@@ -159,12 +164,12 @@ export async function POST(req: Request) {
         fromGuest: true,
         shareBadge: badge.id,
         ...publicAnalysisFields(snapshotAnalysis),
-        ...(geo?.cityId
+        ...(recoveredCity?.cityId || geo?.cityId
           ? {
-              cityId: geo.cityId,
-              city: geo.city ?? null,
-              country: geo.country ?? null,
-              admin1: geo.admin1 ?? null,
+              cityId: recoveredCity?.cityId ?? geo?.cityId,
+              city: recoveredCity?.city ?? geo?.city ?? null,
+              country: recoveredCity?.country ?? geo?.country ?? null,
+              admin1: recoveredCity?.admin1 ?? geo?.admin1 ?? null,
               citySource: "ip",
             }
           : {}),
@@ -175,11 +180,13 @@ export async function POST(req: Request) {
           updatedAtMs: nowMs,
         });
       }
-      tx.set(
-        ipRef,
-        { used: FieldValue.increment(1), dayKey: dateKey, lastAt: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
+      if (!recoveredReading) {
+        tx.set(
+          ipRef,
+          { used: FieldValue.increment(1), dayKey: dateKey, lastAt: FieldValue.serverTimestamp() },
+          { merge: true }
+        );
+      }
       return "shared" as const;
     });
 

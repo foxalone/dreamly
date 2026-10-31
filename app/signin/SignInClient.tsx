@@ -9,6 +9,7 @@ import {
   type UserCredential,
 } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { passwordNeedsEmailVerification } from "@/lib/auth/emailVerification";
 import SignInMethods from "@/app/components/auth/SignInMethods";
 import { authMessages } from "@/lib/i18n/auth";
 import { auth } from "@/lib/firebase";
@@ -67,7 +68,7 @@ export default function SignInClient() {
   // если уже залогинен — сразу уходим
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u || authenticatingRef.current) return;
+      if (!u || authenticatingRef.current || passwordNeedsEmailVerification(u)) return;
       report.current?.("auth_succeeded");
       setBusy(true);
       ensureUserProfileOnSignIn(u)

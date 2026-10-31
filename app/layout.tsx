@@ -7,6 +7,7 @@ import DreamCatcherFab from "./components/DreamCatcherFab";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
 import SymbolClickTracker from "./components/SymbolClickTracker";
 import GoogleRedirectHandler from "@/lib/auth/GoogleRedirectHandler";
+import UnverifiedEmailGate from "@/lib/auth/UnverifiedEmailGate";
 import AppI18n from "@/lib/i18n/AppI18n";
 import PwaLaunch from "./components/PwaLaunch";
 import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
@@ -80,6 +81,7 @@ export default function RootLayout({
         <FirebaseAnalytics />
         <SymbolClickTracker />
         <GoogleRedirectHandler />
+        <UnverifiedEmailGate />
         <AdUnlockRecovery />
         <AppI18n>
           <PwaLaunch>

@@ -10,6 +10,13 @@ sharing or a map pin. Existing Firestore default-deny rules block direct client
 access. Only the existing `requireAdmin` API can list it. No new index or client
 Firestore permission is needed.
 
+The panel's CSV button makes a fresh admin-only server query for the 100 most
+recently updated attempts, regardless of the panel's search or completed filter.
+The CSV has one row per attempt, including the dream text, analysis, location,
+outcome, technical details, and JSON columns for emojis and the full recorded
+event history. UTF-8 and CSV quoting preserve multilingual and multiline text;
+user-submitted values are escaped against spreadsheet formula execution.
+
 A valid, submitted `/api/dreams/analyze` request records text, account/guest ID,
 UI language, lens, request count, server timestamps and its last known outcome.
 New submissions also record IP-derived city, region and country using the same

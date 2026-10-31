@@ -282,12 +282,23 @@ export type UiMessages = {
     signInRequired: string;
     noDreams: string;
     noStories: string;
+    noJournal: string;
+    noShared: string;
+    tabStories: string;
+    tabJournal: string;
+    tabShared: string;
+    weatherHere: string;
     subscriptionRequired: string;
     dailyLimitReached: string;
     dreamTooLong: string;
     wordCount: string;
     writeDream: string;
     writeStory: string;
+    writeJournal: string;
+    calendarLabel: string;
+    previousMonth: string;
+    nextMonth: string;
+    today: string;
   };
   lens: {
     label: string;

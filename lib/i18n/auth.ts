@@ -1,6 +1,6 @@
 import type { Locale } from "./config";
 
-type AuthMessages = { title: string; subtitle: string; google: string; emailOption: string; email: string; password: string; signIn: string; signUp: string; reset: string; back: string; cancel: string; busy: string; resetSent: string; invalid: string; weak: string; existing: string; throttled: string; disabled: string; network: string; failed: string };
+type AuthMessages = { title: string; subtitle: string; google: string; emailOption: string; email: string; password: string; showPassword: string; hidePassword: string; signIn: string; signUp: string; reset: string; back: string; cancel: string; ok: string; busy: string; resetSent: string; invalid: string; weak: string; existing: string; throttled: string; disabled: string; network: string; failed: string; verifySent: string; verifyTitle: string; verifyDone: string; verifyFailed: string; verifyIdle: string };
 
 export const authMessages: Record<Locale, AuthMessages> = {
   "en": {
@@ -10,11 +10,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "Continue with email",
     "email": "Email",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "signIn": "Sign in",
     "signUp": "Create account",
     "reset": "Forgot password?",
     "back": "Back to sign in",
     "cancel": "Cancel",
+    "ok": "OK",
     "busy": "Please wait…",
     "resetSent": "If an account exists for this address, a password reset email will arrive shortly.",
     "invalid": "Check your email and password.",
@@ -23,7 +26,12 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "Too many attempts. Please try again later.",
     "disabled": "This sign-in method is unavailable. Please try another.",
     "network": "Connection failed. Check your internet and try again.",
-    "failed": "Could not sign in. Please try again."
+    "failed": "Could not sign in. Please try again.",
+    "verifySent": "We sent a confirmation link to {email}. Open the message and tap the link to confirm this inbox is yours. Then sign in.",
+    "verifyTitle": "Confirm your email",
+    "verifyDone": "Email confirmed. Sign in with your password.",
+    "verifyFailed": "This confirmation link is invalid or has expired. Sign in to send a new one.",
+    "verifyIdle": "Open the confirmation link from the email we sent you."
   },
   "es": {
     "title": "Iniciar sesión",
@@ -32,11 +40,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "Continuar con correo",
     "email": "Correo electrónico",
     "password": "Contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "signIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
     "reset": "¿Olvidaste tu contraseña?",
     "back": "Volver al inicio de sesión",
     "cancel": "Cancelar",
+    "ok": "Aceptar",
     "busy": "Espera un momento…",
     "resetSent": "Si existe una cuenta con este correo, recibirás un mensaje para restablecer la contraseña.",
     "invalid": "Revisa tu correo y contraseña.",
@@ -45,7 +56,12 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "Demasiados intentos. Inténtalo más tarde.",
     "disabled": "Este método no está disponible. Prueba con otro.",
     "network": "No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.",
-    "failed": "No se pudo iniciar sesión. Inténtalo de nuevo."
+    "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+    "verifySent": "Enviamos un enlace de confirmación a {email}. Ábrelo para confirmar que este correo es tuyo y luego inicia sesión.",
+    "verifyTitle": "Confirma tu correo",
+    "verifyDone": "Correo confirmado. Inicia sesión con tu contraseña.",
+    "verifyFailed": "Este enlace no es válido o ha caducado. Inicia sesión para enviar otro.",
+    "verifyIdle": "Abre el enlace de confirmación del correo que te enviamos."
   },
   "ar": {
     "title": "تسجيل الدخول",
@@ -54,11 +70,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "المتابعة بالبريد الإلكتروني",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
     "signIn": "تسجيل الدخول",
     "signUp": "إنشاء حساب",
     "reset": "هل نسيت كلمة المرور؟",
     "back": "العودة إلى تسجيل الدخول",
     "cancel": "إلغاء",
+    "ok": "حسنًا",
     "busy": "يرجى الانتظار…",
     "resetSent": "إذا كان هناك حساب بهذا البريد، فستصلك قريبًا رسالة لإعادة تعيين كلمة المرور.",
     "invalid": "تحقق من البريد الإلكتروني وكلمة المرور.",
@@ -67,7 +86,12 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "محاولات كثيرة جدًا. حاول لاحقًا.",
     "disabled": "طريقة الدخول هذه غير متاحة. جرّب طريقة أخرى.",
     "network": "تعذّر الاتصال. تحقق من الإنترنت وحاول مجددًا.",
-    "failed": "تعذّر تسجيل الدخول. حاول مجددًا."
+    "failed": "تعذّر تسجيل الدخول. حاول مجددًا.",
+    "verifySent": "أرسلنا رابط تأكيد إلى {email}. افتح الرسالة واضغط الرابط لتأكيد أن هذا بريدك، ثم سجّل الدخول.",
+    "verifyTitle": "أكّد بريدك الإلكتروني",
+    "verifyDone": "تم تأكيد البريد. سجّل الدخول بكلمة المرور.",
+    "verifyFailed": "رابط التأكيد غير صالح أو انتهت صلاحيته. سجّل الدخول لإرسال رابط جديد.",
+    "verifyIdle": "افتح رابط التأكيد من الرسالة التي أرسلناها إليك."
   },
   "pt": {
     "title": "Entrar",
@@ -76,11 +100,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "Continuar com e-mail",
     "email": "E-mail",
     "password": "Senha",
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
     "signIn": "Entrar",
     "signUp": "Criar conta",
     "reset": "Esqueceu a senha?",
     "back": "Voltar para entrar",
     "cancel": "Cancelar",
+    "ok": "OK",
     "busy": "Aguarde…",
     "resetSent": "Se houver uma conta com este e-mail, você receberá uma mensagem para redefinir a senha.",
     "invalid": "Confira seu e-mail e sua senha.",
@@ -89,7 +116,12 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "Muitas tentativas. Tente novamente mais tarde.",
     "disabled": "Esta forma de entrar está indisponível. Tente outra.",
     "network": "Falha na conexão. Confira sua internet e tente novamente.",
-    "failed": "Não foi possível entrar. Tente novamente."
+    "failed": "Não foi possível entrar. Tente novamente.",
+    "verifySent": "Enviamos um link de confirmação para {email}. Abra a mensagem e toque no link para confirmar que este e-mail é seu. Depois, entre.",
+    "verifyTitle": "Confirme seu e-mail",
+    "verifyDone": "E-mail confirmado. Entre com sua senha.",
+    "verifyFailed": "Este link é inválido ou expirou. Entre para enviar outro.",
+    "verifyIdle": "Abra o link de confirmação do e-mail que enviamos."
   },
   "de": {
     "title": "Anmelden",
@@ -98,11 +130,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "Mit E-Mail fortfahren",
     "email": "E-Mail-Adresse",
     "password": "Passwort",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
     "signIn": "Anmelden",
     "signUp": "Konto erstellen",
     "reset": "Passwort vergessen?",
     "back": "Zurück zur Anmeldung",
     "cancel": "Abbrechen",
+    "ok": "OK",
     "busy": "Bitte warten…",
     "resetSent": "Falls ein Konto mit dieser Adresse existiert, erhältst du in Kürze eine E-Mail zum Zurücksetzen des Passworts.",
     "invalid": "Überprüfe deine E-Mail-Adresse und dein Passwort.",
@@ -111,7 +146,12 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "Zu viele Versuche. Bitte versuche es später erneut.",
     "disabled": "Diese Anmeldemethode ist nicht verfügbar. Versuche eine andere.",
     "network": "Verbindung fehlgeschlagen. Prüfe deine Internetverbindung und versuche es erneut.",
-    "failed": "Anmeldung fehlgeschlagen. Bitte versuche es erneut."
+    "failed": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+    "verifySent": "Wir haben einen Bestätigungslink an {email} geschickt. Öffne die Nachricht und tippe auf den Link, damit klar ist, dass das Postfach dir gehört. Danach kannst du dich anmelden.",
+    "verifyTitle": "E-Mail bestätigen",
+    "verifyDone": "E-Mail bestätigt. Melde dich mit deinem Passwort an.",
+    "verifyFailed": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Melde dich an, um einen neuen zu senden.",
+    "verifyIdle": "Öffne den Bestätigungslink aus der E-Mail, die wir dir geschickt haben."
   },
   "ru": {
     "title": "Вход",
@@ -120,11 +160,14 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "emailOption": "Продолжить по почте",
     "email": "Электронная почта",
     "password": "Пароль",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
     "signIn": "Войти",
     "signUp": "Создать аккаунт",
     "reset": "Забыли пароль?",
     "back": "Вернуться ко входу",
     "cancel": "Отмена",
+    "ok": "Хорошо",
     "busy": "Подождите…",
     "resetSent": "Если аккаунт с таким адресом существует, вскоре придёт письмо для сброса пароля.",
     "invalid": "Проверьте адрес почты и пароль.",
@@ -133,6 +176,11 @@ export const authMessages: Record<Locale, AuthMessages> = {
     "throttled": "Слишком много попыток. Попробуйте позже.",
     "disabled": "Этот способ входа недоступен. Попробуйте другой.",
     "network": "Не удалось подключиться. Проверьте интернет и повторите попытку.",
-    "failed": "Не удалось войти. Попробуйте ещё раз."
+    "failed": "Не удалось войти. Попробуйте ещё раз.",
+    "verifySent": "Мы отправили ссылку для подтверждения на {email}. Откройте письмо и нажмите ссылку, чтобы подтвердить, что это ваша почта. Затем войдите.",
+    "verifyTitle": "Подтвердите почту",
+    "verifyDone": "Почта подтверждена. Войдите с паролем.",
+    "verifyFailed": "Ссылка недействительна или устарела. Войдите, чтобы отправить новую.",
+    "verifyIdle": "Откройте ссылку для подтверждения из письма, которое мы отправили."
   }
 };

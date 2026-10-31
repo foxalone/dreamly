@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { firstDreamMessages } from "@/lib/i18n/first-dream";
 import DreamComposerForm from "@/app/components/DreamComposerForm";
 import GuestDreamJournal from "@/app/components/GuestDreamJournal";
+import DiaryTabs from "@/app/components/DiaryTabs";
+import DiaryCalendar, { localDateKey } from "@/app/components/DiaryCalendar";
 import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -20,12 +22,14 @@ import { getDatabase, ref as rtdbRef, onValue, off } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { passwordNeedsEmailVerification } from "@/lib/auth/emailVerification";
 import { auth, firestore } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
 import { DreamSymbolIcons } from "@/app/components/DreamSymbolIcons";
 import { needsImportedVisualRepair } from "@/lib/importedDreamRoots";
 import { importHomeDreamPending } from "@/lib/homeDreamImport";
-import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
+import { importGuestNotes } from "@/lib/guestNotesImport";
+import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, JOURNAL_LIMITS, JOURNAL_MAX_CHARS, JOURNAL_MAX_WORDS, clampDreamText, clampText, isDreamTooLong, isTextTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 import EscapeNote from "@/app/components/EscapeNote";
 import { writeEscapePending } from "@/lib/game/escape";
@@ -126,15 +130,18 @@ function dreamCityLabel(item: Pick<Dream, "city" | "cityId">) {
   return parts[parts.length - 1] || "";
 }
 
-type ContentType = "dream" | "story";
-type Tab = "DREAMS" | "STORIES" | "SHARED";
+type ContentType = "dream" | "story" | "journal";
+type Tab = "DREAMS" | "STORIES" | "JOURNAL" | "SHARED";
 type RecStatus = "idle" | "listening" | "paused" | "error";
 
 function getCollectionNameByType(type: ContentType) {
-  return type === "story" ? "stories" : "dreams";
+  // Journal notes live in `stories` so the signed-in client can read them
+  // with the existing rules. `sourceType: "journal"` keeps them off Stories.
+  return type === "dream" ? "dreams" : "stories";
 }
 
 function getDisplayPrefix(type: ContentType) {
+  if (type === "journal") return "Diary";
   return type === "story" ? "Story" : "Dream";
 }
 
@@ -494,10 +501,14 @@ export default function DreamsPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (passwordNeedsEmailVerification(user)) {
+        setUid(null);
+        return;
+      }
       setUid(user?.uid ?? null);
       if (!user) return;
       ensureUserProfileOnSignIn(user);
-      const runImport = () => void importHomeDreamPending(user).then((results) => {
+      const runImport = () => void importHomeDreamPending(user).then(async (results) => {
         for (const result of results) {
           if (result.status === "save_limit") {
             openPaywall({ kind: "save", source: "home_ask_import", retry: runImport });
@@ -521,6 +532,10 @@ export default function DreamsPage() {
             setText(result.pendingText);
             setOpen(true);
           }
+        }
+        const notes = await importGuestNotes(user);
+        if (notes === "save_limit") {
+          openPaywall({ kind: "save", source: "guest_notes_import", retry: runImport });
         }
       });
       runImport();
@@ -881,7 +896,7 @@ export default function DreamsPage() {
     if (!uid2) return;
     if (rootsBusyId || deletingId || sharingId) return;
 
-    const list = type === "story" ? stories : dreams;
+    const list = type === "dream" ? dreams : stories;
     let item = list.find((d) => d.id === itemId) as any;
     if (!item) {
       const snap = await getDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId));
@@ -962,11 +977,13 @@ export default function DreamsPage() {
       });
 
       try {
-        await ingestDreamForMap({
-          uid: uid2,
-          dreamId: itemId,
-          sourceType: type,
-        });
+        if (type !== "journal") {
+          await ingestDreamForMap({
+            uid: uid2,
+            dreamId: itemId,
+            sourceType: type,
+          });
+        }
       } catch (e) {
         console.warn("map ingest failed", e);
       }
@@ -984,8 +1001,8 @@ export default function DreamsPage() {
             }
           : x;
 
-      if (type === "story") setStories((prev) => prev.map(apply));
-      else setDreams((prev) => prev.map(apply));
+      if (type === "dream") setDreams((prev) => prev.map(apply));
+      else setStories((prev) => prev.map(apply));
     } catch (e: any) {
       if (e?.message === "SUBSCRIPTION_REQUIRED" || e?.message === "DAILY_LIMIT") {
         // Automatic top-up after a homepage import: never bounce the user to
@@ -1006,9 +1023,10 @@ export default function DreamsPage() {
 
   async function save() {
     const v = text.trim();
-    const type: ContentType = tab === "STORIES" ? "story" : "dream";
-    if (isDreamTooLong(v)) {
-      setError(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
+    const type: ContentType = tab === "STORIES" ? "story" : tab === "JOURNAL" ? "journal" : "dream";
+    const journal = type === "journal";
+    if (journal ? isTextTooLong(v, JOURNAL_LIMITS) : isDreamTooLong(v)) {
+      setError(formatMessage(t.app.dreamTooLong, { n: journal ? JOURNAL_MAX_WORDS : DREAM_MAX_WORDS }));
       return;
     }
 
@@ -1046,7 +1064,7 @@ export default function DreamsPage() {
       const saved = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (saved?.code === "SAVE_IP_LIMIT") throw new Error("SAVE_IP_LIMIT");
-        if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: DREAM_MAX_WORDS }));
+        if (saved?.code === "TOO_LONG") throw new Error(formatMessage(t.app.dreamTooLong, { n: journal ? JOURNAL_MAX_WORDS : DREAM_MAX_WORDS }));
         throw new Error(saved?.error ?? `Failed to save ${type}.`);
       }
 
@@ -1064,7 +1082,14 @@ export default function DreamsPage() {
       if (e?.message === "SAVE_IP_LIMIT") {
         // Free saves for today on this network are gone: offer an ad or a plan.
         setSaving(false);
-        setAdUnlockPending({ kind: "save", draft: { text: v, tab: tab === "STORIES" ? "STORIES" : "DREAMS", usedVoice } });
+        setAdUnlockPending({
+          kind: "save",
+          draft: {
+            text: v,
+            tab: tab === "STORIES" ? "STORIES" : tab === "JOURNAL" ? "JOURNAL" : "DREAMS",
+            usedVoice,
+          },
+        });
         openPaywall({ kind: "save", source: "diary_save", retry: () => void saveRef.current() });
         return;
       }
@@ -1086,7 +1111,12 @@ export default function DreamsPage() {
     setError(null);
     setSharingId(itemId);
 
-    const list = type === "story" ? stories : dreams;
+    if (type === "journal") {
+      setSharingId(null);
+      return;
+    }
+
+    const list = type === "dream" ? dreams : stories;
     const item = list.find((x) => x.id === itemId);
     if (!item) {
       setError(`${getDisplayPrefix(type)} not found in local state.`);
@@ -1097,8 +1127,8 @@ export default function DreamsPage() {
     // Level before this share (alive shared dreams + stories), for the badge.
     const sharedBefore = sharedItems.length;
     const optimistic = (d: Dream) => (d.id === itemId ? { ...d, shared: true, sharedAtMs: Date.now() } : d);
-    if (type === "story") setStories((prev) => prev.map(optimistic));
-    else setDreams((prev) => prev.map(optimistic));
+    if (type === "dream") setDreams((prev) => prev.map(optimistic));
+    else setStories((prev) => prev.map(optimistic));
 
     try {
       const nowMs = Date.now();
@@ -1195,8 +1225,8 @@ export default function DreamsPage() {
       setTab("SHARED");
     } catch (e: any) {
       const rollback = (d: Dream) => (d.id === itemId ? { ...d, shared: false } : d);
-      if (type === "story") setStories((prev) => prev.map(rollback));
-      else setDreams((prev) => prev.map(rollback));
+      if (type === "dream") setDreams((prev) => prev.map(rollback));
+      else setStories((prev) => prev.map(rollback));
       setError(e?.message ?? `Failed to share ${type}.`);
     } finally {
       setSharingId(null);
@@ -1432,8 +1462,8 @@ export default function DreamsPage() {
     setDeletingId(itemId);
 
     const optimistic = (d: Dream) => (d.id === itemId ? { ...d, deleted: true } : d);
-    if (type === "story") setStories((prev) => prev.map(optimistic));
-    else setDreams((prev) => prev.map(optimistic));
+    if (type === "dream") setDreams((prev) => prev.map(optimistic));
+    else setStories((prev) => prev.map(optimistic));
 
     try {
       const nowMs = Date.now();
@@ -1468,8 +1498,8 @@ export default function DreamsPage() {
       }).catch(() => {});
     } catch (e: any) {
       const rollback = (d: Dream) => (d.id === itemId ? { ...d, deleted: false } : d);
-      if (type === "story") setStories((prev) => prev.map(rollback));
-      else setDreams((prev) => prev.map(rollback));
+      if (type === "dream") setDreams((prev) => prev.map(rollback));
+      else setStories((prev) => prev.map(rollback));
       setError(e?.message ?? `Failed to delete ${type}.`);
     } finally {
       setDeletingId(null);
@@ -1511,14 +1541,25 @@ export default function DreamsPage() {
     [dreams]
   );
   const aliveStories = useMemo(
-    () => stories.filter((d) => (d as any).deleted !== true).map((d) => ({ ...d, sourceType: "story" as const })),
+    () =>
+      stories
+        .filter((d) => (d as any).deleted !== true && (d.sourceType ?? "story") !== "journal")
+        .map((d) => ({ ...d, sourceType: "story" as const })),
+    [stories]
+  );
+  const aliveJournal = useMemo(
+    () =>
+      stories
+        .filter((d) => (d as any).deleted !== true && d.sourceType === "journal")
+        .map((d) => ({ ...d, sourceType: "journal" as const })),
     [stories]
   );
   const sharedItems = useMemo(
     () => [...aliveDreams, ...aliveStories].filter((d) => d.shared === true),
     [aliveDreams, aliveStories]
   );
-  const visibleItems = tab === "SHARED" ? sharedItems : tab === "STORIES" ? aliveStories : aliveDreams;
+  const visibleItems =
+    tab === "SHARED" ? sharedItems : tab === "STORIES" ? aliveStories : tab === "JOURNAL" ? aliveJournal : aliveDreams;
 
   useEffect(() => {
     if (!uid) return;
@@ -1571,61 +1612,20 @@ export default function DreamsPage() {
       {/* Header */}
       <div>
         <h1 className="sr-only">Your Diary</h1>
-
-       {/* Tabs: Dreams → Stories → Shared → Credits */}
-<div className="inline-flex max-w-full overflow-x-auto rounded-full border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1 gap-1">
-  <button
-    onClick={() => setTab("DREAMS")}
-    className={[
-      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      tab === "DREAMS"
-        ? "bg-[var(--text)] text-[var(--bg)]"
-        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-    ].join(" ")}
-  >
-    Dreams <span className="opacity-70">({aliveDreams.length})</span>
-  </button>
-
-  <button
-    onClick={() => setTab("STORIES")}
-    className={[
-      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      tab === "STORIES"
-        ? "bg-[var(--text)] text-[var(--bg)]"
-        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-    ].join(" ")}
-  >
-    Stories <span className="opacity-70">({aliveStories.length})</span>
-  </button>
-
-  <button
-    onClick={() => setTab("SHARED")}
-    className={[
-      "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-      tab === "SHARED"
-        ? "bg-[var(--text)] text-[var(--bg)]"
-        : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-    ].join(" ")}
-  >
-    Shared <span className="opacity-70">({sharedItems.length})</span>
-  </button>
-
-  {/* Subscribers see today's remaining slots. Non-subscribers see nothing
-      here: no hint about free saves — the plans modal appears only when a
-      save is refused. */}
-  {canAccess ? (
-    <button
-      onClick={() => router.push(localePath("/app/upgrade", locale))}
-      className={[
-        "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition",
-        "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
-      ].join(" ")}
-      title={t.profile.subscribe}
-    >
-      {formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })}
-    </button>
-  ) : null}
-</div>
+        <DiaryTabs
+          tab={tab}
+          onTab={setTab}
+          counts={{ DREAMS: aliveDreams.length, STORIES: aliveStories.length, JOURNAL: aliveJournal.length, SHARED: sharedItems.length }}
+          extra={canAccess ? (
+            <button
+              onClick={() => router.push(localePath("/app/upgrade", locale))}
+              className="shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] sm:px-4"
+              title={t.profile.subscribe}
+            >
+              {formatMessage(t.profile.remainingToday, { n: billingLoading ? "…" : remainingDreamsToday(billing) })}
+            </button>
+          ) : null}
+        />
 
         {uid ? (() => {
           // Creature level from shared (not deleted) dreams — lib/shareBadges.ts
@@ -1672,22 +1672,32 @@ export default function DreamsPage() {
           </div>
         ) : null}
 
-        <DreamComposerForm
-          className="mt-5" autoFocus
+        <div className={tab === "JOURNAL" ? "mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch" : "mt-5"}>
+          <DreamComposerForm
+            className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""} autoFocus
           text={text}
           onTextChange={(raw) => {
-            const nextText = clampDreamText(raw);
+            const nextText = tab === "JOURNAL" ? clampText(raw, JOURNAL_LIMITS) : clampDreamText(raw);
             setText(nextText);
             const nextLang = detectRecLangFromText(nextText);
             if (nextLang) setRecLang(nextLang);
           }}
           onSubmit={(event) => { event.preventDefault(); void save(); }}
           lens={lens} onLensChange={setLens}
-          showLens={tab !== "STORIES"} lensDisabled={!!analysisBusyId}
-          placeholder={tab === "STORIES" ? t.app.writeStory : dreamHistoryUid === uid && dreams.length === 0 ? firstDreamMessages[locale] : t.app.writeDream}
-          maxChars={MAX_DREAM_CHARS} busy={saving} submitDisabled={!canSave}
+          showLens={tab !== "STORIES" && tab !== "JOURNAL"} lensDisabled={!!analysisBusyId}
+          placeholder={tab === "STORIES" ? t.app.writeStory : tab === "JOURNAL" ? t.app.writeJournal : dreamHistoryUid === uid && dreams.length === 0 ? firstDreamMessages[locale] : t.app.writeDream}
+          maxChars={tab === "JOURNAL" ? JOURNAL_MAX_CHARS : MAX_DREAM_CHARS}
+          maxWords={tab === "JOURNAL" ? JOURNAL_MAX_WORDS : undefined}
+          showToday={tab === "JOURNAL"}
+          busy={saving} submitDisabled={!canSave}
           submitLabel={t.app.save} busyLabel={t.app.saving}
-        />
+          />
+          {tab === "JOURNAL" ? (
+            <DiaryCalendar
+              markedDays={aliveJournal.map((item) => item.dateKey || (item.createdAtMs ? localDateKey(item.createdAtMs) : "")).filter(Boolean)}
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* Error */}
@@ -1700,7 +1710,7 @@ export default function DreamsPage() {
       {/* List */}
       {!uid ? null : visibleItems.length === 0 ? (
         <div className="mt-8 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-[var(--border)]">
-          {tab === "SHARED" ? t.app.noStories : tab === "STORIES" ? t.app.noStories : t.app.noDreams}
+          {tab === "JOURNAL" ? t.app.noJournal : tab === "SHARED" || tab === "STORIES" ? t.app.noStories : t.app.noDreams}
         </div>
       ) : (
         <div className="mt-8 space-y-3">
@@ -1725,7 +1735,7 @@ export default function DreamsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                      <div className="text-base font-semibold">{getDisplayPrefix((d.sourceType ?? "dream") as ContentType)} #{itemNum}</div>
+                      <div className="text-base font-semibold">{(d.sourceType === "journal" ? t.app.tabJournal : getDisplayPrefix((d.sourceType ?? "dream") as ContentType))} #{itemNum}</div>
 
                       {isRootsBusy && !(hasRoots && hasVisuals) && (
                         <span className="text-xs text-[var(--muted)]">Generating…</span>
@@ -1752,7 +1762,7 @@ export default function DreamsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap justify-end">
-                    {d.source !== "dreamer" ? (
+                    {(d.sourceType ?? "dream") === "journal" ? null : d.source !== "dreamer" ? (
                       <button
                         onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
                         disabled={isShared || isSharing || isDeleting}

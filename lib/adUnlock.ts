@@ -30,7 +30,7 @@ export type AdUnlockPending = {
   dreamId?: string;
   targetLang?: string;
   /** Keep an unsaved journal entry across the Offerwall's full navigation. */
-  draft?: { text: string; tab: "DREAMS" | "STORIES"; usedVoice: boolean };
+  draft?: { text: string; tab: "DREAMS" | "STORIES" | "JOURNAL"; usedVoice: boolean };
   /** Set only after the server confirms ad access or the first-free fallback. */
   ready?: boolean;
   atMs: number;

@@ -14,6 +14,7 @@ import {
 } from "firebase/auth";
 
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
+import { passwordNeedsEmailVerification } from "@/lib/auth/emailVerification";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth } from "@/lib/firebase";
 import { trackAuth } from "@/lib/analytics";
@@ -202,6 +203,10 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const [signinNext, setSigninNext] = useState<string | null>(null);
   useEffect(() =>
     onAuthStateChanged(auth, (u) => {
+      if (passwordNeedsEmailVerification(u)) {
+        setUser(null);
+        return;
+      }
       setUser(u);
       if (!u) return;
       ensureUserProfileOnSignIn(u);

@@ -8,7 +8,7 @@ import { after, NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
-import { isDreamTooLong } from "@/lib/dreamLength";
+import { DREAM_LIMITS, JOURNAL_LIMITS, isTextTooLong } from "@/lib/dreamLength";
 import { countWords } from "@/lib/dreamVisuals";
 import { enrichSavedDream } from "@/lib/dreams/enrichSavedDream";
 import { adminAuth } from "../../admin/_lib/firebaseAdmin";
@@ -56,10 +56,12 @@ export async function POST(req: Request) {
 
     const text = s(body?.text);
     if (!text) return NextResponse.json({ error: "Missing text", code: "EMPTY" }, { status: 400 });
-    if (isDreamTooLong(text)) {
+    const requested = s(body?.type);
+    const type: "dream" | "story" | "journal" =
+      requested === "story" || requested === "journal" ? requested : "dream";
+    if (isTextTooLong(text, type === "journal" ? JOURNAL_LIMITS : DREAM_LIMITS)) {
       return NextResponse.json({ error: "Dream is too long", code: "TOO_LONG" }, { status: 400 });
     }
-    const type: "dream" | "story" = s(body?.type) === "story" ? "story" : "dream";
     const source: "voice" | "manual" = s(body?.source) === "voice" ? "voice" : "manual";
 
     // Diary save: subscribers unlimited; others 5 a day per network, then a rewarded ad per save.
@@ -87,7 +89,7 @@ export async function POST(req: Request) {
     const ref = db
       .collection("users")
       .doc(uid)
-      .collection(type === "story" ? "stories" : "dreams")
+      .collection(type === "dream" ? "dreams" : "stories")
       .doc();
 
     await ref.set({
@@ -129,13 +131,16 @@ export async function POST(req: Request) {
     const ipCity = await resolveIpCity(req).catch(() => null);
     const baseUrl = req.url;
 
-    after(async () => {
-      try {
-        await enrichSavedDream({ uid, itemId: ref.id, sourceType: type, ipCity, baseUrl });
-      } catch (e) {
-        console.error("enrichSavedDream failed", { uid, itemId: ref.id, e });
-      }
-    });
+    // Journal notes stay private: no roots, emojis, or map pin.
+    if (type !== "journal") {
+      after(async () => {
+        try {
+          await enrichSavedDream({ uid, itemId: ref.id, sourceType: type, ipCity, baseUrl });
+        } catch (e) {
+          console.error("enrichSavedDream failed", { uid, itemId: ref.id, e });
+        }
+      });
+    }
 
     return NextResponse.json({
       ok: true,

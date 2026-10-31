@@ -5,10 +5,28 @@ import type { User } from "firebase/auth";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { adminMoonClicksCopy } from "@/lib/i18n/adminMoonClicks";
 
+type Counts = { dreams: number; stories: number; journal: number; shared: number };
+type Delta = Counts & { moon: number | null };
+
+function formatDelta(value: number | null, locale: string) {
+  if (value == null) return null;
+  const abs = Math.abs(value).toLocaleString(locale);
+  if (value > 0) return `+${abs}`;
+  if (value < 0) return `−${abs}`;
+  return "0";
+}
+
+function deltaClass(value: number | null) {
+  if (value == null || value === 0) return "text-[var(--muted)]";
+  return value > 0 ? "text-emerald-400" : "text-red-300";
+}
+
 export default function MoonClicks({ user }: { user: User }) {
   const locale = useLocale();
   const copy = adminMoonClicksCopy[locale];
-  const [total, setTotal] = useState<number | null>(null);
+  const [moon, setMoon] = useState<number | null>(null);
+  const [counts, setCounts] = useState<Counts | null>(null);
+  const [delta, setDelta] = useState<Delta | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
@@ -19,14 +37,17 @@ export default function MoonClicks({ user }: { user: User }) {
       setLoading(true);
       setError(false);
       try {
-        const response = await fetch("/api/admin/moon-clicks", {
+        const response = await fetch(`/api/admin/content-counts?tzOffsetMin=${new Date().getTimezoneOffset()}`, {
           headers: { Authorization: `Bearer ${await user.getIdToken()}` },
           cache: "no-store",
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("COUNT_FAILED");
         const data = await response.json();
-        if (!controller.signal.aborted) setTotal(data.total);
+        if (controller.signal.aborted) return;
+        setMoon(data.moon);
+        setCounts(data.counts);
+        setDelta(data.delta);
       } catch {
         if (!controller.signal.aborted) setError(true);
       } finally {
@@ -37,13 +58,35 @@ export default function MoonClicks({ user }: { user: User }) {
     return () => controller.abort();
   }, [user, revision]);
 
+  const stats: { label: string; value: number | null; change: number | null }[] = [
+    { label: copy.title, value: moon, change: delta?.moon ?? null },
+    { label: copy.dreams, value: counts?.dreams ?? null, change: delta?.dreams ?? null },
+    { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
+    { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
+    { label: copy.shared, value: counts?.shared ?? null, change: delta?.shared ?? null },
+  ];
+
   return <section className="mt-5 rounded-2xl border border-[var(--border)] p-4" aria-label={copy.title} dir={locale === "ar" ? "rtl" : undefined}>
     <div className="flex items-center justify-between gap-3">
       <h2 className="font-semibold">🌙 {copy.title}</h2>
       <button type="button" onClick={() => setRevision(value => value + 1)} disabled={loading} className="rounded-full border border-[var(--border)] px-3 py-1 text-sm disabled:opacity-50">{copy.refresh}</button>
     </div>
-    <p className="mt-2 text-3xl font-semibold" role="status">{loading ? copy.loading : error ? "—" : total?.toLocaleString(locale)}</p>
-    {error ? <p role="alert" className="mt-2 text-sm">{copy.error}</p> : null}
-    <p className="mt-2 text-sm text-[var(--muted)]">{copy.note}</p>
+    {error ? <p role="alert" className="mt-3 text-sm">{copy.error}</p> : (
+      <div className="mt-3 flex flex-wrap items-end gap-x-8 gap-y-4">
+        {stats.map((stat) => {
+          const shown = loading || stat.value == null ? "…" : stat.value.toLocaleString(locale);
+          const change = formatDelta(loading ? null : stat.change, locale);
+          return (
+            <div key={stat.label}>
+              <p className="text-3xl font-semibold tabular-nums" role="status">{shown}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">{stat.label}</p>
+              <p className={`mt-0.5 h-4 text-[11px] font-medium tabular-nums ${deltaClass(stat.change)}`}>{change ?? ""}</p>
+            </div>
+          );
+        })}
+      </div>
+    )}
+    <p className="mt-2 text-xs text-[var(--muted)]">{copy.sinceYesterday}</p>
+    <p className="mt-1 text-sm text-[var(--muted)]">{copy.note}</p>
   </section>;
 }

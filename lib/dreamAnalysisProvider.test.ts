@@ -17,7 +17,10 @@ test("temporary provider rate limit uses the backup model once", async () => {
 });
 
 test("account balance and unrelated provider failures do not trigger another billable request", async () => {
-  for (const error of [{ status: 429, code: "insufficient_quota" }, { status: 503 }]) {
+  for (const error of [
+    ...["insufficient_quota", "credit_balance_exhausted", "organization_spend_limit_exceeded", "project_spend_limit_exceeded", "organization_usage_limit_exceeded", "usage_limit_exceeded"].map(code => ({ status: 429, code })),
+    { status: 503 },
+  ]) {
     let calls = 0;
     await assert.rejects(generateDreamAnalysis(async () => { calls++; throw error; }), (caught) => caught === error);
     assert.equal(calls, 1);

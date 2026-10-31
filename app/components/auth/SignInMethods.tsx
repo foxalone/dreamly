@@ -1,13 +1,37 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, type UserCredential } from "firebase/auth";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type UserCredential } from "firebase/auth";
+import { Eye, EyeClosed } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { auth } from "@/lib/firebase";
+import { holdUnverifiedSession, passwordNeedsEmailVerification, sendAccountVerification } from "@/lib/auth/emailVerification";
 import { signInWithGoogle } from "@/lib/auth/signInWithGoogle";
 import { authAttemptFailure } from "@/lib/analysisAttempts";
 import { authMessages } from "@/lib/i18n/auth";
 import type { Locale } from "@/lib/i18n/config";
+import { formatMessage } from "@/lib/i18n/messages";
+
+function CheckDetailsDialog({ message, closeLabel, onClose }: { message: string; closeLabel: string; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const node = dialog.current;
+    if (!node || node.open) return;
+    node.showModal();
+    return () => { if (node.open) node.close(); };
+  }, []);
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="auth-check-title"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-[var(--text)] shadow-2xl backdrop:bg-black/50"
+    >
+      <p id="auth-check-title" className="text-base leading-6">{message}</p>
+      <button type="button" className="dream-primary-btn mt-5 w-full px-4 py-3" onClick={onClose}>{closeLabel}</button>
+    </dialog>
+  );
+}
 
 export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeGoogle, onAuthError, onAuthEvent }: {
   locale: Locale;
@@ -22,16 +46,22 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState("");
 
   function changeMode(value: typeof mode) {
     setMode(value);
     setPassword("");
+    setPasswordVisible(false);
     setError("");
     setNotice("");
+    setCheckOpen(false);
+    setVerifyMessage("");
   }
 
   async function run(action: () => Promise<UserCredential | null | void>) {
@@ -41,6 +71,8 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
     onBusyChange?.(true);
     setError("");
     setNotice("");
+    setCheckOpen(false);
+    setVerifyMessage("");
     let authenticated = false;
     try {
       const credential = await action();
@@ -50,9 +82,12 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
       const code = (error as { code?: string }).code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
       onAuthError?.(error);
+      if (code === "auth/invalid-email" || code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
+        setCheckOpen(true);
+        return;
+      }
       setError(
-        code === "auth/invalid-email" || code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found" ? m.invalid
-          : code === "auth/weak-password" || code === "auth/password-does-not-meet-requirements" ? m.weak
+        code === "auth/weak-password" || code === "auth/password-does-not-meet-requirements" ? m.weak
           : code === "auth/email-already-in-use" ? m.existing
           : code === "auth/too-many-requests" ? m.throttled
           : code === "auth/operation-not-allowed" || code === "auth/user-disabled" ? m.disabled
@@ -60,6 +95,7 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
       );
     } finally {
       setPassword("");
+      setPasswordVisible(false);
       inFlight.current = false;
       setBusy(false);
       onBusyChange?.(false);
@@ -81,9 +117,26 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
         setNotice(m.resetSent);
         return;
       }
-      return mode === "signup"
-        ? createUserWithEmailAndPassword(auth, email.trim(), password)
-        : signInWithEmailAndPassword(auth, email.trim(), password);
+      const release = holdUnverifiedSession();
+      let signedIn = false;
+      try {
+        const credential = mode === "signup"
+          ? await createUserWithEmailAndPassword(auth, email.trim(), password)
+          : await signInWithEmailAndPassword(auth, email.trim(), password);
+        signedIn = true;
+        if (mode === "signup" || passwordNeedsEmailVerification(credential.user)) {
+          await sendAccountVerification(credential.user, locale);
+          await signOut(auth);
+          setVerifyMessage(formatMessage(m.verifySent, { email: credential.user.email || email.trim() }));
+          return;
+        }
+        return credential;
+      } catch (error) {
+        if (signedIn) await signOut(auth).catch(() => {});
+        throw error;
+      } finally {
+        release();
+      }
     });
   }
 
@@ -101,8 +154,14 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)]" />
           {mode !== "reset" ? <>
             <label htmlFor={`${id}-password`} className="block text-sm">{m.password}</label>
-            <input id={`${id}-password`} type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 6 : undefined} value={password} onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)]" />
+            <div className="relative">
+              <input id={`${id}-password`} type={passwordVisible ? "text" : "password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 6 : undefined} value={password} onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 pe-12 text-[var(--text)]" />
+              <button type="button" aria-pressed={passwordVisible} aria-label={passwordVisible ? m.hidePassword : m.showPassword} onClick={() => setPasswordVisible((visible) => !visible)}
+                className="absolute inset-y-0 end-0 flex w-12 items-center justify-center text-[var(--text)] opacity-70">
+                {passwordVisible ? <Eye aria-hidden="true" className="size-5" /> : <EyeClosed aria-hidden="true" className="size-5" />}
+              </button>
+            </div>
           </> : null}
           <button type="submit" className="dream-primary-btn w-full px-4 py-3 disabled:opacity-60">
             {busy ? m.busy : mode === "signup" ? m.signUp : mode === "reset" ? m.reset : m.signIn}
@@ -117,6 +176,8 @@ export default function SignInMethods({ locale, onSuccess, onBusyChange, beforeG
       </form>
       {error ? <p role="alert" className="mt-3 text-sm text-red-500">{error}</p> : null}
       {notice ? <p role="status" className="mt-3 text-sm text-[var(--muted)]">{notice}</p> : null}
+      {checkOpen ? <CheckDetailsDialog message={m.invalid} closeLabel={m.ok} onClose={() => setCheckOpen(false)} /> : null}
+      {verifyMessage ? <CheckDetailsDialog message={verifyMessage} closeLabel={m.ok} onClose={() => setVerifyMessage("")} /> : null}
     </div>
   );
 }

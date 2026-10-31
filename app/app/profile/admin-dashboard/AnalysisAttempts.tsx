@@ -28,6 +28,8 @@ export default function AnalysisAttempts() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState(false);
   const [completed, setCompleted] = useState(true);
   const [search, setSearch] = useState("");
   const load = useCallback(async () => {
@@ -44,6 +46,27 @@ export default function AnalysisAttempts() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  const downloadCsv = async () => {
+    setCsvLoading(true);
+    setCsvError(false);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error();
+      const res = await fetch("/api/admin/dreams/attempts/export", { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = res.headers.get("content-disposition")?.match(/filename="([^"]+)"/i)?.[1]
+        ?? `analysis-attempts-latest-100-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch { setCsvError(true); }
+    finally { setCsvLoading(false); }
+  };
   const reason = (row: Row) => row.status === "succeeded" ? t.reasons.analysis_ready : t.reasons[row.reason as keyof typeof t.reasons] ?? t.reasons.unknown;
   const visible = rows.filter((row) => (completed || row.status !== "succeeded") &&
     [row.text, row.uid, row.guestId, row.id, row.city, row.country, row.admin1, row.source, row.dreamId, reason(row), diagnosisCopy[analysisDiagnosis(row, now).code], diagnosisCopy[analysisDiagnosis(row, now).kind]].join(" ").toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
@@ -51,7 +74,10 @@ export default function AnalysisAttempts() {
     <section className="mt-6 rounded-2xl border border-[var(--border)] p-4" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-semibold">{t.title}</h2>
-        <button type="button" disabled={loading} onClick={() => void load()} className="dream-btn dream-btn--neutral disabled:opacity-50">{loading ? t.loading : t.refresh}</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={csvLoading} onClick={() => void downloadCsv()} className="dream-btn dream-btn--neutral disabled:opacity-50">{csvLoading ? t.csvLoading : t.csv}</button>
+          <button type="button" disabled={loading} onClick={() => void load()} className="dream-btn dream-btn--neutral disabled:opacity-50">{loading ? t.loading : t.refresh}</button>
+        </div>
       </div>
       <p className="mt-2 text-xs text-[var(--muted)]">{t.help}</p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -59,6 +85,7 @@ export default function AnalysisAttempts() {
         <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={completed} onChange={(e) => setCompleted(e.target.checked)} />{t.completed}</label>
       </div>
       {error ? <p role="alert" className="mt-3 text-sm text-red-500">{t.error}</p> : null}
+      {csvError ? <p role="alert" className="mt-3 text-sm text-red-500">{t.csvError}</p> : null}
       <div className="mt-3 max-h-[36rem] space-y-3 overflow-y-auto">
         {!visible.length && !loading ? <p className="text-sm text-[var(--muted)]">{t.empty}</p> : null}
         {visible.map((row) => {
