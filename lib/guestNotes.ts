@@ -5,6 +5,8 @@ export type GuestNoteKind = "story" | "journal";
 export type GuestNote = {
   text: string;
   createdAtMs: number;
+  /** Public feed doc id, set only after an anonymous share succeeds. */
+  guestSharedId?: string;
 };
 
 const TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -33,7 +35,8 @@ function normalize(raw: unknown, kind: GuestNoteKind): GuestNote | null {
   if (!text || isTextTooLong(text, limits)) return null;
   const createdAtMs = Number((raw as GuestNote).createdAtMs ?? 0);
   if (!createdAtMs || Date.now() - createdAtMs > TTL_MS) return null;
-  return { text, createdAtMs };
+  const guestSharedId = String((raw as GuestNote).guestSharedId ?? "").trim();
+  return { text, createdAtMs, ...(guestSharedId ? { guestSharedId } : {}) };
 }
 
 function save(kind: GuestNoteKind, notes: GuestNote[]) {
@@ -54,13 +57,27 @@ export function readGuestNotes(kind: GuestNoteKind): GuestNote[] {
   }
 }
 
-export function writeGuestNote(kind: GuestNoteKind, text: string) {
+export function writeGuestNote(kind: GuestNoteKind, text: string): GuestNote | null {
   const limits = limitsFor(kind);
   const cleaned = clampText(text, limits).trim();
-  if (!cleaned || isTextTooLong(cleaned, limits)) return;
+  if (!cleaned || isTextTooLong(cleaned, limits)) return null;
   const notes = readGuestNotes(kind);
-  notes.push({ text: cleaned, createdAtMs: Date.now() });
+  const note: GuestNote = { text: cleaned, createdAtMs: Date.now() };
+  notes.push(note);
   save(kind, notes);
+  return note;
+}
+
+/** Remember the public feed id so Shared can list the note and delete can unpublish it. */
+export function setGuestNoteShared(kind: GuestNoteKind, note: GuestNote, guestSharedId: string) {
+  const id = guestSharedId.trim();
+  if (!id) return;
+  save(
+    kind,
+    readGuestNotes(kind).map((item) =>
+      item.createdAtMs === note.createdAtMs && item.text === note.text ? { ...item, guestSharedId: id } : item,
+    ),
+  );
 }
 
 export function removeGuestNote(kind: GuestNoteKind, note: GuestNote) {

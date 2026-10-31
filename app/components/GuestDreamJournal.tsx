@@ -7,7 +7,7 @@ import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { analyzeDreamMessages, firstDreamMessages } from "@/lib/i18n/first-dream";
 import { hasWrittenGuestDream, rememberGuestDreamWritten } from "@/lib/guestDreamHistory";
-import { readGuestNotes, removeGuestNote, writeGuestNote, type GuestNote } from "@/lib/guestNotes";
+import { readGuestNotes, removeGuestNote, setGuestNoteShared, writeGuestNote, type GuestNote } from "@/lib/guestNotes";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, JOURNAL_LIMITS, JOURNAL_MAX_CHARS, JOURNAL_MAX_WORDS, clampText, isDreamTooLong, isTextTooLong } from "@/lib/dreamLength";
 import { readHomeDreamQueue, removeHomeDreamPending, writeHomeDreamPending, type HomeDreamPending } from "@/lib/homeDreamPending";
 import { DreamLensSelect } from "./DreamLensChips";
@@ -68,13 +68,13 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
   );
 }
 
-function GuestNoteCard({ note, number, label, onDelete }: { note: GuestNote; number: number; label: string; onDelete: () => void }) {
+function GuestNoteCard({ note, number, label, onDelete, deleting }: { note: GuestNote; number: number; label: string; onDelete: () => void; deleting?: boolean }) {
   const t = useMessages();
   return (
     <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="text-base font-semibold">{label} #{number}</h2>
-        <button type="button" className="dream-btn dream-btn--danger" onClick={onDelete}>{t.app.delete}</button>
+        <button type="button" className="dream-btn dream-btn--danger" disabled={deleting} onClick={onDelete}>{t.app.delete}</button>
       </div>
       <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{note.text}</p>
     </article>
@@ -91,6 +91,7 @@ export default function GuestDreamJournal() {
   const [stories, setStories] = useState<GuestNote[]>([]);
   const [journal, setJournal] = useState<GuestNote[]>([]);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [deletingNote, setDeletingNote] = useState<number | null>(null);
   const [historyReady, setHistoryReady] = useState(false);
   const [hasWrittenDream, setHasWrittenDream] = useState(false);
   const refresh = () => {
@@ -157,7 +158,13 @@ export default function GuestDreamJournal() {
   }, []);
 
   const dreamTab = tab === "DREAMS" || tab === "SHARED";
+  const shareTab = dreamTab || tab === "STORIES";
   const sharedDreams = dreams.filter((dream) => !!dream.guestSharedId);
+  const sharedStories = stories.filter((note) => !!note.guestSharedId);
+  const sharedRows = [
+    ...sharedDreams.map((dream) => ({ kind: "dream" as const, dream, at: dream.createdAtMs || 0 })),
+    ...sharedStories.map((note) => ({ kind: "story" as const, note, at: note.createdAtMs })),
+  ].sort((a, b) => b.at - a.at);
 
   async function analyze(event: FormEvent) {
     event.preventDefault();
@@ -172,7 +179,7 @@ export default function GuestDreamJournal() {
     refresh();
   }
 
-  function saveNote(event: FormEvent) {
+  async function saveNote(event: FormEvent) {
     event.preventDefault();
     const value = text.trim();
     if (!value || busy) return;
@@ -181,10 +188,50 @@ export default function GuestDreamJournal() {
       setNoteError(formatMessage(t.app.dreamTooLong, { n: journal ? JOURNAL_MAX_WORDS : DREAM_MAX_WORDS }));
       return;
     }
-    writeGuestNote(tab === "JOURNAL" ? "journal" : "story", value);
+    const note = writeGuestNote(tab === "JOURNAL" ? "journal" : "story", value);
+    if (!note) return;
     setNoteError(null);
     setText("");
     refresh();
+    if (tab === "STORIES" && composer.shareToFeed) {
+      const shared = await fetch("/api/dreams/share-guest", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: value, lang: locale, sourceType: "story" }),
+      });
+      const data = await shared.json().catch(() => ({}));
+      if (data?.sharedId && (shared.ok || data.code === "ALREADY_SHARED")) {
+        setGuestNoteShared("story", note, String(data.sharedId));
+        refresh();
+      } else if (!shared.ok) {
+        setNoteError(data?.code === "REJECTED" ? t.shareBadges.rejected : t.shareBadges.failed);
+      }
+    }
+  }
+
+  async function deleteStory(note: GuestNote) {
+    if (deletingNote) return;
+    setDeletingNote(note.createdAtMs);
+    try {
+      if (note.guestSharedId) {
+        const removed = await fetch("/api/dreams/share-guest", {
+          method: "DELETE",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sharedId: note.guestSharedId }),
+        });
+        if (!removed.ok) {
+          setNoteError(t.app.deleteFailed);
+          return;
+        }
+      }
+      removeGuestNote("story", note);
+      setNoteError(null);
+      refresh();
+    } finally {
+      setDeletingNote(null);
+    }
   }
 
   const visibleNotes = tab === "JOURNAL" ? journal : stories;
@@ -197,7 +244,7 @@ export default function GuestDreamJournal() {
       <DiaryTabs
         tab={tab}
         onTab={setTab}
-        counts={{ DREAMS: dreams.length, STORIES: stories.length, JOURNAL: journal.length, SHARED: sharedDreams.length }}
+        counts={{ DREAMS: dreams.length, STORIES: stories.length, JOURNAL: journal.length, SHARED: sharedRows.length }}
       />
       <div className={tab === "JOURNAL" ? "mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch" : "mt-5"}>
         <DreamComposerForm
@@ -213,15 +260,28 @@ export default function GuestDreamJournal() {
         busy={dreamTab && busy} submitDisabled={!text.trim()}
         submitLabel={dreamTab ? analyzeDreamMessages[locale] : t.app.save}
         busyLabel={t.app.analyzing}
-        share={dreamTab ? { checked: composer.shareToFeed, onChange: composer.setShareToFeed } : undefined}
+        share={shareTab ? { checked: composer.shareToFeed, onChange: composer.setShareToFeed } : undefined}
         />
         {tab === "JOURNAL" ? <DiaryCalendar markedDays={journal.map((note) => localDateKey(note.createdAtMs))} /> : null}
       </div>
-      {(dreamTab ? composer.error : noteError) ? <p role="alert" className="mt-3 text-sm text-red-500">{dreamTab ? composer.error : noteError}</p> : null}
+      {(noteError || (dreamTab && composer.error)) ? <p role="alert" className="mt-3 text-sm text-red-500">{noteError || composer.error}</p> : null}
       {dreamTab ? <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p> : null}
       <div className="mt-8 space-y-3">
-        {dreamTab
-          ? (tab === "SHARED" ? sharedDreams : dreams).map((dream, index, list) => (
+        {tab === "SHARED"
+          ? sharedRows.map((row, index) => row.kind === "dream" ? (
+            <GuestDreamCard key={`${row.dream.createdAtMs}:${row.dream.text}:${row.dream.analysis ?? ""}`} dream={row.dream} number={sharedRows.length - index} refresh={refresh} />
+          ) : (
+            <GuestNoteCard
+              key={`${row.note.createdAtMs}:${row.note.text}`}
+              note={row.note}
+              number={sharedRows.length - index}
+              label={t.app.tabStories}
+              deleting={deletingNote === row.note.createdAtMs}
+              onDelete={() => void deleteStory(row.note)}
+            />
+          ))
+          : dreamTab
+          ? dreams.map((dream, index, list) => (
             <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={list.length - index} refresh={refresh} />
           ))
           : visibleNotes.map((note, index) => (
@@ -230,10 +290,18 @@ export default function GuestDreamJournal() {
               note={note}
               number={visibleNotes.length - index}
               label={tab === "JOURNAL" ? t.app.tabJournal : t.app.tabStories}
-              onDelete={() => { removeGuestNote(tab === "JOURNAL" ? "journal" : "story", note); refresh(); }}
+              deleting={deletingNote === note.createdAtMs}
+              onDelete={() => {
+                if (tab === "JOURNAL") {
+                  removeGuestNote("journal", note);
+                  refresh();
+                  return;
+                }
+                void deleteStory(note);
+              }}
             />
           ))}
-        {(dreamTab ? (tab === "SHARED" ? sharedDreams : dreams) : visibleNotes).length === 0 && (
+        {(tab === "SHARED" ? sharedRows : dreamTab ? dreams : visibleNotes).length === 0 && (
           <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-[var(--muted)]">{emptyCopy}</p>
         )}
       </div>

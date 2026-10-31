@@ -38,6 +38,7 @@ type Body = {
   text?: string;
   lang?: string;
   lens?: string;
+  sourceType?: string;
   emojis?: { native?: string; id?: string; name?: string }[];
   iconsEn?: string[];
 };
@@ -71,6 +72,8 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
     const text = s(body?.text);
+    const sourceType = s(body?.sourceType) === "story" ? "story" : "dream";
+    const isStory = sourceType === "story";
     const check = isDreamTooLong(text)
       ? ({ ok: false, reason: "too_long" } as const)
       : checkShareableDreamText(text, DREAM_MAX_CHARS);
@@ -126,8 +129,8 @@ export async function POST(req: Request) {
       if (legacySnap.exists && s(legacySnap.data()?.text) === text) return "already_legacy" as const;
       // A recovered server-verified interpretation is also proof of a reading:
       // its failed ad charge was refunded, so the old used counter can be zero.
-      const recoveredReading = snapshotSnap.data()?.analysis && snapshotSnap.data()?.recoveredFrom === "ai_rate_limited" && snapshotSnap.data()?.deleted !== true;
-      if (!(Number(quotaSnap.data()?.used ?? 0) >= 1) && !recoveredReading) return "no_reading" as const;
+      const recoveredReading = !isStory && snapshotSnap.data()?.analysis && snapshotSnap.data()?.recoveredFrom === "ai_rate_limited" && snapshotSnap.data()?.deleted !== true;
+      if (!isStory && !(Number(quotaSnap.data()?.used ?? 0) >= 1) && !recoveredReading) return "no_reading" as const;
       if (Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT && !recoveredReading) return "ip_limit" as const;
       const recoveredCity = recoveredReading && snapshotSnap.data()?.cityId
         ? snapshotSnap.data() : null;
@@ -139,7 +142,7 @@ export async function POST(req: Request) {
         ownerGuestId: guestId,
         ownerDreamId: null,
         ownerStoryId: null,
-        sourceType: "dream",
+        sourceType,
         authorName: null,
         authorEmail: null,
         authorInitials: null,
@@ -226,6 +229,54 @@ export async function POST(req: Request) {
     }
 
     return finish(NextResponse.json({ ok: true, sharedId, count: before + 1, badge: badge.id }));
+  } catch (e: unknown) {
+    console.error(e);
+    return finish(NextResponse.json({ ok: false, error: e instanceof Error ? e.message : "Server error" }, { status: 500 }));
+  }
+}
+
+/** The guest removes their own anonymous story from the feed. Dreams stay on their own path. */
+export async function DELETE(req: Request) {
+  const guestId = readGuestId(req);
+  if (!guestId) {
+    return NextResponse.json({ ok: false, code: "NO_GUEST" }, { status: 400 });
+  }
+  const finish = <T extends NextResponse>(res: T): T => setGuestCookie(res, guestId);
+
+  try {
+    const body = (await req.json().catch(() => ({}))) as { sharedId?: string };
+    const sharedId = s(body?.sharedId);
+    const owned = sharedId.startsWith(`guest_${guestId}_`) && /^guest_[0-9a-f-]{8,64}_[0-9a-f]{8}$/i.test(sharedId);
+    if (!owned) {
+      return finish(NextResponse.json({ ok: false, code: "FORBIDDEN" }, { status: 403 }));
+    }
+
+    const ref = adminDb().collection("shared_dreams").doc(sharedId);
+    const snap = await ref.get();
+    if (!snap.exists) return finish(NextResponse.json({ ok: true }));
+    const data = snap.data() ?? {};
+    if (data.ownerGuestId !== guestId || data.sourceType !== "story") {
+      return finish(NextResponse.json({ ok: false, code: "FORBIDDEN" }, { status: 403 }));
+    }
+    if (data.deleted === true) return finish(NextResponse.json({ ok: true }));
+
+    const nowMs = Date.now();
+    await ref.update({
+      deleted: true,
+      deletedAtMs: nowMs,
+      deletedBy: "user",
+      title: "",
+      text: "",
+      wordCount: null,
+      charCount: null,
+      authorName: null,
+      authorEmail: null,
+      analysisText: "",
+      analysisHasMore: false,
+      analysisIsPreview: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return finish(NextResponse.json({ ok: true }));
   } catch (e: unknown) {
     console.error(e);
     return finish(NextResponse.json({ ok: false, error: e instanceof Error ? e.message : "Server error" }, { status: 500 }));

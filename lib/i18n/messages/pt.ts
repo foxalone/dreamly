@@ -324,6 +324,7 @@ export const PT_MESSAGES: UiMessages = {
     sharing: "Compartilhando…",
     shared: "Compartilhado",
     delete: "Excluir",
+    deleteFailed: "Não foi possível tirar do feed. Tente de novo.",
     signInRequired: "É preciso entrar.",
     noDreams: "Ainda não há sonhos. Adicione o primeiro.",
     noStories: "Ainda não há histórias. Adicione a primeira.",

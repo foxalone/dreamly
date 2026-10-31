@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readGuestNotes, removeGuestNote, writeGuestNote } from "./guestNotes";
+import { readGuestNotes, removeGuestNote, setGuestNoteShared, writeGuestNote } from "./guestNotes";
 
 function withStorage(run: () => void) {
   const values = new Map<string, string>();
@@ -32,4 +32,13 @@ test("guest stories and journal stay in separate lists", () => withStorage(() =>
   removeGuestNote("story", readGuestNotes("story")[0]);
   assert.deepEqual(readGuestNotes("story"), []);
   assert.equal(readGuestNotes("journal").length, 1);
+}));
+
+test("a shared guest story keeps its feed id", () => withStorage(() => {
+  const note = writeGuestNote("story", "A story about the sea");
+  assert.ok(note);
+  setGuestNoteShared("story", note, "guest_abc_1234abcd");
+  assert.equal(readGuestNotes("story")[0].guestSharedId, "guest_abc_1234abcd");
+  setGuestNoteShared("story", note, "  ");
+  assert.equal(readGuestNotes("story")[0].guestSharedId, "guest_abc_1234abcd");
 }));

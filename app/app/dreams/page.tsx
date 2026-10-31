@@ -1032,7 +1032,10 @@ export default function DreamsPage() {
   const saveRef = useRef<() => Promise<void>>(async () => {});
   const analyzeRef = useRef<(id: string, opts?: { afterAd?: boolean; lens?: DreamLens }) => Promise<void>>(async () => {});
   const freshDreamText = useRef(new Map<string, string>());
+  const seededDreams = useRef(new Map<string, Dream>());
+  const autoSharedIds = useRef(new Set<string>());
   const [composerAnalyzing, setComposerAnalyzing] = useState(false);
+  const [shareToFeed, setShareToFeed] = useState(true);
 
   async function save(): Promise<string | null> {
     const v = text.trim();
@@ -1091,10 +1094,11 @@ export default function DreamsPage() {
       setSaving(false);
       setText("");
       setUsedVoice(false);
-      if (type !== "dream" || !saved?.id) return null;
+      if (!saved?.id) return null;
       const id = String(saved.id);
+      if (type === "journal") return null;
       freshDreamText.current.set(id, v);
-      setDreams((prev) => prev.some((item) => item.id === id) ? prev : [{
+      const seeded: Dream = {
         id,
         text: v,
         createdAtMs: now.getTime(),
@@ -1104,8 +1108,11 @@ export default function DreamsPage() {
         wordCount: countWords(v),
         charCount: v.length,
         shared: false,
-        sourceType: "dream",
-      }, ...prev]);
+        sourceType: type,
+      };
+      seededDreams.current.set(id, seeded);
+      if (type === "dream") setDreams((prev) => prev.some((item) => item.id === id) ? prev : [seeded, ...prev]);
+      else setStories((prev) => prev.some((item) => item.id === id) ? prev : [seeded, ...prev]);
       return id;
     } catch (e: any) {
       if (e?.message === "SAVE_IP_LIMIT") {
@@ -1128,7 +1135,7 @@ export default function DreamsPage() {
     }
   }
 
-  async function shareItem(itemId: string, type: ContentType) {
+  async function shareItem(itemId: string, type: ContentType, opts?: { stay?: boolean }) {
     const u = auth.currentUser;
     if (!u) return;
 
@@ -1145,7 +1152,7 @@ export default function DreamsPage() {
     }
 
     const list = type === "dream" ? dreams : stories;
-    const item = list.find((x) => x.id === itemId);
+    const item = list.find((x) => x.id === itemId) ?? seededDreams.current.get(itemId);
     if (!item) {
       setError(`${getDisplayPrefix(type)} not found in local state.`);
       setSharingId(null);
@@ -1249,8 +1256,8 @@ export default function DreamsPage() {
 
       const up = shareBadgeLevelUp(sharedBefore, sharedBefore + 1);
       if (up) setLevelUp(up);
-
-      setTab("SHARED");
+      if (opts?.stay) autoSharedIds.current.add(itemId);
+      else setTab("SHARED");
     } catch (e: any) {
       const rollback = (d: Dream) => (d.id === itemId ? { ...d, shared: false } : d);
       if (type === "dream") setDreams((prev) => prev.map(rollback));
@@ -1371,12 +1378,13 @@ export default function DreamsPage() {
           analysisLens: data2?.lens ?? analysisLens,
         };
         if (!prev.some((item) => item.id === dreamId)) {
-          return [{ id: dreamId, text: t, shared: false, sourceType: "dream" as const, ...row }, ...prev];
+          return [{ id: dreamId, text: t, shared: autoSharedIds.current.has(dreamId), sourceType: "dream" as const, ...row }, ...prev];
         }
         return prev.map((item) => item.id === dreamId ? { ...item, ...row } : item);
       });
 
-      if (dream?.shared) {
+      if (dream?.shared || autoSharedIds.current.has(dreamId)) {
+        autoSharedIds.current.delete(dreamId);
         await updateDoc(doc(firestore, "shared_dreams", getSharedDocId(uid2, "dream", dreamId)), {
           ...publicAnalysisFields(analysisText),
           updatedAt: serverTimestamp(),
@@ -1439,13 +1447,19 @@ export default function DreamsPage() {
   analyzeRef.current = analyzeDream;
 
   async function submitComposer() {
-    if (tab === "STORIES" || tab === "JOURNAL") {
+    if (tab === "JOURNAL") {
       await save();
+      return;
+    }
+    if (tab === "STORIES") {
+      const id = await save();
+      if (id && shareToFeed) await shareItem(id, "story", { stay: true });
       return;
     }
     setComposerAnalyzing(true);
     try {
       const id = await save();
+      if (id && shareToFeed) await shareItem(id, "dream", { stay: true });
       if (id) await analyzeDream(id);
     } finally {
       setComposerAnalyzing(false);
@@ -1737,6 +1751,7 @@ export default function DreamsPage() {
           busy={saving || (tab !== "STORIES" && tab !== "JOURNAL" && composerAnalyzing)} submitDisabled={!canSave}
           submitLabel={tab === "STORIES" || tab === "JOURNAL" ? t.app.save : analyzeDreamMessages[locale]}
           busyLabel={tab === "STORIES" || tab === "JOURNAL" ? t.app.saving : t.app.analyzing}
+          share={tab === "JOURNAL" ? undefined : { checked: shareToFeed, onChange: setShareToFeed }}
           />
           {tab === "JOURNAL" ? (
             <DiaryCalendar
