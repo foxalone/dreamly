@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { trackEvent } from "@/lib/analytics";
+import { trackEarthClick } from "@/lib/trackEarthClick";
 import { GAME_ENTRY_KEY } from "@/app/components/DreamCatcherFab";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import LocaleLink from "@/lib/i18n/LocaleLink";
@@ -1151,7 +1152,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* All-time catch counter (Cookie Clicker's "baked all time"), bottom-left, fairy-tale numerals. */}
       {loaded ? (
-        <LocaleLink href="/app/map?layer=kingdoms" data-game-earth className="dk-earth absolute bottom-16 left-4 z-20 block h-12 w-12 rounded-full sm:h-16 sm:w-16" title={t.onMap} aria-label={t.onMap}>
+        <LocaleLink href="/app/map?layer=kingdoms" data-game-earth className="dk-earth absolute bottom-16 left-4 z-20 block h-12 w-12 rounded-full sm:h-16 sm:w-16" title={t.onMap} aria-label={t.onMap} onClick={() => void trackEarthClick("game")}>
           <span className="dk-earth-sphere" aria-hidden="true"><span className="dk-earth-surface" /></span>
         </LocaleLink>
       ) : null}

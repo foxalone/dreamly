@@ -42,12 +42,13 @@ export async function GET(req: Request) {
     const todayKey = localDayKey(now, tzOffsetMin);
     const start = startOfLocalDayMs(now, tzOffsetMin);
 
-    const [dreamSnap, guestSnap, storySnap, sharedSnap, moonSnap, historySnap] = await Promise.all([
+    const [dreamSnap, guestSnap, storySnap, sharedSnap, moonSnap, earthSnap, historySnap] = await Promise.all([
       db.collectionGroup("dreams").select("deleted", "createdAtMs").get(),
       db.collection("guest_dreams").select("deleted", "imported", "createdAtMs").get(),
       db.collectionGroup("stories").select("deleted", "sourceType", "createdAtMs").get(),
       db.collection("shared_dreams").select("deleted", "sharedAtMs").get(),
       db.collection("site_metrics").doc("moon_clicks").get(),
+      db.collection("site_metrics").doc("earth_clicks").get(),
       db.collection("site_metrics").doc("content_counts").get(),
     ]);
 
@@ -62,6 +63,7 @@ export async function GET(req: Request) {
       journal: notes.totals.journal,
       shared: shares.totals.shared,
       moon: Number(moonSnap.data()?.total ?? 0) || 0,
+      earth: Number(earthSnap.data()?.total ?? 0) || 0,
     };
     const stored = historySnap.data()?.days as Record<string, DaySnapshot> | undefined;
     const { delta, days } = applyDailySnapshot({
@@ -83,6 +85,7 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         moon: current.moon,
+        earth: current.earth,
         counts: { dreams: current.dreams, stories: current.stories, journal: current.journal, shared: current.shared },
         delta,
       },

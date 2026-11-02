@@ -4,6 +4,7 @@ export type ContentTotals = {
   journal: number;
   shared: number;
   moon: number;
+  earth: number;
 };
 
 export type ContentDelta = {
@@ -13,9 +14,12 @@ export type ContentDelta = {
   shared: number;
   /** Null until a real snapshot from the previous local day exists. */
   moon: number | null;
+  /** Null on an inferred baseline. A real snapshot from before Earth tracking counts as zero. */
+  earth: number | null;
 };
 
-export type DaySnapshot = ContentTotals & { inferred?: boolean };
+/** Older daily snapshots predate Earth tracking and have no `earth` field. */
+export type DaySnapshot = Omit<ContentTotals, "earth"> & { earth?: number; inferred?: boolean };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -55,8 +59,9 @@ function whole(n: number) {
  * The first time we see a day, yesterday is inferred as "current minus what
  * was created today", so the rise is visible immediately. That inferred
  * baseline is kept for the rest of the day, so later deletes show as a fall.
- * Moon clicks have no per-day event log, so their delta stays empty until a
- * real snapshot of the previous day exists.
+ * Moon and Earth clicks have no per-day event log, so their delta stays empty
+ * until a real snapshot of the previous day exists. Earth was added later:
+ * a real snapshot that never recorded it means the prior count was zero.
  */
 export function applyDailySnapshot(input: {
   todayKey: string;
@@ -73,14 +78,17 @@ export function applyDailySnapshot(input: {
     journal: whole(input.current.journal - input.addedToday.journal),
     shared: whole(input.current.shared - input.addedToday.shared),
     moon: whole(input.current.moon),
+    earth: whole(input.current.earth),
     inferred: true,
   };
+  const priorEarth = typeof existing?.earth === "number" ? existing.earth : 0;
   const delta: ContentDelta = {
     dreams: input.current.dreams - baseline.dreams,
     stories: input.current.stories - baseline.stories,
     journal: input.current.journal - baseline.journal,
     shared: input.current.shared - baseline.shared,
     moon: existing && !existing.inferred ? input.current.moon - baseline.moon : null,
+    earth: existing && !existing.inferred ? input.current.earth - priorEarth : null,
   };
   const days: Record<string, DaySnapshot> = {
     ...stored,

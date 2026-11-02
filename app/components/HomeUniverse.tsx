@@ -5,6 +5,7 @@ import { ArrowUpRight, Globe2, Moon, Pause, Play } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import { homeUniverseMessages } from "@/lib/i18n/home-universe";
 import { trackMoonClick } from "@/lib/trackMoonClick";
+import { trackEarthClick } from "@/lib/trackEarthClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import styles from "./HomeUniverse.module.css";
 
@@ -92,7 +93,7 @@ export default function HomeUniverse({ locale }: { locale: Locale }) {
         </svg>
 
         <div className={styles.actions}>
-          <LocaleLink href="/app/map" className={styles.earthLink}>
+          <LocaleLink href="/app/map" className={styles.earthLink} onClick={() => void trackEarthClick("home")}>
             <Globe2 size={18} aria-hidden="true" />{t.earth}<ArrowUpRight size={16} aria-hidden="true" />
           </LocaleLink>
           <LocaleLink href="/moon" className={styles.moonLink} onClick={() => void trackMoonClick("home")}>

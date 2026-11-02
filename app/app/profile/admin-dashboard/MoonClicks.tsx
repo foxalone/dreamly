@@ -6,7 +6,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { adminMoonClicksCopy } from "@/lib/i18n/adminMoonClicks";
 
 type Counts = { dreams: number; stories: number; journal: number; shared: number };
-type Delta = Counts & { moon: number | null };
+type Delta = Counts & { moon: number | null; earth: number | null };
 
 function formatDelta(value: number | null, locale: string) {
   if (value == null) return null;
@@ -25,6 +25,7 @@ export default function MoonClicks({ user }: { user: User }) {
   const locale = useLocale();
   const copy = adminMoonClicksCopy[locale];
   const [moon, setMoon] = useState<number | null>(null);
+  const [earth, setEarth] = useState<number | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
   const [delta, setDelta] = useState<Delta | null>(null);
   const [error, setError] = useState(false);
@@ -46,6 +47,7 @@ export default function MoonClicks({ user }: { user: User }) {
         const data = await response.json();
         if (controller.signal.aborted) return;
         setMoon(data.moon);
+        setEarth(data.earth);
         setCounts(data.counts);
         setDelta(data.delta);
       } catch {
@@ -60,6 +62,7 @@ export default function MoonClicks({ user }: { user: User }) {
 
   const stats: { label: string; value: number | null; change: number | null }[] = [
     { label: copy.title, value: moon, change: delta?.moon ?? null },
+    { label: copy.earth, value: earth, change: delta?.earth ?? null },
     { label: copy.dreams, value: counts?.dreams ?? null, change: delta?.dreams ?? null },
     { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
     { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
