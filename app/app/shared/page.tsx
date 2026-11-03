@@ -24,7 +24,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
-import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
@@ -280,6 +280,15 @@ export default function SharedPage() {
   const t = useMessages();
   const locale = useLocale();
 
+  // The Offerwall does a full navigation. Reload enough of the feed to render
+  // the card that opened it before consuming the pending translation.
+  useEffect(() => {
+    const saved = peekAdUnlockPending("translate")?.feedLimit;
+    if (typeof saved === "number" && Number.isFinite(saved) && saved > FEED_PAGE_SIZE) {
+      setFeedLimit(Math.min(5000, Math.ceil(saved / FEED_PAGE_SIZE) * FEED_PAGE_SIZE));
+    }
+  }, []);
+
   useEffect(() => {
     setShowingTranslation({});
     setFetchedTranslations({});
@@ -359,16 +368,39 @@ export default function SharedPage() {
   }, [uid, claimedUid, languageReady]);
 
   // ✅ back from the Offerwall page (/ad/unlock): the ad credit is booked,
-  // re-run the translation the user asked for (lib/adUnlock.ts).
+  // return to the card and re-run the translation the user asked for.
   const resumedRef = useRef(false);
   useEffect(() => {
-    if (resumedRef.current || items.length === 0 || !authReady || !languageReady) return;
+    if (resumedRef.current || !authReady || !languageReady) return;
     if (uid && claimedUid !== uid) return;
+    const pending = peekAdUnlockPending("translate");
+    if (!pending?.dreamId) {
+      resumedRef.current = true;
+      return;
+    }
+    // The initial 50-card snapshot can arrive before the larger saved window.
+    if (typeof pending.feedLimit === "number" && Number.isFinite(pending.feedLimit)
+      && feedLimit < Math.min(5000, pending.feedLimit)) return;
+    const d = items.find((item) => item.id === pending.dreamId);
+    if (!d) {
+      if (feedLoading) return;
+      if (feedHasMore) {
+        setFeedLoading(true);
+        setFeedLimit((value) => value + FEED_PAGE_SIZE);
+        return;
+      }
+      // The share was removed while the ad was open.
+      takeAdUnlockPending("translate");
+      resumedRef.current = true;
+      return;
+    }
+    takeAdUnlockPending("translate");
     resumedRef.current = true;
-    const pending = takeAdUnlockPending("translate");
-    const d = pending?.dreamId ? items.find((x) => x.id === pending.dreamId) : null;
-    if (d) void translateRef.current(d, pending?.targetLang as TargetLang | undefined);
-  }, [items, authReady, languageReady, uid, claimedUid]);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`shared-${d.id}`)?.scrollIntoView({ behavior: "auto", block: "start" });
+    });
+    void translateRef.current(d, pending.targetLang as TargetLang | undefined);
+  }, [items, feedLimit, feedLoading, feedHasMore, authReady, languageReady, uid, claimedUid]);
 
   // /app/shared?dream=<id> (map popup): scroll to that dream and flash it once.
   const highlightDone = useRef(false);
@@ -749,7 +781,7 @@ export default function SharedPage() {
         if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
           // Guest: sign in (one free translation a day, and the
           // translations unlocked with ads move to the account) or watch an ad.
-          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang });
+          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang, feedLimit });
           openPaywall({
             kind: "translate",
             translation: { sharedDreamId: d.id, targetLang: lang },
@@ -774,7 +806,7 @@ export default function SharedPage() {
         if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
           // Daily free translation already used and no subscription:
           // the site-wide paywall (plans + "watch an ad" → one more translation).
-          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang });
+          setAdUnlockPending({ kind: "translate", dreamId: d.id, targetLang: lang, feedLimit });
           openPaywall({ kind: "translate", translation: { sharedDreamId: d.id, targetLang: lang }, source: "feed_translate", retry: () => void translateRef.current(d, lang) });
           return;
         }
