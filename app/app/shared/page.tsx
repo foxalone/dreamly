@@ -38,6 +38,7 @@ import { type ReactionState } from "@/lib/guestReactions";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { formatMessage } from "@/lib/i18n/messages";
+import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 
 const FEED_PAGE_SIZE = 50;
@@ -1057,7 +1058,7 @@ export default function SharedPage() {
 
                         return (
                           <button
-                            onClick={() => translateDream(d)}
+                            onClick={() => { void trackTranslationClick("feed"); void translateDream(d); }}
                             disabled={isBusy || !languageReady}
                             aria-label={label}
                             className={[

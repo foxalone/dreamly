@@ -26,6 +26,7 @@ export default function MoonClicks({ user }: { user: User }) {
   const copy = adminMoonClicksCopy[locale];
   const [moon, setMoon] = useState<number | null>(null);
   const [earth, setEarth] = useState<number | null>(null);
+  const [translation, setTranslation] = useState<number | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
   const [delta, setDelta] = useState<Delta | null>(null);
   const [error, setError] = useState(false);
@@ -48,6 +49,7 @@ export default function MoonClicks({ user }: { user: User }) {
         if (controller.signal.aborted) return;
         setMoon(data.moon);
         setEarth(data.earth);
+        setTranslation(data.translation);
         setCounts(data.counts);
         setDelta(data.delta);
       } catch {
@@ -63,6 +65,7 @@ export default function MoonClicks({ user }: { user: User }) {
   const stats: { label: string; value: number | null; change: number | null }[] = [
     { label: copy.title, value: moon, change: delta?.moon ?? null },
     { label: copy.earth, value: earth, change: delta?.earth ?? null },
+    { label: copy.translation, value: translation, change: null },
     { label: copy.dreams, value: counts?.dreams ?? null, change: delta?.dreams ?? null },
     { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
     { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
@@ -91,5 +94,6 @@ export default function MoonClicks({ user }: { user: User }) {
     )}
     <p className="mt-2 text-xs text-[var(--muted)]">{copy.sinceYesterday}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.note}</p>
+    <p className="mt-1 text-sm text-[var(--muted)]">{copy.translationNote}</p>
   </section>;
 }

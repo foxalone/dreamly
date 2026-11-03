@@ -370,7 +370,7 @@ test('worker authentication remains secret-protected and the old bulk schedule i
 
 test('both horoscope models use GPT-5 mini; requests carry only one sign and computed sky or its master', async () => {
   const {HOROSCOPE_MODEL,HOROSCOPE_TRANSLATE_MODEL,TRANSLATE_MODEL}=await import('./aiModels');
-  assert.equal(HOROSCOPE_MODEL,'gpt-5-mini');assert.equal(HOROSCOPE_TRANSLATE_MODEL,'gpt-5-mini');assert.equal(TRANSLATE_MODEL,'gpt-5-nano');
+  assert.equal(HOROSCOPE_MODEL,'gpt-5-mini');assert.equal(HOROSCOPE_TRANSLATE_MODEL,'gpt-5-mini');assert.equal(TRANSLATE_MODEL,'gpt-5-mini');
   const observed:Array<{model:string;messages:Array<{content:string}>;response_format:{json_schema:{schema:{required:string[]}}}}>=[];
   const original=api().client.chat.completions.create;
   const client={chat:{completions:{create:async(request:typeof observed[number])=>{observed.push(request);return original(request as never);}}}} as unknown as OpenAI;

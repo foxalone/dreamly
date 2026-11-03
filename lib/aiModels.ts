@@ -23,7 +23,7 @@ export const ROOT_WORDS_MODEL = "gpt-5-mini";
 export const QUICK_SYMBOL_MODEL = "gpt-5-nano";
 
 /** Shared-dream translation in the feed. */
-export const TRANSLATE_MODEL = "gpt-5-nano";
+export const TRANSLATE_MODEL = "gpt-5-mini";
 
 /** Tiny language-detection call at share time. */
 export const DETECT_LANG_MODEL = "gpt-5-nano";
