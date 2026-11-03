@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { localePath } from "@/lib/i18n/path";
@@ -25,6 +26,7 @@ type HeartsState = {
 type HeartsContextValue = HeartsState & {
   toggle: (slug: string) => Promise<void>;
   busySlug: string | null;
+  authReady: boolean;
 };
 
 const HeartsContext = createContext<HeartsContextValue | null>(null);
@@ -40,6 +42,7 @@ export function GalleryHeartsProvider({
   const pathname = usePathname();
   const locale = useLocale();
   const [uid, setUid] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [busySlug, setBusySlug] = useState<string | null>(null);
   const [state, setState] = useState<HeartsState>({
     counts: initialCounts,
@@ -49,15 +52,19 @@ export function GalleryHeartsProvider({
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setUid(user ? user.uid : null);
+      setAuthReady(true);
     });
     return () => unsub();
   }, []);
 
   useEffect(() => {
+    if (!authReady) return;
     let cancelled = false;
     (async () => {
       try {
-        const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+        const user = auth.currentUser;
+        if (user) await ensureUserProfileOnSignIn(user);
+        const token = user ? await user.getIdToken() : null;
         const res = await fetch("/api/gallery/hearts", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           credentials: "same-origin",
@@ -78,17 +85,12 @@ export function GalleryHeartsProvider({
     return () => {
       cancelled = true;
     };
-  }, [uid]);
+  }, [uid, authReady]);
 
   const toggle = useCallback(
     async (slug: string) => {
       const user = auth.currentUser;
-      if (!user) {
-        const next = pathname || localePath("/gallery", locale);
-        router.push(`${localePath("/signin", locale)}?next=${encodeURIComponent(next)}`);
-        return;
-      }
-      if (busySlug) return;
+      if (!authReady || busySlug) return;
 
       const wasLiked = !!state.liked[slug];
       const previousCount = state.counts[slug] ?? 0;
@@ -102,19 +104,19 @@ export function GalleryHeartsProvider({
       }));
 
       try {
-        const idToken = await user.getIdToken();
+        const idToken = user ? await user.getIdToken() : null;
         const res = await fetch("/api/gallery/hearts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify({ slug, idToken }),
+          body: JSON.stringify({ slug, ...(idToken ? { idToken } : {}) }),
         });
         const data = (await res.json().catch(() => ({}))) as {
           count?: number;
           liked?: boolean;
           code?: string;
         };
-        if (res.status === 401 || data?.code === "AUTH_REQUIRED") {
+        if (user && (res.status === 401 || data?.code === "AUTH_REQUIRED")) {
           const next = pathname || localePath("/gallery", locale);
           router.push(`${localePath("/signin", locale)}?next=${encodeURIComponent(next)}`);
           throw new Error("auth");
@@ -136,12 +138,12 @@ export function GalleryHeartsProvider({
         setBusySlug(null);
       }
     },
-    [busySlug, locale, pathname, router, state.counts, state.liked]
+    [authReady, busySlug, locale, pathname, router, state.counts, state.liked]
   );
 
   const value = useMemo<HeartsContextValue>(
-    () => ({ ...state, toggle, busySlug }),
-    [state, toggle, busySlug]
+    () => ({ ...state, toggle, busySlug, authReady }),
+    [state, toggle, busySlug, authReady]
   );
 
   return <HeartsContext.Provider value={value}>{children}</HeartsContext.Provider>;
@@ -165,7 +167,7 @@ export function GalleryHeartButton({ slug }: { slug: string }) {
         event.stopPropagation();
         void ctx?.toggle(slug);
       }}
-      disabled={busy || !ctx}
+      disabled={busy || !ctx?.authReady}
       aria-pressed={liked}
       aria-label={countLabel}
       title={label}

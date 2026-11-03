@@ -32,13 +32,14 @@ import { analysisPreview } from "@/lib/analysisPreview";
 import { feedPaginationCopy } from "@/lib/i18n/feedPagination";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
+import { reactionLabel } from "@/lib/i18n/reaction-copy";
+import { type ReactionState } from "@/lib/guestReactions";
 
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { formatMessage } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 
-const SIGNIN_NEXT = "/signin?next=/app/shared";
 const FEED_PAGE_SIZE = 50;
 
 type ReactionKey = "heart" | "like" | "star";
@@ -105,10 +106,10 @@ type SharedDream = {
 
 type MyReactions = Record<ReactionKey, boolean>;
 
-const REACTIONS: { key: ReactionKey; label: string; emoji: string }[] = [
-  { key: "heart", label: "Heart", emoji: "❤️" },
-  { key: "like", label: "Like", emoji: "👍" },
-  { key: "star", label: "Star", emoji: "⭐" },
+const REACTIONS: { key: ReactionKey; emoji: string }[] = [
+  { key: "heart", emoji: "❤️" },
+  { key: "like", emoji: "👍" },
+  { key: "star", emoji: "⭐" },
 ];
 
 function safeNum(n: any) {
@@ -598,11 +599,28 @@ export default function SharedPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, unlocked, showOriginal, uid, claimedUid, languageReady, targetLang]);
 
-  // ✅ my reactions (only when signed in)
+  // The guest cookie keeps reactions selected on this browser; accounts use
+  // their existing Firestore reaction documents.
   useEffect(() => {
     if (!uid) {
-      setMy({});
-      return;
+      if (!authReady || items.length === 0) {
+        setMy({});
+        return;
+      }
+      let cancelled = false;
+      const batches = Array.from({ length: Math.ceil(items.length / 50) }, (_, index) =>
+        items.slice(index * 50, index * 50 + 50));
+      void Promise.all(batches.map(async (batch) => {
+        const params = new URLSearchParams(batch.map((item) => ["id", item.id]));
+        const res = await fetch(`/api/dreams/reactions?${params}`, { credentials: "same-origin" });
+        if (!res.ok) throw new Error("Failed to load reactions.");
+        return (await res.json()) as { reactions?: Record<string, ReactionState> };
+      }))
+        .then((results) => {
+          if (!cancelled) setMy(Object.assign({}, ...results.map((result) => result.reactions ?? {})));
+        })
+        .catch((error) => console.warn("Guest reactions load failed", error));
+      return () => { cancelled = true; };
     }
     if (items.length === 0) return;
 
@@ -610,6 +628,8 @@ export default function SharedPage() {
 
     (async () => {
       try {
+        const user = auth.currentUser;
+        if (user?.uid === uid) await ensureUserProfileOnSignIn(user);
         const pairs = await Promise.all(
           items.map(async (it) => {
             const rRef = doc(
@@ -644,16 +664,12 @@ export default function SharedPage() {
     return () => {
       cancelled = true;
     };
-  }, [uid, items]);
+  }, [uid, authReady, items]);
 
   const list = useMemo(() => items, [items]);
 
   async function toggleReaction(dreamId: string, key: ReactionKey) {
-    if (!uid) {
-      router.push(SIGNIN_NEXT);
-      return;
-    }
-
+    if (!authReady) return;
     const lock = `${dreamId}:${key}`;
     if (busyKey) return;
 
@@ -667,6 +683,21 @@ export default function SharedPage() {
     });
 
     try {
+      if (!uid) {
+        const res = await fetch("/api/dreams/reactions", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dreamId, key }),
+        });
+        if (!res.ok) throw new Error("Failed to react.");
+        const data = await res.json() as { active: boolean };
+        setMy((prev) => ({
+          ...prev,
+          [dreamId]: { ...(prev[dreamId] ?? { heart: false, like: false, star: false }), [key]: data.active },
+        }));
+        return;
+      }
       const dreamRef = doc(firestore, "shared_dreams", dreamId);
       const reactRef = doc(
         firestore,
@@ -965,15 +996,15 @@ export default function SharedPage() {
                       {sourceLabel}{sourceNum !== null && sourceNum > 0 ? ` #${sourceNum}` : ""}
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-                      <div className="flex gap-2">
+                    <div className="mt-4 w-full min-w-0 overflow-x-auto overscroll-x-contain">
+                      <div className="flex w-max min-w-full flex-nowrap items-center gap-2">
                         {REACTIONS.map((x) => {
                           const active = !!myR[x.key];
                           const isBusy = busyKey === `${d.id}:${x.key}`;
                           const count = safeNum((r as any)[x.key]);
 
                           const cls = [
-                            "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                            "react-btn shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
                             active ? `react-btn--${x.key}` : "",
                             isBusy ? "opacity-70 cursor-wait" : "",
                           ]
@@ -984,9 +1015,11 @@ export default function SharedPage() {
                             <button
                               key={x.key}
                               onClick={() => toggleReaction(d.id, x.key)}
-                              disabled={isBusy}
+                              disabled={!authReady || isBusy}
                               className={cls}
-                              title={uid ? x.label : `Sign in to ${x.label.toLowerCase()}`}
+                              title={reactionLabel(locale, x.key)}
+                              aria-label={reactionLabel(locale, x.key)}
+                              aria-pressed={active}
                             >
                               <span>{x.emoji}</span>
                               <span className="tabular-nums">{count}</span>
@@ -997,16 +1030,14 @@ export default function SharedPage() {
                         {/* 💬 comment count — opens the dream page at the comments */}
                         <LocaleLink
                           href={`/dream/${d.id}#comments`}
-                          className="react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
+                          className="react-btn shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
                           title={t.dreamPage.commentsLabel}
                           aria-label={t.dreamPage.commentsLabel}
                         >
                           <span>💬</span>
                           <span className="tabular-nums">{safeNum(d.commentCount) + (analysis ? 1 : 0)}</span>
                         </LocaleLink>
-                      </div>
-
-                      {(() => {
+                        {(() => {
                         const text = (d.text ?? "").trim();
                         // Already in the viewer's language — nothing to translate.
                         if (!text || dreamLang(d) === targetLang) return null;
@@ -1030,7 +1061,7 @@ export default function SharedPage() {
                             disabled={isBusy || !languageReady}
                             aria-label={label}
                             className={[
-                              "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
+                              "react-btn react-btn--translate ms-auto w-8 h-8 shrink-0 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
                               isShowing || hasMine ? "react-btn--translate-on" : "",
                               isBusy ? "opacity-70 cursor-wait" : "",
                             ]
@@ -1043,7 +1074,8 @@ export default function SharedPage() {
                             />
                           </button>
                         );
-                      })()}
+                        })()}
+                      </div>
                     </div>
                   </div>
                   <ArticleAdBanner locale={locale} variant="feed" />

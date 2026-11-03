@@ -11,6 +11,7 @@ test("dream language takes priority over the website locale, including unsupport
     const messages = dreamAnalysisMessages(text, "en", "psychological");
     assert.match(messages[0].content, /dominant natural language of the dream text/);
     assert.match(messages[0].content, /website language is English; use it only if the dream text has no identifiable language/);
+    assert.match(messages[0].content, /Do not announce or label the language in the response/);
     assert.equal(messages.length, 2);
     assert.equal(messages[1].content, `Dream text:\n${text}`);
   }

@@ -10,6 +10,8 @@ import {
   safeHeartCount,
 } from "@/lib/galleryHearts";
 import { requireSignedInUid } from "../../dreams/_lib/requireUser";
+import { newGuestId, readGuestId, setGuestCookie } from "../../dreams/_lib/guestQuota";
+import { guestGalleryLikes, toggleGuestGalleryHeart } from "@/lib/guestGalleryHearts";
 
 export const runtime = "nodejs";
 
@@ -45,14 +47,16 @@ export async function GET(req: Request) {
   try {
     const db = adminDb();
     const uid = await optionalUidFromRequest(req);
-    const [countsSnap, likedSnap] = await Promise.all([
+    const guestId = uid ? null : readGuestId(req);
+    const [countsSnap, likedSnap, guestLiked] = await Promise.all([
       db.collection(GALLERY_HEARTS_COLLECTION).get(),
       uid
         ? db.collection("users").doc(uid).collection(USER_GALLERY_HEARTS_COLLECTION).get()
         : Promise.resolve(null),
+      guestId ? guestGalleryLikes(db, guestId) : Promise.resolve({}),
     ]);
 
-    const liked: Record<string, boolean> = {};
+    const liked: Record<string, boolean> = { ...guestLiked };
     if (likedSnap) {
       for (const doc of likedSnap.docs) liked[doc.id] = true;
     }
@@ -60,7 +64,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       counts: countsFromDocs(countsSnap.docs),
       liked,
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("[galleryHearts:get]", error);
     return NextResponse.json({ error: "Failed to load hearts." }, { status: 500 });
@@ -70,15 +74,22 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as ToggleBody;
-    const auth = await requireSignedInUid(body?.idToken);
-    if ("error" in auth) return auth.error;
-
     const slug = normalizeGalleryHeartSlug(body?.slug);
     if (!isValidGalleryHeartSlugFormat(slug) || !getDreamEntry(slug)) {
       return NextResponse.json({ error: "Unknown dream." }, { status: 400 });
     }
 
     const db = adminDb();
+    if (!body?.idToken) {
+      const existingGuestId = readGuestId(req);
+      const guestId = existingGuestId ?? newGuestId();
+      const result = await toggleGuestGalleryHeart(db, guestId, slug);
+      const response = NextResponse.json(result);
+      return existingGuestId ? response : setGuestCookie(response, guestId);
+    }
+
+    const auth = await requireSignedInUid(body.idToken);
+    if ("error" in auth) return auth.error;
     const countRef = db.collection(GALLERY_HEARTS_COLLECTION).doc(slug);
     const userHeartRef = countRef.collection("users").doc(auth.uid);
     const userIndexRef = db

@@ -27,6 +27,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess } from "../_lib/analysisAttempts";
 
 type Body = {
@@ -175,7 +176,7 @@ export async function POST(req: Request) {
         });
         return (resp.choices?.[0]?.message?.content ?? "").trim();
       });
-      analysis = result.analysis;
+      analysis = cleanAnalysis(result.analysis);
       model = result.model;
     } catch (e: unknown) {
       const code = dreamAnalysisErrorCode(e);

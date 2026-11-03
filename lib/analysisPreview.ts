@@ -13,7 +13,7 @@ export function publicAnalysisFields(value: unknown):
 }
 
 export function analysisPreview(value: string): { preview: string; hasMore: boolean } {
-  const flat = value.replace(/\s+/g, " ").trim();
+  const flat = cleanAnalysis(value).replace(/\s+/g, " ").trim();
   if (flat.length <= ANALYSIS_PREVIEW_CHARS) return { preview: flat, hasMore: false };
   const cut = flat.slice(0, ANALYSIS_PREVIEW_CHARS);
   const space = cut.lastIndexOf(" ");

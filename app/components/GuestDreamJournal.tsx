@@ -16,6 +16,7 @@ import EscapeNote from "./EscapeNote";
 import { DreamSymbolIcons } from "./DreamSymbolIcons";
 import ShareAnonPrompt from "./ShareAnonPrompt";
 import { useDreamAsk } from "./useDreamAsk";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import DiaryTabs from "./DiaryTabs";
 import DiaryCalendar, { localDateKey } from "./DiaryCalendar";
 
@@ -60,7 +61,7 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
           <h3 className="font-semibold">{t.app.analysis}</h3>
           {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} /></div> : null}
           {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
-          <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{ask.analysis}</p></AnalysisDisplay>
+          <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{cleanAnalysis(ask.analysis)}</p></AnalysisDisplay>
           <ShareAnonPrompt status={ask.anonShare} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>
       )}

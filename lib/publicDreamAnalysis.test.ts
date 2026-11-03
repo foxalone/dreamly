@@ -44,6 +44,15 @@ test("cleanAnalysis trims and caps a public reading", () => {
   assert.equal(cleanAnalysis("x".repeat(PUBLIC_ANALYSIS_MAX + 5)).length, PUBLIC_ANALYSIS_MAX);
 });
 
+test("language note disappears from saved readings and previews", () => {
+  const oldReading = "Language identified: English. The scene of escaping at night can suggest relief.";
+  const expected = "The scene of escaping at night can suggest relief.";
+  assert.equal(cleanAnalysis(oldReading), expected);
+  assert.deepEqual(analysisPreview(oldReading), { preview: expected, hasMore: false });
+  assert.equal(cleanAnalysis("Language identified: English\nThe scene continues."), "The scene continues.");
+  assert.equal(cleanAnalysis("Language identified: Brazilian Portuguese\nA noite parece tranquila."), "A noite parece tranquila.");
+});
+
 test("a public reading is shortened to a preview and the rest stays private", async () => {
   const full = `${"Being lost in a building after a night out can reflect a sense of disorientation and uncertainty, grounded in the image of wandering corridors and closed doors. "}${"The repeated search for the hotel or car, paired with not finding them, evokes anxiety about orientation and temporary separation from the familiar."}`;
   const { db, docs } = memoryDb({

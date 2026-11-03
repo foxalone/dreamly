@@ -3,6 +3,7 @@ import AnalysisDisplay from "@/app/components/AnalysisDisplay";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { analyzeDreamMessages, firstDreamMessages } from "@/lib/i18n/first-dream";
@@ -1890,7 +1891,7 @@ export default function DreamsPage() {
 
                 <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
                 {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && (d.analysisText ?? "").trim() ? (() => {
-                  const full = (d.analysisText ?? "").trim();
+                  const full = cleanAnalysis(d.analysisText);
                   const view = analysisPreview(full);
                   if (expandedAnalysis.has(d.id)) {
                     return (

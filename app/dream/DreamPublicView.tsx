@@ -125,6 +125,8 @@ export const loadMoreDreams = cache(async (excludeId: string): Promise<MoreDream
           id: d.id,
           excerpt: sharedDreamExcerpt(String(data?.text ?? ""), 90),
           emojis: normalizeEmojiNatives(data?.emojis).slice(0, 3),
+          shareBadge: str(data?.shareBadge) || null,
+          fromGuest: data?.fromGuest === true || !!str(data?.ownerGuestId),
         };
       });
   } catch (e) {

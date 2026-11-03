@@ -31,6 +31,7 @@ import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import { analysisPreview } from "@/lib/analysisPreview";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
@@ -41,6 +42,8 @@ import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
+import { reactionLabel } from "@/lib/i18n/reaction-copy";
+import { type ReactionState } from "@/lib/guestReactions";
 
 export type PublicSharedDream = {
   id: string;
@@ -67,6 +70,8 @@ export type MoreDream = {
   id: string;
   excerpt: string;
   emojis: string[];
+  shareBadge: string | null;
+  fromGuest: boolean;
 };
 
 type ReactionKey = "heart" | "like" | "star";
@@ -80,10 +85,10 @@ type DreamComment = {
   createdAtMs: number;
 };
 
-const REACTIONS: { key: ReactionKey; label: string; emoji: string }[] = [
-  { key: "heart", label: "Heart", emoji: "❤️" },
-  { key: "like", label: "Like", emoji: "👍" },
-  { key: "star", label: "Star", emoji: "⭐" },
+const REACTIONS: { key: ReactionKey; emoji: string }[] = [
+  { key: "heart", emoji: "❤️" },
+  { key: "like", emoji: "👍" },
+  { key: "star", emoji: "⭐" },
 ];
 
 const COMMENT_MAX = 1000;
@@ -278,7 +283,19 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   useEffect(() => {
     if (!uid) {
       setMy({ heart: false, like: false, star: false });
-      return;
+      if (!authReady) return;
+      let cancelled = false;
+      const params = new URLSearchParams({ id: dream.id });
+      void fetch(`/api/dreams/reactions?${params}`, { credentials: "same-origin" })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Failed to load reactions.");
+          return res.json();
+        })
+        .then((data: { reactions?: Record<string, ReactionState> }) => {
+          if (!cancelled) setMy(data.reactions?.[dream.id] ?? { heart: false, like: false, star: false });
+        })
+        .catch((error) => console.warn("Guest reactions load failed", error));
+      return () => { cancelled = true; };
     }
     const unsub = onSnapshot(
       doc(firestore, "shared_dreams", dream.id, "reactions", uid),
@@ -289,7 +306,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       (err) => console.warn("my reactions onSnapshot error:", err?.message ?? err)
     );
     return () => unsub();
-  }, [uid, dream.id]);
+  }, [uid, authReady, dream.id]);
 
   // comments, oldest first (a conversation under the dream)
   useEffect(() => {
@@ -320,22 +337,24 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   }, [dream.id]);
 
   async function toggleReaction(key: ReactionKey) {
-    if (!uid) {
-      // same popup flow as comments: stay on the page
-      try {
-        await signInWithOptions();
-      } catch (e: any) {
-        if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
-          setError(e?.message ?? "Sign-in failed.");
-        }
-      }
-      return;
-    }
+    if (!authReady) return;
     if (busyKey) return;
     setError(null);
     setBusyKey(key);
     setMy((prev) => ({ ...prev, [key]: !prev[key] }));
     try {
+      if (!uid) {
+        const res = await fetch("/api/dreams/reactions", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dreamId: dream.id, key }),
+        });
+        if (!res.ok) throw new Error("Failed to react.");
+        const data = await res.json() as { active: boolean };
+        setMy((prev) => ({ ...prev, [key]: data.active }));
+        return;
+      }
       const dreamRef = doc(firestore, "shared_dreams", dream.id);
       const reactRef = doc(firestore, "shared_dreams", dream.id, "reactions", uid);
       await runTransaction(firestore, async (tx) => {
@@ -729,7 +748,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   }, [locale]);
 
   const excerpt = analysisPreview(preview);
-  const shownAnalysis = (fullAnalysis ?? excerpt.preview).trim();
+  const shownAnalysis = cleanAnalysis(fullAnalysis ?? excerpt.preview);
   const collapsed = !fullAnalysis && (hasMore || excerpt.hasMore);
   const analysisScope = fullAnalysis ? "full" : "preview";
   const currentAnalysisTranslation = analysisTranslation?.dreamId === dream.id && analysisTranslation.lang === targetLang && analysisTranslation.scope === analysisScope
@@ -827,13 +846,13 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
           {translated ? currentTranslation : dream.text}
         </h1>
 
-        <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex gap-2 items-center">
+        <div className="mt-4 w-full min-w-0 overflow-x-auto overscroll-x-contain">
+          <div className="flex w-max min-w-full flex-nowrap items-center gap-2">
             {REACTIONS.map((x) => {
               const active = !!my[x.key];
               const isBusy = busyKey === x.key;
               const cls = [
-                "react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
+                "react-btn shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2",
                 active ? `react-btn--${x.key}` : "",
                 isBusy ? "opacity-70 cursor-wait" : "",
               ]
@@ -843,9 +862,11 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                 <button
                   key={x.key}
                   onClick={() => toggleReaction(x.key)}
-                  disabled={isBusy}
+                  disabled={!authReady || isBusy}
                   className={cls}
-                  title={uid ? x.label : `Sign in to ${x.label.toLowerCase()}`}
+                  title={reactionLabel(locale, x.key)}
+                  aria-label={reactionLabel(locale, x.key)}
+                  aria-pressed={active}
                 >
                   <span>{x.emoji}</span>
                   <span className="tabular-nums">{safeNum(live.reactions[x.key])}</span>
@@ -855,32 +876,31 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
             {/* 💬 comment count — next to the heart and the star, as on the feed */}
             <a
               href="#comments"
-              className="react-btn px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
+              className="react-btn shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition border inline-flex items-center gap-2"
               title={t.dreamPage.commentsLabel}
               aria-label={t.dreamPage.commentsLabel}
             >
               <span>💬</span>
               <span className="tabular-nums">{safeNum(live.commentCount) + (shownAnalysis ? 1 : 0)}</span>
             </a>
+            {showTranslateButton ? (
+              <button
+                onClick={() => void translateDream()}
+                disabled={translateBusy || !languageReady}
+                aria-label={translateLabel}
+                className={[
+                  "react-btn react-btn--translate ms-auto w-8 h-8 shrink-0 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
+                  translated ? "react-btn--translate-on" : "",
+                  translateBusy ? "opacity-70 cursor-wait" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                title={translateLabel}
+              >
+                <TranslateIcon className={translateBusy ? "animate-pulse" : undefined} />
+              </button>
+            ) : null}
           </div>
-
-          {showTranslateButton ? (
-            <button
-              onClick={() => void translateDream()}
-              disabled={translateBusy || !languageReady}
-              aria-label={translateLabel}
-              className={[
-                "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
-                translated ? "react-btn--translate-on" : "",
-                translateBusy ? "opacity-70 cursor-wait" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              title={translateLabel}
-            >
-              <TranslateIcon className={translateBusy ? "animate-pulse" : undefined} />
-            </button>
-          ) : null}
         </div>
       </article>
 
@@ -1004,20 +1024,28 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
         <section className="mt-10">
           <h2 className="text-lg font-semibold text-[var(--text)]">{t.dreamPage.moreDreams}</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {more.map((m) => (
-              <LocaleLink
-                key={m.id}
-                href={`/dream/${m.id}`}
-                className="block p-4 rounded-2xl bg-[var(--card)] border border-white/10 hover:border-purple-400/40 transition-colors"
-              >
-                {m.emojis.length > 0 ? (
-                  <span className="block text-[16px] leading-none select-none mb-2" aria-hidden>
-                    {m.emojis.join(" ")}
+            {more.map((m) => {
+              const authorBadge = shareBadgeById(m.shareBadge) ?? shareBadgeFor(m.fromGuest ? 1 : 0);
+              return (
+                <LocaleLink
+                  key={m.id}
+                  href={`/dream/${m.id}`}
+                  className="block p-4 rounded-2xl bg-[var(--card)] border border-white/10 hover:border-purple-400/40 transition-colors"
+                >
+                  <span className="mb-2 flex items-center gap-1 text-[16px] leading-none select-none">
+                    <span
+                      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-purple-500/15 ring-1 ring-purple-400/60"
+                      title={shareBadgeLabel(t, authorBadge)}
+                      aria-label={shareBadgeLabel(t, authorBadge)}
+                    >
+                      {authorBadge.emoji}
+                    </span>
+                    {m.emojis.map((emoji, index) => <span key={`${emoji}:${index}`} aria-hidden>{emoji}</span>)}
                   </span>
-                ) : null}
-                <span className="block text-sm text-[var(--text)] break-words">{m.excerpt}</span>
-              </LocaleLink>
-            ))}
+                  <span className="block text-sm text-[var(--text)] break-words">{m.excerpt}</span>
+                </LocaleLink>
+              );
+            })}
           </div>
         </section>
       ) : null}

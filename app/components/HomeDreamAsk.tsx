@@ -6,6 +6,7 @@ import DreamComposerForm from "./DreamComposerForm";
 import EscapeNote from "./EscapeNote";
 import ShareAnonPrompt from "./ShareAnonPrompt";
 import { useDreamAsk } from "./useDreamAsk";
+import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 
 export default function HomeDreamAsk({
   onResultChange,
@@ -60,7 +61,7 @@ export default function HomeDreamAsk({
         <div className="order-first mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-start">
           <h2 className="mb-3 font-semibold">{t.app.analysis}</h2>
           {escaped?.length ? <EscapeNote emojis={escaped} /> : null}
-          <AnalysisDisplay attemptId={analysisAttemptId}><p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{analysis}</p></AnalysisDisplay>
+          <AnalysisDisplay attemptId={analysisAttemptId}><p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{cleanAnalysis(analysis)}</p></AnalysisDisplay>
           <ShareAnonPrompt status={anonShare} onShare={shareAnonymously} onSignIn={() => goToJournal(text, false, true)} />
           <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
           <div className="mt-3 flex flex-wrap gap-2">
