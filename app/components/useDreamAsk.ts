@@ -21,6 +21,8 @@ import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
 import { localePath } from "@/lib/i18n/path";
 import type { DreamLens } from "@/lib/dream-lenses";
 import { useDreamLens } from "./DreamLensChips";
+import { normalizeEscapeNoteCopy, type EscapeNoteCopy } from "@/lib/escapeNote";
+import { normalizeGuestShareCopy, type GuestShareCopy } from "@/lib/guestShareCopy";
 import { reportAnalysisAttempt, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { queueDreamAnalysis, takeDreamAnalysisResume } from "@/lib/dreamAnalysisHandoff";
 import { openPaywall } from "@/lib/paywall";
@@ -74,11 +76,14 @@ export function useDreamAsk({
   const [error, setError] = useState<string | null>(null);
   const [analysisAttemptId, setAnalysisAttemptId] = useState<string | undefined>();
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analysisLang, setAnalysisLang] = useState<string | null>(null);
   const [shareToFeed, setShareToFeedState] = useState(true);
   const [lens, setLens] = useDreamLens();
   const [anonShare, setAnonShare] = useState<AnonShareStatus>("idle");
   /** Emojis that escaped into the dream catcher for THIS reading (null = no escape note). */
   const [escaped, setEscaped] = useState<string[] | null>(null);
+  const [escapeNote, setEscapeNote] = useState<EscapeNoteCopy | null>(null);
+  const [guestShareCopy, setGuestShareCopy] = useState<GuestShareCopy | null>(null);
   const [escapeAlreadyToday, setEscapeAlreadyToday] = useState(false);
 
   useEffect(() => {
@@ -95,6 +100,9 @@ export function useDreamAsk({
     if (pending.analysis) {
       setAnalysisAttemptId(pending.analysisAttemptId);
       setAnalysis(pending.analysis);
+      setAnalysisLang(pending.analysisLang ?? null);
+      setEscapeNote(pending.escapeNote ?? null);
+      setGuestShareCopy(pending.guestShareCopy ?? null);
       // The redirect from the homepage lands here: keep showing the escape note
       // as long as the creatures are still waiting in the catcher.
       const esc = readEscapePending();
@@ -153,8 +161,11 @@ export function useDreamAsk({
     setTextState(next);
     if (analysis) {
       setAnalysis(null);
+      setAnalysisLang(null);
       setAnonShare("idle");
       setEscaped(null);
+      setEscapeNote(null);
+      setGuestShareCopy(null);
       setEscapeAlreadyToday(false);
       onResultChange?.(false);
       // Preserve the completed reading; save the new text when it is submitted.
@@ -198,8 +209,11 @@ export function useDreamAsk({
   function reset() {
     setTextState("");
     setAnalysis(null);
+    setAnalysisLang(null);
     setAnonShare("idle");
     setEscaped(null);
+    setEscapeNote(null);
+    setGuestShareCopy(null);
     setEscapeAlreadyToday(false);
     setError(null);
     onResultChange?.(false);
@@ -225,8 +239,11 @@ export function useDreamAsk({
     setBusy(true);
     setError(null);
     setAnalysis(null);
+    setAnalysisLang(null);
     setAnonShare("idle");
     setEscaped(null);
+    setEscapeNote(null);
+    setGuestShareCopy(null);
     setEscapeAlreadyToday(false);
     onResultChange?.(false);
 
@@ -307,6 +324,12 @@ export function useDreamAsk({
       const next = String(data.analysis ?? "").trim();
       if (!next) throw new Error("Empty analysis");
       setAnalysis(next);
+      const nextAnalysisLang = typeof data.analysisLang === "string" ? data.analysisLang : null;
+      setAnalysisLang(nextAnalysisLang);
+      const translatedNote = normalizeEscapeNoteCopy(data.escapeNote);
+      setEscapeNote(translatedNote);
+      const translatedShare = normalizeGuestShareCopy(data.guestShareCopy);
+      setGuestShareCopy(translatedShare);
       // Dream Kingdoms: the server granted an escape (first dream today) — remember it
       // for the catcher badge and show the note + fly-away above this reading.
       if (Number(data?.escape?.granted ?? 0) > 0) {
@@ -341,6 +364,9 @@ export function useDreamAsk({
       }
       writeHomeDreamPending(dream, {
         analysis: next,
+        analysisLang: nextAnalysisLang ?? undefined,
+        escapeNote: translatedNote ?? undefined,
+        guestShareCopy: translatedShare ?? undefined,
         shareToFeed,
         lang: locale,
         lens,
@@ -489,6 +515,8 @@ export function useDreamAsk({
     anonShare,
     shareAnonymously,
     escaped,
+    escapeNote,
+    guestShareCopy,
     escapeAlreadyToday,
     signedIn: () => !!auth.currentUser,
     text,
@@ -496,6 +524,7 @@ export function useDreamAsk({
     busy,
     error,
     analysis,
+    analysisLang,
     analysisAttemptId,
     shareToFeed,
     setShareToFeed,

@@ -42,6 +42,7 @@ import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
+import { commentTranslationTargetId } from "@/lib/commentTranslation";
 import { reactionLabel } from "@/lib/i18n/reaction-copy";
 import { type ReactionState } from "@/lib/guestReactions";
 
@@ -83,6 +84,7 @@ type DreamComment = {
   authorUid: string;
   badge: string | null;
   createdAtMs: number;
+  xpAwarded: number;
 };
 
 const REACTIONS: { key: ReactionKey; emoji: string }[] = [
@@ -184,7 +186,8 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const currentTranslation = translation?.dreamId === dream.id && translation.lang === targetLang ? translation.text : null;
   const translated = showTranslation && !!currentTranslation;
   const translateRef = useRef<(lang?: TranslationLanguage) => Promise<void>>(async () => {});
-  const pendingAfterSignInRef = useRef<"translate" | "analysis-translate" | "reading" | null>(null);
+  const pendingAfterSignInRef = useRef<"translate" | "analysis-translate" | "comment-translate" | "reading" | null>(null);
+  const pendingCommentTranslationRef = useRef<{ commentId: string; lang: TranslationLanguage } | null>(null);
 
   // the reading prepared for this dream, then ordinary comments under it
   const [preview, setPreview] = useState(dream.analysisText);
@@ -205,9 +208,13 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     analysisManualChoice.current = false;
   }, [dream.id, dream.analysisText, dream.analysisHasMore]);
   const [comments, setComments] = useState<DreamComment[]>([]);
+  const [commentTranslations, setCommentTranslations] = useState<Record<string, { lang: TranslationLanguage; text: string; visible: boolean }>>({});
+  const [commentTranslateBusyId, setCommentTranslateBusyId] = useState<string | null>(null);
+  const translateCommentRef = useRef<(commentId: string, lang?: TranslationLanguage) => Promise<void>>(async () => {});
   const [draft, setDraft] = useState("");
   const [publishBusy, setPublishBusy] = useState(false);
   const [needSignIn, setNeedSignIn] = useState(false);
+  const [earnedXp, setEarnedXp] = useState<number | null>(null);
   const pendingCommentRef = useRef<string | null>(null);
 
   const dreamLang = useMemo(
@@ -310,6 +317,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
 
   // comments, oldest first (a conversation under the dream)
   useEffect(() => {
+    setCommentTranslations({});
     const q = query(
       collection(firestore, "shared_dreams", dream.id, "comments"),
       orderBy("createdAtMs", "asc"),
@@ -327,6 +335,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               authorUid: String(data?.authorUid ?? ""),
               badge: data?.badge ? String(data.badge) : null,
               createdAtMs: safeNum(data?.createdAtMs),
+              xpAwarded: safeNum(data?.xpAwarded),
             };
           })
         );
@@ -536,6 +545,65 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   }
   translateAnalysisRef.current = translateAnalysis;
 
+  async function translateComment(commentId: string, selectedLang?: TranslationLanguage) {
+    if (commentTranslateBusyId || !languageReady) return;
+    const lang = selectedLang ?? targetLang;
+    const previous = commentTranslations[commentId];
+    if (previous?.lang === lang) {
+      setCommentTranslations((current) => ({ ...current, [commentId]: { ...previous, visible: !previous.visible } }));
+      return;
+    }
+    setError(null);
+    setCommentTranslateBusyId(commentId);
+    try {
+      const user = auth.currentUser;
+      const idToken = user ? await user.getIdToken() : undefined;
+      const res = await fetch("/api/dreams/translate-comment", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dreamId: dream.id, commentId, targetLang: lang, ...(idToken ? { idToken } : {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 402) {
+          const targetId = commentTranslationTargetId(dream.id, commentId);
+          setAdUnlockPending({ kind: "translate", dreamId: targetId, commentId, targetLang: lang });
+          openPaywall({
+            kind: "translate",
+            translation: { sharedDreamId: targetId, targetLang: lang },
+            source: user ? "dream_comment_translate" : "dream_comment_translate_guest",
+            ...(!user ? { guest: {
+              reason: "translate" as const,
+              signIn: () => {
+                pendingCommentTranslationRef.current = { commentId, lang };
+                pendingAfterSignInRef.current = "comment-translate";
+                signInWithOptions().catch((error) => {
+                  pendingAfterSignInRef.current = null;
+                  pendingCommentTranslationRef.current = null;
+                  if (error?.code !== "auth/popup-closed-by-user" && error?.code !== "auth/cancelled-popup-request") {
+                    setError(error?.message ?? t.dreamPage.commentTranslationFailed);
+                  }
+                });
+              },
+            } } : {}),
+            retry: () => void translateCommentRef.current(commentId, lang),
+          });
+          return;
+        }
+        throw new Error(t.dreamPage.commentTranslationFailed);
+      }
+      const next = typeof data.translation === "string" ? data.translation.trim() : "";
+      if (!next) throw new Error(t.dreamPage.commentTranslationFailed);
+      setCommentTranslations((current) => ({ ...current, [commentId]: { lang, text: next, visible: true } }));
+    } catch {
+      setError(t.dreamPage.commentTranslationFailed);
+    } finally {
+      setCommentTranslateBusyId(null);
+    }
+  }
+  translateCommentRef.current = translateComment;
+
   // a guest signed in from the paywall's sign-in option — run the translation
   useEffect(() => {
     const pending = pendingAfterSignInRef.current;
@@ -543,6 +611,11 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     pendingAfterSignInRef.current = null;
     if (pending === "reading") void openAnalysisRef.current();
     else if (pending === "analysis-translate") void translateAnalysisRef.current();
+    else if (pending === "comment-translate" && pendingCommentTranslationRef.current) {
+      const { commentId, lang } = pendingCommentTranslationRef.current;
+      pendingCommentTranslationRef.current = null;
+      void translateCommentRef.current(commentId, lang);
+    }
     else void translateRef.current();
   }, [uid, languageReady]);
 
@@ -610,6 +683,10 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     if (resumedRef.current || !authReady || !languageReady) return;
     resumedRef.current = true;
     const pending = takeAdUnlockPending("translate");
+    if (pending?.commentId && pending.dreamId === commentTranslationTargetId(dream.id, pending.commentId)) {
+      void translateCommentRef.current(pending.commentId, pending.targetLang as TranslationLanguage | undefined);
+      return;
+    }
     if (pending?.dreamId === analysisTranslationTargetId(dream.id)) {
       void (async () => {
         if (pending.analysisFull) await openAnalysisRef.current();
@@ -626,7 +703,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     if (reading?.dreamId === dream.id) void openAnalysisRef.current();
   }, [authReady, languageReady, dream.id]);
 
-  async function publishComment(text: string, forUid: string) {
+  async function publishComment(text: string, forUid: string): Promise<{ xp: number; alreadyPublished: boolean }> {
     // the commenter's creature level — same anonymity as shared dreams:
     // never a name, only "Anonymous dreamer · <creature>"
     let badgeId = "dreamer";
@@ -639,29 +716,23 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       /* count is cosmetic — 🌙 Dreamer is a fine fallback */
     }
 
-    const dreamRef = doc(firestore, "shared_dreams", dream.id);
-    const commentRef = doc(collection(dreamRef, "comments"));
-    await runTransaction(firestore, async (tx) => {
-      const snap = await tx.get(dreamRef);
-      if (!snap.exists()) throw new Error("Dream not found");
-      tx.set(commentRef, {
-        text,
-        authorUid: forUid,
-        badge: badgeId,
-        createdAtMs: Date.now(),
-        createdAt: serverTimestamp(),
-      });
-      tx.update(dreamRef, {
-        commentCount: safeNum((snap.data() as any)?.commentCount) + 1,
-        updatedAt: serverTimestamp(),
-      });
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) throw new Error("Sign in required.");
+    const response = await fetch("/api/dreams/comment", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dreamId: dream.id, text, badge: badgeId, idToken }),
     });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.code === "COMMENT_ALREADY_PUBLISHED" ? t.dreamPage.commentAlready : t.dreamPage.commentFailed);
+    return { xp: safeNum(result.xp), alreadyPublished: result.alreadyPublished === true };
   }
 
   async function onPublishClick() {
     const text = draft.trim().slice(0, COMMENT_MAX);
     if (!text || publishBusy) return;
     setError(null);
+    setEarnedXp(null);
 
     const u = auth.currentUser;
     if (!u) {
@@ -682,9 +753,10 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
 
     setPublishBusy(true);
     try {
-      await publishComment(text, u.uid);
+      const award = await publishComment(text, u.uid);
       setDraft("");
       setNeedSignIn(false);
+      if (!award.alreadyPublished && award.xp > 0) setEarnedXp(award.xp);
     } catch (e: any) {
       setError(e?.message ?? t.dreamPage.commentFailed);
     } finally {
@@ -699,9 +771,10 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     pendingCommentRef.current = null;
     setPublishBusy(true);
     void publishComment(text, uid)
-      .then(() => {
+      .then((award) => {
         setDraft("");
         setNeedSignIn(false);
+        if (!award.alreadyPublished && award.xp > 0) setEarnedXp(award.xp);
       })
       .catch((e: any) => {
         pendingCommentRef.current = text;
@@ -959,6 +1032,12 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
             comments.map((c) => {
               const cBadge = shareBadgeById(c.badge) ?? shareBadgeFor(0);
               const cLabel = `${t.shareBadges.anonymous} · ${shareBadgeLabel(t, cBadge)}`;
+              const cTranslation = commentTranslations[c.id];
+              const cTranslated = cTranslation?.lang === targetLang && cTranslation.visible;
+              const cBusy = commentTranslateBusyId === c.id;
+              const cTranslateLabel = cTranslated
+                ? t.profile.showOriginal
+                : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
               return (
                 <div key={c.id} className="p-4 rounded-2xl bg-[var(--card)] border border-white/10">
                   <div className="flex items-center justify-between gap-3">
@@ -976,6 +1055,12 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                         <span className="opacity-70 whitespace-nowrap">· {dateFmt.format(new Date(c.createdAtMs))}</span>
                       ) : null}
                     </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button type="button" onClick={() => void translateComment(c.id)} disabled={cBusy || !languageReady}
+                        aria-label={cTranslateLabel} title={cTranslateLabel}
+                        className={`react-btn react-btn--translate w-8 h-8 rounded-full border inline-flex items-center justify-center ${cTranslated ? "react-btn--translate-on" : ""}`}>
+                        <TranslateIcon className={cBusy ? "animate-pulse" : undefined} />
+                      </button>
                     {uid && c.authorUid === uid ? (
                       <button
                         onClick={() => void deleteComment(c)}
@@ -986,8 +1071,10 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                         <Trash2 size={14} strokeWidth={1.8} />
                       </button>
                     ) : null}
+                    </div>
                   </div>
-                  <div className="mt-2 text-sm text-[var(--text)] whitespace-pre-wrap break-words">{c.text}</div>
+                  <div dir="auto" className="mt-2 text-sm text-[var(--text)] whitespace-pre-wrap break-words">{cTranslated ? cTranslation.text : c.text}</div>
+                  {uid === c.authorUid && c.xpAwarded > 0 ? <div className="mt-2 text-xs font-semibold text-purple-500">+{c.xpAwarded} XP</div> : null}
                 </div>
               );
             })
@@ -1015,6 +1102,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               {publishBusy ? t.dreamPage.publishing : t.dreamPage.publish}
             </button>
           </div>
+          {earnedXp !== null ? <p role="status" className="mt-2 text-sm font-semibold text-purple-500">{formatMessage(t.dreamPage.commentXpEarned, { n: earnedXp })}</p> : null}
         </div>
       </section>
 

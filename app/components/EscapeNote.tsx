@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { readEscapePending } from "@/lib/game/escape";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { getMessages } from "@/lib/i18n/messages";
+import type { EscapeNoteCopy } from "@/lib/escapeNote";
 
 /** The fly-away runs once per escape (keyed by its grant time), not on every re-render. */
 const flown = new Set<number>();
@@ -12,8 +14,14 @@ const flown = new Set<number>();
  * one-shot animation of the same emojis flying into the floating dream catcher
  * (DreamCatcherFab, class .dcf). The emojis in the note stay put; only clones fly.
  */
-export default function EscapeNote({ emojis }: { emojis: string[] }) {
+export default function EscapeNote({ emojis, copy, dreamText }: { emojis: string[]; copy?: EscapeNoteCopy | null; dreamText?: string }) {
   const t = useMessages().game;
+  // Older locally saved readings lack the server's translated copy. Their
+  // script still lets us display the existing Russian/Arabic UI translation.
+  const oldReadingLocale = /[\u0400-\u04FF]/.test(dreamText ?? "") ? "ru" : /[\u0600-\u06FF]/.test(dreamText ?? "") ? "ar" : null;
+  const fallback = oldReadingLocale ? getMessages(oldReadingLocale).game : t;
+  const lead = copy?.lead || fallback.escapeLead;
+  const cta = copy?.cta || fallback.escapeCta;
   const rowRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
@@ -74,9 +82,9 @@ export default function EscapeNote({ emojis }: { emojis: string[] }) {
   if (!emojis.length) return null;
 
   return (
-    <p className="mb-3 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2.5 text-sm leading-6 text-[var(--text)]">
+    <p dir="auto" className="mb-3 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2.5 text-sm leading-6 text-[var(--text)]">
       <span aria-hidden="true">✨ </span>
-      {t.escapeLead}{" "}
+      {lead}{" "}
       <span ref={rowRef} className="whitespace-nowrap align-middle text-lg leading-none">
         {emojis.map((e, i) => (
           <span key={`${e}-${i}`} data-esc className="mx-0.5 inline-block">
@@ -84,7 +92,7 @@ export default function EscapeNote({ emojis }: { emojis: string[] }) {
           </span>
         ))}
       </span>{" "}
-      — {t.escapeCta}
+      — {cta}
     </p>
   );
 }

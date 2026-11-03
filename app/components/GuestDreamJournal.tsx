@@ -15,12 +15,13 @@ import DreamComposerForm from "./DreamComposerForm";
 import EscapeNote from "./EscapeNote";
 import { DreamSymbolIcons } from "./DreamSymbolIcons";
 import ShareAnonPrompt from "./ShareAnonPrompt";
+import AnalysisActions from "./AnalysisActions";
 import { useDreamAsk } from "./useDreamAsk";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import DiaryTabs from "./DiaryTabs";
 import DiaryCalendar, { localDateKey } from "./DiaryCalendar";
 
-function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; number: number; refresh: () => void }) {
+function GuestDreamCard({ dream, number, refresh, onCompose }: { dream: HomeDreamPending; number: number; refresh: () => void; onCompose: (tab: "JOURNAL" | "STORIES") => void }) {
   const t = useMessages();
   const [expanded, setExpanded] = useState(!!dream.analysis);
   const ask = useDreamAsk({
@@ -59,10 +60,11 @@ function GuestDreamCard({ dream, number, refresh }: { dream: HomeDreamPending; n
       {expanded && ask.analysis && (
         <section className="mt-4 rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold">{t.app.analysis}</h3>
-          {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} /></div> : null}
+          {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} copy={ask.escapeNote} dreamText={dream.text} /></div> : null}
           {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
           <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{cleanAnalysis(ask.analysis)}</p></AnalysisDisplay>
-          <ShareAnonPrompt status={ask.anonShare} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
+          <AnalysisActions dreamText={dream.text} language={ask.analysisLang} onCompose={onCompose} />
+          <ShareAnonPrompt status={ask.anonShare} copy={ask.guestShareCopy} dreamText={dream.text} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>
       )}
     </article>
@@ -88,6 +90,14 @@ export default function GuestDreamJournal() {
   const t = useMessages();
   const locale = useLocale();
   const [tab, setTab] = useState<GuestTab>("DREAMS");
+  useEffect(() => {
+    const selected = new URLSearchParams(window.location.search).get("tab")?.toUpperCase();
+    if (selected === "JOURNAL" || selected === "STORIES") setTab(selected);
+  }, []);
+  const openComposer = (selected: "JOURNAL" | "STORIES") => {
+    setTab(selected);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [dreams, setDreams] = useState<HomeDreamPending[]>([]);
   const [stories, setStories] = useState<GuestNote[]>([]);
   const [journal, setJournal] = useState<GuestNote[]>([]);
@@ -270,7 +280,7 @@ export default function GuestDreamJournal() {
       <div className="mt-8 space-y-3">
         {tab === "SHARED"
           ? sharedRows.map((row, index) => row.kind === "dream" ? (
-            <GuestDreamCard key={`${row.dream.createdAtMs}:${row.dream.text}:${row.dream.analysis ?? ""}`} dream={row.dream} number={sharedRows.length - index} refresh={refresh} />
+            <GuestDreamCard key={`${row.dream.createdAtMs}:${row.dream.text}:${row.dream.analysis ?? ""}`} dream={row.dream} number={sharedRows.length - index} refresh={refresh} onCompose={openComposer} />
           ) : (
             <GuestNoteCard
               key={`${row.note.createdAtMs}:${row.note.text}`}
@@ -283,7 +293,7 @@ export default function GuestDreamJournal() {
           ))
           : dreamTab
           ? dreams.map((dream, index, list) => (
-            <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={list.length - index} refresh={refresh} />
+            <GuestDreamCard key={`${dream.createdAtMs}:${dream.text}:${dream.analysis ?? ""}`} dream={dream} number={list.length - index} refresh={refresh} onCompose={openComposer} />
           ))
           : visibleNotes.map((note, index) => (
             <GuestNoteCard

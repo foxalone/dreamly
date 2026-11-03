@@ -8,6 +8,7 @@ import { useMessages } from "@/lib/i18n/LocaleProvider";
 import DreamLensChips from "@/app/components/DreamLensChips";
 import { useDreamAsk } from "@/app/components/useDreamAsk";
 import ShareAnonPrompt from "@/app/components/ShareAnonPrompt";
+import AnalysisActions from "@/app/components/AnalysisActions";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 
 const OPEN_DELAY_MS = 160;
@@ -249,8 +250,11 @@ export default function InlineDreamPrompt({
               {analysis ? (
                 <div className="mt-4 rounded-xl border border-[var(--dd-border)] bg-[var(--dd-bg)] p-4">
                   <AnalysisDisplay attemptId={ask.analysisAttemptId}><p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--dd-text)]">{analysis}</p></AnalysisDisplay>
+                  <AnalysisActions dreamText={ask.text} language={ask.analysisLang} />
                   <ShareAnonPrompt
                     status={ask.anonShare}
+                    copy={ask.guestShareCopy}
+                    dreamText={ask.text}
                     onShare={ask.shareAnonymously}
                     onSignIn={() => ask.goToJournal(ask.text, false, true)}
                   />

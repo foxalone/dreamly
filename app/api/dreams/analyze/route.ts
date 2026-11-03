@@ -24,10 +24,16 @@ import { analysisProviderFailure } from "@/lib/analysisAttempts";
 import { dreamAnalysisErrorCode, generateDreamAnalysis } from "@/lib/dreamAnalysisProvider";
 import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
 import { isLocale } from "@/lib/i18n/config";
+import { getMessages } from "@/lib/i18n/messages";
 import { parseDreamLens } from "@/lib/dream-lenses";
 
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
+import { parseDreamAnalysisOutput } from "@/lib/escapeNote";
+import { translatedEscapeNote } from "../_lib/escapeNoteTranslation";
+import { translatedGuestShareCopy } from "../_lib/guestShareTranslation";
+import { guestShareCopyFromMessages } from "@/lib/guestShareCopy";
+import { detectDreamLang } from "@/lib/detectDreamLang";
 import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess } from "../_lib/analysisAttempts";
 
 type Body = {
@@ -166,6 +172,7 @@ export async function POST(req: Request) {
 
     const openai = new OpenAI({ apiKey });
     let analysis = "";
+    let analysisLang: string | null = null;
     let model: string = DREAM_ANALYSIS_MODEL;
     try {
       const result = await generateDreamAnalysis(async (candidate) => {
@@ -176,7 +183,9 @@ export async function POST(req: Request) {
         });
         return (resp.choices?.[0]?.message?.content ?? "").trim();
       });
-      analysis = cleanAnalysis(result.analysis);
+      const parsed = parseDreamAnalysisOutput(result.analysis);
+      analysis = cleanAnalysis(parsed.analysis);
+      analysisLang = parsed.lang;
       model = result.model;
     } catch (e: unknown) {
       const code = dreamAnalysisErrorCode(e);
@@ -220,9 +229,37 @@ export async function POST(req: Request) {
       ).catch(() => null);
     }
 
+    // The model already identified the dream language in its hidden metadata.
+    // Only old or malformed model responses need a separate detection call.
+    let escapeNote = null;
+    let guestShareCopy = null;
+    if (isGuest || (escape && escape.granted > 0)) {
+      const fallbackLang = guessLang(text);
+      const dreamLang = analysisLang
+        ?? (await detectDreamLang(apiKey, text).catch(() => null))?.lang
+        ?? (fallbackLang === "unknown" ? (isLocale(lang) ? lang : "en") : fallbackLang);
+      [escapeNote, guestShareCopy] = await Promise.all([
+        escape && escape.granted > 0
+          ? translatedEscapeNote(dreamLang, apiKey).catch((error) => {
+              console.warn("Escape note translation failed", error);
+              if (!isLocale(dreamLang)) return null;
+              const fallback = getMessages(dreamLang).game;
+              return { lead: fallback.escapeLead, cta: fallback.escapeCta };
+            })
+          : Promise.resolve(null),
+        isGuest
+          ? translatedGuestShareCopy(dreamLang, apiKey).catch((error) => {
+              console.warn("Guest share translation failed", error);
+              return isLocale(dreamLang) ? guestShareCopyFromMessages(getMessages(dreamLang)) : null;
+            })
+          : Promise.resolve(null),
+      ]);
+    }
+
     return finish(
       NextResponse.json({
         analysis,
+        analysisLang,
         model,
         lens,
         guest: isGuest,
@@ -230,6 +267,8 @@ export async function POST(req: Request) {
         emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,
         escape,
+        escapeNote,
+        guestShareCopy,
       })
     );
   } catch (e: unknown) {

@@ -3,6 +3,8 @@
 import { Loader2, VenetianMask } from "lucide-react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
+import { getMessages } from "@/lib/i18n/messages";
+import { guestShareCopyFromMessages, type GuestShareCopy } from "@/lib/guestShareCopy";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { nextShareBadge, shareBadgeFor } from "@/lib/shareBadges";
 import type { AnonShareStatus } from "./useDreamAsk";
@@ -15,32 +17,40 @@ export default function ShareAnonPrompt({
   status,
   onShare,
   onSignIn,
+  copy,
+  dreamText,
 }: {
   status: AnonShareStatus;
   onShare: () => void;
   onSignIn: () => void;
+  copy?: GuestShareCopy | null;
+  dreamText?: string;
 }) {
   const t = useMessages();
   const first = shareBadgeFor(1);
   const after = nextShareBadge(1)?.badge ?? first;
+  // Older saved dreams predate the cached AI copy. Use their script when it
+  // identifies an existing site translation, including the Russian case.
+  const oldReadingLocale = /[\u0400-\u04FF]/.test(dreamText ?? "") ? "ru" : /[\u0600-\u06FF]/.test(dreamText ?? "") ? "ar" : null;
+  const translated = copy ?? guestShareCopyFromMessages(oldReadingLocale ? getMessages(oldReadingLocale) : t);
 
   if (status === "done" || status === "already") {
     return (
       <div className="mt-4 rounded-2xl border border-purple-300/50 bg-purple-50/60 p-4 text-sm text-zinc-800 dark:bg-purple-500/10 dark:text-[var(--text)]">
-        <p>
+        <p dir="auto">
           {status === "done"
-            ? formatMessage(t.shareBadges.guestDone, {
-                badge: shareBadgeLabel(t, first),
-                next: shareBadgeLabel(t, after),
+            ? formatMessage(translated.done, {
+                badge: `${first.emoji} ${translated.unicorn}`,
+                next: `${after.emoji} ${translated.wizard}`,
               })
-            : t.shareBadges.guestAlready}
+            : translated.already}
         </p>
         <button
           type="button"
           onClick={onSignIn}
           className="mt-3 rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
         >
-          {t.shareBadges.signInCta}
+          {translated.signIn}
         </button>
       </div>
     );

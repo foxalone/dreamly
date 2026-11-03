@@ -55,6 +55,7 @@ export default function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<UserBillingFields | null>(null);
+  const [commentXpTotal, setCommentXpTotal] = useState(0);
   // shared (not deleted) dreams → creature level; null while loading
   const [sharedCount, setSharedCount] = useState<number | null>(null);
 
@@ -63,6 +64,7 @@ export default function ProfilePage() {
       setUser(u);
       if (!u) {
         setBilling(null);
+        setCommentXpTotal(0);
         return;
       }
       ensureUserProfileOnSignIn(u);
@@ -74,6 +76,7 @@ export default function ProfilePage() {
     if (!user?.uid) return;
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
       setBilling(snap.exists() ? (snap.data() as UserBillingFields) : {});
+      setCommentXpTotal(Math.max(0, Number(snap.data()?.commentXpTotal ?? 0) || 0));
     });
     return () => unsub();
   }, [user?.uid]);
@@ -229,6 +232,7 @@ export default function ProfilePage() {
               <div className={`text-sm truncate ${mutedText}`}>
                 {user?.email ? user.email : t.profile.signInHint}
               </div>
+              {user ? <div className="mt-1 text-sm font-semibold text-purple-500">{formatMessage(t.profile.commentXpTotal, { n: commentXpTotal })}</div> : null}
               {user?.uid ? (
                 <div className={`mt-2 text-xs ${mutedText}`}>
                   UID: <span className="font-mono">{shortUid(user.uid)}</span>

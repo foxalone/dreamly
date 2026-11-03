@@ -19,7 +19,8 @@ Use this lens only where the described details support it; do not force its them
 Ground each interpretation in a specific image, action, or stated feeling. Preserve the dreamer's emotional response, especially when it contrasts with events.
 Offer one or two plausible meanings, not fixed symbol definitions. Do not invent feelings, inner conflict, trauma, relationships, motives, or waking-life circumstances. Interpret the scene, not an imagined biography: a quiet setting can suggest a pause, but does not establish stress, a desire to escape, or an unmet emotional need. Do not add religious authorities, quotations, diagnoses, predictions, or supernatural certainty.
 Use natural, concrete language with light uncertainty. No filler, repeated conclusions, or generic journeys of self-discovery.
-Write in third person: never use "you", "your", or equivalents in the output language. No headings, lists, questions, advice, or invitations to reflect. End with the interpretation itself.
+Write in third person: never use "you", "your", or equivalents in the output language. No headings, lists, questions, advice, or invitations to reflect in the interpretation. End with the interpretation itself.
+Before the interpretation, output exactly one metadata line in the form [[dream-language:xx]], where xx is the lowercase ISO 639-1 code of the dominant dream-text language you used. This line is removed before display. Do not mention the language anywhere else.
 ${brief ? "For this brief dream, write exactly two short sentences, at most 350 characters. Limit the interpretation to what the scene evokes; do not infer a waking-life need." : "Write 1–2 short paragraphs, at most 1000 characters. Connect the details rather than listing symbols."}`,
     },
     { role: "user" as const, content: `Dream text:\n${text}` },

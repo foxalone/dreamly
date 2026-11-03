@@ -2,6 +2,8 @@ import { rememberGuestDreamWritten } from "@/lib/guestDreamHistory";
 import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
 
 import { DREAM_MAX_CHARS, clampDreamText, isDreamTooLong } from "@/lib/dreamLength";
+import { normalizeEscapeNoteCopy, type EscapeNoteCopy } from "@/lib/escapeNote";
+import { normalizeGuestShareCopy, type GuestShareCopy } from "@/lib/guestShareCopy";
 
 export const HOME_DREAM_PENDING_KEY = "dreamly:homeDreamPending";
 export const HOME_DREAM_MAX_CHARS = DREAM_MAX_CHARS;
@@ -17,7 +19,10 @@ export type HomeDreamCity = {
 export type HomeDreamPending = {
   text: string;
   analysis?: string;
+  analysisLang?: string;
   analysisAttemptId?: string;
+  escapeNote?: EscapeNoteCopy;
+  guestShareCopy?: GuestShareCopy;
   resumeAnalysis?: boolean;
   /** Share this dream anonymously to the public feed. (Map pins happen for every dream.) */
   shareToFeed?: boolean;
@@ -74,7 +79,10 @@ function normalize(raw: unknown): HomeDreamPending | null {
   return {
     text,
     analysis: analysis || undefined,
+    analysisLang: typeof parsed.analysisLang === "string" ? parsed.analysisLang : undefined,
     analysisAttemptId: typeof parsed.analysisAttemptId === "string" && /^[a-f0-9]{64}$/.test(parsed.analysisAttemptId) ? parsed.analysisAttemptId : undefined,
+    escapeNote: normalizeEscapeNoteCopy(parsed.escapeNote) ?? undefined,
+    guestShareCopy: normalizeGuestShareCopy(parsed.guestShareCopy) ?? undefined,
     resumeAnalysis: parsed.resumeAnalysis === true,
     // Older caches stored the same choice as `shareToMap`.
     shareToFeed: (parsed.shareToFeed ?? (parsed as { shareToMap?: boolean }).shareToMap) !== false,
@@ -137,7 +145,10 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       text: nextText,
       resumeAnalysis: extra?.resumeAnalysis ?? prev?.resumeAnalysis,
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
+      analysisLang: extra?.analysisLang ?? prev?.analysisLang,
       analysisAttemptId: extra?.analysisAttemptId ?? prev?.analysisAttemptId,
+      escapeNote: extra?.escapeNote ?? prev?.escapeNote,
+      guestShareCopy: extra?.guestShareCopy ?? prev?.guestShareCopy,
       shareToFeed: extra?.shareToFeed ?? prev?.shareToFeed ?? prevRaw?.shareToFeed ?? true,
       lang: extra?.lang || prev?.lang || prevRaw?.lang,
       lens: extra?.lens || prev?.lens || prevRaw?.lens,

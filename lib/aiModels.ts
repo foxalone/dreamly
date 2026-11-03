@@ -28,6 +28,9 @@ export const TRANSLATE_MODEL = "gpt-5-mini";
 /** Tiny language-detection call at share time. */
 export const DETECT_LANG_MODEL = "gpt-5-nano";
 
+/** Score how closely a comment responds to someone else's dream. */
+export const COMMENT_XP_MODEL = "gpt-5-nano";
+
 /** On-demand horoscope master and translations; unrelated translation models stay unchanged. */
 export const HOROSCOPE_MODEL = "gpt-5-mini";
 

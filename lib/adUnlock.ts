@@ -28,6 +28,8 @@ export type AdUnlockPending = {
   quickSymbol?: { query: string; lens: import("@/lib/dream-lenses").DreamLens };
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
+  /** Comment translation to resume after the Offerwall navigation. */
+  commentId?: string;
   targetLang?: string;
   /** Restore the full analysis after an ad for its translation. */
   analysisFull?: boolean;

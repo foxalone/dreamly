@@ -27,7 +27,8 @@ service cloud.firestore {
         'subscriptionStatus', 'subscriptionPlan', 'paypalSubscriptionId',
         'pendingPaypalSubscriptionId', 'paypalSubscriptionStatus', 'paypalSubscriptionRaw',
         'accessUntilMs', 'trialEndsAtMs', 'subscriptionUpdatedAt',
-        'dreamsDayKey', 'dreamsTodayCount', 'translateDayKey', 'translateFreeCount'
+        'dreamsDayKey', 'dreamsTodayCount', 'translateDayKey', 'translateFreeCount',
+        'commentXpTotal'
       ];
     }
     function noForbiddenUserKeys() {
@@ -73,6 +74,7 @@ service cloud.firestore {
       }
 
       match /creditLedger/{docId} { allow read, write: if false; }
+      match /commentXpReceipts/{docId} { allow read, write: if false; }
       match /stats/{docId} { allow read, write: if false; }
       match /emoji_daily/{docId} { allow read, write: if false; }
     }
@@ -110,18 +112,24 @@ service cloud.firestore {
         allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == reactorUid);
       }
 
-      // Комментарии-толкования под публичным сном (/dream/<id>). Читают все
-      // (в т.ч. гости); публикует только залогиненный от своего uid; текст
-      // 1..2000 символов; badge — уровень существа (lib/shareBadges.ts).
+      // Public comments. The server grades new comments and writes XP fields;
+      // older clients may still publish during rollout without minting XP.
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn()
           && request.resource.data.authorUid == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 2000;
+          && request.resource.data.text.size() <= 2000
+          && !request.resource.data.keys().hasAny(['xpAwarded', 'xpModel']);
         allow update: if isAdmin();
         allow delete: if isAdmin() || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+
+        // Shared AI translations stay private until this viewer unlocks them.
+        match /private/{docId} {
+          allow read: if isAdmin();
+          allow write: if false;
+        }
       }
 
       // Текст переводов + статистика — только админ; юзеры получают текст

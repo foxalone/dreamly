@@ -212,6 +212,7 @@ export type UiMessages = {
     signOut: string;
     notSignedIn: string;
     signInHint: string;
+    commentXpTotal: string;
   };
   chrome: {
     home: string;
@@ -395,13 +396,27 @@ export type UiMessages = {
     publishing: string;
     signInToPublish: string;
     commentFailed: string;
+    commentXpEarned: string;
+    commentAlready: string;
     analysisTranslationFailed: string;
+    commentTranslationFailed: string;
     deleteComment: string;
     moreDreams: string;
     /** Feed preview: opens the full reading on the dream page. */
     more: string;
     /** Accessible name for that link. */
     analysisMore: string;
+  };
+  analysisActions: {
+    journalTitle: string;
+    journalBody: string;
+    journalCta: string;
+    storyTitle: string;
+    storyBody: string;
+    storyCta: string;
+    conversationTitle: string;
+    conversationBody: string;
+    conversationCta: string;
   };
   game: {
     title: string;

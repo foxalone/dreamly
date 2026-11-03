@@ -34,6 +34,8 @@ import { importGuestNotes } from "@/lib/guestNotesImport";
 import { DREAM_MAX_CHARS, DREAM_MAX_WORDS, JOURNAL_LIMITS, JOURNAL_MAX_CHARS, JOURNAL_MAX_WORDS, clampDreamText, clampText, isDreamTooLong, isTextTooLong } from "@/lib/dreamLength";
 import DreamWordCounter from "@/app/components/DreamWordCounter";
 import EscapeNote from "@/app/components/EscapeNote";
+import AnalysisActions from "@/app/components/AnalysisActions";
+import { normalizeEscapeNoteCopy, type EscapeNoteCopy } from "@/lib/escapeNote";
 import { writeEscapePending } from "@/lib/game/escape";
 import {
   hasFreeAnalysis,
@@ -109,6 +111,7 @@ type Dream = {
   rootsUpdatedAt?: any;
 
   analysisText?: string;
+  analysisLang?: string;
   analysisAttemptId?: string;
   analysisAtMs?: number;
   analysisModel?: string;
@@ -461,6 +464,10 @@ export default function DreamsPage() {
   const [billingLoading, setBillingLoading] = useState(true);
 
   const [tab, setTab] = useState<Tab>("DREAMS");
+  useEffect(() => {
+    const selected = new URLSearchParams(window.location.search).get("tab")?.toUpperCase();
+    if (selected === "JOURNAL" || selected === "STORIES") setTab(selected);
+  }, []);
   const [composerType, setComposerType] = useState<ContentType>("dream");
 
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -492,7 +499,7 @@ export default function DreamsPage() {
   const [analysisBusyId, setAnalysisBusyId] = useState<string | null>(null);
   const [expandedAnalysis, setExpandedAnalysis] = useState<Set<string>>(() => new Set());
   /** Dream whose fresh reading made creatures escape into the catcher. */
-  const [escapedFor, setEscapedFor] = useState<{ id: string; emojis: string[] } | null>(null);
+  const [escapedFor, setEscapedFor] = useState<{ id: string; emojis: string[]; copy: EscapeNoteCopy | null } | null>(null);
 
   const hintsRef = useRef<Record<string, string>>({});
 
@@ -1362,6 +1369,7 @@ export default function DreamsPage() {
 
       await updateDoc(doc(firestore, "users", uid2, "dreams", dreamId), {
         analysisText,
+        ...(typeof data2.analysisLang === "string" ? { analysisLang: data2.analysisLang } : {}),
         ...(requestAttemptId ? { analysisAttemptId: requestAttemptId } : {}),
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
@@ -1373,6 +1381,7 @@ export default function DreamsPage() {
       setDreams((prev) => {
         const row = {
           analysisText,
+          analysisLang: typeof data2.analysisLang === "string" ? data2.analysisLang : undefined,
           analysisAttemptId: requestAttemptId,
           analysisAtMs: nowMs,
           analysisModel: data2?.model ?? undefined,
@@ -1413,7 +1422,7 @@ export default function DreamsPage() {
         if (natives.length) {
           const waiting = Array.isArray(data2.escape.emojis) ? data2.escape.emojis : natives;
           writeEscapePending({ emojis: waiting, latestEmojis: natives, at: Date.now(), key: t });
-          setEscapedFor({ id: dreamId, emojis: natives });
+          setEscapedFor({ id: dreamId, emojis: natives, copy: normalizeEscapeNoteCopy(data2.escapeNote) });
         }
       }
       openAnalysis(dreamId);
@@ -1897,11 +1906,12 @@ export default function DreamsPage() {
                     return (
                       <AnalysisDisplay attemptId={d.analysisAttemptId}>
                         <div className="mt-3">
-                          {escapedFor && escapedFor.id === d.id ? <EscapeNote emojis={escapedFor.emojis} /> : null}
+                          {escapedFor && escapedFor.id === d.id ? <EscapeNote emojis={escapedFor.emojis} copy={escapedFor.copy} dreamText={d.text} /> : null}
                           <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2 py-0 text-xs font-semibold leading-5 text-purple-500">
                             {t.app.analysis}
                           </span>
                           <div dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--text)]">{full}</div>
+                          <AnalysisActions dreamText={d.text ?? ""} language={d.analysisLang} onCompose={(selected) => { setTab(selected); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
                         </div>
                       </AnalysisDisplay>
                     );
