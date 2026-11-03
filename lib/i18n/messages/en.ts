@@ -449,6 +449,7 @@ export const EN_MESSAGES: UiMessages = {
     publishing: "Publishing…",
     signInToPublish: "Sign in to publish your comment — your text will be kept.",
     commentFailed: "Couldn't publish the comment. Please try again.",
+    analysisTranslationFailed: "Couldn't translate the analysis. Please try again.",
     deleteComment: "Delete",
     moreDreams: "More dreams",
     more: "more",

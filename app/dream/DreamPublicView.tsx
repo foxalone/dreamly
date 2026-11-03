@@ -243,7 +243,7 @@ export default async function DreamPublicView({
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      <DreamPageClient dream={dream} more={more} />
+      <DreamPageClient key={dream.id} dream={dream} more={more} />
     </>
   );
 }

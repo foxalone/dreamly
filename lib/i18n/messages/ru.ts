@@ -449,6 +449,7 @@ export const RU_MESSAGES: UiMessages = {
     publishing: "Публикуем…",
     signInToPublish: "Войдите, чтобы опубликовать комментарий — текст сохранится.",
     commentFailed: "Не удалось опубликовать комментарий. Попробуйте ещё раз.",
+    analysisTranslationFailed: "Не удалось перевести анализ. Попробуйте ещё раз.",
     deleteComment: "Удалить",
     moreDreams: "Ещё сны",
     more: "ещё",

@@ -449,6 +449,7 @@ export const AR_MESSAGES: UiMessages = {
     publishing: "جارٍ النشر…",
     signInToPublish: "سجّل الدخول لنشر تعليقك — سيتم الاحتفاظ بالنص.",
     commentFailed: "تعذّر نشر التعليق. حاول مرة أخرى.",
+    analysisTranslationFailed: "تعذّرت ترجمة التحليل. حاول مرة أخرى.",
     deleteComment: "حذف",
     moreDreams: "المزيد من الأحلام",
     more: "المزيد",

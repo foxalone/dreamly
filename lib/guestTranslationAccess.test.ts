@@ -4,7 +4,7 @@ import test from "node:test";
 import type { Firestore } from "firebase-admin/firestore";
 
 import { consumeGuestTranslation, guestAdReward, refundGuestTranslation } from "../app/api/dreams/_lib/guestQuota";
-import { readTranslationUnlock, recordTranslationServe, translationUnlockPath } from "../app/api/dreams/_lib/translationLedger";
+import { readTranslationUnlock, readUnlockedTranslation, recordTranslationServe, translationUnlockPath } from "../app/api/dreams/_lib/translationLedger";
 
 // Minimal in-memory Firestore: enough for the guest translate credit path
 // (transactions with get/set/create, merge writes, FieldValue.increment).
@@ -102,6 +102,8 @@ test("guest unlock lives under the guest doc and is isolated from accounts", asy
   assert.equal(await readTranslationUnlock(db, { guestId: guest }, "dream", "ru"), true);
   assert.equal(await readTranslationUnlock(db, { guestId: "other-guest" }, "dream", "ru"), false);
   assert.equal(await readTranslationUnlock(db, { uid: guest }, "dream", "ru"), false);
+  assert.equal(await readUnlockedTranslation(db, { guestId: guest }, "dream", {}, "ru"), "Сон");
+  assert.equal(await readUnlockedTranslation(db, { guestId: "other-guest" }, "dream", {}, "ru"), null);
   assert.equal(await readTranslationUnlock(db, "alice", "dream", "ru"), false);
   // The private entry never attributes a guest serve to an account uid.
   assert.equal(docs.get("shared_dreams/dream/private/translations")?.ru?.byUid, null);

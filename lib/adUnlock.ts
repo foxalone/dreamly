@@ -29,6 +29,8 @@ export type AdUnlockPending = {
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
   targetLang?: string;
+  /** Restore the full analysis after an ad for its translation. */
+  analysisFull?: boolean;
   /** Number of feed entries loaded when the translation ad was opened. */
   feedLimit?: number;
   /** Keep an unsaved journal entry across the Offerwall's full navigation. */

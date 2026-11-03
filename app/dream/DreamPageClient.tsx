@@ -40,6 +40,7 @@ import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
+import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
 
 export type PublicSharedDream = {
   id: string;
@@ -117,6 +118,34 @@ function initialsFromEmailOrText(s: string) {
   return (a + b).slice(0, 2);
 }
 
+// The feed uses the same per-viewer choice when switching a translation back
+// to its original text. Keep that choice when opening the public dream page.
+function originalChoiceKey(uid: string | null, lang: TranslationLanguage) {
+  return `dreamly.showOriginal:${uid}:${lang}`;
+}
+
+function prefersOriginal(uid: string | null, lang: TranslationLanguage, dreamId: string) {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(originalChoiceKey(uid, lang)) ?? "[]");
+    return Array.isArray(stored) && stored.includes(dreamId);
+  } catch {
+    return false;
+  }
+}
+
+function rememberOriginal(uid: string | null, lang: TranslationLanguage, dreamId: string, original: boolean) {
+  try {
+    const key = originalChoiceKey(uid, lang);
+    const stored: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
+    const ids = new Set<string>(Array.isArray(stored) ? stored.filter((id): id is string => typeof id === "string") : []);
+    if (original) ids.add(dreamId);
+    else ids.delete(dreamId);
+    localStorage.setItem(key, JSON.stringify([...ids]));
+  } catch {
+    // Storage can be unavailable; the current page still responds to the click.
+  }
+}
+
 /** Google Translate–style icon (A + 文) — same as the feed. */
 function TranslateIcon({ className }: { className?: string }) {
   return (
@@ -134,6 +163,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const t = useMessages();
 
   const [uid, setUid] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // live counters (reactions + commentCount); starts from the server snapshot
@@ -143,21 +173,31 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
 
   // translation
   const { targetLang, ready: languageReady } = useTranslationLanguage(uid);
-  const [translation, setTranslation] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<{ dreamId: string; lang: TranslationLanguage; text: string } | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
   const [translateBusy, setTranslateBusy] = useState(false);
+  const currentTranslation = translation?.dreamId === dream.id && translation.lang === targetLang ? translation.text : null;
+  const translated = showTranslation && !!currentTranslation;
   const translateRef = useRef<(lang?: TranslationLanguage) => Promise<void>>(async () => {});
-  const pendingAfterSignInRef = useRef<"translate" | "reading" | null>(null);
+  const pendingAfterSignInRef = useRef<"translate" | "analysis-translate" | "reading" | null>(null);
 
   // the reading prepared for this dream, then ordinary comments under it
   const [preview, setPreview] = useState(dream.analysisText);
   const [hasMore, setHasMore] = useState(dream.analysisHasMore);
   const [fullAnalysis, setFullAnalysis] = useState<string | null>(null);
   const [readingBusy, setReadingBusy] = useState(false);
+  const [analysisTranslation, setAnalysisTranslation] = useState<{ dreamId: string; lang: TranslationLanguage; scope: "preview" | "full"; text: string } | null>(null);
+  const [showAnalysisTranslation, setShowAnalysisTranslation] = useState(false);
+  const [analysisTranslateBusy, setAnalysisTranslateBusy] = useState(false);
+  const analysisManualChoice = useRef(false);
+  const translateAnalysisRef = useRef<(lang?: TranslationLanguage, full?: boolean) => Promise<void>>(async () => {});
   useEffect(() => {
     setPreview(dream.analysisText);
     setHasMore(dream.analysisHasMore);
     setFullAnalysis(null);
+    setAnalysisTranslation(null);
+    setShowAnalysisTranslation(false);
+    analysisManualChoice.current = false;
   }, [dream.id, dream.analysisText, dream.analysisHasMore]);
   const [comments, setComments] = useState<DreamComment[]>([]);
   const [draft, setDraft] = useState("");
@@ -170,9 +210,41 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     [dream.lang, dream.text]
   );
 
+  // The feed and this page share the same private unlock ledger. Read only a
+  // translation the viewer already owns; opening a dream must not spend a new
+  // daily translation or ad credit.
+  useEffect(() => {
+    if (!authReady || !languageReady || !dream.text.trim() || dreamLang === targetLang) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const user = auth.currentUser;
+        if (uid && (!user || user.uid !== uid)) return;
+        const idToken = user ? await user.getIdToken() : undefined;
+        const res = await fetch("/api/dreams/unlocked-translation", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sharedDreamId: dream.id, targetLang, ...(idToken ? { idToken } : {}) }),
+        });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const text = typeof data.translation === "string" ? data.translation.trim() : "";
+        if (cancelled || !text) return;
+        setTranslation({ dreamId: dream.id, lang: targetLang, text });
+        setShowTranslation(!prefersOriginal(uid, targetLang, dream.id));
+      } catch {
+        // A failed read leaves the original and the manual translate button.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dream.id, dream.text, dreamLang, targetLang, uid, authReady, languageReady]);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUid(u ? u.uid : null);
+      setAuthReady(true);
       if (u) ensureUserProfileOnSignIn(u);
     });
     return () => unsub();
@@ -290,13 +362,15 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     const original = dream.text.trim();
     if (!original || !languageReady) return;
 
-    if (showTranslation) {
+    if (translated) {
+      rememberOriginal(uid, targetLang, dream.id, true);
       setShowTranslation(false);
       return;
     }
     const lang = selectedLang ?? targetLang;
     if (dreamLang === lang) return;
-    if (translation) {
+    if (translation?.dreamId === dream.id && translation.lang === lang) {
+      rememberOriginal(uid, lang, dream.id, false);
       setShowTranslation(true);
       return;
     }
@@ -356,7 +430,8 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       }
       const next = String(data?.translation ?? "").trim();
       if (!next) throw new Error("Empty translation");
-      setTranslation(next);
+      setTranslation({ dreamId: dream.id, lang, text: next });
+      rememberOriginal(uid, lang, dream.id, false);
       setShowTranslation(true);
     } catch (e: any) {
       setError(e?.message ?? "Failed to translate.");
@@ -366,12 +441,89 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   }
   translateRef.current = translateDream;
 
+  async function translateAnalysis(selectedLang?: TranslationLanguage, requestFull = !!fullAnalysis) {
+    if (analysisTranslateBusy || !languageReady) return;
+    const lang = selectedLang ?? targetLang;
+    const scope = requestFull ? "full" : "preview";
+    if (showAnalysisTranslation && analysisTranslation?.dreamId === dream.id && analysisTranslation.lang === lang && analysisTranslation.scope === scope) {
+      analysisManualChoice.current = true;
+      setShowAnalysisTranslation(false);
+      return;
+    }
+    if (analysisTranslation?.dreamId === dream.id && analysisTranslation.lang === lang && analysisTranslation.scope === scope) {
+      analysisManualChoice.current = true;
+      setShowAnalysisTranslation(true);
+      return;
+    }
+
+    setError(null);
+    setAnalysisTranslateBusy(true);
+    try {
+      const user = auth.currentUser;
+      const idToken = user ? await user.getIdToken() : undefined;
+      const res = await fetch("/api/dreams/translate-analysis", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sharedDreamId: dream.id, targetLang: lang, full: requestFull, ...(idToken ? { idToken } : {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const targetId = analysisTranslationTargetId(dream.id);
+        if (data?.code === "GUEST_AD_REQUIRED" || (!user && res.status === 402)) {
+          setAdUnlockPending({ kind: "translate", dreamId: targetId, targetLang: lang, analysisFull: requestFull });
+          openPaywall({
+            kind: "translate",
+            translation: { sharedDreamId: targetId, targetLang: lang },
+            source: "dream_analysis_translate_guest",
+            guest: {
+              reason: "translate",
+              signIn: () => {
+                pendingAfterSignInRef.current = "analysis-translate";
+                signInWithOptions().catch((error) => {
+                  pendingAfterSignInRef.current = null;
+                  if (error?.code !== "auth/popup-closed-by-user" && error?.code !== "auth/cancelled-popup-request") {
+                    setError(error?.message ?? "Sign-in failed.");
+                  }
+                });
+              },
+            },
+            retry: () => void translateAnalysisRef.current(lang, requestFull),
+          });
+          return;
+        }
+        if (data?.code === "SUBSCRIPTION_REQUIRED" || data?.code === "INSUFFICIENT_CREDITS" || res.status === 402) {
+          setAdUnlockPending({ kind: "translate", dreamId: targetId, targetLang: lang, analysisFull: requestFull });
+          openPaywall({
+            kind: "translate",
+            translation: { sharedDreamId: targetId, targetLang: lang },
+            source: "dream_analysis_translate",
+            retry: () => void translateAnalysisRef.current(lang, requestFull),
+          });
+          return;
+        }
+        throw new Error(t.dreamPage.analysisTranslationFailed);
+      }
+      const next = typeof data.translation === "string" ? data.translation.trim() : "";
+      if (!next) throw new Error(t.dreamPage.analysisTranslationFailed);
+      setAnalysisTranslation({ dreamId: dream.id, lang, scope, text: next });
+      analysisManualChoice.current = true;
+      setShowAnalysisTranslation(true);
+    } catch (error: unknown) {
+      setError(t.dreamPage.analysisTranslationFailed);
+    } finally {
+      setAnalysisTranslateBusy(false);
+    }
+  }
+  translateAnalysisRef.current = translateAnalysis;
+
   // a guest signed in from the paywall's sign-in option — run the translation
   useEffect(() => {
     const pending = pendingAfterSignInRef.current;
     if (!uid || !languageReady || !pending) return;
     pendingAfterSignInRef.current = null;
     if (pending === "reading") void openAnalysisRef.current();
+    else if (pending === "analysis-translate") void translateAnalysisRef.current();
     else void translateRef.current();
   }, [uid, languageReady]);
 
@@ -392,6 +544,9 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       const data = await res.json().catch(() => ({}));
       if (res.ok && typeof data?.analysis === "string" && data.analysis.trim()) {
         setFullAnalysis(data.analysis.trim());
+        if (showAnalysisTranslation && analysisTranslation?.scope === "preview") {
+          void translateAnalysisRef.current(undefined, true);
+        }
         return;
       }
       const guest = data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402);
@@ -433,16 +588,24 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   // back from the Offerwall (/ad/unlock): resume the paid-for translation or reading
   const resumedRef = useRef(false);
   useEffect(() => {
-    if (resumedRef.current || !languageReady) return;
+    if (resumedRef.current || !authReady || !languageReady) return;
     resumedRef.current = true;
     const pending = takeAdUnlockPending("translate");
+    if (pending?.dreamId === analysisTranslationTargetId(dream.id)) {
+      void (async () => {
+        if (pending.analysisFull) await openAnalysisRef.current();
+        await translateAnalysisRef.current(pending.targetLang as TranslationLanguage | undefined, pending.analysisFull === true);
+        window.requestAnimationFrame(() => document.getElementById("analysis")?.scrollIntoView({ behavior: "auto", block: "start" }));
+      })();
+      return;
+    }
     if (pending?.dreamId === dream.id) {
       void translateRef.current(pending?.targetLang as TranslationLanguage | undefined);
       return;
     }
     const reading = takeAdUnlockPending("reading");
     if (reading?.dreamId === dream.id) void openAnalysisRef.current();
-  }, [languageReady, dream.id]);
+  }, [authReady, languageReady, dream.id]);
 
   async function publishComment(text: string, forUid: string) {
     // the commenter's creature level — same anonymity as shared dreams:
@@ -568,10 +731,46 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const excerpt = analysisPreview(preview);
   const shownAnalysis = (fullAnalysis ?? excerpt.preview).trim();
   const collapsed = !fullAnalysis && (hasMore || excerpt.hasMore);
+  const analysisScope = fullAnalysis ? "full" : "preview";
+  const currentAnalysisTranslation = analysisTranslation?.dreamId === dream.id && analysisTranslation.lang === targetLang && analysisTranslation.scope === analysisScope
+    ? analysisTranslation.text : null;
+  const translatedAnalysis = showAnalysisTranslation && !!currentAnalysisTranslation;
+  const analysisTranslateLabel = analysisTranslateBusy
+    ? t.profile.translating
+    : translatedAnalysis ? t.profile.showOriginal : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
+
+  useEffect(() => {
+    if (!authReady || !languageReady || !shownAnalysis || dreamLang === targetLang) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const user = auth.currentUser;
+        if (uid && (!user || user.uid !== uid)) return;
+        const idToken = user ? await user.getIdToken() : undefined;
+        const res = await fetch("/api/dreams/translate-analysis", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sharedDreamId: dream.id, targetLang, full: !!fullAnalysis, existingOnly: true, ...(idToken ? { idToken } : {}) }),
+        });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const text = typeof data.translation === "string" ? data.translation.trim() : "";
+        if (cancelled || !text) return;
+        setAnalysisTranslation({ dreamId: dream.id, lang: targetLang, scope: analysisScope, text });
+        if (!analysisManualChoice.current) setShowAnalysisTranslation(true);
+      } catch {
+        // The original analysis and manual translate button remain available.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authReady, languageReady, shownAnalysis, dreamLang, targetLang, uid, dream.id, fullAnalysis, analysisScope]);
+
   const showTranslateButton = dream.text.trim() && dreamLang !== targetLang;
   const translateLabel = translateBusy
     ? t.profile.translating
-    : showTranslation
+    : translated
       ? t.profile.showOriginal
       : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
 
@@ -624,8 +823,8 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
           </div>
         </div>
 
-        <h1 className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words text-base font-normal">
-          {showTranslation && translation ? translation : dream.text}
+        <h1 dir="auto" className="mt-3 text-[var(--text)] whitespace-pre-wrap break-words text-base font-normal">
+          {translated ? currentTranslation : dream.text}
         </h1>
 
         <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
@@ -672,7 +871,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               aria-label={translateLabel}
               className={[
                 "react-btn react-btn--translate w-8 h-8 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
-                showTranslation ? "react-btn--translate-on" : "",
+                translated ? "react-btn--translate-on" : "",
                 translateBusy ? "opacity-70 cursor-wait" : "",
               ]
                 .filter(Boolean)
@@ -695,21 +894,39 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
           {shownAnalysis ? (
             <article id="analysis" className="scroll-mt-24 p-4 rounded-2xl bg-[var(--card)] border border-purple-400/40">
               {collapsed ? (
-                <AnalysisExcerpt
-                  className="mt-0"
-                  text={shownAnalysis}
-                  label={t.app.analysis}
-                  more={t.dreamPage.more}
-                  moreTitle={t.dreamPage.analysisMore}
-                  onMore={() => void openAnalysis()}
-                  busy={readingBusy}
-                />
+                <div className="flex items-start gap-3">
+                  <AnalysisExcerpt
+                    className="mt-0 min-w-0 flex-1"
+                    text={translatedAnalysis ? currentAnalysisTranslation! : shownAnalysis}
+                    label={t.app.analysis}
+                    more={t.dreamPage.more}
+                    moreTitle={t.dreamPage.analysisMore}
+                    onMore={() => void openAnalysis()}
+                    busy={readingBusy}
+                  />
+                  {dreamLang !== targetLang ? (
+                    <button type="button" onClick={() => void translateAnalysis()} disabled={analysisTranslateBusy || !languageReady}
+                      aria-label={analysisTranslateLabel} title={analysisTranslateLabel}
+                      className={`react-btn react-btn--translate w-8 h-8 shrink-0 rounded-full border inline-flex items-center justify-center ${translatedAnalysis ? "react-btn--translate-on" : ""}`}>
+                      <TranslateIcon className={analysisTranslateBusy ? "animate-pulse" : undefined} />
+                    </button>
+                  ) : null}
+                </div>
               ) : (
                 <>
-                  <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2.5 py-0.5 text-xs font-semibold text-purple-500">
-                    {t.app.analysis}
-                  </span>
-                  <div dir="auto" className="mt-2 text-sm leading-7 text-[var(--text)] whitespace-pre-wrap break-words">{shownAnalysis}</div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2.5 py-0.5 text-xs font-semibold text-purple-500">
+                      {t.app.analysis}
+                    </span>
+                    {dreamLang !== targetLang ? (
+                      <button type="button" onClick={() => void translateAnalysis()} disabled={analysisTranslateBusy || !languageReady}
+                        aria-label={analysisTranslateLabel} title={analysisTranslateLabel}
+                        className={`react-btn react-btn--translate w-8 h-8 shrink-0 rounded-full border inline-flex items-center justify-center ${translatedAnalysis ? "react-btn--translate-on" : ""}`}>
+                        <TranslateIcon className={analysisTranslateBusy ? "animate-pulse" : undefined} />
+                      </button>
+                    ) : null}
+                  </div>
+                  <div dir="auto" className="mt-2 text-sm leading-7 text-[var(--text)] whitespace-pre-wrap break-words">{translatedAnalysis ? currentAnalysisTranslation : shownAnalysis}</div>
                 </>
               )}
             </article>

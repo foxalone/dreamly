@@ -132,6 +132,19 @@ export async function readTranslationUnlock(
   return !!(langs && typeof langs === "object" && langs[lang]);
 }
 
+/** Read only a translation this viewer has already unlocked. Never grants access or spends a credit. */
+export async function readUnlockedTranslation(
+  db: Firestore,
+  owner: string | TranslationOwner,
+  sharedDreamId: string,
+  publicData: Record<string, unknown> | null,
+  lang: string
+): Promise<string | null> {
+  if (!(await readTranslationUnlock(db, owner, sharedDreamId, lang))) return null;
+  const cached = await readCachedTranslation(db.doc(`shared_dreams/${sharedDreamId}`), publicData, lang);
+  return cached?.entry.text ?? null;
+}
+
 export async function recordTranslationServe(args: {
   db: Firestore;
   dreamRef: DocumentReference;

@@ -395,6 +395,7 @@ export type UiMessages = {
     publishing: string;
     signInToPublish: string;
     commentFailed: string;
+    analysisTranslationFailed: string;
     deleteComment: string;
     moreDreams: string;
     /** Feed preview: opens the full reading on the dream page. */

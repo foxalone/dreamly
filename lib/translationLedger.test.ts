@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { DocumentReference, Firestore } from "firebase-admin/firestore";
-import { readCachedTranslation, readTranslationUnlock, recordTranslationServe } from "../app/api/dreams/_lib/translationLedger";
+import { readCachedTranslation, readTranslationUnlock, readUnlockedTranslation, recordTranslationServe } from "../app/api/dreams/_lib/translationLedger";
 
 function ledger(failCommit = false) {
   const documents = new Map<string, Record<string, any>>();
@@ -79,4 +79,16 @@ test("storage read errors cannot be mistaken for a missing unlock or cache", asy
   const dreamRef = { collection: () => ({ doc: () => ({ get }) }) } as unknown as DocumentReference;
   await assert.rejects(readTranslationUnlock(db, "alice", "dream", "ru"), /storage unavailable/);
   await assert.rejects(readCachedTranslation(dreamRef, {}, "ru"), /storage unavailable/);
+});
+
+test("opening a public dream reads only the viewer's previously unlocked language", async () => {
+  const { db, dreamRef } = ledger();
+  await recordTranslationServe({
+    db, dreamRef, sharedDreamId: "dream", uid: "alice", who: { name: null, email: null },
+    targetLang: "ru", source: "ai", model: "translator", translation: "Сон",
+    usedDailyFree: true, paid: false,
+  });
+  assert.equal(await readUnlockedTranslation(db, { uid: "alice" }, "dream", {}, "ru"), "Сон");
+  assert.equal(await readUnlockedTranslation(db, { uid: "bob" }, "dream", {}, "ru"), null);
+  assert.equal(await readUnlockedTranslation(db, { uid: "alice" }, "dream", {}, "de"), null);
 });

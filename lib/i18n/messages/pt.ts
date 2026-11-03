@@ -449,6 +449,7 @@ export const PT_MESSAGES: UiMessages = {
     publishing: "Publicando…",
     signInToPublish: "Entre para publicar seu comentário — o texto será mantido.",
     commentFailed: "Não foi possível publicar o comentário. Tente novamente.",
+    analysisTranslationFailed: "Não foi possível traduzir a análise. Tente novamente.",
     deleteComment: "Excluir",
     moreDreams: "Mais sonhos",
     more: "mais",
