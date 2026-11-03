@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const dreamRef = db.collection("shared_dreams").doc(dreamId);
     const commentRef = dreamRef.collection("comments").doc(commentId);
     const [dreamSnap, commentSnap] = await Promise.all([dreamRef.get(), commentRef.get()]);
-    if (!dreamSnap.exists || dreamSnap.data()?.deleted === true || !commentSnap.exists) {
+    if (!dreamSnap.exists || dreamSnap.data()?.deleted === true || !commentSnap.exists || commentSnap.data()?.deleted === true) {
       return finish(NextResponse.json({ error: "Comment not found." }, { status: 404 }));
     }
     const source = String(commentSnap.data()?.text ?? "").trim();

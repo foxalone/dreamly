@@ -42,11 +42,13 @@ export async function GET(req: Request) {
     const todayKey = localDayKey(now, tzOffsetMin);
     const start = startOfLocalDayMs(now, tzOffsetMin);
 
-    const [dreamSnap, guestSnap, storySnap, sharedSnap, moonSnap, earthSnap, translationSnap, historySnap] = await Promise.all([
+    const [dreamSnap, guestSnap, storySnap, sharedSnap, commentSnap, userSnap, moonSnap, earthSnap, translationSnap, historySnap] = await Promise.all([
       db.collectionGroup("dreams").select("deleted", "createdAtMs").get(),
       db.collection("guest_dreams").select("deleted", "imported", "createdAtMs").get(),
       db.collectionGroup("stories").select("deleted", "sourceType", "createdAtMs").get(),
       db.collection("shared_dreams").select("deleted", "sharedAtMs").get(),
+      db.collectionGroup("comments").select("deleted").get(),
+      db.collection("users").select("commentXpTotal").get(),
       db.collection("site_metrics").doc("moon_clicks").get(),
       db.collection("site_metrics").doc("earth_clicks").get(),
       db.collection("site_metrics").doc("translation_clicks").get(),
@@ -57,6 +59,11 @@ export async function GET(req: Request) {
     const guests = tally(guestSnap.docs, start, (data) => (data.imported === true ? null : "dreams"));
     const notes = tally(storySnap.docs, start, (data) => (data.sourceType === "journal" ? "journal" : "stories"));
     const shares = tally(sharedSnap.docs, start, () => "shared");
+    const activeShares = new Set(sharedSnap.docs.filter((doc) => doc.data().deleted !== true).map((doc) => doc.id));
+    const comments = commentSnap.docs.filter((doc) =>
+      doc.data().deleted !== true && doc.ref.parent.parent?.parent.id === "shared_dreams" &&
+      activeShares.has(doc.ref.parent.parent.id)).length;
+    const xp = userSnap.docs.reduce((total, doc) => total + Math.max(0, Number(doc.data().commentXpTotal) || 0), 0);
 
     const current: ContentTotals = {
       dreams: userDreams.totals.dreams + guests.totals.dreams,
@@ -88,6 +95,8 @@ export async function GET(req: Request) {
         moon: current.moon,
         earth: current.earth,
         translation: Number(translationSnap.data()?.total ?? 0) || 0,
+        comments,
+        xp,
         counts: { dreams: current.dreams, stories: current.stories, journal: current.journal, shared: current.shared },
         delta,
       },

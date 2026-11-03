@@ -27,6 +27,8 @@ export default function MoonClicks({ user }: { user: User }) {
   const [moon, setMoon] = useState<number | null>(null);
   const [earth, setEarth] = useState<number | null>(null);
   const [translation, setTranslation] = useState<number | null>(null);
+  const [comments, setComments] = useState<number | null>(null);
+  const [xp, setXp] = useState<number | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
   const [delta, setDelta] = useState<Delta | null>(null);
   const [error, setError] = useState(false);
@@ -50,6 +52,8 @@ export default function MoonClicks({ user }: { user: User }) {
         setMoon(data.moon);
         setEarth(data.earth);
         setTranslation(data.translation);
+        setComments(data.comments);
+        setXp(data.xp);
         setCounts(data.counts);
         setDelta(data.delta);
       } catch {
@@ -62,6 +66,12 @@ export default function MoonClicks({ user }: { user: User }) {
     return () => controller.abort();
   }, [user, revision]);
 
+  useEffect(() => {
+    const refresh = () => setRevision((value) => value + 1);
+    window.addEventListener("dreamly:admin-comments-changed", refresh);
+    return () => window.removeEventListener("dreamly:admin-comments-changed", refresh);
+  }, []);
+
   const stats: { label: string; value: number | null; change: number | null }[] = [
     { label: copy.title, value: moon, change: delta?.moon ?? null },
     { label: copy.earth, value: earth, change: delta?.earth ?? null },
@@ -70,6 +80,8 @@ export default function MoonClicks({ user }: { user: User }) {
     { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
     { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
     { label: copy.shared, value: counts?.shared ?? null, change: delta?.shared ?? null },
+    { label: copy.comments, value: comments, change: null },
+    { label: copy.xp, value: xp, change: null },
   ];
 
   return <section className="mt-5 rounded-2xl border border-[var(--border)] p-4" aria-label={copy.title} dir={locale === "ar" ? "rtl" : undefined}>
@@ -95,5 +107,6 @@ export default function MoonClicks({ user }: { user: User }) {
     <p className="mt-2 text-xs text-[var(--muted)]">{copy.sinceYesterday}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.note}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.translationNote}</p>
+    <p className="mt-1 text-sm text-[var(--muted)]">{copy.commentsXpNote}</p>
   </section>;
 }

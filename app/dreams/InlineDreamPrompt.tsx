@@ -254,6 +254,7 @@ export default function InlineDreamPrompt({
                   <ShareAnonPrompt
                     status={ask.anonShare}
                     copy={ask.guestShareCopy}
+                    analysisLanguage={ask.analysisLang}
                     dreamText={ask.text}
                     onShare={ask.shareAnonymously}
                     onSignIn={() => ask.goToJournal(ask.text, false, true)}

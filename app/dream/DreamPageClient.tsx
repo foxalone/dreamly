@@ -327,7 +327,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       q,
       (snap) => {
         setComments(
-          snap.docs.map((d) => {
+          snap.docs.filter((d) => d.data().deleted !== true).map((d) => {
             const data = d.data() as any;
             return {
               id: d.id,

@@ -4,8 +4,8 @@ import { Loader2, VenetianMask } from "lucide-react";
 import { useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
+import { isLocale } from "@/lib/i18n/config";
 import { guestShareCopyFromMessages, type GuestShareCopy } from "@/lib/guestShareCopy";
-import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { nextShareBadge, shareBadgeFor } from "@/lib/shareBadges";
 import type { AnonShareStatus } from "./useDreamAsk";
 
@@ -18,12 +18,14 @@ export default function ShareAnonPrompt({
   onShare,
   onSignIn,
   copy,
+  analysisLanguage,
   dreamText,
 }: {
   status: AnonShareStatus;
   onShare: () => void;
   onSignIn: () => void;
   copy?: GuestShareCopy | null;
+  analysisLanguage?: string | null;
   dreamText?: string;
 }) {
   const t = useMessages();
@@ -31,12 +33,15 @@ export default function ShareAnonPrompt({
   const after = nextShareBadge(1)?.badge ?? first;
   // Older saved dreams predate the cached AI copy. Use their script when it
   // identifies an existing site translation, including the Russian case.
-  const oldReadingLocale = /[\u0400-\u04FF]/.test(dreamText ?? "") ? "ru" : /[\u0600-\u06FF]/.test(dreamText ?? "") ? "ar" : null;
-  const translated = copy ?? guestShareCopyFromMessages(oldReadingLocale ? getMessages(oldReadingLocale) : t);
+  const oldReadingLocale = !analysisLanguage && /[\u0400-\u04FF]/.test(dreamText ?? "") ? "ru" : !analysisLanguage && /[\u0600-\u06FF]/.test(dreamText ?? "") ? "ar" : null;
+  const readingLocale = isLocale(analysisLanguage) ? analysisLanguage : oldReadingLocale;
+  const promptMessages = readingLocale ? getMessages(readingLocale) : t;
+  const translated = copy ?? guestShareCopyFromMessages(promptMessages);
+  const direction = readingLocale === "ar" ? "rtl" : undefined;
 
   if (status === "done" || status === "already") {
     return (
-      <div className="mt-4 rounded-2xl border border-purple-300/50 bg-purple-50/60 p-4 text-sm text-zinc-800 dark:bg-purple-500/10 dark:text-[var(--text)]">
+      <div dir={direction} className="mt-4 rounded-2xl border border-purple-300/50 bg-purple-50/60 p-4 text-sm text-zinc-800 dark:bg-purple-500/10 dark:text-[var(--text)]">
         <p dir="auto">
           {status === "done"
             ? formatMessage(translated.done, {
@@ -57,21 +62,23 @@ export default function ShareAnonPrompt({
   }
 
   return (
-    <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-start">
+    <div dir={direction} className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-start">
       <div className="flex items-start gap-3">
         <span className="text-2xl leading-none" aria-hidden>
           {first.emoji}
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[var(--text)]">{t.shareBadges.promptTitle}</p>
+          <p className="text-sm font-semibold text-[var(--text)]">{translated.promptTitle ?? promptMessages.shareBadges.promptTitle}</p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            {formatMessage(t.shareBadges.promptBody, { badge: shareBadgeLabel(t, first) })}
+            {formatMessage(translated.promptBody ?? promptMessages.shareBadges.promptBody, {
+              badge: `${first.emoji} ${translated.promptBody ? translated.unicorn : promptMessages.shareBadges.names.unicorn}`,
+            })}
           </p>
         </div>
       </div>
       {status === "rejected" || status === "failed" ? (
         <p className="mt-3 text-xs text-red-500" role="alert">
-          {status === "rejected" ? t.shareBadges.rejected : t.shareBadges.failed}
+          {status === "rejected" ? promptMessages.shareBadges.rejected : promptMessages.shareBadges.failed}
         </p>
       ) : null}
       {status !== "rejected" ? (
@@ -86,7 +93,7 @@ export default function ShareAnonPrompt({
           ) : (
             <VenetianMask size={16} aria-hidden />
           )}
-          {status === "busy" ? t.shareBadges.sharing : t.shareBadges.shareCta}
+          {status === "busy" ? translated.sharing ?? promptMessages.shareBadges.sharing : translated.shareCta ?? promptMessages.shareBadges.shareCta}
         </button>
       ) : null}
     </div>

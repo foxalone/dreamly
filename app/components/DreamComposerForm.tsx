@@ -23,7 +23,6 @@ type Props = {
   maxChars: number;
   maxWords?: number;
   showToday?: boolean;
-  autoFocus?: boolean;
   textareaId?: string;
   showLens?: boolean;
   lensDisabled?: boolean;
@@ -88,7 +87,7 @@ function DiaryStamp() {
 /** One visual composer for the homepage and journal, with each caller's own action. */
 export default function DreamComposerForm({
   text, onTextChange, onSubmit, lens, onLensChange, placeholder, label, submitLabel,
-  busyLabel, busy = false, submitDisabled = false, maxChars, maxWords, showToday = false, autoFocus = false,
+  busyLabel, busy = false, submitDisabled = false, maxChars, maxWords, showToday = false,
   textareaId, showLens = true, lensDisabled = false, share, className = "",
 }: Props) {
   const t = useMessages();
@@ -100,7 +99,6 @@ export default function DreamComposerForm({
       <label className="sr-only" htmlFor={id}>{label ?? placeholder}</label>
       <textarea
         id={id}
-        autoFocus={autoFocus}
         value={text}
         onChange={(event) => onTextChange(event.target.value)}
         onKeyDown={(event) => {

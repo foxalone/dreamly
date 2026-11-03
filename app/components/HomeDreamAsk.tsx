@@ -67,7 +67,7 @@ export default function HomeDreamAsk({
           {escaped?.length ? <EscapeNote emojis={escaped} copy={escapeNote} dreamText={text} /> : null}
           <AnalysisDisplay attemptId={analysisAttemptId}><p className="whitespace-pre-wrap text-sm leading-7 text-[var(--text)]">{cleanAnalysis(analysis)}</p></AnalysisDisplay>
           <AnalysisActions dreamText={text} language={analysisLang} />
-          <ShareAnonPrompt status={anonShare} copy={guestShareCopy} dreamText={text} onShare={shareAnonymously} onSignIn={() => goToJournal(text, false, true)} />
+          <ShareAnonPrompt status={anonShare} copy={guestShareCopy} analysisLanguage={analysisLang} dreamText={text} onShare={shareAnonymously} onSignIn={() => goToJournal(text, false, true)} />
           <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button

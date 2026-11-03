@@ -1743,7 +1743,7 @@ export default function DreamsPage() {
 
         <div className={tab === "JOURNAL" ? "mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch" : "mt-5"}>
           <DreamComposerForm
-            className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""} autoFocus
+            className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""}
           text={text}
           onTextChange={(raw) => {
             const nextText = tab === "JOURNAL" ? clampText(raw, JOURNAL_LIMITS) : clampDreamText(raw);

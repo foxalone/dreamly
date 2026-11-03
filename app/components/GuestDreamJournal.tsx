@@ -64,7 +64,7 @@ function GuestDreamCard({ dream, number, refresh, onCompose }: { dream: HomeDrea
           {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
           <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{cleanAnalysis(ask.analysis)}</p></AnalysisDisplay>
           <AnalysisActions dreamText={dream.text} language={ask.analysisLang} onCompose={onCompose} />
-          <ShareAnonPrompt status={ask.anonShare} copy={ask.guestShareCopy} dreamText={dream.text} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
+          <ShareAnonPrompt status={ask.anonShare} copy={ask.guestShareCopy} analysisLanguage={ask.analysisLang} dreamText={dream.text} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>
       )}
     </article>
@@ -259,7 +259,7 @@ export default function GuestDreamJournal() {
       />
       <div className={tab === "JOURNAL" ? "mt-5 flex flex-col gap-3 sm:flex-row sm:items-stretch" : "mt-5"}>
         <DreamComposerForm
-          className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""} autoFocus
+          className={tab === "JOURNAL" ? "min-w-0 flex-1" : ""}
         text={text} onTextChange={(raw) => setText(tab === "JOURNAL" ? clampText(raw, JOURNAL_LIMITS) : raw)} onSubmit={analyze}
         lens={lens} onLensChange={chooseLens}
         showLens={dreamTab}

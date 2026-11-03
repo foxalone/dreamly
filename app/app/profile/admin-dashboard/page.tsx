@@ -53,7 +53,8 @@ import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
 import DreamTranslationsInfo from "./DreamTranslationsInfo";
 import DreamsTabs from "./DreamsTabs";
-import { guestSharedDocId, shareBadgeFor } from "@/lib/shareBadges";
+import { shareBadgeFor } from "@/lib/shareBadges";
+import { matchingGuestFeedEntries, type GuestSharedEntry } from "@/lib/adminGuestFeed";
 import { EN_MESSAGES } from "@/lib/i18n/messages/en";
 
 import data from "@emoji-mart/data";
@@ -194,8 +195,6 @@ function pickUserIdFromPath(refPath: string) {
   if (i >= 0 && parts[i + 1]) return parts[i + 1];
   return "unknown";
 }
-
-type GuestSharedEntry = { id: string; sharedAtMs: number; text: string };
 
 function isGuestRow(d: DreamAdmin) {
   return d.sourceType === "guest";
@@ -590,7 +589,7 @@ export default function AdminDashboardPage() {
               text: data.text,
 
               createdAtMs: data.createdAtMs,
-              shared: true,
+              shared: data.deleted !== true,
               sharedAtMs: data.sharedAtMs,
 
               deleted: !!data.deleted,
@@ -698,11 +697,11 @@ export default function AdminDashboardPage() {
           // a share claimed into an account lives at {uid}_{dreamId} — that
           // copy belongs to the user's own row, not to the guest row
           if (!d.id.startsWith("guest_")) return;
-          const data = d.data() as { ownerGuestId?: unknown; sharedAtMs?: unknown; text?: unknown };
+          const data = d.data() as { ownerGuestId?: unknown; sharedAtMs?: unknown; text?: unknown; deleted?: unknown };
           const g = String(data?.ownerGuestId ?? "").trim();
           if (!g) return;
           const list = next.get(g) ?? [];
-          list.push({ id: d.id, sharedAtMs: Number(data?.sharedAtMs ?? 0), text: String(data?.text ?? "").trim() });
+          list.push({ id: d.id, sharedAtMs: Number(data?.sharedAtMs ?? 0), text: String(data?.text ?? "").trim(), deleted: data?.deleted === true });
           next.set(g, list);
         });
         setGuestShared(next);
@@ -717,15 +716,7 @@ export default function AdminDashboardPage() {
   function guestSharedDocsFor(d: DreamAdmin): GuestSharedEntry[] {
     if (!d.guestId) return [];
     const list = guestShared.get(d.guestId) ?? [];
-    if (d.sharedId) {
-      const byId = list.filter((x) => x.id === d.sharedId);
-      if (byId.length) return byId;
-    }
-    const text = String(d.text ?? "").trim();
-    const byText = text ? list.filter((x) => x.text === text) : [];
-    // Old rows (pre-multi-share) have neither a sharedId nor a feed doc with a
-    // matching text snapshot — fall back to the legacy one-per-guest doc.
-    return byText.length ? byText : list.filter((x) => x.id === guestSharedDocId(d.guestId!));
+    return matchingGuestFeedEntries(d, list);
   }
 
   // ✅ RTDB: live load config JSON
@@ -925,7 +916,7 @@ export default function AdminDashboardPage() {
     r = r.map((x) => {
       if (!isGuestRow(x) || !x.guestId) return x;
       const docs = guestSharedDocsFor(x);
-      return docs.length ? { ...x, shared: true, sharedAtMs: docs[0].sharedAtMs || x.sharedAtMs } : x;
+      return { ...x, shared: docs.length > 0, sharedAtMs: docs[0]?.sharedAtMs || undefined };
     });
     if (!showDeleted) r = r.filter((x) => !x.deleted);
     if (onlyShared) r = r.filter((x) => !!x.shared);

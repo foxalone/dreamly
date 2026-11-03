@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ANALYSIS_ATTEMPT_COPY } from "@/lib/i18n/analysisAttempts";
 import { ADMIN_DREAM_TABS_COPY } from "@/lib/i18n/adminDreamTabs";
 import AnalysisAttempts from "./AnalysisAttempts";
+import AdminComments from "./AdminComments";
 
 export default function DreamsTabs({ children, isAdmin }: { children: ReactNode; isAdmin: boolean }) {
   const locale = useLocale();
@@ -12,11 +13,13 @@ export default function DreamsTabs({ children, isAdmin }: { children: ReactNode;
   const id = useId();
   const [active, setActive] = useState(0);
   const [attemptsVisited, setAttemptsVisited] = useState(false);
-  const labels = [t.dreams, ANALYSIS_ATTEMPT_COPY[locale].title];
+  const [commentsVisited, setCommentsVisited] = useState(false);
+  const labels = [t.dreams, ANALYSIS_ATTEMPT_COPY[locale].title, t.comments];
 
   function select(index: number) {
     setActive(index);
     if (index === 1) setAttemptsVisited(true);
+    if (index === 2) setCommentsVisited(true);
   }
 
   return (
@@ -35,7 +38,8 @@ export default function DreamsTabs({ children, isAdmin }: { children: ReactNode;
             onKeyDown={(event) => {
               if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
               event.preventDefault();
-              const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : 1 - index;
+              const next = event.key === "Home" ? 0 : event.key === "End" ? labels.length - 1
+                : (index + (event.key === "ArrowRight" ? 1 : -1) + labels.length) % labels.length;
               select(next);
               document.getElementById(`${id}-tab-${next}`)?.focus();
             }}
@@ -50,6 +54,9 @@ export default function DreamsTabs({ children, isAdmin }: { children: ReactNode;
       </div>
       <div role="tabpanel" id={`${id}-panel-1`} aria-labelledby={`${id}-tab-1`} hidden={active !== 1} tabIndex={0}>
         {attemptsVisited && isAdmin ? <AnalysisAttempts /> : null}
+      </div>
+      <div role="tabpanel" id={`${id}-panel-2`} aria-labelledby={`${id}-tab-2`} hidden={active !== 2} tabIndex={0}>
+        {commentsVisited && isAdmin ? <AdminComments /> : null}
       </div>
     </>
   );

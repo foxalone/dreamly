@@ -151,6 +151,7 @@ export const loadDreamComments = cache(
         .limit(40)
         .get();
       return snap.docs
+        .filter((d) => d.data().deleted !== true)
         .map((d) => {
           const data = d.data() as any;
           return {

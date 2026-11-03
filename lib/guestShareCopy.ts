@@ -7,6 +7,11 @@ export type GuestShareCopy = {
   signIn: string;
   unicorn: string;
   wizard: string;
+  // Optional for guest dreams saved before the share prompt was translated.
+  promptTitle?: string;
+  promptBody?: string;
+  shareCta?: string;
+  sharing?: string;
 };
 
 export function guestShareCopyFromMessages(t: Pick<UiMessages, "shareBadges">): GuestShareCopy {
@@ -16,6 +21,10 @@ export function guestShareCopyFromMessages(t: Pick<UiMessages, "shareBadges">): 
     signIn: t.shareBadges.signInCta,
     unicorn: t.shareBadges.names.unicorn,
     wizard: t.shareBadges.names.wizard,
+    promptTitle: t.shareBadges.promptTitle,
+    promptBody: t.shareBadges.promptBody,
+    shareCta: t.shareBadges.shareCta,
+    sharing: t.shareBadges.sharing,
   };
 }
 
@@ -33,5 +42,13 @@ export function normalizeGuestShareCopy(raw: unknown): GuestShareCopy | null {
     copy[field] = text;
   }
   if (!copy.done.includes("{badge}") || !copy.done.includes("{next}")) return null;
+  for (const field of ["promptTitle", "promptBody", "shareCta", "sharing"] as const) {
+    if (value[field] === undefined) continue;
+    if (typeof value[field] !== "string") return null;
+    const translated = value[field].trim();
+    if (!translated || translated.length > 500) return null;
+    copy[field] = translated;
+  }
+  if (copy.promptBody && !copy.promptBody.includes("{badge}")) return null;
   return copy;
 }
