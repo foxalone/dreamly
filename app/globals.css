@@ -358,6 +358,15 @@ html.modal-open .app-top-nav {
   border: 1px solid var(--border);
 }
 
+.dream-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+}
+
 .dream-btn--neutral {
   background: color-mix(in srgb, var(--text) 8%, transparent);
   color: var(--text);

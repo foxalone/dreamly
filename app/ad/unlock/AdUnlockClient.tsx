@@ -27,8 +27,9 @@ const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
-function kindFrom(value: string | null): PaywallKind | "horoscope" {
+function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" {
   if (value === "horoscope") return "horoscope";
+  if (value === "featured") return "featured";
   if (value === "save" || value === "translate" || value === "reading") return value;
   return "analysis";
 }
@@ -160,7 +161,7 @@ export default function AdUnlockClient() {
         if (kind === "analysis") updateOfferwallSession({ status: "completed" });
         report.current?.("ad_overlay_closed");
         const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
-        setPhase(kind === "horoscope" && !entitled ? "failed" : "granting");
+        setPhase((kind === "horoscope" || kind === "featured") && !entitled ? "failed" : "granting");
       }
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
@@ -202,10 +203,10 @@ export default function AdUnlockClient() {
     (async () => {
       try {
         let res: Response;
-        if (kind === "horoscope") {
+        if (kind === "horoscope" || kind === "featured") {
           const headers: Record<string,string> = {"Content-Type":"application/json","x-horoscope-request":"1"};
           if(user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
-          res = await fetch("/api/horoscope/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
+          res = await fetch(kind === "horoscope" ? "/api/horoscope/ad" : "/api/featured-horoscope/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
         } else if (user) {
           const idToken = await user.getIdToken();
           res = await fetch("/api/dreams/ad-reward", {

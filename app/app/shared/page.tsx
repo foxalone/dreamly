@@ -40,6 +40,7 @@ import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { formatMessage } from "@/lib/i18n/messages";
 import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
+import FeaturedForecastCard from "./FeaturedForecastCard";
 
 const FEED_PAGE_SIZE = 50;
 
@@ -876,6 +877,8 @@ export default function SharedPage() {
             {error}
           </div>
         )}
+
+        <FeaturedForecastCard locale={locale} />
 
 
         {list.length === 0 && !feedLoading && !feedFailed ? (

@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/horoscope-worker",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/featured-horoscope",
+      "schedule": "0 10 * * *"
     }
   ]
 }

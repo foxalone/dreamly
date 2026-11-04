@@ -280,6 +280,7 @@ export type UiMessages = {
     sharing: string;
     shared: string;
     delete: string;
+    deleteConfirm: string;
     deleteFailed: string;
     signInRequired: string;
     noDreams: string;

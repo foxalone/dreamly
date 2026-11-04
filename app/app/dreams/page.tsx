@@ -11,7 +11,7 @@ import DreamComposerForm from "@/app/components/DreamComposerForm";
 import GuestDreamJournal from "@/app/components/GuestDreamJournal";
 import DiaryTabs from "@/app/components/DiaryTabs";
 import DiaryCalendar, { localDateKey } from "@/app/components/DiaryCalendar";
-import { Keyboard, MapPin, Mic, MoonStar } from "lucide-react";
+import { Check, Keyboard, LoaderCircle, MapPin, Mic, MoonStar, Share2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
@@ -1852,70 +1852,27 @@ export default function DreamsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
-                    {(d.sourceType ?? "dream") === "journal" ? null : d.source !== "dreamer" ? (
+                  {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && !(d.analysisText ?? "").trim() && (() => {
+                    const isAnalyzing = analysisBusyId === d.id;
+                    const pulse = !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
+
+                    return (
                       <button
-                        onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
-                        disabled={isShared || isSharing || isDeleting}
+                        onClick={() => analyzeDream(d.id)}
+                        disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
                         className={[
                           "dream-btn",
-                          isShared ? "dream-btn--shared" : "dream-btn--neutral",
-                          isSharing ? "opacity-70 cursor-wait" : "",
-                          isDeleting ? "opacity-60 cursor-not-allowed" : "",
+                          "dream-btn--neutral",
+                          pulse ? "dream-btn--pulse" : "",
+                          isAnalyzing ? "opacity-80 cursor-wait" : "",
+                          isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
                         ].join(" ")}
-                        title={isShared ? "Already shared" : "Publish to Shared feed"}
+                        title={t.app.analyze}
                       >
-                        {isShared ? `✓ ${t.app.shared}` : isSharing ? t.app.sharing : t.app.share}
+                        {isAnalyzing ? t.app.analyzing : t.app.analyze}
                       </button>
-                    ) : (
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)]"
-                        title="From Quick symbol"
-                      >
-                        <MoonStar size={12} aria-hidden />
-                        Quick
-                      </span>
-                    )}
-
-                    {(d.sourceType ?? "dream") === "dream" && d.source !== "dreamer" && !(d.analysisText ?? "").trim() && (() => {
-                      const isAnalyzing = analysisBusyId === d.id;
-                      const pulse = !isAnalyzing && !isDeleting && !isSharing && !isRootsBusy;
-
-                      return (
-                        <button
-                          onClick={() => analyzeDream(d.id)}
-                          disabled={isDeleting || isSharing || isRootsBusy || isAnalyzing}
-                          className={[
-                            "dream-btn",
-                            "dream-btn--neutral",
-                            pulse ? "dream-btn--pulse" : "",
-                            isAnalyzing ? "opacity-80 cursor-wait" : "",
-                            isDeleting || isSharing || isRootsBusy ? "opacity-60 cursor-not-allowed" : "",
-                          ].join(" ")}
-                          title={t.app.analyze}
-                        >
-                          {isAnalyzing ? t.app.analyzing : t.app.analyze}
-                        </button>
-                      );
-                    })()}
-
-                    <button
-                      onClick={() => {
-                        const kind = getDisplayPrefix((d.sourceType ?? "dream") as ContentType).toLowerCase();
-                        if (confirm(`Delete this ${kind}?`)) deleteItem(d.id, (d.sourceType ?? "dream") as ContentType);
-                      }}
-                      disabled={isDeleting || isSharing}
-                      className={[
-                        "dream-btn",
-                        "dream-btn--danger",
-                        isDeleting ? "opacity-70 cursor-wait" : "",
-                        isSharing ? "opacity-60 cursor-not-allowed" : "",
-                      ].join(" ")}
-                      title="Delete"
-                    >
-                      🗑
-                    </button>
-                  </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="mt-2 text-[var(--text)] whitespace-pre-wrap break-words">{d.text}</div>
@@ -1952,47 +1909,89 @@ export default function DreamsPage() {
                   </div>
                 ) : null}
 
-                  <div className="mt-3 text-xs text-[var(--muted)] flex justify-end items-center gap-2">
-                    <span
-                      className="opacity-70 inline-flex items-center"
-                      title={
-                        d.source === "dreamer"
-                          ? "Quick symbol"
-                          : d.source === "voice"
-                            ? "Recorded"
-                            : "Typed"
-                      }
-                      aria-label={
-                        d.source === "dreamer"
-                          ? "Quick symbol"
-                          : d.source === "voice"
-                            ? "Recorded"
-                            : "Typed"
-                      }
-                    >
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                    <div className="flex items-center gap-2">
+                      {(d.sourceType ?? "dream") !== "journal" && d.source !== "dreamer" ? (
+                        <button
+                          type="button"
+                          onClick={() => shareItem(d.id, (d.sourceType ?? "dream") as ContentType)}
+                          disabled={isShared || isSharing || isDeleting}
+                          className={`dream-btn dream-btn--icon ${isShared ? "dream-btn--shared" : "dream-btn--neutral"} ${isSharing ? "cursor-wait opacity-70" : ""} ${isDeleting ? "cursor-not-allowed opacity-60" : ""}`}
+                          aria-label={isShared ? t.app.shared : isSharing ? t.app.sharing : t.app.share}
+                          title={isShared ? t.app.shared : isSharing ? t.app.sharing : t.app.share}
+                        >
+                          {isSharing ? <LoaderCircle size={16} className="animate-spin" aria-hidden /> : (
+                            <span className="relative inline-flex">
+                              <Share2 size={16} strokeWidth={1.8} aria-hidden />
+                              {isShared ? <Check size={10} strokeWidth={3} className="absolute -bottom-1 -right-1 rounded-full bg-[var(--card)]" aria-hidden /> : null}
+                            </span>
+                          )}
+                        </button>
+                      ) : null}
                       {d.source === "dreamer" ? (
-                        <MoonStar size={14} strokeWidth={1.8} aria-hidden />
-                      ) : d.source === "voice" ? (
-                        <Mic size={14} strokeWidth={1.8} aria-hidden />
-                      ) : (
-                        <Keyboard size={14} strokeWidth={1.8} aria-hidden />
-                      )}
-                    </span>
-                    {(() => {
-                      const city = dreamCityLabel(d);
-                      return (
-                        <div className="opacity-70 inline-flex items-center gap-1.5 whitespace-nowrap">
-                          <span>{(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}</span>
-                          {city ? (
-                            <>
-                              <span aria-hidden="true">·</span>
-                              <MapPin size={13} strokeWidth={1.8} aria-hidden="true" />
-                              <span>{city}</span>
-                            </>
-                          ) : null}
-                        </div>
-                      );
-                    })()}
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)]"
+                          title="From Quick symbol"
+                        >
+                          <MoonStar size={12} aria-hidden />
+                          Quick
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(t.app.deleteConfirm)) deleteItem(d.id, (d.sourceType ?? "dream") as ContentType);
+                        }}
+                        disabled={isDeleting || isSharing}
+                        className={`dream-btn dream-btn--icon dream-btn--danger ${isDeleting ? "cursor-wait opacity-70" : ""} ${isSharing ? "cursor-not-allowed opacity-60" : ""}`}
+                        aria-label={t.app.delete}
+                        title={t.app.delete}
+                      >
+                        {isDeleting ? <LoaderCircle size={16} className="animate-spin" aria-hidden /> : <Trash2 size={16} strokeWidth={1.8} aria-hidden />}
+                      </button>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2 text-xs text-[var(--muted)]">
+                      <span
+                        className="opacity-70 inline-flex items-center"
+                        title={
+                          d.source === "dreamer"
+                            ? "Quick symbol"
+                            : d.source === "voice"
+                              ? "Recorded"
+                              : "Typed"
+                        }
+                        aria-label={
+                          d.source === "dreamer"
+                            ? "Quick symbol"
+                            : d.source === "voice"
+                              ? "Recorded"
+                              : "Typed"
+                        }
+                      >
+                        {d.source === "dreamer" ? (
+                          <MoonStar size={14} strokeWidth={1.8} aria-hidden />
+                        ) : d.source === "voice" ? (
+                          <Mic size={14} strokeWidth={1.8} aria-hidden />
+                        ) : (
+                          <Keyboard size={14} strokeWidth={1.8} aria-hidden />
+                        )}
+                      </span>
+                      {(() => {
+                        const city = dreamCityLabel(d);
+                        return (
+                          <div className="opacity-70 inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <span>{(d.dateKey ?? "") + (d.timeKey ? ` ${d.timeKey}` : "")}</span>
+                            {city ? (
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <MapPin size={13} strokeWidth={1.8} aria-hidden="true" />
+                                <span>{city}</span>
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 {tab === "SHARED" &&
                   (() => {

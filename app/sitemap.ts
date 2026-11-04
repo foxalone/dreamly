@@ -2,6 +2,10 @@ import type { MetadataRoute } from "next";
 import { listDreamPageImageUrls } from "@/lib/getDreamPageImage";
 import { listPublicPages, SITE_ORIGIN } from "@/lib/publicPages";
 import { adminFirestore } from "@/lib/firebaseAdmin";
+import { LOCALES } from "@/lib/i18n/config";
+import { localePath } from "@/lib/i18n/path";
+import { earliestWorldDay, validateFeatured } from "@/lib/featuredHoroscope";
+import featuredSample from "@/lib/featured-horoscope-sample.json";
 
 /** Next.js writes image:loc as raw text; unescaped `&` in Storage URLs makes the XML invalid for GSC. */
 function xmlSafeImageUrl(url: string): string {
@@ -45,10 +49,29 @@ async function sharedDreamPages(): Promise<MetadataRoute.Sitemap> {
   }
 }
 
+async function featuredHoroscopePages(): Promise<MetadataRoute.Sitemap> {
+  const days = new Set<string>();
+  const today = earliestWorldDay();
+  if (featuredSample.day <= today) days.add(featuredSample.day);
+  try {
+    const snap = await adminFirestore().collection("featured_horoscopes").orderBy("day", "desc").limit(60).get();
+    for (const doc of snap.docs) {
+      try { const item = validateFeatured(doc.data()); if (item.day <= today) days.add(item.day); } catch { /* Skip invalid drafts. */ }
+    }
+  } catch (error) { console.error("sitemap: featured horoscope pages failed:", error); }
+  return [...days].flatMap(day => LOCALES.map(locale => ({
+    url: `${SITE_ORIGIN}${localePath(`/horoscope/daily/${day}`, locale)}`,
+    lastModified: new Date(`${day}T10:00:00Z`),
+    changeFrequency: "never" as const,
+    priority: 0.45,
+  })));
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [imageBySlug, dreamPages] = await Promise.all([
+  const [imageBySlug, dreamPages, featuredPages] = await Promise.all([
     listDreamPageImageUrls(),
     sharedDreamPages(),
+    featuredHoroscopePages(),
   ]);
 
   const staticPages = listPublicPages().map((page) => {
@@ -65,5 +88,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticPages, ...dreamPages];
+  return [...staticPages, ...dreamPages, ...featuredPages];
 }

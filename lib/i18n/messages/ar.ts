@@ -325,6 +325,7 @@ export const AR_MESSAGES: UiMessages = {
     sharing: "جارٍ المشاركة…",
     shared: "تمّت المشاركة",
     delete: "حذف",
+    deleteConfirm: "هل تريد حذف هذا العنصر؟",
     deleteFailed: "تعذّر حذفها من الخلاصة. حاول مرة أخرى.",
     signInRequired: "يلزم تسجيل الدخول.",
     noDreams: "لا أحلام بعد. أضف أول حلم.",

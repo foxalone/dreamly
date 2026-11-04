@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { analysisTranslationTargetId } from "./analysisTranslation";
 import { matchingTranslationAdGrant, translationAdTarget } from "./translationAdGrant";
-import { canReadFullAnalysis } from "../app/api/dreams/translate-analysis/route";
+import { canReadFullAnalysis } from "./analysisTranslationAccess";
 import type { Firestore } from "firebase-admin/firestore";
 
 test("an analysis ad pass cannot unlock the dream text translation", () => {

@@ -325,6 +325,7 @@ export const RU_MESSAGES: UiMessages = {
     sharing: "Публикация…",
     shared: "Опубликовано",
     delete: "Удалить",
+    deleteConfirm: "Удалить эту запись?",
     deleteFailed: "Не удалось убрать из ленты. Попробуйте ещё раз.",
     signInRequired: "Нужно войти.",
     noDreams: "Снов ещё нет. Добавьте первый.",

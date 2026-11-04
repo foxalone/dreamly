@@ -11,8 +11,8 @@ import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
 import { TRANSLATE_MODEL } from "@/lib/aiModels";
 import { ensureSharedDreamAnalysis, readFullSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
-import { hasPaidAccess } from "@/lib/subscriptions/status";
 import { normalizeTranslationLanguage, TRANSLATION_LANGUAGE_LABELS } from "@/lib/translationLanguage";
+import { canReadFullAnalysis } from "@/lib/analysisTranslationAccess";
 
 export const runtime = "nodejs";
 
@@ -32,18 +32,6 @@ function outputText(response: unknown): string {
   return (result.output ?? []).flatMap((item) => item.content ?? [])
     .map((part) => typeof part.text === "string" ? part.text.trim() : "")
     .filter(Boolean).join("\n").trim();
-}
-
-export async function canReadFullAnalysis(db: ReturnType<typeof adminDb>, id: string, data: Record<string, unknown>, uid: string | null, guestId: string | null) {
-  if ((uid && data.ownerUid === uid) || (guestId && data.ownerGuestId === guestId)) return true;
-  if (uid) {
-    const [user, unlock] = await Promise.all([
-      db.doc(`users/${uid}`).get(),
-      db.doc(`users/${uid}/readingUnlocks/${id}`).get(),
-    ]);
-    return hasPaidAccess(user.data() as Record<string, unknown> | undefined) || unlock.exists;
-  }
-  return guestId ? (await db.doc(`guestQuickSymbol/${guestId}/readingUnlocks/${id}`).get()).exists : false;
 }
 
 /** Translate only the published analysis preview, or a full reading already unlocked by this viewer. */

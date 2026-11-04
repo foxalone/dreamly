@@ -325,6 +325,7 @@ export const ES_MESSAGES: UiMessages = {
     sharing: "Compartiendo…",
     shared: "Compartido",
     delete: "Eliminar",
+    deleteConfirm: "¿Eliminar este elemento?",
     deleteFailed: "No se pudo quitar del feed. Inténtalo de nuevo.",
     signInRequired: "Debes iniciar sesión.",
     noDreams: "Aún no hay sueños. Añade el primero.",
