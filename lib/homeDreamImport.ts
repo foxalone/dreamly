@@ -159,6 +159,25 @@ async function shareImportedDream(
       : {}),
   });
 
+  // The journal can finish its background visual repair while this share is
+  // being created. Re-read the saved dream after publishing so the public copy
+  // does not keep the empty visuals from the earlier local cache.
+  if (!visuals.emojis.length || !visuals.iconsEn.length) {
+    try {
+      const latest = (await getDoc(doc(firestore, "users", user.uid, "dreams", dreamId))).data();
+      const patch: { emojis?: DreamMapVisuals["emojis"]; iconsEn?: string[] } = {};
+      if (!visuals.emojis.length && Array.isArray(latest?.emojis) && latest.emojis.some((e: { native?: string }) => e?.native)) {
+        patch.emojis = latest.emojis;
+      }
+      if (!visuals.iconsEn.length && Array.isArray(latest?.iconsEn) && latest.iconsEn.length) {
+        patch.iconsEn = latest.iconsEn;
+      }
+      if (Object.keys(patch).length) await updateDoc(doc(firestore, "shared_dreams", sharedId), patch);
+    } catch (error) {
+      console.warn("home dream share visuals sync failed", error);
+    }
+  }
+
   requestSharedDreamLang(user, sharedId);
 
   trackEvent("share", { method: "home_ask_map", content_type: "dream" });

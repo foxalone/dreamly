@@ -1,5 +1,6 @@
 import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
+import { HURRICANE_CONTENT } from "../../dreams/hurricane-content";
 import type { EntryL10nOverride } from "./types";
 
 /**
@@ -10,6 +11,7 @@ import type { EntryL10nOverride } from "./types";
 export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
   music: MUSIC_CONTENT.pt,
   ...MUD_CONTENT.pt,
+  hurricane: HURRICANE_CONTENT.pt,
   "golden-swan": {
     seoTitle: "Sonhar com cisne dourado: a graça revelada como tesouro",
     seoDescription:

@@ -27,6 +27,36 @@ function s(v: unknown) {
   return String(v ?? "").trim();
 }
 
+/** A share may be published before its background visuals finish. Fill only
+ * missing public visuals, preserving any later edits to the shared dream. */
+async function fillSharedVisuals(params: {
+  uid: string;
+  itemId: string;
+  sourceType: SourceType;
+  emojis: DreamEmoji[];
+  iconsEn: string[];
+}) {
+  const { uid, itemId, sourceType, emojis, iconsEn } = params;
+  if (!emojis.length && !iconsEn.length) return;
+  const sharedId = sourceType === "story" ? `${uid}_story_${itemId}` : `${uid}_${itemId}`;
+  const db = adminFirestore();
+  const ref = db.collection("shared_dreams").doc(sharedId);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return;
+    const shared = snap.data() ?? {};
+    if (shared.ownerUid !== uid || shared.deleted === true) return;
+    const patch: { emojis?: DreamEmoji[]; iconsEn?: string[] } = {};
+    if (emojis.length && !(Array.isArray(shared.emojis) && shared.emojis.some((e: DreamEmoji) => s(e?.native)))) {
+      patch.emojis = emojis;
+    }
+    if (iconsEn.length && !(Array.isArray(shared.iconsEn) && shared.iconsEn.length)) {
+      patch.iconsEn = iconsEn;
+    }
+    if (Object.keys(patch).length) tx.update(ref, patch);
+  });
+}
+
 export async function enrichSavedDream(params: {
   uid: string;
   itemId: string;
@@ -50,6 +80,7 @@ export async function enrichSavedDream(params: {
 
   const hasEmojis = Array.isArray(item.emojis) && item.emojis.some((e: any) => s(e?.native));
   let emojis: DreamEmoji[] = hasEmojis ? item.emojis : [];
+  let iconsEn: string[] = Array.isArray(item.iconsEn) ? item.iconsEn : [];
 
   if (!hasEmojis) {
     const apiKey = getOneiroOpenAiApiKey();
@@ -84,7 +115,7 @@ export async function enrichSavedDream(params: {
       emojis = pickEmojisByKeywords(words, emojiData as any, Math.max(counts.emojis, 2));
     }
 
-    const iconsEn = filterIconsWithGlyph(
+    iconsEn = filterIconsWithGlyph(
       pickDreamIconsEn(normalizeForIconsEn(rootsEnMajor.join(" ")), counts.icons),
       DREAM_ICONS_EN as any,
       counts.icons
@@ -111,6 +142,9 @@ export async function enrichSavedDream(params: {
     );
   }
 
+  await fillSharedVisuals({ uid, itemId, sourceType, emojis, iconsEn }).catch((e) => {
+    console.warn("enrichSavedDream: shared visuals sync failed", e);
+  });
   if (emojis.some((e) => s(e?.native))) {
     const res = await ingestDreamServer({
       uid,
@@ -156,7 +190,14 @@ export async function fillMissingRoots(params: { uid: string; itemId: string; so
   const item = snap.data() ?? {};
   const text = s(item.text);
   if (!text || item.deleted === true) return { ok: false as const, reason: "no_text" };
-  if (!needsImportedVisualRepair(item)) return { ok: true as const, skipped: true };
+  if (!needsImportedVisualRepair(item)) {
+    await fillSharedVisuals({
+      uid, itemId, sourceType,
+      emojis: Array.isArray(item.emojis) ? item.emojis.filter((e: DreamEmoji) => s(e?.native)) : [],
+      iconsEn: Array.isArray(item.iconsEn) ? item.iconsEn : [],
+    }).catch((e) => console.warn("fillMissingRoots: shared visuals sync failed", e));
+    return { ok: true as const, skipped: true };
+  }
 
   const apiKey = getOneiroOpenAiApiKey();
   const counts = desiredCountsFromText(text);
@@ -207,5 +248,8 @@ export async function fillMissingRoots(params: { uid: string; itemId: string; so
     },
     { merge: true }
   );
+  await fillSharedVisuals({ uid, itemId, sourceType, emojis, iconsEn }).catch((e) => {
+    console.warn("fillMissingRoots: shared visuals sync failed", e);
+  });
   return { ok: true as const, roots: rootsMajor.length };
 }

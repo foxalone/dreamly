@@ -1249,6 +1249,7 @@ export const SEEDS_ES: Record<string, SeedL10n> = {
     name: "fuego en el cielo",
     focus: "un trastorno dramático, un aviso o asombro ante hechos mucho más grandes que tu control personal",
   },
+  hurricane: { name: "huracán", summary: "una crisis que toma fuerza, la búsqueda de refugio y lo que permanece tras el temporal", aliases: ["ciclón tropical", "soñar con un huracán", "huracanes"] },
   tornado: {
     name: "tornado",
     summary: "emoción caótica, trastorno súbito, ansiedad y un cambio destructivo que llega sin aviso",

@@ -1229,6 +1229,7 @@ export const SEEDS_PT: Record<string, SeedL10n> = {
     name: "fogo no céu",
     focus: "um abalo dramático, um aviso ou o assombro diante de eventos bem maiores que o controle pessoal",
   },
+  hurricane: { name: "furacão", summary: "uma mudança que ganha força, a busca por abrigo e o que resiste depois da tempestade", aliases: ["ciclone tropical", "sonhar com furacão", "furacões"] },
   tornado: {
     name: "tornado",
     summary: "emoção caótica, reviravolta súbita, ansiedade e uma mudança destrutiva que chega sem aviso",

@@ -1229,6 +1229,7 @@ export const SEEDS_DE: Record<string, SeedL10n> = {
     name: "Feuer am Himmel",
     focus: "dramatischer Umbruch, eine Warnung oder Staunen vor Geschehen, das weit größer ist als persönliche Steuerung",
   },
+  hurricane: { name: "Hurrikan", summary: "eine Krise, die an Kraft gewinnt, die Suche nach Schutz und das, was danach Bestand hat", aliases: ["Wirbelsturm", "tropischer Wirbelsturm", "von einem Hurrikan träumen"] },
   tornado: {
     name: "Tornado",
     summary: "chaotisches Gefühl, jäher Umbruch, Unruhe und zerstörerischer Wandel, der ohne Vorwarnung kommt",

@@ -1,5 +1,6 @@
 import { MUSIC_CONTENT } from "./dreams/music-content";
 import { MUD_CONTENT } from "./dreams/mud-content";
+import { HURRICANE_CONTENT } from "./dreams/hurricane-content";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 
 export { DREAM_CATEGORIES, type DreamCategory };
@@ -1091,7 +1092,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#64748b",
     summary: "chaotic emotion, sudden upheaval, anxiety, and destructive change that arrives without warning",
     aliases: ["twister", "cyclone", "dream about tornado", "tornado in a dream", "tornado dream meaning"],
-    relatedSymbols: ["storm", "earthquake", "fire", "flying", "tsunami"],
+    relatedSymbols: ["storm", "hurricane", "earthquake", "fire", "flying", "tsunami"],
     variations: [
       { slug: "tornado-coming", name: "a tornado coming toward you", focus: "an approaching crisis, dread about a change you can see but not stop" },
       { slug: "hiding-from-tornado", name: "hiding from a tornado", focus: "self-protection, seeking safety, or bracing for an upheaval outside your control" },
@@ -1120,6 +1121,18 @@ const CLUSTERS: ClusterSeed[] = [
     ],
   },
   {
+    slug: "hurricane",
+    name: "hurricane",
+    category: "nature",
+    icon: "🌀",
+    accent: "#64748b",
+    summary: "an overwhelming change gathering force, the need for shelter, and what survives after disruption",
+    aliases: ["hurricanes", "cyclone", "tropical cyclone", "typhoon", "hurricane dream", "dream about a hurricane", "hurricane in a dream"],
+    relatedSymbols: ["storm", "tornado", "tsunami"],
+    updatedAt: "2026-11-04",
+    variations: [],
+  },
+  {
     slug: "storm",
     name: "storm",
     category: "nature",
@@ -1127,7 +1140,7 @@ const CLUSTERS: ClusterSeed[] = [
     accent: "#475569",
     summary: "emotional turbulence, conflict, accumulated pressure, and a difficult season that eventually passes",
     aliases: ["thunderstorm", "dream about storm", "storm in a dream"],
-    relatedSymbols: ["fire", "tornado", "earthquake", "water", "beach", "tsunami", "boat"],
+    relatedSymbols: ["fire", "tornado", "hurricane", "earthquake", "water", "beach", "tsunami", "boat"],
     variations: [
       { slug: "thunder-and-lightning", name: "thunder and lightning", focus: "sudden insight, shock, anger discharging, or a dramatic emotional release" },
       { slug: "caught-in-a-storm", name: "being caught in a storm", focus: "feeling exposed in the middle of conflict or turmoil without adequate shelter" },
@@ -1783,7 +1796,7 @@ const CLUSTERS: ClusterSeed[] = [
       "tidal wave dream meaning",
       "dreaming of a tsunami",
     ],
-    relatedSymbols: ["water", "storm", "beach", "fire", "tornado", "whale"],
+    relatedSymbols: ["water", "storm", "hurricane", "beach", "fire", "tornado", "whale"],
     updatedAt: "2026-07-21",
     variations: [
       { slug: "tsunami-coming", name: "a tsunami coming toward you", focus: "a crisis you can see approaching but feel powerless to stop" },
@@ -3927,6 +3940,7 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
 
 const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
   music: MUSIC_CONTENT.en.sections,
+  hurricane: HURRICANE_CONTENT.en.sections,
   ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, entry]) => [slug, entry.sections])),
   "golden-swan": {
     introduction: [
@@ -7142,6 +7156,7 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
  */
 const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: string }> = {
   music: { seoTitle: MUSIC_CONTENT.en.seoTitle, seoDescription: MUSIC_CONTENT.en.seoDescription },
+  hurricane: { seoTitle: HURRICANE_CONTENT.en.seoTitle, seoDescription: HURRICANE_CONTENT.en.seoDescription },
   ...Object.fromEntries(Object.entries(MUD_CONTENT.en).map(([slug, { seoTitle, seoDescription }]) => [slug, { seoTitle, seoDescription }])),
   "golden-swan": {
     seoTitle: "Golden Swan Dream Meaning: Grace Revealed as Treasure",

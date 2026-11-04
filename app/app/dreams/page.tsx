@@ -1233,6 +1233,26 @@ export default function DreamsPage() {
           : {}),
       });
 
+      // Saving enriches the private entry in the background. If it finished
+      // while this share was being created, carry its new visuals into the feed.
+      if (!(item as any).emojis?.length || !(item as any).iconsEn?.length) {
+        try {
+          const latest = (await getDoc(doc(firestore, "users", uid2, getCollectionNameByType(type), itemId))).data();
+          const visualPatch: { emojis?: DreamEmoji[]; iconsEn?: string[] } = {};
+          if (!(item as any).emojis?.length && Array.isArray(latest?.emojis) && latest.emojis.some((e: DreamEmoji) => e?.native)) {
+            visualPatch.emojis = latest.emojis;
+          }
+          if (!(item as any).iconsEn?.length && Array.isArray(latest?.iconsEn) && latest.iconsEn.length) {
+            visualPatch.iconsEn = latest.iconsEn;
+          }
+          if (Object.keys(visualPatch).length) {
+            await updateDoc(doc(firestore, "shared_dreams", sharedId), visualPatch);
+          }
+        } catch (error) {
+          console.warn("shared dream visuals sync failed", error);
+        }
+      }
+
       // Detect + store the dream's language for the feed (one tiny model call, no credits).
       requestSharedDreamLang(u, sharedId);
 
