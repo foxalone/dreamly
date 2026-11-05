@@ -8,6 +8,8 @@
 .large .number{font-size:.95rem}
 .name{position:absolute;z-index:4;left:12%;right:12%;bottom:4.5%;min-height:10%;display:flex;align-items:center;justify-content:center;border-top:1px solid #e0b96c9c;border-bottom:1px solid #e0b96c9c;background:linear-gradient(90deg,transparent,#0b0b16bf 17%,#0b0b16db 50%,#0b0b16bf 83%,transparent);color:#fff1cf;text-align:center;font-size:clamp(.85rem,1.9vw,1.2rem);line-height:1.14;font-weight:700;text-wrap:balance;text-shadow:0 2px 7px #03030a,0 0 15px #03030a}
 .large .name{font-size:clamp(1.3rem,5.2vw,1.7rem)}
+.card:not(.large) .name{left:7%;right:7%;bottom:3%;min-height:0;padding:2px 1px;font-size:.75rem;line-height:1.08}
+.card:not(.large) .name:before,.card:not(.large) .name:after{display:none}
 .name:before,.name:after{content:"✧";margin:0 .65em;color:#e7c785;font-size:.55em}
 .card:after{content:"";position:absolute;z-index:3;inset:4px;border:1px solid #f2d08b88;border-radius:8px;pointer-events:none}
 .corner{position:absolute;z-index:4;width:10%;aspect-ratio:1;pointer-events:none;color:#f5d899;filter:drop-shadow(0 0 3px #07040d)}

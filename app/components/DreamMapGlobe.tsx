@@ -43,15 +43,19 @@ export default function DreamMapGlobe() {
       setBlocked(fieldOverlap || obstacle || !!document.fullscreenElement);
     };
     const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(check); };
+    const onLaunchEnd = (event: AnimationEvent) => {
+      if (event.animationName === 'pwa-launch-dismiss') schedule();
+    };
     const observer = new MutationObserver(schedule);
     observer.observe(document.body, { childList:true, subtree:true, attributes:true, attributeFilter:['open','aria-hidden','aria-modal','hidden'] });
     observer.observe(document.documentElement, { attributes:true, attributeFilter:['data-pwa-launch'] });
     document.addEventListener('scroll',schedule,{capture:true,passive:true});
+    document.addEventListener('animationend',onLaunchEnd,true);
     document.addEventListener('focusin',schedule); document.addEventListener('focusout',schedule);
     document.addEventListener('fullscreenchange',schedule); window.addEventListener('resize',schedule);
     window.visualViewport?.addEventListener('resize',schedule);
     schedule();
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('scroll',schedule,true); document.removeEventListener('focusin',schedule); document.removeEventListener('focusout',schedule); document.removeEventListener('fullscreenchange',schedule); window.removeEventListener('resize',schedule); window.visualViewport?.removeEventListener('resize',schedule); };
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('scroll',schedule,true); document.removeEventListener('animationend',onLaunchEnd,true); document.removeEventListener('focusin',schedule); document.removeEventListener('focusout',schedule); document.removeEventListener('fullscreenchange',schedule); window.removeEventListener('resize',schedule); window.visualViewport?.removeEventListener('resize',schedule); };
   }, [pathname]);
   if (HIDDEN.some(prefix => path === prefix || path.startsWith(prefix+'/'))) return null;
   return <>

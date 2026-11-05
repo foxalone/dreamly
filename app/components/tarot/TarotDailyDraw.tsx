@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { auth } from "@/lib/firebase";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -198,7 +199,7 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
         <span className={fanStyles.tarotSparkle}>✧</span>
       </span>
     </button>
-    {open ? <div className={styles.overlay} aria-live="polite" dir={locale === "ar" ? "rtl" : undefined}>
+    {open && typeof document !== "undefined" ? createPortal(<div className={styles.overlay} aria-live="polite" dir={locale === "ar" ? "rtl" : undefined}>
       <button type="button" className={`${styles.backdrop} ${blurStarted && !closing ? styles.backdropVisible : ""}`} aria-label={copy.close} onClick={dismiss} />
       <div className={styles.anchor}>
         <button
@@ -223,7 +224,7 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
       {closing ? <div className={styles.fallingStars} aria-hidden="true">{Array.from({ length: 32 }, (_, index) => <span key={index} style={{ "--star-x": `${((index * 47) % 300) - 150}px`, "--star-drift": `${((index * 37) % 180) - 90}px`, "--star-delay": `${(index % 8) * 25}ms` } as CSSProperties}>{index % 3 === 0 ? "✧" : "✦"}</span>)}</div> : null}
       {error && flightDone ? <span className={styles.srOnly} role="alert">{copy.error}</span> : null}
       {busy && flightDone ? <span className={styles.srOnly} role="status">{copy.loading}</span> : null}
-    </div> : null}
+    </div>, document.body) : null}
     {access ? <TarotAccessDialog day={access.day} cardId={access.cardId} locale={access.locale} onClose={() => setAccess(null)} /> : null}
   </>;
 }

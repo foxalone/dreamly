@@ -10,7 +10,7 @@
 .button .creatures span { left:calc(50% - 11px) }
 .button:focus-visible { outline:2px solid #c4b5fd }
 .celebrating .orb { box-shadow:0 0 24px #fbbf2499; border-color:#fde68a }
-.tarotFan { position:fixed; z-index:36; left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 20px); display:block; width:98px; height:62px; padding:0; border:0; background:transparent; cursor:pointer; transform:translateX(-50%); filter:drop-shadow(0 0 7px #eec46480); animation:tarot-float 4.8s ease-in-out infinite; -webkit-tap-highlight-color:transparent }
+.tarotFan { position:fixed; z-index:36; left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 14px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 20px); display:block; width:98px; height:62px; padding:0; border:0; background:transparent; cursor:pointer; transform:translateX(-50%); filter:drop-shadow(0 0 7px #eec46480); animation:tarot-float 4.8s ease-in-out infinite; -webkit-tap-highlight-color:transparent }
 .tarotFan:focus-visible { outline:2px solid #f5d990; outline-offset:5px; border-radius:8px }
 .tarotFan[data-moon] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 20px) }
 .tarotCard { position:absolute; left:50%; bottom:0; display:grid; place-items:center; width:34px; height:52px; overflow:hidden; border:1px solid #fff0b3; border-radius:5px; background:linear-gradient(135deg,#fff5be 0%,#e5ac48 22%,#aa651d 48%,#f8d986 73%,#a25a13 100%); box-shadow:inset 0 0 0 2px #72401280,inset 0 0 10px #fff7d2aa,0 3px 12px #09030cc0,0 0 9px #f5c96a80; transform-origin:50% 90%; transition:transform .45s cubic-bezier(.2,.8,.2,1) }
@@ -41,7 +41,7 @@
  .tarotFan[data-horoscope] { bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 16px); scale:.82 }
 }
 @media(max-width:640px) {
- .tarotFan,.tarotFan[data-horoscope] { bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
+ .tarotFan,.tarotFan[data-horoscope] { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
  .tarotFan[data-moon] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 14px) }
 }
 @keyframes dream-map-rail-flight {
