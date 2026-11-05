@@ -240,6 +240,7 @@ export const RU_MESSAGES: UiMessages = {
     preferredLanguage: "Предпочитаемый язык перевода",
     preferredLanguageHint: "При нажатии кнопки перевода сны переводятся на этот язык. Изменения сохраняются автоматически.",
     browserLanguage: "Язык браузера ({language})",
+    closeLanguagePicker: "Закрыть выбор языка",
     languageSaving: "Сохраняем…",
     languageSaveError: "Не удалось сохранить язык. Попробуйте ещё раз.",
     translating: "Переводим…",

@@ -1,0 +1,15 @@
+.overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(7, 5, 17, .76); backdrop-filter: blur(9px); }
+.dialog { position: relative; width: min(100%, 420px); padding: 2rem; border: 1px solid rgba(226, 191, 111, .45); border-radius: 24px; background: radial-gradient(circle at top, #302142, #15101f 72%); box-shadow: 0 24px 90px #000a; color: #f7efff; text-align: center; }
+.symbol { color: #edc977; font-size: 2.5rem; line-height: 1; text-shadow: 0 0 22px #edc977aa; }
+.dialog h2 { margin: 1rem 0 .65rem; font-size: 1.55rem; font-weight: 700; }
+.dialog p { margin: 0; color: #d3c7dc; line-height: 1.55; }
+.dialog .error { margin-top: .8rem; color: #ffabb2; }
+.close { position: absolute; top: .7rem; right: .8rem; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: #d3c7dc; font-size: 1.6rem; }
+.close:hover { background: #ffffff1c; }
+.actions { display: grid; gap: .7rem; margin-top: 1.5rem; }
+.actions button { min-height: 3rem; padding: .65rem 1rem; border: 1px solid #756283; border-radius: 12px; background: #ffffff0b; color: #f7efff; font-weight: 650; }
+.actions button:hover:not(:disabled) { background: #ffffff1c; }
+.actions button:disabled { opacity: .5; cursor: wait; }
+.actions .primary { border-color: #e9c878; background: #e9c878; color: #27172e; }
+.actions .primary:hover:not(:disabled) { background: #f5d994; }
+@media (max-width: 480px) { .dialog { padding: 1.6rem 1.2rem; } }

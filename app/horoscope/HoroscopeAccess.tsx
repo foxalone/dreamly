@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LogIn, Play, Sparkles } from 'lucide-react';
+import { LogIn, Play, Sparkles, X } from 'lucide-react';
 import { auth } from '@/lib/firebase';
+import { trackEvent } from '@/lib/analytics';
+import { trackHoroscopeMoreClick } from '@/lib/trackHoroscopeMoreClick';
 import { signInWithOptions } from '@/lib/auth/signInWithOptions';
 import { ensureUserProfileOnSignIn } from '@/lib/auth/ensureUserProfile';
 import { clearOfferwallEntitlement } from '@/lib/adUnlock';
@@ -12,10 +15,20 @@ import type { Locale } from '@/lib/i18n/config';
 import type { Sign } from '@/lib/horoscope/model';
 import type { AccessInfo } from '@/lib/horoscope/access';
 import { horoscopeAccess } from '@/lib/i18n/horoscope-access';
-export function HoroscopeAccess({locale,sign,sessionOnly=false}:{locale:Locale;sign:Sign;sessionOnly?:boolean}){
+import { horoscopeCopy } from '@/lib/i18n/horoscope';
+import PlansModal from '@/app/components/PlansModal';
+import AnalysisExcerpt from '@/app/components/AnalysisExcerpt';
+export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:Locale;sign:Sign;sessionOnly?:boolean;preview?:[string,string]}){
   const router=useRouter(),t=horoscopeAccess[locale];
   const [user,setUser]=useState<User|null|undefined>(undefined),[info,setInfo]=useState<AccessInfo|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(false),[cycle,setCycle]=useState(0);
+  const [open,setOpen]=useState(false),[plansOpen,setPlansOpen]=useState(false);
   useEffect(()=>onAuthStateChanged(auth,setUser),[]);
+  useEffect(()=>{
+    if(!open||plansOpen)return;
+    const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!busy)setOpen(false);};
+    window.addEventListener('keydown',onKey);
+    return()=>window.removeEventListener('keydown',onKey);
+  },[open,plansOpen,busy]);
   useEffect(()=>{
     if(user===undefined)return;
     let cancelled=false;
@@ -44,6 +57,7 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false}:{locale:Locale;s
       }
       // An unlocked sign remains available even if generation must be retried.
       await fetch('/api/horoscope/request',{method:'POST',headers,body:JSON.stringify({sign,locale})});
+      setOpen(false);
       router.refresh();
     }catch{setError(true);}finally{setBusy(false);}
   }
@@ -55,13 +69,22 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false}:{locale:Locale;s
   }
   if(sessionOnly)return null;
   const guest=user==null,free=!!user&&!!info&&info.freeLeft>0;
-  const message=guest?t.guest:info?free?(info.tier==='paid'?t.paid:null):t.limit:t.busy;
-  return <div aria-busy={busy}>
-    {message?<p>{message}</p>:null}
-    <div className="hc-button-row">
-      {guest?<button type="button" className="hc-button" disabled={busy||user===undefined} onClick={()=>void signIn()}><LogIn size={16} aria-hidden/>{t.signIn}</button>:null}
-      <button type="button" className="hc-button hc-button-gold" disabled={busy||user===undefined||(!guest&&!info)} onClick={()=>void perform(!free)}>{free?<Sparkles size={16} aria-hidden/>:<Play size={16} aria-hidden/>}{busy?t.busy:free?t.open:t.ad}</button>
-    </div>
-    {error?<><p role="alert">{t.error}</p>{!info?<button type="button" className="hc-button" onClick={()=>{setError(false);setCycle(value=>value+1);}}>{t.retry}</button>:null}</>:null}
-  </div>;
+  const message=user===undefined?t.busy:guest?t.guest:info?free?(info.tier==='paid'?t.paid:t.member):t.limit:t.busy;
+  return <>
+    {preview?<AnalysisExcerpt variant="horoscope" className="" text={preview.join(' ').replace(/[.!?؟。]+$/u,'')} more={t.more} morePrefix="... " moreTitle={t.modalTitle.replace('{sign}',horoscopeCopy[locale].signs[sign])} onMore={()=>{trackEvent('horoscope_more_click',{sign,locale});void trackHoroscopeMoreClick(sign);setOpen(true);}}/>:null}
+    {typeof document!=='undefined'&&open&&!plansOpen?createPortal(<div className="hc-access-overlay" role="presentation" onClick={()=>{if(!busy)setOpen(false);}}>
+      <section className="hc-access-dialog" role="dialog" aria-modal="true" aria-labelledby="horoscope-access-title" dir={locale==='ar'?'rtl':undefined} onClick={event=>event.stopPropagation()} aria-busy={busy}>
+        <button type="button" className="hc-access-close" aria-label={t.close} disabled={busy} onClick={()=>setOpen(false)}><X size={20} aria-hidden/></button>
+        <h2 id="horoscope-access-title">{t.modalTitle.replace('{sign}',horoscopeCopy[locale].signs[sign])}</h2>
+        <p>{message}</p>
+        <div className="hc-access-choices">
+          {guest?<button type="button" className="hc-button" disabled={busy||user===undefined} onClick={()=>void signIn()}><LogIn size={16} aria-hidden/>{t.signIn}</button>:null}
+          <button type="button" className="hc-button hc-button-gold" disabled={busy||user===undefined||(!guest&&!info)} onClick={()=>void perform(!free)}>{free?<Sparkles size={16} aria-hidden/>:<Play size={16} aria-hidden/>}{busy?t.busy:free?t.open:t.ad}</button>
+          {info?.tier!=='paid'?<button type="button" className="hc-button" disabled={busy} onClick={()=>setPlansOpen(true)}>{t.subscribe}</button>:null}
+        </div>
+        {error?<div className="hc-access-error"><p role="alert">{t.error}</p>{!info?<button type="button" className="hc-button" onClick={()=>{setError(false);setCycle(value=>value+1);}}>{t.retry}</button>:null}</div>:null}
+      </section>
+    </div>,document.body):null}
+    {typeof document!=='undefined'&&plansOpen?createPortal(<PlansModal open onClose={()=>{setPlansOpen(false);setOpen(false);}} source="horoscope" title={t.subscribe} body={t.paid}/>,document.body):null}
+  </>;
 }

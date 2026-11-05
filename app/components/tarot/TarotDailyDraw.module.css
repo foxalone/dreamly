@@ -1,0 +1,36 @@
+.overlay{position:fixed;z-index:80;inset:0;pointer-events:none}
+.backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;padding:0;border:0;background:transparent;backdrop-filter:blur(0px);cursor:default;pointer-events:auto;transition:backdrop-filter .65s ease}
+.backdropVisible{backdrop-filter:blur(9px);transition-duration:1.2s}
+.anchor{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%)}
+.cardStage{position:relative;display:block;width:min(76vw,320px);aspect-ratio:2/3;padding:0;border:0;border-radius:13px;background:transparent;color:#f8df9f;cursor:pointer;pointer-events:auto;perspective:900px;transform-style:preserve-3d;will-change:transform;-webkit-tap-highlight-color:transparent}
+.cardStage:focus-visible{outline:2px solid #ffe2a2;outline-offset:8px}
+.cardStageClosing{animation:cardPop .42s cubic-bezier(.32,.04,.5,1) forwards;pointer-events:none}
+.cardStage:before{content:"";position:absolute;inset:12%;border-radius:50%;background:#e4b66f61;filter:blur(37px);animation:halo 3s ease-in-out infinite}
+.cardBack,.revealed{position:relative;width:100%;height:100%}
+.cardBack{display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden;border:2px solid #f8d88e;border-radius:13px;background:radial-gradient(circle at center,#54375d,#241a3b 48%,#110d21 100%);box-shadow:inset 0 0 0 5px #2c1d32,inset 0 0 0 7px #e7bf7880,0 16px 50px #0009,0 0 40px #f3c97764;color:#f8df9f;font-family:Georgia,serif;animation:cardWait 2s ease-in-out infinite}
+.cardBack:before{content:"";position:absolute;inset:18px;border:1px solid #ebca8480;border-radius:7px;background:repeating-linear-gradient(45deg,transparent 0 16px,#f8deab10 17px 18px,transparent 19px 34px)}
+.cardBack:after{content:"";position:absolute;width:59%;aspect-ratio:1;border:1px solid #f6d591;border-radius:50%;box-shadow:0 0 0 10px #e9c68020,0 0 0 23px #e9c68012,0 0 24px #f5d991aa}
+.cardBack span{position:relative;z-index:1;font-size:clamp(2rem,13vw,4rem);text-shadow:0 0 13px #ffe3a4}
+.cardBack span:nth-child(2){font-size:clamp(3rem,20vw,6rem)}
+.revealed{animation:cardReveal .85s cubic-bezier(.16,.84,.21,1) both}
+.tapHint{position:absolute;z-index:3;right:-30px;bottom:16%;display:block;width:118px;height:118px;pointer-events:none;filter:drop-shadow(0 0 8px #ffe1a49c);animation:hintEnter .4s ease-out both,hintPulse 2s ease-in-out .4s infinite}
+.tapHint img{display:block;width:100%;height:100%;object-fit:contain}
+.dust{position:absolute;z-index:2;inset:0;overflow:hidden;pointer-events:none}
+.dust span{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;background:#fff9df;box-shadow:0 0 10px 4px #ffdc89e0,0 0 24px 9px #f5b96183;opacity:0}
+.dust span:nth-child(4n){width:14px;height:14px;border-radius:0;background:#ffe9ac;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.dust span:nth-child(5n){width:3px;height:3px;background:#d9c5ff;box-shadow:0 0 11px 4px #bea6ffcf}
+.dust span:nth-child(7n){width:11px;height:3px;background:#fff4c5;box-shadow:0 0 14px 5px #ffe0a5d9}
+.fallingStars{position:absolute;z-index:3;inset:0;overflow:hidden;pointer-events:none}
+.fallingStars span{position:absolute;left:calc(50% + var(--star-x));top:50%;color:#ffe3a2;font-size:clamp(14px,2.5vw,25px);line-height:1;text-shadow:0 0 9px #fff7d6,0 0 18px #ffbf77;animation:starFall .72s ease-in var(--star-delay) both}
+.fallingStars span:nth-child(3n){color:#fff9e5;font-size:12px}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@keyframes cardReveal{from{opacity:0;transform:translateY(35px) rotateY(-75deg) scale(.88);filter:brightness(1.7)}to{opacity:1;transform:translateY(0) rotateY(0) scale(1);filter:brightness(1)}}
+@keyframes cardWait{50%{box-shadow:inset 0 0 0 5px #2c1d32,inset 0 0 0 7px #e7bf7880,0 16px 50px #0009,0 0 58px #f3c9779c}}
+@keyframes halo{50%{opacity:.5;transform:scale(1.14)}}
+@keyframes cardPop{0%{opacity:1;transform:scale(1);filter:brightness(1)}25%{opacity:1;transform:scale(1.11);filter:brightness(2)}100%{opacity:0;transform:scale(.08) rotate(12deg);filter:brightness(2.7)}}
+@keyframes starFall{0%{opacity:0;transform:translateY(-20px) scale(.2) rotate(0)}18%{opacity:1;transform:translateY(-5px) scale(1.2) rotate(35deg)}100%{opacity:0;transform:translate(var(--star-drift),45vh) scale(.35) rotate(210deg)}}
+@keyframes hintEnter{from{opacity:0;transform:translateY(12px) scale(.7)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(.86)}}
+@media(max-height:640px){.cardStage{width:min(56vw,210px)}}
+@media(max-width:640px){.tapHint{right:-18px;width:96px;height:96px}}
+@media(prefers-reduced-motion:reduce){.cardStage:before,.cardBack,.tapHint,.fallingStars span{animation:none}.revealed,.cardStageClosing{animation-duration:1ms}.backdrop{transition:none}}

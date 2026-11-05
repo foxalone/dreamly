@@ -5,28 +5,31 @@ import { useLayoutEffect, useRef, useState } from "react";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 
 /**
- * Two lines of a reading. The analysis tag shares the first line, and "more"
- * sits immediately after the last visible word — not at the far edge.
- * The feed links to the dream; the dream page uses the button to open the rest.
+ * Two lines of a reading with "more" immediately after the last visible word.
+ * Analysis can show a tag; the horoscope reuses the excerpt without one.
  */
 export default function AnalysisExcerpt({
   text,
   label,
   more,
   moreTitle,
+  morePrefix,
   href,
   onMore,
   busy,
   className,
+  variant = "analysis",
 }: {
   text: string;
-  label: string;
+  label?: string;
   more?: string;
   moreTitle?: string;
+  morePrefix?: string;
   href?: string;
   onMore?: () => void;
   busy?: boolean;
   className?: string;
+  variant?: "analysis" | "horoscope";
 }) {
   const flat = text.replace(/\s+/g, " ").trim();
   const showMore = Boolean(more && (href || onMore));
@@ -77,23 +80,21 @@ export default function AnalysisExcerpt({
     const observer = new ResizeObserver(fit);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [flat, showMore, more, label]);
+  }, [flat, showMore, more, label, morePrefix]);
 
-  const moreClass = "inline font-semibold text-purple-500 hover:text-purple-400 disabled:opacity-60";
+  const moreClass = variant === "horoscope" ? "hc-forecast-more" : "inline font-semibold text-purple-500 hover:text-purple-400 disabled:opacity-60";
   return (
     <p
       ref={boxRef}
       dir={dir}
       className={[
-        "max-h-12 overflow-hidden break-words text-sm leading-6 text-[var(--muted)]",
+        variant === "horoscope" ? "hc-forecast-excerpt" : "max-h-12 overflow-hidden break-words text-sm leading-6 text-[var(--muted)]",
         className ?? "mt-3",
       ].join(" ")}
     >
-      <span className="me-1.5 inline-flex items-center align-middle rounded-full border border-purple-400/50 bg-purple-500/15 px-2 py-0 text-xs font-semibold leading-5 text-purple-500">
-        {label}
-      </span>
+      {label ? <span className="me-1.5 inline-flex items-center align-middle rounded-full border border-purple-400/50 bg-purple-500/15 px-2 py-0 text-xs font-semibold leading-5 text-purple-500">{label}</span> : null}
       <span data-excerpt>{shown}</span>
-      {showMore ? " " : null}
+      {showMore ? morePrefix ?? " " : null}
       {showMore && href ? (
         <LocaleLink href={href} title={moreTitle} className={moreClass}>
           {more}

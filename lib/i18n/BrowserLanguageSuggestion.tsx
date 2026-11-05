@@ -28,7 +28,7 @@ export default function BrowserLanguageSuggestion() {
   const suggestedPath = suggestedLanguagePath(pathname, preferred);
   const suggestionKey = `${pathname}:${preferred}`;
 
-  if (!preferred || !suggestedPath || dismissed === suggestionKey) return null;
+  if (!preferred || !suggestedPath || dismissed === suggestionKey || (typeof document !== "undefined" && document.querySelector("[data-not-found]"))) return null;
 
   const m = browserLanguageMessages[preferred];
   const meta = LOCALE_META[preferred];

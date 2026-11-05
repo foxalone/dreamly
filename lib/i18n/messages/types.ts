@@ -195,6 +195,7 @@ export type UiMessages = {
     preferredLanguage: string;
     preferredLanguageHint: string;
     browserLanguage: string;
+    closeLanguagePicker: string;
     languageSaving: string;
     languageSaveError: string;
     translating: string;

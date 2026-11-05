@@ -27,6 +27,8 @@ export default function MoonClicks({ user }: { user: User }) {
   const [moon, setMoon] = useState<number | null>(null);
   const [earth, setEarth] = useState<number | null>(null);
   const [translation, setTranslation] = useState<number | null>(null);
+  const [horoscopeMore, setHoroscopeMore] = useState<number | null>(null);
+  const [tarotMore, setTarotMore] = useState<number | null>(null);
   const [comments, setComments] = useState<number | null>(null);
   const [xp, setXp] = useState<number | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
@@ -52,6 +54,8 @@ export default function MoonClicks({ user }: { user: User }) {
         setMoon(data.moon);
         setEarth(data.earth);
         setTranslation(data.translation);
+        setHoroscopeMore(data.horoscopeMore);
+        setTarotMore(data.tarotMore);
         setComments(data.comments);
         setXp(data.xp);
         setCounts(data.counts);
@@ -76,6 +80,8 @@ export default function MoonClicks({ user }: { user: User }) {
     { label: copy.title, value: moon, change: delta?.moon ?? null },
     { label: copy.earth, value: earth, change: delta?.earth ?? null },
     { label: copy.translation, value: translation, change: null },
+    { label: copy.horoscopeMore, value: horoscopeMore, change: null },
+    { label: copy.tarotMore, value: tarotMore, change: null },
     { label: copy.dreams, value: counts?.dreams ?? null, change: delta?.dreams ?? null },
     { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
     { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
@@ -107,6 +113,8 @@ export default function MoonClicks({ user }: { user: User }) {
     <p className="mt-2 text-xs text-[var(--muted)]">{copy.sinceYesterday}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.note}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.translationNote}</p>
+    <p className="mt-1 text-sm text-[var(--muted)]">{copy.horoscopeMoreNote}</p>
+    <p className="mt-1 text-sm text-[var(--muted)]">{copy.tarotMoreNote}</p>
     <p className="mt-1 text-sm text-[var(--muted)]">{copy.commentsXpNote}</p>
   </section>;
 }

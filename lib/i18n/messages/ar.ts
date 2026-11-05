@@ -240,6 +240,7 @@ export const AR_MESSAGES: UiMessages = {
     preferredLanguage: "لغة الترجمة المفضلة",
     preferredLanguageHint: "تُترجم الأحلام إلى هذه اللغة عند الضغط على زر الترجمة. تُحفظ التغييرات تلقائيًا.",
     browserLanguage: "لغة المتصفح ({language})",
+    closeLanguagePicker: "إغلاق اختيار اللغة",
     languageSaving: "جارٍ الحفظ…",
     languageSaveError: "تعذّر حفظ اللغة. يُرجى المحاولة مجددًا.",
     translating: "جارٍ الترجمة…",

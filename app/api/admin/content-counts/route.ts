@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     const todayKey = localDayKey(now, tzOffsetMin);
     const start = startOfLocalDayMs(now, tzOffsetMin);
 
-    const [dreamSnap, guestSnap, storySnap, sharedSnap, commentSnap, userSnap, moonSnap, earthSnap, translationSnap, historySnap] = await Promise.all([
+    const [dreamSnap, guestSnap, storySnap, sharedSnap, commentSnap, userSnap, moonSnap, earthSnap, translationSnap, horoscopeMoreSnap, tarotMoreSnap, historySnap] = await Promise.all([
       db.collectionGroup("dreams").select("deleted", "createdAtMs").get(),
       db.collection("guest_dreams").select("deleted", "imported", "createdAtMs").get(),
       db.collectionGroup("stories").select("deleted", "sourceType", "createdAtMs").get(),
@@ -52,6 +52,8 @@ export async function GET(req: Request) {
       db.collection("site_metrics").doc("moon_clicks").get(),
       db.collection("site_metrics").doc("earth_clicks").get(),
       db.collection("site_metrics").doc("translation_clicks").get(),
+      db.collection("site_metrics").doc("horoscope_more_clicks").get(),
+      db.collection("site_metrics").doc("tarot_more_clicks").get(),
       db.collection("site_metrics").doc("content_counts").get(),
     ]);
 
@@ -95,6 +97,8 @@ export async function GET(req: Request) {
         moon: current.moon,
         earth: current.earth,
         translation: Number(translationSnap.data()?.total ?? 0) || 0,
+        horoscopeMore: Number(horoscopeMoreSnap.data()?.total ?? 0) || 0,
+        tarotMore: Number(tarotMoreSnap.data()?.total ?? 0) || 0,
         comments,
         xp,
         counts: { dreams: current.dreams, stories: current.stories, journal: current.journal, shared: current.shared },

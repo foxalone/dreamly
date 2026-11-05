@@ -240,6 +240,7 @@ export const ES_MESSAGES: UiMessages = {
     preferredLanguage: "Idioma preferido para las traducciones",
     preferredLanguageHint: "Los sueños se traducen a este idioma al pulsar Traducir. Los cambios se guardan automáticamente.",
     browserLanguage: "Idioma del navegador ({language})",
+    closeLanguagePicker: "Cerrar selector de idioma",
     languageSaving: "Guardando…",
     languageSaveError: "No se pudo guardar el idioma. Inténtalo de nuevo.",
     translating: "Traduciendo…",

@@ -27,9 +27,10 @@ const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
-function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" {
+function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" | "tarot" {
   if (value === "horoscope") return "horoscope";
   if (value === "featured") return "featured";
+  if (value === "tarot") return "tarot";
   if (value === "save" || value === "translate" || value === "reading") return value;
   return "analysis";
 }
@@ -47,6 +48,7 @@ export default function AdUnlockClient() {
   const localeParam = sp.get("locale");
   const locale = isLocale(localeParam) ? localeParam : localeFromPathname(requestedNext);
   const next = kind === "analysis" ? localePath("/app/dreams", locale) : requestedNext;
+  const back = kind === "tarot" ? safeNext(sp.get("back")) : next;
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
   const [adStalled, setAdStalled] = useState(false);
@@ -99,7 +101,7 @@ export default function AdUnlockClient() {
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
 
-  useEffect(() => { router.prefetch(next); }, [next, router]);
+  useEffect(() => { if (kind !== "tarot") router.prefetch(next); }, [kind, next, router]);
 
   // Android's Google flow reloads this page. Resume the same destination after
   // authentication instead of starting another ad or showing another sign-in.
@@ -110,13 +112,13 @@ export default function AdUnlockClient() {
       if (!raw) return;
       const saved = JSON.parse(raw) as { next: string; atMs: number };
       sessionStorage.removeItem(GOOGLE_RETURN_KEY);
-      if (saved.next !== next || Date.now() - saved.atMs > 10 * 60_000) return;
+      if (saved.next !== back || Date.now() - saved.atMs > 10 * 60_000) return;
       report.current?.("auth_succeeded");
-      void ensureUserProfileOnSignIn(user).then(() => router.replace(next));
+      void ensureUserProfileOnSignIn(user).then(() => router.replace(back));
     } catch {
       // A normal popup sign-in does not need session storage.
     }
-  }, [user, next, router]);
+  }, [user, back, router]);
 
   // Watch the DOM for the Offerwall overlay.
   useEffect(() => {
@@ -161,7 +163,7 @@ export default function AdUnlockClient() {
         if (kind === "analysis") updateOfferwallSession({ status: "completed" });
         report.current?.("ad_overlay_closed");
         const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
-        setPhase((kind === "horoscope" || kind === "featured") && !entitled ? "failed" : "granting");
+        setPhase((kind === "horoscope" || kind === "featured" || kind === "tarot") && !entitled ? "failed" : "granting");
       }
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
@@ -203,10 +205,10 @@ export default function AdUnlockClient() {
     (async () => {
       try {
         let res: Response;
-        if (kind === "horoscope" || kind === "featured") {
-          const headers: Record<string,string> = {"Content-Type":"application/json","x-horoscope-request":"1"};
+        if (kind === "horoscope" || kind === "featured" || kind === "tarot") {
+          const headers: Record<string,string> = {"Content-Type":"application/json",[kind === "tarot" ? "x-tarot-request" : "x-horoscope-request"]:"1"};
           if(user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
-          res = await fetch(kind === "horoscope" ? "/api/horoscope/ad" : "/api/featured-horoscope/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
+          res = await fetch(kind === "horoscope" ? "/api/horoscope/ad" : kind === "featured" ? "/api/featured-horoscope/ad" : "/api/tarot/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
         } else if (user) {
           const idToken = await user.getIdToken();
           res = await fetch("/api/dreams/ad-reward", {
@@ -248,7 +250,8 @@ export default function AdUnlockClient() {
         clearOfferwallEntitlement();
         setPhase("done");
         report.current?.("ad_resume_started");
-        router.replace(next);
+        if (kind === "tarot") window.location.replace(next);
+        else router.replace(next);
       } catch {
         if (!timedOut) report.current?.("ad_grant_network_failed");
         if (!cancelled) setPhase("failed");
@@ -308,7 +311,7 @@ export default function AdUnlockClient() {
       const credential = await signInWithOptions({ beforeGoogle: () => {
         if (!isDreamlyAndroidApp()) return;
         try {
-          sessionStorage.setItem(GOOGLE_RETURN_KEY, JSON.stringify({ next, atMs: Date.now() }));
+          sessionStorage.setItem(GOOGLE_RETURN_KEY, JSON.stringify({ next: back, atMs: Date.now() }));
         } catch {
           // Google authentication can still proceed without storage.
         }
@@ -316,7 +319,7 @@ export default function AdUnlockClient() {
       if (!credential) return;
       await ensureUserProfileOnSignIn(credential.user);
       trackAuth(!!getAdditionalUserInfo(credential)?.isNewUser);
-      router.replace(next);
+      router.replace(back);
     } catch (error) {
       if ((error as { code?: string }).code === "auth/popup-closed-by-user") return;
       try { sessionStorage.removeItem(GOOGLE_RETURN_KEY); } catch { /* ignore */ }
@@ -359,7 +362,7 @@ export default function AdUnlockClient() {
                 report.current?.("back");
                 clearAdUnlockPending();
               }
-              router.replace(next);
+              router.replace(back);
             }}>
               {m.back}
             </button>

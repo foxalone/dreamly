@@ -1,0 +1,92 @@
+.back {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border: 2px solid #ffe3a0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c98a32 0%, #f9dd8d 9%, #a9611e 20%, #24142f 22%, #321c42 50%, #24142f 78%, #a9611e 80%, #f9dd8d 91%, #c98a32 100%);
+  box-shadow: inset 0 0 0 4px #57331d, 0 10px 28px #08030b80, 0 0 18px #d2a55833;
+}
+
+.back::before {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border: 1px solid #f5d595;
+  border-radius: 6px;
+  background: repeating-linear-gradient(45deg, transparent 0 11px, #ffe7aa10 12px 13px, transparent 14px 25px), radial-gradient(circle, #654577 0%, #28183c 52%, #170f2b 100%);
+  box-shadow: 0 0 0 3px #241525, 0 0 0 4px #eecb82a8, inset 0 0 22px #f2ce7140;
+}
+
+.back::after {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(110deg, transparent 43%, #fff2bd8a 50%, transparent 57%);
+  transform: translateX(-80%);
+  animation: backShine 6s ease-in-out infinite;
+}
+
+.innerFrame {
+  position: absolute;
+  z-index: 1;
+  inset: 13%;
+  border: 1px solid #eecb82b8;
+  border-radius: 4px;
+}
+
+.innerFrame::before,
+.innerFrame::after {
+  content: "✦";
+  position: absolute;
+  left: 50%;
+  color: #ffe2a0;
+  font-size: clamp(10px, 2vw, 14px);
+  text-shadow: 0 0 9px #f6d78e;
+  transform: translateX(-50%);
+}
+
+.innerFrame::before { top: 3%; }
+.innerFrame::after { bottom: 3%; }
+
+.emblem {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 52%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #f6d591;
+  border-radius: 50%;
+  box-shadow: 0 0 0 7px #e9c68020, 0 0 0 17px #e9c68010, 0 0 24px #f5d99180;
+  color: #ffe6a7;
+  font-family: Georgia, serif;
+  font-size: clamp(2.25rem, 7vw, 3.3rem);
+  line-height: 1;
+  text-shadow: 0 0 14px #ffe3a4;
+  transform: translate(-50%, -50%);
+}
+
+.revealed {
+  animation: turnFaceUp .65s ease-out both;
+  transform-origin: center center;
+}
+
+@keyframes backShine {
+  0%, 65%, 100% { transform: translateX(-80%); }
+  82% { transform: translateX(80%); }
+}
+
+@keyframes turnFaceUp {
+  from { opacity: .65; transform: rotateY(80deg); }
+  to { opacity: 1; transform: rotateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back::after,
+  .revealed { animation: none; }
+}

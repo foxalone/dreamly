@@ -6,14 +6,14 @@ import { horoscopeDesign } from '@/lib/i18n/horoscope-design';
 import type { Reading } from '@/lib/horoscope/model';
 
 /** Primary forecast prose is rendered on the server, including pending states. */
-export function CosmicForecast({ locale, day, selected, reading, publishedAt, refresh }: {
-  locale: Locale; day: string; selected: boolean; reading?: Reading | null; publishedAt?: string; refresh?: ReactNode;
+export function CosmicForecast({ locale, day, selected, reading, publishedAt, refresh, preview }: {
+  locale: Locale; day: string; selected: boolean; reading?: Reading | null; publishedAt?: string; refresh?: ReactNode; preview?: boolean;
 }) {
   const t = horoscopeCopy[locale], d = horoscopeDesign[locale];
   return (
       <article className="hc-panel hc-forecast" aria-labelledby="forecast-title">
         <div className="hc-section-heading"><span className="hc-icon-badge"><Sparkles size={21} aria-hidden/></span><div><p className="hc-eyebrow">{t.forecastDate} <time dateTime={day}>{horoscopeDate(day,locale)}</time></p><h2 id="forecast-title">{d.forecast}</h2></div></div>
-        {reading?<>{reading.headline?<h3 className="hc-reading-headline">{reading.headline}</h3>:null}{reading.general.split(/\n\s*\n/).map((paragraph,index)=><p key={index} className="hc-reading-text">{paragraph}</p>)}<div className="hc-reading-context"><span><Star size={14} aria-hidden/>{t.fields.explanation}</span><p>{reading.explanation}</p></div></>:!selected?<p className="hc-reading-text">{d.pick}</p>:<div className="hc-preparing">{refresh??<ForecastWaiting/>}</div>}
+        {reading?<>{reading.headline?<h3 className="hc-reading-headline">{reading.headline}</h3>:null}{reading.general.split(/\n\s*\n/).map((paragraph,index)=><p key={index} className="hc-reading-text">{paragraph}</p>)}<div className="hc-reading-context"><span><Star size={14} aria-hidden/>{t.fields.explanation}</span><p>{reading.explanation}</p></div></>:!selected?<p className="hc-reading-text">{d.pick}</p>:preview?<div className="hc-forecast-preview">{refresh}</div>:<div className="hc-preparing">{refresh??<ForecastWaiting/>}</div>}
         {publishedAt?<p className="hc-publication">{t.updated}: <time dateTime={publishedAt}>{new Intl.DateTimeFormat(locale==='pt'?'pt-BR':locale,{dateStyle:'long',timeStyle:'short',timeZone:'UTC'}).format(new Date(publishedAt))}</time> · UTC</p>:null}
       </article>
   );

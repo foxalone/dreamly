@@ -35,3 +35,6 @@ export const COMMENT_XP_MODEL = "gpt-5-nano";
 export const HOROSCOPE_MODEL = "gpt-5-mini";
 
 export const HOROSCOPE_TRANSLATE_MODEL = HOROSCOPE_MODEL;
+
+/** One stored tarot interpretation per card, UTC day and supported language. */
+export const TAROT_READING_MODEL = "gpt-5-mini";

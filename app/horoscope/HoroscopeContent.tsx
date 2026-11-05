@@ -23,6 +23,7 @@ const INSIGHTS = [{field:'love',Icon:Heart},{field:'career',Icon:BriefcaseBusine
 export function HoroscopeContent({locale,sign,today,forecast,sky,accessAllowed=false}:{locale:Locale;sign?:Sign;today:string;forecast:ForecastEdition|null;stale:boolean;sky:Sky;accessAllowed?:boolean}) {
   const t=horoscopeCopy[locale], d=horoscopeDesign[locale];
   const reading=sign?forecast?.locales[locale]?.[sign]:null;
+  const preview: [string,string] | undefined=sign&&!accessAllowed?[d.intro[SIGNS.indexOf(sign)],`${t.moon}: ${d.phaseThemes[sky.moon.phaseIndex]}`]:undefined;
   const displaySky=forecast?.sky??sky;
   const n=new Intl.NumberFormat(locale==='pt'?'pt-BR':locale,{maximumFractionDigits:1});
   const name=sign?t.signs[sign]:t.title;
@@ -42,11 +43,11 @@ export function HoroscopeContent({locale,sign,today,forecast,sky,accessAllowed=f
     <main className="hc-main">
       <header className="hc-hero">
         <div className="hc-hero-art"><ZodiacArt sign={sign}/></div>
-        <div className="hc-hero-copy"><p className="hc-eyebrow"><Sparkles size={13} aria-hidden/>{t.nav} · Dreamly</p><h1>{name}</h1><p className="hc-hero-date"><time dateTime={today}>{horoscopeDate(today,locale)}</time> · UTC</p><p className="hc-intro">{sign?d.intro[SIGNS.indexOf(sign)]:t.lead}</p></div>
+        <div className="hc-hero-copy"><p className="hc-eyebrow"><Sparkles size={13} aria-hidden/>{t.nav} · Dreamly</p><h1>{name}</h1><p className="hc-hero-date"><time dateTime={today}>{horoscopeDate(today,locale)}</time> · UTC</p>{!sign?<p className="hc-intro">{t.lead}</p>:null}</div>
       </header>
       <HoroscopeClient sign={sign}/>
       {sign&&accessAllowed?<HoroscopeAccess locale={locale} sign={sign} sessionOnly/>:null}
-      <CosmicForecast locale={locale} day={dated} selected={!!sign} reading={reading} publishedAt={forecast?.publishedAt} refresh={sign?(accessAllowed?<RefreshReading key={`${today}:${locale}:${sign}`} day={today} sign={sign} locale={locale}/>:<HoroscopeAccess locale={locale} sign={sign}/>):null}/>
+      <CosmicForecast locale={locale} day={dated} selected={!!sign} reading={reading} publishedAt={forecast?.publishedAt} preview={!!preview} refresh={sign?(accessAllowed?<RefreshReading key={`${today}:${locale}:${sign}`} day={today} sign={sign} locale={locale}/>:<HoroscopeAccess locale={locale} sign={sign} preview={preview}/>):null}/>
       {reading?<>
         <section className="hc-insights" aria-labelledby="glance-title"><div className="hc-section-label"><span/><h2 id="glance-title">{d.glance}</h2><span/></div><div className="hc-insight-grid">{INSIGHTS.map(({field,Icon})=><section key={field} className={`hc-insight hc-insight-${field}`}><span className="hc-icon-badge"><Icon size={20} aria-hidden/></span><h3>{t.fields[field]}</h3><p>{reading[field]}</p></section>)}</div></section>
         <section className="hc-advice" aria-labelledby="advice-title"><Quote size={25} aria-hidden/><h2 id="advice-title">{d.advice}</h2><blockquote>{reading.tip}</blockquote><span aria-hidden>✦</span></section>

@@ -240,6 +240,7 @@ export const DE_MESSAGES: UiMessages = {
     preferredLanguage: "Bevorzugte Übersetzungssprache",
     preferredLanguageHint: "Träume werden in diese Sprache übersetzt, wenn du auf Übersetzen klickst. Änderungen werden automatisch gespeichert.",
     browserLanguage: "Browsersprache ({language})",
+    closeLanguagePicker: "Sprachauswahl schließen",
     languageSaving: "Wird gespeichert…",
     languageSaveError: "Die Sprache konnte nicht gespeichert werden. Bitte versuche es erneut.",
     translating: "Wird übersetzt…",

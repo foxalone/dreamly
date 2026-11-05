@@ -4,12 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 
 import { auth, firestore } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 
-import { TRANSLATION_LANGUAGES } from "@/lib/translationLanguage";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 
 import HoroscopeClient from "@/app/horoscope/HoroscopeClient";
@@ -20,6 +19,8 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import ShareBadgeTimeline from "@/app/components/ShareBadgeTimeline";
+import TarotProfileCards from "./TarotProfileCards";
+import ProfileTranslationLanguagePicker from "./ProfileTranslationLanguagePicker";
 import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
 import {
   hasPaidAccess,
@@ -37,21 +38,11 @@ function initialsFromUser(u: User) {
   return (a + b).slice(0, 2);
 }
 
-const buildCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT || "";
-
-function shortUid(uid?: string | null) {
-  if (!uid) return "";
-  if (uid.length <= 10) return uid;
-  return `${uid.slice(0, 5)}…${uid.slice(-5)}`;
-}
-
 export default function ProfilePage() {
   const locale = useLocale();
   const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
   const { preference, browserLanguage, ready: languageReady } = useTranslationLanguage(user?.uid ?? null);
-  const [languageSaving, setLanguageSaving] = useState(false);
-  const [languageError, setLanguageError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [billing, setBilling] = useState<UserBillingFields | null>(null);
@@ -201,9 +192,10 @@ export default function ProfilePage() {
       </div>
 
 
-      <div className="mt-6">
-        <div className={`${card} p-5`}>
-          <div className="flex items-center gap-4">
+      <section className={`${card} mt-6 p-5`}>
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-4">
             {user?.photoURL ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -211,18 +203,18 @@ export default function ProfilePage() {
                 alt="Profile"
                 width={56}
                 height={56}
-                className="rounded-full object-cover ring-1 ring-[var(--border)]"
+                className="shrink-0 rounded-full object-cover ring-1 ring-[var(--border)]"
                 referrerPolicy="no-referrer"
               />
             ) : user ? (
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold
+                className="w-14 h-14 shrink-0 rounded-full flex items-center justify-center text-lg font-semibold
                            bg-[rgba(127,127,127,0.18)] text-[var(--text)] ring-1 ring-[var(--border)]"
               >
                 {initialsFromUser(user)}
               </div>
             ) : (
-              <div className="w-14 h-14 rounded-full bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)]" />
+              <div className="w-14 h-14 shrink-0 rounded-full bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)]" />
             )}
 
             <div className="min-w-0">
@@ -233,56 +225,29 @@ export default function ProfilePage() {
                 {user?.email ? user.email : t.profile.signInHint}
               </div>
               {user ? <div className="mt-1 text-sm font-semibold text-purple-500">{formatMessage(t.profile.commentXpTotal, { n: commentXpTotal })}</div> : null}
-              {user?.uid ? (
-                <div className={`mt-2 text-xs ${mutedText}`}>
-                  UID: <span className="font-mono">{shortUid(user.uid)}</span>
-                  {buildCommit ? (
-                    <div className="mt-1 font-mono" dir="ltr">
-                      {buildCommit.slice(0, 7)}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
             </div>
+            </div>
+            {user?.uid ? <div className={`mt-3 inline-flex max-w-full items-center gap-2 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs ${mutedText}`} dir="ltr">
+              <span className="shrink-0">UID:</span><span className="min-w-0 overflow-x-auto whitespace-nowrap font-mono">{user.uid}</span>
+            </div> : null}
+          </div>
+          <div className="min-w-0 border-t border-[var(--border)] pt-5 md:w-[250px] md:border-t-0 md:border-s md:ps-6 md:pt-0">
+            <h2 className={`font-semibold ${titleText}`}>{t.nav.horoscope}</h2>
+            <HoroscopeClient mode="profile" />
           </div>
         </div>
-      </div>
-
-      <section aria-label={t.nav.horoscope} className={`${card} mt-4 p-5`}>
-        <h2 className={`font-semibold ${titleText}`}>{t.nav.horoscope}</h2>
-        <HoroscopeClient mode="profile" />
       </section>
 
+      {user ? <TarotProfileCards key={user.uid} user={user} /> : null}
+
       <section className={`${card} mt-4 p-5`}>
-        <label htmlFor="preferred-translation-language" className={`block font-semibold ${titleText}`}>
-          {t.profile.preferredLanguage}
-        </label>
-        <p id="translation-language-hint" className={`mt-1 text-sm ${mutedText}`}>{t.profile.preferredLanguageHint}</p>
-        <select
-          id="preferred-translation-language"
-          aria-describedby="translation-language-hint"
-          value={preference ?? ""}
-          disabled={!user || !languageReady || languageSaving}
-          className={`mt-3 max-w-full ${pillBase} ${pillSurface} ${pillDisabled}`}
-          onChange={async (event) => {
-            if (!user) return;
-            const value = event.target.value || null;
-            setLanguageSaving(true);
-            setLanguageError(false);
-            try {
-              await setDoc(doc(firestore, "users", user.uid), { preferredTranslationLanguage: value }, { merge: true });
-            } catch {
-              setLanguageError(true);
-            } finally {
-              setLanguageSaving(false);
-            }
-          }}
-        >
-          <option value="">{formatMessage(t.profile.browserLanguage, { language: TRANSLATION_LANGUAGES[browserLanguage] })}</option>
-          {Object.entries(TRANSLATION_LANGUAGES).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
-        </select>
-        {languageSaving && <p role="status" className={`mt-2 text-sm ${mutedText}`}>{t.profile.languageSaving}</p>}
-        {languageError && <p role="alert" className="mt-2 text-sm text-red-500">{t.profile.languageSaveError}</p>}
+        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div className="min-w-0">
+            <h2 className={`font-semibold ${titleText}`}>{t.profile.preferredLanguage}</h2>
+            <p className={`mt-1 text-sm ${mutedText}`}>{t.profile.preferredLanguageHint}</p>
+          </div>
+          <ProfileTranslationLanguagePicker key={user?.uid ?? "guest"} user={user} preference={preference} browserLanguage={browserLanguage} ready={languageReady} />
+        </div>
       </section>
 
       <div className="mt-4">

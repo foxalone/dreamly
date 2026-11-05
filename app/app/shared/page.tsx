@@ -40,7 +40,7 @@ import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { formatMessage } from "@/lib/i18n/messages";
 import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
-import FeaturedForecastCard from "./FeaturedForecastCard";
+import FeaturedForecastCard, { type FeaturedForecastPreview } from "./FeaturedForecastCard";
 
 const FEED_PAGE_SIZE = 50;
 
@@ -246,6 +246,7 @@ export default function SharedPage() {
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedFailed, setFeedFailed] = useState(false);
   const [feedTotal, setFeedTotal] = useState<number | null>(null);
+  const [featuredForecast, setFeaturedForecast] = useState<FeaturedForecastPreview | null>(null);
   const [attachedAnalysis, setAttachedAnalysis] = useState<Record<string, string>>({});
   const analysisAsked = useRef(new Set<string>());
   const [my, setMy] = useState<Record<string, MyReactions>>({});
@@ -282,6 +283,20 @@ export default function SharedPage() {
   const translateRef = useRef<(d: SharedDream, lang?: TargetLang) => Promise<void>>(async () => {});
   const t = useMessages();
   const locale = useLocale();
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/featured-horoscope", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        const forecast = data?.forecast;
+        if (active && forecast && Number.isFinite(forecast.publishedAtMs)) {
+          setFeaturedForecast(forecast);
+        }
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   // The Offerwall does a full navigation. Reload enough of the feed to render
   // the card that opened it before consuming the pending translation.
@@ -669,6 +684,14 @@ export default function SharedPage() {
   }, [uid, authReady, items]);
 
   const list = useMemo(() => items, [items]);
+  // The forecast shares the dreams' publication timeline. Wait for the next
+  // page if every loaded dream is newer than the forecast.
+  const featuredPosition = useMemo(() => {
+    if (!featuredForecast || (feedLoading && list.length === 0)) return null;
+    const position = list.findIndex((dream) => (dream.sharedAtMs ?? 0) < featuredForecast.publishedAtMs);
+    if (position !== -1) return position;
+    return feedHasMore || feedLoading ? null : list.length;
+  }, [featuredForecast, list, feedHasMore, feedLoading]);
 
   async function toggleReaction(dreamId: string, key: ReactionKey) {
     if (!authReady) return;
@@ -878,10 +901,7 @@ export default function SharedPage() {
           </div>
         )}
 
-        <FeaturedForecastCard locale={locale} />
-
-
-        {list.length === 0 && !feedLoading && !feedFailed ? (
+        {list.length === 0 && featuredPosition === null && !feedLoading && !feedFailed ? (
           <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
             No shared items yet.
           </div>
@@ -909,6 +929,9 @@ export default function SharedPage() {
 
               return (
                 <Fragment key={d.id}>
+                  {featuredPosition === index && featuredForecast ? (
+                    <FeaturedForecastCard locale={locale} item={featuredForecast} />
+                  ) : null}
                   <div
                     id={`shared-${d.id}`}
                     // ✅ the whole card opens the dream's public page; clicks on the
@@ -1086,6 +1109,9 @@ export default function SharedPage() {
                 </Fragment>
               );
             })}
+            {featuredPosition === list.length && featuredForecast ? (
+              <FeaturedForecastCard locale={locale} item={featuredForecast} />
+            ) : null}
           </div>
         )}
         <div className="mt-5 flex flex-col items-center gap-3" aria-live="polite">

@@ -6,13 +6,14 @@ import { useLocale, useMessages } from '@/lib/i18n/LocaleProvider';
 import { stripLocalePrefix } from '@/lib/i18n/path';
 import { trackEvent } from '@/lib/analytics';
 import { trackEarthClick } from '@/lib/trackEarthClick';
+import { TarotDailyDraw } from './tarot/TarotDailyDraw';
 import styles from './DreamMapGlobe.module.css';
 import moonStyles from './moon/MoonGate.module.css';
 
 // Listen to the existing game event without importing its animation implementation.
 const BUILDING_PLACED_EVENT = 'dreamly:building-placed';
 const CREATURES = ['🦊','🦋','🐢','🦉','🐈','🕊️'];
-const HIDDEN = ['/app/map','/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade'];
+const HIDDEN = ['/app/map','/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade','/tarot'];
 export default function DreamMapGlobe() {
   const pathname = usePathname() ?? '/', { path } = stripLocalePrefix(pathname);
   const t = useMessages(), locale = useLocale();
@@ -53,11 +54,14 @@ export default function DreamMapGlobe() {
     return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('scroll',schedule,true); document.removeEventListener('focusin',schedule); document.removeEventListener('focusout',schedule); document.removeEventListener('fullscreenchange',schedule); window.removeEventListener('resize',schedule); window.visualViewport?.removeEventListener('resize',schedule); };
   }, [pathname]);
   if (HIDDEN.some(prefix => path === prefix || path.startsWith(prefix+'/'))) return null;
-  return <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} data-horoscope={path.startsWith('/horoscope') || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
-    <span className={styles.orb} aria-hidden><span className={styles.surface} /></span>
-    <span className={`${moonStyles.particles} ${styles.creatures}`} aria-hidden>
-      {CREATURES.map((emoji, index) => <span key={emoji} style={{ '--i': index, '--drift': `${index * 12}px` } as CSSProperties}>{emoji}</span>)}
-    </span>
-    <span className={styles.tooltip}>{t.nav.map}</span>
-  </LocaleLink>;
+  return <>
+    <TarotDailyDraw blocked={blocked} path={path} />
+    <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} data-horoscope={path.startsWith('/horoscope') || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
+      <span className={styles.orb} aria-hidden><span className={styles.surface} /></span>
+      <span className={`${moonStyles.particles} ${styles.creatures}`} aria-hidden>
+        {CREATURES.map((emoji, index) => <span key={emoji} style={{ '--i': index, '--drift': `${index * 12}px` } as CSSProperties}>{emoji}</span>)}
+      </span>
+      <span className={styles.tooltip}>{t.nav.map}</span>
+    </LocaleLink>
+  </>;
 }

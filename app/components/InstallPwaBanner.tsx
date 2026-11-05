@@ -18,8 +18,7 @@ function isInStandaloneMode() {
   if (typeof window === "undefined") return false;
 
   // iOS Safari
-  // @ts-ignore
-  const iosStandalone = window.navigator?.standalone === true;
+  const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
   // Android / Chrome
   const displayModeStandalone =
@@ -100,6 +99,7 @@ export default function InstallPwaBanner() {
   if (!open) return null;
   if (standalone) return null;
   if (!isMobile()) return null;
+  if (document.querySelector("[data-not-found]")) return null;
 
   const title = "Install App";
   const subtitleAndroid =
