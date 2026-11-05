@@ -305,6 +305,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
           <LocaleLink
             key={it.href}
             href={it.href}
+            data-google-vignette="false"
             aria-current={active ? "page" : undefined}
             className={cls(
               itemClass,
@@ -321,6 +322,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
       {user ? (
         <LocaleLink
           href={profileHref}
+          data-google-vignette="false"
           aria-current={profileActive ? "page" : undefined}
           className={cls(
             itemClass,
