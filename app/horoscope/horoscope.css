@@ -47,15 +47,4 @@
 @media(max-width:359px){.hc-main{padding-inline:14px}.hc-panel{padding:20px}.hc-hero-art{width:136px;height:136px}.hc-hero h1{font-size:2rem}.hc-preference{gap:8px}.hc-preference label{font-size:.75rem}.hc-preference select{max-width:180px}.hc-section-heading{gap:10px}.hc-icon-badge{width:35px;height:35px}.hc-eyebrow{letter-spacing:.02em}}
 @media(prefers-reduced-motion:reduce){.hc-main *{animation:none!important;transition:none!important}}
 
-/* Reserve a viewport rail for the existing globe/catcher on compact screens.
-   The page scrolls above it, so reading text and buttons never pass underneath. */
-@media(max-width:1279px){
- .hc-shell{height:calc(100dvh - 104px - env(safe-area-inset-bottom));min-height:0;overflow-y:auto;overscroll-behavior-y:contain;margin-bottom:calc(104px + env(safe-area-inset-bottom));scroll-padding-top:110px}
- .hc-shell:after{content:'';position:fixed;inset:auto 0 0;height:calc(104px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 100%,#261837,#0b0917 85%);border-top:1px solid #c5a7ff0a;pointer-events:none;z-index:30}
-}
-@media(max-width:640px){
- .hc-shell{height:calc(100dvh - 160px - env(safe-area-inset-bottom));margin-bottom:calc(160px + env(safe-area-inset-bottom))}
- .hc-shell:after{height:calc(160px + env(safe-area-inset-bottom))}
-}
-
 .hc-positions .hc-timestamp{margin-top:10px}.hc-positions .hc-planets{margin-bottom:0;font-size:.85rem}.hc-positions .hc-planets>div{padding-block:12px;border-top:1px solid var(--hc-line)}

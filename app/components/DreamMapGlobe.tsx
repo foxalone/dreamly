@@ -61,7 +61,7 @@ export default function DreamMapGlobe() {
   if (path === '/app/map') return <TarotDailyDraw blocked={blocked} path={path} />;
   return <>
     <TarotDailyDraw blocked={blocked} path={path} />
-    <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} data-horoscope={path.startsWith('/horoscope') || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
+    <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
       <span className={styles.orb} aria-hidden><span className={styles.surface} /></span>
       <span className={`${moonStyles.particles} ${styles.creatures}`} aria-hidden>
         {CREATURES.map((emoji, index) => <span key={emoji} style={{ '--i': index, '--drift': `${index * 12}px` } as CSSProperties}>{emoji}</span>)}

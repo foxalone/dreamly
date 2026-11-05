@@ -187,7 +187,6 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
       type="button"
       className={fanStyles.tarotFan}
       data-map-rail={path === "/moon" || path === "/app/map" || undefined}
-      data-horoscope={path.startsWith("/horoscope") || undefined}
       style={{ visibility: blocked ? "hidden" : undefined }}
       aria-label={copy.open}
       title={copy.open}

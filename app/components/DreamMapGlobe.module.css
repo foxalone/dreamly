@@ -35,18 +35,7 @@
 @media(prefers-reduced-motion:reduce) { .surface,.tarotFan,.tarotCard::after,.tarotSparkle { animation:none } .tarotCard { transition:none } }
 @media(max-height:480px) { .button,.tarotFan { display:none } }
 
-/* Keep the creatures within the horoscope's reserved floating-control rail. */
-@media(max-width:1279px) {
- .button[data-horoscope] .creatures span { animation-name:dream-map-rail-flight }
- .tarotFan[data-horoscope] { bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 24px); scale:.82 }
-}
 @media(max-width:640px) {
- .tarotFan,.tarotFan[data-horoscope] { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
+ .tarotFan { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
  .tarotFan[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 14px) }
-}
-@keyframes dream-map-rail-flight {
- 0% { opacity:0; transform:translate(0,0) scale(.25) }
- 15% { opacity:1 }
- 75% { opacity:.8 }
- 100% { opacity:0; transform:translate(var(--drift),-28px) scale(1) }
 }
