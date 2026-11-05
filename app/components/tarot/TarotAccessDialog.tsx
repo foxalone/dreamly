@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import type { User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { clearOfferwallEntitlement } from "@/lib/adUnlock";
@@ -19,11 +18,11 @@ type Info = { tier: "guest" | "member" | "paid"; unlocked: boolean; firstFreeAva
 type Props = { day: string; cardId: MajorArcanaId; locale: Locale; onClose: () => void };
 
 export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
-  const router = useRouter();
   const copy = tarotAccessCopy[locale];
   const [info, setInfo] = useState<Info | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState(false);
+  const [openingAd, setOpeningAd] = useState(false);
   const [plans, setPlans] = useState(false);
   const readingUrl = localePath(`/tarot/${day}/${cardId}`, locale);
 
@@ -92,21 +91,23 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
   }
 
   async function watchAd() {
-    setBusy(true); setError(false);
+    if (busy) return;
+    setBusy(true); setError(false); setOpeningAd(true);
     try {
       await auth.authStateReady();
       const response = await fetch("/api/tarot/ad", {
         method: "POST", headers: await headersFor(auth.currentUser, true), credentials: "same-origin",
         body: JSON.stringify({ action: "start", day, cardId }),
       });
-      if (response.status === 409) { await load(); return; }
+      if (response.status === 409) { setOpeningAd(false); await load(); return; }
       if (!response.ok) throw new Error("ad start failed");
       const result = await response.json() as { challenge: string };
       if (!result.challenge) throw new Error("ad challenge missing");
       clearOfferwallEntitlement();
       const query = new URLSearchParams({ kind: "tarot", challenge: result.challenge, next: readingUrl, back: window.location.pathname + window.location.search, locale });
-      router.push(`/ad/unlock?${query.toString()}`);
-    } catch { setError(true); setBusy(false); }
+      // The AdSense Offerwall runs on a document load, and a client route change leaves this dialog mounted.
+      window.location.assign(`/ad/unlock?${query.toString()}`);
+    } catch { setOpeningAd(false); setError(true); setBusy(false); }
   }
 
   const description = info?.tier === "guest" ? copy.guest : copy.adOrPlan;
@@ -116,7 +117,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
         <button type="button" className={styles.close} onClick={onClose} aria-label={copy.close}>×</button>
         <div className={styles.symbol} aria-hidden="true">✦</div>
         <h2 id="tarot-access-title">{copy.title}</h2>
-        <p>{busy && !info ? copy.loading : description}</p>
+        <p role="status">{openingAd ? copy.openingAd : busy && !info ? copy.loading : description}</p>
         {error ? <p className={styles.error} role="alert">{copy.error}</p> : null}
         <div className={styles.actions}>
           {info?.tier === "guest" ? <button type="button" disabled={busy} onClick={() => void signIn()}>{copy.signIn}</button> : null}
