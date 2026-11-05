@@ -1,5 +1,5 @@
 // app/api/admin/game/players/route.ts
-// Admin → Game: every Dream Kingdoms player with balance, catches and buildings.
+// Admin → Game: the 500 most recently active players with at least two game taps.
 
 import { NextResponse } from "next/server";
 import { requireAdmin } from "../../_lib/auth";
@@ -19,9 +19,24 @@ export async function GET(req: Request) {
   }
 
   const now = Date.now();
-  const snap = await adminFirestore().collection("kingdom_players").orderBy("updatedAt", "desc").limit(500).get();
+  const collection = adminFirestore().collection("kingdom_players");
+  const activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+  let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+  // Scan in recency order until we have 500 players with at least two game taps.
+  // Dream-only and one-tap rows must not hide qualifying players.
+  while (activeDocs.length < 500) {
+    const query = collection.orderBy("updatedAt", "desc").limit(500);
+    const snap = await (cursor ? query.startAfter(cursor) : query).get();
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      if (!data.mergedInto && Number(data.taps) >= 2) activeDocs.push(doc);
+      if (activeDocs.length === 500) break;
+    }
+    if (snap.size < 500 || activeDocs.length === 500) break;
+    cursor = snap.docs[snap.docs.length - 1];
+  }
 
-  const rows = snap.docs
+  const rows = activeDocs
     .map((d) => {
       const x = d.data();
       const placed = (x.placed ?? {}) as Record<string, string>;
@@ -46,10 +61,7 @@ export async function GET(req: Request) {
         updatedAt: Number(x.updatedAt) || null,
         mergedInto: (x.mergedInto as string | null) ?? null,
       };
-    })
-    // Only people who actually played: rows written before the first-tap rule (or merged
-    // leftovers) stay hidden, the table mirrors what new code creates.
-    .filter((r) => !r.mergedInto && (r.taps > 0 || r.lifetime > 0 || r.buildings.length > 0));
+    });
 
   // Names / emails for signed-in players.
   const uids = [...new Set(rows.map((r) => r.uid).filter((u): u is string => !!u))];

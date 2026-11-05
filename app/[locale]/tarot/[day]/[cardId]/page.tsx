@@ -5,14 +5,15 @@ import { localeFromParams } from "@/lib/i18n/page-locale";
 export const dynamic = "force-dynamic";
 export const maxDuration = 90;
 
-type Props = { params: Promise<{ locale: string; day: string; cardId: string }> };
+type Props = { params: Promise<{ locale: string; day: string; cardId: string }>; searchParams: Promise<{ back?: string | string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, day, cardId } = await params;
   return tarotReadingMetadata(await localeFromParams(Promise.resolve({ locale })), day, cardId);
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const { locale, day, cardId } = await params;
-  return <TarotReadingView locale={await localeFromParams(Promise.resolve({ locale }))} day={day} cardId={cardId} />;
+  const { back } = await searchParams;
+  return <TarotReadingView locale={await localeFromParams(Promise.resolve({ locale }))} day={day} cardId={cardId} back={back} />;
 }

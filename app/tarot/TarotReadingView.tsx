@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Heart, BriefcaseBusiness, Wallet, Moon } from "lucide-react";
+import { ArrowLeft, Heart, BriefcaseBusiness, Wallet, Moon, MoonStar } from "lucide-react";
 import { GUEST_COOKIE } from "@/app/api/dreams/_lib/guestQuota";
 import { TarotCardFace } from "@/app/components/tarot/TarotCardFace";
 import { LOCALE_META, type Locale } from "@/lib/i18n/config";
@@ -11,6 +11,7 @@ import { localeMetadata } from "@/lib/i18n/page-locale";
 import { localePath } from "@/lib/i18n/path";
 import { canReadTarotAccess, canReadTarotUnlock, isTarotCardId, TAROT_ACCESS_COOKIE, TAROT_UNLOCK_COOKIE } from "@/lib/tarot/access";
 import { getDailyTarotReading } from "@/lib/tarot/dailyReading";
+import { tarotReturnPath } from "@/lib/tarot/returnPath";
 import { MAJOR_ARCANA, tarotCopy } from "@/lib/tarot/deck";
 import styles from "./TarotReadingView.module.css";
 
@@ -24,7 +25,7 @@ export function tarotReadingMetadata(locale: Locale, day: string, cardId: string
   };
 }
 
-export default async function TarotReadingView({ locale, day, cardId }: { locale: Locale; day: string; cardId: string }) {
+export default async function TarotReadingView({ locale, day, cardId, back }: { locale: Locale; day: string; cardId: string; back?: string | string[] }) {
   const jar = await cookies();
   if (!canReadTarotAccess(
     jar.get(TAROT_ACCESS_COOKIE)?.value,
@@ -58,8 +59,11 @@ export default async function TarotReadingView({ locale, day, cardId }: { locale
     <div className={styles.stars} aria-hidden="true" />
     <div className={styles.container}>
       <header className={styles.top}>
-        <Link href={localePath("/app/shared", locale)} className={styles.back}><ArrowLeft size={18} aria-hidden="true" />{copy.back}</Link>
-        <span className={styles.brand}><span aria-hidden="true">✦</span> Dreamly</span>
+        <Link href={tarotReturnPath(back, locale)} className={styles.back}><ArrowLeft size={18} aria-hidden="true" />{copy.back}</Link>
+        <Link href={localePath("/", locale)} className={styles.brand}>
+          <span className={styles.brandIcon} aria-hidden="true"><MoonStar size={17} /></span>
+          <span>Dreamly</span>
+        </Link>
       </header>
 
       <div className={styles.layout}>

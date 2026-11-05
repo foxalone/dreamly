@@ -40,7 +40,7 @@ export function fabPageKind(path: string): string {
   return first || "other";
 }
 
-const HIDDEN_PREFIXES = ["/app/game", "/app/profile/admin-dashboard", "/signin", "/payment-success", "/app/tiktok-studio", "/moon"];
+const HIDDEN_PREFIXES = ["/app/game", "/app/profile/admin-dashboard", "/signin", "/payment-success", "/app/tiktok-studio"];
 
 export default function DreamCatcherFab() {
   const pathname = usePathname() ?? "/";
@@ -100,7 +100,7 @@ export default function DreamCatcherFab() {
       className="dcf group fixed right-[max(16px,env(safe-area-inset-right))] z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
       style={{
         WebkitTapHighlightColor: "transparent",
-        bottom: `calc(var(${path === "/app/map" ? "--dreamly-map-fab-center" : "--dreamly-fab-center"}) - 36px)`,
+        bottom: `calc(var(${path === "/app/map" || path === "/moon" ? "--dreamly-map-fab-center" : "--dreamly-fab-center"}) - 36px)`,
       }}
     >
       <style>{`

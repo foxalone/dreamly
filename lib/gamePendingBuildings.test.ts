@@ -52,6 +52,7 @@ test("sign-in transfers a pending guest purchase without requiring a map documen
   const player = readPlayer(docs.get("kingdom_players/u_player"), owner, Date.now());
   assert.deepEqual(player.placed, { hut: "" });
   assert.equal(player.owned.hut, 1);
+  assert.equal(player.taps, 10);
   assert.equal(toState(player, Date.now()).rate, 1);
   assert.equal(docs.has("kingdom_buildings/u_player_hut"), false);
   const mergedGuest = readPlayer(docs.get("kingdom_players/g_visitor"), guest, Date.now());
@@ -59,6 +60,7 @@ test("sign-in transfers a pending guest purchase without requiring a map documen
   assert.deepEqual(mergedGuest.placed, {});
   await mergeGuestIntoUser(owner, db);
   assert.equal(readPlayer(docs.get("kingdom_players/u_player"), owner, Date.now()).owned.hut, 1);
+  assert.equal(readPlayer(docs.get("kingdom_players/u_player"), owner, Date.now()).taps, 10);
 });
 
 test("guest copies are preserved when the account already owns the same building", async () => {
@@ -70,6 +72,7 @@ test("guest copies are preserved when the account already owns the same building
   await mergeGuestIntoUser(owner, db);
   const player = readPlayer(docs.get("kingdom_players/u_player"), owner, Date.now());
   assert.equal(player.owned.hut, 3);
+  assert.equal(player.taps, 20);
   assert.equal(player.placed.hut, "Tel Aviv");
   assert.deepEqual(docs.get("kingdom_buildings/u_player_hut"), {
     buildingId: "hut", city: "Tel Aviv", count: 3, lat: 32, lng: 34,

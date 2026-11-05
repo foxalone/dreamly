@@ -13,7 +13,7 @@ import moonStyles from './moon/MoonGate.module.css';
 // Listen to the existing game event without importing its animation implementation.
 const BUILDING_PLACED_EVENT = 'dreamly:building-placed';
 const CREATURES = ['🦊','🦋','🐢','🦉','🐈','🕊️'];
-const HIDDEN = ['/app/map','/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade','/tarot'];
+const HIDDEN = ['/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade','/tarot'];
 export default function DreamMapGlobe() {
   const pathname = usePathname() ?? '/', { path } = stripLocalePrefix(pathname);
   const t = useMessages(), locale = useLocale();
@@ -58,6 +58,7 @@ export default function DreamMapGlobe() {
     return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('scroll',schedule,true); document.removeEventListener('animationend',onLaunchEnd,true); document.removeEventListener('focusin',schedule); document.removeEventListener('focusout',schedule); document.removeEventListener('fullscreenchange',schedule); window.removeEventListener('resize',schedule); window.visualViewport?.removeEventListener('resize',schedule); };
   }, [pathname]);
   if (HIDDEN.some(prefix => path === prefix || path.startsWith(prefix+'/'))) return null;
+  if (path === '/app/map') return <TarotDailyDraw blocked={blocked} path={path} />;
   return <>
     <TarotDailyDraw blocked={blocked} path={path} />
     <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} data-horoscope={path.startsWith('/horoscope') || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>

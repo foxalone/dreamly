@@ -24,7 +24,8 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
   const [error, setError] = useState(false);
   const [openingAd, setOpeningAd] = useState(false);
   const [plans, setPlans] = useState(false);
-  const readingUrl = localePath(`/tarot/${day}/${cardId}`, locale);
+  const returnTo = window.location.pathname + window.location.search + window.location.hash;
+  const readingUrl = `${localePath(`/tarot/${day}/${cardId}`, locale)}?${new URLSearchParams({ back: returnTo })}`;
 
   const headersFor = useCallback(async (user: User | null, body = false) => ({
     "x-tarot-request": "1",
@@ -104,7 +105,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
       const result = await response.json() as { challenge: string };
       if (!result.challenge) throw new Error("ad challenge missing");
       clearOfferwallEntitlement();
-      const query = new URLSearchParams({ kind: "tarot", challenge: result.challenge, next: readingUrl, back: window.location.pathname + window.location.search, locale });
+      const query = new URLSearchParams({ kind: "tarot", challenge: result.challenge, next: readingUrl, back: returnTo, locale });
       // The AdSense Offerwall runs on a document load, and a client route change leaves this dialog mounted.
       window.location.assign(`/ad/unlock?${query.toString()}`);
     } catch { setOpeningAd(false); setError(true); setBusy(false); }

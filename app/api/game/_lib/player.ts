@@ -383,6 +383,7 @@ export async function mergeGuestIntoUser(owner: Owner, db = adminFirestore()): P
     collectInto(u, now);
     u.creatures += g.creatures;
     u.lifetime += g.lifetime;
+    u.taps += g.taps;
     addCatches(u, g.caught);
     u.importedLocal = u.importedLocal || g.importedLocal;
 

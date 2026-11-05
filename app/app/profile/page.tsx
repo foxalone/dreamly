@@ -256,14 +256,14 @@ export default function ProfilePage() {
 
       <div className="mt-4">
         <Link
-          href="https://www.fitactive.now/dashboard"
+          href="https://yourfit.space/dashboard"
           className={`${card} p-4 flex items-start gap-4 hover:opacity-95 transition no-underline`}
           target="_blank"
           rel="noreferrer"
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-[rgba(127,127,127,0.12)] ring-1 ring-[var(--border)] overflow-hidden shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/FIT ICON 512.png" alt="FitActive" className="w-14 h-14 object-contain" />
+            <img src="/yourfit-icon-512.png" alt="YourFit" className="w-14 h-14 object-contain" />
           </div>
           <div className="min-w-0">
             <div className={`font-semibold ${titleText}`}>Take control of your fitness journey</div>
