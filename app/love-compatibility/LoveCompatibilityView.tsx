@@ -11,7 +11,7 @@ import { SIGNS, SYMBOLS, type Sign } from "@/lib/horoscope/model";
 import { lifePath, parseBirthDate, zodiacSign } from "@/lib/loveCompatibility";
 import { LOVE_GENDERS, loveMatchCanonical, type AiLoveMatch, type LoveGender, type LoveMatchInput } from "@/lib/loveMatchAi";
 import { loveMatchInitial, readSavedLoveMatch, removeSavedLoveMatch, writeSavedLoveMatch } from "@/lib/loveMatchSaved";
-import { clearLoveMatchPending, peekLoveMatchPending, saveLoveMatchPending } from "@/lib/loveMatchAd";
+import { clearLoveMatchPending, clearLoveMatchPurchaseOrder, peekLoveMatchPending, peekLoveMatchPurchaseOrder, saveLoveMatchPending } from "@/lib/loveMatchAd";
 import { localePath } from "@/lib/i18n/path";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -20,6 +20,7 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { FaCamera, FaFemale, FaMale } from "react-icons/fa";
 import DreamDictionaryHeader from "@/app/dreams/DreamDictionaryHeader";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
+import PlansModal from "@/app/components/PlansModal";
 import styles from "./LoveCompatibilityView.module.css";
 
 type Submission = {
@@ -122,6 +123,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
   const [accessOpen, setAccessOpen] = useState(false);
   const [pendingInput, setPendingInput] = useState<LoveMatchInput | null>(null);
   const [unlockBusy, setUnlockBusy] = useState(false);
+  const [purchaseOptions, setPurchaseOptions] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [localSaved, setLocalSaved] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -151,7 +153,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
     setSaved(same && stored?.accountSaved === true);
   }, [submission, userUid]);
 
-  const runMatch = useCallback(async (input: LoveMatchInput, adChallenge?: string) => {
+  const runMatch = useCallback(async (input: LoveMatchInput, adChallenge?: string, purchaseOrderId?: string) => {
     const started = Date.now();
     const holdMs = cachedMatchHoldMs();
     setError("");
@@ -163,10 +165,11 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       const idToken = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/love-compatibility", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...input, idToken, adChallenge }),
+        body: JSON.stringify({ ...input, idToken, adChallenge, purchaseOrderId }),
       });
       if (response.status === 402) {
-        if (adChallenge) clearLoveMatchPending();
+        if (adChallenge || purchaseOrderId) clearLoveMatchPending();
+        if (purchaseOrderId) clearLoveMatchPurchaseOrder();
         setPendingInput(input);
         setAccessOpen(true);
         return;
@@ -176,7 +179,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
         setError(failure.error === "RATE_LIMITED" ? copy.rateError
           : failure.error === "INVALID_PHOTO_FIRST" ? copy.yourPhotoInvalid
           : failure.error === "INVALID_PHOTO_SECOND" ? copy.theirPhotoInvalid : copy.aiError);
-        if (response.status === 422) clearLoveMatchPending();
+        if (response.status === 422 && !purchaseOrderId) clearLoveMatchPending();
         return;
       }
       const data = await response.json() as { match?: AiLoveMatch; cached?: boolean };
@@ -188,6 +191,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       setSubmission({ you: input.you, them: input.them, firstBirthday: input.firstBirthday, secondBirthday: input.secondBirthday, input, match: data.match });
       setSaved(false);
       clearLoveMatchPending();
+      if (purchaseOrderId) clearLoveMatchPurchaseOrder();
     } catch { setError(copy.aiError); }
     finally { setLoading(false); }
   }, [copy]);
@@ -202,8 +206,8 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
     setFirstStory(input.firstStory); setSecondStory(input.secondStory);
     setFirstPhoto(input.firstPhoto || null); setSecondPhoto(input.secondPhoto || null);
     setStatus(input.status);
-    if (pending.challenge && pending.ready) {
-      void runMatch(input, pending.challenge);
+    if (pending.ready && (pending.challenge || pending.purchaseOrderId)) {
+      void runMatch(input, pending.challenge, pending.purchaseOrderId);
     } else if (pending.challenge) setError(copy.adUnavailable);
   }, [copy, runMatch]);
 
@@ -235,7 +239,9 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
     const pending = peekLoveMatchPending();
     const retryChallenge = pending?.ready && pending.challenge && JSON.stringify(pending.input) === JSON.stringify(input)
       ? pending.challenge : undefined;
-    await runMatch(input, retryChallenge);
+    const retryPurchase = pending?.ready && pending.purchaseOrderId
+      ? pending.purchaseOrderId : peekLoveMatchPurchaseOrder() ?? undefined;
+    await runMatch(input, retryChallenge, retryPurchase);
   }
 
   async function watchAd() {
@@ -251,7 +257,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       if (!saveLoveMatchPending(pendingInput, challenge)) throw new Error("Could not preserve form");
       const params = new URLSearchParams({ kind: "love-match", challenge, next: window.location.pathname, locale });
       window.location.assign(`/ad/unlock?${params}`);
-    } catch { setError(copy.adUnavailable); setAccessOpen(false); setUnlockBusy(false); }
+    } catch { setError(copy.adUnavailable); setAccessOpen(true); setPurchaseOptions(true); setUnlockBusy(false); }
   }
 
   function subscribe() {
@@ -478,5 +484,13 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       </section>}
     </div>
   </main>
+  <PlansModal
+    open={purchaseOptions}
+    onClose={() => setPurchaseOptions(false)}
+    source="love_match_ad_unavailable"
+    title={copy.accessTitle}
+    body={copy.adUnavailable}
+    oneTime={{ kind: "love-match", next: localePath("/love-compatibility", locale), onStart: () => pendingInput ? saveLoveMatchPending(pendingInput) : false }}
+  />
   </>;
 }

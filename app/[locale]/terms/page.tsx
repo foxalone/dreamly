@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalShell from "@/app/components/LegalShell";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeFromParams, localeMetadata } from "@/lib/i18n/page-locale";
-import { TermsBody, legalUpdatedLabel } from "@/lib/i18n/legal";
+import { TermsBody, purchaseLegalUpdatedLabel } from "@/lib/i18n/legal";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -21,7 +21,7 @@ export default async function Page({ params }: Props) {
   const locale = await localeFromParams(params);
   const t = getMessages(locale);
   return (
-    <LegalShell title={t.legal.terms} updated={legalUpdatedLabel(locale)} locale={locale}>
+    <LegalShell title={t.legal.terms} updated={purchaseLegalUpdatedLabel(locale)} locale={locale}>
       <TermsBody locale={locale} />
     </LegalShell>
   );

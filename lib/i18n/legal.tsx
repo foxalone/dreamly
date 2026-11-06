@@ -27,6 +27,17 @@ export function legalUpdatedLabel(locale: Locale): string {
   }
 }
 
+export function purchaseLegalUpdatedLabel(locale: Locale): string {
+  switch (locale) {
+    case "es": return "6 de noviembre de 2026";
+    case "ar": return "6 نوفمبر 2026";
+    case "pt": return "6 de novembro de 2026";
+    case "de": return "6. November 2026";
+    case "ru": return "6 ноября 2026 г.";
+    default: return "November 6, 2026";
+  }
+}
+
 export function PrivacyBody({ locale }: { locale: Locale }): ReactNode {
   switch (locale) {
     case "es":
@@ -333,6 +344,7 @@ function TermsEn() {
           Signed-in users receive limited free interpretations and can subscribe for more. Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
           <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
         </p>
+        <p>If an ad is unavailable, a separate $0.99 purchase unlocks only the selected action. It does not create a subscription or recurring payment.</p>
         <p>
           Cancel during the trial and you are not charged. After a paid period starts, you may cancel anytime and keep
           access until that period ends. See our <LocaleLink href="/refund">Refund Policy</LocaleLink>. Mandatory
@@ -694,6 +706,7 @@ function TermsEs() {
           pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta el pago a través
           de PayPal.
         </p>
+        <p>Si no hay un anuncio disponible, una compra única de $0.99 desbloquea solo la acción elegida. No crea una suscripción ni cobros recurrentes.</p>
         <p>
           Si cancela durante la prueba, no se cobra. Tras empezar un periodo de pago, puede cancelar cuando quiera y
           conserva el acceso hasta que termine ese periodo. Consulte nuestra{" "}
@@ -1037,6 +1050,7 @@ function TermsAr() {
           الأسعار وتجربة 3 أيام والحدود اليومية عند إتمام الشراء وفي صفحة{" "}
           <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويقبل البائع الدفع عبر PayPal.
         </p>
+        <p>عند عدم توفر إعلان، تفتح عملية شراء منفصلة بقيمة ‎$0.99 الإجراء المختار فقط. ولا تنشئ اشتراكًا أو رسومًا متكررة.</p>
         <p>
           إذا ألغيت أثناء التجربة فلن تُحصَّل أي رسوم. وبعد بدء فترة مدفوعة يمكنك الإلغاء في أي وقت ويبقى الوصول حتى
           نهايتها. انظر <LocaleLink href="/refund">سياسة الاسترداد</LocaleLink>. ولا تمس هذه السياسة حقوق المستهلك
@@ -1388,6 +1402,7 @@ function TermsPt() {
           Quem entra recebe um número limitado de interpretações grátis e pode assinar para ter mais. Preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
           <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
         </p>
+        <p>Se não houver anúncio disponível, uma compra avulsa de US$ 0,99 libera apenas a ação escolhida. Ela não cria assinatura nem cobrança recorrente.</p>
         <p>
           Cancele no teste e você não é cobrado. Depois que um período pago começa, cancele quando quiser e mantenha o
           acesso até o fim desse período. Veja a nossa{" "}
@@ -1753,6 +1768,7 @@ function TermsDe() {
           Preise, die 3-tägige Testphase und Tageslimits stehen beim Abschluss und auf der Seite{" "}
           <LocaleLink href="/pricing">Preise</LocaleLink>. Der Verkäufer nimmt die Zahlung über PayPal entgegen.
         </p>
+        <p>Wenn keine Werbung verfügbar ist, schaltet ein separater Kauf für 0,99 $ nur die gewählte Aktion frei. Es entsteht kein Abo und keine wiederkehrende Zahlung.</p>
         <p>
           Kündigen Sie in der Testphase, wird nichts berechnet. Nach Beginn einer bezahlten Periode können Sie jederzeit
           kündigen und behalten den Zugang bis zu deren Ende. Siehe unsere{" "}
@@ -2112,6 +2128,7 @@ function TermsRu() {
           После входа доступно ограниченное число бесплатных разборов; подписка позволяет получить больше. Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
           <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
         </p>
+        <p>Если реклама недоступна, отдельная покупка за $0.99 открывает только выбранное действие. Подписка и повторные списания при этом не оформляются.</p>
         <p>
           Отмена в пробный период — без списания. После начала оплаченного периода подписку можно отменить в любой
           момент, доступ сохранится до его конца. См. нашу{" "}
@@ -2223,10 +2240,11 @@ function RefundEn() {
       <section>
         <h2>1. What you buy</h2>
         <p>
-          Paid purchases unlock a Dreamly subscription for AI dream interpretations and related in-app features. Current
+          Dreamly subscriptions unlock AI dream interpretations and related in-app features. Current
           plans and prices appear on our <LocaleLink href="/pricing">Pricing</LocaleLink> page and at checkout. New
           subscriptions include a 3-day free trial.
         </p>
+        <p>A separate $0.99 one-time purchase unlocks only the selected action. It does not start a subscription or recurring payment.</p>
       </section>
 
       <section>
@@ -2290,11 +2308,12 @@ function RefundEs() {
       <section>
         <h2>1. Qué compra</h2>
         <p>
-          Las compras de pago desbloquean una suscripción Dreamly para interpretaciones con IA y funciones relacionadas
+          Las suscripciones Dreamly desbloquean interpretaciones con IA y funciones relacionadas
           en la aplicación. Los planes y precios vigentes aparecen en la página de{" "}
           <LocaleLink href="/pricing">Precios</LocaleLink> y en el momento del pago. Las suscripciones nuevas incluyen
           3 días de prueba gratis.
         </p>
+        <p>Una compra única de $0.99 desbloquea solo la acción elegida. No inicia una suscripción ni un cobro recurrente.</p>
       </section>
 
       <section>
@@ -2358,10 +2377,11 @@ function RefundAr() {
       <section>
         <h2>1. ما الذي تشتريه</h2>
         <p>
-          تفتح المشتريات المدفوعة اشتراك Dreamly لتفسيرات بالذكاء الاصطناعي وميزات مرتبطة داخل التطبيق. وتظهر الخطط
+          تتيح اشتراكات Dreamly تفسيرات بالذكاء الاصطناعي وميزات مرتبطة داخل التطبيق. وتظهر الخطط
           والأسعار الحالية في صفحة <LocaleLink href="/pricing">الأسعار</LocaleLink> وعند إتمام الشراء. وتشمل الاشتراكات
           الجديدة تجربة مجانية لثلاثة أيام.
         </p>
+        <p>تفتح عملية شراء منفصلة بقيمة ‎$0.99 الإجراء الذي اخترته فقط. ولا تبدأ اشتراكًا أو دفعات متكررة.</p>
       </section>
 
       <section>
@@ -2424,11 +2444,12 @@ function RefundPt() {
       <section>
         <h2>1. O que você compra</h2>
         <p>
-          As compras pagas liberam uma assinatura Dreamly para interpretações com IA e recursos relacionados no
+          As assinaturas Dreamly liberam interpretações com IA e recursos relacionados no
           aplicativo. Os planos e preços vigentes aparecem na página de{" "}
           <LocaleLink href="/pricing">Preços</LocaleLink> e no checkout. Assinaturas novas incluem 3 dias de teste
           grátis.
         </p>
+        <p>Uma compra avulsa de US$ 0,99 libera apenas a ação escolhida. Ela não inicia uma assinatura nem cobranças recorrentes.</p>
       </section>
 
       <section>
@@ -2493,10 +2514,11 @@ function RefundDe() {
       <section>
         <h2>1. Was Sie kaufen</h2>
         <p>
-          Kostenpflichtige Käufe schalten ein Dreamly-Abo für KI-Traumdeutungen und verwandte Funktionen in der App frei.
+          Dreamly-Abos schalten KI-Traumdeutungen und verwandte Funktionen in der App frei.
           Aktuelle Pläne und Preise stehen auf der Seite <LocaleLink href="/pricing">Preise</LocaleLink> und beim
           Abschluss. Neue Abos enthalten eine 3-tägige Testphase.
         </p>
+        <p>Ein separater Einmalkauf für 0,99 $ schaltet nur die gewählte Aktion frei. Er startet kein Abo und keine wiederkehrende Zahlung.</p>
       </section>
 
       <section>
@@ -2561,10 +2583,11 @@ function RefundRu() {
       <section>
         <h2>1. Что вы покупаете</h2>
         <p>
-          Платные покупки открывают подписку Dreamly на толкования снов с ИИ и связанные функции в приложении. Актуальные
+          Подписки Dreamly открывают толкования снов с ИИ и связанные функции в приложении. Актуальные
           тарифы и цены указаны на странице <LocaleLink href="/pricing">Цены</LocaleLink> и при оплате. Новые подписки
           включают пробный период 3 дня.
         </p>
+        <p>Отдельная разовая покупка за $0.99 открывает только выбранное действие. Она не оформляет подписку и не создаёт повторных списаний.</p>
       </section>
 
       <section>

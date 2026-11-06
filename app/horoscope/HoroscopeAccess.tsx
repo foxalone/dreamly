@@ -16,12 +16,13 @@ import type { Sign } from '@/lib/horoscope/model';
 import type { AccessInfo } from '@/lib/horoscope/access';
 import { horoscopeAccess } from '@/lib/i18n/horoscope-access';
 import { horoscopeCopy } from '@/lib/i18n/horoscope';
+import { actionPurchaseCopy } from '@/lib/i18n/action-purchase';
 import PlansModal from '@/app/components/PlansModal';
 import AnalysisExcerpt from '@/app/components/AnalysisExcerpt';
 export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:Locale;sign:Sign;sessionOnly?:boolean;preview?:[string,string]}){
   const router=useRouter(),t=horoscopeAccess[locale];
   const [user,setUser]=useState<User|null|undefined>(undefined),[info,setInfo]=useState<AccessInfo|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(false),[cycle,setCycle]=useState(0);
-  const [open,setOpen]=useState(false),[plansOpen,setPlansOpen]=useState(false);
+  const [open,setOpen]=useState(false),[plansOpen,setPlansOpen]=useState(false),[purchaseFallback,setPurchaseFallback]=useState(false);
   useEffect(()=>onAuthStateChanged(auth,setUser),[]);
   useEffect(()=>{
     if(!open||plansOpen)return;
@@ -59,7 +60,7 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:
       await fetch('/api/horoscope/request',{method:'POST',headers,body:JSON.stringify({sign,locale})});
       setOpen(false);
       router.refresh();
-    }catch{setError(true);}finally{setBusy(false);}
+    }catch{setError(true);if(ad){setPurchaseFallback(true);setPlansOpen(true);}}finally{setBusy(false);}
   }
   async function signIn(){
     if(busy)return;setBusy(true);setError(false);
@@ -80,11 +81,11 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:
         <div className="hc-access-choices">
           {guest?<button type="button" className="hc-button" disabled={busy||user===undefined} onClick={()=>void signIn()}><LogIn size={16} aria-hidden/>{t.signIn}</button>:null}
           <button type="button" className="hc-button hc-button-gold" disabled={busy||user===undefined||(!guest&&!info)} onClick={()=>void perform(!free)}>{free?<Sparkles size={16} aria-hidden/>:<Play size={16} aria-hidden/>}{busy?t.busy:free?t.open:t.ad}</button>
-          {info?.tier!=='paid'?<button type="button" className="hc-button" disabled={busy} onClick={()=>setPlansOpen(true)}>{t.subscribe}</button>:null}
+          {info?.tier!=='paid'?<button type="button" className="hc-button" disabled={busy} onClick={()=>{setPurchaseFallback(false);setPlansOpen(true);}}>{t.subscribe}</button>:null}
         </div>
         {error?<div className="hc-access-error"><p role="alert">{t.error}</p>{!info?<button type="button" className="hc-button" onClick={()=>{setError(false);setCycle(value=>value+1);}}>{t.retry}</button>:null}</div>:null}
       </section>
     </div>,document.body):null}
-    {typeof document!=='undefined'&&plansOpen?createPortal(<PlansModal open onClose={()=>{setPlansOpen(false);setOpen(false);}} source="horoscope" title={t.subscribe} body={t.paid}/>,document.body):null}
+    {typeof document!=='undefined'&&plansOpen?createPortal(<PlansModal open onClose={()=>{setPlansOpen(false);setOpen(false);}} source="horoscope" title={t.subscribe} body={purchaseFallback?actionPurchaseCopy[locale].unavailable:t.paid} oneTime={purchaseFallback?{kind:"horoscope",sign,next:localePath(`/horoscope/${sign}`,locale)}:null}/>,document.body):null}
   </>;
 }

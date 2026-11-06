@@ -40,9 +40,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400, headers });
   }
   if (!validLoveMatchInput(body)) return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400, headers });
-  const accessFields = body as LoveMatchInput & { idToken?: unknown; adChallenge?: unknown };
+  const accessFields = body as LoveMatchInput & { idToken?: unknown; adChallenge?: unknown; purchaseOrderId?: unknown };
   if ((accessFields.idToken !== undefined && (typeof accessFields.idToken !== "string" || accessFields.idToken.length > 5000)) ||
-      (accessFields.adChallenge !== undefined && (typeof accessFields.adChallenge !== "string" || accessFields.adChallenge.length > 64))) {
+      (accessFields.adChallenge !== undefined && (typeof accessFields.adChallenge !== "string" || accessFields.adChallenge.length > 64)) ||
+      (accessFields.purchaseOrderId !== undefined && (typeof accessFields.purchaseOrderId !== "string" || accessFields.purchaseOrderId.length > 80))) {
     return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400, headers });
   }
   for (const photo of [body.firstPhoto, body.secondPhoto]) {
@@ -61,9 +62,11 @@ export async function POST(request: Request) {
     const cacheRef = db.collection("loveMatchCache").doc(loveMatchCacheId(body));
     if (!key || !salt) return NextResponse.json({ error: "AI_UNAVAILABLE" }, { status: 503, headers });
     let paid = false;
+    let buyerUid: string | null = null;
     if (typeof accessFields.idToken === "string" && accessFields.idToken) {
       try {
         const uid = (await adminAuth().verifyIdToken(accessFields.idToken)).uid;
+        buyerUid = uid;
         const profile = await db.collection("users").doc(uid).get();
         paid = hasPaidAccess(profile.data() as UserBillingFields | undefined);
       } catch { paid = false; }
@@ -77,25 +80,34 @@ export async function POST(request: Request) {
     const guestId = readGuestId(request);
     const challenge = typeof accessFields.adChallenge === "string" ? accessFields.adChallenge : "";
     const grantRef = !paid && /^[0-9a-f-]{36}$/.test(challenge) ? db.collection("loveMatchAdChallenges").doc(challenge) : null;
+    const purchaseOrderId = typeof accessFields.purchaseOrderId === "string" ? accessFields.purchaseOrderId : "";
+    const purchaseRef = !paid && /^[A-Za-z0-9_-]{8,80}$/.test(purchaseOrderId) ? db.collection("loveMatchPurchases").doc(purchaseOrderId) : null;
     // Only the development server may bypass payment; every production host requires a completed ad or subscription.
     const localTesting = process.env.NODE_ENV !== "production";
-    if (!paid && !localTesting && (!guestId || !grantRef)) return NextResponse.json({ error: "ACCESS_REQUIRED" }, { status: 402, headers });
+    if (!paid && !localTesting && (!guestId || !grantRef && !purchaseRef)) return NextResponse.json({ error: "ACCESS_REQUIRED" }, { status: 402, headers });
     const allowed = await db.runTransaction(async transaction => {
       const snapshot = await transaction.get(ref);
       const grant = grantRef ? await transaction.get(grantRef) : null;
       const grantData = grant?.data();
-      if (!paid && !localTesting && (!grantData || grantData.guestId !== guestId || grantData.completed !== true || grantData.used === true || grantData.expiresAt <= Date.now())) return "access";
-      if (!localTesting && Number(snapshot.data()?.count ?? 0) >= (paid ? 50 : 10)) return "limit";
+      const purchase = purchaseRef ? await transaction.get(purchaseRef) : null;
+      const purchaseData = purchase?.data();
+      const validPurchase = !!purchaseData && purchaseData.guestId === guestId && purchaseData.uid === buyerUid && purchaseData.used !== true;
+      const validAd = !!grantData && grantData.guestId === guestId && grantData.completed === true && grantData.used !== true && grantData.expiresAt > Date.now();
+      if (!paid && !localTesting && !validPurchase && !validAd) return "access";
+      if (!localTesting && Number(snapshot.data()?.count ?? 0) >= (paid || validPurchase ? 50 : 10)) return "limit";
       transaction.set(ref, { count: FieldValue.increment(1), day, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-      if (grantRef) transaction.set(grantRef, { used: true, usedAt: Date.now() }, { merge: true });
-      return "ok";
+      if (validPurchase && purchaseRef) transaction.set(purchaseRef, { used: true, usedAt: Date.now() }, { merge: true });
+      else if (grantRef) transaction.set(grantRef, { used: true, usedAt: Date.now() }, { merge: true });
+      return validPurchase ? "purchase" : "ok";
     });
     if (allowed === "access") return NextResponse.json({ error: "ACCESS_REQUIRED" }, { status: 402, headers });
     if (allowed === "limit") return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429, headers: { ...headers, "Retry-After": "3600" } });
+    const consumedPurchase = allowed === "purchase";
     refundLimit = async () => {
       const batch = db.batch();
       batch.set(ref, { count: FieldValue.increment(-1) }, { merge: true });
       if (grantRef) batch.set(grantRef, { used: false }, { merge: true });
+      if (consumedPurchase && purchaseRef) batch.set(purchaseRef, { used: false }, { merge: true });
       await batch.commit();
     };
     // A cached reading still requires access and consumes this request's ad grant or paid allowance.
@@ -129,8 +141,8 @@ export async function POST(request: Request) {
       let verdict: unknown = {};
       try { verdict = JSON.parse(verdictText); } catch { /* An unreadable verdict is treated as invalid. */ }
       const photoVerdict = verdict && typeof verdict === "object" ? verdict as { first?: string; second?: string } : {};
-      if (body.firstPhoto && photoVerdict.first !== "human") return NextResponse.json({ error: "INVALID_PHOTO_FIRST" }, { status: 422, headers });
-      if (body.secondPhoto && photoVerdict.second !== "human") return NextResponse.json({ error: "INVALID_PHOTO_SECOND" }, { status: 422, headers });
+      if (body.firstPhoto && photoVerdict.first !== "human") { if (consumedPurchase) await refundLimit(); return NextResponse.json({ error: "INVALID_PHOTO_FIRST" }, { status: 422, headers }); }
+      if (body.secondPhoto && photoVerdict.second !== "human") { if (consumedPurchase) await refundLimit(); return NextResponse.json({ error: "INVALID_PHOTO_SECOND" }, { status: 422, headers }); }
     }
     const { analysis } = await generateDreamAnalysis(async model => {
       const completion = await openai.chat.completions.create({

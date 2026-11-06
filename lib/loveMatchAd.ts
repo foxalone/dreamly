@@ -1,7 +1,8 @@
 import { validLoveMatchInput, type LoveMatchInput } from "./loveMatchAi";
 
 const key = "dreamly.loveMatchPending";
-type Pending = { input: LoveMatchInput; challenge?: string; ready?: boolean; atMs: number };
+const purchaseKey = "dreamly.loveMatchPurchase";
+type Pending = { input: LoveMatchInput; challenge?: string; purchaseOrderId?: string; ready?: boolean; atMs: number };
 
 export function saveLoveMatchPending(input: LoveMatchInput, challenge?: string): boolean {
   try {
@@ -30,6 +31,27 @@ export function markLoveMatchAdReady(challenge: string): boolean {
     sessionStorage.setItem(key, JSON.stringify({ ...pending, ready: true } satisfies Pending));
     return true;
   } catch { return false; }
+}
+
+export function markLoveMatchPurchaseReady(orderId: string): boolean {
+  if (!/^[A-Za-z0-9_-]{8,80}$/.test(orderId)) return false;
+  try {
+    sessionStorage.setItem(purchaseKey, orderId);
+    const pending = peekLoveMatchPending();
+    if (pending) sessionStorage.setItem(key, JSON.stringify({ ...pending, challenge: undefined, purchaseOrderId: orderId, ready: true } satisfies Pending));
+    return true;
+  } catch { return false; }
+}
+
+export function peekLoveMatchPurchaseOrder(): string | null {
+  try {
+    const orderId = sessionStorage.getItem(purchaseKey) ?? "";
+    return /^[A-Za-z0-9_-]{8,80}$/.test(orderId) ? orderId : null;
+  } catch { return null; }
+}
+
+export function clearLoveMatchPurchaseOrder() {
+  try { sessionStorage.removeItem(purchaseKey); } catch { /* ignore */ }
 }
 
 export function clearLoveMatchPending() {

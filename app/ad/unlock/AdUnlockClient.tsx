@@ -20,6 +20,9 @@ import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportA
 import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
 import { offerwallVisible } from "@/lib/offerwallVisibility";
 import { markLoveMatchAdReady } from "@/lib/loveMatchAd";
+import PlansModal from "@/app/components/PlansModal";
+import type { OneTimePurchase } from "@/app/components/OneTimePurchaseButton";
+import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -58,6 +61,7 @@ export default function AdUnlockClient() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [signInBusy, setSignInBusy] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
+  const [showPaidChoices, setShowPaidChoices] = useState(true);
   const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -340,6 +344,13 @@ export default function AdUnlockClient() {
   }
 
   const m = t.adUnlock;
+  const oneTime: OneTimePurchase = {
+    kind,
+    challenge: sp.get("challenge") ?? undefined,
+    sharedDreamId: sp.get("sharedDreamId") ?? pending.current?.dreamId ?? undefined,
+    targetLang: sp.get("targetLang") ?? pending.current?.targetLang ?? undefined,
+    next,
+  };
   const text =
     phase === "done"
       ? m.done
@@ -387,10 +398,21 @@ export default function AdUnlockClient() {
                 <span>{t.common.signIn}</span>
               </button>
             ) : null}
+            {phase === "unavailable" && !showPaidChoices ? (
+              <button type="button" className="dream-btn dream-btn--neutral mt-3 w-full" onClick={() => setShowPaidChoices(true)}>{actionPurchaseCopy[locale].title} · $0.99</button>
+            ) : null}
           </>
         ) : null}
         {signInError ? <p role="alert" className="mt-3 text-sm text-red-500">{signInError}</p> : null}
       </div>
+      <PlansModal
+        open={phase === "unavailable" && showPaidChoices}
+        onClose={() => setShowPaidChoices(false)}
+        source={`ad_unavailable_${kind}`}
+        title={m.title}
+        body={m.none}
+        oneTime={oneTime}
+      />
     </main>
   );
 }

@@ -9,6 +9,8 @@ import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import RewardedAdButton from "./RewardedAdButton";
+import OneTimePurchaseButton, { type OneTimePurchase } from "./OneTimePurchaseButton";
+import CheckoutLegalConsent from "./CheckoutLegalConsent";
 
 type Props = {
   open: boolean;
@@ -29,6 +31,7 @@ type Props = {
     translation?: { sharedDreamId: string; targetLang: string };
     reading?: { sharedDreamId: string };
   } | null;
+  oneTime?: OneTimePurchase | null;
 };
 
 function fmtMoney(price: string, currency: string) {
@@ -46,7 +49,7 @@ function fmtMoney(price: string, currency: string) {
  * (e.g. the second translation of the day). Picking a plan sends the user
  * to /app/upgrade?pkg=<plan>, where the PayPal checkout lives.
  */
-export default function PlansModal({ open, onClose, source, title, body, rewarded }: Props) {
+export default function PlansModal({ open, onClose, source, title, body, rewarded, oneTime }: Props) {
   const router = useRouter();
   const locale = useLocale();
   const t = useMessages();
@@ -111,7 +114,7 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -135,12 +138,13 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
           </button>
         </div>
         <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{t.plansModal.unlimitedNote}</p>
+        {!oneTime ? <p className="mt-1 text-xs text-[var(--muted)]">{t.plansModal.unlimitedNote}</p> : null}
         <div className="mt-5 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-          {rewarded ? t.plansModal.chooseAccess : t.plansModal.choosePlan}
+          {rewarded || oneTime ? t.plansModal.chooseAccess : t.plansModal.choosePlan}
         </div>
-        <div className={`mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 ${rewarded ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+        <div className={`mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 ${rewarded || oneTime ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
           {plans}
+          {oneTime ? <OneTimePurchaseButton purchase={oneTime} /> : null}
           {rewarded ? (
             <RewardedAdButton
               label={t.plansModal.adCardCta}
@@ -154,9 +158,10 @@ export default function PlansModal({ open, onClose, source, title, body, rewarde
             />
           ) : null}
         </div>
+        {oneTime ? <CheckoutLegalConsent className="mt-3 text-xs text-[var(--muted)]" /> : null}
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-xs text-[var(--muted)]">{t.pricing.cancelAnytime}</span>
+          <span className="text-xs text-[var(--muted)]">{oneTime ? "" : t.pricing.cancelAnytime}</span>
           <button type="button" onClick={onClose} className="dream-btn dream-btn--neutral text-sm">
             {t.plansModal.notNow}
           </button>

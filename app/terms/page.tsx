@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LegalShell from "@/app/components/LegalShell";
 import { getMessages } from "@/lib/i18n/messages";
 import { localeMetadata } from "@/lib/i18n/page-locale";
-import { TermsBody, legalUpdatedLabel } from "@/lib/i18n/legal";
+import { TermsBody, purchaseLegalUpdatedLabel } from "@/lib/i18n/legal";
 
 const t = getMessages("en");
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalShell title={t.legal.terms} updated={legalUpdatedLabel("en")} locale="en">
+    <LegalShell title={t.legal.terms} updated={purchaseLegalUpdatedLabel("en")} locale="en">
       <TermsBody locale="en" />
     </LegalShell>
   );

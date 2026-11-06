@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { logPaypal, paypalFetch } from "@/lib/paypal/server";
 import { subscriptionIdFromWebhook, syncPaypalSubscriptionToUser } from "@/lib/paypal/syncSubscription";
+import { capturedOrder, fulfillActionOrder, orderPath } from "@/lib/paypal/actionPurchase";
+import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 
 function header(req: Request, name: string) {
   return req.headers.get(name) ?? req.headers.get(name.toLowerCase()) ?? "";
@@ -34,7 +36,7 @@ async function verifyWebhook(req: Request, event: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const event = (await req.json().catch(() => ({}))) as { id?: unknown; event_type?: unknown };
+    const event = (await req.json().catch(() => ({}))) as { id?: unknown; event_type?: unknown; resource?: { supplementary_data?: { related_ids?: { order_id?: unknown } } } };
     const eventId = String(event?.id ?? "");
     const eventType = String(event?.event_type ?? "");
     const ok = await verifyWebhook(req, event);
@@ -47,7 +49,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid PayPal webhook signature." }, { status: 400 });
     }
 
-    const subscriptionId = subscriptionIdFromWebhook(event);
+    const subscriptionId = eventType.startsWith("BILLING.SUBSCRIPTION") || eventType.startsWith("PAYMENT.SALE")
+      ? subscriptionIdFromWebhook(event) : "";
+    if (eventType === "PAYMENT.CAPTURE.COMPLETED") {
+      const orderId = String(event.resource?.supplementary_data?.related_ids?.order_id ?? "");
+      if (/^[A-Za-z0-9_-]{8,80}$/.test(orderId) && (await adminDb().doc(orderPath(orderId)).get()).exists) {
+        const { captureId } = await capturedOrder(orderId);
+        await fulfillActionOrder(orderId, captureId);
+        logPaypal("info", "webhook.action-fulfilled", { eventId, orderId });
+      }
+    }
     if (subscriptionId) {
       const synced = await syncPaypalSubscriptionToUser({ subscriptionId, raw: event });
       logPaypal("info", "webhook.synced", {

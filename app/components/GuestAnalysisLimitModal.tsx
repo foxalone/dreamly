@@ -7,6 +7,8 @@ import type { PaywallRequest } from "@/lib/paywall";
 import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 import { trackEvent } from "@/lib/analytics";
+import PlansModal from "./PlansModal";
+import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 
 /**
  * Guest choice: sign in, or watch a short ad. Same look as PlansModal — a grid of
@@ -36,6 +38,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         signIn: t.common.signIn,
       };
   const [ad, setAd] = useState<"loading" | "ready" | "credit" | "limit" | "failed">("loading");
+  const [paidChoices, setPaidChoices] = useState(false);
   const closeRef = useRef(onClose);
   const signInRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -64,7 +67,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
         const data = await res.json();
         if (!cancelled) setAd(data.credits > 0 ? "credit" : data.leftToday > 0 ? "ready" : "limit");
       })
-      .catch(() => { if (!cancelled) setAd("failed"); });
+      .catch(() => { if (!cancelled) { setAd("failed"); setPaidChoices(true); } });
     return () => {
       cancelled = true;
       window.removeEventListener("keydown", onKey);
@@ -92,6 +95,12 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       ? localePath("/app/dreams", locale)
       : undefined;
     window.location.assign(adUnlockUrl(kind, next, request.translation, request.reading));
+  }
+
+  function preparePurchase() {
+    if (kind === "analysis") setAdUnlockPending({ kind, dreamText: request.analysisDreamText, quickSymbol: request.analysisQuickSymbol });
+    if (kind === "reading" && request.reading?.sharedDreamId) setAdUnlockPending({ kind, dreamId: request.reading.sharedDreamId });
+    if (kind === "translate" && request.translation) setAdUnlockPending({ kind, dreamId: request.translation.sharedDreamId, targetLang: request.translation.targetLang });
   }
 
   if (ad === "loading") return (
@@ -175,12 +184,14 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
               </span>
             ) : null}
           </button>
+          {ad === "failed" || ad === "limit" ? <button type="button" onClick={() => setPaidChoices(true)} className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-start transition hover:border-violet-400/60"><span className="text-base font-semibold">{actionPurchaseCopy[locale].title}</span><span className="mt-1 text-sm text-[var(--muted)]">{actionPurchaseCopy[locale].description}</span></button> : null}
         </div>
 
         <div className="mt-4 flex justify-end">
           <button type="button" className="dream-btn dream-btn--neutral text-sm" onClick={dismiss}>{pm.notNow}</button>
         </div>
       </div>
+      <PlansModal open={paidChoices} onClose={() => setPaidChoices(false)} source={`${request.source}_ad_unavailable`} title={copy.title} body={ad === "limit" ? pm.adDailyLimit : pm.adUnavailable} oneTime={{ kind, ...request.translation, ...request.reading, next: kind === "analysis" ? localePath("/app/dreams", locale) : typeof window !== "undefined" ? window.location.pathname + window.location.search : "/", onStart: preparePurchase }} />
     </div>
   );
 }

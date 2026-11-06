@@ -10,6 +10,7 @@ import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import type { Locale } from "@/lib/i18n/config";
 import { localePath } from "@/lib/i18n/path";
 import { tarotAccessCopy } from "@/lib/i18n/tarotAccess";
+import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 import type { MajorArcanaId } from "@/lib/tarot/deck";
 import PlansModal from "../PlansModal";
 import styles from "./TarotAccessDialog.module.css";
@@ -24,6 +25,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
   const [error, setError] = useState(false);
   const [openingAd, setOpeningAd] = useState(false);
   const [plans, setPlans] = useState(false);
+  const [purchaseFallback, setPurchaseFallback] = useState(false);
   const returnTo = window.location.pathname + window.location.search + window.location.hash;
   const readingUrl = `${localePath(`/tarot/${day}/${cardId}`, locale)}?${new URLSearchParams({ back: returnTo })}`;
 
@@ -108,7 +110,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
       const query = new URLSearchParams({ kind: "tarot", challenge: result.challenge, next: readingUrl, back: returnTo, locale });
       // The AdSense Offerwall runs on a document load, and a client route change leaves this dialog mounted.
       window.location.assign(`/ad/unlock?${query.toString()}`);
-    } catch { setOpeningAd(false); setError(true); setBusy(false); }
+    } catch { setOpeningAd(false); setError(true); setBusy(false); setPurchaseFallback(true); setPlans(true); }
   }
 
   const description = info?.tier === "guest" ? copy.guest : copy.adOrPlan;
@@ -123,11 +125,11 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
         <div className={styles.actions}>
           {info?.tier === "guest" ? <button type="button" disabled={busy} onClick={() => void signIn()}>{copy.signIn}</button> : null}
           {info && info.tier !== "paid" ? <button type="button" className={styles.primary} disabled={busy} onClick={() => void watchAd()}>{copy.watchAd}</button> : null}
-          {info && info.tier !== "paid" ? <button type="button" disabled={busy} onClick={() => setPlans(true)}>{copy.subscribe}</button> : null}
+          {info && info.tier !== "paid" ? <button type="button" disabled={busy} onClick={() => { setPurchaseFallback(false); setPlans(true); }}>{copy.subscribe}</button> : null}
           {error && !info ? <button type="button" disabled={busy} onClick={() => void load()}>{copy.read}</button> : null}
         </div>
       </section>
     </div>
-    <PlansModal open={plans} onClose={() => setPlans(false)} source="tarot_daily" title={copy.planTitle} body={copy.planBody} />
+    <PlansModal open={plans} onClose={() => setPlans(false)} source="tarot_daily" title={copy.planTitle} body={purchaseFallback ? actionPurchaseCopy[locale].unavailable : copy.planBody} oneTime={purchaseFallback ? { kind: "tarot", day, cardId, next: readingUrl } : null} />
   </>, document.body);
 }

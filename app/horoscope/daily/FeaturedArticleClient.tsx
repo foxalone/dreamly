@@ -14,6 +14,8 @@ import { type FeaturedForecast } from "@/lib/featuredHoroscope";
 import type { FeaturedDreamRecommendation } from "@/lib/featuredDreamRecommendations";
 import { SYMBOLS, SIGNS } from "@/lib/horoscope/model";
 import { resolveTranslationLanguage, TRANSLATION_LANGUAGES } from "@/lib/translationLanguage";
+import PlansModal from "@/app/components/PlansModal";
+import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 
 type PublicForecast = Pick<FeaturedForecast, "day" | "sign" | "headline" | "teaser" | "publishedAtMs">;
 type Content = Pick<FeaturedForecast, "headline" | "teaser" | "opening" | "relationships" | "work" | "wellbeing" | "takeaway">;
@@ -28,6 +30,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
   const [locked, setLocked] = useState<Locked>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [purchasePurpose, setPurchasePurpose] = useState<"read" | "translate" | null>(null);
   useEffect(() => onAuthStateChanged(auth, setUser), []);
   useEffect(() => {
     const update = () => setTargetLang(resolveTranslationLanguage(null, navigator.languages?.length ? navigator.languages : [navigator.language]));
@@ -87,7 +90,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
       const next = localePath(`/horoscope/daily/${forecast.day}`, locale) + (purpose === "translate" ? `?translate=${targetLang}` : "");
       const params = new URLSearchParams({ kind: "featured", challenge, next, locale });
       window.location.assign(`/ad/unlock?${params}`);
-    } catch { setBusy(false); setError(true); }
+    } catch { setBusy(false); setError(true); setPurchasePurpose(purpose); }
   }
 
   const name = horoscopeCopy[locale].signs[forecast.sign];
@@ -149,6 +152,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
           </div>
         </section> : null}
       </div>
+      <PlansModal open={purchasePurpose !== null} onClose={() => setPurchasePurpose(null)} source="featured_ad_unavailable" title={t.title} body={actionPurchaseCopy[locale].unavailable} oneTime={purchasePurpose ? { kind: "featured", day: forecast.day, purpose: purchasePurpose, lang: purchasePurpose === "translate" ? targetLang : undefined, next: localePath(`/horoscope/daily/${forecast.day}`, locale) + (purchasePurpose === "translate" ? `?translate=${targetLang}` : "") } : null} />
     </main>
   );
 }
