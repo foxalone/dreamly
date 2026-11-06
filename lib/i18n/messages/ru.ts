@@ -4,6 +4,7 @@ export const RU_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "Сонник Dreamly" },
   launch: {"tagline": "Открой мир сновидений", "art": "Из коллекции Dreamly Art", "enter": "Войти"},
   nav: {
+    loveCompatibility: "Любовная совместимость",
     horoscope: "Гороскоп",
     dreams: "Сны",
     feed: "Лента",

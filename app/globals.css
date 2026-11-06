@@ -476,6 +476,9 @@ html.locale-ru body {
   font-family: var(--font-noto-sans), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+@keyframes love-target-catch { 40% { filter: drop-shadow(0 0 12px #f7c6ea) } }
+[data-profile-target].love-target-caught { animation: love-target-catch .7s ease }
+@media (prefers-reduced-motion: reduce) { [data-profile-target].love-target-caught { animation: none } }
 @keyframes dream-analysis-progress {
   from { transform: translateX(-100%); }
   to { transform: translateX(350%); }

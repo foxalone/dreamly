@@ -19,6 +19,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { localePath } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import ShareBadgeTimeline from "@/app/components/ShareBadgeTimeline";
+import LoveMatchProfile from "./LoveMatchProfile";
 import TarotProfileCards from "./TarotProfileCards";
 import ProfileTranslationLanguagePicker from "./ProfileTranslationLanguagePicker";
 import { countMySharedDreams } from "@/lib/mySharedDreamsCount";
@@ -237,6 +238,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </section>
+
+      {user ? <LoveMatchProfile key={user.uid} user={user} /> : null}
 
       {user ? <TarotProfileCards key={user.uid} user={user} /> : null}
 

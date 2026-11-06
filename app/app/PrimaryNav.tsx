@@ -314,6 +314,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
       {user ? (
         <LocaleLink
           href={profileHref}
+          data-profile-target=""
           data-google-vignette="false"
           aria-current={profileActive ? "page" : undefined}
           className={cls(
@@ -328,6 +329,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
       ) : (
         <button
           type="button"
+          data-profile-target=""
           onClick={signIn}
           disabled={busy}
           className={cls(

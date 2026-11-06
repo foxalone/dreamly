@@ -1,0 +1,36 @@
+.row { display:flex; flex-wrap:wrap; gap:1rem; margin-top:1.25rem }
+.card { position:relative; width:10rem; max-width:100% }
+.pair { display:grid; justify-items:center; gap:.35rem; width:100%; padding:.35rem; border:0; border-radius:1rem; background:transparent; color:var(--text); cursor:pointer; font:inherit }
+.remove { position:absolute; top:.15rem; inset-inline-end:.15rem; z-index:1; display:grid; place-items:center; width:1.35rem; height:1.35rem; border:0; border-radius:50%; background:transparent; color:#c7b8d2; cursor:pointer }
+.card[data-has-status="true"] .remove { top:2.6rem }
+.remove:hover,.remove:focus-visible { background:#ffffff18; color:#fff }
+.remove:focus-visible { outline:2px solid #f4b7e1; outline-offset:2px }
+.confirm { width:min(100%, 24rem); border:1px solid #e8b6da55; border-radius:1.1rem; background:#24162f; color:#f6eef8; padding:1.2rem 1.2rem 1rem }
+.confirm h3 { margin:0 0 .45rem; font-size:1.15rem }
+.confirm p { margin:0; color:#d7cadb; line-height:1.5 }
+.confirmActions { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1rem }
+.confirmActions button { min-height:40px; padding:.45rem .9rem; border:1px solid #e8b6da77; border-radius:.7rem; background:transparent; color:#f6eef8; cursor:pointer; font:inherit }
+.confirmActions button:last-child { background:#a94d87; border-color:#f2bce0 }
+.confirmActions button:disabled { opacity:.6; cursor:default }
+.deleteError { margin-top:.7rem !important; color:#ffb2b2 !important }
+.pair:hover { background:#ffffff10 }
+.pair:focus-visible { outline:2px solid #f4b7e1; outline-offset:3px }
+.ringCluster { position:relative; display:inline-block; margin-top:.55rem }
+.rings { display:flex; align-items:center }
+.rings span { display:grid; place-items:center; width:3.4rem; height:3.4rem; border-radius:50%; border:3px solid #f0c4de; background:radial-gradient(circle at 35% 30%, #6d4a86, #2a1738); color:#fff; font-size:1.15rem; font-weight:700; box-shadow:inset 0 0 0 4px #ffffff18, 0 8px 16px #0004 }
+.rings span + span { margin-inline-start:-1rem }
+.names { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.78rem; color:var(--muted) }
+.pair strong { font-size:.85rem; color:#f4c5dd }
+.status { position:absolute; z-index:2; top:-.15rem; left:50%; display:block; width:max-content; max-width:calc(100% + 2.6rem); padding:.34rem .7rem; border:2px solid #e8bd70; border-radius:.4rem; background:#8d1d32; box-shadow:inset 0 0 0 2px #641225, 0 3px 8px #0008; color:#ffe4a1; font-size:.6rem; font-weight:800; line-height:1.15; letter-spacing:.055em; text-align:center; text-transform:uppercase; white-space:nowrap; transform:translateX(-50%) rotate(-8deg); text-shadow:0 1px 1px #3d0918 }
+.status::before { position:absolute; inset:3px; border:1px dashed #f5cc8288; border-radius:.15rem; content:""; pointer-events:none }
+.dialog { position:relative; width:min(100%, 40rem); max-height:min(85vh, 46rem); overflow:auto; border:1px solid #e8b6da55; border-radius:1.2rem; background:#24162f; color:#f6eef8; padding:1.4rem 1.3rem 1.5rem; box-shadow:0 24px 60px #000a }
+.dialog h3 { margin:.2rem 0 .4rem; padding-inline-end:2rem; font-size:1.35rem }
+.dialog h4 { margin:1rem 0 .3rem; font-size:.95rem }
+.dialog p { margin:0; color:#d7cadb; line-height:1.6; font-size:.92rem }
+.close { position:absolute; top:.7rem; inset-inline-end:.7rem; display:grid; place-items:center; width:2.2rem; height:2.2rem; border:1px solid #e8b6da77; border-radius:50%; background:#1c1428; color:#f6eef8; cursor:pointer }
+.eyebrow { color:#f4c5dd; font-size:.72rem; letter-spacing:.08em }
+.overall { margin:.2rem 0 .8rem !important; color:#fff !important; font-weight:700 }
+.scores { display:grid; gap:.7rem; margin-top:1rem }
+.scoreLine { display:flex; justify-content:space-between; gap:.5rem; font-size:.84rem }
+.track { display:block; height:8px; overflow:hidden; border-radius:999px; background:#ffffff22 }
+.track span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, #a465b4, #edb6d9) }

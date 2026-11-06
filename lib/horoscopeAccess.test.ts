@@ -106,7 +106,7 @@ test('protected server reads and generation/status API check access before stora
  const route=readFileSync('app/api/horoscope/request/route.ts','utf8');
  assert.equal((route.match(/if \(!requestHasHoroscopeAccess/g)||[]).length,2);
  const ad=readFileSync('app/ad/unlock/AdUnlockClient.tsx','utf8');
- assert.ok(ad.includes('(kind === "horoscope" || kind === "featured" || kind === "tarot") && !entitled ? "failed"'));
+ assert.ok(ad.includes('(kind === "horoscope" || kind === "featured" || kind === "tarot" || kind === "love-match") && !entitled ? "failed"'));
  assert.ok(ad.includes('kind !== "analysis") return;')); // horoscope never receives no-fill fallback
  const endpoint=readFileSync('app/api/horoscope/ad/route.ts','utf8');
  assert.ok(endpoint.indexOf("if(!cookieFromRequest(request,'FCOEC'))")<endpoint.indexOf('await completeHoroscopeAd'));

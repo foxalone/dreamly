@@ -30,6 +30,24 @@
 .horoscopeWheel :global(.hc-wheel) path { fill:light-dark(#b888dc63,#cba8f24d); stroke:light-dark(#98621f,#ffdc8c); stroke-width:2; transform-box:fill-box; transform-origin:center; animation:horoscope-heartbeat 4.5s ease-in-out infinite }
 .horoscopeTooltip { pointer-events:none; position:absolute; left:calc(100% + 12px); padding:6px 10px; border:1px solid light-dark(#a8783e66,#e7c27a55); border-radius:8px; background:light-dark(#fff9ed,#21153e); color:light-dark(#604016,#f8e7bc); font-size:12px; font-weight:600; white-space:nowrap; opacity:0; transition:opacity .2s }
 .horoscopeFab:hover .horoscopeTooltip,.horoscopeFab:focus-visible .horoscopeTooltip { opacity:1 }
+.compatibilityFab { position:fixed; z-index:38; left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 222px); display:grid; place-items:center; width:88px; height:98px; transform:translateX(-50%); outline-offset:5px; -webkit-tap-highlight-color:transparent }
+.compatibilityFab[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 222px) }
+.compatibilityFab:focus-visible { outline:2px solid #e6d5fa; border-radius:50% }
+.caught { animation:crystal-catch .7s ease }
+@keyframes crystal-catch { 0%,100% { transform:translateX(-50%) scale(1) } 40% { transform:translateX(-50%) scale(1.06); filter:drop-shadow(0 0 14px #f7c6ea) } }
+.compatibilityTooltip { pointer-events:none; position:absolute; left:calc(100% + 8px); top:35%; padding:6px 10px; border:1px solid #e6d5fa55; border-radius:8px; background:light-dark(#fff9f5,#21153e); color:light-dark(#4e345f,#f4e8ff); font-size:12px; font-weight:600; white-space:nowrap; opacity:0; transition:opacity .2s }
+.compatibilityFab:hover .compatibilityTooltip,.compatibilityFab:focus-visible .compatibilityTooltip { opacity:1 }
+.crystalBall { width:100%; height:100%; overflow:visible; filter:drop-shadow(0 0 8px #ad87eaaa) drop-shadow(0 7px 8px #10091dbb); animation:crystal-float 3.8s ease-in-out infinite }
+.crystalRays { pointer-events:none }
+.crystalRay { transform-box:view-box; transform-origin:50% 38.4%; opacity:0; filter:drop-shadow(0 0 3px #fff8) }
+.compatibilityFab:hover .crystalRay,.compatibilityFab:focus-visible .crystalRay { animation:crystal-ray 1.25s ease-out infinite }
+.crystalSphere { filter:drop-shadow(0 0 5px #c9adff88) }
+.crystalMist { transform-box:fill-box; transform-origin:center; animation:crystal-breathe 3.6s ease-in-out infinite }
+.crystalSwirl { transform-box:view-box; transform-origin:50% 38%; animation:crystal-swirl 15s linear infinite }
+.crystalSheen { animation:crystal-sheen 5s ease-in-out infinite }
+.crystalGlimmer { transform-box:fill-box; transform-origin:center; animation:crystal-twinkle 2.8s ease-in-out infinite }
+.crystalSparkle { transform-box:fill-box; transform-origin:center; animation:crystal-twinkle 2.3s ease-in-out infinite }
+.crystalSparkle:last-child { animation-delay:-1.2s }
 .tarotCard { position:absolute; left:50%; bottom:0; display:grid; place-items:center; width:34px; height:52px; overflow:hidden; border:1px solid #fff0b3; border-radius:5px; background:linear-gradient(135deg,#fff5be 0%,#e5ac48 22%,#aa651d 48%,#f8d986 73%,#a25a13 100%); box-shadow:inset 0 0 0 2px #72401280,inset 0 0 10px #fff7d2aa,0 3px 12px #09030cc0,0 0 9px #f5c96a80; transform-origin:50% 90%; transition:transform .45s cubic-bezier(.2,.8,.2,1) }
 .tarotCard:nth-child(1) { transform:translateX(-31px) rotate(-8deg) }
 .tarotCard:nth-child(2) { z-index:2; transform:translateX(-50%) translateY(-7px) }
@@ -47,17 +65,25 @@
 @keyframes horoscope-turn { to { transform:rotate(360deg) } }
 @keyframes horoscope-heartbeat { 0%,100% { transform:scale(.95); fill:light-dark(#b888dc63,#cba8f24d) } 50% { transform:scale(1.12); fill:light-dark(#ac74cf8a,#e8bcf27a) } }
 @keyframes horoscope-starlight { 0% { opacity:.35 } 100% { opacity:1 } }
+@keyframes crystal-float { 0%,100% { transform:translateY(0); filter:drop-shadow(0 0 7px #ad87ea88) drop-shadow(0 7px 8px #10091dbb) } 50% { transform:translateY(-4px); filter:drop-shadow(0 0 14px #d0aaffcc) drop-shadow(0 11px 9px #10091dbb) } }
+@keyframes crystal-ray { 0% { opacity:0; transform:rotate(var(--ray)) scale(.22) } 14% { opacity:1 } 62% { opacity:.9 } 100% { opacity:0; transform:rotate(var(--ray)) scale(2.05) } }
+@keyframes crystal-breathe { 0%,100% { opacity:.65; transform:scale(.92) } 50% { opacity:1; transform:scale(1.08) } }
+@keyframes crystal-swirl { to { transform:rotate(360deg) } }
+@keyframes crystal-sheen { 0%,18% { transform:translateX(-45px); opacity:0 } 38% { opacity:.32 } 62%,100% { transform:translateX(80px); opacity:0 } }
+@keyframes crystal-twinkle { 0%,100% { opacity:.45; transform:scale(.8) } 50% { opacity:1; transform:scale(1.18) } }
 @keyframes tarot-shine { 0%,22%,67%,100% { transform:translateX(-85px) } 42% { transform:translateX(85px) } }
 @keyframes tarot-twinkle { 0%,100% { opacity:.25; transform:scale(.55) rotate(0deg) } 50% { opacity:1; transform:scale(1.25) rotate(35deg) } }
 .tooltip { pointer-events:none; position:absolute; left:calc(var(--dreamly-planet-size) + 8px); white-space:nowrap; padding:6px 10px; border-radius:8px; color:light-dark(#3c2d46,#f5f3ff); background:light-dark(#fff9ef,#21153e); opacity:0; font-size:12px }
 .button:hover .tooltip,.button:focus-visible .tooltip { opacity:1 }
 @keyframes dream-map-turn { from { background-position:0 center } to { background-position:200% center } }
-@media(prefers-reduced-motion:reduce) { .surface,.tarotFan,.tarotCard::after,.tarotSparkle,.horoscopeWheel :global(.hc-dust),.horoscopeWheel :global(.hc-wheel),.horoscopeWheel :global(.hc-wheel) path { animation:none } .tarotCard { transition:none } }
-@media(max-height:480px) { .button,.tarotFan,.horoscopeFab { display:none } }
+@media(prefers-reduced-motion:reduce) { .surface,.tarotFan,.tarotCard::after,.tarotSparkle,.horoscopeWheel :global(.hc-dust),.horoscopeWheel :global(.hc-wheel),.horoscopeWheel :global(.hc-wheel) path,.crystalBall,.crystalMist,.crystalSwirl,.crystalSheen,.crystalGlimmer,.crystalSparkle,.crystalRay,.caught { animation:none } .tarotCard { transition:none } .compatibilityFab:hover .crystalRay,.compatibilityFab:focus-visible .crystalRay { opacity:.8; transform:rotate(var(--ray)) scale(1.15) } }
+@media(max-height:480px) { .button,.tarotFan,.horoscopeFab,.compatibilityFab { display:none } }
 
 @media(max-width:640px) {
  .tarotFan { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
  .tarotFan[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 14px) }
  .horoscopeFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 89px); width:62px; height:62px }
  .horoscopeFab[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 89px) }
+ .compatibilityFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 177px); width:72px; height:81px }
+ .compatibilityFab[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 177px) }
 }

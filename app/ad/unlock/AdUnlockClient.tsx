@@ -19,6 +19,7 @@ import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
 import { offerwallVisible } from "@/lib/offerwallVisibility";
+import { markLoveMatchAdReady } from "@/lib/loveMatchAd";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -27,10 +28,11 @@ const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 
-function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" | "tarot" {
+function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" | "tarot" | "love-match" {
   if (value === "horoscope") return "horoscope";
   if (value === "featured") return "featured";
   if (value === "tarot") return "tarot";
+  if (value === "love-match") return "love-match";
   if (value === "save" || value === "translate" || value === "reading") return value;
   return "analysis";
 }
@@ -163,7 +165,7 @@ export default function AdUnlockClient() {
         if (kind === "analysis") updateOfferwallSession({ status: "completed" });
         report.current?.("ad_overlay_closed");
         const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
-        setPhase((kind === "horoscope" || kind === "featured" || kind === "tarot") && !entitled ? "failed" : "granting");
+        setPhase((kind === "horoscope" || kind === "featured" || kind === "tarot" || kind === "love-match") && !entitled ? "failed" : "granting");
       }
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
@@ -205,10 +207,14 @@ export default function AdUnlockClient() {
     (async () => {
       try {
         let res: Response;
-        if (kind === "horoscope" || kind === "featured" || kind === "tarot") {
+        if (kind === "horoscope" || kind === "featured" || kind === "tarot" || kind === "love-match") {
           const headers: Record<string,string> = {"Content-Type":"application/json",[kind === "tarot" ? "x-tarot-request" : "x-horoscope-request"]:"1"};
+          if (kind === "love-match") {
+            delete headers["x-horoscope-request"];
+            headers["x-love-match-request"] = "1";
+          }
           if(user) headers.Authorization = `Bearer ${await user.getIdToken()}`;
-          res = await fetch(kind === "horoscope" ? "/api/horoscope/ad" : kind === "featured" ? "/api/featured-horoscope/ad" : "/api/tarot/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
+          res = await fetch(kind === "horoscope" ? "/api/horoscope/ad" : kind === "featured" ? "/api/featured-horoscope/ad" : kind === "tarot" ? "/api/tarot/ad" : "/api/love-compatibility/ad", {method:"POST",headers,body:JSON.stringify({action:"complete",challenge:sp.get("challenge")})});
         } else if (user) {
           const idToken = await user.getIdToken();
           res = await fetch("/api/dreams/ad-reward", {
@@ -240,6 +246,10 @@ export default function AdUnlockClient() {
         if(kind === "horoscope") {
           const grant = await res.json();
           await fetch("/api/horoscope/request",{method:"POST",headers:{"Content-Type":"application/json","x-horoscope-request":"1"},body:JSON.stringify({sign:grant.sign,locale})});
+        }
+        if (kind === "love-match" && !markLoveMatchAdReady(sp.get("challenge") || "")) {
+          setPhase("failed");
+          return;
         }
         report.current?.("ad_reward_confirmed");
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });

@@ -95,6 +95,12 @@ export function listPublicPages(): PublicPage[] {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    ...localizedUrls("/love-compatibility").map((url) => ({
+      url,
+      lastModified: "2026-11-06",
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     // The only public page under /app (homepage feature, no sign-in); see app/app/map/mapSeo.tsx.
     ...localizedUrls("/app/map").map((url) => ({
       url,
