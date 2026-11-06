@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import LocaleLink from '@/lib/i18n/LocaleLink';
 import { useLocale, useMessages } from '@/lib/i18n/LocaleProvider';
@@ -159,17 +159,23 @@ export default function DreamMapGlobe() {
     </svg>
     <span className={styles.compatibilityTooltip}>{t.nav.loveCompatibility}</span>
   </LocaleLink>;
-  if (path === '/app/map') return <><TarotDailyDraw blocked={blocked} path={path} />{horoscope}{compatibility}</>;
-  return <>
-    <TarotDailyDraw blocked={blocked} path={path} />
-    {horoscope}
-    {compatibility}
-    <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onMouseEnter={() => setEarthRate(EARTH_HOVER_RATE)} onMouseLeave={() => setEarthRate(1)} onFocus={() => setEarthRate(EARTH_HOVER_RATE)} onBlur={() => setEarthRate(1)} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
+  const onMapRail = path === '/moon' || path === '/app/map';
+  const rail = (nodes: ReactNode) => (
+    <div className={styles.iconRail} data-map-rail={onMapRail || undefined} style={{ visibility: blocked ? 'hidden' : undefined }}>
+      {nodes}
+    </div>
+  );
+  if (path === '/app/map') return rail(<><TarotDailyDraw blocked={blocked} path={path} />{horoscope}{compatibility}</>);
+  return rail(<>
+    <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} aria-label={t.nav.map} title={t.nav.map} onMouseEnter={() => setEarthRate(EARTH_HOVER_RATE)} onMouseLeave={() => setEarthRate(1)} onFocus={() => setEarthRate(EARTH_HOVER_RATE)} onBlur={() => setEarthRate(1)} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
       <span className={styles.orb} aria-hidden><span ref={surfaceRef} className={styles.surface} /></span>
       <span className={`${moonStyles.particles} ${styles.creatures}`} aria-hidden>
-        {CREATURES.map((emoji, index) => <span key={emoji} style={{ '--i': index, '--drift': `${index * 12}px` } as CSSProperties}>{emoji}</span>)}
+        {CREATURES.map((emoji, index) => <span key={emoji} style={{ '--i': index, '--drift': `${(index - 2.5) * 6}px` } as CSSProperties}>{emoji}</span>)}
       </span>
       <span className={styles.tooltip}>{t.nav.map}</span>
     </LocaleLink>
-  </>;
+    <TarotDailyDraw blocked={blocked} path={path} />
+    {horoscope}
+    {compatibility}
+  </>);
 }
