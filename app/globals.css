@@ -24,7 +24,8 @@
   :root { --dreamly-map-fab-center: calc(154px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 640px) {
-  :root { --dreamly-planet-size: 64px; }
+  :root { --dreamly-planet-size: 56px; }
+  .dcf { width:40px; height:60px; transform:translateY(-6px) }
 }
 
 /* Автоматическая светлая тема если система light */

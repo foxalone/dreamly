@@ -60,6 +60,12 @@
 .statusOption:has(input:focus-visible) { outline:2px solid #f8c4e6; outline-offset:3px }
 .statusOption input { position:absolute; width:1px; height:1px; opacity:0 }
 .error { margin:-.2rem 0 1rem; color:#ffb2b2; font-size:.88rem }
+.photoDialog { width:min(calc(100% - 2rem),430px); max-height:calc(100dvh - 2rem); margin:auto; padding:1.6rem; border:1px solid #e6afea80; border-radius:1.25rem; background:linear-gradient(145deg,#3d2349,#1c1429); color:#f9f2fb; box-shadow:0 24px 80px #07030dcc; color-scheme:dark }
+.photoDialog::backdrop { background:#08040dbd; backdrop-filter:blur(4px) }
+.photoDialog h2 { margin:0 0 .75rem; font-family:Georgia,serif; font-size:1.55rem; font-weight:400 }
+.photoDialog p { margin:0 0 1.4rem; color:#f5d5e9; line-height:1.6 }
+.photoDialog button { display:block; min-height:44px; margin-inline-start:auto; padding:.6rem 1.35rem; border:0; border-radius:.7rem; background:linear-gradient(105deg,#eab7e1,#f0c7aa); color:#3e173d; cursor:pointer; font:inherit; font-weight:700 }
+.photoDialog button:focus-visible { outline:2px solid #fff; outline-offset:3px }
 .reveal { display:block; width:100%; min-height:52px; border:0; border-radius:.85rem; background:linear-gradient(105deg,#eab7e1,#f0c7aa); color:#3e173d; cursor:pointer; font-size:1rem; font-weight:800; transition:filter .2s,transform .2s }
 .reveal:hover { filter:brightness(1.08); transform:translateY(-2px) }
 .reveal:disabled { cursor:wait; opacity:.75; transform:none }

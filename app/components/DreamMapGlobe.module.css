@@ -80,10 +80,10 @@
 @media(max-height:480px) { .button,.tarotFan,.horoscopeFab,.compatibilityFab { display:none } }
 
 @media(max-width:640px) {
- .tarotFan { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.72 }
+ .tarotFan { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 18px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 14px); scale:.64 }
  .tarotFan[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 14px) }
- .horoscopeFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 89px); width:62px; height:62px }
+ .horoscopeFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 89px); width:54px; height:54px }
  .horoscopeFab[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 89px) }
- .compatibilityFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 177px); width:72px; height:81px }
+ .compatibilityFab { left:calc(max(16px,env(safe-area-inset-left)) + var(--dreamly-planet-size) / 2 - 3px); bottom:calc(var(--dreamly-fab-center) + var(--dreamly-planet-size) / 2 + 177px); width:64px; height:72px }
  .compatibilityFab[data-map-rail] { bottom:calc(var(--dreamly-map-fab-center) + var(--dreamly-planet-size) / 2 + 177px) }
 }

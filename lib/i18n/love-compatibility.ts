@@ -95,7 +95,7 @@ type AiCopy = {
   yourGenderLabel: string; theirGenderLabel: string; genders: { woman: string; man: string };
   yourStory: string; theirStory: string; yourStoryHint: string; theirStoryHint: string;
   yourPhoto: string; theirPhoto: string; addPhoto: string; changePhoto: string; removePhoto: string; photoProcessing: string;
-  photoError: string; yourPhotoInvalid: string; theirPhotoInvalid: string;
+  photoError: string; yourPhotoInvalid: string; theirPhotoInvalid: string; photoInvalidTitle: string; photoInvalidDismiss: string;
   accessTitle: string; accessText: string; watchAd: string; subscribe: string; adUnavailable: string;
   saveLocal: string; savedLocal: string; saveSignIn: string; saveToAccount: string; saving: string; saved: string; saveError: string;
   genderError: string; loading: string; loadingBody: string; aiError: string; rateError: string; summaryTitle: string;
@@ -142,7 +142,7 @@ export const loveMatchProfileCopy: Record<Locale, ProfileCopy> = {
 export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   en: {
     yourPhoto: "Your photo", theirPhoto: "Their photo", addPhoto: "Add photo", changePhoto: "Change photo", removePhoto: "Remove", photoProcessing: "Preparing photo…",
-    photoError: "Choose a JPEG, PNG or WebP photo under 8 MB.", yourPhotoInvalid: "Your photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.", theirPhotoInvalid: "Their photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.",
+    photoError: "Choose a JPEG, PNG or WebP photo under 8 MB.", yourPhotoInvalid: "Your photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.", theirPhotoInvalid: "Their photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.", photoInvalidTitle: "Please replace the photo", photoInvalidDismiss: "Got it",
     accessTitle: "Unlock this Love Match", accessText: "Watch an ad for this check, or use a subscription.", watchAd: "Watch an ad", subscribe: "See subscription", adUnavailable: "The ad was not completed or is unavailable. Try again or use a subscription.",
     saveLocal: "Save", savedLocal: "Saved", saveSignIn: "Sign in and save", saveToAccount: "Save to account", saving: "Saving…", saved: "Saved to your account", saveError: "Could not save this match. Please try again.",
     yourGenderLabel: "YOU", theirGenderLabel: "THEM", genders: { woman: "Woman", man: "Man" },
@@ -151,7 +151,7 @@ export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   },
   es: {
     yourPhoto: "Tu foto", theirPhoto: "Foto de la otra persona", addPhoto: "Añadir foto", changePhoto: "Cambiar foto", removePhoto: "Quitar", photoProcessing: "Preparando foto…",
-    photoError: "Elige una foto JPEG, PNG o WebP de menos de 8 MB.", yourPhotoInvalid: "Tu foto no muestra a una persona. No podemos comparar a una persona con un animal u objeto. Cámbiala.", theirPhotoInvalid: "La otra foto no muestra a una persona. No podemos comparar a una persona con un animal u objeto. Cámbiala.",
+    photoError: "Elige una foto JPEG, PNG o WebP de menos de 8 MB.", yourPhotoInvalid: "Tu foto no muestra a una persona. No podemos comparar a una persona con un animal u objeto. Cámbiala.", theirPhotoInvalid: "La otra foto no muestra a una persona. No podemos comparar a una persona con un animal u objeto. Cámbiala.", photoInvalidTitle: "Cambia la foto", photoInvalidDismiss: "Entendido",
     accessTitle: "Desbloquear esta compatibilidad", accessText: "Mira un anuncio para esta consulta o usa una suscripción.", watchAd: "Ver un anuncio", subscribe: "Ver suscripción", adUnavailable: "El anuncio no se completó o no está disponible. Inténtalo de nuevo o usa una suscripción.",
     saveLocal: "Guardar", savedLocal: "Guardado", saveSignIn: "Inicia sesión y guarda", saveToAccount: "Guardar en tu cuenta", saving: "Guardando…", saved: "Guardada en tu cuenta", saveError: "No pudimos guardar esta lectura. Inténtalo de nuevo.",
     yourGenderLabel: "TÚ", theirGenderLabel: "OTRA", genders: { woman: "Mujer", man: "Hombre" },
@@ -160,7 +160,7 @@ export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   },
   ar: {
     yourPhoto: "صورتك", theirPhoto: "صورة الشخص الآخر", addPhoto: "أضف صورة", changePhoto: "غيّر الصورة", removePhoto: "إزالة", photoProcessing: "نُجهز الصورة…",
-    photoError: "اختر صورة JPEG أو PNG أو WebP بحجم أقل من ٨ ميغابايت.", yourPhotoInvalid: "صورتك لا تُظهر شخصًا. لا يمكن مقارنة إنسان بحيوان أو شيء. اختر صورة أخرى.", theirPhotoInvalid: "صورة الطرف الآخر لا تُظهر شخصًا. لا يمكن مقارنة إنسان بحيوان أو شيء. اختر صورة أخرى.",
+    photoError: "اختر صورة JPEG أو PNG أو WebP بحجم أقل من ٨ ميغابايت.", yourPhotoInvalid: "صورتك لا تُظهر شخصًا. لا يمكن مقارنة إنسان بحيوان أو شيء. اختر صورة أخرى.", theirPhotoInvalid: "صورة الطرف الآخر لا تُظهر شخصًا. لا يمكن مقارنة إنسان بحيوان أو شيء. اختر صورة أخرى.", photoInvalidTitle: "اختر صورة أخرى", photoInvalidDismiss: "حسنًا",
     accessTitle: "افتح قراءة التوافق", accessText: "شاهد إعلانًا لهذه القراءة أو استخدم الاشتراك.", watchAd: "شاهد إعلانًا", subscribe: "عرض الاشتراك", adUnavailable: "لم يكتمل الإعلان أو لم يتوفر. حاول مجددًا أو استخدم الاشتراك.",
     saveLocal: "حفظ", savedLocal: "تم الحفظ", saveSignIn: "سجّل الدخول واحفظ", saveToAccount: "احفظ في الحساب", saving: "جارٍ الحفظ…", saved: "حُفظت في حسابك", saveError: "تعذر حفظ القراءة. حاول مجددًا.",
     yourGenderLabel: "أنت", theirGenderLabel: "الآخر", genders: { woman: "امرأة", man: "رجل" },
@@ -169,7 +169,7 @@ export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   },
   pt: {
     yourPhoto: "Sua foto", theirPhoto: "Foto da outra pessoa", addPhoto: "Adicionar foto", changePhoto: "Trocar foto", removePhoto: "Remover", photoProcessing: "Preparando foto…",
-    photoError: "Escolha uma foto JPEG, PNG ou WebP de até 8 MB.", yourPhotoInvalid: "Sua foto não mostra uma pessoa. Não dá para comparar uma pessoa com um animal ou objeto. Troque a foto.", theirPhotoInvalid: "A outra foto não mostra uma pessoa. Não dá para comparar uma pessoa com um animal ou objeto. Troque a foto.",
+    photoError: "Escolha uma foto JPEG, PNG ou WebP de até 8 MB.", yourPhotoInvalid: "Sua foto não mostra uma pessoa. Não dá para comparar uma pessoa com um animal ou objeto. Troque a foto.", theirPhotoInvalid: "A outra foto não mostra uma pessoa. Não dá para comparar uma pessoa com um animal ou objeto. Troque a foto.", photoInvalidTitle: "Troque a foto", photoInvalidDismiss: "Entendi",
     accessTitle: "Desbloquear esta leitura", accessText: "Assista a um anúncio para esta consulta ou use uma assinatura.", watchAd: "Assistir a um anúncio", subscribe: "Ver assinatura", adUnavailable: "O anúncio não foi concluído ou está indisponível. Tente de novo ou use uma assinatura.",
     saveLocal: "Salvar", savedLocal: "Salvo", saveSignIn: "Entre e salve", saveToAccount: "Salvar na conta", saving: "Salvando…", saved: "Salva na sua conta", saveError: "Não foi possível salvar esta leitura. Tente novamente.",
     yourGenderLabel: "VOCÊ", theirGenderLabel: "OUTRA", genders: { woman: "Mulher", man: "Homem" },
@@ -178,7 +178,7 @@ export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   },
   de: {
     yourPhoto: "Dein Foto", theirPhoto: "Foto der anderen Person", addPhoto: "Foto hinzufügen", changePhoto: "Foto ändern", removePhoto: "Entfernen", photoProcessing: "Foto wird vorbereitet…",
-    photoError: "Wähle ein JPEG-, PNG- oder WebP-Foto unter 8 MB.", yourPhotoInvalid: "Dein Foto zeigt keinen Menschen. Ein Mensch lässt sich nicht mit einem Tier oder Gegenstand vergleichen. Bitte ersetze es.", theirPhotoInvalid: "Das andere Foto zeigt keinen Menschen. Ein Mensch lässt sich nicht mit einem Tier oder Gegenstand vergleichen. Bitte ersetze es.",
+    photoError: "Wähle ein JPEG-, PNG- oder WebP-Foto unter 8 MB.", yourPhotoInvalid: "Dein Foto zeigt keinen Menschen. Ein Mensch lässt sich nicht mit einem Tier oder Gegenstand vergleichen. Bitte ersetze es.", theirPhotoInvalid: "Das andere Foto zeigt keinen Menschen. Ein Mensch lässt sich nicht mit einem Tier oder Gegenstand vergleichen. Bitte ersetze es.", photoInvalidTitle: "Bitte ersetze das Foto", photoInvalidDismiss: "Verstanden",
     accessTitle: "Diese Deutung freischalten", accessText: "Sieh dir für diese Prüfung eine Werbung an oder nutze ein Abo.", watchAd: "Werbung ansehen", subscribe: "Abo ansehen", adUnavailable: "Die Werbung wurde nicht abgeschlossen oder ist nicht verfügbar. Versuche es erneut oder nutze ein Abo.",
     saveLocal: "Speichern", savedLocal: "Gespeichert", saveSignIn: "Anmelden und speichern", saveToAccount: "Im Konto speichern", saving: "Wird gespeichert…", saved: "In deinem Konto gespeichert", saveError: "Die Deutung konnte nicht gespeichert werden. Bitte versuche es erneut.",
     yourGenderLabel: "DU", theirGenderLabel: "ANDERER", genders: { woman: "Frau", man: "Mann" },
@@ -187,7 +187,7 @@ export const loveMatchAiCopy: Record<Locale, AiCopy> = {
   },
   ru: {
     yourPhoto: "Ваше фото", theirPhoto: "Фото другого человека", addPhoto: "Добавить фото", changePhoto: "Заменить фото", removePhoto: "Удалить", photoProcessing: "Подготавливаем фото…",
-    photoError: "Выберите фото JPEG, PNG или WebP размером до 8 МБ.", yourPhotoInvalid: "На вашем фото нет человека. Нельзя сравнить человека с животным или предметом. Замените фото.", theirPhotoInvalid: "На втором фото нет человека. Нельзя сравнить человека с животным или предметом. Замените фото.",
+    photoError: "Выберите фото JPEG, PNG или WebP размером до 8 МБ.", yourPhotoInvalid: "На вашем фото нет человека. Нельзя сравнить человека с животным или предметом. Замените фото.", theirPhotoInvalid: "На втором фото нет человека. Нельзя сравнить человека с животным или предметом. Замените фото.", photoInvalidTitle: "Замените фото", photoInvalidDismiss: "Понятно",
     accessTitle: "Открыть Love Match", accessText: "Посмотрите рекламу для этой проверки или используйте подписку.", watchAd: "Посмотреть рекламу", subscribe: "Посмотреть подписку", adUnavailable: "Реклама не завершена или недоступна. Попробуйте снова или используйте подписку.",
     saveLocal: "Сохранить", savedLocal: "Сохранено", saveSignIn: "Войти и сохранить", saveToAccount: "Сохранить в аккаунт", saving: "Сохраняем…", saved: "Сохранено в аккаунте", saveError: "Не удалось сохранить разбор. Попробуйте снова.",
     yourGenderLabel: "ВЫ", theirGenderLabel: "ДРУГОЙ", genders: { woman: "Женщина", man: "Мужчина" },

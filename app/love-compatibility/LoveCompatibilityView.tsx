@@ -119,6 +119,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
   const [secondPhotoBusy, setSecondPhotoBusy] = useState(false);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [error, setError] = useState("");
+  const [photoDialogError, setPhotoDialogError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [pendingInput, setPendingInput] = useState<LoveMatchInput | null>(null);
@@ -133,7 +134,12 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const [flights, setFlights] = useState<InitialFlight[]>([]);
   const accessRef = useRef<HTMLElement>(null);
+  const photoDialogRef = useRef<HTMLDialogElement>(null);
   const match = submission?.match;
+
+  useEffect(() => {
+    if (photoDialogError && !photoDialogRef.current?.open) photoDialogRef.current?.showModal();
+  }, [photoDialogError]);
 
   useEffect(() => {
     if (submission) resultRef.current?.focus({ preventScroll: false });
@@ -157,6 +163,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
     const started = Date.now();
     const holdMs = cachedMatchHoldMs();
     setError("");
+    setPhotoDialogError(null);
     setAccessOpen(false);
     setSubmission(null);
     setLoading(true);
@@ -176,9 +183,10 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       }
       if (!response.ok) {
         const failure = await response.json().catch(() => ({})) as { error?: string };
-        setError(failure.error === "RATE_LIMITED" ? copy.rateError
-          : failure.error === "INVALID_PHOTO_FIRST" ? copy.yourPhotoInvalid
-          : failure.error === "INVALID_PHOTO_SECOND" ? copy.theirPhotoInvalid : copy.aiError);
+        const invalidPhoto = failure.error === "INVALID_PHOTO_FIRST" ? copy.yourPhotoInvalid
+          : failure.error === "INVALID_PHOTO_SECOND" ? copy.theirPhotoInvalid : null;
+        setError(invalidPhoto ?? (failure.error === "RATE_LIMITED" ? copy.rateError : copy.aiError));
+        if (invalidPhoto) setPhotoDialogError(invalidPhoto);
         if (response.status === 422 && !purchaseOrderId) clearLoveMatchPending();
         return;
       }
@@ -347,6 +355,11 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
   return <>
   <DreamAnalysisProgress active={loading} title={copy.loading} body={copy.loadingBody} />
   {flights.map(flight => createPortal(<LoveInitialFlight key={flight.id} flight={flight} onDone={() => finishFlight(flight.id)} />, document.body))}
+  {photoDialogError && createPortal(<dialog ref={photoDialogRef} className={styles.photoDialog} aria-labelledby="love-photo-error-title" aria-describedby="love-photo-error-message" onClose={() => setPhotoDialogError(null)} dir={locale === "ar" ? "rtl" : "ltr"}>
+    <h2 id="love-photo-error-title">{copy.photoInvalidTitle}</h2>
+    <p id="love-photo-error-message">{photoDialogError}</p>
+    <button type="button" onClick={() => photoDialogRef.current?.close()}>{copy.photoInvalidDismiss}</button>
+  </dialog>, document.body)}
   <DreamDictionaryHeader />
   <main className={styles.page} dir={locale === "ar" ? "rtl" : "ltr"}>
     <div className={styles.shell}>
