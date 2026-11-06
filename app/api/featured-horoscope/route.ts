@@ -8,9 +8,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const item = await latestFeatured();
+    const day = new URL(request.url).searchParams.get("day");
+    if (day !== null) {
+      try { featuredId(day); } catch { return NextResponse.json({ error: "INVALID_DAY" }, { status: 400, headers }); }
+      if (day > earliestWorldDay()) return NextResponse.json({ forecast: null }, { headers });
+    }
+    const item = day === null ? await latestFeatured() : await readFeatured(day);
     return NextResponse.json({ forecast: item ? publicFeatured(item) : null }, { headers });
   } catch (error) {
     console.error("featured horoscope latest", error);

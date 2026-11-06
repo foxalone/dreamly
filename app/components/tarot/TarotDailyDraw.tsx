@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 import { auth } from "@/lib/firebase";
+import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { browserLocale } from "@/lib/i18n/browser-language";
 import type { Locale } from "@/lib/i18n/config";
@@ -181,6 +183,12 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
     }
   }
 
+  useEffect(() => {
+    const openFromPage = () => fan.current?.click();
+    window.addEventListener("dreamly:open-tarot", openFromPage);
+    return () => window.removeEventListener("dreamly:open-tarot", openFromPage);
+  }, []);
+
   return <>
     <button
       ref={fan}
@@ -200,7 +208,7 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
     </button>
     {open && typeof document !== "undefined" ? createPortal(<div className={styles.overlay} aria-live="polite" dir={locale === "ar" ? "rtl" : undefined}>
       <button type="button" className={`${styles.backdrop} ${blurStarted && !closing ? styles.backdropVisible : ""}`} aria-label={copy.close} onClick={dismiss} />
-      <div className={styles.anchor}>
+      <div className={`${styles.anchor} ${!path.startsWith("/tarot") ? styles.anchorWithGuide : ""}`}>
         <button
           ref={stage}
           type="button"
@@ -218,6 +226,15 @@ export function TarotDailyDraw({ blocked, path }: { blocked: boolean; path: stri
             : <div className={styles.cardBack} aria-hidden="true"><span>✧</span><span>☾</span><span>✧</span></div>}
           {card && settled ? <span className={styles.tapHint} aria-hidden="true"><Image src="/tarot/tap-hand.png" alt="" width={1254} height={1254} /></span> : null}
         </button>
+        {card && settled && !closing && !path.startsWith("/tarot") ? <LocaleLink href="/tarot" className={styles.guideBanner} onClick={dismiss}>
+          <span className={styles.guideDeck} aria-hidden="true"><span>✧</span><span>✦</span><span>☾</span></span>
+          <span className={styles.guideBannerText}>
+            <span className={styles.guideEyebrow}>{copy.guideEyebrow}</span>
+            <strong>{copy.guideAction}</strong>
+            <span className={styles.guideDetail}>{copy.guideDetail}</span>
+          </span>
+          <ArrowUpRight className={styles.guideArrow} size={22} aria-hidden="true" />
+        </LocaleLink> : null}
       </div>
       <div ref={dust} className={styles.dust} aria-hidden="true">{Array.from({ length: DUST_COUNT }, (_, index) => <span key={index} />)}</div>
       {closing ? <div className={styles.fallingStars} aria-hidden="true">{Array.from({ length: 32 }, (_, index) => <span key={index} style={{ "--star-x": `${((index * 47) % 300) - 150}px`, "--star-drift": `${((index * 37) % 180) - 90}px`, "--star-delay": `${(index % 8) * 25}ms` } as CSSProperties}>{index % 3 === 0 ? "✧" : "✦"}</span>)}</div> : null}

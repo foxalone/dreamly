@@ -4,8 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { stripLocalePrefix } from "@/lib/i18n/path";
-import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
-import { Orbit } from "lucide-react";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 
 import {
   User,
@@ -196,7 +195,6 @@ type PrimaryNavProps = {
 
 export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const pathname = usePathname();
-  const locale = useLocale();
   const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
@@ -261,12 +259,6 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
         icon: (a) => <IconDictionary active={a} />,
         activeClass: "text-amber-400",
       },
-      {
-        href: "/horoscope",
-        label: t.nav.horoscope,
-        icon: (a) => <Orbit size={20} aria-hidden opacity={a ? 1 : 0.75} />,
-        activeClass: "text-purple-500",
-      },
     ],
     [t]
   );
@@ -296,7 +288,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   return (
     <nav
       aria-label="Primary"
-      className="primary-nav grid min-w-0 w-full grid-cols-6 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
+      className="primary-nav grid min-w-0 w-full grid-cols-5 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
     >
       {baseItems.map((it) => {
         const active = isActive(it.href);

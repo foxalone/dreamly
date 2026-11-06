@@ -1,0 +1,17 @@
+.section{position:relative;isolation:isolate;display:grid;gap:24px;max-width:56rem;overflow:hidden;margin:0 auto 1.25rem;padding:28px;border:1px solid light-dark(#b88d597a,#d5a8714d);border-radius:26px;background:radial-gradient(ellipse at 83% 20%,light-dark(#e5d4f4bb,#7f5d9b42),transparent 56%),linear-gradient(130deg,light-dark(#fbf7ff,#251a35),light-dark(#fffaf3,#130f23) 75%);box-shadow:0 22px 70px light-dark(#6a4e8030,#0003);scroll-margin-top:2rem}
+.section:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle,light-dark(#9a6a4170,#f2d99b99) 1px,transparent 1.5px);background-size:43px 43px;opacity:.14}
+.copy{align-self:center;min-width:0}
+.eyebrow{display:flex;align-items:center;gap:8px;color:light-dark(#815119,#e7c27a);font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.copy h2{margin:14px 0!important;color:light-dark(#2d2038,#faf2ff);font-family:Georgia,'Noto Sans Arabic',serif;font-size:clamp(1.8rem,4vw,3rem);font-weight:400;line-height:1.15;letter-spacing:-.035em;text-wrap:balance}
+.intro{max-width:43ch;color:light-dark(#554960,#d5c8df);font-size:clamp(.9rem,1.5vw,1rem);line-height:1.7}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:45px;padding:11px 17px;border:1px solid #e7c27a;border-radius:12px;background:#e7c27a;color:#20172b;font:inherit;font-size:.88rem;font-weight:700;text-decoration:none;cursor:pointer;transition:background .2s,transform .2s}
+.action:hover{background:#f5d99e;transform:translateY(-2px)}
+.action:focus-visible{outline:2px solid light-dark(#805119,#fff);outline-offset:4px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;gap:10px;max-width:390px;margin:auto}
+.card{min-width:0;text-align:center}
+.card>span{display:block;margin-top:9px;color:light-dark(#6b491f,#ebd5aa);font-size:.72rem;letter-spacing:.04em}
+.card:nth-child(2){transform:translateY(9px)}
+@media(min-width:760px){.section{grid-template-columns:minmax(0,1fr) minmax(0,390px);align-items:center;padding:36px 40px;gap:26px}.cards{width:100%}}
+@media(max-width:520px){.section{padding:24px 20px}.cards{width:min(100%,290px)}.card>span{font-size:.67rem}}
+@media(prefers-reduced-motion:reduce){.action{transition:none}.action:hover{transform:none}}

@@ -2,6 +2,24 @@
 .backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;padding:0;border:0;background:transparent;backdrop-filter:blur(0px);cursor:default;pointer-events:auto;transition:backdrop-filter .65s ease}
 .backdropVisible{backdrop-filter:blur(9px);transition-duration:1.2s}
 .anchor{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%)}
+.anchorWithGuide{top:calc(50% - 40px)}
+.guideBanner{position:absolute;z-index:4;top:calc(100% + 16px);left:50%;display:grid;grid-template-columns:54px minmax(0,1fr) 24px;align-items:center;gap:13px;width:min(88vw,440px);min-height:82px;padding:10px 16px;border:1px solid light-dark(#ab783d,#efd18a);border-radius:17px;background:radial-gradient(circle at 12% 50%,light-dark(#f5d7e6,#7a506a88),transparent 36%),linear-gradient(115deg,light-dark(#fffaf1,#30203d),light-dark(#f2e8f8,#191324));box-shadow:inset 0 1px #fff0bd38,0 14px 34px light-dark(#513a5a4d,#0009),0 0 24px #e7bd6940;color:light-dark(#34253c,#fff5dc);text-decoration:none;pointer-events:auto;transform:translateX(-50%);animation:guideBannerEnter .5s ease-out both;transition:border-color .2s,box-shadow .2s,background .2s}
+.guideBanner:hover{border-color:light-dark(#82531d,#ffe5a4);box-shadow:inset 0 1px #fff0bd60,0 16px 40px light-dark(#513a5a66,#000a),0 0 31px #f0cf8173;background:radial-gradient(circle at 12% 50%,light-dark(#f2cfdf,#906483a8),transparent 36%),linear-gradient(115deg,light-dark(#fff3e7,#3b294b),light-dark(#ead9f3,#21182f))}
+.guideBanner:focus-visible{outline:2px solid light-dark(#8a5b1f,#fff4d0);outline-offset:4px}
+.guideDeck{position:relative;display:block;width:54px;height:55px;filter:drop-shadow(0 4px 6px #0008)}
+.guideDeck span{position:absolute;top:7px;left:15px;display:grid;place-items:center;width:25px;height:38px;border:1px solid #f9d995;border-radius:4px;background:linear-gradient(145deg,#8e6699,#32213f 56%,#1b152c);box-shadow:inset 0 0 0 2px #e9c47e30;color:#ffe6aa;font:1rem Georgia,serif}
+.guideDeck span:first-child{transform:translateX(-12px) rotate(-18deg)}
+.guideDeck span:nth-child(2){z-index:2;transform:translateY(-3px)}
+.guideDeck span:last-child{transform:translateX(12px) rotate(18deg)}
+.guideBannerText{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.25}
+.guideEyebrow{color:light-dark(#815119,#dec28c);font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+.guideBannerText strong{margin-top:2px;color:light-dark(#34253c,#fff5de);font:700 1.23rem/1.17 Georgia,'Noto Naskh Arabic',serif}
+.guideDetail{margin-top:3px;color:light-dark(#695771,#cdbdd4);font-size:.73rem}
+.guideArrow{justify-self:end;color:light-dark(#815119,#f6d791);transition:transform .2s}
+.guideBanner:hover .guideArrow{transform:translate(2px,-2px)}
+[dir=rtl] .guideBannerText{align-items:flex-start;text-align:start}
+[dir=rtl] .guideArrow{transform:scaleX(-1)}
+[dir=rtl] .guideBanner:hover .guideArrow{transform:scaleX(-1) translate(2px,-2px)}
 .cardStage{position:relative;display:block;width:min(76vw,320px);aspect-ratio:2/3;padding:0;border:0;border-radius:13px;background:transparent;color:#f8df9f;cursor:pointer;pointer-events:auto;perspective:900px;transform-style:preserve-3d;will-change:transform;-webkit-tap-highlight-color:transparent}
 .cardStage:focus-visible{outline:2px solid #ffe2a2;outline-offset:8px}
 .cardStageClosing{animation:cardPop .42s cubic-bezier(.32,.04,.5,1) forwards;pointer-events:none}
@@ -31,6 +49,8 @@
 @keyframes starFall{0%{opacity:0;transform:translateY(-20px) scale(.2) rotate(0)}18%{opacity:1;transform:translateY(-5px) scale(1.2) rotate(35deg)}100%{opacity:0;transform:translate(var(--star-drift),45vh) scale(.35) rotate(210deg)}}
 @keyframes hintEnter{from{opacity:0;transform:translateY(12px) scale(.7)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(.86)}}
+@keyframes guideBannerEnter{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 @media(max-height:640px){.cardStage{width:min(56vw,210px)}}
+@media(max-height:480px){.cardStage{width:min(42vw,150px)}.anchorWithGuide{top:calc(50% - 24px)}.guideBanner{min-height:68px;padding:7px 12px}.guideBannerText strong{font-size:1.05rem}.guideDetail{font-size:.68rem}}
 @media(max-width:640px){.tapHint{right:-18px;width:96px;height:96px}}
-@media(prefers-reduced-motion:reduce){.cardStage:before,.cardBack,.tapHint,.fallingStars span{animation:none}.revealed,.cardStageClosing{animation-duration:1ms}.backdrop{transition:none}}
+@media(prefers-reduced-motion:reduce){.cardStage:before,.cardBack,.tapHint,.fallingStars span,.guideBanner{animation:none}.revealed,.cardStageClosing{animation-duration:1ms}.backdrop,.guideBanner,.guideArrow{transition:none}}

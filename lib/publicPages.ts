@@ -2,11 +2,12 @@ import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/d
 import { SIGNS } from "@/lib/horoscope/model";
 import { LOCALES } from "@/lib/i18n/config";
 import { localePath } from "@/lib/i18n/path";
+import { MAJOR_ARCANA } from "@/lib/tarot/deck";
 
 export const SITE_ORIGIN = "https://dreamly.art";
 
 /** Bump when the homepage content materially changes. */
-export const HOME_UPDATED_AT = "2026-07-02";
+export const HOME_UPDATED_AT = "2026-11-06";
 
 export const LEGAL_UPDATED_AT = "2026-09-06";
 
@@ -154,5 +155,8 @@ export function listPublicPages(): PublicPage[] {
   const horoscopes: PublicPage[] = ["/horoscope", ...SIGNS.map(sign => `/horoscope/${sign}`)].flatMap(path =>
     localizedUrls(path).map(url => ({ url, changeFrequency: "daily" as const, priority: 0.7 })),
   );
-  return [...core, ...hubs, ...dictionary, ...horoscopes];
+  const tarot: PublicPage[] = ["/tarot", ...MAJOR_ARCANA.map(card => `/tarot/cards/${card.id}`)].flatMap((path, index) =>
+    localizedUrls(path).map(url => ({ url, lastModified: "2026-11-06", changeFrequency: "monthly" as const, priority: index === 0 ? 0.8 : 0.65 })),
+  );
+  return [...core, ...hubs, ...dictionary, ...horoscopes, ...tarot];
 }

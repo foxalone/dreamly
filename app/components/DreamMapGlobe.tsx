@@ -7,13 +7,14 @@ import { stripLocalePrefix } from '@/lib/i18n/path';
 import { trackEvent } from '@/lib/analytics';
 import { trackEarthClick } from '@/lib/trackEarthClick';
 import { TarotDailyDraw } from './tarot/TarotDailyDraw';
+import ZodiacArt from '@/app/horoscope/ZodiacArt';
 import styles from './DreamMapGlobe.module.css';
 import moonStyles from './moon/MoonGate.module.css';
 
 // Listen to the existing game event without importing its animation implementation.
 const BUILDING_PLACED_EVENT = 'dreamly:building-placed';
 const CREATURES = ['🦊','🦋','🐢','🦉','🐈','🕊️'];
-const HIDDEN = ['/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade','/tarot'];
+const HIDDEN = ['/app/game','/signin','/payment-success','/app/profile/admin-dashboard','/app/chat','/app/tiktok-studio','/app/upgrade'];
 export default function DreamMapGlobe() {
   const pathname = usePathname() ?? '/', { path } = stripLocalePrefix(pathname);
   const t = useMessages(), locale = useLocale();
@@ -57,10 +58,23 @@ export default function DreamMapGlobe() {
     schedule();
     return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('scroll',schedule,true); document.removeEventListener('animationend',onLaunchEnd,true); document.removeEventListener('focusin',schedule); document.removeEventListener('focusout',schedule); document.removeEventListener('fullscreenchange',schedule); window.removeEventListener('resize',schedule); window.visualViewport?.removeEventListener('resize',schedule); };
   }, [pathname]);
-  if (HIDDEN.some(prefix => path === prefix || path.startsWith(prefix+'/'))) return null;
-  if (path === '/app/map') return <TarotDailyDraw blocked={blocked} path={path} />;
+  if (HIDDEN.some(prefix => path === prefix || path.startsWith(prefix+'/')) || /^\/tarot\/\d{4}-\d{2}-\d{2}\/[^/]+$/.test(path)) return null;
+  const horoscope = <LocaleLink
+    href="/horoscope"
+    className={styles.horoscopeFab}
+    data-map-rail={path === '/moon' || path === '/app/map' || undefined}
+    style={{ visibility: blocked ? 'hidden' : undefined }}
+    aria-label={t.nav.horoscope}
+    title={t.nav.horoscope}
+    aria-current={path === '/horoscope' || path.startsWith('/horoscope/') ? 'page' : undefined}
+  >
+    <span className={styles.horoscopeWheel}><ZodiacArt /></span>
+    <span className={styles.horoscopeTooltip}>{t.nav.horoscope}</span>
+  </LocaleLink>;
+  if (path === '/app/map') return <><TarotDailyDraw blocked={blocked} path={path} />{horoscope}</>;
   return <>
     <TarotDailyDraw blocked={blocked} path={path} />
+    {horoscope}
     <LocaleLink id="dream-map-globe" data-moon={path === '/moon' || undefined} href="/app/map" className={`${styles.button} ${celebrating ? styles.celebrating : ''}`} style={{ visibility:blocked ? 'hidden' : undefined }} aria-label={t.nav.map} title={t.nav.map} onClick={() => { trackEvent('map_globe_click',{ locale, section: path.split('/').filter(Boolean).slice(0,2).join('/') || 'home' }); void trackEarthClick('globe'); }}>
       <span className={styles.orb} aria-hidden><span className={styles.surface} /></span>
       <span className={`${moonStyles.particles} ${styles.creatures}`} aria-hidden>

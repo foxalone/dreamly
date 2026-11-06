@@ -35,6 +35,12 @@ export function validateDailyTarotReading(value: unknown, locale: Locale): Daily
   return reading;
 }
 
+export function dailyReadingDiffersFromGuide(reading: DailyTarotReading, cardId: MajorArcanaId, locale: Locale): boolean {
+  const normalize = (text: string) => text.toLocaleLowerCase().replace(/\s+/g, " ").trim();
+  const guideSentences = tarotReadings[locale][cardId].flatMap(text => text.split(/(?<=[.!?؟])\s+/)).map(normalize).filter(text => text.length >= 40);
+  return Object.values(reading).every(text => guideSentences.every(sentence => !normalize(text).includes(sentence)));
+}
+
 export async function generateDailyTarotReading(day: string, cardId: MajorArcanaId, locale: Locale, suppliedClient?: OpenAI) {
   const apiKey = getOneiroOpenAiApiKey();
   if (!apiKey && !suppliedClient) throw new Error("OpenAI key is not configured");
@@ -46,14 +52,16 @@ export async function generateDailyTarotReading(day: string, cardId: MajorArcana
     max_completion_tokens: 2000,
     response_format: { type: "json_schema", json_schema: { name: "daily_tarot_reading", strict: true, schema } },
     messages: [
-      { role: "system", content: `You are Dreamly's thoughtful tarot editor. Write entirely in ${languages[locale]}. Create one original interpretation of the supplied Major Arcana card for the supplied UTC day. The date and daily focus are creative seeds, not evidence of events or cosmic influence. Stay faithful to the supplied card meanings but give this day a distinct angle. Write overview in 2–3 sentences, four life-area fields in 1–2 sentences each, and reflection as one open-ended question. Make every field specific to this card and distinct from the other fields. Use natural, warm, practical prose. Before returning, silently proofread every field as a native-language editor: fix grammar, agreement, case and unnatural phrasing; avoid literal translations. No markdown, links, emojis, spiritual certainty, guaranteed outcomes, diagnosis, medical or investment advice. Never imply that you know anything personal about the reader. Do not use identical template wording across fields. JSON keys stay in English.` },
+      { role: "system", content: `You are Dreamly's thoughtful tarot editor. Write entirely in ${languages[locale]}. Create one original interpretation of the supplied Major Arcana card for the supplied UTC day. The date and daily focus are creative seeds, not evidence of events or cosmic influence. Stay faithful to the supplied card meanings but give this day a distinct angle. The supplied core meanings are reference material for Dreamly's public guide; this daily reading must be new editorial copy, never a copied or lightly modified sentence from that guide. Write overview in 2–3 sentences, four life-area fields in 1–2 sentences each, and reflection as one open-ended question. Make every field specific to this card and distinct from the other fields. Use natural, warm, practical prose. Before returning, silently proofread every field as a native-language editor: fix grammar, agreement, case and unnatural phrasing; avoid literal translations. No markdown, links, emojis, spiritual certainty, guaranteed outcomes, diagnosis, medical or investment advice. Never imply that you know anything personal about the reader. Do not use identical template wording across fields. JSON keys stay in English.` },
       { role: "user", content: JSON.stringify({ day, card: tarotCopy[locale].cards[cardId], dailyFocus: focus, coreMeanings: tarotReadings[locale][cardId] }) },
     ],
   }, { timeout: 55_000, maxRetries: 0 });
   const choice = response.choices[0];
   if (choice?.finish_reason !== "stop" || choice.message.refusal || !choice.message.content) throw new Error("Incomplete daily tarot reading");
+  const reading = validateDailyTarotReading(JSON.parse(choice.message.content), locale);
+  if (!dailyReadingDiffersFromGuide(reading, cardId, locale)) throw new Error("Daily tarot text repeats the public guide");
   return {
-    reading: validateDailyTarotReading(JSON.parse(choice.message.content), locale),
+    reading,
     usage: { input: response.usage?.prompt_tokens ?? 0, output: response.usage?.completion_tokens ?? 0 },
   };
 }

@@ -18,6 +18,7 @@ import LocaleLink from "@/lib/i18n/LocaleLink";
 import LanguageSwitcher from "@/lib/i18n/LanguageSwitcher";
 import HomeRandomDreams from "@/app/components/HomeRandomDreams";
 import HomeHoroscope from "@/app/components/HomeHoroscope";
+import HomeTarotIntro from "@/app/components/HomeTarotIntro";
 import HomeUniverse from "@/app/components/HomeUniverse";
 import HomeHero from "@/app/components/HomeHero";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
@@ -144,6 +145,8 @@ export default function HomeView({ locale }: { locale: Locale }) {
       <HomeRandomDreams locale={locale} />
 
       <ArticleAdBanner locale={locale} variant="home-banner" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
+
+      <HomeTarotIntro locale={locale} />
 
       <HomeHoroscope locale={locale} />
 

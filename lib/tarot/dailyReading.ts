@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { TAROT_READING_MODEL } from "@/lib/aiModels";
 import type { MajorArcanaId } from "./deck";
 import { fallbackDailyTarotReading, type DailyTarotReading } from "./dailyReadingFallback";
-import { generateDailyTarotReading, validateDailyTarotReading } from "./generateDailyReading";
+import { dailyReadingDiffersFromGuide, generateDailyTarotReading, validateDailyTarotReading } from "./generateDailyReading";
 
 const LEASE_MS = 75_000;
 const MAX_ATTEMPTS = 2;
@@ -31,7 +31,10 @@ type Dependencies = {
 
 function parseReady(data: Stored | undefined, day: string, cardId: MajorArcanaId, locale: Locale): DailyTarotReading | null {
   if (data?.status !== "ready" || data.day !== day || data.cardId !== cardId || data.locale !== locale) return null;
-  try { return validateDailyTarotReading(data.reading, locale); } catch { return null; }
+  try {
+    const reading = validateDailyTarotReading(data.reading, locale);
+    return dailyReadingDiffersFromGuide(reading, cardId, locale) ? reading : null;
+  } catch { return null; }
 }
 
 /** A shared, persisted reading for one UTC day, card and language. The caller must verify draw access first. */

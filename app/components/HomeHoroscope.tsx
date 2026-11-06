@@ -3,7 +3,6 @@ import type { Locale } from "@/lib/i18n/config";
 import { horoscopeCopy } from "@/lib/i18n/horoscope";
 import { SIGNS, SYMBOLS } from "@/lib/horoscope/model";
 import LocaleLink from "@/lib/i18n/LocaleLink";
-import ZodiacArt from "@/app/horoscope/ZodiacArt";
 import styles from "./HomeHoroscope.module.css";
 
 export default function HomeHoroscope({ locale }: { locale: Locale }) {
@@ -20,7 +19,6 @@ export default function HomeHoroscope({ locale }: { locale: Locale }) {
           </ul>
           <LocaleLink href="/horoscope" className={styles.cta}>{t.choose}<ArrowRight size={17} aria-hidden="true" /></LocaleLink>
         </div>
-        <div className={styles.art}><ZodiacArt /></div>
       </div>
       <nav className={styles.signs} aria-label={t.choose}>
         {SIGNS.map((sign, index) => <LocaleLink key={sign} href={`/horoscope/${sign}`}><span aria-hidden="true">{SYMBOLS[index]}</span>{t.signs[sign]}</LocaleLink>)}

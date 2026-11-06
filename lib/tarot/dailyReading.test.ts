@@ -5,7 +5,8 @@ import { LOCALES } from "@/lib/i18n/config";
 import { getDailyTarotReading } from "./dailyReading";
 import { fallbackDailyTarotReading } from "./dailyReadingFallback";
 import { MAJOR_ARCANA } from "./deck";
-import { validateDailyTarotReading } from "./generateDailyReading";
+import { dailyReadingDiffersFromGuide, validateDailyTarotReading } from "./generateDailyReading";
+import { tarotReadings } from "./readings";
 
 function memoryDb() {
   const records = new Map<string, Record<string, unknown>>();
@@ -66,6 +67,13 @@ test("localized fallback changes its daily focus and covers every card", () => {
       assert.notEqual(today.overview, tomorrow.overview);
       validateDailyTarotReading(today, locale);
       validateDailyTarotReading(tomorrow, locale);
+      assert.equal(dailyReadingDiffersFromGuide(today, card.id, locale), true, `${locale} ${card.id} daily text is separate`);
+      assert.equal(dailyReadingDiffersFromGuide({ ...today, overview: tarotReadings[locale][card.id][0] }, card.id, locale), false, `${locale} ${card.id} guide text is rejected`);
+      for (const dailyText of Object.values(today)) {
+        for (const guideText of tarotReadings[locale][card.id]) {
+          assert.ok(!dailyText.includes(guideText), `${locale} ${card.id} daily copy must differ from the public guide`);
+        }
+      }
     }
   }
 });

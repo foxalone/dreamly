@@ -8,6 +8,11 @@ import { getLocalizedGuide } from "@/lib/i18n/localize-guides";
 import type { DreamCategory } from "@/lib/dream-categories";
 import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 
+const tarotGuideLabel = {
+  en: "Tarot card meanings", es: "Significado de las cartas del tarot", ar: "معاني بطاقات التاروت",
+  pt: "Significados das cartas de tarô", de: "Bedeutung der Tarotkarten", ru: "Значения карт Таро",
+};
+
 export default function DictionaryFooter() {
   const locale = useLocale();
   const t = useMessages();
@@ -20,6 +25,7 @@ export default function DictionaryFooter() {
     { href: "/dreams", label: t.dictionary.h1 },
     { href: "/gallery", label: t.gallery.h1 },
     { href: "/horoscope", label: t.nav.horoscope },
+    { href: "/tarot", label: tarotGuideLabel[locale] },
     { href: "/dreams/a-z", label: t.dictionary.aToZ },
     { href: "/dreams/most-common", label: t.dictionary.mostCommon },
     { href: "/dreams/nightmares", label: t.dictionary.nightmares },

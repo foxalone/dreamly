@@ -41,6 +41,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import FeaturedForecastCard, { type FeaturedForecastPreview } from "./FeaturedForecastCard";
+import { featuredFeedSlot } from "@/lib/featuredFeedTime";
 
 const FEED_PAGE_SIZE = 50;
 
@@ -247,6 +248,7 @@ export default function SharedPage() {
   const [feedFailed, setFeedFailed] = useState(false);
   const [feedTotal, setFeedTotal] = useState<number | null>(null);
   const [featuredForecast, setFeaturedForecast] = useState<FeaturedForecastPreview | null>(null);
+  const [featuredPublishAtMs, setFeaturedPublishAtMs] = useState<number | null>(null);
   const [attachedAnalysis, setAttachedAnalysis] = useState<Record<string, string>>({});
   const analysisAsked = useRef(new Set<string>());
   const [my, setMy] = useState<Record<string, MyReactions>>({});
@@ -286,16 +288,38 @@ export default function SharedPage() {
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/featured-horoscope", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => {
-        const forecast = data?.forecast;
-        if (active && forecast && Number.isFinite(forecast.publishedAtMs)) {
-          setFeaturedForecast(forecast);
-        }
-      })
-      .catch(() => {});
-    return () => { active = false; };
+    let timer: ReturnType<typeof setTimeout>;
+    let requestId = 0;
+    let displayedDay: string | null = null;
+    const refresh = () => {
+      clearTimeout(timer);
+      const slot = featuredFeedSlot();
+      const currentRequest = ++requestId;
+      if (displayedDay !== slot.day) {
+        displayedDay = null;
+        setFeaturedForecast(null);
+        setFeaturedPublishAtMs(null);
+      }
+      if (slot.day) {
+        void fetch(`/api/featured-horoscope?day=${slot.day}`, { cache: "no-store" })
+          .then((response) => response.ok ? response.json() : null)
+          .then((data) => {
+            const forecast = data?.forecast;
+            if (active && currentRequest === requestId && forecast?.day === slot.day &&
+              Number.isFinite(forecast.publishedAtMs) && featuredFeedSlot().day === slot.day) {
+              displayedDay = slot.day;
+              setFeaturedForecast(forecast);
+              setFeaturedPublishAtMs(slot.publishedAtMs);
+            }
+          })
+          .catch(() => {});
+      }
+      timer = setTimeout(refresh, Math.max(1, slot.nextRefreshMs - Date.now()));
+    };
+    refresh();
+    const onVisibilityChange = () => { if (!document.hidden) refresh(); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => { active = false; ++requestId; clearTimeout(timer); document.removeEventListener("visibilitychange", onVisibilityChange); };
   }, []);
 
   // The Offerwall does a full navigation. Reload enough of the feed to render
@@ -687,11 +711,11 @@ export default function SharedPage() {
   // The forecast shares the dreams' publication timeline. Wait for the next
   // page if every loaded dream is newer than the forecast.
   const featuredPosition = useMemo(() => {
-    if (!featuredForecast || (feedLoading && list.length === 0)) return null;
-    const position = list.findIndex((dream) => (dream.sharedAtMs ?? 0) < featuredForecast.publishedAtMs);
+    if (!featuredForecast || featuredPublishAtMs === null || (feedLoading && list.length === 0)) return null;
+    const position = list.findIndex((dream) => (dream.sharedAtMs ?? 0) < featuredPublishAtMs);
     if (position !== -1) return position;
     return feedHasMore || feedLoading ? null : list.length;
-  }, [featuredForecast, list, feedHasMore, feedLoading]);
+  }, [featuredForecast, featuredPublishAtMs, list, feedHasMore, feedLoading]);
 
   async function toggleReaction(dreamId: string, key: ReactionKey) {
     if (!authReady) return;
