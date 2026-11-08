@@ -1,4 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
+import { recordDailyClick } from "@/lib/clickMetrics";
 import { readGuestId } from "@/app/api/dreams/_lib/guestQuota";
 import { isAdminUid } from "@/app/api/admin/_lib/auth";
 import { adminAuth, adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -19,10 +20,8 @@ export const POST = createTarotMoreClickHandler({
     process.env.CRON_SECRET?.trim(),
   ),
   increment: async cardId => {
-    await adminDb().collection("site_metrics").doc("tarot_more_clicks").set({
-      total: FieldValue.increment(1),
+    await recordDailyClick(adminDb(), "tarot_more_clicks", {
       cards: { [cardId]: FieldValue.increment(1) },
-      lastAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
+    });
   },
 });

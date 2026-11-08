@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { applyDailySnapshot, localDayKey, shiftDayKey, startOfLocalDayMs } from "./contentCounts";
+import { applyDailySnapshot, localDayKey, shiftDayKey, SNAPSHOT_KEEP_DAYS, stampTrackedTotals, startOfLocalDayMs } from "./contentCounts";
 
 const current = { dreams: 10, stories: 4, journal: 2, shared: 3, moon: 5, earth: 7 };
 
@@ -77,4 +77,31 @@ test("a snapshot from before Earth tracking counts as zero", () => {
   });
   assert.equal(delta.earth, 4);
   assert.equal(delta.moon, 0);
+});
+
+test("tracked totals stick to today and a missing day is left alone", () => {
+  const stamped = stampTrackedTotals(
+    { "2026-11-08": { dreams: 10, stories: 4, journal: 2, shared: 3, moon: 5, earth: 7 } },
+    "2026-11-08",
+    { translation: 1, horoscopeMore: 2, tarotMore: 7, comments: 2, xp: 1 },
+  );
+  assert.equal(stamped["2026-11-08"].moon, 5);
+  assert.equal(stamped["2026-11-08"].translation, 1);
+  assert.equal(stamped["2026-11-08"].xp, 1);
+  assert.deepEqual(stampTrackedTotals({}, "2026-11-08", { translation: 1, horoscopeMore: 0, tarotMore: 0, comments: 0, xp: 0 }), {});
+});
+
+test("snapshots are kept for the chart window", () => {
+  const stored: Record<string, { dreams: number; stories: number; journal: number; shared: number; moon: number }> = {};
+  for (let ago = 0; ago <= SNAPSHOT_KEEP_DAYS + 5; ago += 1) {
+    stored[shiftDayKey("2026-11-08", -ago)] = { dreams: 1, stories: 0, journal: 0, shared: 0, moon: 1 };
+  }
+  const { days } = applyDailySnapshot({
+    todayKey: "2026-11-08",
+    current,
+    addedToday: { dreams: 0, stories: 0, journal: 0, shared: 0 },
+    stored,
+  });
+  assert.ok(days[shiftDayKey("2026-11-08", -SNAPSHOT_KEEP_DAYS)]);
+  assert.equal(days[shiftDayKey("2026-11-08", -(SNAPSHOT_KEEP_DAYS + 1))], undefined);
 });

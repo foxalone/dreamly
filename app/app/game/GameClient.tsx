@@ -1116,6 +1116,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     className="absolute right-2 top-1.5 text-xs opacity-60 hover:opacity-100"
                     title={t.onMap}
                     aria-label={t.onMap}
+                    onClick={() => void trackEarthClick("game")}
                   >
                     🗺️
                   </LocaleLink>

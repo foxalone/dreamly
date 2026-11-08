@@ -6,6 +6,7 @@ import {
   applyDailySnapshot,
   clampTzOffsetMin,
   localDayKey,
+  stampTrackedTotals,
   startOfLocalDayMs,
   type ContentTotals,
   type DaySnapshot,
@@ -76,7 +77,10 @@ export async function GET(req: Request) {
       earth: Number(earthSnap.data()?.total ?? 0) || 0,
     };
     const stored = historySnap.data()?.days as Record<string, DaySnapshot> | undefined;
-    const { delta, days } = applyDailySnapshot({
+    const translation = Number(translationSnap.data()?.total ?? 0) || 0;
+    const horoscopeMore = Number(horoscopeMoreSnap.data()?.total ?? 0) || 0;
+    const tarotMore = Number(tarotMoreSnap.data()?.total ?? 0) || 0;
+    const { delta, days: snapped } = applyDailySnapshot({
       todayKey,
       current,
       addedToday: {
@@ -87,6 +91,7 @@ export async function GET(req: Request) {
       },
       stored,
     });
+    const days = stampTrackedTotals(snapped, todayKey, { translation, horoscopeMore, tarotMore, comments, xp });
 
     await db.collection("site_metrics").doc("content_counts").set({ days }, { merge: true }).catch((error) => {
       console.warn("content count snapshot skipped", error);
@@ -96,9 +101,9 @@ export async function GET(req: Request) {
       {
         moon: current.moon,
         earth: current.earth,
-        translation: Number(translationSnap.data()?.total ?? 0) || 0,
-        horoscopeMore: Number(horoscopeMoreSnap.data()?.total ?? 0) || 0,
-        tarotMore: Number(tarotMoreSnap.data()?.total ?? 0) || 0,
+        translation,
+        horoscopeMore,
+        tarotMore,
         comments,
         xp,
         counts: { dreams: current.dreams, stories: current.stories, journal: current.journal, shared: current.shared },

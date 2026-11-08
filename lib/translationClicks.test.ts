@@ -25,7 +25,8 @@ test("counts guest and signed-in feed icon clicks, including repeats", async () 
   assert.deepEqual(await (await click("feed")).json(), { ok: true, counted: true });
   assert.deepEqual(await (await click("feed", "visitor")).json(), { ok: true, counted: true });
   assert.deepEqual(await (await click("feed", "visitor")).json(), { ok: true, counted: true });
-  assert.deepEqual(clicks, ["feed", "feed", "feed"]);
+  assert.deepEqual(await (await click("dream")).json(), { ok: true, counted: true });
+  assert.deepEqual(clicks, ["feed", "feed", "feed", "dream"]);
 });
 
 test("excludes admin clicks and never treats invalid credentials as guests", async () => {

@@ -1,4 +1,4 @@
-export type TranslationClickSource = "feed";
+export type TranslationClickSource = "feed" | "dream";
 
 type Dependencies = {
   verifyToken: (token: string) => Promise<{ uid: string }>;
@@ -6,7 +6,7 @@ type Dependencies = {
   increment: (source: TranslationClickSource) => Promise<void>;
 };
 
-const SOURCES: readonly TranslationClickSource[] = ["feed"];
+const SOURCES: readonly TranslationClickSource[] = ["feed", "dream"];
 
 /** Count button presses, including repeats, without treating invalid credentials as guests. */
 export function createTranslationClickHandler({ verifyToken, isAdmin, increment }: Dependencies) {

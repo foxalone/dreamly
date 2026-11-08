@@ -39,6 +39,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
+import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
@@ -958,7 +959,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
             </a>
             {showTranslateButton ? (
               <button
-                onClick={() => void translateDream()}
+                onClick={() => { void trackTranslationClick("dream"); void translateDream(); }}
                 disabled={translateBusy || !languageReady}
                 aria-label={translateLabel}
                 className={[
@@ -998,7 +999,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                     busy={readingBusy}
                   />
                   {dreamLang !== targetLang ? (
-                    <button type="button" onClick={() => void translateAnalysis()} disabled={analysisTranslateBusy || !languageReady}
+                    <button type="button" onClick={() => { void trackTranslationClick("dream"); void translateAnalysis(); }} disabled={analysisTranslateBusy || !languageReady}
                       aria-label={analysisTranslateLabel} title={analysisTranslateLabel}
                       className={`react-btn react-btn--translate w-8 h-8 shrink-0 rounded-full border inline-flex items-center justify-center ${translatedAnalysis ? "react-btn--translate-on" : ""}`}>
                       <TranslateIcon className={analysisTranslateBusy ? "animate-pulse" : undefined} />
@@ -1012,7 +1013,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                       {t.app.analysis}
                     </span>
                     {dreamLang !== targetLang ? (
-                      <button type="button" onClick={() => void translateAnalysis()} disabled={analysisTranslateBusy || !languageReady}
+                      <button type="button" onClick={() => { void trackTranslationClick("dream"); void translateAnalysis(); }} disabled={analysisTranslateBusy || !languageReady}
                         aria-label={analysisTranslateLabel} title={analysisTranslateLabel}
                         className={`react-btn react-btn--translate w-8 h-8 shrink-0 rounded-full border inline-flex items-center justify-center ${translatedAnalysis ? "react-btn--translate-on" : ""}`}>
                         <TranslateIcon className={analysisTranslateBusy ? "animate-pulse" : undefined} />
@@ -1056,7 +1057,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={() => void translateComment(c.id)} disabled={cBusy || !languageReady}
+                      <button type="button" onClick={() => { void trackTranslationClick("dream"); void translateComment(c.id); }} disabled={cBusy || !languageReady}
                         aria-label={cTranslateLabel} title={cTranslateLabel}
                         className={`react-btn react-btn--translate w-8 h-8 rounded-full border inline-flex items-center justify-center ${cTranslated ? "react-btn--translate-on" : ""}`}>
                         <TranslateIcon className={cBusy ? "animate-pulse" : undefined} />

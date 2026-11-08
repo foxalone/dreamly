@@ -35,11 +35,13 @@ import DreamKingdomsDoc from "./DreamKingdomsDoc";
 import GamePlayersPanel from "./GamePlayersPanel";
 import DictionarySearchQueries from "./DictionarySearchQueries";
 import MoonClicks from "./MoonClicks";
+import MetricCharts from "./MetricCharts";
 import TarotCardsPanel from "./TarotCardsPanel";
 import DictionarySymbolClicks from "./DictionarySymbolClicks";
 import EmojiDictionaryPanel from "./EmojiDictionaryPanel";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { emojiDictionaryCopy } from "@/lib/i18n/emojiDictionary";
+import { adminChartsCopy } from "@/lib/i18n/adminCharts";
 import { tarotCopy } from "@/lib/tarot/deck";
 import SeoOpportunitiesPanel from "./SeoOpportunitiesPanel";
 import GscQueriesPanel from "./GscQueriesPanel";
@@ -177,7 +179,7 @@ function dreamMatchesQuery(d: DreamAdmin, q: string): boolean {
 
 const ADMIN_UIDS = new Set<string>(["sGbA77TlcsatEMrgEvCv7Shjrj32"]);
 
-type AdminTab = "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "TAROT" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
+type AdminTab = "CHARTS" | "EMOJI_DICTIONARY" | "SEO_OPPORTUNITIES" | "DREAMS" | "TAROT" | "EMOJIS" | "CONFIG" | "USERS" | "QUERIES" | "SYMBOL_CLICKS" | "GSC" | "DOCS" | "GAME" | "FREE_VIDEOS" | "FREE_MIX_VIDEOS" | "STOCK_POOL_VIDEOS" | "STOCK_POOL_WIDE_VIDEOS" | "VEO_VIDEOS" | "VIDEO_LIBRARY" | "VEO_IMAGES" | "IMAGE_LIBRARY" | "CONNECTIONS" | "SOCIAL_MAP";
 
 function safeDate(ms?: number) {
   if (!ms) return "";
@@ -427,6 +429,7 @@ async function readRtdbNum(path: string): Promise<number> {
 
 export default function AdminDashboardPage() {
   const locale = useLocale();
+  const charts = adminChartsCopy[locale];
   const emojiCopy = emojiDictionaryCopy[locale];
   const tarot = tarotCopy[locale];
   const [user, setUser] = useState<User | null>(null);
@@ -438,6 +441,7 @@ export default function AdminDashboardPage() {
     const params = new URLSearchParams(window.location.search);
     const requested = params.get("tab");
     if (
+      requested === "CHARTS" ||
       requested === "DREAMS" ||
       requested === "TAROT" ||
       requested === "EMOJIS" ||
@@ -1473,12 +1477,14 @@ async function loadUsers() {
   }
 
   return (
-    <main className={`px-6 py-10 mx-auto ${tab === "VIDEO_LIBRARY" || tab === "IMAGE_LIBRARY" || tab === "SOCIAL_MAP" ? "max-w-6xl" : "max-w-5xl"}`}>
+    <main className={`px-6 py-10 mx-auto ${tab === "CHARTS" || tab === "VIDEO_LIBRARY" || tab === "IMAGE_LIBRARY" || tab === "SOCIAL_MAP" ? "max-w-6xl" : "max-w-5xl"}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className={`text-3xl font-semibold ${titleText}`}>Admin dashboard</h1>
           <div className={`mt-2 text-sm ${mutedText}`}>
-            {tab === "DREAMS" ? (
+            {tab === "CHARTS" ? (
+              <>{charts.subtitle}</>
+            ) : tab === "DREAMS" ? (
               <>
                 All dreams (collectionGroup: <span className="font-mono">dreams</span> + guest pins:{" "}
                 <span className="font-mono">guest_dreams</span>)
@@ -1562,6 +1568,18 @@ async function loadUsers() {
 
       {/* Tabs */}
       <div className="mt-5 flex w-fit flex-wrap rounded-3xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)] p-1">
+        <button
+          type="button"
+          onClick={() => setTab("CHARTS")}
+          className={[
+            "px-4 py-2 rounded-full text-sm font-semibold transition",
+            tab === "CHARTS"
+              ? "bg-[var(--text)] text-[var(--bg)]"
+              : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
+          ].join(" ")}
+        >
+          {charts.tab}
+        </button>
         <button
           onClick={() => setTab("DREAMS")}
           className={[
@@ -1804,6 +1822,8 @@ async function loadUsers() {
           Social Map
         </button>
       </div>
+
+      {tab === "CHARTS" && user && isAdmin ? <MetricCharts user={user} /> : null}
 
       {/* DREAMS TAB */}
       {tab === "DREAMS" && (

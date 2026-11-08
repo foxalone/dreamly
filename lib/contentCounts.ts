@@ -19,7 +19,37 @@ export type ContentDelta = {
 };
 
 /** Older daily snapshots predate Earth tracking and have no `earth` field. */
-export type DaySnapshot = Omit<ContentTotals, "earth"> & { earth?: number; inferred?: boolean };
+export type DaySnapshot = Omit<ContentTotals, "earth"> & {
+  earth?: number;
+  inferred?: boolean;
+  translation?: number;
+  horoscopeMore?: number;
+  tarotMore?: number;
+  comments?: number;
+  xp?: number;
+};
+
+/** Daily click charts read these snapshots, so keep a season of them. */
+export const SNAPSHOT_KEEP_DAYS = 120;
+
+export type TrackedTotals = {
+  translation: number;
+  horoscopeMore: number;
+  tarotMore: number;
+  comments: number;
+  xp: number;
+};
+
+/** Attach the totals that have no creation timestamp. Never invents a day. */
+export function stampTrackedTotals(
+  days: Record<string, DaySnapshot>,
+  todayKey: string,
+  totals: TrackedTotals,
+): Record<string, DaySnapshot> {
+  const today = days[todayKey];
+  if (!today) return days;
+  return { ...days, [todayKey]: { ...today, ...totals } };
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -95,7 +125,7 @@ export function applyDailySnapshot(input: {
     [input.todayKey]: { ...input.current },
   };
   if (!existing) days[yesterdayKey] = baseline;
-  const cutoff = shiftDayKey(input.todayKey, -40);
+  const cutoff = shiftDayKey(input.todayKey, -SNAPSHOT_KEEP_DAYS);
   for (const key of Object.keys(days)) {
     if (key < cutoff || key > input.todayKey) delete days[key];
   }
