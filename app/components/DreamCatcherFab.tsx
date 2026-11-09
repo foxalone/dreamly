@@ -97,11 +97,9 @@ export default function DreamCatcherFab() {
       onMouseEnter={onHover}
       onFocus={onHover}
       onClick={onClick}
-      className="dcf group fixed right-[max(16px,env(safe-area-inset-right))] z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400 md:h-[84px] md:w-14"
-      style={{
-        WebkitTapHighlightColor: "transparent",
-        bottom: `calc(var(${path === "/app/map" || path === "/moon" ? "--dreamly-map-fab-center" : "--dreamly-fab-center"}) - 36px)`,
-      }}
+      data-map-fab={path === "/app/map" || path === "/moon" ? "" : undefined}
+      className="dcf group fixed right-[max(16px,env(safe-area-inset-right))] z-40 block h-[72px] w-12 outline-none focus-visible:ring-2 focus-visible:ring-purple-400 md:h-[108px] md:w-[72px]"
+      style={{ WebkitTapHighlightColor: "transparent" }}
     >
       <style>{`
         .dcf img { transform-origin: 50% 0%; animation: dcf-sway 4.5s ease-in-out infinite;

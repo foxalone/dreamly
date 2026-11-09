@@ -26,8 +26,9 @@
 .hint { margin: 0; padding-inline: 20px; text-align: center; font-size: 11px; color: #777784; }
 .status { position: absolute; inset: 44% 20px auto; margin-inline: auto; max-width: 420px; padding: 20px; text-align: center; border-radius: 20px; background: #111318d9; color: #c7c5ce; font-size: 14px; }
 .status button { margin-top: 14px; border-radius: 20px; padding: 8px 16px; border: 1px solid #ffffff30; cursor: pointer; }
-@media (max-width: 640px) {
-  .footer { bottom: max(32px, env(safe-area-inset-bottom)); gap: 12px; }
+@media (max-width: 767px) {
+  .shell { height: calc(100dvh - var(--app-nav-height, 4rem) - 54px - env(safe-area-inset-bottom)); }
+  .footer { bottom: 12px; gap: 12px; }
   .controls button { padding-inline: 13px; font-size: 12px; }
   .globe :global(.mapboxgl-ctrl-top-right) { top: 16px; right: 10px; }
 }

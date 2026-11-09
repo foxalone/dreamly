@@ -360,6 +360,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
     <p id="love-photo-error-message">{photoDialogError}</p>
     <button type="button" onClick={() => photoDialogRef.current?.close()}>{copy.photoInvalidDismiss}</button>
   </dialog>, document.body)}
+  <div className={styles.theme}>
   <DreamDictionaryHeader />
   <main className={styles.page} dir={locale === "ar" ? "rtl" : "ltr"}>
     <div className={styles.shell}>
@@ -497,6 +498,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       </section>}
     </div>
   </main>
+  </div>
   <PlansModal
     open={purchaseOptions}
     onClose={() => setPurchaseOptions(false)}

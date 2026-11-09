@@ -161,7 +161,7 @@ export default function DreamMapGlobe() {
   </LocaleLink>;
   const onMapRail = path === '/moon' || path === '/app/map';
   const rail = (nodes: ReactNode) => (
-    <div className={styles.iconRail} data-map-rail={onMapRail || undefined} style={{ visibility: blocked ? 'hidden' : undefined }}>
+    <div className={styles.iconRail} data-dream-nav="" data-map-rail={path === '/app/map' ? 'above' : onMapRail || undefined} style={{ visibility: blocked ? 'hidden' : undefined }}>
       {nodes}
     </div>
   );

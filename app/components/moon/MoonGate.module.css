@@ -16,7 +16,10 @@
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .actions a, .actions button { padding: 10px 18px; border: 1px solid #ffffff30; border-radius: 24px; background: #77609e; color: white; cursor: pointer; text-decoration: none; }
 .actions button:disabled { opacity: .5; cursor: wait; }
-@media(max-width: 640px) { .particles span { left: 22px; } }
+@media(max-width: 767px) {
+  .portal { left: calc(max(8px, env(safe-area-inset-left)) + (100% - max(8px, env(safe-area-inset-left)) - 52px - env(safe-area-inset-right) - 162px) / 5); bottom: calc(10px + env(safe-area-inset-bottom)); width: 34px; height: 34px; z-index: 36; }
+  .particles span { left: 6px; top: 4px; font-size: 14px; }
+}
 @media(prefers-reduced-motion: reduce) { .orb, .particles span { animation: none; } .particles { display: none; } }
 
 .portal:disabled { cursor: wait; }

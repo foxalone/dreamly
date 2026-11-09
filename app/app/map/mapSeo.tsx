@@ -32,7 +32,7 @@ export function MapShell({ children, locale }: { children: ReactNode; locale: Lo
       <p className="sr-only">{t.home.mapBody}</p>
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - var(--app-nav-height, 4rem))", minHeight: 240, gap: 12 }} data-map-layout>
         <div style={{ flex: "1 1 0%", minHeight: 0, minWidth: 0 }}>{children}</div>
-        <div style={{ flex: "0 0 auto", borderTop: "1px solid var(--border)", padding: "8px 16px calc(8px + env(safe-area-inset-bottom))", background: "var(--bg)" }}>
+        <div data-map-ad="" style={{ flex: "0 0 auto", borderTop: "1px solid var(--border)", padding: "8px 16px calc(8px + env(safe-area-inset-bottom))", background: "var(--bg)" }}>
           <div style={{ maxWidth: 728, marginInline: "auto" }}>
             <ArticleAdBanner locale={locale} variant="map" slot={process.env.ADSENSE_ARTICLE_SLOT?.trim() || undefined} />
           </div>

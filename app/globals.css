@@ -23,9 +23,15 @@
 @media (max-width: 767px) {
   :root { --dreamly-map-fab-center: calc(154px + env(safe-area-inset-bottom)); }
 }
+.dcf { bottom: calc(var(--dreamly-fab-center) - 36px); }
+.dcf[data-map-fab] { bottom: calc(var(--dreamly-map-fab-center) - 36px); }
 @media (max-width: 640px) {
   :root { --dreamly-planet-size: 56px; }
-  .dcf { width:40px; height:60px; transform:translateY(-6px) }
+}
+@media (max-width: 767px) {
+  .dcf, .dcf[data-map-fab] { width: 36px; height: 46px; transform: none; right: max(12px, env(safe-area-inset-right)); bottom: calc(4px + env(safe-area-inset-bottom)); }
+  [data-map-layout] { height: calc(100dvh - var(--app-nav-height, 4rem) - 54px - env(safe-area-inset-bottom)); gap: 0; }
+  [data-map-ad] { display: none; }
 }
 
 /* Автоматическая светлая тема если система light */
