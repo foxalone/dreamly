@@ -16,8 +16,9 @@ export const revalidate = 3600;
 
 /**
  * Public dream pages (/dream/<id>) — every shared, not-deleted dream has a
- * permanent id and its own indexable page. Newest 1000 keep the sitemap small;
- * older dreams stay indexed through the pages Google already crawled.
+ * permanent id and its own indexable page. Locale copies canonicalize to this
+ * URL and are not listed. Newest 1000 keep the sitemap small; older dreams
+ * stay indexed through the pages Google already crawled.
  */
 async function sharedDreamPages(): Promise<MetadataRoute.Sitemap> {
   try {

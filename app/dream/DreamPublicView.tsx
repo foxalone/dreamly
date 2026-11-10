@@ -8,15 +8,14 @@ import { ensureSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
-import { localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
-import { localePath } from "@/lib/i18n/path";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 
 import DreamPageClient, { type MoreDream, type PublicSharedDream } from "./DreamPageClient";
 
 /**
- * Public, indexable page of one shared dream: /dream/<id> (+ locale prefixes).
+ * Public, indexable page of one shared dream: /dream/<id>.
+ * Locale copies exist for translated chrome, but they canonicalize here.
  * The id is the shared_dreams doc id — stable for the dream's lifetime, so
  * Google can index each dream once. Deleted dreams (stripped docs with
  * deleted:true) and empty texts 404 — same policy as the feed.
@@ -95,8 +94,11 @@ export const loadSharedDream = cache(async (id: string): Promise<PublicSharedDre
       analysisHasMore,
     };
   } catch (e) {
+    // A Firestore blip must not become a cached 404. notFound() is only for a
+    // dream that is actually missing; an error stays an error so ISR can keep
+    // the last good page (GSC: Not found).
     console.error("loadSharedDream failed:", e);
-    return null;
+    throw e;
   }
 });
 
@@ -179,12 +181,21 @@ export function sharedDreamMetadata(dream: PublicSharedDream, id: string, locale
   const titleCore = sharedDreamExcerpt(dream.text, 60) || t.dreamPage.metaTitleFallback;
   const title = `${titleCore} | Dreamly`;
   const description = sharedDreamExcerpt(dream.text, 158) || t.dreamPage.metaDescription;
-  const path = `/dream/${id}`;
+  // One dream, one language, one URL. Locale routes keep translated chrome for
+  // readers, but advertising them with hreflang made Google discover five extra
+  // copies per dream ("Discovered / Crawled — currently not indexed").
+  const canonicalPath = `/dream/${id}`;
   return {
     title,
     description,
-    ...localeMetadata(path, locale),
-    openGraph: localeOpenGraph(path, locale, title, description, "article"),
+    alternates: { canonical: canonicalPath },
+    robots: { index: true, follow: true },
+    openGraph: {
+      title,
+      description,
+      url: canonicalPath,
+      type: "article",
+    },
   };
 }
 
@@ -213,7 +224,7 @@ export default async function DreamPublicView({
     "@type": "DiscussionForumPosting",
     headline: sharedDreamExcerpt(dream.text, 110),
     articleBody: dream.text,
-    url: `${SITE_URL}${localePath(`/dream/${dream.id}`, locale)}`,
+    url: `${SITE_URL}/dream/${dream.id}`,
     ...(dream.sharedAtMs ? { datePublished: new Date(dream.sharedAtMs).toISOString() } : {}),
     author: { "@type": "Person", name: t.shareBadges.anonymous, url: SITE_URL },
     commentCount,

@@ -15,6 +15,7 @@ import {
   collectIndexNowUrls,
   currentIndexNowSnapshot,
   diffIndexNowSnapshot,
+  dreamPageIndexNowPaths,
   indexNowFingerprint,
   indexNowKey,
   indexNowKeyLocation,
@@ -80,16 +81,22 @@ test("relative paths become canonical absolute URLs; other hosts are refused", (
   assert.equal(toIndexNowUrl("/en/dreams/snake"), null);
 });
 
-test("private, API, noindex and robots-disallowed paths are never submitted", () => {
+test("private, API and noindex paths are never submitted", () => {
   for (const path of ["/api/dreams/snake", "/_next/static/x.js", "/sitemap.xml", "/robots.txt", `/${KEY}.txt`,
-    "/signin", "/es/signin", "/app", "/app/dreams", "/ru/app/profile", "/app/profile/admin-dashboard", "/payment-success"]) {
+    "/signin", "/es/signin", "/app", "/app/dreams", "/ru/app/profile", "/app/profile/admin-dashboard",
+    "/payment-success", "/auth/action", "/moon", "/es/moon", "/purchase/return"]) {
     assert.equal(isIndexNowEligiblePath(path), false, path);
   }
+  // Private URLs stay crawlable. A robots.txt Disallow is what leaves a URL
+  // "Indexed, though blocked by robots.txt" because Google never sees noindex.
   const rules = robots().rules;
-  for (const rule of Array.isArray(rules) ? rules : [rules]) {
-    const disallow = Array.isArray(rule.disallow) ? rule.disallow : [rule.disallow];
-    for (const path of disallow) if (path) assert.equal(isIndexNowEligiblePath(path), false, path);
-  }
+  const rule = Array.isArray(rules) ? rules[0] : rules;
+  assert.equal(rule.userAgent, "*");
+  assert.equal(rule.allow, "/");
+  assert.equal(rule.disallow, undefined);
+  assert.equal(robots().sitemap, "https://dreamly.art/sitemap.xml");
+  assert.deepEqual(dreamPageIndexNowPaths("abc_12"), ["/dream/abc_12"]);
+  assert.deepEqual(dreamPageIndexNowPaths("bad id"), []);
   // /app/map is the one public page under /app.
   for (const path of ["/app/map", "/es/app/map"]) assert.equal(isIndexNowEligiblePath(path), true, path);
   assert.equal(isIndexNowEligiblePath("/app/map/anything"), false);
