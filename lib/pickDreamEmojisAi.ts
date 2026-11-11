@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { DREAM_EMOJI_MODEL } from "./aiModels";
+import { DREAM_EMOJI_MODEL, OPENAI_REASONING_EFFORT } from "./aiModels";
 import emojiData from "@emoji-mart/data";
 import {
   createEmojiResolver,
@@ -75,7 +75,7 @@ export async function pickDreamEmojisAi(apiKey: string, text: string): Promise<P
           },
         },
       },
-      reasoning: { effort: "minimal" },
+      reasoning: { effort: OPENAI_REASONING_EFFORT },
     });
     const parsed = JSON.parse(String(resp.output_text ?? "").trim() || "{}");
     raw = Array.isArray(parsed?.emojis) ? parsed.emojis.map((x: unknown) => String(x ?? "")) : [];

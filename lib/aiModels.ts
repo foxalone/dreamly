@@ -7,6 +7,12 @@
  * own OPENAI_MODEL constant at the top — keep them in sync by hand.
  */
 
+/**
+ * gpt-5.6 terra/luna/sol reject legacy `minimal` (HTTP 400).
+ * Chat Completions: reasoning_effort. Responses: reasoning.effort.
+ */
+export const OPENAI_REASONING_EFFORT = "none" as const;
+
 /** Dream analysis shown to the user (homepage Ask). Quality-critical. */
 export const DREAM_ANALYSIS_MODEL = "gpt-5.6-terra";
 

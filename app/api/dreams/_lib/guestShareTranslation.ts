@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import OpenAI from "openai";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
-import { TRANSLATE_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { EN_GUEST_SHARE_COPY, normalizeGuestShareCopy, type GuestShareCopy } from "@/lib/guestShareCopy";
 
 const sourceHash = createHash("sha256").update(JSON.stringify(EN_GUEST_SHARE_COPY)).digest("hex");
@@ -16,7 +16,7 @@ export async function translatedGuestShareCopy(lang: string, apiKey: string): Pr
   const language = new Intl.DisplayNames(["en"], { type: "language" }).of(lang) ?? lang;
   const response = await new OpenAI({ apiKey }).responses.create({
     model: TRANSLATE_MODEL,
-    reasoning: { effort: "minimal" },
+    reasoning: { effort: OPENAI_REASONING_EFFORT },
     instructions: `Translate this guest dream sharing UI copy into natural ${language} (${lang}). Keep the meaning and direct address. Translate the fantasy rank names unicorn and wizard naturally. Preserve {badge} and {next} exactly in the done sentence and {badge} in promptBody. Return only a json object with the same nine keys and no explanation.`,
     input: `Translate this json object:\n${JSON.stringify(EN_GUEST_SHARE_COPY)}`,
     text: { format: { type: "json_object" } },

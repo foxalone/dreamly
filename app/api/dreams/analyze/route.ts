@@ -3,7 +3,7 @@ import { saveGuestDreamSnapshot } from "../_lib/guestDreamSnapshot";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
-import { DREAM_ANALYSIS_MODEL } from "@/lib/aiModels";
+import { DREAM_ANALYSIS_MODEL, OPENAI_REASONING_EFFORT } from "@/lib/aiModels";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
 import { isDreamTooLong } from "@/lib/dreamLength";
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
       const result = await generateDreamAnalysis(async (candidate) => {
         const resp = await openai.chat.completions.create({
           model: candidate,
-          reasoning_effort: "minimal",
+          reasoning_effort: OPENAI_REASONING_EFFORT,
           messages: dreamAnalysisMessages(text, lang, lens),
         });
         return (resp.choices?.[0]?.message?.content ?? "").trim();

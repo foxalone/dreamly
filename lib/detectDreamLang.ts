@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { DETECT_LANG_MODEL } from "./aiModels";
+import { DETECT_LANG_MODEL, OPENAI_REASONING_EFFORT } from "./aiModels";
 
 /**
  * Server-side language detection for a dream text (ISO 639-1, lowercase).
@@ -39,7 +39,7 @@ export async function detectDreamLang(
     instructions:
       "You identify the language a text is written in. Reply with only the ISO 639-1 two-letter code in lowercase (e.g. en, ru, he, ar, es). If the text mixes languages, answer with the dominant one. If it is not identifiable, reply und.",
     input: clean.slice(0, 1500),
-    reasoning: { effort: "minimal" },
+    reasoning: { effort: OPENAI_REASONING_EFFORT },
   });
 
   const raw = resp.output_text ?? "";

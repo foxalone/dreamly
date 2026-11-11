@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import OpenAI from "openai";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
-import { TRANSLATE_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { EN_ESCAPE_NOTE, normalizeEscapeNoteCopy, type EscapeNoteCopy } from "@/lib/escapeNote";
 
 const sourceHash = createHash("sha256").update(JSON.stringify(EN_ESCAPE_NOTE)).digest("hex");
@@ -16,7 +16,7 @@ export async function translatedEscapeNote(lang: string, apiKey: string): Promis
   const language = new Intl.DisplayNames(["en"], { type: "language" }).of(lang) ?? lang;
   const response = await new OpenAI({ apiKey }).responses.create({
     model: TRANSLATE_MODEL,
-    reasoning: { effort: "minimal" },
+    reasoning: { effort: OPENAI_REASONING_EFFORT },
     instructions: `Translate the two UI strings into natural ${language} (${lang}). Keep the meaning, punctuation and second-person instruction. Return only a json object with string keys "lead" and "cta". Do not include emoji or the creature list.`,
     input: `Translate this json object:\n${JSON.stringify(EN_ESCAPE_NOTE)}`,
     text: { format: { type: "json_object" } },
