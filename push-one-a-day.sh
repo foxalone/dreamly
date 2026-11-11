@@ -1,5 +1,5 @@
 #!/bin/bash
-# One video + one image a day (12:00 / 19:00 ET): push dreamly + positioner, then re-time the queue.
+# One video + one image every other day (12:00 / 19:00 ET): push dreamly + positioner, then re-time the queue.
 set -euo pipefail
 ONEIRO=/Users/dimab/Documents/oneiro-web
 POSITIONER=/Users/dimab/Documents/positioner-web
@@ -38,4 +38,4 @@ npm run auto-dictionary-content -- --respace --apply || {
   echo "затем:  cd $ONEIRO && npm run auto-dictionary-content -- --respace --apply"
   exit 1
 }
-echo "Готово: 1 видео в 12:00 ET и 1 картинка в 19:00 ET каждый день начиная с завтра."
+echo "Готово: 1 видео в 12:00 ET и 1 картинка в 19:00 ET через день, начиная с 12 ноября."

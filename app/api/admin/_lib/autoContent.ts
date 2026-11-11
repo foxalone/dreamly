@@ -561,16 +561,28 @@ export async function scheduleReadyAutoDictionaryPair(input: {
 
   const videoSnap = await adminDb().collection(FREE_VIDEO_COLLECTION).doc(input.videoJobId).get();
   if (String(videoSnap.get("socialScheduledAt") || "")) {
-    // The video made it earlier; still queue the image (idempotent) so a retried pair gets both.
+    // Socials were booked on an earlier try. Still queue the image, and upload to
+    // YouTube when that half never landed (expired token, quota, a killed run).
     const imageBooking = await scheduleAutoPairImage(input.imageJobId, input.publishAt, input.createdBy);
-    return {
-      alreadyScheduled: true,
-      youtubeScheduled: String(videoSnap.get("youtubeStatus") || "") === "scheduled",
-      youtubeError: String(videoSnap.get("youtubeError") || ""),
-      ...imageBooking,
-      video,
-      image,
-    };
+    const youtubeStatus = String(videoSnap.get("youtubeStatus") || "");
+    const youtubePublished = Boolean(videoSnap.get("youtubePublishedAt")) || youtubeStatus === "published";
+    if (youtubeStatus === "scheduled" || youtubePublished || youtubeStatus === "uploading" || youtubeStatus === "publishing") {
+      return {
+        alreadyScheduled: true,
+        youtubeScheduled: youtubeStatus === "scheduled",
+        youtubeError: String(videoSnap.get("youtubeError") || ""),
+        ...imageBooking,
+        video,
+        image,
+      };
+    }
+    try {
+      await scheduleAutoYouTube(`free:${input.videoJobId}`, input.publishAt, input.createdBy);
+      return { alreadyScheduled: true, youtubeScheduled: true, youtubeError: "", ...imageBooking, video, image };
+    } catch (error) {
+      const youtubeError = error instanceof Error ? error.message : "YouTube error";
+      return { alreadyScheduled: true, youtubeScheduled: false, youtubeError, ...imageBooking, video, image };
+    }
   }
 
   await assignAutoImageToDreamPage(input.imageJobId);
@@ -641,10 +653,12 @@ export type RespaceVideoResult = {
 };
 
 /**
- * dima's rule since 2026-09-29: one video and one image a day, 12:00 / 19:00 ET.
+ * dima's rule since 2026-11-10: one video and one image every other day, 12:00 / 19:00 ET.
  * Every video still pending in the social queue from tomorrow (Jerusalem) on is
- * re-timed to consecutive days in its current order: the queue entry, the YouTube
+ * re-timed onto that cadence, keeping its order: the queue entry, the YouTube
  * publishAt (or a fresh YouTube booking where none went up) and the paired image.
+ * YouTube is moved before the social queue. A dead YouTube token stops the run
+ * before any date changes, so the two calendars cannot drift apart.
  * Idempotent — run it again after reconnecting YouTube or after a timeout.
  */
 export async function respaceBookedPublishes(options: { createdBy: string; dryRun?: boolean; deadlineMs?: number }) {
@@ -707,34 +721,38 @@ export async function respaceBookedPublishes(options: { createdBy: string; dryRu
       continue;
     }
 
-    if (move.changed) {
+    let youtubeReady = result.youtube !== "moved" && result.youtube !== "booked";
+    if (result.youtube === "moved" || result.youtube === "booked") {
+      if (result.youtube === "booked" && Date.now() > deadlineMs - 60_000) {
+        // A fresh upload is slow; leave it for the next run rather than time out mid-upload.
+        result.youtube = "later";
+        youtubeReady = true;
+      } else {
+        try {
+          if (result.youtube === "moved") await rescheduleYouTubeVideo(move.id, move.publishAt);
+          else await scheduleAutoYouTube(move.id, move.publishAt, options.createdBy);
+          youtubeReady = true;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "ошибка";
+          result.youtube = "error";
+          result.social = "kept";
+          if (result.image === "moved") result.image = "kept";
+          result.errors.push(`YouTube: ${message}`);
+          results.push(result);
+          // A dead token would move socials and leave YouTube on the old dates. Stop first.
+          if (/reconnect youtube|expired or revoked|not configured|invalid_grant/i.test(message)) break;
+          continue;
+        }
+      }
+    }
+
+    if (youtubeReady && move.changed) {
       try {
         const moved = await rescheduleLibraryVideoPublish(move.id, move.publishAt);
         if (!moved.moved) result.social = "kept";
       } catch (error) {
         result.social = "error";
         result.errors.push(`соцсети: ${error instanceof Error ? error.message : "ошибка"}`);
-      }
-    }
-
-    if (result.youtube === "moved") {
-      try {
-        await rescheduleYouTubeVideo(move.id, move.publishAt);
-      } catch (error) {
-        result.youtube = "error";
-        result.errors.push(`YouTube: ${error instanceof Error ? error.message : "ошибка"}`);
-      }
-    } else if (result.youtube === "booked") {
-      // A fresh upload is slow; leave the rest for the next run rather than time out mid-upload.
-      if (Date.now() > deadlineMs - 60_000) {
-        result.youtube = "later";
-      } else {
-        try {
-          await scheduleAutoYouTube(move.id, move.publishAt, options.createdBy);
-        } catch (error) {
-          result.youtube = "error";
-          result.errors.push(`YouTube: ${error instanceof Error ? error.message : "ошибка"}`);
-        }
       }
     }
 

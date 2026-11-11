@@ -1,5 +1,7 @@
 /**
- * One video and one image a day, timed for the US audience (since 2026-09-29).
+ * One video and one image every other day, timed for the US audience.
+ * Since 2026-11-10 the cadence is day on, day off: 2026-11-10 published,
+ * 2026-11-11 is empty, 2026-11-12 publishes, and so on.
  * Slots are wall-clock hours in New York, so DST on either side never shifts them:
  * the video goes out at 12:00 ET (lunch on the East Coast, 9:00 on the West Coast),
  * the paired dream-page image at 19:00 ET (evening scroll, 16:00 PT).
@@ -7,7 +9,10 @@
 export const AUTO_SLOT_TIME_ZONE = "America/New_York";
 export const AUTO_SLOT_HOURS = [12] as const;
 export const AUTO_IMAGE_HOUR = 19;
-/** The nightly cycle books one day ahead: one new pair a night keeps the backlog steady. */
+/** First on-day of the every-other-day cadence. Even offsets from this date publish. */
+export const AUTO_CADENCE_ANCHOR = "2026-11-10";
+export const AUTO_DAY_STRIDE = 2;
+/** The nightly cycle books the next free on-day: one new pair a night. */
 export const AUTO_HORIZON_DAYS = 1;
 export const AUTO_PAIRS_PER_DAY = AUTO_SLOT_HOURS.length;
 export const AUTO_PAIR_COUNT = AUTO_HORIZON_DAYS * AUTO_PAIRS_PER_DAY;
@@ -61,6 +66,15 @@ export function slotKey(dateKey: string, hour: number) {
   return `${dateKey}|${hour}`;
 }
 
+export function isAutoPublishDay(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const [anchorYear, anchorMonth, anchorDay] = AUTO_CADENCE_ANCHOR.split("-").map(Number);
+  const diffDays = Math.round(
+    (Date.UTC(year, month - 1, day) - Date.UTC(anchorYear, anchorMonth - 1, anchorDay)) / 86_400_000,
+  );
+  return ((diffDays % AUTO_DAY_STRIDE) + AUTO_DAY_STRIDE) % AUTO_DAY_STRIDE === 0;
+}
+
 export function slotWallTimeToIso(dateKey: string, hour: number) {
   const [year, month, day] = dateKey.split("-").map(Number);
   const wallClock = Date.UTC(year, month - 1, day, hour, 0, 0);
@@ -110,7 +124,7 @@ export function nextEmptyPublishDays(occupied: Iterable<string>, count = AUTO_HO
   const days: string[] = [];
   let dateKey = slotDateKey(now);
   for (let index = 0; index < 400 && days.length < count; index += 1) {
-    if (isDayFree(dateKey, taken, nowMs)) {
+    if (isAutoPublishDay(dateKey) && isDayFree(dateKey, taken, nowMs)) {
       days.push(dateKey);
       for (const hour of AUTO_SLOT_HOURS) taken.add(slotKey(dateKey, hour));
     }
@@ -125,8 +139,8 @@ export function publishSlotsForDays(dateKeys: string[]) {
 }
 
 /**
- * The earliest free video slots (12:00 ET) in chronological order, partially booked days
- * included — used to refill the holes a failed catch-up pair left behind.
+ * The earliest free on-days (12:00 ET) in chronological order.
+ * Off-days stay empty on purpose; this does not fill them.
  */
 export function nextFreePublishSlots(occupied: Iterable<string>, count: number, now = new Date()): AutoPublishSlot[] {
   const taken = new Set(occupied);
@@ -134,7 +148,7 @@ export function nextFreePublishSlots(occupied: Iterable<string>, count: number, 
   const slots: AutoPublishSlot[] = [];
   let dateKey = slotDateKey(now);
   for (let index = 0; index < 400 && slots.length < count; index += 1) {
-    if (!taken.has(dateKey)) {
+    if (isAutoPublishDay(dateKey) && !taken.has(dateKey)) {
       for (const slot of publishSlotsForDay(dateKey)) {
         if (slots.length >= count) break;
         const when = Date.parse(slot.publishAt);
@@ -163,9 +177,9 @@ export type RespaceItem = { id: string; at: string };
 export type RespaceMove = RespaceItem & { dateKey: string; publishAt: string; imagePublishAt: string; changed: boolean };
 
 /**
- * Re-space already booked videos to one per day from `cutoff` on: keep their order,
- * give them consecutive slot days starting with the first slot after the cutoff.
- * Idempotent — a second run over the result returns every item unchanged.
+ * Re-space already booked videos onto the every-other-day cadence from `cutoff` on.
+ * Keeps their order. The first slot is the next on-day whose 12:00 ET is still after
+ * the cutoff. Idempotent — a second run over the result returns every item unchanged.
  */
 export function planOnePerDay(items: RespaceItem[], cutoff: Date): RespaceMove[] {
   const cutoffMs = cutoff.getTime();
@@ -174,6 +188,7 @@ export function planOnePerDay(items: RespaceItem[], cutoff: Date): RespaceMove[]
     .sort((left, right) => Date.parse(left.at) - Date.parse(right.at) || left.id.localeCompare(right.id));
   let dateKey = slotDateKey(cutoff);
   if (Date.parse(slotWallTimeToIso(dateKey, AUTO_SLOT_HOURS[0])) < cutoffMs) dateKey = addSlotDay(dateKey, 1);
+  while (!isAutoPublishDay(dateKey)) dateKey = addSlotDay(dateKey, 1);
   return sorted.map((item) => {
     const publishAt = slotWallTimeToIso(dateKey, AUTO_SLOT_HOURS[0]);
     const move = {
@@ -183,7 +198,7 @@ export function planOnePerDay(items: RespaceItem[], cutoff: Date): RespaceMove[]
       imagePublishAt: slotWallTimeToIso(dateKey, AUTO_IMAGE_HOUR),
       changed: Date.parse(item.at) !== Date.parse(publishAt),
     };
-    dateKey = addSlotDay(dateKey, 1);
+    dateKey = addSlotDay(dateKey, AUTO_DAY_STRIDE);
     return move;
   });
 }

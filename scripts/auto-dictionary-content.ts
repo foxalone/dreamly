@@ -16,18 +16,18 @@ const PRODUCTION_AUTO_CONTENT_URL = "https://dreamly.art/api/admin/auto-content"
 
 /**
  * `--respace` (preview) / `--respace --apply`: re-time everything booked from tomorrow on
- * to one video + one image a day. Runs in production because only production holds the
- * YouTube credentials. Waits for a deploy that knows `respace` — an older deploy would
- * treat the POST as "enqueue one pair".
+ * to one video + one image every other day. Runs in production because only production
+ * holds the YouTube credentials. Waits for a deploy that reports `dayStride: 2` — an
+ * older deploy would pack the queue back to every day.
  */
 async function respaceViaProduction(apply: boolean) {
   const waitUntil = Date.now() + 15 * 60_000;
   for (;;) {
     const token = await mintAdminIdToken();
     const probe = await fetch(PRODUCTION_AUTO_CONTENT_URL, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
-    const payload = (await probe.json().catch(() => ({}))) as { cadence?: { timeZone?: string } };
-    if (probe.ok && payload.cadence?.timeZone === "America/New_York") break;
-    if (Date.now() > waitUntil) throw new Error("Production still runs the old schedule code — deploy did not arrive in 15 min");
+    const payload = (await probe.json().catch(() => ({}))) as { cadence?: { timeZone?: string; dayStride?: number } };
+    if (probe.ok && payload.cadence?.timeZone === "America/New_York" && payload.cadence.dayStride === 2) break;
+    if (Date.now() > waitUntil) throw new Error("Production still runs the old daily schedule — deploy did not arrive in 15 min");
     console.log("waiting for the new deploy on dreamly.art…");
     await new Promise((resolve) => setTimeout(resolve, 20_000));
   }
@@ -51,7 +51,7 @@ async function respaceViaProduction(apply: boolean) {
     const et = (iso: string) => iso
       ? new Intl.DateTimeFormat("ru-RU", { timeZone: "America/New_York", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso)) + " ET"
       : "—";
-    console.log(`${apply ? "ПЕРЕНЕСЕНО" : "ПЛАН (ничего не менялось)"}: ${payload.moves?.length ?? 0} видео, по одному в день до ${payload.lastDay || "—"}`);
+    console.log(`${apply ? "ПЕРЕНЕСЕНО" : "ПЛАН (ничего не менялось)"}: ${payload.moves?.length ?? 0} видео, через день до ${payload.lastDay || "—"}`);
     for (const move of payload.moves || []) {
       console.log(`  ${et(move.from)} → ${et(move.to)} · ${move.slug || move.title} · YouTube ${move.youtube} · картинка ${move.imageAt ? et(move.imageAt) : "нет"} (${move.image})${move.errors.length ? ` · ОШИБКИ: ${move.errors.join("; ")}` : ""}`);
     }

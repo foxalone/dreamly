@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   imagePublishAtForSlot,
+  isAutoPublishDay,
   nextEmptyPublishDay,
   nextEmptyPublishDays,
   nextFreePublishSlots,
@@ -49,9 +50,17 @@ test("an off-grid booking (old 05:00/15:00 Jerusalem) takes the whole New York d
   assert.equal(nextEmptyPublishDay(occupied, new Date("2026-09-28T05:00:00.000Z")), "2026-09-29");
 });
 
-test("today's slot is skipped once it is less than a minute away", () => {
+test("today's slot is skipped once it is less than a minute away, and the off-day is skipped too", () => {
   const slots = nextFreePublishSlots(new Set(), 2, new Date("2026-09-29T16:30:00.000Z"));
-  assert.deepEqual(slots.map((slot) => slot.dateKey), ["2026-09-30", "2026-10-01"]);
+  assert.deepEqual(slots.map((slot) => slot.dateKey), ["2026-10-01", "2026-10-03"]);
+});
+
+test("publish days are every other day from 2026-11-10", () => {
+  assert.equal(isAutoPublishDay("2026-11-10"), true);
+  assert.equal(isAutoPublishDay("2026-11-11"), false);
+  assert.equal(isAutoPublishDay("2026-11-12"), true);
+  const now = new Date("2026-11-10T20:00:00.000Z");
+  assert.deepEqual(nextEmptyPublishDays(new Set(), 2, now), ["2026-11-12", "2026-11-14"]);
 });
 
 test("images go out the same New York day at 19:00", () => {
@@ -68,12 +77,12 @@ test("'from tomorrow' is midnight Jerusalem", () => {
   assert.equal(startOfTomorrowInJerusalem(new Date("2026-10-26T09:00:00.000Z")).toISOString(), "2026-10-26T22:00:00.000Z");
 });
 
-test("respaces two-a-day bookings to one a day from tomorrow, keeping their order", () => {
+test("respaces a daily queue onto every other day, keeping order", () => {
   const cutoff = new Date("2026-09-28T21:00:00.000Z");
   const moves = planOnePerDay(
     [
-      { id: "b", at: "2026-09-29T12:00:00.000Z" }, // 29 Sep 15:00 Jerusalem
-      { id: "a", at: "2026-09-29T02:00:00.000Z" }, // 29 Sep 05:00 Jerusalem
+      { id: "b", at: "2026-09-29T12:00:00.000Z" },
+      { id: "a", at: "2026-09-29T02:00:00.000Z" },
       { id: "c", at: "2026-09-30T02:00:00.000Z" },
     ],
     cutoff,
@@ -82,10 +91,28 @@ test("respaces two-a-day bookings to one a day from tomorrow, keeping their orde
     moves.map((move) => [move.id, move.publishAt, move.imagePublishAt]),
     [
       ["a", "2026-09-29T16:00:00.000Z", "2026-09-29T23:00:00.000Z"],
-      ["b", "2026-09-30T16:00:00.000Z", "2026-09-30T23:00:00.000Z"],
-      ["c", "2026-10-01T16:00:00.000Z", "2026-10-01T23:00:00.000Z"],
+      ["b", "2026-10-01T16:00:00.000Z", "2026-10-01T23:00:00.000Z"],
+      ["c", "2026-10-03T16:00:00.000Z", "2026-10-03T23:00:00.000Z"],
     ],
   );
   const again = planOnePerDay(moves.map((move) => ({ id: move.id, at: move.publishAt })), cutoff);
   assert.ok(again.every((move) => !move.changed));
+});
+
+test("from the evening of 2026-11-10 the next queue day is 2026-11-12", () => {
+  const cutoff = startOfTomorrowInJerusalem(new Date("2026-11-10T19:48:00.000Z"));
+  const moves = planOnePerDay(
+    [
+      { id: "chicken", at: "2026-11-11T17:00:00.000Z" },
+      { id: "crab", at: "2026-11-12T17:00:00.000Z" },
+    ],
+    cutoff,
+  );
+  assert.deepEqual(
+    moves.map((move) => [move.id, move.dateKey]),
+    [
+      ["chicken", "2026-11-12"],
+      ["crab", "2026-11-14"],
+    ],
+  );
 });

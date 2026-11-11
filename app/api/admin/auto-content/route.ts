@@ -9,7 +9,7 @@ import {
   requestLocalWorkerWake,
   respaceBookedPublishes,
 } from "@/app/api/admin/_lib/autoContent";
-import { AUTO_IMAGE_HOUR, AUTO_PAIR_COUNT, AUTO_SLOT_HOURS, AUTO_SLOT_TIME_ZONE } from "@/lib/adminAutoSlots";
+import { AUTO_DAY_STRIDE, AUTO_IMAGE_HOUR, AUTO_PAIR_COUNT, AUTO_SLOT_HOURS, AUTO_SLOT_TIME_ZONE } from "@/lib/adminAutoSlots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       preview,
       slots,
-      cadence: { timeZone: AUTO_SLOT_TIME_ZONE, videoHours: AUTO_SLOT_HOURS, imageHour: AUTO_IMAGE_HOUR },
+      cadence: { timeZone: AUTO_SLOT_TIME_ZONE, videoHours: AUTO_SLOT_HOURS, imageHour: AUTO_IMAGE_HOUR, dayStride: AUTO_DAY_STRIDE },
     });
   } catch (error) {
     return apiError(error);
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       respace?: unknown;
       dryRun?: unknown;
     };
-    // One video + one image a day from tomorrow: re-time everything already booked.
+    // Every other day from tomorrow: re-time everything already booked.
     if (payload.respace === true) {
       return NextResponse.json(
         await respaceBookedPublishes({ createdBy: uid, dryRun: payload.dryRun === true, deadlineMs: Date.now() + 240_000 }),
