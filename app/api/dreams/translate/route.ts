@@ -25,6 +25,7 @@ import {
 } from "../_lib/translationLedger";
 
 import { normalizeTranslationLanguage as normalizeTargetLang, TRANSLATION_LANGUAGE_LABELS as LANG_LABEL } from "@/lib/translationLanguage";
+import { translationMatchesTarget, translationSourceLang } from "@/lib/translationScript";
 
 export const runtime = "nodejs";
 
@@ -134,7 +135,9 @@ export async function POST(req: Request) {
     const dream = (snap.data() as Record<string, unknown>) ?? {};
     // Use the stored dream so a caller cannot replace a permanently saved translation.
     const text = String(dream.text ?? "").trim();
-    const cached = await readCachedTranslation(ref, dream, targetLang);
+    const sourceLang = translationSourceLang(dream.lang);
+    let cached = await readCachedTranslation(ref, dream, targetLang);
+    if (cached && !translationMatchesTarget(cached.entry.text, targetLang, text, sourceLang)) cached = null;
 
     const unlocked = await readTranslationUnlock(db, owner, sharedDreamId, targetLang);
     if (cached && unlocked) {
@@ -224,12 +227,14 @@ export async function POST(req: Request) {
     const resp = await openai.responses.create({
       model,
       instructions:
-        "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
-      input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
+        `You are a precise translator. Return only the dream rewritten in ${langLabel}. Preserve paragraph breaks. Do not add notes, titles, or explanations, and do not correct the source in its own language.`,
+      input: `Translate the following dream text into ${langLabel}. The result must be written in ${langLabel}.\n\n"""${text}"""`,
       reasoning: { effort: OPENAI_REASONING_EFFORT },
     });
     const translation = extractOutputText(resp);
-    if (!translation) throw new Error("Empty translation");
+    if (!translation || !translationMatchesTarget(translation, targetLang, text, sourceLang)) {
+      throw new Error("Translation was not in the requested language");
+    }
 
     await recordTranslationServe({
       db,

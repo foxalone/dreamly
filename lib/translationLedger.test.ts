@@ -92,3 +92,13 @@ test("opening a public dream reads only the viewer's previously unlocked languag
   assert.equal(await readUnlockedTranslation(db, { uid: "bob" }, "dream", {}, "ru"), null);
   assert.equal(await readUnlockedTranslation(db, { uid: "alice" }, "dream", {}, "de"), null);
 });
+
+test("an unlocked translation that stayed in the source language is not shown", async () => {
+  const { db } = ledger();
+  await recordTranslationServe({
+    db, dreamRef: db.doc("shared_dreams/dream"), sharedDreamId: "dream", uid: "alice", who: { name: null, email: null },
+    targetLang: "ru", source: "ai", model: "translator", translation: "حلم عن السوق",
+    usedDailyFree: true, paid: false,
+  });
+  assert.equal(await readUnlockedTranslation(db, { uid: "alice" }, "dream", { text: "حلم عن السوق", lang: "ar" }, "ru"), null);
+});

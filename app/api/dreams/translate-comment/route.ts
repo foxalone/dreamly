@@ -11,6 +11,7 @@ import { commentTranslationTargetId } from "@/lib/commentTranslation";
 import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { normalizeTranslationLanguage, TRANSLATION_LANGUAGE_LABELS } from "@/lib/translationLanguage";
+import { translationMatchesTarget } from "@/lib/translationScript";
 
 export const runtime = "nodejs";
 
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
     const sourceHash = createHash("sha256").update(source).digest("hex");
     const cacheRef = commentRef.collection("private").doc("translations");
     const entry = (await cacheRef.get()).data()?.[lang] as { text?: unknown; sourceHash?: unknown } | undefined;
-    const cached = entry?.sourceHash === sourceHash && typeof entry.text === "string" ? entry.text.trim() : "";
+    let cached = entry?.sourceHash === sourceHash && typeof entry.text === "string" ? entry.text.trim() : "";
+    if (cached && !translationMatchesTarget(cached, lang, source)) cached = "";
     if (unlocked && cached) return finish(NextResponse.json({ translation: cached, cached: true }));
 
     if (!unlocked) {
@@ -95,12 +97,14 @@ export async function POST(req: Request) {
       if (!key) throw new Error(getMissingOneiroOpenAiKeyMessage());
       const response = await new OpenAI({ apiKey: key }).responses.create({
         model: TRANSLATE_MODEL,
-        instructions: "Translate this comment accurately. Return only the translation. Preserve emojis, names, tone, and line breaks. If it is already in the target language, return it unchanged. Do not add notes or explanations.",
-        input: `Translate into ${TRANSLATION_LANGUAGE_LABELS[lang]}:\n\n${source}`,
+        instructions: `Translate this comment accurately into ${TRANSLATION_LANGUAGE_LABELS[lang]}. Return only the translation. Preserve emojis, names, tone, and line breaks. Do not add notes or explanations, and do not correct the source in its own language.`,
+        input: `Translate into ${TRANSLATION_LANGUAGE_LABELS[lang]}. The result must be written in ${TRANSLATION_LANGUAGE_LABELS[lang]}:\n\n${source}`,
         reasoning: { effort: OPENAI_REASONING_EFFORT },
       });
       translation = outputText(response);
-      if (!translation) throw new Error("Empty translation");
+      if (!translation || !translationMatchesTarget(translation, lang, source)) {
+        throw new Error("Translation was not in the requested language");
+      }
     }
 
     const now = Date.now();

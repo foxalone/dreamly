@@ -1,4 +1,5 @@
 import { FieldValue, type DocumentReference, type Firestore } from "firebase-admin/firestore";
+import { translationMatchesTarget, translationSourceLang } from "@/lib/translationScript";
 
 /**
  * Translation ledger.
@@ -142,7 +143,10 @@ export async function readUnlockedTranslation(
 ): Promise<string | null> {
   if (!(await readTranslationUnlock(db, owner, sharedDreamId, lang))) return null;
   const cached = await readCachedTranslation(db.doc(`shared_dreams/${sharedDreamId}`), publicData, lang);
-  return cached?.entry.text ?? null;
+  const text = cached?.entry.text ?? "";
+  const source = String(publicData?.text ?? "");
+  if (!text || !translationMatchesTarget(text, lang, source, translationSourceLang(publicData?.lang))) return null;
+  return text;
 }
 
 export async function recordTranslationServe(args: {
