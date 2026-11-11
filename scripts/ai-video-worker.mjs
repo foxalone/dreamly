@@ -12,6 +12,8 @@ import { getStorage } from "firebase-admin/storage";
 
 // Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
 const OPENAI_MODEL = "gpt-5.6-terra";
+// Keep in sync with OPENAI_REASONING_EFFORT in lib/aiModels.ts (gpt-5.6 rejects "minimal").
+const OPENAI_REASONING_EFFORT = "none";
 
 const JOBS_COLLECTION = "adminAiVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/aiVideoWorker";
@@ -389,7 +391,7 @@ async function generatePackage(job, reference) {
       headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         model,
-        reasoning_effort: "minimal",
+        reasoning_effort: OPENAI_REASONING_EFFORT,
         response_format: { type: "json_schema", json_schema: videoPackageSchema(job.soraSceneCount, job.stockSceneCount) },
         messages,
       }),

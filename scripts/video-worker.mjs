@@ -30,6 +30,8 @@ import { buildYoutubeKit } from "./youtubeKit.mjs";
 
 // Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
 const OPENAI_MODEL = "gpt-5.6-terra";
+// Keep in sync with OPENAI_REASONING_EFFORT in lib/aiModels.ts (gpt-5.6 rejects "minimal").
+const OPENAI_REASONING_EFFORT = "none";
 
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;
@@ -245,7 +247,7 @@ async function createScript(topic) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        reasoning_effort: "minimal",
+        reasoning_effort: OPENAI_REASONING_EFFORT,
         response_format: { type: "json_schema", json_schema: VIDEO_PACKAGE_SCHEMA },
         messages: [
           {
@@ -372,7 +374,7 @@ async function createWideScript(topic) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        reasoning_effort: "minimal",
+        reasoning_effort: OPENAI_REASONING_EFFORT,
         response_format: { type: "json_schema", json_schema: WIDE_VIDEO_PACKAGE_SCHEMA },
         messages: [
           {
@@ -658,7 +660,7 @@ async function pickPoolClips(script, shortlist, count, orientation, sections = n
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        reasoning_effort: "minimal",
+        reasoning_effort: OPENAI_REASONING_EFFORT,
         response_format: { type: "json_schema", json_schema: POOL_PICK_SCHEMA },
         messages: buildPickPrompt(script, shortlist, count, orientation, sections),
       }),

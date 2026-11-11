@@ -8,7 +8,7 @@ import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundAdTranslateGrant, refundFreeTranslation } from "../_lib/translationQuota";
 import { readTranslationUnlock, translationUnlockPath, type TranslationOwner } from "../_lib/translationLedger";
 import { commentTranslationTargetId } from "@/lib/commentTranslation";
-import { TRANSLATE_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { normalizeTranslationLanguage, TRANSLATION_LANGUAGE_LABELS } from "@/lib/translationLanguage";
 
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
         model: TRANSLATE_MODEL,
         instructions: "Translate this comment accurately. Return only the translation. Preserve emojis, names, tone, and line breaks. If it is already in the target language, return it unchanged. Do not add notes or explanations.",
         input: `Translate into ${TRANSLATION_LANGUAGE_LABELS[lang]}:\n\n${source}`,
-        reasoning: { effort: "minimal" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
       });
       translation = outputText(response);
       if (!translation) throw new Error("Empty translation");

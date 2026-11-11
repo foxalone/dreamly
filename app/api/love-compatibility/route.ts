@@ -6,6 +6,7 @@ import type { ChatCompletionContentPart } from "openai/resources/chat/completion
 import { adminAuth, adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { readGuestId } from "@/app/api/dreams/_lib/guestQuota";
 import { dreamAnalysisErrorCode, generateDreamAnalysis } from "@/lib/dreamAnalysisProvider";
+import { OPENAI_REASONING_EFFORT } from "@/lib/aiModels";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { loveMatchCanonical, loveMatchPrompt, parseAiLoveMatch, validAiLoveMatch, validLoveMatchInput, type LoveMatchInput } from "@/lib/loveMatchAi";
 import { hasPaidAccess, type UserBillingFields } from "@/lib/subscriptions/status";
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
       if (body.secondPhoto) photoContent.push({ type: "text", text: "Second photo:" }, { type: "image_url", image_url: { url: body.secondPhoto, detail: "low" } });
       const { analysis: verdictText } = await generateDreamAnalysis(async model => {
         const completion = await openai.chat.completions.create({
-          model, reasoning_effort: "minimal", response_format: { type: "json_object" }, store: false,
+          model, reasoning_effort: OPENAI_REASONING_EFFORT, response_format: { type: "json_object" }, store: false,
           messages: [{ role: "system", content: "Classify only the visible contents of the attached photos. Respond with JSON only." }, { role: "user", content: photoContent }],
         });
         return completion.choices[0]?.message?.content || "";
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
     }
     const { analysis } = await generateDreamAnalysis(async model => {
       const completion = await openai.chat.completions.create({
-        model, reasoning_effort: "minimal", response_format: { type: "json_object" }, store: false,
+        model, reasoning_effort: OPENAI_REASONING_EFFORT, response_format: { type: "json_object" }, store: false,
         messages: [{ role: "system", content: prompt.system }, { role: "user", content: userContent }],
       });
       return completion.choices[0]?.message?.content || "";

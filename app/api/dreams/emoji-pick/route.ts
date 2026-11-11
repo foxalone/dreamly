@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
-import { DREAM_EMOJI_MODEL } from "@/lib/aiModels";
+import { DREAM_EMOJI_MODEL, OPENAI_REASONING_EFFORT } from "@/lib/aiModels";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { requirePaidAccess } from "../_lib/subscription";
 
@@ -162,7 +162,7 @@ export async function POST(req: Request) {
             schema,
           },
         },
-        reasoning: { effort: "minimal" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
       });
 
       const outText = extractOutputText(resp);
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
           input:
             `Choose exactly ONE emoji from candidates. Return ONLY JSON like {"native":"...","reason":"..."}.\n\n` +
             JSON.stringify(payload, null, 2),
-          reasoning: { effort: "minimal" },
+          reasoning: { effort: OPENAI_REASONING_EFFORT },
         });
 
         const txt2 = extractOutputText(resp2);

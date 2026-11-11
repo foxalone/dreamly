@@ -31,5 +31,5 @@ async function run(model, extra){
   console.log("=== "+model+(extra.reasoning_effort?" ["+extra.reasoning_effort+"]":"")+" ("+((Date.now()-t0)/1000).toFixed(1)+"s, in "+j.usage.prompt_tokens+" / out "+j.usage.completion_tokens+(j.usage.completion_tokens_details?.reasoning_tokens!=null?" (reasoning "+j.usage.completion_tokens_details.reasoning_tokens+")":"")+")");
   console.log(j.choices[0].message.content+"\n");
 }
-await run("gpt-5.6-luna",{reasoning_effort:"minimal"});
+await run("gpt-5.6-luna",{reasoning_effort:"none"});
 await run("gpt-5.6-luna",{reasoning_effort:"low"});

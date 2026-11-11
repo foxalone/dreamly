@@ -12,6 +12,7 @@ import admin from "firebase-admin";
 import OpenAI from "openai";
 import { adminFirestore } from "../lib/firebaseAdmin.ts";
 import { getOneiroOpenAiApiKey } from "../lib/openaiEnv.ts";
+import { OPENAI_REASONING_EFFORT } from "../lib/aiModels.ts";
 import { generateDreamAnalysis } from "../lib/dreamAnalysisProvider.ts";
 import { dreamAnalysisMessages } from "../lib/dreamAnalysisPrompt.ts";
 import { parseDreamLens } from "../lib/dream-lenses.ts";
@@ -63,7 +64,7 @@ async function recoverAnalysis(doc, openai) {
   }
   const result = await generateDreamAnalysis(async (model) => {
     const response = await openai.chat.completions.create({
-      model, reasoning_effort: "minimal",
+      model, reasoning_effort: OPENAI_REASONING_EFFORT,
       messages: dreamAnalysisMessages(row.text, row.lang, parseDreamLens(row.lens)),
     });
     return String(response.choices?.[0]?.message?.content ?? "").trim();

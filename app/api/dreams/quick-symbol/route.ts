@@ -5,7 +5,7 @@ import {
   getMissingOneiroOpenAiKeyMessage,
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
-import { QUICK_SYMBOL_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, QUICK_SYMBOL_MODEL } from "@/lib/aiModels";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
 import {
@@ -219,7 +219,7 @@ export async function POST(req: Request) {
         instructions:
           `You are a concise dream-dictionary assistant. Given a short dream symbol or phrase, write 2–4 short sentences of practical meaning. No medical claims, no predictions, no titles, no bullet lists. Interpretive lens: ${lens}. ${dreamLensPrompt(lens)}`,
         input: `Dream symbol / phrase: """${query}"""`,
-        reasoning: { effort: "minimal" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
       });
       answer = extractOutputText(resp);
     } catch (e: any) {

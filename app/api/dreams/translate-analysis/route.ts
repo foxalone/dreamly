@@ -8,7 +8,7 @@ import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundAdTranslateGrant, refundFreeTranslation } from "../_lib/translationQuota";
 import { readTranslationUnlock, translationUnlockPath, type TranslationOwner } from "../_lib/translationLedger";
 import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
-import { TRANSLATE_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { ensureSharedDreamAnalysis, readFullSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { normalizeTranslationLanguage, TRANSLATION_LANGUAGE_LABELS } from "@/lib/translationLanguage";
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
         model: TRANSLATE_MODEL,
         instructions: "Translate this dream analysis precisely. Return only the translated text. Preserve its meaning and paragraph breaks. Do not add notes or explanations.",
         input: `Translate into ${TRANSLATION_LANGUAGE_LABELS[lang]}:\n\n${source}`,
-        reasoning: { effort: "minimal" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
       });
       translation = outputText(resp);
       if (!translation) throw new Error("Empty translation");

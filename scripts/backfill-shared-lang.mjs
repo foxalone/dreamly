@@ -19,6 +19,8 @@ import OpenAI from "openai";
 
 const WRITE = process.argv.includes("--write");
 const MODEL = "gpt-5.6-luna";
+// Keep in sync with OPENAI_REASONING_EFFORT in lib/aiModels.ts (gpt-5.6 rejects "minimal").
+const OPENAI_REASONING_EFFORT = "none";
 
 function env(name) {
   const value = process.env[name];
@@ -84,7 +86,7 @@ async function detect(openai, text) {
     instructions:
       "You identify the language a text is written in. Reply with only the ISO 639-1 two-letter code in lowercase (e.g. en, ru, he, ar, es). If the text mixes languages, answer with the dominant one. If it is not identifiable, reply und.",
     input: clean.slice(0, 1500),
-    reasoning: { effort: "minimal" },
+    reasoning: { effort: OPENAI_REASONING_EFFORT },
   });
   return normalizeLangCode(resp.output_text ?? "");
 }

@@ -4,7 +4,7 @@ import {
   getMissingOneiroOpenAiKeyMessage,
   getOneiroOpenAiApiKey,
 } from "@/lib/openaiEnv";
-import { TRANSLATE_MODEL } from "@/lib/aiModels";
+import { OPENAI_REASONING_EFFORT, TRANSLATE_MODEL } from "@/lib/aiModels";
 import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeTranslationAccess, refundAdTranslateGrant, refundFreeTranslation } from "../_lib/translationQuota";
@@ -226,7 +226,7 @@ export async function POST(req: Request) {
       instructions:
         "You are a precise translator. Return only the translated text. Preserve paragraph breaks. Do not add notes, titles, or explanations.",
       input: `Translate the following dream text into ${langLabel}. If it is already in ${langLabel}, return it unchanged.\n\n"""${text}"""`,
-      reasoning: { effort: "minimal" },
+      reasoning: { effort: OPENAI_REASONING_EFFORT },
     });
     const translation = extractOutputText(resp);
     if (!translation) throw new Error("Empty translation");
