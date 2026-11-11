@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * One-off: detect and store `lang` (ISO 639-1) on every shared_dreams doc
- * that does not have it yet, using the same tiny gpt-5-nano call the
+ * that does not have it yet, using the same tiny gpt-5.6-luna call the
  * /api/dreams/detect-lang route makes at share time.
  *
  *   npm run backfill-shared-lang            # dry run: counts + sample only
  *   npm run backfill-shared-lang -- --write # actually detect and write
  *
- * Cost: ~100–150 tokens per dream on gpt-5-nano — fractions of a cent per
+ * Cost: ~100–150 tokens per dream on gpt-5.6-luna — fractions of a cent per
  * thousand dreams.
  */
 
@@ -18,7 +18,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import OpenAI from "openai";
 
 const WRITE = process.argv.includes("--write");
-const MODEL = "gpt-5-nano";
+const MODEL = "gpt-5.6-luna";
 
 function env(name) {
   const value = process.env[name];

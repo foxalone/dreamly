@@ -36,7 +36,7 @@ There is one active worker per master or translation across instances. Exactly-o
 
 ## AI and cost controls
 
-Both master generation and translation use the existing OpenAI infrastructure with `gpt-5-mini`, via horoscope-specific model constants. The unrelated shared-dream `TRANSLATE_MODEL` remains `gpt-5-nano`.
+Both master generation and translation use the existing OpenAI infrastructure with `gpt-5.6-terra`, via horoscope-specific model constants. The unrelated shared-dream `TRANSLATE_MODEL` also uses `gpt-5.6-terra`.
 
 Each provider request concerns exactly one sign. English generation receives the actual Astronomy Engine snapshot for noon UTC on that date. Translation receives the persisted English master, never an independent horoscope prompt. Strict JSON schema and runtime validation enforce requested sign, required fields, headline, safe prose and 100–160 general words. Script, native-word and source-copy checks reject obvious wrong-language content; these checks do not prove perfect translation fidelity or substitute for native editorial review. Refusal, truncation and malformed output fail without fabricated fallback prose.
 

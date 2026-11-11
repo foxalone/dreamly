@@ -29,7 +29,7 @@ import {
 import { buildYoutubeKit } from "./youtubeKit.mjs";
 
 // Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
-const OPENAI_MODEL = "gpt-5-mini";
+const OPENAI_MODEL = "gpt-5.6-terra";
 
 const MAX_DURATION_SECONDS = 45;
 const POLL_INTERVAL_MS = 4_000;

@@ -3,7 +3,7 @@ import { DETECT_LANG_MODEL } from "./aiModels";
 
 /**
  * Server-side language detection for a dream text (ISO 639-1, lowercase).
- * One tiny gpt-5-nano call per shared dream, run once at share time and
+ * One tiny gpt-5.6-luna call per shared dream, run once at share time and
  * stored on the shared_dreams doc as `lang`, so the feed can hide the
  * translate button when the viewer already reads that language.
  *

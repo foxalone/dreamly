@@ -22,6 +22,7 @@ import { trackEvent } from "@/lib/analytics";
 import { QUICK_SYMBOL_OPEN_EVENT, type QuickSymbolOpenDetail } from "./quickSymbolEvents";
 import DreamLensChips, { useDreamLens } from "@/app/components/DreamLensChips";
 import { parseDreamLens, type DreamLens } from "@/lib/dream-lenses";
+import { QUICK_SYMBOL_MODEL } from "@/lib/aiModels";
 
 const PENDING_KEY = "dreamly:quickSymbolPending";
 
@@ -178,7 +179,7 @@ export default function QuickSymbolFab() {
       summary: params.answer,
       analysisText: params.answer,
       analysisAtMs: Date.now(),
-      analysisModel: params.matched ? "dictionary" : "gpt-5-nano",
+      analysisModel: params.matched ? "dictionary" : QUICK_SYMBOL_MODEL,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       createdAtMs: Date.now(),

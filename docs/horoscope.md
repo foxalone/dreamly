@@ -38,7 +38,7 @@ See [the on-demand implementation and operations report](horoscope-on-demand.md)
 
 The old `/api/cron/horoscope` bulk schedule is removed and its authenticated route returns HTTP 410. `/api/cron/horoscope-worker` runs every five minutes and processes only existing, visitor-requested Firestore jobs. It never creates new sign/language combinations. The normal visitor flow starts through an explicit button, stores a durable job, then uses supported Next.js `after()` execution. Recovery does not depend on the browser staying open.
 
-Both masters and requested translations use `gpt-5-mini`. Only a requested sign is generated; a translation reuses that sign’s English master. Current records are stored separately per sign/language under `daily_horoscopes/{day}/signs/{sign}/readings/{locale}`; historical daily documents remain readable. Public rendering is read-only and server-rendered. No cross-request pending-state cache needs invalidation.
+Both masters and requested translations use `gpt-5.6-terra`. Only a requested sign is generated; a translation reuses that sign’s English master. Current records are stored separately per sign/language under `daily_horoscopes/{day}/signs/{sign}/readings/{locale}`; historical daily documents remain readable. Public rendering is read-only and server-rendered. No cross-request pending-state cache needs invalidation.
 
 ## SEO, preferences and analytics
 

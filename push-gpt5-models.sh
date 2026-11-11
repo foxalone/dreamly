@@ -25,7 +25,7 @@ git diff --cached --quiet && { echo "нечего коммитить"; exit 0; }
 
 git commit -m "Migrate retired OpenAI models to GPT-5, centralize model config in code
 
-- gpt-4o-mini / gpt-4.1-mini (retired 2027-01-14) -> gpt-5-mini with
+- gpt-4o-mini / gpt-4.1-mini (retired 2027-01-14) -> gpt-5.6-terra with
   reasoning_effort: minimal; temperature params removed (unsupported by GPT-5)
 - new lib/aiModels.ts is the single source of truth for every model;
   OPENAI_*_MODEL / VIDEO_OPENAI_MODEL env vars are no longer read

@@ -11,7 +11,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
 // Model for all OpenAI text calls in this worker - change it here (keep in sync with lib/aiModels.ts).
-const OPENAI_MODEL = "gpt-5-mini";
+const OPENAI_MODEL = "gpt-5.6-terra";
 
 const JOBS_COLLECTION = "adminAiVideoJobs";
 const WORKER_DOCUMENT = "adminSystem/aiVideoWorker";

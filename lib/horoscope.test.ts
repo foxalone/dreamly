@@ -368,9 +368,9 @@ test('worker authentication remains secret-protected and the old bulk schedule i
   assert.ok(readFileSync('app/api/cron/horoscope/route.ts','utf8').includes("status: 'retired'"));
 });
 
-test('both horoscope models use GPT-5 mini; requests carry only one sign and computed sky or its master', async () => {
+test('both horoscope models use GPT-5.6 terra; requests carry only one sign and computed sky or its master', async () => {
   const {HOROSCOPE_MODEL,HOROSCOPE_TRANSLATE_MODEL,TRANSLATE_MODEL}=await import('./aiModels');
-  assert.equal(HOROSCOPE_MODEL,'gpt-5-mini');assert.equal(HOROSCOPE_TRANSLATE_MODEL,'gpt-5-mini');assert.equal(TRANSLATE_MODEL,'gpt-5-mini');
+  assert.equal(HOROSCOPE_MODEL,'gpt-5.6-terra');assert.equal(HOROSCOPE_TRANSLATE_MODEL,'gpt-5.6-terra');assert.equal(TRANSLATE_MODEL,'gpt-5.6-terra');
   const observed:Array<{model:string;messages:Array<{content:string}>;response_format:{json_schema:{schema:{required:string[]}}}}>=[];
   const original=api().client.chat.completions.create;
   const client={chat:{completions:{create:async(request:typeof observed[number])=>{observed.push(request);return original(request as never);}}}} as unknown as OpenAI;
