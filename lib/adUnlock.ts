@@ -78,8 +78,9 @@ export function setAdUnlockPending(p: Omit<AdUnlockPending, "atMs">) {
   }
 }
 
-export function clearAdUnlockPending() {
+export function clearAdUnlockPending(kind?: PaywallKind) {
   try {
+    if (kind && !peekAdUnlockPending(kind)) return;
     sessionStorage.removeItem(PENDING_KEY);
   } catch {
     /* ignore */
@@ -96,14 +97,14 @@ export function bindAdUnlockDream(text: string, dreamId: string) {
 }
 
 /** A navigation back is not a grant. Keep the action until access is confirmed. */
-export function markAdUnlockReady() {
+export function markAdUnlockReady(kind?: PaywallKind) {
   try {
-    const pending = peekAdUnlockPending();
+    const pending = peekAdUnlockPending(kind);
     if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...pending, ready: true }));
   } catch { /* Storage may be unavailable. */ }
 }
 
-/** Returns and clears a ready action, if any and recent (10 min). */
+/** Consume a confirmed retry or restore an unsaved journal draft. */
 export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdUnlockPending | null {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
@@ -112,7 +113,7 @@ export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdU
     if (kind && p.kind !== kind) return null;
     if (dreamText !== undefined && (p.quickSymbol || (p.dreamId && !p.dreamText))) return null;
     if (dreamText !== undefined && p.dreamText && p.dreamText !== dreamText) return null;
-    if (p?.kind === "analysis" && p.ready !== true) return null;
+    if (p?.kind !== "save" && p?.ready !== true) return null;
     sessionStorage.removeItem(PENDING_KEY);
     if (!p || typeof p.atMs !== "number" || Date.now() - p.atMs > 10 * 60_000) return null;
     return p;

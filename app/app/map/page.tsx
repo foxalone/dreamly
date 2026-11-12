@@ -591,6 +591,14 @@ export default function MapPage() {
       await loadData();
       renderMarkers(map);
       map.on("zoomend", () => renderMarkers(map));
+      const cityId = new URLSearchParams(window.location.search).get("city");
+      const city = cityId ? dataRef.current.find((row) => row.cityId === cityId) : null;
+      if (city) {
+        setFilter("dreams");
+        const destination = { center: [city.lng, city.lat] as [number, number], zoom: 6 };
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) map.jumpTo(destination);
+        else map.flyTo({ ...destination, duration: 1200 });
+      }
     });
 
     const root = document.documentElement;

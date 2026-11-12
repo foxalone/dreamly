@@ -56,6 +56,27 @@ test("guest ad returns to the localized journal and only the submitted dream res
       assert.equal(takeAdUnlockPending("analysis", submitted.text), null);
       assert.deepEqual(readHomeDreamQueue().find((dream) => dream.text === submitted.text), submitted);
     }
+
+    for (const kind of ["translate", "reading"] as const) {
+      setAdUnlockPending({ kind, dreamId: "shared-dream" });
+      // Browser Back can leave the pending action in storage without a grant.
+      assert.equal(takeAdUnlockPending(kind), null);
+      assert.equal(peekAdUnlockPending(kind)?.dreamId, "shared-dream");
+      markAdUnlockReady("analysis");
+      assert.equal(takeAdUnlockPending(kind), null);
+      clearAdUnlockPending(kind);
+      assert.equal(peekAdUnlockPending(kind), null);
+
+      setAdUnlockPending({ kind, dreamId: "shared-dream" });
+      markAdUnlockReady(kind);
+      assert.equal(takeAdUnlockPending(kind)?.dreamId, "shared-dream");
+      assert.equal(takeAdUnlockPending(kind), null);
+    }
+
+    const draft = { text: "An unsaved dream", tab: "DREAMS", usedVoice: false } as const;
+    setAdUnlockPending({ kind: "save", draft });
+    clearAdUnlockPending("translate");
+    assert.deepEqual(takeAdUnlockPending("save")?.draft, draft);
   } finally {
     if (previousWindow) Object.defineProperty(globalThis, "window", previousWindow);
     else Reflect.deleteProperty(globalThis, "window");

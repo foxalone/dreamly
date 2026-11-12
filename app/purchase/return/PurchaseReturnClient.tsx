@@ -33,7 +33,7 @@ export default function PurchaseReturnClient() {
       const data = await response.json().catch(() => ({})) as { ok?: boolean; kind?: string; next?: string; code?: string };
       if (data.code === "ACTION_EXPIRED") { setPhase("expired"); return; }
       if (!response.ok || !data.ok || !data.kind || !data.next) throw new Error("PAYPAL_CAPTURE_FAILED");
-      if (data.kind === "analysis") markAdUnlockReady();
+      if (data.kind === "analysis" || data.kind === "translate" || data.kind === "reading") markAdUnlockReady(data.kind);
       if (data.kind === "love-match") markLoveMatchPurchaseReady(orderId);
       trackEvent("purchase", { transaction_id: orderId, currency: "USD", value: 0.99, item_id: `one_time_${data.kind}` });
       setPhase("completed");

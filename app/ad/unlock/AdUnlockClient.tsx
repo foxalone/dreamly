@@ -120,11 +120,14 @@ export default function AdUnlockClient() {
       sessionStorage.removeItem(GOOGLE_RETURN_KEY);
       if (saved.next !== back || Date.now() - saved.atMs > 10 * 60_000) return;
       report.current?.("auth_succeeded");
-      void ensureUserProfileOnSignIn(user).then(() => router.replace(back));
+      void ensureUserProfileOnSignIn(user).then(() => {
+        if (kind === "translate" || kind === "reading") markAdUnlockReady(kind);
+        router.replace(back);
+      });
     } catch {
       // A normal popup sign-in does not need session storage.
     }
-  }, [user, back, router]);
+  }, [user, back, kind, router]);
 
   // Watch the DOM for the Offerwall overlay.
   useEffect(() => {
@@ -259,8 +262,8 @@ export default function AdUnlockClient() {
         trackEvent("rewarded_ad_granted", { source: `offerwall_${kind}` });
         if (kind === "analysis") {
           updateOfferwallSession({ status: "granted" });
-          markAdUnlockReady();
         }
+        if (kind === "analysis" || kind === "translate" || kind === "reading") markAdUnlockReady(kind);
         clearOfferwallEntitlement();
         setPhase("done");
         report.current?.("ad_resume_started");
@@ -333,6 +336,7 @@ export default function AdUnlockClient() {
       if (!credential) return;
       await ensureUserProfileOnSignIn(credential.user);
       trackAuth(!!getAdditionalUserInfo(credential)?.isNewUser);
+      if (kind === "translate" || kind === "reading") markAdUnlockReady(kind);
       router.replace(back);
     } catch (error) {
       if ((error as { code?: string }).code === "auth/popup-closed-by-user") return;
@@ -377,12 +381,9 @@ export default function AdUnlockClient() {
         {phase === "unavailable" || phase === "failed" || (phase === "showing" && adStalled) ? (
           <>
             <button type="button" disabled={signInBusy} className="dream-primary-btn mt-5 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60" onClick={() => {
-              // An unavailable/failed ad did not buy an analysis. Returning to
-              // the journal must not consume the retry and reopen the ad flow.
-              if (kind === "analysis") {
-                report.current?.("back");
-                clearAdUnlockPending();
-              }
+              if (kind === "analysis") report.current?.("back");
+              // Keep the journal draft, but discard actions that would auto-retry.
+              if (kind === "analysis" || kind === "translate" || kind === "reading") clearAdUnlockPending(kind);
               router.replace(back);
             }}>
               {m.back}

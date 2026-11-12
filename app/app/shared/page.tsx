@@ -41,6 +41,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import FeaturedForecastCard, { type FeaturedForecastPreview } from "./FeaturedForecastCard";
+import DreamOriginGlobe from "./DreamOriginGlobe";
 import { featuredFeedSlot } from "@/lib/featuredFeedTime";
 
 const FEED_PAGE_SIZE = 50;
@@ -68,6 +69,9 @@ type SharedDream = {
   dateKey?: string;
   timeKey?: string;
   sharedAtMs?: number;
+  cityId?: string;
+  city?: string;
+  country?: string;
 
   ownerUid?: string;
   ownerDreamId?: string;
@@ -416,7 +420,7 @@ export default function SharedPage() {
     if (resumedRef.current || !authReady || !languageReady) return;
     if (uid && claimedUid !== uid) return;
     const pending = peekAdUnlockPending("translate");
-    if (!pending?.dreamId) {
+    if (pending?.ready !== true || !pending.dreamId) {
       resumedRef.current = true;
       return;
     }
@@ -967,9 +971,9 @@ export default function SharedPage() {
                     }}
                     className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow cursor-pointer"
                   >
-                    {/* Phone: the time goes under the icons so the two never overlap; sm+: one row. */}
-                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                      <div className="min-w-0 max-w-full flex items-center gap-3">
+                    {/* The globe sits opposite the author and symbols; the date stays below on phones. */}
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                      <div className="min-w-0 flex-1 flex items-center gap-3">
                         {/* ✅ author initials (email-based; never uuid) */}
                         <div
                           className={[
@@ -1005,8 +1009,12 @@ export default function SharedPage() {
                         ) : null}
                       </div>
 
+                      {d.sourceType !== "story" ? (
+                        <DreamOriginGlobe cityId={d.cityId} city={d.city} country={d.country} mapLabel={t.nav.map} />
+                      ) : null}
+
                       {/* input method + date */}
-                      <div className="text-xs text-[var(--muted)] whitespace-nowrap inline-flex items-center gap-2">
+                      <div className="w-full text-xs text-[var(--muted)] whitespace-nowrap inline-flex items-center gap-2">
                         <span
                           className="opacity-70 inline-flex items-center"
                           title={d.source === "voice" ? "Recorded" : "Typed"}

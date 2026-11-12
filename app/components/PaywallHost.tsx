@@ -35,6 +35,17 @@ function PagePaywallHost() {
   // Dismissing the pricing option drops a pending Offerwall resume.
   const close = () => { requestVersion.current++; setReq(null); clearAdUnlockPending(); };
 
+  useEffect(() => {
+    // Browser Back can restore this document with the old dialog still open.
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      requestVersion.current++;
+      setReq(null);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
   useEffect(
     () =>
       subscribePaywall(async (next) => {

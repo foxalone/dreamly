@@ -1,0 +1,10 @@
+.link { flex:none; display:grid; place-items:center; width:44px; height:44px; border-radius:50%; -webkit-tap-highlight-color:transparent; }
+.link:focus-visible { outline:2px solid #c4b5fd; outline-offset:2px; }
+.orb { position:relative; display:block; width:40px; height:40px; overflow:hidden; border-radius:50%; background:#176cbb; border:1px solid #a9e9ff80; box-shadow:0 0 10px #67d5ff40,0 0 15px #8b5cf624; }
+.orb::after { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:radial-gradient(circle at 27% 23%,#7bdbe966,transparent 48%),radial-gradient(circle at 28% 25%,transparent 35%,#020818d9 100%); box-shadow:inset 1px 1px 3px #a9e9ff66,inset -5px -4px 8px #02081866; }
+.surface { position:absolute; left:0; top:0; width:240px; height:40px; background:url('/game/earth-surface.svg') repeat-x 0 center / 80px 40px; animation:turn 48s linear infinite; }
+.marker { position:absolute; left:var(--origin-x); top:var(--origin-y); width:6px; height:6px; border-radius:50%; border:1px solid white; background:#ff303b; box-shadow:0 0 0 2px #ff303b55,0 0 7px #ff303b; transform:translate(-50%,-50%); }
+.marker:nth-child(1) { left:calc(var(--origin-x) - 80px); }
+.marker:nth-child(3) { left:calc(var(--origin-x) + 80px); }
+@keyframes turn { from { transform:translateX(calc(20px - var(--origin-x, 100px))); } to { transform:translateX(calc(-60px - var(--origin-x, 100px))); } }
+@media (prefers-reduced-motion:reduce) { .surface { animation:none; transform:translateX(calc(20px - var(--origin-x, 100px))); } }
