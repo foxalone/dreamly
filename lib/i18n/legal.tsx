@@ -38,7 +38,32 @@ export function purchaseLegalUpdatedLabel(locale: Locale): string {
   }
 }
 
+const accountDeletion = {
+  en: ["Delete your Dreamly account", "Send a deletion request from the email address you use to sign in to Dreamly. Do not include your password or journal entries. We may ask you to verify that you own the account.", "We delete your account and associated data, such as private journal entries and linked posts. We may retain limited records for security, billing, or legal obligations, as described below. If you have a paid subscription, also cancel it through the service you used to buy it to stop future charges.", "Request account deletion"],
+  es: ["Elimina tu cuenta de Dreamly", "Envía la solicitud desde el correo con el que inicias sesión en Dreamly. No incluyas tu contraseña ni entradas de tu diario. Podemos pedirte que confirmes que eres titular de la cuenta.", "Eliminaremos tu cuenta y los datos asociados, como las entradas privadas y publicaciones vinculadas. Podemos conservar algunos registros por motivos de seguridad, facturación u obligaciones legales, como se explica más abajo. Si tienes una suscripción de pago, cancélala también en el servicio donde la contrataste para evitar futuros cobros.", "Solicitar la eliminación de mi cuenta"],
+  ar: ["حذف حسابك في Dreamly", "أرسل الطلب من عنوان البريد الإلكتروني الذي تستخدمه لتسجيل الدخول إلى Dreamly. لا تُدرج كلمة المرور أو محتوى يومياتك. قد نطلب منك تأكيد ملكية الحساب.", "نحذف حسابك والبيانات المرتبطة به، مثل تدويناتك الخاصة ومنشوراتك المرتبطة بالحساب. قد نحتفظ بسجلات محدودة لأغراض الأمان أو الفوترة أو الالتزامات القانونية، كما هو موضح أدناه. إذا كان لديك اشتراك مدفوع، فألغِه أيضًا من خلال الخدمة التي اشتريت الاشتراك عبرها لتجنب رسوم مستقبلية.", "طلب حذف الحساب"],
+  pt: ["Exclua sua conta do Dreamly", "Envie a solicitação pelo e-mail que você usa para entrar no Dreamly. Não inclua sua senha nem registros do seu diário. Podemos pedir que você confirme que é titular da conta.", "Excluiremos a conta e os dados associados, como registros privados do diário e publicações vinculadas. Podemos manter registros limitados por motivos de segurança, cobrança ou obrigações legais, conforme descrito abaixo. Se você tiver uma assinatura paga, cancele-a também no serviço em que a contratou para evitar cobranças futuras.", "Solicitar a exclusão da conta"],
+  de: ["Dein Dreamly-Konto löschen", "Sende deine Anfrage von der E-Mail-Adresse, mit der du dich bei Dreamly anmeldest. Gib weder dein Passwort noch Tagebucheinträge an. Wir können dich bitten, zu bestätigen, dass dir das Konto gehört.", "Wir löschen dein Konto und die zugehörigen Daten, etwa private Tagebucheinträge und verknüpfte Beiträge. Wie unten beschrieben, können wir einzelne Aufzeichnungen aus Sicherheitsgründen, zur Abrechnung oder aufgrund gesetzlicher Pflichten aufbewahren. Wenn du ein kostenpflichtiges Abo hast, kündige es auch bei dem Dienst, über den du es abgeschlossen hast, damit keine weiteren Kosten entstehen.", "Kontolöschung beantragen"],
+  ru: ["Удаление аккаунта Dreamly", "Отправьте запрос с адреса, которым пользуетесь для входа в Dreamly. Не указывайте пароль и не присылайте записи из дневника. Мы можем попросить подтвердить, что аккаунт принадлежит вам.", "Мы удалим аккаунт и связанные данные, включая личные записи в дневнике и публикации, привязанные к аккаунту. Мы можем сохранить отдельные сведения для безопасности, расчётов или выполнения требований закона, как описано ниже. Если у вас есть платная подписка, отмените её также в сервисе, где вы её оформили, чтобы остановить будущие списания.", "Запросить удаление аккаунта"],
+} satisfies Record<Locale, readonly [string, string, string, string]>;
+
+function AccountDeletion({ locale }: { locale: Locale }) {
+  const [title, request, retention, action] = accountDeletion[locale];
+  return (
+    <section id="account-deletion" className="scroll-mt-6 space-y-3">
+      <h2>{title}</h2>
+      <p>{request}</p>
+      <p><a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Dreamly account deletion request")}`}>{action}</a></p>
+      <p>{retention}</p>
+    </section>
+  );
+}
+
 export function PrivacyBody({ locale }: { locale: Locale }): ReactNode {
+  return <><AccountDeletion locale={locale} /><PrivacyDetails locale={locale} /></>;
+}
+
+function PrivacyDetails({ locale }: { locale: Locale }): ReactNode {
   switch (locale) {
     case "es":
       return <PrivacyEs />;
