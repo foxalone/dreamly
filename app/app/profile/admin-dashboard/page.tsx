@@ -55,6 +55,8 @@ import ImageLibraryPanel from "./ImageLibraryPanel";
 import SocialMapPanel from "./SocialMapPanel";
 import DreamTranslationsInfo from "./DreamTranslationsInfo";
 import DreamsTabs from "./DreamsTabs";
+import DreamPlatformBadge from "./DreamPlatformBadge";
+import { savedDreamPlatform, type DreamPlatform } from "@/lib/dreamPlatform";
 import { shareBadgeFor } from "@/lib/shareBadges";
 import { matchingGuestFeedEntries, type GuestSharedEntry } from "@/lib/adminGuestFeed";
 import { EN_MESSAGES } from "@/lib/i18n/messages/en";
@@ -70,6 +72,7 @@ type DreamAdmin = {
   dreamId?: string; // original dream id
   storyId?: string;
   sourceType?: "dream" | "story" | "guest";
+  platform?: DreamPlatform;
 
   // AI interpretation: users/*/dreams store analysisText (+model/lens/at);
   // guest_dreams store `analysis` — normalised into `analysis` here.
@@ -208,6 +211,7 @@ function guestRowFromDoc(id: string, data: any): DreamAdmin {
     id,
     userId: guestId ? `guest:${guestId}` : "guest",
     sourceType: "guest",
+    platform: savedDreamPlatform(data ?? {}, id),
     guestId,
     sharedId: String(data?.sharedId ?? "").trim() || undefined,
     text: data?.text,
@@ -588,6 +592,7 @@ export default function AdminDashboardPage() {
               dreamId: sourceType === "dream" ? data.ownerDreamId || tailId || "" : undefined,
               storyId: sourceType === "story" ? data.ownerStoryId || tailId || "" : undefined,
               sourceType,
+              platform: savedDreamPlatform(data, sourceType === "story" ? data.ownerStoryId || tailId : data.ownerDreamId || tailId),
 
               title: data.title,
               text: data.text,
@@ -625,6 +630,7 @@ export default function AdminDashboardPage() {
           return {
             id: d.id,
             userId,
+            platform: savedDreamPlatform(data, d.id),
 
             title: data.title,
             text: data.text,
@@ -1937,6 +1943,7 @@ async function loadUsers() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className={`mt-1 text-xs ${mutedText} flex flex-wrap gap-x-3 gap-y-1`}>
+                      <DreamPlatformBadge platform={d.platform ?? d.guestOrigin?.platform} locale={locale} />
                       <span>
                         user: <span className="font-mono">{d.userId}</span>
                       </span>

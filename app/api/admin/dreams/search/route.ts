@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldPath } from "firebase-admin/firestore";
 import { requireAdmin } from "../../_lib/auth";
 import { adminDb } from "../../_lib/firebaseAdmin";
+import { savedDreamPlatform, type DreamPlatform } from "@/lib/dreamPlatform";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -29,6 +30,7 @@ type Row = {
   id: string;
   userId: string;
   sourceType: "dream" | "story" | "guest";
+  platform?: DreamPlatform;
   dreamId?: string;
   guestId?: string;
   imported?: boolean;
@@ -103,6 +105,7 @@ function toGuestRow(id: string, data: any): Row {
     id,
     userId: guestId ? `guest:${guestId}` : "guest",
     sourceType: "guest",
+    platform: savedDreamPlatform(data ?? {}, id),
     guestId,
     title: undefined,
     text: typeof data?.text === "string" ? data.text : undefined,
@@ -136,6 +139,7 @@ function toRow(path: string, id: string, data: any, sourceType: "dream" | "story
     id,
     userId,
     sourceType,
+    platform: savedDreamPlatform(data ?? {}, id),
     dreamId: sourceType === "dream" ? id : undefined,
     storyId: sourceType === "story" ? id : undefined,
     title: typeof data?.title === "string" ? data.title : undefined,

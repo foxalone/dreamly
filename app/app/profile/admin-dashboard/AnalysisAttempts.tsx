@@ -5,10 +5,12 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ANALYSIS_ATTEMPT_COPY } from "@/lib/i18n/analysisAttempts";
 import { ANALYSIS_DIAGNOSIS_COPY } from "@/lib/i18n/analysisDiagnosis";
 import { analysisDiagnosis } from "@/lib/analysisDiagnosis";
+import { dreamPlatform, platformFromAgent, type DreamPlatform } from "@/lib/dreamPlatform";
+import DreamPlatformBadge from "./DreamPlatformBadge";
 
 type Row = {
   city?: string; country?: string; admin1?: string; citySource?: string;
-  source?: string; dreamId?: string; createdAtMs?: number; startedAtMs?: number;
+  source?: string; platform?: DreamPlatform; dreamId?: string; createdAtMs?: number; startedAtMs?: number;
   wordCount?: number; charCount?: number; durationMs?: number; httpStatus?: number;
   analysis?: string; model?: string; emojiModel?: string; emojis?: { native: string }[];
   displayedAtMs?: number | null;
@@ -90,12 +92,16 @@ export default function AnalysisAttempts() {
         {!visible.length && !loading ? <p className="text-sm text-[var(--muted)]">{t.empty}</p> : null}
         {visible.map((row) => {
           const diagnosis = analysisDiagnosis(row, now);
+          const platform = dreamPlatform(row.platform) ?? (row.source === "android" ? "android" : row.userAgent ? platformFromAgent(row.userAgent) : undefined);
           const authEvent = [...(row.events ?? [])].reverse().find((item) => item.event.startsWith("auth_"))?.event
             ?? (row.lastEvent?.startsWith("auth_") ? row.lastEvent : undefined);
           return (
           <article key={row.id} className="rounded-xl border border-[var(--border)] p-3 text-sm">
             <div className="flex flex-wrap justify-between gap-2 text-xs text-[var(--muted)]">
-              <span className="break-all">{row.uid ? t.user : t.guest}: {row.uid ?? row.guestId} · {row.lang} · {row.lens}</span>
+              <span className="flex flex-wrap items-center gap-2 break-all">
+                <DreamPlatformBadge platform={platform} locale={locale} />
+                <span>{row.uid ? t.user : t.guest}: {row.uid ?? row.guestId} · {row.lang} · {row.lens}</span>
+              </span>
               <time dateTime={new Date(row.updatedAtMs).toISOString()}>{new Date(row.updatedAtMs).toLocaleString(locale)}</time>
             </div>
             <p className="mt-2 text-xs text-[var(--muted)]">

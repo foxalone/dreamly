@@ -30,6 +30,7 @@ import { parseDreamLens } from "@/lib/dream-lenses";
 import { dreamAnalysisMessages } from "@/lib/dreamAnalysisPrompt";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { parseDreamAnalysisOutput } from "@/lib/escapeNote";
+import { requestDreamPlatform } from "@/lib/dreamPlatform";
 import { translatedEscapeNote } from "../_lib/escapeNoteTranslation";
 import { translatedGuestShareCopy } from "../_lib/guestShareTranslation";
 import { guestShareCopyFromMessages } from "@/lib/guestShareCopy";
@@ -119,6 +120,7 @@ export async function POST(req: Request) {
     if (token) {
       const auth = await requireSignedInUid(token);
       if (!("error" in auth)) uid = auth.uid;
+      else if (body.source === "android") return auth.error;
     }
 
     if (!uid) guestId = readGuestId(req) ?? newGuestId();
@@ -210,7 +212,7 @@ export async function POST(req: Request) {
     const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
 
     if (isGuest && guestId) {
-      await saveGuestDreamSnapshot({ guestId, text, analysis, model, lens, lang, emojis: dreamEmojis })
+      await saveGuestDreamSnapshot({ guestId, text, analysis, model, lens, lang, emojis: dreamEmojis, platform: requestDreamPlatform(req.headers) })
         .catch((error) => console.warn("Guest dream snapshot failed", error));
     }
 

@@ -94,6 +94,7 @@ type Dream = {
   wordCount?: number;
   charCount?: number;
   source?: "manual" | "voice" | "dreamer";
+  platform?: import("@/lib/dreamPlatform").DreamPlatform;
   summary?: string;
   shared?: boolean;
   sharedAtMs?: number;
@@ -1108,6 +1109,7 @@ export default function DreamsPage() {
       freshDreamText.current.set(id, v);
       const seeded: Dream = {
         id,
+        platform: "web",
         text: v,
         createdAtMs: now.getTime(),
         dateKey: toDateKeyLocal(now),
@@ -1209,6 +1211,7 @@ export default function DreamsPage() {
         charCount: item.charCount ?? null,
         langGuess: (item as any).langGuess ?? null,
         source: item.source === "voice" ? "voice" : "manual",
+        ...(item.platform ? { platform: item.platform } : {}),
 
         iconsEn: (item as any).iconsEn ?? [],
         emojis: (item as any).emojis ?? [],

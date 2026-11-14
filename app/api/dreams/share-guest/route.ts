@@ -8,6 +8,7 @@ import { detectDreamLang } from "@/lib/detectDreamLang";
 import { publicAnalysisFields } from "@/lib/analysisPreview";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
+import { dreamPlatform, requestDreamPlatform } from "@/lib/dreamPlatform";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { checkShareableDreamText, guestSharedDocId, guestSharedDreamDocId, shareBadgeFor } from "@/lib/shareBadges";
 import { DREAM_MAX_CHARS, isDreamTooLong } from "@/lib/dreamLength";
@@ -156,6 +157,7 @@ export async function POST(req: Request) {
         langGuess: s(body?.lang) || null,
         lens: s(body?.lens) || null,
         source: "manual",
+        platform: dreamPlatform(snapshotSnap.data()?.platform) ?? requestDreamPlatform(req.headers),
         iconsEn,
         emojis,
         sharedAtMs: nowMs,

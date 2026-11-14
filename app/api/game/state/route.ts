@@ -6,7 +6,8 @@
 import { NextResponse } from "next/server";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { KINGDOM_COLLECTION } from "@/lib/game/kingdomPlacement";
-import { cityRank, hasPlayed, mergeGuestIntoUser, mergeGuestStash, playerRef, readPlayer, toState } from "../_lib/player";
+import { ESCAPE_TTL_MS, escapeTotal, type EscapeStash } from "@/lib/game/escape";
+import { cityRank, escapeStashRef, hasPlayed, mergeGuestIntoUser, mergeGuestStash, playerRef, readPlayer, toState } from "../_lib/player";
 import { resolveOwner, withOwner } from "../_lib/owner";
 import { resolveBuildingCity, settlePendingBuildings } from "../_lib/placement";
 
@@ -54,11 +55,18 @@ export async function GET(req: Request) {
   const state = toState(p, now);
   // Nothing is credited before the first tap: the catch ceremony runs after "sync"
   // makes the player real (the stash is adopted there), not on merely opening the game.
-  if (!hasPlayed(p)) state.escaped = null;
+  let waitingForFirstTap = false;
+  if (!hasPlayed(p)) {
+    state.escaped = null;
+    if (new URL(req.url).searchParams.has("android")) {
+      const stash = (await escapeStashRef(owner.ownerKey).get()).data() as EscapeStash | undefined;
+      waitingForFirstTap = !!stash?.escaped && escapeTotal(stash.escaped) > 0 && now - stash.escaped.at <= ESCAPE_TTL_MS;
+    }
+  }
 
   return withOwner(
     NextResponse.json(
-      { exists: snap.exists || Object.keys(p.placed).length > 0, state, merged, rank, overtaken },
+      { exists: snap.exists || Object.keys(p.placed).length > 0, state, merged, rank, overtaken, waitingForFirstTap, playerKey: owner.uid },
       { headers: { "Cache-Control": "no-store" } }
     ),
     owner

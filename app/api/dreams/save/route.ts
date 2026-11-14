@@ -15,6 +15,7 @@ import { adminAuth } from "../../admin/_lib/firebaseAdmin";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeSaveAccess } from "../_lib/subscription";
 import { readClientIp } from "../_lib/guestQuota";
+import { requestDreamPlatform } from "@/lib/dreamPlatform";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -124,6 +125,7 @@ export async function POST(req: Request) {
       authorName,
       authorEmail,
       savedVia: "server",
+      platform: requestDreamPlatform(req.headers),
     });
 
     // The city comes from the request that saved the dream (Vercel geo headers),

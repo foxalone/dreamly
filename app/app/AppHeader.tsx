@@ -2,8 +2,10 @@
 
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { MoonStar } from "lucide-react";
 import PrimaryNav from "./PrimaryNav";
+import { stripLocalePrefix } from "@/lib/i18n/path";
 
 function syncNavHeight(el: HTMLElement) {
   document.documentElement.style.setProperty("--app-nav-height", `${el.offsetHeight}px`);
@@ -11,6 +13,7 @@ function syncNavHeight(el: HTMLElement) {
 
 export default function AppHeader({ hidden }: { hidden?: boolean }) {
   const headerRef = useRef<HTMLElement>(null);
+  const androidGame = stripLocalePrefix(usePathname() ?? "/").path === "/app/game/android";
 
   useEffect(() => {
     const header = headerRef.current;
@@ -22,9 +25,9 @@ export default function AppHeader({ hidden }: { hidden?: boolean }) {
     const resizeObserver = new ResizeObserver(sync);
     resizeObserver.observe(header);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [androidGame, hidden]);
 
-  if (hidden) return null;
+  if (hidden || androidGame) return null;
 
   return (
     <header

@@ -13,6 +13,7 @@ import { formatMessage } from "@/lib/i18n/messages";
 import { BUILDINGS, shortNumber } from "@/lib/game/buildings";
 import BuildingUnlockFlight from "./BuildingUnlockFlight";
 import { celebrateBuildingPlacement } from "@/lib/game/buildingPlacementEffect";
+import { androidGameRequest } from "./androidGame";
 import { CHAPTER1_LAST_TIER, CREATURE_TIERS, chapterOneDone, creatureWeight, nextTier, openTier } from "@/lib/game/creatureTiers";
 import {
   MAX_TAPS_PER_SEC,
@@ -232,9 +233,14 @@ function Cube({ amount, full, title }: { amount: number; full: boolean; title?: 
   );
 }
 
-export default function GameClient({ pool }: { pool: Creature[] }) {
+export default function GameClient({ pool, android = false }: { pool: Creature[]; android?: boolean }) {
   const t = useMessages().game;
   const [user, setUser] = useState<User | null>(null);
+  const [nativePlayer, setNativePlayer] = useState<string | null>(null);
+  const waitingForFirstTap = useRef(false);
+  const playerKey = nativePlayer ?? user?.uid ?? "guest";
+  const signedIn = android ? nativePlayer !== null : user !== null;
+  const pendingKey = useRef(PENDING_KEY);
   const [authReady, setAuthReady] = useState(false);
   const [server, setServer] = useState<ServerState | null>(null);
   /** Taps waiting to be sent, and the batch currently on its way to the server. */
@@ -314,7 +320,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
   async function postAction(body: object): Promise<{ ok?: boolean; delta?: number; state?: ServerState } | null> {
     try {
-      const res = await fetch("/api/game/action", {
+      const res = android ? await androidGameRequest("action", body) : await fetch("/api/game/action", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(await authHeaders(userRef.current)) },
         body: JSON.stringify(body),
@@ -327,16 +333,17 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   }
 
   /** Send the waiting taps. On failure they go back into the queue. */
-  async function flush() {
-    if (syncingRef.current) return;
+  async function flush(): Promise<boolean> {
+    if (syncingRef.current) return false;
     const batch = pendingRef.current;
-    if (!batch.taps) return;
+    if (!batch.taps) return true;
     syncingRef.current = true;
     pendingRef.current = EMPTY_BATCH;
     setPending(EMPTY_BATCH);
     setInflight(batch);
     const res = await postAction({ type: "sync", taps: batch.taps, catches: batch.catches });
     if (res?.ok && res.state) {
+      if (android) waitingForFirstTap.current = false;
       acceptServer(res.state);
       // The first taps may have adopted creatures that escaped from this player's dreams
       // before the player existed (kingdom_escapes): catch them with the usual ceremony.
@@ -350,21 +357,43 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     }
     setInflight(EMPTY_BATCH);
     syncingRef.current = false;
+    if (android) writeJson(pendingKey.current, pendingRef.current.taps ? pendingRef.current : null);
+    return !!(res?.ok && res.state);
+  }
+
+  function nativeNavigation(event: React.MouseEvent, destination: "signIn" | "map") {
+    if (!android) return;
+    event.preventDefault();
+    void (async () => {
+      try {
+        if (destination === "signIn" && !await flush()) { showToast(t.offline); return; }
+        await androidGameRequest(destination);
+      } catch { showToast(t.offline); }
+    })();
   }
 
   async function loadState(u: User | null) {
     try {
-      const res = await fetch("/api/game/state", { headers: await authHeaders(u), cache: "no-store" });
+      const res = android ? await androidGameRequest("state") : await fetch("/api/game/state", { headers: await authHeaders(u), cache: "no-store" });
+      if (!res.ok) throw new Error("Game unavailable");
       const data = (await res.json()) as {
         state: ServerState;
         merged?: number;
         rank?: Rank | null;
         overtaken?: boolean;
+        waitingForFirstTap?: boolean;
+        playerKey?: string | null;
       };
       let state = data.state;
+      if (android) {
+        setNativePlayer(data.playerKey ?? null);
+        setAuthReady(true);
+        waitingForFirstTap.current = !!data.waitingForFirstTap;
+        pendingKey.current = `${PENDING_KEY}:android:${data.playerKey ?? "guest"}`;
+      }
 
       // One-time import of the old browser-only save.
-      const legacy = readJson<{ creatures?: number; caught?: Record<string, number>; recent?: string[] }>(LEGACY_KEY);
+      const legacy = android ? null : readJson<{ creatures?: number; caught?: Record<string, number>; recent?: string[] }>(LEGACY_KEY);
       if (legacy && !state.importedLocal && (legacy.creatures ?? 0) > 0) {
         const imp = await postAction({ type: "import", local: legacy });
         if (imp?.state) state = imp.state;
@@ -395,7 +424,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       if (awayTotal > 0) setAway({ amount: awayTotal, full: state.storage.full });
 
       // Taps left from the last visit (not confirmed before the tab closed).
-      const left = readJson<Batch>(PENDING_KEY);
+      const left = readJson<Batch>(pendingKey.current);
       if (left?.taps) {
         pendingRef.current = mergeBatch(left, pendingRef.current);
         setPending(pendingRef.current);
@@ -447,6 +476,10 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   collectEscapedRef.current = collectEscaped;
 
   useEffect(() => {
+    if (android) {
+      void loadState(null);
+      return;
+    }
     return onAuthStateChanged(auth, (u) => {
       userRef.current = u;
       setUser(u);
@@ -454,7 +487,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
       void loadState(u);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- subscribe once
-  }, []);
+  }, [android]);
 
   // `game_open` once per visit, after auth is known: via "fab" (dream-catcher widget, see
   // DreamCatcherFab → GAME_ENTRY_KEY) or "direct" (URL, nav, back button).
@@ -462,8 +495,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
   useEffect(() => {
     if (!authReady || openTracked.current) return;
     openTracked.current = true;
-    let via = "direct";
-    let page = "";
+    let via = android ? "fab" : "direct";
+    let page = android ? "map" : "";
     try {
       const raw = sessionStorage.getItem(GAME_ENTRY_KEY);
       if (raw) {
@@ -475,16 +508,18 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
         sessionStorage.removeItem(GAME_ENTRY_KEY);
       }
     } catch {}
-    trackEvent("game_open", { via, from_page: page, guest: !userRef.current });
-  }, [authReady]);
+    if (android) trackEvent("game_fab_click", { page: "map", platform: "android" });
+    trackEvent("game_open", { via, from_page: page, guest: !signedIn });
+  }, [android, authReady, signedIn]);
 
   // First tap of this visit → did they actually play after opening?
   const tapTracked = useRef(false);
 
   // Keep unsent taps across reloads.
   useEffect(() => {
+    if (android) return;
     writeJson(PENDING_KEY, pending.taps ? pending : null);
-  }, [pending]);
+  }, [android, pending]);
 
   // Send taps in batches, and when the tab is hidden; tick the storage counter.
   useEffect(() => {
@@ -571,7 +606,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [card]);
 
-  const perTap = user ? PER_TAP_SIGNED_IN : PER_TAP_GUEST;
+  const perTap = signedIn ? PER_TAP_SIGNED_IN : PER_TAP_GUEST;
 
   // What the player sees = server state + taps on their way + taps waiting.
   const local = mergeBatch(inflight, pending);
@@ -640,7 +675,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     try {
       await flush();
       await collectLive(); // bank the live flow so the server sees the balance the player sees
-      const res = await fetch("/api/game/buildings", {
+      const res = android ? await androidGameRequest("buildings", { buildingId: b.id }) : await fetch("/api/game/buildings", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(await authHeaders(userRef.current)) },
         body: JSON.stringify({ buildingId: b.id }),
@@ -717,7 +752,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     tapTimes.current.push(stamp);
     if (!tapTracked.current) {
       tapTracked.current = true;
-      trackEvent("game_first_tap", { guest: !userRef.current });
+      trackEvent("game_first_tap", { guest: !signedIn });
     }
 
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -762,10 +797,12 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     });
     pendingRef.current = mergeBatch(pendingRef.current, { taps: 1, n: perTap, catches: add });
     setPending(pendingRef.current);
+    if (android) writeJson(pendingKey.current, pendingRef.current);
 
     // A brand-new player's very first tap while dream creatures wait in the catcher:
     // sync right away so they land now, not a batch interval later.
-    if ((serverRef.current?.lifetime ?? 0) === 0 && pendingRef.current.taps === 1 && readEscapePending()) {
+    if ((serverRef.current?.lifetime ?? 0) === 0 && pendingRef.current.taps === 1 &&
+        (android ? waitingForFirstTap.current : readEscapePending())) {
       window.setTimeout(() => void flush(), 700);
     }
 
@@ -818,8 +855,8 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
     >
       <style>{CSS}</style>
       {loaded && authReady && box.w > 0 ? <BuildingUnlockFlight
-        key={user?.uid ?? "guest"}
-        playerKey={user?.uid ?? "guest"}
+        key={playerKey}
+        playerKey={playerKey}
         root={mainRef}
         catcher={catcherRef}
         balance={creaturesShown}
@@ -1084,7 +1121,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                 {/* One more copy: the price grows 15% per copy, the cube fills faster. */}
                 {(() => {
                   const price = nextCost(b.cost, ownedOf(b.id));
-                  const can = creaturesShown >= price && !!user;
+                      const can = creaturesShown >= price && signedIn;
                   return (
                     <button
                       type="button"
@@ -1092,7 +1129,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                         if (can && !busy) void placeBuilding(b);
                       }}
                       aria-disabled={!can || busy}
-                      title={user ? `${t.buyMore} · ${price.toLocaleString()}` : t.signInToBuildMore}
+                      title={signedIn ? `${t.buyMore} · ${price.toLocaleString()}` : t.signInToBuildMore}
                       className={`mt-1 flex w-full items-center gap-2 rounded-lg border px-2 py-0.5 text-[11px] font-semibold transition ${
                         can
                           ? "border-amber-400/70 bg-[color-mix(in_srgb,#f59e0b_12%,var(--card))] hover:scale-[1.02]"
@@ -1116,7 +1153,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
                     className="absolute right-2 top-1.5 text-xs opacity-60 hover:opacity-100"
                     title={t.onMap}
                     aria-label={t.onMap}
-                    onClick={() => void trackEarthClick("game")}
+                    onClick={(event) => { nativeNavigation(event, "map"); void trackEarthClick("game"); }}
                   >
                     🗺️
                   </LocaleLink>
@@ -1153,7 +1190,7 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* All-time catch counter (Cookie Clicker's "baked all time"), bottom-left, fairy-tale numerals. */}
       {loaded ? (
-        <LocaleLink href="/app/map?layer=kingdoms" data-game-earth className="dk-earth absolute bottom-16 left-4 z-20 block h-12 w-12 rounded-full sm:h-16 sm:w-16" title={t.onMap} aria-label={t.onMap} onClick={() => void trackEarthClick("game")}>
+        <LocaleLink href="/app/map?layer=kingdoms" data-game-earth className="dk-earth absolute bottom-16 left-4 z-20 block h-12 w-12 rounded-full sm:h-16 sm:w-16" title={t.onMap} aria-label={t.onMap} onClick={(event) => { nativeNavigation(event, "map"); void trackEarthClick("game"); }}>
           <span className="dk-earth-sphere" aria-hidden="true"><span className="dk-earth-surface" /></span>
         </LocaleLink>
       ) : null}
@@ -1175,21 +1212,21 @@ export default function GameClient({ pool }: { pool: Creature[] }) {
 
       {/* Bottom line: first hint, and for guests the sign-in offer (stronger once there is something to lose). */}
       <div className="absolute bottom-24 left-0 z-10 pl-20 pr-3 pb-3 text-center text-xs text-[var(--muted)] sm:bottom-0 sm:pl-56 sm:pr-20" style={{ right: colW }}>
-        {authReady && !user && loaded && (creaturesShown >= 200 || placed.hut !== undefined) ? (
+        {authReady && !signedIn && loaded && (creaturesShown >= 200 || placed.hut !== undefined) ? (
           <div className="dk-card mx-auto inline-flex max-w-md flex-wrap items-center justify-center gap-2 rounded-2xl border border-purple-400/50 bg-[color-mix(in_srgb,#a855f7_10%,var(--card))] px-3 py-2 text-sm text-[var(--text)]">
             <span>{formatMessage(t.keepProgress, { n: creatures.toLocaleString(), u: PER_TAP_SIGNED_IN, g: PER_TAP_GUEST })}</span>
-            <LocaleLink href="/signin?next=/app/game" className="rounded-full bg-purple-500 px-3 py-1 font-semibold text-white">
+            <LocaleLink href="/signin?next=/app/game" onClick={(event) => nativeNavigation(event, "signIn")} className="rounded-full bg-purple-500 px-3 py-1 font-semibold text-white">
               {t.signIn}
             </LocaleLink>
           </div>
         ) : (
           <>
             {collection.length ? null : <span>{t.tapHint}</span>}
-            {authReady && !user ? (
+            {authReady && !signedIn ? (
               <span>
                 {collection.length ? "" : " · "}
                 {formatMessage(t.guestLine, { g: PER_TAP_GUEST })} ·{" "}
-                <LocaleLink href="/signin?next=/app/game" className="font-semibold text-purple-400 underline underline-offset-2">
+                <LocaleLink href="/signin?next=/app/game" onClick={(event) => nativeNavigation(event, "signIn")} className="font-semibold text-purple-400 underline underline-offset-2">
                   {t.signIn}
                 </LocaleLink>
               </span>

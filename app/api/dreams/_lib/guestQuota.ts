@@ -197,11 +197,24 @@ export async function guestAdReward(
   kind: GuestAdKind = "analysis",
   target?: TranslationAdTarget
 ) {
+  return guestAdRewardForNetwork(guestId, hashIp(ip), grant, rewardId, database, kind, target);
+}
+
+/** AdMob callbacks arrive from Google, so use the guest's network hash captured before showing the ad. */
+export async function guestAdRewardForNetwork(
+  guestId: string,
+  networkHash: string,
+  grant = false,
+  rewardId?: string,
+  database?: Firestore,
+  kind: GuestAdKind = "analysis",
+  target?: TranslationAdTarget,
+) {
   const db = database ?? adminDb();
   const dayKey = utcDayKey();
   const f = GUEST_AD_FIELDS[kind];
   const guestRef = db.collection("guestQuickSymbol").doc(guestId);
-  const ipRef = db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${dayKey}`);
+  const ipRef = db.collection("guestQuickSymbolIp").doc(`${networkHash}_${dayKey}`);
   return db.runTransaction(async (tx) => {
     const receiptRef = grant && rewardId ? guestRef.collection("adRewardReceipts").doc(rewardId) : null;
     const receipt = receiptRef ? await tx.get(receiptRef) : null;

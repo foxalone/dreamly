@@ -1,3 +1,5 @@
+import { requestDreamPlatform } from "./dreamPlatform";
+
 export const ATTEMPT_EVENTS = ["ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_grant_timeout", "ad_grant_network_failed", "ad_grant_rejected", "ad_resume_started", "ad_auth_timeout", "access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
 export type AttemptEvent = typeof ATTEMPT_EVENTS[number];
 export function ownsAnalysisAttempt(row: { uid?: string | null; guestId?: string | null }, uid: string | null, guestId: string | null): boolean {
@@ -30,7 +32,7 @@ export function analysisAttemptContext(
   headers: Headers,
   geo: { cityId: string; city: string; country: string; admin1: string; source: string } | null,
 ) {
-  const sources = ["home_ask", "guest_journal", "dictionary_search", "symbol_inline", "journal"];
+  const sources = ["home_ask", "guest_journal", "dictionary_search", "symbol_inline", "journal", "android"];
   const country = geo?.country || (headers.get("x-vercel-ip-country") ?? "").trim().toUpperCase();
   return {
     cityId: geo?.cityId ?? null, city: geo?.city ?? null,
@@ -38,6 +40,7 @@ export function analysisAttemptContext(
     admin1: geo?.admin1 ?? null, citySource: geo ? "ip" : null,
     geoProvider: geo?.source ?? null,
     source: sources.includes(input.source ?? "") ? input.source! : null,
+    platform: requestDreamPlatform(headers),
     // IDs are context only; they never grant access to a dream.
     dreamId: typeof input.dreamId === "string" ? input.dreamId.slice(0, 200) : null,
     wordCount: input.text.trim().split(/\s+/u).filter(Boolean).length,

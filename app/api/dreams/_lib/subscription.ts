@@ -272,7 +272,6 @@ export async function grantAdReward(
       const snap = await tx.get(userRef);
       const translationGrant = kind === "translate" ? await tx.get(translationGrantRef) : null;
       const data = snap.exists ? ((snap.data() as Record<string, unknown>) ?? {}) : {};
-      if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
       // Separate counters and caps for analysis ads and save ads.
       const f =
         kind === "save"
@@ -288,6 +287,7 @@ export async function grantAdReward(
         }
         return { uid, credits: kind === "translate" ? Number(!!target && matchingTranslationAdGrant(translationGrant?.data(), target)) : toCount(data[f.credits]), leftToday: Math.max(0, f.cap - today) };
       }
+      if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
       if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");
       if (kind === "translate" && !target) return { error: NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 }) };
       const credits = toCount(data[f.credits]) + 1;

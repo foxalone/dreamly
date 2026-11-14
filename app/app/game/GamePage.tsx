@@ -32,6 +32,6 @@ function creaturePool(locale: Locale): Creature[] {
   );
 }
 
-export default function GamePage({ locale }: { locale: Locale }) {
-  return <GameClient pool={creaturePool(locale)} />;
+export default function GamePage({ locale, android = false }: { locale: Locale; android?: boolean }) {
+  return <GameClient pool={creaturePool(locale)} android={android} />;
 }
