@@ -58,7 +58,7 @@ export default function PwaLaunch({ children }: { children: ReactNode }) {
         <div className="pwa-launch-stars" aria-hidden="true">✦<span>✧</span><i>✦</i></div>
         <div className="pwa-launch-heading">
           <span className="pwa-launch-moon" aria-hidden="true">☾</span>
-          <h1 id="pwa-launch-title" dir="ltr">Dreamly</h1>
+          <div id="pwa-launch-title" dir="ltr">Dreamly</div>
           <p>{t.launch.tagline}</p>
         </div>
         <div className="pwa-launch-footer">

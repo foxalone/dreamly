@@ -31,7 +31,7 @@ html[data-pwa-launch="2"] .pwa-launch-art { background-image: url('/launch/castl
 }
 .pwa-launch-heading { animation: pwa-launch-rise 900ms ease-out both; }
 .pwa-launch-moon { display: block; color: #f5d7a0; font-size: 36px; line-height: 1; margin-bottom: 16px; }
-.pwa-launch h1 { font-family: 'Cinzel Decorative', Georgia, serif; font-size: clamp(38px, 10vw, 64px); letter-spacing: .06em; line-height: 1.2; text-shadow: 0 3px 28px #100d24; }
+#pwa-launch-title { font-family: 'Cinzel Decorative', Georgia, serif; font-size: clamp(38px, 10vw, 64px); letter-spacing: .06em; line-height: 1.2; text-shadow: 0 3px 28px #100d24; }
 .pwa-launch-heading p { margin: 16px auto 0; max-width: 260px; font-size: 15px; line-height: 1.7; color: #f3e7dd; text-shadow: 0 2px 12px #100d24; }
 .pwa-launch-footer { width: 100%; max-width: 320px; }
 .pwa-launch-rule { display: block; width: 48px; height: 1px; margin: 0 auto 18px; background: #dfbd83; box-shadow: 0 0 15px #dfbd83; }
@@ -52,7 +52,7 @@ html[data-pwa-launch="2"] .pwa-launch-art { background-image: url('/launch/castl
 @media (max-height: 520px) {
   html[data-pwa-launch] .pwa-launch { padding-block: 20px; }
   .pwa-launch-moon { display: none; }
-  .pwa-launch h1 { font-size: 32px; }
+  #pwa-launch-title { font-size: 32px; }
   .pwa-launch-heading p { margin-top: 8px; }
   .pwa-launch-rule { margin-bottom: 8px; }
 }

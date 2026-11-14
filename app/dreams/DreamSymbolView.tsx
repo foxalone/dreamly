@@ -37,8 +37,7 @@ import {
 import { DREAM_PAGE_IMAGE_HEIGHT, DREAM_PAGE_IMAGE_WIDTH, dreamPageImageAlt } from "@/lib/dreamPageImage";
 import { getDreamPageImage } from "@/lib/getDreamPageImage";
 import { splitLeadSentences } from "@/lib/leadSentences";
-import type { Locale } from "@/lib/i18n/config";
-import { SITE_URL } from "@/lib/i18n/config";
+import { SITE_URL, localeDir, type Locale } from "@/lib/i18n/config";
 import { getCategoryCopy } from "@/lib/i18n/categories";
 import { getLocalizedEntry, localizeEntryList } from "@/lib/i18n/localize-dictionary";
 import { getLocalizedGuidesForSymbol } from "@/lib/i18n/localize-guides";
@@ -254,7 +253,7 @@ export default async function DreamSymbolView({ symbol, locale }: { symbol: stri
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {videoJsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }} /> : null}
 
-      <article className="mx-auto max-w-5xl px-5 pb-12 pt-8 sm:px-8 sm:pt-12">
+      <article lang={locale} dir={localeDir(locale)} className="mx-auto max-w-5xl px-5 pb-12 pt-8 sm:px-8 sm:pt-12">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--dd-subtle)] sm:text-sm">
           <LocaleLink href="/dreams" className="inline-flex items-center gap-2 transition hover:text-[var(--dd-text)]">
             <ArrowLeft size={14} aria-hidden="true" /> {t.symbol.dictionary}
