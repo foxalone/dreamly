@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { adminMoonClicksCopy } from "@/lib/i18n/adminMoonClicks";
-
-type Counts = { dreams: number; stories: number; journal: number; shared: number };
-type Delta = Counts & { moon: number | null; earth: number | null };
+import type { ContentCounts, ContentDelta } from "@/lib/contentCounts";
 
 function formatDelta(value: number | null, locale: string) {
   if (value == null) return null;
@@ -31,8 +29,8 @@ export default function MoonClicks({ user }: { user: User }) {
   const [tarotMore, setTarotMore] = useState<number | null>(null);
   const [comments, setComments] = useState<number | null>(null);
   const [xp, setXp] = useState<number | null>(null);
-  const [counts, setCounts] = useState<Counts | null>(null);
-  const [delta, setDelta] = useState<Delta | null>(null);
+  const [counts, setCounts] = useState<ContentCounts | null>(null);
+  const [delta, setDelta] = useState<ContentDelta | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
@@ -43,7 +41,7 @@ export default function MoonClicks({ user }: { user: User }) {
       setLoading(true);
       setError(false);
       try {
-        const response = await fetch(`/api/admin/content-counts?tzOffsetMin=${new Date().getTimezoneOffset()}`, {
+        const response = await fetch("/api/admin/content-counts", {
           headers: { Authorization: `Bearer ${await user.getIdToken()}` },
           cache: "no-store",
           signal: controller.signal,
@@ -79,15 +77,15 @@ export default function MoonClicks({ user }: { user: User }) {
   const stats: { label: string; value: number | null; change: number | null }[] = [
     { label: copy.title, value: moon, change: delta?.moon ?? null },
     { label: copy.earth, value: earth, change: delta?.earth ?? null },
-    { label: copy.translation, value: translation, change: null },
-    { label: copy.horoscopeMore, value: horoscopeMore, change: null },
-    { label: copy.tarotMore, value: tarotMore, change: null },
+    { label: copy.translation, value: translation, change: delta?.translation ?? null },
+    { label: copy.horoscopeMore, value: horoscopeMore, change: delta?.horoscopeMore ?? null },
+    { label: copy.tarotMore, value: tarotMore, change: delta?.tarotMore ?? null },
     { label: copy.dreams, value: counts?.dreams ?? null, change: delta?.dreams ?? null },
     { label: copy.stories, value: counts?.stories ?? null, change: delta?.stories ?? null },
     { label: copy.journal, value: counts?.journal ?? null, change: delta?.journal ?? null },
     { label: copy.shared, value: counts?.shared ?? null, change: delta?.shared ?? null },
-    { label: copy.comments, value: comments, change: null },
-    { label: copy.xp, value: xp, change: null },
+    { label: copy.comments, value: comments, change: delta?.comments ?? null },
+    { label: copy.xp, value: xp, change: delta?.xp ?? null },
   ];
 
   return <section className="mt-5 rounded-2xl border border-[var(--border)] p-4" aria-label={copy.title} dir={locale === "ar" ? "rtl" : undefined}>

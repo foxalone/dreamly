@@ -2,6 +2,10 @@ import type { UiMessages } from "./types";
 
 export const AR_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "قاموس Dreamly للأحلام" },
+  moonEligibility: {
+    title: "حان وقت رحلتك إلى القمر!",
+    body: "شاركت أحلامًا كافية لفتح الوصول إلى القمر. أصبح بإمكان شخصيتك أن تحظى بمكان على خريطة القمر.",
+  },
   launch: {"tagline": "ادخل إلى عالم الأحلام", "art": "من مجموعة دريملي الفنية", "enter": "دخول"},
   nav: {
     loveCompatibility: "التوافق العاطفي",

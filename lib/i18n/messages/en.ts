@@ -2,6 +2,10 @@ import type { UiMessages } from "./types";
 
 export const EN_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "Dreamly Dictionary" },
+  moonEligibility: {
+    title: "You’re ready to fly to the Moon!",
+    body: "You’ve shared enough dreams to unlock the Moon. Your character can have a place on the lunar map.",
+  },
   launch: {"tagline": "Step into a world of dreams", "art": "From the Dreamly Art collection", "enter": "Enter"},
   nav: {
     loveCompatibility: "Love Compatibility",

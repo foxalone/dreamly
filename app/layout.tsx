@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
@@ -14,6 +15,7 @@ import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
 import PaywallHost from "./components/PaywallHost";
 import { OFFERWALL_RECOVERY_SCRIPT } from "@/lib/offerwallRecoveryScript";
 import AdUnlockRecovery from "./components/AdUnlockRecovery";
+import MoonEligibilityNotice from "./components/moon/MoonEligibilityNotice";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
 // because Google started returning extensionless /l/font?kit= URLs that break the Turbopack
@@ -90,6 +92,9 @@ export default function RootLayout({
             <DreamMapGlobe />
             <InstallPwaBanner />
             <PaywallHost />
+            <Suspense fallback={null}>
+              <MoonEligibilityNotice />
+            </Suspense>
           </PwaLaunch>
         </AppI18n>
       </body>

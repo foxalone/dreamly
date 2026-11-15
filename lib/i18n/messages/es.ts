@@ -2,6 +2,10 @@ import type { UiMessages } from "./types";
 
 export const ES_MESSAGES: UiMessages = {
   brand: { name: "Dreamly", dictionary: "Diccionario Dreamly" },
+  moonEligibility: {
+    title: "¡Ya puedes viajar a la Luna!",
+    body: "Compartiste suficientes sueños para desbloquear la Luna. Tu personaje ya puede tener un lugar en el mapa lunar.",
+  },
   launch: {"tagline": "Entra en un mundo de sueños", "art": "De la colección de arte de Dreamly", "enter": "Entrar"},
   nav: {
     loveCompatibility: "Compatibilidad amorosa",
