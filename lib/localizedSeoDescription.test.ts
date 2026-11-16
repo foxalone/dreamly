@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { localizedSeoDescription } from "./i18n/templates";
 
-import type { Locale } from "./i18n/config";
+import type { DictionaryLocale } from "./i18n/config";
 
-const LOCALES: Locale[] = ["es", "pt", "de", "ru", "ar"];
+const DICTIONARY_LOCALES: DictionaryLocale[] = ["es", "pt", "de", "ru", "ar"];
 const MAX = 170;
 
 const LONG_HOOK = [
@@ -17,7 +17,7 @@ const LONG_HOOK = [
 ].join(", ");
 
 test("short meanings pass through untouched", () => {
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     const out = localizedSeoDescription(locale, "perro", "lealtad y confianza");
     assert.ok(out.length <= MAX, `${locale}: ${out.length}`);
     assert.ok(!out.endsWith("…"), `${locale} should not be clipped: ${out}`);
@@ -25,7 +25,7 @@ test("short meanings pass through untouched", () => {
 });
 
 test("long comma-separated meanings drop themes instead of clipping mid-word", () => {
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     const out = localizedSeoDescription(locale, "golden retriever puppy", LONG_HOOK);
     assert.ok(out.length <= MAX, `${locale}: ${out.length} chars`);
     assert.ok(!out.includes("…"), `${locale} should stay a complete sentence: ${out}`);
@@ -40,7 +40,7 @@ test("kept prefix of the hook survives verbatim", () => {
 
 test("meanings without separators clip at a word boundary", () => {
   const hook = Array(30).fill("wanderlust").join(" ");
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     const out = localizedSeoDescription(locale, "viaje", hook);
     assert.ok(out.length <= MAX, `${locale}: ${out.length}`);
     if (out.endsWith("…")) {

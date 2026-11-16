@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import DreamHubView from "../../dreams/DreamHubView";
 import { getMessages } from "@/lib/i18n/messages";
-import { localeFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
+import { dictionaryLocaleFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   const t = getMessages(locale);
   return {
     title: t.dictionary.h1,
@@ -17,6 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   return <DreamHubView locale={locale} />;
 }

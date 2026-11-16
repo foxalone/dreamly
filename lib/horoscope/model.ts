@@ -1,4 +1,4 @@
-import { LOCALES, type Locale } from '@/lib/i18n/config';
+import { DICTIONARY_LOCALES, type Locale } from '@/lib/i18n/config';
 
 export const SIGNS = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'] as const;
 export type Sign = typeof SIGNS[number];
@@ -33,7 +33,7 @@ export function validateReadings(value: unknown, signs: readonly Sign[] = SIGNS)
   return value as Readings;
 }
 export function completeLocales(value: Partial<Record<Locale, Readings>>) {
-  return LOCALES.every(locale => {
+  return DICTIONARY_LOCALES.every(locale => {
     try {
       const readings = validateReadings(value[locale]);
       for (const sign of SIGNS) {
@@ -56,17 +56,19 @@ export function validateLocalizedReadings(value: unknown, locale: Locale, source
     const reading = data[sign];
     if (requireEditorial && !reading.headline) throw new HoroscopeValidationError(`Missing ${sign}.headline`);
     const words = reading.general.trim().split(/\s+/u).length;
-    if (requireEditorial && (words < 100 || words > 160)) throw new HoroscopeValidationError(`Invalid ${sign}.general word count: ${words}`);
+    const japaneseLength = [...reading.general].filter((char) => !/\s/u.test(char)).length;
+    if (requireEditorial && (locale === 'ja' ? japaneseLength < 180 || japaneseLength > 395 : words < 100 || words > 160)) throw new HoroscopeValidationError(`Invalid ${sign}.general word count: ${words}`);
     const fields = reading.headline ? [...FIELDS, 'headline'] as const : FIELDS;
     for (const field of fields) {
       const text = reading[field]!;
       if (source && text.trim().toLowerCase() === source[sign][field]?.trim().toLowerCase()) throw new HoroscopeValidationError(`Untranslated ${sign}.${field}`);
       const letters = text.match(/\p{L}/gu) ?? [];
-      const script = locale === 'ar' ? /\p{Script=Arabic}/u : locale === 'ru' ? /\p{Script=Cyrillic}/u : /\p{Script=Latin}/u;
+      const script = locale === 'ar' ? /\p{Script=Arabic}/u : locale === 'ru' ? /\p{Script=Cyrillic}/u : locale === 'ja' ? /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u : /\p{Script=Latin}/u;
       if (!letters.length || letters.filter(letter => script.test(letter)).length / letters.length < .85) throw new HoroscopeValidationError(`Invalid ${sign}.${field} script`);
     }
     // Reject obvious wrong-language output without an extra AI call. These are
     // guardrails, not a substitute for native editorial review.
+    if (locale === 'ja' && !/\p{Script=Hiragana}/u.test(reading.general)) throw new HoroscopeValidationError(`Invalid ${sign} language`);
     const native = nativeWords[locale];
     if (native && (reading.general.match(native)?.length ?? 0) < 8) throw new HoroscopeValidationError(`Invalid ${sign} language`);
     if (locale !== 'en' && /\b(the|your|you|with|today|and)\b/i.test(reading.general)) throw new HoroscopeValidationError(`English text in ${sign}`);

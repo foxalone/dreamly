@@ -5,7 +5,7 @@ import { refreshDreamPageImageCache } from "../app/api/admin/_lib/dreamPageImage
 import { dreamPageImageFingerprint, dreamPageImagePaths } from "./dreamPageImageCache";
 import { readDreamPageImageAssignment } from "./getDreamPageImage";
 import { saveDreamPageImage } from "./dreamPageImageStore.mjs";
-import { LOCALES } from "./i18n/config";
+import { DICTIONARY_LOCALES } from "./i18n/config";
 import { localePath } from "./i18n/path";
 import { ALL_DREAM_ENTRIES, DREAM_SLUGS } from "./dream-dictionary";
 import { getLocalizedEntry } from "./i18n/localize-dictionary";
@@ -54,7 +54,7 @@ test("publication, image replacement, external edit and deletion refresh all loc
   const f = fixture();
   assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 0, paths: 0 });
   await saveDreamPageImage(f.db, "snake", original, "2026-09-13T10:00:00Z");
-  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 1, paths: 13 });
+  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 1, paths: 15 });
   const expected = dreamPageImagePaths(["snake"]);
   assert.deepEqual(f.invalidated.splice(0), expected);
   assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 0, paths: 0 });
@@ -72,10 +72,10 @@ test("publication, image replacement, external edit and deletion refresh all loc
 test("admin refresh acknowledges the change so the next cron does not invalidate twice", async () => {
   const f = fixture();
   f.images.set("snake", original);
-  assert.equal((await refreshDreamPageImageCache(["snake"], f)).paths, 13);
+  assert.equal((await refreshDreamPageImageCache(["snake"], f)).paths, 15);
   assert.equal((await refreshDreamPageImageCache(undefined, f)).paths, 0);
   f.images.delete("snake");
-  assert.equal((await refreshDreamPageImageCache(["snake"], f)).paths, 13);
+  assert.equal((await refreshDreamPageImageCache(["snake"], f)).paths, 15);
   assert.equal((await refreshDreamPageImageCache(undefined, f)).paths, 0);
 });
 
@@ -106,8 +106,8 @@ test("worker + wait + scheduling retries preserve assignedAt and gallery order",
 test("batch invalidation deduplicates gallery/sitemap and ignores unknown database slugs", async () => {
   const f = fixture();
   for (const slug of ["snake", "house", "not-a-real-dream-symbol"]) f.images.set(slug, original);
-  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 2, paths: 19 });
-  assert.equal(new Set(f.invalidated).size, 19);
+  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 2, paths: 21 });
+  assert.equal(new Set(f.invalidated).size, 21);
   assert.ok(!f.invalidated.some((path) => path === "/" || path.includes("not-a-real") || path.startsWith("/en/")));
 });
 
@@ -122,7 +122,7 @@ test("every deployed dictionary symbol has all six locale entries and sitemap UR
   const urls = new Set(listPublicPages().map((page) => page.url));
   for (const entry of ALL_DREAM_ENTRIES) {
     assert.ok(DREAM_SLUGS.includes(entry.slug));
-    for (const locale of LOCALES) {
+    for (const locale of DICTIONARY_LOCALES) {
       assert.ok(getLocalizedEntry(entry.slug, locale));
       assert.ok(urls.has(`https://dreamly.art${localePath(`/dreams/${entry.canonicalSlug}`, locale)}`));
     }

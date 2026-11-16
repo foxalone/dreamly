@@ -3,6 +3,7 @@ import type { Locale } from "./config";
 type Copy = { eyebrow: string; title: string; description: string; earth: string; moon: string; pause: string; play: string };
 
 export const homeUniverseMessages: Record<Locale, Copy> = {
+  ja: { eyebrow: "Dreamlyの世界", title: "地球から月へ", description: "夢から生まれた仲間たちで、地球をにぎやかに。", earth: "地球を探索する", moon: "月を探索する", pause: "アニメーションを一時停止", play: "アニメーションを再生" },
   en: { eyebrow: "The Dreamly universe", title: "From Earth to the Moon", description: "Turn your dreams into creatures and bring Earth to life.", earth: "Explore Earth", moon: "Explore the Moon", pause: "Pause animation", play: "Play animation" },
   es: { eyebrow: "El universo Dreamly", title: "De la Tierra a la Luna", description: "Convierte tus sueños en criaturas y llena la Tierra de vida.", earth: "Explorar la Tierra", moon: "Explorar la Luna", pause: "Pausar animación", play: "Reproducir animación" },
   ar: { eyebrow: "عالم Dreamly", title: "من الأرض إلى القمر", description: "حوّل أحلامك إلى كائنات واملأ الأرض بالحياة.", earth: "استكشف الأرض", moon: "استكشف القمر", pause: "إيقاف الحركة مؤقتًا", play: "تشغيل الحركة" },

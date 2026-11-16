@@ -15,8 +15,8 @@ test("gray before selection; yellow while waiting, processing or failed; green o
   assert.equal(dictionaryVideoState(false, { status: "completed", videoUrl: "https://example.test/video.mp4" }), "completed");
 });
 
-test("queue controls and explanations are available in all six locales", () => {
-  assert.deepEqual(Object.keys(dictionaryVideoQueueCopy).sort(), ["ar", "de", "en", "es", "pt", "ru"]);
+test("queue controls and explanations are available in each recognized locale", () => {
+  assert.deepEqual(Object.keys(dictionaryVideoQueueCopy).sort(), ["ar", "de", "en", "es", "ja", "pt", "ru"]);
   for (const copy of Object.values(dictionaryVideoQueueCopy)) {
     for (const value of Object.values(copy)) assert.ok(value.trim().length > 0);
   }

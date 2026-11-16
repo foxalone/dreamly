@@ -2,8 +2,11 @@ import { Bot, Globe2, CircleHelp } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import type { DreamPlatform } from "@/lib/dreamPlatform";
 
+const adminEnglish = { web: "Web", unknown: "Platform unknown" };
+
 const copy: Record<Locale, { web: string; unknown: string }> = {
-  en: { web: "Web", unknown: "Platform unknown" },
+  en: adminEnglish,
+  ja: adminEnglish,
   es: { web: "Web", unknown: "Plataforma desconocida" },
   ar: { web: "الويب", unknown: "المنصة غير معروفة" },
   pt: { web: "Web", unknown: "Plataforma desconhecida" },

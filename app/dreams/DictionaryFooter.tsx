@@ -9,6 +9,7 @@ import type { DreamCategory } from "@/lib/dream-categories";
 import { DREAM_CATEGORIES } from "@/lib/dream-categories";
 
 const tarotGuideLabel = {
+  ja: "タロットガイド",
   en: "Tarot card meanings", es: "Significado de las cartas del tarot", ar: "معاني بطاقات التاروت",
   pt: "Significados das cartas de tarô", de: "Bedeutung der Tarotkarten", ru: "Значения карт Таро",
 };

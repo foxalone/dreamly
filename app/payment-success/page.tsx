@@ -1,6 +1,8 @@
 // app/payment-success/page.tsx
 "use client";
 
+import { localePath } from "@/lib/i18n/path";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
@@ -19,8 +21,10 @@ function getOrderIdFromUrl(url: URL) {
 }
 
 export default function PaymentSuccessPage() {
+  const locale = useLocale();
+  const japanese = locale === "ja";
   const [status, setStatus] = useState<Status>("idle");
-  const [msg, setMsg] = useState("Проверяем платёж…");
+  const [msg, setMsg] = useState((japanese ? "支払いを確認しています…" : "Проверяем платёж…"));
   const [details, setDetails] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string>("");
 
@@ -28,13 +32,13 @@ export default function PaymentSuccessPage() {
 
   async function runCapture(oid: string) {
     setStatus("verifying");
-    setMsg("Начисляем кредиты…");
+    setMsg((japanese ? "クレジットを追加しています…" : "Начисляем кредиты…"));
     setDetails(null);
 
     const user = auth.currentUser;
     if (!user) {
       setStatus("need_login");
-      setMsg("Войди в аккаунт в Dreamly, чтобы начислить кредиты.");
+      setMsg((japanese ? "クレジットを追加するにはDreamlyにログインしてください。" : "Войди в аккаунт в Dreamly, чтобы начислить кредиты."));
       return;
     }
 
@@ -50,14 +54,14 @@ export default function PaymentSuccessPage() {
 
     if (!r.ok) {
       setStatus("error");
-      setMsg(`Ошибка начисления: ${j?.error ?? "capture failed"}`);
+      setMsg(japanese ? "クレジットを追加できませんでした。もう一度お試しください。" : `Ошибка начисления: ${j?.error ?? "capture failed"}`);
       // полезно видеть что пришло
       if (j) setDetails(JSON.stringify(j, null, 2));
       return;
     }
 
     setStatus("success");
-    setMsg(`✅ Готово! Начислено: ${j.creditsAdded ?? "?"} кредитов.`);
+    setMsg(japanese ? `✅ ${j.creditsAdded ?? "?"}クレジットを追加しました。` : `✅ Готово! Начислено: ${j.creditsAdded ?? "?"} кредитов.`);
     setDetails(
       JSON.stringify(
         {
@@ -73,7 +77,7 @@ export default function PaymentSuccessPage() {
 
     // Авто-редирект на профиль через 1.2с
     setTimeout(() => {
-      window.location.href = "/app/profile";
+      window.location.href = localePath("/app/profile", locale);
     }, 1200);
   }
 
@@ -85,7 +89,7 @@ export default function PaymentSuccessPage() {
 
     if (!oid) {
       setStatus("error");
-      setMsg("Не найден token/orderId в URL (PayPal не передал идентификатор заказа).");
+      setMsg((japanese ? "PayPalから注文番号を受け取れませんでした。" : "Не найден token/orderId в URL (PayPal не передал идентификатор заказа)."));
       return;
     }
 
@@ -96,30 +100,27 @@ export default function PaymentSuccessPage() {
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--text)] px-6 py-10">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold">Оплата</h1>
+        <h1 className="text-2xl font-semibold">{(japanese ? "お支払い" : "Оплата")}</h1>
         <p className="mt-3 text-[var(--muted)]">{msg}</p>
 
         {status === "need_login" ? (
           <div className="mt-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] p-5">
             <div className="text-sm text-[var(--muted)]">
-              После входа обнови эту страницу — мы повторим начисление по orderId.
-            </div>
+              {(japanese ? "ログイン後にこのページを再読み込みすると、注文番号を使ってもう一度確認できます。" : "После входа обнови эту страницу — мы повторим начисление по orderId.")}</div>
 
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
-                href="/signin?next=/payment-success"
+                href={`${localePath("/signin", locale)}?next=${encodeURIComponent(localePath(`/payment-success?orderId=${orderId}`, locale))}`}
                 className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition no-underline inline-flex items-center"
               >
-                Войти
-              </Link>
+                {(japanese ? "ログイン" : "Войти")}</Link>
 
               {orderId ? (
                 <button
                   onClick={() => runCapture(orderId)}
                   className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition"
                 >
-                  Повторить
-                </button>
+                  {(japanese ? "もう一度試す" : "Повторить")}</button>
               ) : null}
             </div>
           </div>
@@ -131,8 +132,7 @@ export default function PaymentSuccessPage() {
               onClick={() => runCapture(orderId)}
               className="h-11 px-5 rounded-full font-semibold border border-[var(--border)] bg-[var(--card)] hover:opacity-90 transition"
             >
-              Повторить
-            </button>
+              {(japanese ? "もう一度試す" : "Повторить")}</button>
           </div>
         ) : null}
 
@@ -144,8 +144,7 @@ export default function PaymentSuccessPage() {
 
         {status === "success" ? (
           <div className="mt-6 text-sm text-[var(--muted)]">
-            Перенаправляем в профиль…
-          </div>
+            {(japanese ? "プロフィールを開いています…" : "Перенаправляем в профиль…")}</div>
         ) : null}
       </div>
     </main>

@@ -1,5 +1,5 @@
 import type { DreamCategory } from "@/lib/dream-categories";
-import type { Locale } from "./config";
+import type { DictionaryLocale, Locale } from "./config";
 
 export type CategoryCopy = { label: string; description: string };
 
@@ -87,7 +87,7 @@ const AR: Record<DreamCategory, CategoryCopy> = {
   spiritual: { label: "أحلام روحية وغيبية", description: "إيمان، الغيب، حماية، خوف مما وراء، ورسائل من الداخل." },
 };
 
-const ALL: Record<Locale, Record<DreamCategory, CategoryCopy>> = {
+const ALL: Record<DictionaryLocale, Record<DreamCategory, CategoryCopy>> = {
   en: EN,
   es: ES,
   ar: AR,
@@ -97,9 +97,9 @@ const ALL: Record<Locale, Record<DreamCategory, CategoryCopy>> = {
 };
 
 export function getCategoryCopy(locale: Locale, category: DreamCategory): CategoryCopy {
-  return ALL[locale][category];
+  return ALL[locale === "ja" ? "en" : locale][category];
 }
 
 export function getAllCategoryCopy(locale: Locale): Record<DreamCategory, CategoryCopy> {
-  return ALL[locale];
+  return ALL[locale === "ja" ? "en" : locale];
 }

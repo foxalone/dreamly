@@ -13,6 +13,7 @@ import DiaryTabs from "@/app/components/DiaryTabs";
 import DiaryCalendar, { localDateKey } from "@/app/components/DiaryCalendar";
 import { Check, Keyboard, LoaderCircle, MapPin, Mic, MoonStar, Share2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { hasJapaneseKana } from "@/lib/i18n/jaLanguage";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
 import { localePath } from "@/lib/i18n/path";
@@ -184,7 +185,8 @@ function guessLang(text: string): "ru" | "en" | "he" | "unknown" {
   if (hasLat && !hasHe && !hasCy) return "en";
   return "unknown";
 }
-function detectRecLangFromText(t: string): "ru-RU" | "en-US" | "he-IL" | null {
+function detectRecLangFromText(t: string): "ru-RU" | "en-US" | "he-IL" | "ja-JP" | null {
+  if (hasJapaneseKana(t ?? "")) return "ja-JP";
   const s = t ?? "";
   const hasHe = /[\u0590-\u05FF]/.test(s);
   const hasCy = /[\u0400-\u04FF]/.test(s);
@@ -433,6 +435,7 @@ async function pickEmojiForOneRoot_AI(root: string, lang?: string): Promise<Drea
 export default function DreamsPage() {
   const router = useRouter();
   const locale = useLocale();
+  const japanese = locale === "ja";
   const t = useMessages();
   const [lens, setLens] = useDreamLens();
   const [open, setOpen] = useState(false);
@@ -493,7 +496,7 @@ export default function DreamsPage() {
   const finalRef = useRef<string>("");
   const shouldRestartRef = useRef<boolean>(false);
 
-  const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL">("en-US");
+  const [recLang, setRecLang] = useState<"ru-RU" | "en-US" | "he-IL" | "ja-JP">("en-US");
   const isStartingFreshRef = useRef(true);
   const lastFinalChunkRef = useRef<string>("");
 
@@ -606,6 +609,10 @@ export default function DreamsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    if (japanese) {
+      setRecLang("ja-JP");
+      return;
+    }
     const saved = localStorage.getItem("recLang");
     if (saved === "ru-RU" || saved === "en-US" || saved === "he-IL") {
       setRecLang(saved);
@@ -615,8 +622,9 @@ export default function DreamsPage() {
     const nav = (navigator.language || "").toLowerCase();
     if (nav.startsWith("he")) setRecLang("he-IL");
     else if (nav.startsWith("ru")) setRecLang("ru-RU");
+    else if (nav.startsWith("ja")) setRecLang("ja-JP");
     else setRecLang("en-US");
-  }, []);
+  }, [japanese]);
 
   // persist recLang
   useEffect(() => {
@@ -657,7 +665,7 @@ export default function DreamsPage() {
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      setRecErr("Speech recognition is not supported on this device/browser.");
+      setRecErr((japanese ? "この端末またはブラウザは音声入力に対応していません。" : "Speech recognition is not supported on this device/browser."));
       setRecStatus("error");
       return;
     }
@@ -690,7 +698,7 @@ export default function DreamsPage() {
     };
 
     rec.onerror = (e: any) => {
-      setRecErr(e?.error ? String(e.error) : "Speech recognition error");
+      setRecErr(e?.error ? String(e.error) : (japanese ? "音声を聞き取れませんでした。" : "Speech recognition error"));
       setRecStatus("error");
       setRecording(false);
       shouldRestartRef.current = false;
@@ -743,7 +751,7 @@ export default function DreamsPage() {
     try {
       rec.start();
     } catch (e: any) {
-      setRecErr(e?.message ?? "Failed to start recording");
+      setRecErr(e?.message ?? (japanese ? "音声入力を開始できませんでした。" : "Failed to start recording"));
       setRecStatus("error");
       setRecording(false);
       shouldRestartRef.current = false;
@@ -822,7 +830,7 @@ export default function DreamsPage() {
       },
       (err) => {
         console.error("dreams onSnapshot error:", err);
-        setError(err?.message ?? "Failed to load dreams.");
+        setError(err?.message ?? (japanese ? "夢を読み込めませんでした。" : "Failed to load dreams."));
       }
     );
 
@@ -853,7 +861,7 @@ export default function DreamsPage() {
       },
       (err) => {
         console.error("stories onSnapshot error:", err);
-        setError(err?.message ?? "Failed to load stories.");
+        setError(err?.message ?? (japanese ? "ストーリーを読み込めませんでした。" : "Failed to load stories."));
       }
     );
 
@@ -964,7 +972,7 @@ export default function DreamsPage() {
       const rootsEnMajor = rootsEnArr.slice(0, counts.roots);
 
       if (!rootsMajor.length || !rootsEnMajor.length) {
-        throw new Error("No roots found. Try writing a bit more details.");
+        throw new Error((japanese ? "モチーフが見つかりませんでした。場面をもう少し詳しく書いてみてください。" : "No roots found. Try writing a bit more details."));
       }
 
       const normalizedEn = normalizeForIconsEn(rootsEnMajor.join(" "));
@@ -1031,7 +1039,7 @@ export default function DreamsPage() {
         setError(e.message === "DAILY_LIMIT" ? dailyLimitCopy : subscriptionRequiredCopy);
         router.push(localePath("/app/upgrade", locale));
       } else {
-        setError(e?.message ?? "Failed to extract roots.");
+        setError(e?.message ?? (japanese ? "モチーフを見つけられませんでした。" : "Failed to extract roots."));
       }
     } finally {
       setRootsBusyId(null);
@@ -1380,13 +1388,13 @@ export default function DreamsPage() {
           throw new Error("SUBSCRIPTION_REQUIRED");
         }
         if (data2?.code === "AUTH_REQUIRED" || res.status === 401) {
-          throw new Error("Sign in required.");
+          throw new Error((japanese ? "ログインが必要です。" : "Sign in required."));
         }
-        throw new Error(dreamAnalysisErrorMessage(data2?.code, locale) ?? data2?.error ?? "Analyze API failed");
+        throw new Error(dreamAnalysisErrorMessage(data2?.code, locale) ?? data2?.error ?? (japanese ? "夢を読み解けませんでした。" : "Analyze API failed"));
       }
 
       const analysisText = String(data2?.analysis ?? "").trim();
-      if (!analysisText) throw new Error("Empty analysis from AI");
+      if (!analysisText) throw new Error((japanese ? "読み解きが届きませんでした。もう一度お試しください。" : "Empty analysis from AI"));
 
       const nowMs = Date.now();
 
@@ -1470,7 +1478,7 @@ export default function DreamsPage() {
       } else if (e?.message === "DAILY_LIMIT") {
         setError(dailyLimitCopy);
       } else {
-        setError(e?.message ?? "Failed to analyze dream.");
+        setError(e?.message ?? (japanese ? "夢を読み解けませんでした。" : "Failed to analyze dream."));
       }
     } finally {
       setAnalysisBusyId(null);
@@ -1757,7 +1765,7 @@ export default function DreamsPage() {
               type="button"
               onClick={() => setLevelUp(null)}
               className="text-[var(--muted)] hover:text-[var(--text)]"
-              aria-label="Close"
+              aria-label={(japanese ? "閉じる" : "Close")}
             >
               ×
             </button>
@@ -1829,7 +1837,7 @@ export default function DreamsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                      <div className="text-base font-semibold">{(d.sourceType === "journal" ? t.app.tabJournal : getDisplayPrefix((d.sourceType ?? "dream") as ContentType))} #{itemNum}</div>
+                      <div className="text-base font-semibold">{(d.sourceType === "journal" ? t.app.tabJournal : japanese ? d.sourceType === "story" ? "ストーリー" : "夢" : getDisplayPrefix((d.sourceType ?? "dream") as ContentType))} #{itemNum}</div>
 
                       {isRootsBusy && !(hasRoots && hasVisuals) && (
                         <span className="text-xs text-[var(--muted)]">Generating…</span>
@@ -1934,7 +1942,7 @@ export default function DreamsPage() {
                       {d.source === "dreamer" ? (
                         <span
                           className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--muted)]"
-                          title="From Quick symbol"
+                          title={(japanese ? "モチーフ検索から" : "From Quick symbol")}
                         >
                           <MoonStar size={12} aria-hidden />
                           Quick
@@ -1958,16 +1966,16 @@ export default function DreamsPage() {
                         className="opacity-70 inline-flex items-center"
                         title={
                           d.source === "dreamer"
-                            ? "Quick symbol"
+                            ? (japanese ? "モチーフ検索" : "Quick symbol")
                             : d.source === "voice"
-                              ? "Recorded"
+                              ? (japanese ? "音声入力" : "Recorded")
                               : "Typed"
                         }
                         aria-label={
                           d.source === "dreamer"
-                            ? "Quick symbol"
+                            ? (japanese ? "モチーフ検索" : "Quick symbol")
                             : d.source === "voice"
-                              ? "Recorded"
+                              ? (japanese ? "音声入力" : "Recorded")
                               : "Typed"
                         }
                       >
@@ -2041,15 +2049,14 @@ export default function DreamsPage() {
 
             <div className="px-5 sm:px-6 pt-4 pb-5">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">New {getDisplayPrefix(composerType)}</h2>
+                <h2 className="text-lg font-semibold">{japanese ? composerType === "story" ? "新しいストーリー" : "夢を記録" : `New ${getDisplayPrefix(composerType)}`}</h2>
 
                 <button
                   onClick={close}
                   disabled={saving}
                   className={["dream-btn", "dream-btn--neutral", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                 >
-                  Close
-                </button>
+                  {(japanese ? "閉じる" : "Close")}</button>
               </div>
 
               <div className="mt-4">
@@ -2068,8 +2075,8 @@ export default function DreamsPage() {
   maxLength={MAX_DREAM_CHARS}
   placeholder={
     composerType === "story"
-      ? "Record or type your story. Save it to generate roots and icons."
-      : "Record or type your dream. Save it, then analyze it with AI."
+      ? (japanese ? "音声か文字でストーリーを書きましょう。保存すると、その内容に合ったモチーフと絵文字が付きます。" : "Record or type your story. Save it to generate roots and icons.")
+      : (japanese ? "音声か文字で夢を記録しましょう。保存した夢はAIで読み解けます。" : "Record or type your dream. Save it, then analyze it with AI.")
   }
   rows={5}
   disabled={saving}
@@ -2088,7 +2095,7 @@ export default function DreamsPage() {
 
               {recInterim ? (
                 <div className="mt-2 text-xs text-[var(--muted)]">
-                  <span className="opacity-70">Listening…</span> <span className="italic">{recInterim}</span>
+                  <span className="opacity-70">{(japanese ? "聞き取っています…" : "Listening…")}</span> <span className="italic">{recInterim}</span>
                 </div>
               ) : null}
 
@@ -2101,29 +2108,24 @@ export default function DreamsPage() {
               <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
                 {!recSupported ? (
                   <button
-                    onClick={() => setRecErr("Tip: on iPhone use the 🎤 button on the keyboard for диктовка.")}
+                    onClick={() => setRecErr((japanese ? "iPhoneで音声入力するには、キーボードのマイクボタンを押してください。" : "Tip: on iPhone use the 🎤 button on the keyboard for диктовка."))}
                     className={["dream-btn", "dream-btn--neutral"].join(" ")}
                     type="button"
                   >
-                    🎙 Record (not supported)
-                  </button>
+                    {(japanese ? "🎙 音声入力に対応していません" : "🎙 Record (not supported)")}</button>
                 ) : recStatus === "listening" ? (
                   <div className="flex gap-2 flex-wrap">
                     <button onClick={pauseRecording} className={["dream-btn", "dream-btn--neutral"].join(" ")} type="button">
-                      ⏸ Pause
-                    </button>
+                      {(japanese ? "⏸ 一時停止" : "⏸ Pause")}</button>
                     <button onClick={stopRecording} className={["dream-btn", "dream-btn--danger"].join(" ")} type="button">
-                      ⏹ Stop
-                    </button>
+                      {(japanese ? "⏹ 終了" : "⏹ Stop")}</button>
                   </div>
                 ) : recStatus === "paused" ? (
                   <div className="flex gap-2 flex-wrap">
                     <button onClick={resumeRecording} className={["dream-btn", "dream-btn--recording"].join(" ")} type="button">
-                      ▶ Resume
-                    </button>
+                      {(japanese ? "▶ 再開" : "▶ Resume")}</button>
                     <button onClick={stopRecording} className={["dream-btn", "dream-btn--danger"].join(" ")} type="button">
-                      ⏹ Stop
-                    </button>
+                      {(japanese ? "⏹ 終了" : "⏹ Stop")}</button>
                   </div>
                 ) : (
                   <button
@@ -2135,8 +2137,7 @@ export default function DreamsPage() {
                     className={["dream-btn", "dream-btn--recording", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                     type="button"
                   >
-                    🎙 Start
-                  </button>
+                    {(japanese ? "🎙 音声入力を開始" : "🎙 Start")}</button>
                 )}
 
                 <div className="flex gap-2 flex-wrap justify-end">
@@ -2145,8 +2146,7 @@ export default function DreamsPage() {
                     disabled={saving}
                     className={["dream-btn", "dream-btn--neutral", saving ? "opacity-60 cursor-not-allowed" : ""].join(" ")}
                   >
-                    Cancel
-                  </button>
+                    {(japanese ? "キャンセル" : "Cancel")}</button>
 
                   <button
                     onClick={() => void submitComposer()}

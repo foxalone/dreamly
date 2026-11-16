@@ -1,5 +1,5 @@
 import { LOVE_DIMENSIONS, lifePath, parseBirthDate, zodiacSign } from "./loveCompatibility";
-import type { Locale } from "./i18n/config";
+import { isLocale, type Locale } from "./i18n/config";
 import type { RelationshipStatus } from "./i18n/love-compatibility";
 
 export const LOVE_GENDERS = ["woman", "man"] as const;
@@ -30,7 +30,7 @@ export type AiLoveMatch = {
 };
 
 const localeNames: Record<Locale, string> = {
-  en: "English", es: "Spanish", ar: "Arabic", pt: "Brazilian Portuguese", de: "German", ru: "Russian",
+  en: "English", es: "Spanish", ar: "Arabic", pt: "Brazilian Portuguese", de: "German", ru: "Russian", ja: "natural Japanese",
 };
 
 /** Stable identity of a reading. Same entered data must hash to the same stored answer. */
@@ -111,7 +111,7 @@ export function validLoveMatchInput(value: unknown): value is LoveMatchInput {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   const today = new Date().toISOString().slice(0, 10);
-  return ["en", "es", "ar", "pt", "de", "ru"].includes(String(v.locale)) &&
+  return isLocale(typeof v.locale === "string" ? v.locale : null) &&
     isRelationshipStatus(v.status) &&
     LOVE_GENDERS.includes(v.firstGender as LoveGender) && LOVE_GENDERS.includes(v.secondGender as LoveGender) &&
     [v.you, v.them].every(s => typeof s === "string" && s.length <= 40) &&

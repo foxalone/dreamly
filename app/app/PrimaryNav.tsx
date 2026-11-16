@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { stripLocalePrefix } from "@/lib/i18n/path";
-import { useMessages } from "@/lib/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 
 import {
   User,
@@ -155,6 +155,7 @@ function AvatarIcon({
   user: User;
   active: boolean;
 }) {
+  const profileLabel = useMessages().nav.profile;
   const size = 20;
   const ring = active ? "ring-2 ring-green-500" : "ring-1 ring-[var(--border)]";
   const photo = user.photoURL?.trim();
@@ -164,7 +165,7 @@ function AvatarIcon({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={photo}
-        alt="Profile"
+        alt={profileLabel}
         width={size}
         height={size}
         className={cls("shrink-0 rounded-full object-cover", ring)}
@@ -181,7 +182,7 @@ function AvatarIcon({
         ring
       )}
       style={{ width: size, height: size, fontSize: 9, lineHeight: "9px" }}
-      aria-label="Profile"
+      aria-label={profileLabel}
     >
       {initialsFromUser(user)}
     </div>
@@ -195,6 +196,7 @@ type PrimaryNavProps = {
 
 export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
   const pathname = usePathname();
+  const locale = useLocale();
   const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
   const [busy, setBusy] = useState(false);
@@ -287,7 +289,7 @@ export default function PrimaryNav({ tone = "app", hidden }: PrimaryNavProps) {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={locale === "ja" ? "メインメニュー" : "Primary"}
       className="primary-nav grid min-w-0 w-full grid-cols-5 md:flex md:w-auto md:items-center md:justify-center md:gap-0.5"
     >
       {baseItems.map((it) => {

@@ -3,6 +3,18 @@ import type { Locale } from "./config";
 type AuthMessages = { title: string; subtitle: string; google: string; emailOption: string; email: string; password: string; showPassword: string; hidePassword: string; signIn: string; signUp: string; reset: string; back: string; cancel: string; ok: string; busy: string; resetSent: string; invalid: string; weak: string; existing: string; throttled: string; disabled: string; network: string; failed: string; verifySent: string; verifyTitle: string; verifyDone: string; verifyFailed: string; verifyIdle: string };
 
 export const authMessages: Record<Locale, AuthMessages> = {
+  ja: {
+    title: "ログイン", subtitle: "Googleアカウントまたはメールアドレスで続けられます。", google: "Googleで続ける", emailOption: "メールアドレスで続ける",
+    email: "メールアドレス", password: "パスワード", showPassword: "パスワードを表示", hidePassword: "パスワードを隠す", signIn: "ログイン", signUp: "アカウントを作成",
+    reset: "パスワードを忘れた方", back: "ログインに戻る", cancel: "キャンセル", ok: "OK", busy: "しばらくお待ちください…",
+    resetSent: "このメールアドレスで登録されている場合、パスワード再設定のメールがまもなく届きます。",
+    invalid: "メールアドレスとパスワードをご確認ください。", weak: "6文字以上で、推測されにくいパスワードを設定してください。",
+    existing: "このメールアドレスは登録済みです。ログインするか、パスワードを再設定してください。", throttled: "試行回数の上限に達しました。時間をおいてお試しください。",
+    disabled: "このログイン方法は現在利用できません。別の方法をお試しください。", network: "接続できませんでした。通信環境を確認して、もう一度お試しください。",
+    failed: "ログインできませんでした。もう一度お試しください。", verifySent: "{email}に確認用のリンクを送りました。メールのリンクを開いて、確認が済んだらログインしてください。",
+    verifyTitle: "メールアドレスの確認", verifyDone: "メールアドレスを確認しました。パスワードを使ってログインしてください。",
+    verifyFailed: "確認用リンクが無効か、期限が切れています。ログインして新しいメールを送信してください。", verifyIdle: "お送りしたメールの確認用リンクを開いてください。",
+  },
   "en": {
     "title": "Sign in",
     "subtitle": "Continue with Google or your email address.",

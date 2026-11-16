@@ -15,7 +15,7 @@ const schema = {
 };
 const languages: Record<Locale, string> = {
   en: "natural US English", es: "natural Latin American Spanish", ar: "Modern Standard Arabic",
-  pt: "natural Brazilian Portuguese", de: "natural Standard German", ru: "natural literary Russian",
+  pt: "natural Brazilian Portuguese", de: "natural Standard German", ru: "natural literary Russian", ja: "natural Japanese",
 };
 
 export function validateDailyTarotReading(value: unknown, locale: Locale): DailyTarotReading {
@@ -32,6 +32,7 @@ export function validateDailyTarotReading(value: unknown, locale: Locale): Daily
   }
   if (locale === "ar" && fields.some(field => !/[\u0600-\u06FF]/.test(reading[field]))) throw new Error("Tarot reading is not Arabic");
   if (locale === "ru" && fields.some(field => !/[А-Яа-яЁё]/.test(reading[field]))) throw new Error("Tarot reading is not Russian");
+  if (locale === "ja" && fields.some(field => !/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(reading[field]))) throw new Error("Tarot reading is not Japanese");
   return reading;
 }
 

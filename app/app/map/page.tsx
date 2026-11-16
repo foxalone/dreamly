@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 import { mapPopupMessages } from "@/lib/i18n/map-popup";
 import { BUILDINGS } from "@/lib/game/buildings";
@@ -222,7 +223,11 @@ const FILTERS: { key: MapFilter; label: string }[] = [
 ];
 
 // ---------- component ----------
+const jaMapFilters: Record<MapFilter, string> = { all: "すべて", dreams: "夢", stories: "ストーリー", kingdoms: "夢の王国" };
+
 export default function MapPage() {
+  const mapLocale = useLocale();
+  const t = useMessages();
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
@@ -306,7 +311,7 @@ export default function MapPage() {
         <div style="font-size: 18px; line-height: 1.2;">${info.emoji} <b>${info.label ?? ""}</b></div>
         <div style="opacity: .85; margin-top: 6px;">${info.place}</div>
         <a href="${localePath("/app/game", locale)}" style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
-          Build your own kingdom →
+          ${locale === "ja" ? "自分の王国をつくる" : "Build your own kingdom"} →
         </a>
       </div>`;
       if (!popupRef.current) {
@@ -319,7 +324,9 @@ export default function MapPage() {
     const popupCopy = mapPopupMessages[locale];
 
     // Which map layer the count belongs to; on the combined layer the label says nothing, so skip it.
-    const kindLabel = info.filter === "dreams" ? "Dreams" : info.filter === "stories" ? "Stories" : null;
+    const kindLabel = info.filter === "dreams" || info.filter === "stories"
+      ? locale === "ja" ? jaMapFilters[info.filter] : FILTERS.find(({ key }) => key === info.filter)?.label
+      : null;
 
     const html = `
       <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 13px; color: #1f2937;">
@@ -331,7 +338,7 @@ export default function MapPage() {
           ${info.place}
         </div>
         <a data-dream-meaning style="display:inline-block; margin-top: 8px; font-weight: 600; color: #7c3aed; text-decoration: none;">
-          ${info.emoji} Dream meaning →
+          ${info.emoji} ${locale === "ja" ? t.chrome.meaning : "Dream meaning"} →
         </a>
         <div data-emoji-dreams></div>
         <a href="${localePath("/app/dreams", locale)}" data-analyze-own-dream
@@ -427,7 +434,7 @@ export default function MapPage() {
         if (!b) continue;
         const lngLat: [number, number] = [r.lng, r.lat];
         const size = base * 1.5;
-        const info = { emoji: b.emoji, count: 0, filter: "kingdoms" as MapFilter, place: r.place, lngLat, label: b.name };
+        const info = { emoji: b.emoji, count: 0, filter: "kingdoms" as MapFilter, place: r.place, lngLat, label: mapLocale === "ja" ? t.game.buildingNames[b.id as keyof typeof t.game.buildingNames] ?? b.name : b.name };
         const key = `k|${r.id}`;
         const prev = existing.get(key);
         if (prev) {
@@ -666,7 +673,7 @@ export default function MapPage() {
                 : "text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)]",
             ].join(" ")}
           >
-            {f.label}
+            {mapLocale === "ja" ? jaMapFilters[f.key] : f.label}
           </button>
         ))}
       </div>

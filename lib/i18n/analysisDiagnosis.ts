@@ -1,7 +1,6 @@
 import type { Locale } from "./config";
 
-export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
-  "en": {
+const adminEnglish = {
     "network_free_limit": "The daily free analysis limit for this IP address has been reached. Sign in or watch an available ad to continue. A completed ad credit can still be used.",
     "guest_free_limit": "Your free guest analysis has been used. Sign in or watch an available ad to continue.",
     "title": "Outcome",
@@ -21,7 +20,11 @@ export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
     "ad_unfinished": "The ad overlay appeared, but no successful unlock was recorded. It may have stalled, the page may have closed, or tracking may be incomplete. These events do not establish an IP or ad frequency limit.",
     "access_unknown": "Access remained incomplete with no recorded explanation. There is no evidence that the user chose to leave.",
     "unlock_rejected": "Access or sign-in was confirmed before this retry, but the server requested access again. Investigate session continuity and credit consumption."
-  },
+  };
+
+export const ANALYSIS_DIAGNOSIS_COPY: Record<Locale, Record<string, string>> = {
+  en: adminEnglish,
+  ja: adminEnglish,
   "es": {
     "network_free_limit": "Se alcanzó el límite diario de análisis gratuitos para esta dirección IP. Inicia sesión o mira un anuncio disponible para continuar. Aún puedes usar un crédito obtenido por un anuncio.",
     "guest_free_limit": "Ya usaste tu análisis gratuito como visitante. Inicia sesión o mira un anuncio disponible para continuar.",

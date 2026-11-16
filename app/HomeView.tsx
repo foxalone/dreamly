@@ -11,6 +11,8 @@ import {
 import { POPULAR_DREAM_SLUGS } from "@/lib/dream-dictionary";
 import type { Locale } from "@/lib/i18n/config";
 import { SITE_URL } from "@/lib/i18n/config";
+import { JA_DREAM_ARTICLES } from "@/lib/jaPilotContent";
+import { JA_PILOT_SLUGS } from "@/lib/jaPilotPaths";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
 import { getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl, localePath } from "@/lib/i18n/path";
@@ -25,7 +27,12 @@ import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 
 export default function HomeView({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
-  const popularDreams = POPULAR_DREAM_SLUGS.map((slug) => getLocalizedEntry(slug, locale)).filter(Boolean);
+  const popularDreams = locale === "ja"
+    ? JA_PILOT_SLUGS.map((slug) => {
+      const { name, icon, summary } = JA_DREAM_ARTICLES[slug];
+      return { slug, icon, title: name, shortMeaning: summary };
+    })
+    : POPULAR_DREAM_SLUGS.map((slug) => getLocalizedEntry(slug, locale)).filter(Boolean);
 
   const features = [
     { icon: Sparkles, title: t.home.interpreterTitle, description: t.home.interpreterBody, href: "/app/dreams", linkLabel: t.home.interpreterCta },

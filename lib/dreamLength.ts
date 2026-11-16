@@ -1,3 +1,5 @@
+import { hasJapaneseKana, japaneseWordSegments } from "./i18n/jaLanguage";
+
 /**
  * How long a dream or diary note may be. The limit people see is in WORDS;
  * the character cap is only a safety net (Firestore doc size, model input).
@@ -15,7 +17,7 @@ export const JOURNAL_LIMITS: TextLimits = { maxWords: JOURNAL_MAX_WORDS, maxChar
 export function countDreamWords(text: unknown): number {
   const s = String(text ?? "").trim();
   if (!s) return 0;
-  return s.split(/\s+/).filter(Boolean).length;
+  return hasJapaneseKana(s) ? japaneseWordSegments(s).length : s.split(/\s+/).filter(Boolean).length;
 }
 
 export function isTextTooLong(text: unknown, limits: TextLimits = DREAM_LIMITS): boolean {
@@ -35,6 +37,11 @@ export function isDreamTooLong(text: unknown): boolean {
 export function clampText(text: unknown, limits: TextLimits = DREAM_LIMITS): string {
   let s = String(text ?? "");
   if (s.length > limits.maxChars) s = s.slice(0, limits.maxChars);
+  if (hasJapaneseKana(s)) {
+    const segments = japaneseWordSegments(s);
+    const last = segments[limits.maxWords - 1];
+    return last && segments.length > limits.maxWords ? s.slice(0, last.index + last.segment.length) : s;
+  }
   if (countDreamWords(s) <= limits.maxWords) return s;
   const re = /\S+/g;
   let m: RegExpExecArray | null;

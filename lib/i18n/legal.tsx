@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PrivacyJa, RefundJa, TermsJa } from "./legal-ja";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import { SUPPORT_EMAIL, type Locale } from "./config";
 
@@ -22,6 +23,8 @@ export function legalUpdatedLabel(locale: Locale): string {
       return "6. September 2026";
     case "ru":
       return "6 сентября 2026 г.";
+    case "ja":
+      return "2026年9月6日";
     default:
       return "September 6, 2026";
   }
@@ -34,11 +37,13 @@ export function purchaseLegalUpdatedLabel(locale: Locale): string {
     case "pt": return "6 de novembro de 2026";
     case "de": return "6. November 2026";
     case "ru": return "6 ноября 2026 г.";
+    case "ja": return "2026年11月6日";
     default: return "November 6, 2026";
   }
 }
 
 const accountDeletion = {
+  ja: ["Dreamlyアカウントの削除", "Dreamlyのログインに使っているメールアドレスから削除を申請してください。パスワードや日記の内容は送らないでください。アカウントの所有者であることを確認させていただく場合があります。", "アカウントと、非公開の日記や関連する投稿などのデータを削除します。安全対策、請求、法令上の義務に必要な一部の記録は、以下に記載のとおり保存することがあります。有料プランをご利用の場合は、今後の請求を止めるため、購入したサービスでも解約をお手続きください。", "アカウントの削除を申請する"],
   en: ["Delete your Dreamly account", "Send a deletion request from the email address you use to sign in to Dreamly. Do not include your password or journal entries. We may ask you to verify that you own the account.", "We delete your account and associated data, such as private journal entries and linked posts. We may retain limited records for security, billing, or legal obligations, as described below. If you have a paid subscription, also cancel it through the service you used to buy it to stop future charges.", "Request account deletion"],
   es: ["Elimina tu cuenta de Dreamly", "Envía la solicitud desde el correo con el que inicias sesión en Dreamly. No incluyas tu contraseña ni entradas de tu diario. Podemos pedirte que confirmes que eres titular de la cuenta.", "Eliminaremos tu cuenta y los datos asociados, como las entradas privadas y publicaciones vinculadas. Podemos conservar algunos registros por motivos de seguridad, facturación u obligaciones legales, como se explica más abajo. Si tienes una suscripción de pago, cancélala también en el servicio donde la contrataste para evitar futuros cobros.", "Solicitar la eliminación de mi cuenta"],
   ar: ["حذف حسابك في Dreamly", "أرسل الطلب من عنوان البريد الإلكتروني الذي تستخدمه لتسجيل الدخول إلى Dreamly. لا تُدرج كلمة المرور أو محتوى يومياتك. قد نطلب منك تأكيد ملكية الحساب.", "نحذف حسابك والبيانات المرتبطة به، مثل تدويناتك الخاصة ومنشوراتك المرتبطة بالحساب. قد نحتفظ بسجلات محدودة لأغراض الأمان أو الفوترة أو الالتزامات القانونية، كما هو موضح أدناه. إذا كان لديك اشتراك مدفوع، فألغِه أيضًا من خلال الخدمة التي اشتريت الاشتراك عبرها لتجنب رسوم مستقبلية.", "طلب حذف الحساب"],
@@ -75,6 +80,8 @@ function PrivacyDetails({ locale }: { locale: Locale }): ReactNode {
       return <PrivacyDe />;
     case "ru":
       return <PrivacyRu />;
+    case "ja":
+      return <PrivacyJa />;
     default:
       return <PrivacyEn />;
   }
@@ -92,6 +99,8 @@ export function TermsBody({ locale }: { locale: Locale }): ReactNode {
       return <TermsDe />;
     case "ru":
       return <TermsRu />;
+    case "ja":
+      return <TermsJa />;
     default:
       return <TermsEn />;
   }
@@ -109,6 +118,8 @@ export function RefundBody({ locale }: { locale: Locale }): ReactNode {
       return <RefundDe />;
     case "ru":
       return <RefundRu />;
+    case "ja":
+      return <RefundJa />;
     default:
       return <RefundEn />;
   }

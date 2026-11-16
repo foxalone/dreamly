@@ -1,4 +1,4 @@
-import type { Locale } from "./config";
+import type { DictionaryLocale, Locale } from "./config";
 
 export type FaithSlug = "biblical" | "islamic" | "spiritual";
 
@@ -10,7 +10,7 @@ export type FaithCopy = {
   intro: string[];
 };
 
-const FAITH: Record<Locale, Record<FaithSlug, FaithCopy>> = {
+const FAITH: Record<DictionaryLocale, Record<FaithSlug, FaithCopy>> = {
   en: {
     biblical: {
       heading: "Biblical Dream Meanings",
@@ -224,5 +224,5 @@ const FAITH: Record<Locale, Record<FaithSlug, FaithCopy>> = {
 };
 
 export function getFaithCopy(locale: Locale, slug: FaithSlug): FaithCopy {
-  return FAITH[locale][slug];
+  return FAITH[locale === "ja" ? "en" : locale][slug];
 }

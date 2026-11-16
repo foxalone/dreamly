@@ -12,6 +12,8 @@ import {
   type DreamPageImageAssignment,
 } from "@/lib/dreamPageImage";
 import type { Locale } from "@/lib/i18n/config";
+import { JA_DREAM_ARTICLES } from "@/lib/jaPilotContent";
+import { JA_PILOT_SLUGS } from "@/lib/jaPilotPaths";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
 import { formatMessage, getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
@@ -32,11 +34,14 @@ export default function GalleryView({
   const items = sortDreamPageImages(images).flatMap((image) => {
     const entry = getLocalizedEntry(image.slug, locale);
     if (!entry) return [];
+    const pilotSlug = locale === "ja" ? JA_PILOT_SLUGS.find((slug) => slug === entry.canonicalSlug) : undefined;
+    const japaneseName = pilotSlug ? JA_DREAM_ARTICLES[pilotSlug].name : undefined;
     return [
       {
         ...image,
-        title: entry.title,
-        alt: formatMessage(t.gallery.alt, { name: entry.name || entry.title }),
+        title: japaneseName ?? entry.title,
+        titleLang: locale === "ja" && !japaneseName ? "en" : undefined,
+        alt: formatMessage(t.gallery.alt, { name: japaneseName ?? (entry.name || entry.title) }),
       },
     ];
   });
@@ -106,7 +111,7 @@ export default function GalleryView({
                       className="aspect-[2/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
                     <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-3 pb-3 pt-10">
-                      <span className="block truncate text-sm font-semibold text-white">{item.title}</span>
+                      <span className="block truncate text-sm font-semibold text-white" lang={item.titleLang}>{item.title}</span>
                     </span>
                   </span>
                 </LocaleLink>

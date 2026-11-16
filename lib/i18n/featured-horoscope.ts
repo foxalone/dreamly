@@ -10,6 +10,15 @@ type Copy = {
 };
 
 export const featuredCopy: Record<Locale, Copy> = {
+  ja: {
+    feedTag: "今日の注目星座", feedMore: "続きを読む", title: "今日の注目星座", preview: "今日の占いの一部",
+    relationships: "人とのつながり", work: "仕事とこれから", wellbeing: "心と体のリズム", takeaway: "今日、意識したいこと",
+    locked: "今週の無料枠は利用済みです。短い広告を見るか、有料プランでこの占いを読めます。",
+    translateLocked: "短い広告を見るか、有料プランで翻訳できます。", watchAd: "広告を見る", subscribe: "料金プランを見る", translate: "{language}に翻訳する",
+    showEnglish: "英語の原文を見る", loading: "今日の占いを読み込んでいます…", error: "占いを開けませんでした。もう一度お試しください。",
+    personalEyebrow: "自分の星座もチェック", personalTitle: "あなたの今日の星座占い", personalDescription: "星座を選ぶと、今日の占いを読めます。", personalAction: "今日の占いを見る",
+    discoverDreams: "こんな夢も読まれています", openDream: "夢を開く",
+  },
   en: {
     feedTag: "Today's zodiac spotlight", feedMore: "more", title: "Daily zodiac spotlight", preview: "Today's preview",
     relationships: "Connections", work: "Work & direction", wellbeing: "Your rhythm", takeaway: "Take this with you",

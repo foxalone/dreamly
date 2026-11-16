@@ -12,8 +12,7 @@ type Copy = {
   unknown: string;
 };
 
-export const adminChartsCopy: Record<Locale, Copy> = {
-  en: {
+const adminEnglish = {
     tab: "Charts",
     subtitle: "Daily totals on one chart",
     title: "Daily totals",
@@ -23,7 +22,11 @@ export const adminChartsCopy: Record<Locale, Copy> = {
     empty: "Turn a metric on to draw it.",
     refresh: "Refresh",
     unknown: "—",
-  },
+  };
+
+export const adminChartsCopy: Record<Locale, Copy> = {
+  en: adminEnglish,
+  ja: adminEnglish,
   es: {
     tab: "Charts",
     subtitle: "Totales diarios en un solo gráfico",

@@ -11,6 +11,14 @@ type GuideCopy = {
 };
 
 export const tarotGuideCopy: Record<Locale, GuideCopy> = {
+  ja: {
+    hubTitle: "タロット大アルカナ22枚の意味", hubDescription: "大アルカナ22枚の意味と、絵に描かれたモチーフを読み解きます。",
+    guideTitle: "大アルカナ入門", guideIntro: "大アルカナは、新しい一歩を踏み出す「愚者」から、一つの旅を締めくくる「世界」までの22枚です。ここでは各カードの一般的な意味を紹介します。今日の占いは「今日のカードを引く」から読めます。",
+    stepImage: "絵の中で気になるものや、対照的なものを探す。", stepMeaning: "カードの意味を、自分を振り返るための視点として読む。", stepQuestion: "その視点から、いま選べる小さな行動を考える。",
+    browseTitle: "22枚のカードを見る", cardTitle: name => `${name}の意味｜タロット大アルカナ`, symbolism: "カードに描かれた象徴", contexts: "場面別の読み解き",
+    relationships: "人間関係", work: "仕事とこれから", resources: "お金と手持ちの資源", innerLife: "心の動き", reflection: "心に留めたい問い",
+    back: "大アルカナ一覧", next: "次のカード", previous: "前のカード", draw: "今日のカードを引く", explore: "このカードを詳しく見る", generalMeaning: "カードの基本の意味",
+  },
   en: {
     hubTitle: "Major Arcana tarot card meanings", hubDescription: "Explore all 22 Major Arcana cards, their symbols, and what each can bring to a reflective reading.",
     guideTitle: "A guide to the Major Arcana", guideIntro: "The Major Arcana follows a journey from the Fool's first step to the World's sense of completion. These pages explain each card's general meaning. Draw today's card for a separate daily reading.",
@@ -62,6 +70,15 @@ export const tarotGuideCopy: Record<Locale, GuideCopy> = {
 };
 
 const cues: Record<Locale, readonly string[]> = {
+  ja: [
+    "開けた道には可能性が広がります。次の一歩には注意も必要です。", "テーブルの道具が、考えていたことを行動に移す力を示します。", "見える世界と言葉にならない感覚の間に、静かな境目があります。",
+    "庭の実りは、日々の手入れと待つ時間があってこそ育ちます。", "頑丈な椅子は、人を守る秩序や、暮らしを支える枠組みを思わせます。", "教える人の姿は、知恵を受け継ぐことと、問い直す自由を示します。",
+    "向き合う二人の姿から、人とのつながりの中で選ぶことを考えます。", "異なる方向を向く力がまとまったとき、戦車は前に進みます。", "獅子に添えられたやさしい手が、相手を押さえつけずに向き合う勇気を示します。",
+    "ランタンは遠くまで照らしませんが、次の一歩を考えるには十分です。", "回り続ける輪は、どんな立場も状況も、永遠には続かないことを思わせます。", "天秤は、事実と選択の結果を公平に見直すよう促します。",
+    "逆さまの視界から、同じ試みを続けるだけでは見えないものが見えてきます。", "何かの終わりが、変化のための場所を空けます。文字どおりの死を表すものではありません。", "器から器へ流れる水は、少しずつ調整することで生まれる釣り合いを示します。",
+    "鎖の絵は、名前をつけないうちに力を増した習慣を思わせます。", "崩れる塔は、安定していると思っていた土台を見直すきっかけになります。", "暗い空に残る小さな光は、手入れを続けたい希望を示します。",
+    "月明かりの道では輪郭がぼやけ、目にしたものの意味が一つに定まりません。", "太陽の下では、育ってきたものや、分かち合いたい喜びが見えやすくなります。", "呼びかけに目を覚ます姿は、過去の経験を見直し、新たに応えることを促します。", "一つの輪が閉じると、別々だった経験がつながり、次に向かう準備が整います。",
+  ],
   en: [
     "The open road suggests possibility; the step ahead still asks for attention.", "The tools on the table turn potential into deliberate action.", "A quiet threshold stands between what is visible and what is sensed.", "The garden suggests growth that depends on patient care.", "A firm seat evokes order that can protect without becoming rigid.", "The teacher points toward shared wisdom and the freedom to question it.", "Two figures bring the question of choice into the language of connection.", "The vehicle moves when opposing forces are given one direction.", "A gentle hand shows courage that does not need to overpower.", "The lantern gives enough light for one thoughtful step at a time.", "The turning circle reminds us that no position is permanent.", "The scales invite an honest look at evidence and consequence.", "An inverted view makes room for an answer that effort alone missed.", "An ending clears space; the card speaks of change, not literal death.", "Water passed between vessels suggests a measured, creative balance.", "The chains ask which habits still hold power only because they go unnamed.", "A broken structure exposes a truth that could not stay hidden.", "A small light after darkness makes renewal feel possible again.", "A winding path through shadow asks us to separate feeling from fact.", "Daylight makes it easier to see what can be celebrated and shared.", "The call to rise invites honest review rather than endless self-judgment.", "A complete circle honors the work already done before the next journey.",
   ],
@@ -91,6 +108,15 @@ export function tarotGuideCueCount(locale: Locale): number {
 }
 
 const questions: Record<Locale, readonly string[]> = {
+  ja: [
+    "すべてが分かる前でも、始められることは何ですか？", "もう持っている力のうち、今日どれを使えそうですか？", "心の中では分かっていても、まだ口にしていないことはありますか？",
+    "これからも育つように、何にもう少し手をかけたいですか？", "どこに境界線を引くと、少し安心できそうですか？", "受け継いだ教えのうち、今も役立つものと、問い直したいものは何ですか？",
+    "人との関係で、自分の価値観にかなう選択は何でしょうか？", "いくつものことに分かれている力を、どこに向けたいですか？", "反発に穏やかに向き合ったら、何が変わりそうですか？",
+    "ひとりで静かに過ごす時間に、何が見えてきそうですか？", "状況が変わる中で、いま自分で選べることは何でしょうか？", "決める前に、どんな影響や結果まで考えておきたいですか？",
+    "無理に進めるのをやめると、何が見えてきそうですか？", "何を終わらせると、新しいことに場所を空けられますか？", "違って見える二つの必要を、どうすれば両立できますか？",
+    "名前をつけると少し距離を置けそうな習慣はありますか？", "もっと確かな土台をつくるには、何を認める必要がありますか？", "小さくても失いたくない希望を、今日どう育てられそうですか？",
+    "感じていることのうち、事実と照らし合わせたいことは何ですか？", "人に伝えて、一緒に喜びたいことは何ですか？", "過去にとどまらずに、そこから持っていける学びは何ですか？", "やり終えたことは何ですか。次はどんな一歩を選びますか？",
+  ],
   en: [
     "What could you begin before you know every answer?", "Which skill is ready to become an action?", "What do you know quietly but have not yet said aloud?", "What needs your attention to keep growing?", "Where would a clear boundary help you feel steadier?", "Which teaching serves you, and which deserves a question?", "What choice reflects your values in a relationship?", "Where can you give your energy one clear direction?", "What changes when you respond gently to resistance?", "What can a little solitude help you understand?", "What can you influence while circumstances change?", "What consequence should be part of your decision?", "What becomes visible when you stop forcing progress?", "What are you ready to let end so something can change?", "What two needs could you bring into balance?", "Which habit would lose strength if you named it?", "What truth is asking for a more honest foundation?", "What small sign of hope can you nurture today?", "What feeling needs checking against the facts?", "What joy deserves to be noticed and shared?", "What can you learn from the past without staying there?", "What have you completed, and what comes next?",
   ],

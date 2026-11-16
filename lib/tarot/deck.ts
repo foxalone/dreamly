@@ -31,6 +31,9 @@ export type MajorArcanaId = MajorArcana["id"];
 type DeckCopy = { tab: string; title: string; intro: string; preview: string; close: string; cards: Record<MajorArcanaId, string> };
 
 export const tarotCopy: Record<Locale, DeckCopy> = {
+  ja: { tab: "タロットカード", title: "タロットカードのプレビュー", intro: "大アルカナ22枚のイラストを収録しています。気になるカードを選ぶと拡大できます。", preview: "プレビューです。今日のカードはまだ引けません。", close: "プレビューを閉じる", cards: {
+    fool: "愚者", magician: "魔術師", priestess: "女教皇", empress: "女帝", emperor: "皇帝", hierophant: "教皇", lovers: "恋人たち", chariot: "戦車", strength: "力", hermit: "隠者", wheel: "運命の輪", justice: "正義", hanged: "吊るされた男", death: "死神", temperance: "節制", devil: "悪魔", tower: "塔", star: "星", moon: "月", sun: "太陽", judgement: "審判", world: "世界",
+  } },
   en: { tab: "Tarot cards", title: "Tarot card preview", intro: "Explore all 22 illustrated Major Arcana cards. Select a card to see it larger.", preview: "Preview only · the daily draw is not live yet", close: "Close preview", cards: {
     fool: "The Fool", magician: "The Magician", priestess: "The High Priestess", empress: "The Empress", emperor: "The Emperor", hierophant: "The Hierophant", lovers: "The Lovers", chariot: "The Chariot", strength: "Strength", hermit: "The Hermit", wheel: "Wheel of Fortune", justice: "Justice", hanged: "The Hanged Man", death: "Death", temperance: "Temperance", devil: "The Devil", tower: "The Tower", star: "The Star", moon: "The Moon", sun: "The Sun", judgement: "Judgement", world: "The World",
   } },

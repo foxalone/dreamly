@@ -1,6 +1,7 @@
 import type { Locale } from "./config";
 
 export const dreamAnalysisProgressMessages: Record<Locale, { title: string; body: string }> = {
+  ja: { title: "夢を読み解いています…", body: "読み解きができるまで、少しお待ちください。" },
   en: { title: "Analyzing your dream…", body: "Please wait while we prepare your interpretation." },
   es: { title: "Analizando tu sueño…", body: "Espera un momento mientras preparamos tu interpretación." },
   ar: { title: "جارٍ تحليل حلمك…", body: "يرجى الانتظار بينما نجهّز تفسير حلمك." },

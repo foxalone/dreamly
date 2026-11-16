@@ -16,6 +16,7 @@ type ReadingCopy = {
 };
 
 export const tarotReadingCopy: Record<Locale, ReadingCopy> = {
+  ja: { back: "戻る", eyebrow: "今日の一枚", heading: "カードから今日を見つめる", subtitle: "一枚の絵を手がかりに、今日という日をいくつかの角度から眺めてみましょう。", relationships: "人間関係", work: "仕事とこれから", resources: "お金と手持ちの資源", innerLife: "心の動き", reflection: "今日、心に留めたい問い", prompt: "この視点を取り入れるなら、今日はどんな小さな選択ができそうですか？", note: "ここでのタロットは、自分を振り返るためのものです。未来を予測したり、専門家の助言に代わったりするものではありません。", description: "今日のタロットカードを、人間関係、仕事、お金と資源、心の動きから読み解きます。" },
   en: {
     back: "Go back", eyebrow: "Your card for today", heading: "A closer look at your card",
     subtitle: "One image, several ways to reflect on the day.", relationships: "Relationships", work: "Work & direction",

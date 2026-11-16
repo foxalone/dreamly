@@ -16,6 +16,7 @@
  */
 import type { PaywallKind } from "@/lib/paywall";
 import { localePath, localeFromPathname } from "@/lib/i18n/path";
+import { isJaDreamFormPath } from "./jaPilotPaths";
 
 export const AD_UNLOCK_PATH = "/ad/unlock";
 
@@ -25,6 +26,9 @@ export type AdUnlockPending = {
   kind: PaywallKind;
   /** Full guest dream: only its journal card may consume the analysis retry. */
   dreamText?: string;
+  /** The Japanese form owns its own ad return and its server attempt. */
+  returnTo?: string;
+  attemptId?: string;
   quickSymbol?: { query: string; lens: import("@/lib/dream-lenses").DreamLens };
   /** feed translation: the shared dream to translate when back */
   dreamId?: string;
@@ -58,7 +62,7 @@ export function adUnlockUrl(
   }
   const target = next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
   const locale = localeFromPathname(typeof window !== "undefined" ? window.location.pathname : target);
-  params.set("next", kind === "analysis" ? localePath("/app/dreams", locale) : safeNext(target));
+  params.set("next", kind === "analysis" ? analysisAdReturnPath(target, locale) : safeNext(target));
   if (typeof window !== "undefined") params.set("locale", locale);
   return `${AD_UNLOCK_PATH}?${params.toString()}`;
 }
@@ -68,6 +72,10 @@ export function safeNext(value: unknown): string {
   const s = typeof value === "string" ? value.trim() : "";
   if (!s.startsWith("/") || s.startsWith("//") || s.startsWith(AD_UNLOCK_PATH)) return "/";
   return s;
+}
+
+export function analysisAdReturnPath(next: string, locale = localeFromPathname(safeNext(next))): string {
+  return isJaDreamFormPath(next) ? next : localePath("/app/dreams", locale);
 }
 
 export function setAdUnlockPending(p: Omit<AdUnlockPending, "atMs">) {
@@ -105,12 +113,13 @@ export function markAdUnlockReady(kind?: PaywallKind) {
 }
 
 /** Consume a confirmed retry or restore an unsaved journal draft. */
-export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string): AdUnlockPending | null {
+export function takeAdUnlockPending(kind?: PaywallKind, dreamText?: string, returnTo?: string): AdUnlockPending | null {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as AdUnlockPending;
     if (kind && p.kind !== kind) return null;
+    if (p.returnTo !== returnTo) return null;
     if (dreamText !== undefined && (p.quickSymbol || (p.dreamId && !p.dreamText))) return null;
     if (dreamText !== undefined && p.dreamText && p.dreamText !== dreamText) return null;
     if (p?.kind !== "save" && p?.ready !== true) return null;

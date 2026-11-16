@@ -24,9 +24,10 @@ function readings(locale: Locale = 'en'): Readings {
     ar: 'يمكنك اليوم التأمل في خططك بهدوء والاستماع إلى احتياجاتك مع الاهتمام بوقتك وطاقتك وترك مساحة للتواصل والراحة والتفكير قبل أي خطوة.',
     pt: 'Hoje você pode olhar seus planos com calma e ouvir o que precisa para cuidar do seu tempo e da sua energia.',
     de: 'Heute kannst du deine Pläne mit Ruhe betrachten und dir die Zeit nehmen die du für deine Gedanken und deine Erholung brauchst.',
+    ja: '今日は少し立ち止まって、これからの予定を落ち着いて見直してみましょう。自分の気持ちに耳を傾け、無理なく過ごしてください。',
     ru: 'Сегодня можно спокойно обдумать свои планы и прислушаться к себе чтобы найти время для отдыха общения и небольшого шага к ясности.',
   }[locale];
-  const title = {en:'A thoughtful moment for your day', es:'Un momento de calma para hoy', ar:'لحظة تأمل هادئة في هذا اليوم', pt:'Um momento de calma para hoje', de:'Ein ruhiger Moment für deinen Tag', ru:'Спокойное время для размышлений о дне'}[locale];
+  const title = {en:'A thoughtful moment for your day', es:'Un momento de calma para hoy', ar:'لحظة تأمل هادئة في هذا اليوم', pt:'Um momento de calma para hoje', de:'Ein ruhiger Moment für deinen Tag', ru:'Спокойное время для размышлений о дне', ja:'今日は少し立ち止まって考える日'}[locale];
   return Object.fromEntries(SIGNS.map((sign,index) => [sign, {
     ...Object.fromEntries(FIELDS.map(field => [field, field === 'general' ? `${index + 1}. ${Array(3).fill(prose).join(' ')}\n\n${Array(3).fill(prose).join(' ')}` : `${index + 1}. ${prose}`])), headline: title,
   }])) as Readings;
@@ -94,9 +95,9 @@ test('cached forecasts never relabel stale dates, partial and future results are
   const invalid = readings(); invalid.aries.money = '<script>invalid content</script>';
   assert.throws(() => validateReadings(invalid));
 });
-test('all six locales have complete native labels, zodiac names, phases and canonical/hreflang routes', () => {
+test('all locales have complete native labels, zodiac names, phases and canonical/hreflang routes', () => {
   const pages = listPublicPages().filter(p => /\/horoscope(?:\/|$)/.test(p.url));
-  assert.equal(pages.length,78);
+  assert.equal(pages.length, LOCALES.length * (SIGNS.length + 1));
   for (const locale of LOCALES) {
     const t = horoscopeCopy[locale];
     assert.equal(Object.keys(t.signs).length,12);
@@ -106,7 +107,7 @@ test('all six locales have complete native labels, zodiac names, phases and cano
     for (const sign of SIGNS) {
       assert.ok(t.signs[sign]);
       const metadata = localeMetadata(`/horoscope/${sign}`,locale);
-      assert.equal(Object.keys(metadata.alternates.languages).length,7);
+      assert.equal(Object.keys(metadata.alternates.languages).length, LOCALES.length + 1);
       assert.ok(!metadata.alternates.canonical.startsWith('/en'));
       assert.ok(pages.some(p => p.url.endsWith(metadata.alternates.canonical)));
     }

@@ -17,6 +17,10 @@ type Copy = {
 };
 
 export const actionPurchaseCopy: Record<Locale, Copy> = {
+  ja: {
+    title: "今回だけ購入する", description: "この機能を1回分、0.99米ドルで利用できます。定期購入にはなりません。", buy: "0.99米ドルで利用する", starting: "PayPalを開いています…", failed: "決済を開始できませんでした。もう一度お試しください。", unavailable: "現在表示できる広告がありません。1回分を購入するか、有料プランをご利用ください。",
+    returnTitle: "1回分の利用権", confirming: "PayPalの支払いを確認しています…", completed: "支払いを確認しました。選んだ機能を開いています…", cancelled: "購入をキャンセルしました。料金はかかっていません。", expired: "決済が完了する前に、この日の利用期限が切れました。料金はかかっていません。", retry: "もう一度確認する", back: "戻る",
+  },
   en: {
     title: "One-time unlock", description: "Unlock this one action for $0.99. No subscription or recurring charge.", buy: "Unlock for $0.99", starting: "Opening PayPal…", failed: "Could not start the purchase. Please try again.", unavailable: "No ad is available right now. Choose a one-time unlock or a subscription.",
     returnTitle: "Your one-time unlock", confirming: "Confirming your PayPal payment…", completed: "Payment confirmed. Opening your selection…", cancelled: "Purchase cancelled. No access was charged.", expired: "This daily item expired before payment was captured. No charge was made.", retry: "Try confirming again", back: "Back",

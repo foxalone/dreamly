@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import React, { useEffect, useMemo, useState } from "react";
 import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 
@@ -34,6 +35,7 @@ function isMobile() {
 }
 
 export default function InstallPwaBanner() {
+  const japanese = useLocale() === "ja";
   const [bip, setBip] = useState<BIPEvent | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -101,11 +103,11 @@ export default function InstallPwaBanner() {
   if (!isMobile()) return null;
   if (document.querySelector("[data-not-found]")) return null;
 
-  const title = "Install App";
+  const title = (japanese ? "アプリとして使う" : "Install App");
   const subtitleAndroid =
-    "Add to home screen for faster access and full app experience.";
+    (japanese ? "ホーム画面に追加すると、Dreamlyをすぐに開けます。" : "Add to home screen for faster access and full app experience.");
   const subtitleIOS =
-    "Tap Share → Add to Home Screen.";
+    (japanese ? "共有ボタンを押し、「ホーム画面に追加」を選んでください。" : "Tap Share → Add to Home Screen.");
 
   return (
     <div
@@ -169,8 +171,7 @@ export default function InstallPwaBanner() {
                 cursor: "pointer",
               }}
             >
-              Install
-            </button>
+              {(japanese ? "インストール" : "Install")}</button>
           )}
 
           <button
@@ -187,8 +188,7 @@ export default function InstallPwaBanner() {
               opacity: 0.7,
             }}
           >
-            Later
-          </button>
+            {(japanese ? "あとで" : "Later")}</button>
         </div>
       </div>
     </div>

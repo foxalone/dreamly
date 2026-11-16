@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
@@ -13,9 +12,9 @@ import AppI18n from "@/lib/i18n/AppI18n";
 import PwaLaunch from "./components/PwaLaunch";
 import { PWA_LAUNCH_SCRIPT } from "@/lib/pwaLaunch";
 import PaywallHost from "./components/PaywallHost";
+import PilotAwareSiteExtras from "./components/PilotAwareSiteExtras";
 import { OFFERWALL_RECOVERY_SCRIPT } from "@/lib/offerwallRecoveryScript";
 import AdUnlockRecovery from "./components/AdUnlockRecovery";
-import MoonEligibilityNotice from "./components/moon/MoonEligibilityNotice";
 
 // Fonts are self-hosted in public/fonts (see app/fonts.css). next/font/google was removed
 // because Google started returning extensionless /l/font?kit= URLs that break the Turbopack
@@ -69,7 +68,7 @@ export default function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";["ar","ru"].forEach(function(l){c.toggle("locale-"+l,loc===l)});}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("theme");var c=document.documentElement.classList;c.remove("light","dark");if(t==="light"||t==="dark")c.add(t);var p=location.pathname||"/";var m=p.match(/^\\/(es|ar|pt|de|ru|ja)(?=\\/|$)/);var loc=m?m[1]:"en";document.documentElement.lang=loc;document.documentElement.dir=loc==="ar"?"rtl":"ltr";["ar","ru"].forEach(function(l){c.toggle("locale-"+l,loc===l)});}catch(e){}})();`,
           }}
         />
         <script dangerouslySetInnerHTML={{ __html: OFFERWALL_RECOVERY_SCRIPT }} />
@@ -88,13 +87,12 @@ export default function RootLayout({
         <AppI18n>
           <PwaLaunch>
             {children}
-            <DreamCatcherFab />
-            <DreamMapGlobe />
-            <InstallPwaBanner />
+            <PilotAwareSiteExtras>
+              <DreamCatcherFab />
+              <DreamMapGlobe />
+              <InstallPwaBanner />
+            </PilotAwareSiteExtras>
             <PaywallHost />
-            <Suspense fallback={null}>
-              <MoonEligibilityNotice />
-            </Suspense>
           </PwaLaunch>
         </AppI18n>
       </body>

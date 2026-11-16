@@ -11,6 +11,7 @@ const en = {
 };
 type Copy = typeof en;
 export const ANALYSIS_ATTEMPT_COPY: Record<Locale, Copy> = {
+  ja: en,
   en,
   es: {
     title: "Intentos de análisis", help: "Últimos 150 envíos, incluidos los análisis sin terminar. Se muestra el último motivo conocido; los informes del navegador pueden estar incompletos. El registro empieza con esta versión.", refresh: "Actualizar", loading: "Cargando…", csv: "Descargar los últimos 100 en CSV", csvLoading: "Preparando CSV…", csvError: "No se pudo descargar el CSV", completed: "Incluir completados", search: "Buscar sueño, usuario o motivo", empty: "No hay intentos coincidentes", error: "No se pudieron cargar los intentos", guest: "Invitado", user: "Usuario", requests: "Solicitudes", browser: "Informado por el navegador",

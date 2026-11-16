@@ -7,6 +7,7 @@ type Copy = {
 };
 
 export const feedPaginationCopy: Record<Locale, Copy> = {
+  ja: { loadMore: "ほかの夢を読み込む", loading: "夢を読み込んでいます…", error: "夢を読み込めませんでした。もう一度お試しください。" },
   en: { loadMore: "Load more dreams", loading: "Loading dreams…", error: "Could not load dreams. Please try again." },
   es: { loadMore: "Cargar más sueños", loading: "Cargando sueños…", error: "No se pudieron cargar los sueños. Inténtalo de nuevo." },
   ar: { loadMore: "تحميل المزيد من الأحلام", loading: "جارٍ تحميل الأحلام…", error: "تعذّر تحميل الأحلام. يُرجى المحاولة مجددًا." },

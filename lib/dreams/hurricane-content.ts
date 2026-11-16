@@ -1,5 +1,5 @@
 import type { DreamSections } from "../dream-dictionary";
-import type { Locale } from "../i18n/config";
+import type { DictionaryLocale } from "../i18n/config";
 import type { EntryL10nOverride } from "../i18n/entry-overrides/types";
 
 type Article = EntryL10nOverride & { sections: DreamSections };
@@ -28,7 +28,7 @@ function article(
   };
 }
 
-export const HURRICANE_CONTENT: Record<Locale, Article> = {
+export const HURRICANE_CONTENT: Record<DictionaryLocale, Article> = {
   en: article(
     "Hurricane Dream Meaning: Shelter, Change, and What Survives",
     "Dreaming of a hurricane? Explore approaching winds, shelter, damage, and the calm afterward through psychological, spiritual, Islamic, and biblical lenses.",

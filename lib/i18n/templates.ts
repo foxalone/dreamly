@@ -1,10 +1,10 @@
 import type { DreamCategory } from "@/lib/dream-categories";
 import type { DreamFaq, DreamScenario, DreamSections } from "@/lib/dream-dictionary";
-import type { Locale } from "./config";
+import type { DictionaryLocale } from "./config";
 
 export type Lens = { psychological: string; spiritual: string; biblical: string };
 
-const LENSES: Record<Locale, Record<DreamCategory, Lens>> = {
+const LENSES: Record<DictionaryLocale, Record<DreamCategory, Lens>> = {
   en: {} as Record<DreamCategory, Lens>,
   es: {
     animals: { psychological: "el instinto, el apego, la confianza, la alerta ante la amenaza y las reacciones que llegan antes que el razonamiento", spiritual: "el discernimiento, la sabiduría natural, la protección y un trato respetuoso con lo indómito", biblical: "la sabiduría, la mayordomía, el apetito, la protección y el sentido moral que crea la conducta del animal" },
@@ -105,7 +105,7 @@ function titleCase(value: string) {
   );
 }
 
-export function localizedTitle(locale: Locale, name: string): string {
+export function localizedTitle(locale: DictionaryLocale, name: string): string {
   switch (locale) {
     case "es":
       return `Significado de soñar con ${name}`;
@@ -123,7 +123,7 @@ export function localizedTitle(locale: Locale, name: string): string {
   }
 }
 
-export function localizedSeoTitle(locale: Locale, name: string, hook: string, titleOverride?: string): string {
+export function localizedSeoTitle(locale: DictionaryLocale, name: string, hook: string, titleOverride?: string): string {
   const title = titleOverride ?? localizedTitle(locale, name);
   const parts = hook.split(",").map((part) => part.trim()).filter(Boolean);
   const short = parts[0] || hook;
@@ -139,10 +139,10 @@ export function localizedSeoTitle(locale: Locale, name: string, hook: string, ti
   return full.length <= 70 ? full : title;
 }
 
-function buildLocalizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
+function buildLocalizedSeoDescription(locale: DictionaryLocale, name: string, meaning: string, titleOverride?: string): string {
   const clean = meaning.trim();
   const ruTitle = titleOverride ?? localizedTitle("ru", name);
-  const map: Record<Locale, string> = {
+  const map: Record<DictionaryLocale, string> = {
     en: `Dreams about ${name} often point to ${clean} — not a prediction. Psychological, spiritual, Islamic, and biblical readings.`,
     es: `Soñar con ${name} suele apuntar a ${clean} — no es una predicción. Lecturas psicológica, espiritual, islámica y bíblica.`,
     pt: `Sonhar com ${name} costuma apontar para ${clean} — não é previsão. Leituras psicológica, espiritual, islâmica e bíblica.`,
@@ -154,7 +154,7 @@ function buildLocalizedSeoDescription(locale: Locale, name: string, meaning: str
   return text;
 }
 
-export function localizedSeoDescription(locale: Locale, name: string, meaning: string, titleOverride?: string): string {
+export function localizedSeoDescription(locale: DictionaryLocale, name: string, meaning: string, titleOverride?: string): string {
   const MAX = 170;
   const full = meaning.replace(/\.+$/, "").trim();
   const text = buildLocalizedSeoDescription(locale, name, full, titleOverride);
@@ -177,8 +177,8 @@ export function localizedSeoDescription(locale: Locale, name: string, meaning: s
   return `${(at > MAX / 2 ? cut.slice(0, at) : cut).trimEnd()}…`;
 }
 
-export function localizedAliases(locale: Locale, name: string, extra: string[] = [], titleOverride?: string): string[] {
-  const core: Record<Locale, string[]> = {
+export function localizedAliases(locale: DictionaryLocale, name: string, extra: string[] = [], titleOverride?: string): string[] {
+  const core: Record<DictionaryLocale, string[]> = {
     en: [name, `dream about ${name}`, `${name} in a dream`, `${name} dream meaning`],
     es: [name, `soñar con ${name}`, `sueño de ${name}`, `significado de soñar con ${name}`],
     pt: [name, `sonhar com ${name}`, `sonho com ${name}`, `significado de sonhar com ${name}`],
@@ -189,13 +189,13 @@ export function localizedAliases(locale: Locale, name: string, extra: string[] =
   return Array.from(new Set([...core[locale], ...extra]));
 }
 
-export function localizedShortMeaning(locale: Locale, summary: string): string {
+export function localizedShortMeaning(locale: DictionaryLocale, summary: string): string {
   const trimmed = summary.replace(/\.+$/, "").trim();
   if (locale === "en") return `${titleCase(trimmed)}.`;
   return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}.`;
 }
 
-export function makeLocalizedSections(locale: Locale, input: SectionInput): DreamSections {
+export function makeLocalizedSections(locale: DictionaryLocale, input: SectionInput): DreamSections {
   if (locale === "en") {
     throw new Error("English sections stay in dream-dictionary.ts");
   }
@@ -226,7 +226,7 @@ export function makeLocalizedSections(locale: Locale, input: SectionInput): Drea
   return { introduction, general, psychological, spiritual, islamic, biblical, commonScenarios, faq };
 }
 
-function parentLine(locale: Locale, parent: string, focus: string): string {
+function parentLine(locale: DictionaryLocale, parent: string, focus: string): string {
   switch (locale) {
     case "es":
       return `Afina el símbolo más amplio de ${parent} en una imagen concreta: ${focus}.`;
@@ -243,7 +243,7 @@ function parentLine(locale: Locale, parent: string, focus: string): string {
   }
 }
 
-function coreThemes(locale: Locale, summary: string): string {
+function coreThemes(locale: DictionaryLocale, summary: string): string {
   switch (locale) {
     case "es":
       return `Sus temas de fondo incluyen ${summary}.`;
@@ -260,7 +260,7 @@ function coreThemes(locale: Locale, summary: string): string {
   }
 }
 
-function intro(locale: Locale, title: string, parentContext: string, subject: string, phrase: string = subject): string[] {
+function intro(locale: DictionaryLocale, title: string, parentContext: string, subject: string, phrase: string = subject): string[] {
   switch (locale) {
     case "es":
       return [
@@ -292,7 +292,7 @@ function intro(locale: Locale, title: string, parentContext: string, subject: st
   }
 }
 
-function generalBlock(locale: Locale, title: string, theme: string, subject: string): string[] {
+function generalBlock(locale: DictionaryLocale, title: string, theme: string, subject: string): string[] {
   switch (locale) {
     case "es":
       return [
@@ -324,7 +324,7 @@ function generalBlock(locale: Locale, title: string, theme: string, subject: str
   }
 }
 
-function psychBlock(locale: Locale, title: string, lens: string, subject: string): string[] {
+function psychBlock(locale: DictionaryLocale, title: string, lens: string, subject: string): string[] {
   switch (locale) {
     case "es":
       return [
@@ -356,7 +356,7 @@ function psychBlock(locale: Locale, title: string, lens: string, subject: string
   }
 }
 
-function spiritBlock(locale: Locale, title: string, lens: string): string[] {
+function spiritBlock(locale: DictionaryLocale, title: string, lens: string): string[] {
   switch (locale) {
     case "es":
       return [
@@ -388,7 +388,7 @@ function spiritBlock(locale: Locale, title: string, lens: string): string[] {
   }
 }
 
-function islamBlock(locale: Locale, title: string, theme: string): string[] {
+function islamBlock(locale: DictionaryLocale, title: string, theme: string): string[] {
   switch (locale) {
     case "es":
       return [
@@ -420,7 +420,7 @@ function islamBlock(locale: Locale, title: string, theme: string): string[] {
   }
 }
 
-function bibleBlock(locale: Locale, title: string, lens: string): string[] {
+function bibleBlock(locale: DictionaryLocale, title: string, lens: string): string[] {
   switch (locale) {
     case "es":
       return [
@@ -452,7 +452,7 @@ function bibleBlock(locale: Locale, title: string, lens: string): string[] {
   }
 }
 
-function variationLine(locale: Locale, title: string, focus: string): string {
+function variationLine(locale: DictionaryLocale, title: string, focus: string): string {
   switch (locale) {
     case "es":
       return `Dentro de ${title}, esta variación enfatiza ${focus}.`;
@@ -469,8 +469,8 @@ function variationLine(locale: Locale, title: string, focus: string): string {
   }
 }
 
-function defaultScenarios(locale: Locale, title: string, subject: string): DreamScenario[] {
-  const rows: Record<Exclude<Locale, "en">, DreamScenario[]> = {
+function defaultScenarios(locale: DictionaryLocale, title: string, subject: string): DreamScenario[] {
+  const rows: Record<Exclude<DictionaryLocale, "en">, DreamScenario[]> = {
     es: [
       { title: `Calma junto a ${subject}`, meaning: `La calma en ${title} puede mostrar aceptación creciente, perspectiva o confianza con el tema de fondo.` },
       { title: `Miedo a ${subject}`, meaning: `El miedo en ${title} puede intensificar preocupaciones por peligro, cambio, juicio, vulnerabilidad o pérdida de control.` },
@@ -497,10 +497,10 @@ function defaultScenarios(locale: Locale, title: string, subject: string): Dream
       { title: `حلم متكرر بـ ${subject}`, meaning: `التكرار يوحي أن سؤال ${title} ما زال حيًا أو مفتوحًا عاطفيًا.` },
     ],
   };
-  return rows[locale as Exclude<Locale, "en">] ?? [];
+  return rows[locale as Exclude<DictionaryLocale, "en">] ?? [];
 }
 
-function faqBlock(locale: Locale, title: string, subject: string, theme: string, lens: Lens, phrase: string = subject): DreamFaq[] {
+function faqBlock(locale: DictionaryLocale, title: string, subject: string, theme: string, lens: Lens, phrase: string = subject): DreamFaq[] {
   switch (locale) {
     case "es":
       return [

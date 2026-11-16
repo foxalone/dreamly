@@ -1,5 +1,4 @@
-import { localeFromPathname, localePath } from "./i18n/path";
-import { markAdUnlockReady, peekAdUnlockPending, safeNext } from "./adUnlock";
+import { analysisAdReturnPath, markAdUnlockReady, peekAdUnlockPending } from "./adUnlock";
 
 const KEY = "dreamly.offerwallSession";
 type OfferwallSession = {
@@ -26,7 +25,9 @@ export function readOfferwallSession(): OfferwallSession | null {
     if (saved.pendingAtMs !== pending.atMs || saved.dreamText !== (pending.dreamText ?? "") || saved.dreamId !== pending.dreamId || typeof saved.rewardId !== "string" ||
         typeof saved.initialEntitlement !== "string" || typeof saved.shown !== "boolean" ||
         !["watching", "completed", "granted"].includes(saved.status)) return null;
-    return { ...saved, next: localePath("/app/dreams", localeFromPathname(safeNext(saved.next))) };
+    const next = analysisAdReturnPath(saved.next);
+    if (pending.returnTo && pending.returnTo !== next) return null;
+    return { ...saved, next };
   } catch {
     return null;
   }
@@ -42,8 +43,10 @@ export function startOfferwallSession(next: string, rewardId: string, cookie: st
   if (previous) return previous;
   const pending = peekAdUnlockPending("analysis");
   if (!pending?.dreamText && !pending?.dreamId) return null;
+  const returnTo = analysisAdReturnPath(next);
+  if (pending.returnTo && pending.returnTo !== returnTo) return null;
   const session: OfferwallSession = {
-    pendingAtMs: pending.atMs, dreamText: pending.dreamText ?? "", ...(pending.dreamId ? { dreamId: pending.dreamId } : {}), rewardId, next: localePath("/app/dreams", localeFromPathname(safeNext(next))),
+    pendingAtMs: pending.atMs, dreamText: pending.dreamText ?? "", ...(pending.dreamId ? { dreamId: pending.dreamId } : {}), rewardId, next: returnTo,
     initialEntitlement: offerwallEntitlement(cookie), shown: false, status: "watching",
   };
   save(session);

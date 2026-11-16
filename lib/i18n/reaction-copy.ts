@@ -2,6 +2,7 @@ import type { Locale } from "./config";
 import type { ReactionKey } from "../guestReactions";
 
 const LABELS: Record<Locale, Record<ReactionKey, string>> = {
+  ja: { heart: "ハート", like: "いいね", star: "お気に入り" },
   en: { heart: "Heart", like: "Like", star: "Star" },
   es: { heart: "Me encanta", like: "Me gusta", star: "Favorito" },
   ar: { heart: "أحببته", like: "أعجبني", star: "مفضّل" },

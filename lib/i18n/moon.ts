@@ -7,6 +7,7 @@ type MoonCopy = {
 };
 
 export const moonMessages: Record<Locale, MoonCopy> = {
+  ja: { title: "月の世界", description: "NASAの月探査機ルナー・リコネサンス・オービターが撮影した画像で、月面を探索できます。", preview: "プレビュー", hint: "ドラッグして回転。スクロールやピンチで拡大・縮小", near: "月の表側", far: "月の裏側", reset: "表示をリセット", zoomIn: "拡大", zoomOut: "縮小", loading: "月を読み込んでいます…", error: "月面を表示できませんでした。通信環境とWebGLに対応しているかをご確認ください。", retry: "もう一度試す", imagery: "月面画像", globe: "操作できる月球儀", credits: "画像の提供元" },
   en: {
     title: "The Moon", description: "Explore a lunar globe with surface imagery from NASA’s Lunar Reconnaissance Orbiter.",
     preview: "Preview", hint: "Drag to rotate · Scroll or pinch to zoom", near: "Near side", far: "Far side", reset: "Reset view",

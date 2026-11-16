@@ -30,8 +30,8 @@ test("the backlog has unique canonical icons and omits unusable flag and keycap 
   assert.ok(!DICTIONARY_EMOJIS.some((row) => row.id.startsWith("flag-") || row.id.startsWith("keycap_")));
 });
 
-test("new admin copy covers all six locales", () => {
-  assert.deepEqual(Object.keys(emojiDictionaryCopy).sort(), ["ar", "de", "en", "es", "pt", "ru"]);
+test("new admin copy covers each recognized locale", () => {
+  assert.deepEqual(Object.keys(emojiDictionaryCopy).sort(), ["ar", "de", "en", "es", "ja", "pt", "ru"]);
   for (const copy of Object.values(emojiDictionaryCopy)) for (const value of Object.values(copy)) assert.ok(value.trim());
 });
 

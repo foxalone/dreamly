@@ -1,6 +1,7 @@
 import type { Locale } from "./config";
 
 export const firstDreamMessages: Record<Locale, string> = {
+  ja: "🦄 最初の夢を書いて、ユニコーンになろう！",
   en: "🦄 Write your first dream to become a Unicorn!",
   es: "🦄 ¡Escribe tu primer sueño y conviértete en unicornio!",
   ar: "🦄 اكتب حلمك الأول لتصبح وحيد القرن!",
@@ -10,6 +11,7 @@ export const firstDreamMessages: Record<Locale, string> = {
 };
 
 export const analyzeDreamMessages: Record<Locale, string> = {
+  ja: "夢を読み解く",
   en: "Analyze your dream",
   es: "Analiza tu sueño",
   ar: "حلّل حلمك",

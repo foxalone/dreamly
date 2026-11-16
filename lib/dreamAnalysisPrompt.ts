@@ -1,13 +1,15 @@
 import { dreamLensPrompt, type DreamLens } from "./dream-lenses";
 import { countDreamWords } from "./dreamLength";
+import { japaneseWordSegments } from "./i18n/jaLanguage";
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English", es: "Spanish", ar: "Arabic", pt: "Brazilian Portuguese",
-  de: "German", ru: "Russian", he: "Hebrew",
+  de: "German", ru: "Russian", he: "Hebrew", ja: "Japanese",
 };
 
 export function dreamAnalysisMessages(text: string, lang: string, lens: DreamLens) {
-  const brief = countDreamWords(text) <= 30;
+  const words = lang === "ja" ? japaneseWordSegments(text).length : countDreamWords(text);
+  const brief = words <= 30;
   const fallbackLanguage = Object.hasOwn(LANGUAGE_NAMES, lang) ? LANGUAGE_NAMES[lang] : "English";
   return [
     {

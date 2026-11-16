@@ -11,8 +11,8 @@ test("browser default supports regional tags, Hebrew alias, and language priorit
   for (const [input, expected] of [["en-US", "en"], ["es-MX", "es"], ["ar-SA", "ar"], ["pt-BR", "pt"], ["de-DE", "de"], ["ru-RU", "ru"], ["iw-IL", "he"]]) {
     assert.equal(resolveTranslationLanguage(null, [input]), expected);
   }
-  assert.equal(resolveTranslationLanguage(null, ["ja-JP", "de-DE", "en-US"]), "de");
-  assert.equal(resolveTranslationLanguage(null, ["ja-JP"]), "en");
+  assert.equal(resolveTranslationLanguage(null, ["ja-JP", "de-DE", "en-US"]), "ja");
+  assert.equal(resolveTranslationLanguage(null, ["ja-JP"]), "ja");
   assert.equal(resolveTranslationLanguage(undefined, []), "en");
 });
 

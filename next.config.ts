@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/:locale(es|ar|pt|de|ru)/app",
+        source: "/:locale(es|ar|pt|de|ru|ja)/app",
         destination: "/:locale/app/dreams",
         permanent: true,
       },
@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/:locale(es|ar|pt|de|ru)/dreams/categories",
+        source: "/:locale(es|ar|pt|de|ru|ja)/dreams/categories",
         destination: "/:locale/dreams",
         permanent: true,
       },

@@ -1,5 +1,5 @@
 import type { DreamSections } from "../dream-dictionary";
-import type { Locale } from "../i18n/config";
+import type { DictionaryLocale } from "../i18n/config";
 import type { EntryL10nOverride } from "../i18n/entry-overrides/types";
 
 type Prose = Pick<DreamSections, "introduction" | "general" | "psychological" | "spiritual" | "islamic" | "biblical">;
@@ -11,7 +11,7 @@ function article(seoTitle: string, seoDescription: string, prose: Prose, scenari
 }
 
 /** Native editorial copy for the 🎶 music entry. Links stay out of first paragraphs and structured data. */
-export const MUSIC_CONTENT: Record<Locale, ReturnType<typeof article>> = {
+export const MUSIC_CONTENT: Record<DictionaryLocale, ReturnType<typeof article>> = {
   en: article(
     "Music Dream Meaning: Songs, Singing, and Musical Notes",
     "What does music in a dream mean? Explore familiar songs, singing, concerts, loud music, and musical notes through four interpretive perspectives.",

@@ -6,7 +6,7 @@ import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/a
 import { Loader2, LogIn } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
-import { clearAdUnlockPending, markAdUnlockReady, clearOfferwallEntitlement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
+import { analysisAdReturnPath, clearAdUnlockPending, markAdUnlockReady, clearOfferwallEntitlement, safeNext, peekAdUnlockPending } from "@/lib/adUnlock";
 import { readHomeDreamQueue, writeHomeDreamPending } from "@/lib/homeDreamPending";
 import { trackAuth, trackEvent } from "@/lib/analytics";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
@@ -14,7 +14,7 @@ import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { isDreamlyAndroidApp } from "@/lib/auth/isDreamlyAndroidApp";
 import { isLocale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n/messages";
-import { localePath, localeFromPathname } from "@/lib/i18n/path";
+import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
 import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
@@ -23,6 +23,7 @@ import { markLoveMatchAdReady } from "@/lib/loveMatchAd";
 import PlansModal from "@/app/components/PlansModal";
 import type { OneTimePurchase } from "@/app/components/OneTimePurchaseButton";
 import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
+import { isJaDreamFormPath } from "@/lib/jaPilotPaths";
 
 type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
 
@@ -30,6 +31,17 @@ type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavail
 const APPEAR_TIMEOUT_MS = 12_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
+const japaneseAdCopy = {
+  title: "広告を見て夢を読み解く",
+  waiting: "広告を読み込んでいます…",
+  watching: "広告が終わると元のページに戻ります。",
+  stalled: "広告の読み込みに時間がかかっています。",
+  done: "元のページに戻っています…",
+  none: "現在表示できる広告がありません。時間をおいて、もう一度お試しください。",
+  dailyLimit: "本日の広告視聴の上限に達しました。",
+  failed: "広告での利用を確認できませんでした。もう一度お試しください。",
+  back: "夢の入力に戻る",
+};
 
 function kindFrom(value: string | null): PaywallKind | "horoscope" | "featured" | "tarot" | "love-match" {
   if (value === "horoscope") return "horoscope";
@@ -52,7 +64,8 @@ export default function AdUnlockClient() {
   const requestedNext = safeNext(sp.get("next"));
   const localeParam = sp.get("locale");
   const locale = isLocale(localeParam) ? localeParam : localeFromPathname(requestedNext);
-  const next = kind === "analysis" ? localePath("/app/dreams", locale) : requestedNext;
+  const next = kind === "analysis" ? analysisAdReturnPath(requestedNext, locale) : requestedNext;
+  const japanese = kind === "analysis" && isJaDreamFormPath(next);
   const back = kind === "tarot" ? safeNext(sp.get("back")) : next;
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
@@ -98,8 +111,8 @@ export default function AdUnlockClient() {
     return () => clearTimeout(timer);
   }, [phase, user]);
   useEffect(() => {
-    if (kind === "analysis" && user === null && (phase === "unavailable" || phase === "failed")) report.current?.("ad_signin_available");
-  }, [kind, user, phase]);
+    if (!japanese && kind === "analysis" && user === null && (phase === "unavailable" || phase === "failed")) report.current?.("ad_signin_available");
+  }, [japanese, kind, user, phase]);
   const rewardId = useRef<string>("");
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
   if (pending.current === undefined) pending.current = kind === "translate" || kind === "reading" ? peekAdUnlockPending(kind) : null;
@@ -347,7 +360,7 @@ export default function AdUnlockClient() {
     }
   }
 
-  const m = t.adUnlock;
+  const m = japanese ? japaneseAdCopy : t.adUnlock;
   const oneTime: OneTimePurchase = {
     kind,
     challenge: sp.get("challenge") ?? undefined,
@@ -361,13 +374,13 @@ export default function AdUnlockClient() {
       : phase === "unavailable"
         ? m.none
         : phase === "failed"
-          ? adDailyLimit ? m.dailyLimit : t.plansModal.adFailed
+          ? adDailyLimit ? m.dailyLimit : japanese ? japaneseAdCopy.failed : t.plansModal.adFailed
           : phase === "showing"
             ? adStalled ? m.stalled : m.watching
             : m.waiting;
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
+    <main lang={japanese ? "ja" : undefined} className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-center">
         <h1 className="text-lg font-semibold">{m.title}</h1>
         <p role="status" className="mt-3 text-sm text-[var(--muted)]">
@@ -388,7 +401,7 @@ export default function AdUnlockClient() {
             }}>
               {m.back}
             </button>
-            {user === null ? (
+            {!japanese && user === null ? (
               <button
                 type="button"
                 disabled={signInBusy}
@@ -399,7 +412,7 @@ export default function AdUnlockClient() {
                 <span>{t.common.signIn}</span>
               </button>
             ) : null}
-            {phase === "unavailable" && !showPaidChoices ? (
+            {!japanese && phase === "unavailable" && !showPaidChoices ? (
               <button type="button" className="dream-btn dream-btn--neutral mt-3 w-full" onClick={() => setShowPaidChoices(true)}>{actionPurchaseCopy[locale].title} · $0.99</button>
             ) : null}
           </>
@@ -407,7 +420,7 @@ export default function AdUnlockClient() {
         {signInError ? <p role="alert" className="mt-3 text-sm text-red-500">{signInError}</p> : null}
       </div>
       <PlansModal
-        open={phase === "unavailable" && showPaidChoices}
+        open={!japanese && phase === "unavailable" && showPaidChoices}
         onClose={() => setShowPaidChoices(false)}
         source={`ad_unavailable_${kind}`}
         title={m.title}

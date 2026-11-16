@@ -1,10 +1,13 @@
-export const LOCALES = ["en", "es", "ar", "pt", "de", "ru"] as const;
+export const LOCALES = ["en", "es", "ar", "pt", "de", "ru", "ja"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
 
 /** Locales that appear as a URL prefix. English stays unprefixed for SEO. */
-export const PREFIX_LOCALES = ["es", "ar", "pt", "de", "ru"] as const;
+export const PREFIX_LOCALES = ["es", "ar", "pt", "de", "ru", "ja"] as const;
+export const DICTIONARY_LOCALES = ["en", "es", "ar", "pt", "de", "ru"] as const;
+export type DictionaryLocale = (typeof DICTIONARY_LOCALES)[number];
+
 export type PrefixLocale = (typeof PREFIX_LOCALES)[number];
 
 export const LOCALE_META: Record<
@@ -16,6 +19,7 @@ export const LOCALE_META: Record<
   ar: { label: "Arabic", nativeLabel: "العربية", htmlLang: "ar", dir: "rtl", ogLocale: "ar_AR" },
   pt: { label: "Portuguese", nativeLabel: "Português", htmlLang: "pt", dir: "ltr", ogLocale: "pt_BR" },
   de: { label: "German", nativeLabel: "Deutsch", htmlLang: "de", dir: "ltr", ogLocale: "de_DE" },
+  ja: { label: "Japanese", nativeLabel: "日本語", htmlLang: "ja", dir: "ltr", ogLocale: "ja_JP" },
   ru: { label: "Russian", nativeLabel: "Русский", htmlLang: "ru", dir: "ltr", ogLocale: "ru_RU" },
 };
 

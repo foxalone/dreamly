@@ -13,10 +13,11 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
     removeItem: (key: string) => { values.delete(key); },
   } });
   try {
-    for (const locale of ["en", "es", "ar", "pt", "de", "ru"] as const) {
+    for (const locale of ["en", "es", "ar", "pt", "de", "ru", "ja"] as const) {
       values.clear();
-      const next = localePath("/app/dreams", locale);
-      setAdUnlockPending({ kind: "analysis", dreamText: "The dream awaiting analysis" });
+      const next = locale === "ja" ? "/ja/dreams/earthquake" : localePath("/app/dreams", locale);
+      const returnTo = locale === "ja" ? next : undefined;
+      setAdUnlockPending({ kind: "analysis", dreamText: "The dream awaiting analysis", returnTo });
       const session = startOfferwallSession(next, "receipt-for-this-ad", "FCOEC=old-entitlement");
       assert.ok(session);
       assert.equal(hasUnconfirmedOfferwallReturn("The dream awaiting analysis", "FCOEC=old-entitlement"), false);
@@ -50,12 +51,16 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       // Only the matching dream consumes the action; after consumption a
       // cached source page cannot reopen the ad or repeat the grant.
       assert.equal(takeAdUnlockPending("analysis", "Another dream"), null);
-      assert.ok(takeAdUnlockPending("analysis", "The dream awaiting analysis"));
+      if (returnTo) {
+        assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
+        assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis", "/ja"), null);
+      }
+      assert.ok(takeAdUnlockPending("analysis", "The dream awaiting analysis", returnTo));
       assert.equal(recoverOfferwallSession("FCOEC=new-entitlement"), null);
 
       // Capture a close followed immediately by navigation, before another
       // animation frame or cookie update. The return still needs to book credit.
-      setAdUnlockPending({ kind: "analysis", dreamText: "Ad closed during navigation" });
+      setAdUnlockPending({ kind: "analysis", dreamText: "Ad closed during navigation", returnTo });
       startOfferwallSession(next, "departure-receipt", "");
       assert.equal(captureOfferwallDeparture("", false)?.status, "watching");
       updateOfferwallSession({ shown: true });
@@ -64,7 +69,7 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       assert.equal(takeAdUnlockPending("analysis", "Ad closed during navigation"), null);
       assert.equal(startOfferwallSession(next, "do-not-replace-receipt", "")?.rewardId, "departure-receipt");
       updateOfferwallSession({ status: "granted" });
-      assert.ok(takeAdUnlockPending("analysis", "Ad closed during navigation"));
+      assert.ok(takeAdUnlockPending("analysis", "Ad closed during navigation", returnTo));
 
       // Unavailable/cancelled flows clear the pending action and cannot revive.
       setAdUnlockPending({ kind: "analysis", dreamText: "Another dream" });

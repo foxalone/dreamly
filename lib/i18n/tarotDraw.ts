@@ -3,6 +3,7 @@ import type { Locale } from "./config";
 type TarotDrawCopy = { open: string; title: string; loading: string; error: string; retry: string; close: string; read: string; guideEyebrow: string; guideAction: string; guideDetail: string };
 
 export const tarotDrawCopy: Record<Locale, TarotDrawCopy> = {
+  ja: { open: "今日のタロットカードを引く", title: "今日のあなたのカード", loading: "カードを引いています…", error: "カードを表示できませんでした。", retry: "もう一度試す", close: "閉じる", read: "今日のカードを読む", guideEyebrow: "カードをもっと知る", guideAction: "タロットを探る", guideDetail: "大アルカナ22枚の意味を読む" },
   en: { open: "Reveal today's tarot card", title: "Your card today", loading: "Drawing your card…", error: "Your card could not be shown right now.", retry: "Try again", close: "Close", read: "Read today’s card", guideEyebrow: "Or keep exploring", guideAction: "Explore Tarot", guideDetail: "Discover the 22 Major Arcana" },
   es: { open: "Revelar tu carta del tarot de hoy", title: "Tu carta de hoy", loading: "Eligiendo tu carta…", error: "No se pudo mostrar tu carta ahora.", retry: "Intentar de nuevo", close: "Cerrar", read: "Leer la carta de hoy", guideEyebrow: "O sigue explorando", guideAction: "Explora el tarot", guideDetail: "Descubre los 22 Arcanos Mayores" },
   ar: { open: "اكشف بطاقة التاروت الخاصة بك اليوم", title: "بطاقتك اليوم", loading: "جارٍ اختيار بطاقتك…", error: "تعذّر عرض بطاقتك الآن.", retry: "حاول مجددًا", close: "إغلاق", read: "اقرأ بطاقة اليوم", guideEyebrow: "أو واصل الاستكشاف", guideAction: "استكشف التاروت", guideDetail: "تعرّف على بطاقات الأركانا الكبرى الـ٢٢" },

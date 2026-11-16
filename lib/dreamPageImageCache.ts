@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { LOCALES } from "./i18n/config";
-import { localePath } from "./i18n/path";
+import { localeAvailableForPath, localePath } from "./i18n/path";
 
 /** Only fields consumed by HTML, metadata, or the gallery order. */
 export function dreamPageImageFingerprint(data: Record<string, unknown> | undefined): string | null {
@@ -15,7 +15,7 @@ export function dreamPageImageFingerprint(data: Record<string, unknown> | undefi
 export function dreamPageImagePaths(slugs: string[]): string[] {
   if (!slugs.length) return [];
   return [...new Set([
-    ...slugs.flatMap((slug) => LOCALES.map((locale) => localePath(`/dreams/${slug}`, locale))),
+    ...slugs.flatMap((slug) => LOCALES.filter((locale) => localeAvailableForPath(`/dreams/${slug}`, locale)).map((locale) => localePath(`/dreams/${slug}`, locale))),
     ...LOCALES.map((locale) => localePath("/gallery", locale)),
     "/sitemap.xml",
   ])];

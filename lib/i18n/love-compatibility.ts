@@ -17,6 +17,18 @@ type Copy = {
 };
 
 export const loveCompatibilityCopy: Record<Locale, Copy> = {
+  ja: {
+    seoTitle: "恋愛相性占い｜星座と数秘術で二人を読み解く｜Dreamly", seoDescription: "星座とライフパスナンバーから、二人のつながりを6つの視点で読み解きます。会話のきっかけになる問いも見つかります。",
+    eyebrow: "Dreamly · 恋愛相性占い", title: "二人のつながりを読み解く", yourName: "あなたの名前", theirName: "相手の名前", nameOptional: "任意", yourBirthday: "あなたの生年月日", theirBirthday: "相手の生年月日",
+    statusLabel: "今の二人の関係は？", statuses: { together: "交際中・パートナー", dating: "知り合って間もない", crush: "片思い", ex: "以前のパートナー", curious: "相性が気になる" },
+    reveal: "二人の相性を見る", dateError: "二人の生年月日を正しく入力してください。未来の日付は指定できません。",
+    resultEyebrow: "二人の相性", resultTitle: "{you}と{them}", overallMatch: "総合相性", yourSign: "あなたの星座", theirSign: "相手の星座", lifePath: "ライフパスナンバー {number}",
+    dimensionsTitle: "相性を6つの視点から", dimensions: { emotional: "気持ちのつながり", communication: "コミュニケーション", romance: "恋愛のときめき", trust: "信頼と安心感", longTerm: "長く続く関係", values: "価値観の重なり" },
+    strengthTitle: "気持ちが通いやすいところ", strengthText: "今回の読み解きでは「{dimension}」が印象的です。普段の二人の関係では、どんな場面でそれを感じますか？",
+    growthTitle: "話してみたいこと", growthText: "「{dimension}」をきっかけに、二人がそれぞれ何を大切にしたいか話してみましょう。",
+    reflectionTitle: "今の二人に問いかけたいこと", reflections: { together: "忙しいときでも、お互いに分かってもらえたと感じるのはどんなときですか？", dating: "お互いを知っていくうえで、どんなペースなら二人とも心地よく過ごせますか？", crush: "相手の気持ちも大切にしながら、少し距離を縮めるには何ができそうですか？", ex: "この関係を通して、今の自分に必要なものは何だと気づきましたか？", curious: "誰かと関係を築くとき、どんなことを一番大切にしたいですか？" },
+    startOver: "別の相性を見る", youFallback: "あなた", themFallback: "相手",
+  },
   en: {
     seoTitle: "Love Compatibility: Zodiac & Numerology | Dreamly", seoDescription: "Explore a symbolic love match with zodiac signs and life path numbers. Compare six relationship themes and find a question worth discussing.",
     eyebrow: "DREAMLY · LOVE MATCH", title: "Explore your connection",
@@ -107,6 +119,7 @@ type ProfileCopy = {
 };
 
 export const loveMatchProfileCopy: Record<Locale, ProfileCopy> = {
+  ja: { empty: "アカウントに相性の結果を保存すると、ここで見られます。", loading: "相性の記録を読み込んでいます…", error: "相性の記録を読み込めませんでした。", retry: "もう一度試す", close: "閉じる", open: "{you}と{them}の相性を開く", remove: "{you}と{them}の相性を削除", confirmTitle: "この相性結果を削除しますか？", confirmBody: "{you}と{them}の結果がプロフィールから削除されます。", confirmDelete: "削除する", cancel: "キャンセル", deleteError: "相性結果を削除できませんでした。もう一度お試しください。" },
   en: {
     empty: "Save a match to your account to see it here.",
     loading: "Loading your matches…", error: "Your matches could not be loaded.", retry: "Try again", close: "Close", open: "Open {you} and {them}",
@@ -140,6 +153,15 @@ export const loveMatchProfileCopy: Record<Locale, ProfileCopy> = {
 };
 
 export const loveMatchAiCopy: Record<Locale, AiCopy> = {
+  ja: {
+    yourPhoto: "あなたの写真", theirPhoto: "相手の写真", addPhoto: "写真を追加", changePhoto: "写真を変更", removePhoto: "写真を削除", photoProcessing: "写真を準備しています…",
+    photoError: "8 MB未満のJPEG、PNG、WebP画像を選んでください。", yourPhotoInvalid: "あなたの写真に人物が確認できません。人物が写っている写真に変更してください。", theirPhotoInvalid: "相手の写真に人物が確認できません。人物が写っている写真に変更してください。", photoInvalidTitle: "写真を変更してください", photoInvalidDismiss: "わかりました",
+    accessTitle: "この相性占いを開く", accessText: "広告を1回見るか、有料プランで相性を確認できます。", watchAd: "広告を見る", subscribe: "料金プランを見る", adUnavailable: "広告の視聴が完了していないか、表示できる広告がありません。もう一度試すか、有料プランをご利用ください。",
+    saveLocal: "保存する", savedLocal: "保存済み", saveSignIn: "ログインして保存", saveToAccount: "アカウントに保存", saving: "保存しています…", saved: "アカウントに保存しました", saveError: "相性結果を保存できませんでした。もう一度お試しください。",
+    yourGenderLabel: "あなた", theirGenderLabel: "相手", genders: { woman: "女性", man: "男性" },
+    yourStory: "あなたについて", theirStory: "相手について", yourStoryHint: "この関係で大切にしたいことは何ですか？", theirStoryHint: "相手のことや二人の関係について、分かっていることを教えてください。",
+    genderError: "二人それぞれについて性別を選択してください。", loading: "相性を読み解いています", loadingBody: "読み解きができるまで少しお待ちください。", aiError: "現在、相性結果を作成できませんでした。もう一度お試しください。", rateError: "本日の利用上限に達しました。明日またお試しください。", summaryTitle: "二人の相性の読み解き",
+  },
   en: {
     yourPhoto: "Your photo", theirPhoto: "Their photo", addPhoto: "Add photo", changePhoto: "Change photo", removePhoto: "Remove", photoProcessing: "Preparing photo…",
     photoError: "Choose a JPEG, PNG or WebP photo under 8 MB.", yourPhotoInvalid: "Your photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.", theirPhotoInvalid: "Their photo does not show a person. Love Match cannot compare a person with an animal or object. Please replace it.", photoInvalidTitle: "Please replace the photo", photoInvalidDismiss: "Got it",

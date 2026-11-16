@@ -1,3 +1,4 @@
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { KeyboardEvent } from "react";
 
 type IconComposerInputProps = {
@@ -13,6 +14,7 @@ export function IconComposerInput({
   onSend,
   sendDisabled,
 }: IconComposerInputProps) {
+  const japanese = useLocale() === "ja";
   function blockTyping(e: KeyboardEvent<HTMLTextAreaElement>) {
     const allowedNavigationKeys = [
       "ArrowLeft",
@@ -30,7 +32,7 @@ export function IconComposerInput({
       <button
         type="button"
         onClick={onToggleKeyboard}
-        aria-label="Toggle icon keyboard"
+        aria-label={(japanese ? "絵文字キーボードの表示を切り替える" : "Toggle icon keyboard")}
         className="rounded-xl border px-3 py-2 text-sm transition active:scale-[0.98]"
         style={{
           borderColor: "var(--border)",
@@ -75,8 +77,7 @@ export function IconComposerInput({
               }
         }
       >
-        Send
-      </button>
+        {(japanese ? "送信" : "Send")}</button>
     </div>
   );
 }

@@ -40,6 +40,7 @@ function initialsFromUser(u: User) {
 }
 
 export default function ProfilePage() {
+  const japanese = useLocale() === "ja";
   const locale = useLocale();
   const t = useMessages();
   const [user, setUser] = useState<User | null>(null);
@@ -173,8 +174,7 @@ export default function ProfilePage() {
             href="/app/profile/admin-dashboard"
             className={`${pillBase} ${pillSurface} inline-flex items-center justify-center no-underline`}
           >
-            Admin
-          </Link>
+            {(japanese ? "管理画面" : "Admin")}</Link>
         ) : null}
         {user && hasPaidAccess(billing) ? (
           <div
@@ -201,7 +201,7 @@ export default function ProfilePage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.photoURL}
-                alt="Profile"
+                alt={(japanese ? "プロフィール" : "Profile")}
                 width={56}
                 height={56}
                 className="shrink-0 rounded-full object-cover ring-1 ring-[var(--border)]"
@@ -269,10 +269,9 @@ export default function ProfilePage() {
             <img src="/yourfit-icon-512.png" alt="YourFit" className="w-14 h-14 object-contain" />
           </div>
           <div className="min-w-0">
-            <div className={`font-semibold ${titleText}`}>Take control of your fitness journey</div>
+            <div className={`font-semibold ${titleText}`}>{(japanese ? "トレーニングを自分のペースで" : "Take control of your fitness journey")}</div>
             <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
-              Track workouts, monitor progress, analyze stats, set goals, manage records and grow stronger every day.
-            </div>
+              {(japanese ? "トレーニングや自己ベストを記録し、データで成長を振り返りながら、次の目標を立てられます。" : "Track workouts, monitor progress, analyze stats, set goals, manage records and grow stronger every day.")}</div>
           </div>
         </Link>
       </div>
@@ -289,11 +288,9 @@ export default function ProfilePage() {
             <img src="/LOTTODATA ICON 512.png" alt="LottoData" className="w-14 h-14 object-contain" />
           </div>
           <div className="min-w-0">
-            <div className={`font-semibold ${titleText}`}>Explore lottery results and statistics</div>
+            <div className={`font-semibold ${titleText}`}>{(japanese ? "宝くじの結果と統計を見る" : "Explore lottery results and statistics")}</div>
             <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
-              Check latest draws, view historical results, analyze number frequencies and discover trends across popular
-              lotteries.
-            </div>
+              {(japanese ? "人気の宝くじの最新結果や過去の当選番号を確認し、番号の出現頻度や傾向を調べられます。" : "Check latest draws, view historical results, analyze number frequencies and discover trends across popular lotteries.")}</div>
           </div>
         </Link>
       </div>
@@ -310,11 +307,9 @@ export default function ProfilePage() {
             <img src="/currency hub icon.png" alt="CurrencyHub" className="w-14 h-14 object-contain" />
           </div>
           <div className="min-w-0">
-            <div className={`font-semibold ${titleText}`}>CurrencyHub — organize your coin collection</div>
+            <div className={`font-semibold ${titleText}`}>{(japanese ? "CurrencyHubでコインコレクションを管理" : "CurrencyHub — organize your coin collection")}</div>
             <div className={`text-sm ${mutedText} mt-1 leading-relaxed`}>
-              Track your coins, manage quantities, add details like year, value and average price, and keep your entire
-              collection organized right from your smartphone.
-            </div>
+              {(japanese ? "スマートフォンでコインの枚数、発行年、価値、平均価格を記録し、コレクションをまとめて管理できます。" : "Track your coins, manage quantities, add details like year, value and average price, and keep your entire collection organized right from your smartphone.")}</div>
           </div>
         </Link>
       </div>

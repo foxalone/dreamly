@@ -10,6 +10,18 @@ type Copy = {
   signs: Record<Sign,string>; planets: Record<string,string>; phases: string[]; aspects: Record<string,string>;
 };
 export const horoscopeCopy: Record<Locale, Copy> = {
+  ja: {
+    title: "今日の星座占い", nav: "星座占い", lead: "星の動きを手がかりに、今日を少し違う角度から眺めてみませんか。", choose: "星座を選ぶ", change: "星座を変える", current: "選択中", closePicker: "星座の選択を閉じる", saveError: "端末に保存しました。プロフィールに同期できなかったため、時間をおいてお試しください。",
+    fields: { general: "総合運", love: "恋愛運", career: "仕事運", money: "金運", energy: "心と体の調子", tip: "今日のひとこと", explanation: "星の動きとのつながり" },
+    moon: "今日の月", sky: "星の配置", reference: "協定世界時（UTC）12:00の空", illuminated: "照らされている割合", retrograde: "逆行", direct: "順行", forecastDate: "占いの日付", updated: "公開日時",
+    stale: "今日の占いはまだ準備中です。表示の日付で読める最新の占いを掲載しています。", unavailable: "今日の占いはまだ準備中です。時間をおいてご確認ください。星の配置は下から見られます。",
+    method: "占いの仕組み", methodology: "Astronomy Engineで、協定世界時の正午における地球中心から見た惑星の位置を、その日の真黄道上で計算します。トロピカル方式の12星座は春分点から黄経を30度ずつ区切ったもので、実際の星座の境界とは異なります。主要なアスペクトの許容範囲は6度です。前後12時間ずつの間で黄経が減少するとき、逆行と表示します。AIによる占いには伝統的な象徴の読み方を使っています。出生時刻と出生地の入力は不要です。",
+    other: "ほかの星座を見る", description: "{sign}の今日の星座占い。恋愛、仕事、お金、心と体の調子を、月の満ち欠けや惑星の配置とともに読み解きます。",
+    signs: { aries:"牡羊座", taurus:"牡牛座", gemini:"双子座", cancer:"蟹座", leo:"獅子座", virgo:"乙女座", libra:"天秤座", scorpio:"蠍座", sagittarius:"射手座", capricorn:"山羊座", aquarius:"水瓶座", pisces:"魚座" },
+    planets: { Sun:"太陽", Moon:"月", Mercury:"水星", Venus:"金星", Mars:"火星", Jupiter:"木星", Saturn:"土星", Uranus:"天王星", Neptune:"海王星", Pluto:"冥王星" },
+    phases: ["新月", "満ちていく細い月", "上弦の月", "満月に向かう月", "満月", "欠け始めた月", "下弦の月", "新月に向かう細い月"],
+    aspects: { conjunction:"コンジャンクション", sextile:"セクスタイル", square:"スクエア", trine:"トライン", opposition:"オポジション" },
+  },
   en: {
     title: 'Your Daily Horoscope', nav: 'Horoscope', lead: 'A little cosmic perspective. A moment for yourself. Always free.', choose: 'Choose your sign', change: 'Change sign', current: 'Current', closePicker: 'Close sign picker', saveError: 'Saved on this device. Profile sync is unavailable; try again later.',
     fields: { general: 'Your day', love: 'Love', career: 'Career', money: 'Money', energy: 'Energy & wellbeing', tip: 'Cosmic tip of the day', explanation: 'Behind the reading' },

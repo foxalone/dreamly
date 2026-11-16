@@ -3,6 +3,7 @@ import type { Locale } from "./config";
 type Code = "AI_QUOTA_EXHAUSTED" | "AI_RATE_LIMITED" | "AI_TIMEOUT" | "AI_UNAVAILABLE";
 
 const COPY: Record<Locale, Record<Code, string>> = {
+  ja: { AI_QUOTA_EXHAUSTED: "現在、夢の読み解きを利用できません。時間をおいてお試しください。", AI_RATE_LIMITED: "ただいま混み合っています。少し待ってからお試しください。", AI_TIMEOUT: "読み解きに時間がかかりすぎました。もう一度お試しください。", AI_UNAVAILABLE: "現在、夢の読み解きを利用できません。時間をおいてお試しください。" },
   en: {
     AI_QUOTA_EXHAUSTED: "Dream interpretation is unavailable right now. Please try again later.",
     AI_RATE_LIMITED: "Dream interpretation is busy right now. Please try again shortly.",

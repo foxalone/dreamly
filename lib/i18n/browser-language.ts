@@ -1,5 +1,5 @@
 import { isLocale, type Locale } from "./config";
-import { isLocaleExemptPath, localeFromPathname, stripLocalePrefix, switchLocalePath } from "./path";
+import { isLocaleExemptPath, localeAvailableForPath, localeFromPathname, stripLocalePrefix, switchLocalePath } from "./path";
 
 /** Use the first supported browser preference, including regional variants. */
 export function browserLocale(languages: readonly string[]): Locale | null {
@@ -11,7 +11,7 @@ export function browserLocale(languages: readonly string[]): Locale | null {
 }
 
 export function suggestedLanguagePath(pathname: string, preferred: Locale | null): string | null {
-  if (!preferred || preferred === localeFromPathname(pathname)) return null;
+  if (!preferred || preferred === localeFromPathname(pathname) || !localeAvailableForPath(pathname, preferred)) return null;
   // Check the unprefixed path too: administrative pages never show this prompt.
   if (isLocaleExemptPath(stripLocalePrefix(pathname).path)) return null;
   return switchLocalePath(pathname, preferred);

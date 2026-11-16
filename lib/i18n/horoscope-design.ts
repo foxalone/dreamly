@@ -10,6 +10,15 @@ type DesignCopy = {
   artwork:string;
 };
 export const horoscopeDesign: Record<Locale,DesignCopy> = {
+  ja: {
+    positions:"今日の惑星の位置", forecast:"今日の星座占い", glance:"今日の運勢", advice:"今日の過ごし方", influences:"今日の空を読み解く", details:"惑星の配置を詳しく見る", explore:"12星座から選ぶ",
+    share:"今日の占いを共有する", shareAction:"占いを共有", copy:"リンクをコピー", copied:"リンクをコピーしました", shareError:"共有できませんでした。下のリンクをコピーしてください。", shareText:"{sign}の{date}の占いをDreamlyで。", refresh:"占いの準備状況を確認", refreshing:"確認中…", preparing:"今日の占いを準備しています", pick:"星座を選んで、今日の占いを見てみましょう。", inSign:"{sign}の{planet}", tradition:"占星術では、この配置を「{theme}」と結びつけて読み解きます。",
+    elements:["自分から動く勇気と表現する力", "粘り強さと日々の暮らしを整える力", "好奇心と対話、新しい見方", "感受性と直感、気持ちのつながり"],
+    aspectThemes:{conjunction:"二つのテーマが重なる配置。両方が生きるやり方を考えてみましょう。", sextile:"協力を象徴する配置。小さなきっかけから話を始めてみましょう。", square:"緊張が生じやすいとされる配置。いったん立ち止まり、やり方を変えてみましょう。", trine:"物事が自然に進むとされる配置。無理なくできることに目を向けましょう。", opposition:"釣り合いがテーマになる配置。反対側の見方にも耳を傾けてみましょう。"},
+    phaseThemes:["始まりと静かな決意を象徴します。", "小さな始まりを育てる時期とされます。", "考えていたことを一歩進める時期とされます。", "準備を見直し、少しずつ磨く時期とされます。", "一つの節目を迎え、振り返る時期とされます。", "得たものを分かち合い、味わう時期とされます。", "見直して、役目を終えたものを手放す時期とされます。", "休息を取り、次に向けて余白をつくる時期とされます。"],
+    intro:["勇気が必要なことも、まずは一歩ずつ。", "いつもの暮らしの中に、小さな発見があるかもしれません。", "新しい場所につながる問いを、一つ持ってみましょう。", "今日は、自分にかける言葉もやさしく。", "力を注ぐなら、自分にとって大切なことに。", "小さな変化に目を向けると、できることが見えてきます。", "耳を傾ける時間と、自分の声を届ける時間を。", "言葉にならない気づきも、急がず受け止めましょう。", "気になることをたどると、新しい選択肢が見えてきます。", "大切なものは、小さな積み重ねから形になります。", "少し余白があると、違う見方が浮かびやすくなります。", "想像力を働かせて、いつもと違う一日を。"],
+    artwork:"星座の絵はイラストです。月は北を上にして表示し、満ちるときは右側、欠けるときは左側が明るく見えます。実際の空での傾きは、観測する場所によって異なります。",
+  },
   en: {
     positions:'Planetary Positions Today',forecast:'Your Cosmic Forecast',glance:'Your Day at a Glance',advice:'Cosmic Advice',influences:'What’s Influencing Your Day?',details:'Explore Planetary Details',explore:'Explore the Zodiac',
     share:'Share Your Cosmic Forecast',shareAction:'Share forecast',copy:'Copy link',copied:'Link copied',shareError:'Could not share. Copy the link below.',shareText:'{sign} · {date} — A moment of cosmic perspective with Dreamly.',refresh:'Check for my reading',refreshing:'Checking…',preparing:'A moment of anticipation',pick:'Choose your sign to discover your daily reading.',inSign:'{planet} in {sign}',tradition:'In traditional astrology, this placement is associated with {theme}.',

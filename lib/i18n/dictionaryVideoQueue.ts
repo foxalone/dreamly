@@ -1,9 +1,12 @@
 import type { Locale } from "./config";
 
+const adminEnglish = { idle: "Queue an English video for tonight", queued: "Queued for nightly English video generation", completed: "English video ready", saving: "Adding to queue…", error: "Could not add the video to the queue. Please try again.", help: "YouTube: gray = available, yellow = queued, green = video ready. One English video per night, in click order. When the queue is empty, automatic selection continues." };
+
 export const dictionaryVideoQueueCopy: Record<Locale, {
   idle: string; queued: string; completed: string; saving: string; error: string; help: string;
 }> = {
-  en: { idle: "Queue an English video for tonight", queued: "Queued for nightly English video generation", completed: "English video ready", saving: "Adding to queue…", error: "Could not add the video to the queue. Please try again.", help: "YouTube: gray = available, yellow = queued, green = video ready. One English video per night, in click order. When the queue is empty, automatic selection continues." },
+  en: adminEnglish,
+  ja: adminEnglish,
   es: { idle: "Añadir un video en inglés a la cola de esta noche", queued: "En la cola nocturna de videos en inglés", completed: "Video en inglés listo", saving: "Añadiendo a la cola…", error: "No se pudo añadir el video a la cola. Inténtalo de nuevo.", help: "YouTube: gris = disponible, amarillo = en cola, verde = video listo. Un video en inglés por noche, en orden de selección. Si la cola está vacía, continúa la selección automática." },
   ar: { idle: "إضافة فيديو بالإنجليزية إلى قائمة الانتظار الليلية", queued: "في قائمة الانتظار لإنشاء فيديو بالإنجليزية ليلاً", completed: "الفيديو بالإنجليزية جاهز", saving: "جارٍ الإضافة إلى قائمة الانتظار…", error: "تعذرت إضافة الفيديو إلى قائمة الانتظار. حاول مرة أخرى.", help: "YouTube: رمادي = متاح، أصفر = في الانتظار، أخضر = الفيديو جاهز. فيديو واحد بالإنجليزية كل ليلة حسب ترتيب الاختيار. عندما تفرغ القائمة، يستمر الاختيار التلقائي." },
   pt: { idle: "Colocar um vídeo em inglês na fila desta noite", queued: "Na fila noturna de criação de vídeos em inglês", completed: "Vídeo em inglês pronto", saving: "Adicionando à fila…", error: "Não foi possível adicionar o vídeo à fila. Tente novamente.", help: "YouTube: cinza = disponível, amarelo = na fila, verde = vídeo pronto. Um vídeo em inglês por noite, na ordem dos cliques. Quando a fila estiver vazia, a seleção automática continua." },

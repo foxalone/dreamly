@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import FaithHub from "../../../dreams/FaithHub";
 import { getFaithCopy } from "@/lib/i18n/hubs";
-import { localeFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
+import { dictionaryLocaleFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   const copy = getFaithCopy(locale, "spiritual");
   return {
     title: copy.seoTitle,
@@ -17,6 +17,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   return <FaithHub slug="spiritual" locale={locale} />;
 }

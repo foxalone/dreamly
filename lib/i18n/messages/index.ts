@@ -5,6 +5,7 @@ import { ES_MESSAGES } from "./es";
 import { AR_MESSAGES } from "./ar";
 import { PT_MESSAGES } from "./pt";
 import { DE_MESSAGES } from "./de";
+import { JA_MESSAGES } from "./ja";
 import { RU_MESSAGES } from "./ru";
 
 const ALL: Record<Locale, UiMessages> = {
@@ -14,6 +15,7 @@ const ALL: Record<Locale, UiMessages> = {
   pt: PT_MESSAGES,
   de: DE_MESSAGES,
   ru: RU_MESSAGES,
+  ja: JA_MESSAGES,
 };
 
 export function getMessages(locale: Locale): UiMessages {

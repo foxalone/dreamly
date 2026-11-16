@@ -6,13 +6,14 @@ export const TRANSLATION_LANGUAGES = {
   de: "Deutsch",
   ru: "Русский",
   he: "עברית",
+  ja: "日本語",
 } as const;
 
 export type TranslationLanguage = keyof typeof TRANSLATION_LANGUAGES;
 
 export const TRANSLATION_LANGUAGE_LABELS: Record<TranslationLanguage, string> = {
   en: "English", es: "Spanish", ar: "Arabic", pt: "Brazilian Portuguese",
-  de: "German", ru: "Russian", he: "Hebrew",
+  de: "German", ru: "Russian", he: "Hebrew", ja: "Japanese",
 };
 
 export function normalizeTranslationLanguage(value: unknown): TranslationLanguage | null {

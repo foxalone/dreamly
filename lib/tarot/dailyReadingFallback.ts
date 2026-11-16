@@ -13,6 +13,15 @@ export type DailyTarotReading = {
 type Focus = readonly [sentence: string, question: string];
 
 const dailyFocus: Record<Locale, readonly Focus[]> = {
+  ja: [
+    ["今日は、もう少し本音で話せそうな場面に目を向けてみましょう。", "思いやりと率直さの両方を大切にすると、何と伝えられそうですか？"],
+    ["大きな計画に近づく、小さな行動を一つ探してみましょう。", "いま手が届く最初の一歩はどれですか？"],
+    ["誰かのためにできることと、無理をしていることの境目を考えてみましょう。", "どこで穏やかに線を引くと、気持ちに余裕ができそうですか？"],
+    ["気づいたことをすぐ行動に移さず、少し時間を置いてみましょう。", "時間をかけると、何がもう少しはっきりしそうですか？"],
+    ["慣れた状況を、ほかの人の立場から眺めてみましょう。", "見方を変えると、いつもとの違いがどこに見えますか？"],
+    ["大切なことにどれだけ力を使っているか振り返ってみましょう。", "今日向き合いたいことと、あとでもよいことは何ですか？"],
+    ["今日は、無理なく方向を変えられる余地を残しましょう。", "前から当たり前だと思っていたことのうち、何を見直したいですか？"],
+  ],
   en: [
     ["Today, notice a conversation that could use more honesty.", "What would you say if you spoke with both care and clarity?"],
     ["Today's focus is one small action that could make a larger plan feel possible.", "Which first step is within reach right now?"],
@@ -80,6 +89,15 @@ export function focusForDay(day: string, locale: Locale): Focus {
 
 // These daily angles are written separately from the public card guide.
 const dailyAngles: Record<Locale, readonly string[]> = {
+  ja: [
+    "確信を待つ前に、小さく試してみましょう。", "すでに持っている力を一つ使いましょう。", "言葉にする前に、その感覚を少し寝かせてみましょう。",
+    "育ち始めたものを急かさず、大切にしましょう。", "安心して動ける境界線をはっきりさせましょう。", "助言を聞いたうえで、自分に合う部分を選びましょう。",
+    "気持ちが引かれる理由と、自分の価値観をどちらも考えましょう。", "散らばった力を、一つの方向に向けてみましょう。", "押し通すより、落ち着いて向き合う時間を取りましょう。",
+    "ひとりで考えて、自分の判断に耳を傾けましょう。", "目の前の変化に合わせて、計画を一つ調整しましょう。", "公平かどうかを決める前に、事実を確認しましょう。",
+    "いったん手を止めて、別の向きから眺めてみましょう。", "役目を終えたことを閉じて、次のための余白をつくりましょう。", "極端に振れず、実行できる二つの方法を組み合わせましょう。",
+    "習慣に引っぱられる前に、何が起きているか言葉にしましょう。", "積み重ねる前に、不安定な土台から整えましょう。", "小さな希望を、できる行動で守りましょう。",
+    "強く感じたことに従う前に、その前提を確かめましょう。", "うまくいったことを、分かりやすく人に伝えましょう。", "昔の学びから、今も役立つものを取り出しましょう。", "次を始める前に、やり終えたことを認めましょう。",
+  ],
   en: [
     "Begin with one modest step before asking for certainty.", "Put one skill you already have to work.", "Let a quiet impression sit before you explain it.", "Care for what is growing without hurrying it.", "Give a useful boundary a clear shape.", "Listen for wisdom, then decide what still fits.", "Choose with your values, not only with attraction.", "Give competing priorities one direction.", "Meet resistance with patience instead of force.", "Take enough space to hear your own judgment.", "Adapt one plan to the turn in front of you.", "Check the facts before you call a choice fair.", "Pause long enough to see another angle.", "Make room by letting one finished chapter close.", "Blend two workable approaches instead of rushing to extremes.", "Name a pattern before it makes the choice for you.", "Repair what is unstable before adding another layer.", "Protect a small source of hope with a practical act.", "Check an assumption before following a strong feeling.", "Let a clear success be seen and shared.", "Use an old lesson without letting it define you.", "Recognize what is complete before starting again.",
   ],
@@ -101,6 +119,7 @@ const dailyAngles: Record<Locale, readonly string[]> = {
 };
 
 const dailyLenses: Record<Locale, Pick<DailyTarotReading, "relationships" | "work" | "resources" | "innerLife">> = {
+  ja: { relationships: "今日の会話では、お互いに大切にしたいことを聞く時間を取りましょう。", work: "今日を進める仕事を一つ選び、次に何をするか決めましょう。", resources: "お金や時間を使う前に、先々の自分にとっても役に立つ選択か確認しましょう。", innerLife: "カードを見た瞬間にどんな気持ちになったか、その気持ちが何に目を向けさせるかを考えてみましょう。" },
   en: { relationships: "In a conversation today, make room to hear what matters to both sides.", work: "Choose one practical task that moves your day forward and give it a clear next step.", resources: "Before spending time or money, check whether the choice supports your longer direction.", innerLife: "Notice your first reaction to the card and what it asks you to pay attention to." },
   es: { relationships: "En una conversación de hoy, deja espacio para escuchar lo importante para ambas partes.", work: "Elige una tarea útil para avanzar y define su próximo paso con claridad.", resources: "Antes de gastar tiempo o dinero, comprueba si la decisión apoya tu rumbo a largo plazo.", innerLife: "Observa tu primera reacción ante la carta y aquello a lo que te invita a prestar atención." },
   ar: { relationships: "في حديث اليوم، اترك مساحة لسماع ما يهم الطرفين.", work: "اختر مهمة عملية تدفع يومك إلى الأمام وحدد خطوتها التالية.", resources: "قبل أن تنفق وقتًا أو مالًا، اسأل إن كان الخيار يخدم اتجاهك الأبعد.", innerLife: "لاحظ رد فعلك الأول تجاه البطاقة وما الذي يدعوك إلى الانتباه إليه." },

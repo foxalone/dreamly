@@ -1,5 +1,5 @@
 import type { DreamSections } from "../dream-dictionary";
-import type { Locale } from "../i18n/config";
+import type { DictionaryLocale } from "../i18n/config";
 import type { EntryL10nOverride } from "../i18n/entry-overrides/types";
 
 type Article = EntryL10nOverride & { sections: DreamSections };
@@ -25,7 +25,7 @@ function article(
   };
 }
 
-export const MUD_CONTENT: Record<Locale, Record<string, Article>> = {
+export const MUD_CONTENT: Record<DictionaryLocale, Record<string, Article>> = {
   en: {
     mud: article(
       "Mud Dream Meaning: Mess, Effort, and Finding Firm Ground",

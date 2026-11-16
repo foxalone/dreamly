@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getDreamEntry, PARENT_DREAMS } from "./dream-dictionary";
-import { LOCALES } from "./i18n/config";
+import { DICTIONARY_LOCALES } from "./i18n/config";
 import { getLocalizedEntry } from "./i18n/localize-dictionary";
 import { MUSIC_CONTENT } from "./dreams/music-content";
 import { guideTextLinks, isKnownGuideHref } from "./guideLinks";
@@ -18,7 +18,7 @@ test("the new article is the dictionary target for the musical-notes map icon", 
 });
 
 test("every language has a complete native article, related links, eight scenarios and five FAQs", () => {
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     const entry = getLocalizedEntry("music", locale);
     assert.ok(entry, locale);
     assert.deepEqual(entry.sections, MUSIC_CONTENT[locale].sections);

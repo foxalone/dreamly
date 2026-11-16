@@ -1,7 +1,10 @@
 import type { Locale } from "./config";
 
+const adminEnglish = { label: "Dream management", dreams: "Dream list", comments: "Comments" };
+
 export const ADMIN_DREAM_TABS_COPY: Record<Locale, { label: string; dreams: string; comments: string }> = {
-  en: { label: "Dream management", dreams: "Dream list", comments: "Comments" },
+  en: adminEnglish,
+  ja: adminEnglish,
   es: { label: "Gestión de sueños", dreams: "Lista de sueños", comments: "Comentarios" },
   ar: { label: "إدارة الأحلام", dreams: "قائمة الأحلام", comments: "التعليقات" },
   pt: { label: "Gerenciamento de sonhos", dreams: "Lista de sonhos", comments: "Comentários" },

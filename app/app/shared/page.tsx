@@ -26,6 +26,7 @@ import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
 import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
+import { hasJapaneseKana } from "@/lib/i18n/jaLanguage";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import { analysisPreview } from "@/lib/analysisPreview";
@@ -190,7 +191,8 @@ function initialsFromEmailOrText(s: string) {
   return (a + b).slice(0, 2);
 }
 
-function getSharedTypeLabel(d: SharedDream) {
+function getSharedTypeLabel(d: SharedDream, japanese: boolean) {
+  if (japanese) return d.sourceType === "story" ? "ストーリー" : "夢";
   return d.sourceType === "story" ? "Story" : "Dream";
 }
 
@@ -208,6 +210,7 @@ function dreamLang(d: SharedDream): string | null {
 // Returns null when the script is none of the three supported targets (Arabic,
 // CJK, ...) — such a dream can always be translated.
 function detectLangByScript(text: string): TargetLang | null {
+  if (hasJapaneseKana(text)) return "ja";
   const s = text ?? "";
   const cyr = (s.match(/[\u0400-\u04FF]/g) ?? []).length;
   const heb = (s.match(/[\u0590-\u05FF]/g) ?? []).length;
@@ -242,6 +245,7 @@ function TranslateIcon({ className }: { className?: string }) {
 }
 
 export default function SharedPage() {
+  const japanese = useLocale() === "ja";
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -658,7 +662,7 @@ export default function SharedPage() {
       void Promise.all(batches.map(async (batch) => {
         const params = new URLSearchParams(batch.map((item) => ["id", item.id]));
         const res = await fetch(`/api/dreams/reactions?${params}`, { credentials: "same-origin" });
-        if (!res.ok) throw new Error("Failed to load reactions.");
+        if (!res.ok) throw new Error((japanese ? "リアクションを読み込めませんでした。" : "Failed to load reactions."));
         return (await res.json()) as { reactions?: Record<string, ReactionState> };
       }))
         .then((results) => {
@@ -702,7 +706,7 @@ export default function SharedPage() {
         setMy(map);
       } catch (e: any) {
         console.error(e);
-        setError(e?.message ?? "Failed to load reactions.");
+        setError(e?.message ?? (japanese ? "リアクションを読み込めませんでした。" : "Failed to load reactions."));
       }
     })();
 
@@ -743,7 +747,7 @@ export default function SharedPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dreamId, key }),
         });
-        if (!res.ok) throw new Error("Failed to react.");
+        if (!res.ok) throw new Error((japanese ? "リアクションを更新できませんでした。" : "Failed to react."));
         const data = await res.json() as { active: boolean };
         setMy((prev) => ({
           ...prev,
@@ -795,7 +799,7 @@ export default function SharedPage() {
         const cur = prev[dreamId] ?? { heart: false, like: false, star: false };
         return { ...prev, [dreamId]: { ...cur, [key]: !cur[key] } };
       });
-      setError(e?.message ?? "Failed to react.");
+      setError(e?.message ?? (japanese ? "リアクションを更新できませんでした。" : "Failed to react."));
     } finally {
       setBusyKey(null);
     }
@@ -898,7 +902,7 @@ export default function SharedPage() {
       }
 
       const translation = String(data?.translation ?? "").trim();
-      if (!translation) throw new Error("Empty translation");
+      if (!translation) throw new Error((japanese ? "翻訳結果が取得できませんでした。" : "Empty translation"));
 
       if (translationContextRef.current !== requestContext) return;
       rememberShowOriginal(d.id, false);
@@ -910,7 +914,7 @@ export default function SharedPage() {
         return next;
       });
     } catch (e: any) {
-      setError(e?.message ?? "Failed to translate.");
+      setError(e?.message ?? (japanese ? "翻訳できませんでした。もう一度お試しください。" : "Failed to translate."));
     } finally {
       setTranslateBusyId(null);
     }
@@ -921,7 +925,7 @@ export default function SharedPage() {
   return (
     <main className="relative min-h-screen px-6 pt-4 pb-10 max-w-3xl mx-auto">
       <div>
-        <h1 className="sr-only">Feed</h1>
+        <h1 className="sr-only">{(japanese ? "みんなの夢" : "Feed")}</h1>
 
         {error && (
           <div className="mt-5 text-sm text-red-200 bg-red-600/15 border border-red-500/30 rounded-xl px-4 py-3">
@@ -931,15 +935,14 @@ export default function SharedPage() {
 
         {list.length === 0 && featuredPosition === null && !feedLoading && !feedFailed ? (
           <div className="mt-2 p-5 rounded-2xl bg-[var(--card)] text-[var(--muted)] border border-white/10">
-            No shared items yet.
-          </div>
+            {(japanese ? "まだ投稿はありません。" : "No shared items yet.")}</div>
         ) : (
           <div className="mt-2 space-y-3">
             {list.map((d, index) => {
               const myR = my[d.id] ?? { heart: false, like: false, star: false };
               const r = d.reactions ?? {};
               const emojis = normalizeEmojis(d.emojis);
-              const sourceLabel = getSharedTypeLabel(d);
+              const sourceLabel = getSharedTypeLabel(d, japanese);
               const sourceNum = feedTotal === null ? null : feedTotal - index;
               const published = analysisPreview((d.analysisText ?? attachedAnalysis[d.id] ?? "").trim());
               const analysis = published.preview;

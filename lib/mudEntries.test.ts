@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DREAM_DICTIONARY } from "./dream-dictionary";
-import { LOCALES } from "./i18n/config";
+import { DICTIONARY_LOCALES } from "./i18n/config";
 import { getLocalizedEntry } from "./i18n/localize-dictionary";
 import { localePath } from "./i18n/path";
 import { listPublicPages, SITE_ORIGIN } from "./publicPages";
@@ -21,7 +21,7 @@ test("all eighteen mud articles have native prose, discoverable names and sitema
   const pages = new Set(listPublicPages().map((page) => page.url));
   for (const slug of slugs) {
     const intros = new Set<string>();
-    for (const locale of LOCALES) {
+    for (const locale of DICTIONARY_LOCALES) {
       const entry = getLocalizedEntry(slug, locale)!;
       assert.ok(entry);
       assert.equal(scoreSearchCandidate(entry.name, entry), 4);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DREAM_SLUGS } from "@/lib/dream-dictionary";
 import { DREAM_GUIDE_SLUGS } from "@/lib/dream-guides";
 import { PREFIX_LOCALES } from "@/lib/i18n/config";
-import { localeFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
+import { dictionaryLocaleFromParams, localeMetadata, localeOpenGraph } from "@/lib/i18n/page-locale";
 import { getLocalizedGuide } from "@/lib/i18n/localize-guides";
 import DreamGuidePage from "../../../dreams/DreamGuidePage";
 import DreamSymbolView, { dreamSymbolMetadata } from "../../../dreams/DreamSymbolView";
@@ -15,11 +15,11 @@ export const revalidate = 604800;
 
 export function generateStaticParams() {
   const symbols = [...DREAM_SLUGS, ...DREAM_GUIDE_SLUGS];
-  return PREFIX_LOCALES.flatMap((locale) => symbols.map((symbol) => ({ locale, symbol })));
+  return PREFIX_LOCALES.filter((locale) => locale !== "ja").flatMap((locale) => symbols.map((symbol) => ({ locale, symbol })));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   const { symbol } = await params;
   const guide = getLocalizedGuide(symbol, locale);
   if (guide) {
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const locale = await localeFromParams(params);
+  const locale = await dictionaryLocaleFromParams(params);
   const { symbol } = await params;
   const guide = getLocalizedGuide(symbol, locale);
   if (guide) return <DreamGuidePage guide={guide} locale={locale} />;

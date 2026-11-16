@@ -2,6 +2,7 @@ import type { Locale } from "./config";
 
 /** Written in the suggested language so visitors can recognize their language. */
 export const browserLanguageMessages: Record<Locale, { title: string; action: string; dismiss: string }> = {
+  ja: { title: "Dreamlyを日本語で利用できます", action: "日本語に切り替える", dismiss: "言語の案内を閉じる" },
   en: { title: "Dreamly is available in English", action: "Switch to English", dismiss: "Dismiss language suggestion" },
   es: { title: "Dreamly está disponible en español", action: "Cambiar a español", dismiss: "Cerrar sugerencia de idioma" },
   ar: { title: "يمكنك استخدام Dreamly بالعربية", action: "الانتقال إلى العربية", dismiss: "إغلاق اقتراح اللغة" },

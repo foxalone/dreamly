@@ -12,9 +12,10 @@ const INTL: Record<Locale, string> = {
   pt: "pt-BR",
   de: "de",
   ru: "ru",
+  ja: "ja-JP",
 };
 
-/** en/US weeks start Sunday, Arabic weeks start Saturday, the rest Monday. */
+/** en/US and ja/JP weeks start Sunday, Arabic weeks start Saturday, the rest Monday. */
 const WEEK_START: Record<Locale, number> = {
   en: 0,
   es: 1,
@@ -22,6 +23,7 @@ const WEEK_START: Record<Locale, number> = {
   pt: 1,
   de: 1,
   ru: 1,
+  ja: 0,
 };
 
 function pad(n: number) {

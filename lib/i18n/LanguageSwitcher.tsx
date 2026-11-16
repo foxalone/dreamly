@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { usePathname } from "next/navigation";
 import { LOCALES, LOCALE_META, type Locale } from "./config";
-import { switchLocalePath } from "./path";
+import { localeAvailableForPath, switchLocalePath } from "./path";
 import { useLocale, useMessages } from "./LocaleProvider";
 import { SegmentedPill, segmentedThumbClass } from "@/app/components/SegmentedPill";
 
@@ -99,7 +99,7 @@ export default function LanguageSwitcher({
 
   const options = (
     <div role="listbox" aria-label={t.nav.language} className="flex items-center gap-0.5">
-      {LOCALES.map((code) => {
+      {LOCALES.filter((code) => localeAvailableForPath(pathname, code)).map((code) => {
         const active = code === locale;
         return (
           <a

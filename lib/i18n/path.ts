@@ -6,8 +6,9 @@ import {
   type Locale,
   isPrefixLocale,
 } from "./config";
+import { jaPilotAlternate } from "../jaPilotPaths";
 
-const PREFIX_RE = /^\/(es|ar|pt|de|ru)(?=\/|$)/;
+const PREFIX_RE = /^\/(es|ar|pt|de|ru|ja)(?=\/|$)/;
 
 /** Paths that must never get a locale prefix. */
 export function isLocaleExemptPath(pathname: string): boolean {
@@ -35,11 +36,18 @@ export function localeFromPathname(pathname: string): Locale {
  * Prefix an internal href for a locale.
  * English stays `/dreams/snake`. Spanish becomes `/es/dreams/snake`.
  */
+export function localeAvailableForPath(path: string, locale: Locale): boolean {
+  const pathname = stripLocalePrefix(path).path.split(/[?#]/, 1)[0];
+  if (locale !== "ja") return true;
+  if (pathname === "/dreams" || pathname.startsWith("/dreams/")) return Boolean(jaPilotAlternate(pathname));
+  return !isLocaleExemptPath(pathname);
+}
+
 export function localePath(href: string, locale: Locale): string {
   if (!href.startsWith("/")) return href;
   if (isLocaleExemptPath(href)) return href;
   const { path } = stripLocalePrefix(href);
-  if (locale === DEFAULT_LOCALE) return path;
+  if (locale === DEFAULT_LOCALE || !localeAvailableForPath(path, locale)) return path;
   if (path === "/") return `/${locale}`;
   return `/${locale}${path}`;
 }
@@ -57,6 +65,7 @@ export function languageAlternates(unprefixedPath: string): Record<string, strin
     en: absoluteLocaleUrl(path, "en"),
   };
   for (const locale of PREFIX_LOCALES) {
+    if (!localeAvailableForPath(path, locale)) continue;
     languages[LOCALE_META[locale].htmlLang] = absoluteLocaleUrl(path, locale);
   }
   return languages;

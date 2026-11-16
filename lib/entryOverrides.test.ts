@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { ALL_DREAM_ENTRIES, COMBINATION_ENTRIES, DREAM_DICTIONARY, type DreamSections } from "./dream-dictionary";
 import { guideTextLinks, isKnownGuideHref } from "./guideLinks";
-import { LOCALES, type Locale } from "./i18n/config";
+import { DICTIONARY_LOCALES, type Locale } from "./i18n/config";
 import { ENTRY_OVERRIDES } from "./i18n/entry-overrides";
 import type { EntryL10nOverride } from "./i18n/entry-overrides/types";
 import { getLocalizedEntries, getLocalizedEntry } from "./i18n/localize-dictionary";
@@ -71,14 +71,14 @@ test("localized entries use their native overrides", () => {
 
 test("inline links in dictionary sections are known and never in first paragraphs, FAQ or scenarios", () => {
   const problems: string[] = [];
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     for (const entry of getLocalizedEntries(locale)) problems.push(...linkProblems(`${locale}/${entry.slug}`, entry.sections));
   }
   assert.deepEqual(problems, []);
 });
 
 test("every combination page has a native name in every locale", () => {
-  for (const locale of LOCALES) {
+  for (const locale of DICTIONARY_LOCALES) {
     if (locale === "en") continue;
     for (const combo of COMBINATION_ENTRIES) {
       assert.ok(getSeedL10n(locale, combo.slug)?.name, `${locale} has no seed for ${combo.slug}`);

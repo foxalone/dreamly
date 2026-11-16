@@ -1,4 +1,4 @@
-import type { Locale } from "./config";
+import type { DictionaryLocale, Locale } from "./config";
 import {
   DREAM_GUIDES,
   getDreamGuide,
@@ -12,7 +12,7 @@ import { GUIDES_PT } from "./guides/pt";
 import { GUIDES_DE } from "./guides/de";
 import { GUIDES_RU } from "./guides/ru";
 
-const GUIDES_BY_LOCALE: Record<Exclude<Locale, "en">, Record<string, GuideL10n>> = {
+const GUIDES_BY_LOCALE: Record<Exclude<DictionaryLocale, "en">, Record<string, GuideL10n>> = {
   es: GUIDES_ES,
   ar: GUIDES_AR,
   pt: GUIDES_PT,
@@ -37,13 +37,13 @@ function mergeGuide(shell: DreamGuide, l10n: GuideL10n): DreamGuide {
 export function getLocalizedGuide(slug: string, locale: Locale): DreamGuide | undefined {
   const shell = getDreamGuide(slug);
   if (!shell) return undefined;
-  if (locale === "en") return shell;
+  if (locale === "en" || locale === "ja") return shell;
   const l10n = GUIDES_BY_LOCALE[locale][slug];
   return l10n ? mergeGuide(shell, l10n) : shell;
 }
 
 export function getLocalizedGuides(locale: Locale): DreamGuide[] {
-  if (locale === "en") return DREAM_GUIDES;
+  if (locale === "en" || locale === "ja") return DREAM_GUIDES;
   return DREAM_GUIDES.map((guide) => {
     const l10n = GUIDES_BY_LOCALE[locale][guide.slug];
     return l10n ? mergeGuide(guide, l10n) : guide;

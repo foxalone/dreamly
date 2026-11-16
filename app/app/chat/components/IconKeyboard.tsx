@@ -1,3 +1,4 @@
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import React, { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import {
   DREAM_EMOJI_CATEGORIES,
@@ -222,6 +223,7 @@ export const IconKeyboard = forwardRef<HTMLDivElement, IconKeyboardProps>(
     { open, onInsert, onBackspace, onClear, onClose, recentItems = [] },
     ref
   ) {
+    const japanese = useLocale() === "ja";
     const [showNumberPopup, setShowNumberPopup] = useState(false);
     const [activeTab, setActiveTab] = useState<SectionKey>("recent");
 
@@ -240,7 +242,7 @@ export const IconKeyboard = forwardRef<HTMLDivElement, IconKeyboardProps>(
       }> = [
         {
           key: "recent",
-          label: "Recent",
+          label: japanese ? "最近使った絵文字" : "Recent",
           icon: "🕘",
           items: recentItems,
         },
@@ -250,7 +252,7 @@ export const IconKeyboard = forwardRef<HTMLDivElement, IconKeyboardProps>(
       return result.filter(
         (section) => section.items.length > 0 || section.key === "recent"
       );
-    }, [recentItems]);
+    }, [japanese, recentItems]);
 
     useEffect(() => {
       if (!open) {
@@ -433,7 +435,7 @@ export const IconKeyboard = forwardRef<HTMLDivElement, IconKeyboardProps>(
                           color: "var(--muted)",
                         }}
                       >
-                        No recent icons yet
+                        {japanese ? "最近使った絵文字はありません" : "No recent icons yet"}
                       </div>
                     )}
                   </div>
@@ -491,19 +493,19 @@ export const IconKeyboard = forwardRef<HTMLDivElement, IconKeyboardProps>(
               ) : null}
             </div>
 
-            <ActionButton title="Space" onClick={() => onInsert(" ")}>
+            <ActionButton title={japanese ? "スペース" : "Space"} onClick={() => onInsert(" ")}>
               <SpaceIcon />
             </ActionButton>
 
-            <ActionButton title="Backspace" onClick={onBackspace}>
+            <ActionButton title={japanese ? "1文字削除" : "Backspace"} onClick={onBackspace}>
               <BackspaceIcon />
             </ActionButton>
 
-            <ActionButton title="Clear all" onClick={onClear} danger>
+            <ActionButton title={japanese ? "すべて削除" : "Clear all"} onClick={onClear} danger>
               <TrashIcon />
             </ActionButton>
 
-            <ActionButton title="Close" onClick={onClose}>
+            <ActionButton title={japanese ? "閉じる" : "Close"} onClick={onClose}>
               <CloseIcon />
             </ActionButton>
           </div>

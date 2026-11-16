@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { DREAM_DICTIONARY } from "./dream-dictionary";
 import { DREAM_GUIDE_SLUGS } from "./dream-guides";
-import { LOCALES, type Locale } from "./i18n/config";
+import { DICTIONARY_LOCALES, type Locale } from "./i18n/config";
 import { getLocalizedEntry } from "./i18n/localize-dictionary";
 import { CTR_EXPERIMENT_META, getCtrExperimentMeta } from "./seo/ctr-experiment";
 
@@ -14,7 +14,7 @@ const ROWS = Object.entries(CTR_EXPERIMENT_META).flatMap(([locale, rows]) =>
 test("CTR experiment covers exactly the 27 pages from docs/seo/ctr-experiment-2026-09.md", () => {
   assert.equal(ROWS.length, 27);
   for (const { locale, slug } of ROWS) {
-    assert.ok((LOCALES as readonly string[]).includes(locale), `unknown locale ${locale}`);
+    assert.ok((DICTIONARY_LOCALES as readonly string[]).includes(locale), `unknown locale ${locale}`);
     assert.ok(DREAM_DICTIONARY[slug], `${locale}/${slug} is not a dictionary entry`);
     assert.ok(!DREAM_GUIDE_SLUGS.includes(slug), `${locale}/${slug} is a guide, not a symbol page`);
     assert.ok(getLocalizedEntry(slug, locale), `${locale}/${slug} has no localized entry`);

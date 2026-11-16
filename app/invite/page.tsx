@@ -1,5 +1,7 @@
 "use client";
 
+import { localePath } from "@/lib/i18n/path";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -23,6 +25,8 @@ type InviterInfo = {
 };
 
 export default function InvitePage() {
+  const locale = useLocale();
+  const japanese = locale === "ja";
   const router = useRouter();
   const [inviterUid, setInviterUid] = useState<string | null>(null);
 
@@ -37,8 +41,8 @@ export default function InvitePage() {
   const joinStartedRef = useRef(false);
 
   const inviterName = useMemo(() => {
-    return inviter?.displayName?.trim() || "A Dreamly user";
-  }, [inviter]);
+    return inviter?.displayName?.trim() || (japanese ? "Dreamlyの利用者" : "A Dreamly user");
+  }, [inviter, japanese]);
 
  useEffect(() => {
   const params = new URLSearchParams(window.location.search);
@@ -66,7 +70,7 @@ export default function InvitePage() {
 
       if (!snap.exists()) {
         if (!cancelled) {
-          setError("Inviter not found.");
+          setError((japanese ? "招待した利用者が見つかりません。" : "Inviter not found."));
           setLoadingInviter(false);
         }
         return;
@@ -80,7 +84,7 @@ export default function InvitePage() {
           displayName:
             typeof data.displayName === "string" && data.displayName.trim()
               ? data.displayName
-              : "Dreamly user",
+              : (japanese ? "Dreamlyの利用者" : "Dreamly user"),
           photoURL: typeof data.photoURL === "string" ? data.photoURL : null,
           email: typeof data.email === "string" ? data.email : null,
         });
@@ -90,7 +94,7 @@ export default function InvitePage() {
     } catch (e) {
       console.error("Failed to load inviter", e);
       if (!cancelled) {
-        setError("Failed to open invite.");
+        setError((japanese ? "招待を開けませんでした。" : "Failed to open invite."));
         setLoadingInviter(false);
       }
     }
@@ -99,7 +103,7 @@ export default function InvitePage() {
   if (inviterUid === null) return; // ещё не прочитали URL
 
   if (!inviterUid) {
-    setError("Invite link is invalid.");
+    setError((japanese ? "この招待リンクは無効です。" : "Invite link is invalid."));
     setLoadingInviter(false);
     return;
   }
@@ -123,7 +127,7 @@ export default function InvitePage() {
     if (!inviterInfo.uid) return;
 
     if (user.uid === inviterInfo.uid) {
-      router.replace("/app/chat");
+      router.replace(localePath("/app/chat", locale));
       return;
     }
 
@@ -147,16 +151,16 @@ export default function InvitePage() {
       );
 
       if (!chatId) {
-        setError("Failed to create chat.");
+        setError((japanese ? "チャットを作成できませんでした。" : "Failed to create chat."));
         setJoining(false);
         joinStartedRef.current = false;
         return;
       }
 
-      router.replace(`/app/chat?chat=${encodeURIComponent(chatId)}`);
+      router.replace(localePath(`/app/chat?chat=${encodeURIComponent(chatId)}`, locale));
     } catch (e) {
       console.error("Failed to join chat", e);
-      setError("Failed to join chat.");
+      setError((japanese ? "チャットに参加できませんでした。" : "Failed to join chat."));
       setJoining(false);
       joinStartedRef.current = false;
     }
@@ -174,7 +178,7 @@ export default function InvitePage() {
     } catch (e) {
       if ((e as { code?: string }).code === "auth/popup-closed-by-user") return;
       console.error("Sign in failed", e);
-      setError("Sign in failed.");
+      setError((japanese ? "ログインできませんでした。" : "Sign in failed."));
       setJoining(false);
       joinStartedRef.current = false;
     }
@@ -194,13 +198,12 @@ export default function InvitePage() {
         </h1>
 
         <h2 className="text-xl sm:text-2xl font-medium">
-          You were invited to Dreamly Chat
-        </h2>
+          {(japanese ? "Dreamlyチャットへの招待が届きました" : "You were invited to Dreamly Chat")}</h2>
 
         <p className="mt-6 text-neutral-400 text-base sm:text-lg">
           {loadingInviter
-            ? "Opening invitation..."
-            : `${inviterName} invited you to chat about dreams and stories.`}
+            ? (japanese ? "招待を開いています…" : "Opening invitation...")
+            : japanese ? `${inviterName}さんから、見た夢や日々の出来事について話すチャットに招待されました。` : `${inviterName} invited you to chat about dreams and stories.`}
         </p>
 
         {!!error && <p className="mt-4 text-sm text-red-400">{error}</p>}
@@ -212,13 +215,12 @@ export default function InvitePage() {
             disabled={joining}
             className="mt-10 inline-block bg-purple-600 hover:bg-purple-500 text-white text-lg font-semibold px-10 py-4 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:hover:scale-100"
           >
-            Sign in for free
-          </button>
+            {(japanese ? "無料でログイン" : "Sign in for free")}</button>
         )}
 
         {!loadingInviter && currentUser && !error && (
           <div className="mt-10 inline-block bg-purple-600 text-white text-lg font-semibold px-10 py-4 rounded-2xl opacity-90">
-            {joining ? "Opening chat..." : "Preparing chat..."}
+            {joining ? (japanese ? "チャットを開いています…" : "Opening chat...") : (japanese ? "チャットを準備しています…" : "Preparing chat...")}
           </div>
         )}
       </div>

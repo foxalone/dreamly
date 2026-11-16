@@ -1,7 +1,7 @@
 import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-dictionary";
 import { SIGNS } from "@/lib/horoscope/model";
 import { LOCALES } from "@/lib/i18n/config";
-import { localePath } from "@/lib/i18n/path";
+import { localeAvailableForPath, localePath } from "@/lib/i18n/path";
 import { MAJOR_ARCANA } from "@/lib/tarot/deck";
 
 export const SITE_ORIGIN = "https://dreamly.art";
@@ -62,7 +62,7 @@ export type PublicPage = {
 };
 
 function localizedUrls(path: string): string[] {
-  return LOCALES.map((locale) => `${SITE_ORIGIN}${localePath(path, locale)}`);
+  return LOCALES.filter((locale) => localeAvailableForPath(path, locale)).map((locale) => `${SITE_ORIGIN}${localePath(path, locale)}`);
 }
 
 export function dictionaryUpdatedAt(): string {

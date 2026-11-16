@@ -2,6 +2,7 @@ const TARGET_SCRIPT = {
   ru: "cyrillic",
   ar: "arabic",
   he: "hebrew",
+  ja: "japanese",
   en: "latin",
   es: "latin",
   pt: "latin",
@@ -15,6 +16,7 @@ function countScript(text: string, script: ScriptName): number {
     cyrillic: /\p{Script=Cyrillic}/gu,
     arabic: /\p{Script=Arabic}/gu,
     hebrew: /\p{Script=Hebrew}/gu,
+    japanese: /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu,
     latin: /\p{Script=Latin}/gu,
   }[script];
   return text.match(pattern)?.length ?? 0;
@@ -42,9 +44,10 @@ export function translationMatchesTarget(
     cyrillic: countScript(text, "cyrillic"),
     arabic: countScript(text, "arabic"),
     hebrew: countScript(text, "hebrew"),
+    japanese: countScript(text, "japanese"),
     latin: countScript(text, "latin"),
   };
-  const total = counts.cyrillic + counts.arabic + counts.hebrew + counts.latin;
+  const total = counts.cyrillic + counts.arabic + counts.hebrew + counts.latin + counts.japanese;
   const target = counts[script];
   if (total === 0 || target <= total - target) return false;
   if (sourceLang && sourceLang !== targetLang && compact(text) === compact(sourceText)) return false;

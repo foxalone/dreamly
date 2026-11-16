@@ -21,3 +21,15 @@ test("supported locale remains a fallback for language-free dream text", () => {
   const messages = dreamAnalysisMessages("🌧️ 🪟", "es", "psychological");
   assert.match(messages[0].content, /website language is Spanish; use it only if the dream text has no identifiable language/);
 });
+
+test("Japanese dreams without spaces still get the appropriate response length", () => {
+  const brief = dreamAnalysisMessages("白い蛇がいた。", "ja", "psychological");
+  assert.match(brief[0].content, /website language is Japanese/);
+  assert.match(brief[0].content, /exactly two short sentences/);
+
+  const longDream = "昔住んでいた家の庭で、友人と夜空を見上げていた。すると見知らぬ子どもが現れ、庭の奥へ向かって走り出した。追いかけようとしたけれど、足が重くて動かず、遠くから笑い声だけが聞こえた。";
+  for (const locale of ["ja", "en"]) {
+    const messages = dreamAnalysisMessages(longDream, locale, "psychological");
+    assert.match(messages[0].content, /Write 1–2 short paragraphs/);
+  }
+});

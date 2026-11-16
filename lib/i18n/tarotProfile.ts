@@ -3,6 +3,7 @@ import type { Locale } from "./config";
 type Copy = { title: string; intro: string; loading: string; error: string; retry: string; close: string };
 
 export const tarotProfileCopy: Record<Locale, Copy> = {
+  ja: { title: "マイタロットカード", intro: "引いたことのあるカードは表向きに、まだ出会っていないカードは裏向きに並びます。", loading: "カードを読み込んでいます…", error: "カードを読み込めませんでした。", retry: "もう一度試す", close: "カードを閉じる" },
   en: { title: "My tarot cards", intro: "The cards you discover turn face up here. Unrevealed cards remain face down.", loading: "Loading your cards…", error: "Your cards couldn't be loaded right now.", retry: "Try again", close: "Close card" },
   es: { title: "Mis cartas del tarot", intro: "Las cartas que descubres aparecen aquí boca arriba. Las demás permanecen boca abajo.", loading: "Cargando tus cartas…", error: "No se pudieron cargar tus cartas ahora.", retry: "Intentar de nuevo", close: "Cerrar carta" },
   ar: { title: "بطاقات التاروت الخاصة بي", intro: "تظهر هنا البطاقات التي تكشفها بوجهها الأمامي. وتبقى البطاقات الأخرى مقلوبة.", loading: "جارٍ تحميل بطاقاتك…", error: "تعذّر تحميل بطاقاتك الآن.", retry: "حاول مجددًا", close: "إغلاق البطاقة" },

@@ -1,5 +1,7 @@
 "use client";
 
+import { localePath } from "@/lib/i18n/path";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -39,6 +41,8 @@ function cls(...classes: Array<string | false | undefined>) {
 }
 
 export default function ChatPage() {
+  const locale = useLocale();
+  const japanese = locale === "ja";
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -189,7 +193,7 @@ useEffect(() => {
   if (!requestedChatId) return;
   if (selectedChatId !== requestedChatId) return;
 
-  router.replace("/app/chat");
+  router.replace(localePath("/app/chat", locale));
 }, [selectedChatId, requestedChatId, router]);
 
 useEffect(() => {
@@ -486,11 +490,9 @@ if (
       {!filteredChats.length && (
         <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            No chats yet
-          </p>
+            {(japanese ? "チャットはまだありません" : "No chats yet")}</p>
           <p className="mt-1 text-xs" style={{ color: "var(--muted)" }}>
-            Message Dreamly for feedback, bugs, or questions.
-          </p>
+            {(japanese ? "ご意見、不具合の報告、ご質問は、Dreamlyにメッセージを送ってください。" : "Message Dreamly for feedback, bugs, or questions.")}</p>
 
           {showSupportStarter ? (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -584,7 +586,7 @@ if (
                       className="truncate text-xs"
                       style={{ color: "var(--muted)" }}
                     >
-                      {chat.typing ? "typing…" : chat.lastMessage || "No messages yet"}
+                      {chat.typing ? (japanese ? "入力中…" : "typing…") : chat.lastMessage || (japanese ? "メッセージはまだありません" : "No messages yet")}
                     </p>
                     {chat.unreadCount ? (
                       <span
@@ -636,8 +638,7 @@ if (
                     color: "var(--text)",
                   }}
                 >
-                  ← Back
-                </button>
+                  {(japanese ? "← 戻る" : "← Back")}</button>
               )}
 
               <div
@@ -755,11 +756,9 @@ if (
               className="text-base font-medium"
               style={{ color: "var(--text)" }}
             >
-              No chat selected
-            </p>
+              {(japanese ? "チャットが選択されていません" : "No chat selected")}</p>
             <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-              Pick a chat from the left to start messaging.
-            </p>
+              {(japanese ? "左の一覧からチャットを選んでください。" : "Pick a chat from the left to start messaging.")}</p>
           </div>
         </div>
       )}
@@ -768,7 +767,7 @@ if (
 
   useEffect(() => {
     if (authReady && !user) {
-      router.replace("/signin?next=/app/chat");
+      router.replace(`${localePath("/signin", locale)}?next=${encodeURIComponent(localePath("/app/chat", locale))}`);
     }
   }, [authReady, user, router]);
 
@@ -797,14 +796,13 @@ if (
               className="text-2xl font-semibold tracking-tight"
               style={{ color: "var(--text)" }}
             >
-              Chat
-            </h1>
+              {(japanese ? "チャット" : "Chat")}</h1>
           </div>
 
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Search chats"
+              placeholder={(japanese ? "チャットを検索" : "Search chats")}
               value={chatQuery}
               onChange={(e) => setChatQuery(e.target.value)}
               className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm outline-none transition"
@@ -817,9 +815,9 @@ if (
 
             <button
               type="button"
-              onClick={() => router.push("/app/chat/add-friend")}
-              aria-label="Add friend"
-              title="Add friend"
+              onClick={() => router.push(localePath("/app/chat/add-friend", locale))}
+              aria-label={(japanese ? "友だちを招待" : "Add friend")}
+              title={(japanese ? "友だちを招待" : "Add friend")}
               className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border transition"
               style={{
                 borderColor: "color-mix(in srgb, #22d3ee 40%, var(--border))",

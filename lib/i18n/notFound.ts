@@ -14,6 +14,7 @@ type NotFoundCopy = {
 };
 
 export const notFoundCopy: Record<Locale, NotFoundCopy> = {
+  ja: { eyebrow: "404 · 宇宙で迷子", title: "ページが見つかりませんでした", description: "このアドレスにはページがありません。下のリンクからDreamlyに戻れます。", next: "次はどこに行きますか？", home: "Dreamlyのホーム", homeDetail: "夢を読み解くページへ", feed: "みんなの夢", feedDetail: "誰かが見た夢を読む", horoscope: "星座占い", horoscopeDetail: "今日の運勢を見る" },
   en: {
     eyebrow: "404 · Lost in the cosmos", title: "This page escaped to the Moon.",
     description: "We couldn't find it at this address. Choose a path and we'll bring you back among the stars.",

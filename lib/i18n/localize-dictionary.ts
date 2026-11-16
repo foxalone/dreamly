@@ -3,7 +3,7 @@ import {
   DREAM_DICTIONARY,
   type DreamEntry,
 } from "@/lib/dream-dictionary";
-import type { Locale } from "./config";
+import type { DictionaryLocale, Locale } from "./config";
 import { getEntryOverride } from "./entry-overrides";
 import { getSeedL10n } from "./seeds";
 import {
@@ -18,7 +18,7 @@ import {
 const cache = new Map<Locale, DreamEntry[]>();
 const bySlugCache = new Map<Locale, Record<string, DreamEntry>>();
 
-function localizeOne(entry: DreamEntry, locale: Locale): DreamEntry {
+function localizeOne(entry: DreamEntry, locale: DictionaryLocale): DreamEntry {
   const seed = getSeedL10n(locale, entry.slug);
   const parentSeed = entry.parentSlug ? getSeedL10n(locale, entry.parentSlug) : undefined;
   const name = seed?.name ?? entry.name;
@@ -60,7 +60,7 @@ function localizeOne(entry: DreamEntry, locale: Locale): DreamEntry {
 }
 
 export function getLocalizedEntries(locale: Locale): DreamEntry[] {
-  if (locale === "en") return ALL_DREAM_ENTRIES;
+  if (locale === "en" || locale === "ja") return ALL_DREAM_ENTRIES;
   const hit = cache.get(locale);
   if (hit) return hit;
   const entries = ALL_DREAM_ENTRIES.map((entry) => localizeOne(entry, locale));
@@ -69,7 +69,7 @@ export function getLocalizedEntries(locale: Locale): DreamEntry[] {
 }
 
 export function getLocalizedDictionary(locale: Locale): Record<string, DreamEntry> {
-  if (locale === "en") return DREAM_DICTIONARY;
+  if (locale === "en" || locale === "ja") return DREAM_DICTIONARY;
   const hit = bySlugCache.get(locale);
   if (hit) return hit;
   const map = Object.fromEntries(getLocalizedEntries(locale).map((entry) => [entry.slug, entry]));
@@ -86,7 +86,7 @@ export function getLocalizedParents(locale: Locale): DreamEntry[] {
 }
 
 export function localizeEntryList(entries: DreamEntry[], locale: Locale): DreamEntry[] {
-  if (locale === "en") return entries;
+  if (locale === "en" || locale === "ja") return entries;
   const dict = getLocalizedDictionary(locale);
   return entries.map((entry) => dict[entry.slug]).filter((row): row is DreamEntry => Boolean(row));
 }

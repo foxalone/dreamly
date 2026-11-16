@@ -9,6 +9,12 @@ export async function localeFromParams(params: Promise<{ locale?: string }>): Pr
   return locale;
 }
 
+export async function dictionaryLocaleFromParams(params: Promise<{ locale?: string }>) {
+  const locale = await localeFromParams(params);
+  if (locale === "ja") notFound();
+  return locale;
+}
+
 export function localeMetadata(unprefixedPath: string, locale: Locale) {
   return {
     alternates: {
