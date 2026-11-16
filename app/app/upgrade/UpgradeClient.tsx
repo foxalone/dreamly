@@ -51,6 +51,8 @@ function cardClass(active: boolean) {
 export default function UpgradeClient({ initialPkg }: { initialPkg: string | null }) {
   const router = useRouter();
   const locale = useLocale();
+  const checkoutPath = localePath("/app/upgrade", locale);
+  const signInHref = `${localePath("/signin", locale)}?next=${encodeURIComponent(checkoutPath)}`;
   const t = useMessages();
 
   const [mounted, setMounted] = useState(false);
@@ -127,8 +129,9 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
         currency: "USD",
         intent: "subscription",
         vault: true,
+        ...(locale === "ja" ? { locale: "ja_JP" } : {}),
       }) as const,
-    [paypalClientId]
+    [locale, paypalClientId]
   );
 
   async function getIdTokenOrThrow() {
@@ -206,7 +209,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
       const r = await fetch("/api/paypal/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planId, idToken }),
+        body: JSON.stringify({ plan: planId, idToken, locale }),
       });
       const j = await r.json().catch(() => ({} as Record<string, unknown>));
       const subscriptionID = String(j?.subscriptionID ?? "").trim();
@@ -277,7 +280,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
       return (
         <button
           type="button"
-          onClick={() => router.push(localePath("/signin?next=/app/upgrade", locale))}
+          onClick={() => router.push(signInHref)}
           className="dream-primary-btn w-full"
         >
           {t.upgrade.goSignIn}
@@ -332,7 +335,7 @@ export default function UpgradeClient({ initialPkg }: { initialPkg: string | nul
               const r = await fetch("/api/paypal/create-subscription", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ plan: planId, idToken }),
+                body: JSON.stringify({ plan: planId, idToken, locale }),
               });
               const j = await r.json().catch(() => ({} as Record<string, unknown>));
               const subscriptionID = String(j?.subscriptionID ?? "").trim();

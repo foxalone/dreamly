@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "@/app/api/dreams/_lib/requireUser";
+import { isLocale } from "@/lib/i18n/config";
+import { localePath } from "@/lib/i18n/path";
 import { isPlanId } from "@/lib/subscriptions/plans";
 import { getNoTrialPlanId, getPaypalPlanIds } from "@/lib/paypal/plans";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -13,7 +15,7 @@ import {
   paypalFetch,
 } from "@/lib/paypal/server";
 
-type Body = { plan?: unknown; idToken?: unknown };
+type Body = { plan?: unknown; idToken?: unknown; locale?: unknown };
 
 type CreatedSubscription = {
   id?: string;
@@ -75,10 +77,12 @@ export async function POST(req: Request) {
         ? ids.yearlyPlanId
         : ids.monthlyPlanId;
     const base = getSiteBaseUrl(req);
+    const locale = typeof body.locale === "string" && isLocale(body.locale) ? body.locale : "en";
+    const checkoutPath = localePath("/app/upgrade", locale);
     // PayPal appends ?subscription_id=I-…&ba_token=BA-…&token=… to return_url.
     // UpgradeClient reads subscription_id when the redirect fallback is used.
-    const returnUrl = `${base}/app/upgrade?subscribed=1`;
-    const cancelUrl = `${base}/app/upgrade?cancelled=1`;
+    const returnUrl = `${base}${checkoutPath}?subscribed=1`;
+    const cancelUrl = `${base}${checkoutPath}?cancelled=1`;
 
     logPaypal("info", "create-subscription.start", {
       uid: auth.uid,
@@ -99,7 +103,7 @@ export async function POST(req: Request) {
         ...(startTime ? { start_time: startTime } : {}),
         application_context: {
           brand_name: "Dreamly",
-          locale: "en-US",
+          locale: locale === "ja" ? "ja-JP" : "en-US",
           shipping_preference: "NO_SHIPPING",
           user_action: "SUBSCRIBE_NOW",
           return_url: returnUrl,
