@@ -10,7 +10,7 @@ import { translationAdTarget, TRANSLATION_AD_GRANT_MS } from "@/lib/translationA
  */
 export async function grantGuestHouseAd(
   guestId: string, ip: string, kind: "translate" | "reading",
-  sharedDreamId: unknown, targetLang?: unknown, database?: Firestore,
+  sharedDreamId: unknown, targetLang?: unknown, database?: Firestore, checkOnly = false,
 ): Promise<boolean> {
   const target = kind === "translate" ? translationAdTarget(sharedDreamId, targetLang)
     : readingDreamId(sharedDreamId) ? { sharedDreamId: readingDreamId(sharedDreamId)! } : null;
@@ -31,6 +31,7 @@ export async function grantGuestHouseAd(
     // Never replace a watched-ad pass for another target.
     const current = guest[field];
     if (current?.expiresAtMs > Date.now() && (current.source !== "yourfit" || current.sharedDreamId !== target.sharedDreamId || current.targetLang !== ("targetLang" in target ? target.targetLang : undefined))) return false;
+    if (checkOnly) return true;
     tx.set(ref, {
       [field]: { ...target, source: "yourfit", expiresAtMs: Date.now() + (kind === "translate" ? TRANSLATION_AD_GRANT_MS : READING_AD_GRANT_MS) },
       ...(!previous ? { [auditField]: { ...target, source: "yourfit", grantedAtMs: Date.now() } } : {}),

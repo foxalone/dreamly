@@ -1,6 +1,5 @@
 "use client";
 import AnalysisDisplay from "./AnalysisDisplay";
-import YourFitPromo from "./YourFitPromo";
 import DreamAnalysisProgress from "./DreamAnalysisProgress";
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -57,7 +56,6 @@ function GuestDreamCard({ dream, number, refresh, onCompose }: { dream: HomeDrea
       <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{dream.text}</p>
       {!ask.analysis && <div className="mt-3"><DreamLensSelect value={ask.lens} onChange={ask.chooseLens} disabled={ask.busy} /></div>}
       {ask.error && <p role="alert" className="mt-3 text-sm text-red-500">{ask.error}</p>}
-      {ask.analysis && ask.yourfitPromo && ask.analysisAttemptId ? <YourFitPromo attemptId={ask.analysisAttemptId} /> : null}
       {expanded && ask.analysis && (
         <section className="mt-4 rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold">{t.app.analysis}</h3>

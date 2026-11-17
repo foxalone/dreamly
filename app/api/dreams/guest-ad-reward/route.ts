@@ -1,5 +1,5 @@
 import { grantGuestHouseAd } from "../_lib/guestHouseAd";
-import { recordAttemptAccess } from "../_lib/analysisAttempts";
+import { markYourfitAttemptEligible, recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { allowGuestFirstAnalysisWithoutAd, guestAdReward, guestReadingAd, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
 
@@ -22,11 +22,11 @@ async function handle(req: Request, grant: boolean) {
       if (body.kind === "translate" || body.kind === "reading") {
         const valid = body.kind === "translate" ? translationAdTarget(body.sharedDreamId, body.targetLang) : readingDreamId(body.sharedDreamId);
         if (!valid) return NextResponse.json({ code: "TARGET_REQUIRED" }, { status: 400 });
-        const allowed = await grantGuestHouseAd(guestId, readClientIp(req), body.kind, body.sharedDreamId, body.targetLang);
+        const allowed = await grantGuestHouseAd(guestId, readClientIp(req), body.kind, body.sharedDreamId, body.targetLang, undefined, body.checkOnly === true);
         return NextResponse.json({ yourfitPromo: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
       }
       if (body.kind !== "analysis") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
-      const allowed = await allowGuestFirstAnalysisWithoutAd(guestId, readClientIp(req));
+      const allowed = await allowGuestFirstAnalysisWithoutAd(guestId, readClientIp(req), body.checkOnly === true);
       return NextResponse.json({ firstAnalysisFree: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
     }
     if (grant && !validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
@@ -69,7 +69,8 @@ export async function POST(req: Request) {
     const guestId = readGuestId(req);
     // A denied first-free fallback is an eligibility decision, not a broken grant.
     if (!response.ok && (body.noAdAvailable !== true || response.status >= 500)) await recordAttemptAccess(body.attemptId, null, guestId, "ad_grant_rejected", { httpStatus: response.status });
-    if (response.ok && body.noAdAvailable === true) await recordAttemptAccess(body.attemptId, null, guestId, "guest_free_access");
+    if (response.ok && body.noAdAvailable === true) await markYourfitAttemptEligible(body.attemptId, null, guestId);
+    if (response.ok && body.noAdAvailable === true && body.checkOnly !== true) await recordAttemptAccess(body.attemptId, null, guestId, "guest_free_access");
   }
   return response;
 }

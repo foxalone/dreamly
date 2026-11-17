@@ -1,5 +1,6 @@
 "use client";
 
+import YourFitPromo from "@/app/components/YourFitPromo";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/auth";
@@ -25,7 +26,7 @@ import type { OneTimePurchase } from "@/app/components/OneTimePurchaseButton";
 import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 import { isJaDreamFormPath } from "@/lib/jaPilotPaths";
 
-type Phase = "waiting" | "showing" | "checking" | "granting" | "done" | "unavailable" | "failed";
+type Phase = "waiting" | "showing" | "checking" | "house-ad" | "granting" | "done" | "unavailable" | "failed";
 
 // How long Google gets to render the Offerwall before we give up.
 const APPEAR_TIMEOUT_MS = 12_000;
@@ -69,6 +70,9 @@ export default function AdUnlockClient() {
   const back = kind === "tarot" ? safeNext(sp.get("back")) : next;
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
+  const [houseBusy, setHouseBusy] = useState(false);
+  const [houseError, setHouseError] = useState(false);
+  const houseRequestInFlight = useRef(false);
   const [adStalled, setAdStalled] = useState(false);
   const [adDailyLimit, setAdDailyLimit] = useState(false);
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -117,6 +121,14 @@ export default function AdUnlockClient() {
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
   if (pending.current === undefined) pending.current = kind === "analysis" || kind === "translate" || kind === "reading" ? peekAdUnlockPending(kind) : null;
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
+
+  useEffect(() => {
+    // A refresh after the X/grant response resumes access without another ad.
+    if (pending.current?.ready && pending.current.yourfitPromo) {
+      setPhase("done");
+      router.replace(next);
+    }
+  }, [next, router]);
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
 
@@ -310,7 +322,7 @@ export default function AdUnlockClient() {
         credentials: "same-origin",
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, noAdAvailable: true, idToken,
+        body: JSON.stringify({ kind, noAdAvailable: true, checkOnly: true, idToken,
           dreamId: pending.current?.dreamId, dreamText: pending.current?.dreamText,
           attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
           sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
@@ -322,10 +334,7 @@ export default function AdUnlockClient() {
       if (cancelled) return;
       if (data?.firstAnalysisFree === true || data?.yourfitPromo === true) {
         trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale });
-        markAdUnlockReady(kind, data?.yourfitPromo === true);
-        setPhase("done");
-        report.current?.("ad_resume_started");
-        router.replace(next);
+        setPhase("house-ad");
       } else {
         setPhase("unavailable");
       }
@@ -334,6 +343,44 @@ export default function AdUnlockClient() {
     }).finally(() => clearTimeout(timeout));
     return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
   }, [phase, user, kind, next, router, locale, sp]);
+
+  async function closeHouseAd() {
+    if (phase !== "house-ad" || houseRequestInFlight.current || user === undefined) return;
+    if (kind !== "analysis" && kind !== "translate" && kind !== "reading") return;
+    houseRequestInFlight.current = true;
+    setHouseBusy(true);
+    setHouseError(false);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20_000);
+    try {
+      const idToken = user ? await user.getIdToken() : undefined;
+      const res = await fetch(user ? "/api/dreams/ad-reward" : "/api/dreams/guest-ad-reward", {
+        method: "POST", credentials: "same-origin", signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, noAdAvailable: true, idToken,
+          dreamId: pending.current?.dreamId, dreamText: pending.current?.dreamText,
+          attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
+          sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
+          targetLang: pending.current?.targetLang || sp.get("targetLang"),
+        }),
+      });
+      if (res.status === 403 || res.status === 429) { setPhase("unavailable"); return; }
+      const data = res.ok ? await res.json() : null;
+      if (data?.firstAnalysisFree !== true && data?.yourfitPromo !== true) throw new Error("HOUSE_AD_GRANT_FAILED");
+      trackEvent("yourfit_promo_closed", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale, format: "interstitial", visible_seconds: 5 });
+      markAdUnlockReady(kind, true);
+      setPhase("done");
+      report.current?.("ad_resume_started");
+      router.replace(next);
+    } catch {
+      // Retry X after a network failure without making the viewer wait again.
+      setHouseError(true);
+    } finally {
+      clearTimeout(timeout);
+      houseRequestInFlight.current = false;
+      setHouseBusy(false);
+    }
+  }
 
   async function signIn() {
     if (signInBusy) return;
@@ -387,6 +434,15 @@ export default function AdUnlockClient() {
           : phase === "showing"
             ? adStalled ? m.stalled : m.watching
             : m.waiting;
+
+  if (phase === "house-ad" && (kind === "analysis" || kind === "translate" || kind === "reading")) {
+    return <main className="min-h-screen bg-[var(--bg)]">
+      <YourFitPromo kind={kind} locale={locale} audience={user ? "account" : "guest"}
+        attemptId={kind === "analysis" ? pendingAnalysisAttemptId() : undefined}
+        targetKey={`${pending.current?.dreamId ?? sp.get("sharedDreamId") ?? ""}:${pending.current?.targetLang ?? sp.get("targetLang") ?? ""}`}
+        busy={houseBusy} error={houseError ? (japanese ? japaneseAdCopy.failed : t.plansModal.adFailed) : undefined} onClose={() => { void closeHouseAd(); }} />
+    </main>;
+  }
 
   return (
     <main lang={japanese ? "ja" : undefined} className="min-h-screen flex items-center justify-center px-6">

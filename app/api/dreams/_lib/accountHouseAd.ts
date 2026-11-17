@@ -12,7 +12,7 @@ const requestKey = (target: HouseAnalysisTarget) => textHash(JSON.stringify([tar
 /** Server-private receipts survive logout, cookie changes and the daily quota reset. */
 export async function grantAccountHouseAd(
   uid: string, guestId: string | null, kind: "analysis" | "translate" | "reading",
-  dreamId: unknown, targetLang?: unknown, database?: Firestore, analysisText?: unknown,
+  dreamId: unknown, targetLang?: unknown, database?: Firestore, analysisText?: unknown, checkOnly = false,
 ): Promise<boolean> {
   const id = readingDreamId(dreamId);
   const suppliedText = typeof analysisText === "string" ? analysisText.trim() : "";
@@ -38,10 +38,11 @@ export async function grantAccountHouseAd(
       if (receipt.blocked || receipt.sharedDreamId !== target.sharedDreamId || receipt.targetLang !== ("targetLang" in target ? target.targetLang : undefined)) return false;
     } else if (guest?.[guestField] || (kind === "analysis" && guest?.firstAnalysisNoAd === true)) {
       // Persist the inherited limit so dropping the guest cookie cannot reset it.
-      tx.set(receiptRef, { blocked: true, source: "guest", atMs: Date.now() });
+      if (!checkOnly) tx.set(receiptRef, { blocked: true, source: "guest", atMs: Date.now() });
       return false;
     }
     if (current && current.expiresAtMs > Date.now() && (current.source !== "yourfit" || current.sharedDreamId !== target.sharedDreamId || current.targetLang !== ("targetLang" in target ? target.targetLang : undefined))) return false;
+    if (checkOnly) return true;
     if (!receipt) tx.set(receiptRef, { ...target, source: "yourfit", atMs: Date.now(),
       ...(kind === "analysis" ? { textHash: textHash(dream!.text), available: true } : {}) });
     if (guestRef && !receipt) tx.set(guestRef, { [guestField]: { ...target, source: "account", uid } }, { merge: true });

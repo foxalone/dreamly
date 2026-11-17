@@ -62,6 +62,13 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
 
   assert.equal((await GET(new Request("http://localhost/api/dreams/guest-ad-reward"))).status, 401);
   assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "first_ad" });
+  const eligibility = await POST(new Request("http://localhost/api/dreams/guest-ad-reward", {
+    method: "POST", headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
+    body: JSON.stringify({ kind: "analysis", noAdAvailable: true, checkOnly: true }),
+  }));
+  assert.equal(eligibility.status, 200);
+  assert.equal(records.get(`guestQuickSymbol/${id}`)?.firstAnalysisNoAd, undefined);
+  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "first_ad" });
   const fallback = await POST(new Request("http://localhost/api/dreams/guest-ad-reward", {
     method: "POST", headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
     body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),

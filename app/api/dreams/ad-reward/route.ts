@@ -1,6 +1,6 @@
 import { grantAccountHouseAd } from "../_lib/accountHouseAd";
 import { readGuestId } from "../_lib/guestQuota";
-import { recordAttemptAccess } from "../_lib/analysisAttempts";
+import { markYourfitAttemptEligible, recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { grantAdReward, grantReadingReward } from "../_lib/subscription";
@@ -9,7 +9,7 @@ import { readingDreamId } from "@/lib/readingAdGrant";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
-type Body = { noAdAvailable?: unknown; dreamText?: unknown; dreamId?: unknown; attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
+type Body = { checkOnly?: unknown; noAdAvailable?: unknown; dreamText?: unknown; dreamId?: unknown; attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
 
 /**
  * POST /api/dreams/ad-reward — called by the browser after GPT fires
@@ -23,7 +23,8 @@ async function grantReward(req: Request) {
     if ("error" in auth) return auth.error;
     if (body.noAdAvailable === true) {
       if (body.kind !== "analysis" && body.kind !== "translate" && body.kind !== "reading") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
-      const allowed = await grantAccountHouseAd(auth.uid, readGuestId(req), body.kind, body.kind === "analysis" ? body.dreamId : body.sharedDreamId, body.targetLang, undefined, body.dreamText);
+      const allowed = await grantAccountHouseAd(auth.uid, readGuestId(req), body.kind, body.kind === "analysis" ? body.dreamId : body.sharedDreamId, body.targetLang, undefined, body.dreamText, body.checkOnly === true);
+      if (allowed && body.kind === "analysis") await markYourfitAttemptEligible(body.attemptId, auth.uid, readGuestId(req));
       return NextResponse.json({ yourfitPromo: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
     }
     if (!validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });

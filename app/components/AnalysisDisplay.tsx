@@ -14,7 +14,7 @@ export default function AnalysisDisplay({ attemptId, children, yourfitPromo = fa
     let reported = false;
     let disposed = false;
     const report = () => {
-      if (!visible || document.visibilityState !== "visible" || reported || document.querySelector("[data-yourfit-overlay]")) return;
+      if (!visible || document.visibilityState !== "visible" || reported) return;
       reported = true;
       if (yourfitPromo) {
         let firstDisplay = true;
@@ -36,8 +36,7 @@ export default function AnalysisDisplay({ attemptId, children, yourfitPromo = fa
     });
     observer.observe(element.current);
     document.addEventListener("visibilitychange", report);
-    window.addEventListener("yourfit-promo-closed", report);
-    return () => { disposed = true; observer.disconnect(); document.removeEventListener("visibilitychange", report); window.removeEventListener("yourfit-promo-closed", report); };
+    return () => { disposed = true; observer.disconnect(); document.removeEventListener("visibilitychange", report); };
   }, [attemptId, yourfitPromo, audience]);
   return <div ref={element}>{children}</div>;
 }

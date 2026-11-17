@@ -204,3 +204,31 @@ test("account home analysis trial follows the same text when saved to the journa
   await finishAccountHouseAnalysis("alice", { analysis: "Prepared" }, "attempt-id", db);
   assert.ok(await recoverAccountHouseAnalysis("alice", { ...target, dreamId: "" }, db));
 });
+
+
+test("pre-ad checks cannot open guest translations or More or spend the one-time reserve", async () => {
+  const { db, docs } = fixture();
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-a", "ru", db, true), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "reading", "dream-a", undefined, db, true), true);
+  assert.equal(docs.size, 0);
+  assert.equal(await consumeGuestTranslation("guest", { sharedDreamId: "dream-a", targetLang: "ru" }, db), false);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-a", "ru", db), true);
+  assert.equal(await consumeGuestTranslation("guest", { sharedDreamId: "dream-a", targetLang: "ru" }, db), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-b", "ru", db, true), false);
+});
+
+test("pre-ad checks cannot open account analysis, Translate or More; grant stays after explicit completion", async () => {
+  const { db, docs } = fixture();
+  docs.set("users/alice", {});
+  docs.set("users/alice/dreams/own", { text: "A quiet room" });
+  for (const kind of ["analysis", "translate", "reading"] as const) {
+    assert.equal(await grantAccountHouseAd("alice", null, kind, kind === "analysis" ? "own" : "dream-a", "ru", db, undefined, true), true);
+    assert.equal(docs.has(`users/alice/houseAdGrants/${kind}`), false);
+  }
+  const target = { dreamId: "own", text: "A quiet room", lang: "en", lens: "psychological" };
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), false);
+  assert.equal(docs.has("users/alice/translationUnlocks/__adGrant"), false);
+  assert.equal(docs.has("users/alice/readingUnlocks/__adGrant"), false);
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "own", undefined, db), true);
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), true);
+});

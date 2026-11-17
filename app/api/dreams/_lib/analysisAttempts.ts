@@ -67,7 +67,7 @@ export async function startAnalysisAttempt(input: AnalysisIdentity & { uid: stri
     const ref = db.collection("analysis_attempts").doc(id);
     await db.runTransaction(async (tx) => {
       const before = (await tx.get(ref)).data();
-      tx.set(ref, { text: input.text, uid: input.uid, guestId: input.guestId, lang: input.lang, lens: input.lens, ...context, ...analysisAttemptResult({}), guestResponse: null, yourfitPromo: false, yourfitImpressionAtMs: null, displayedAtMs: null, events: appendAttemptEvent(before ?? {}, before ? "analysis_retried" : "analysis_submitted", "server", now), httpStatus: null, durationMs: null, lastEvent: null, startedAtMs: now, status: "processing", reason: "processing", clientReported: false, createdAtMs: before?.createdAtMs ?? now, updatedAtMs: now, requestCount: (Number(before?.requestCount) || 0) + 1 }, { merge: true });
+      tx.set(ref, { text: input.text, uid: input.uid, guestId: input.guestId, lang: input.lang, lens: input.lens, ...context, ...analysisAttemptResult({}), guestResponse: null, yourfitPromo: false, yourfitEligible: false, yourfitImpressionAtMs: null, displayedAtMs: null, events: appendAttemptEvent(before ?? {}, before ? "analysis_retried" : "analysis_submitted", "server", now), httpStatus: null, durationMs: null, lastEvent: null, startedAtMs: now, status: "processing", reason: "processing", clientReported: false, createdAtMs: before?.createdAtMs ?? now, updatedAtMs: now, requestCount: (Number(before?.requestCount) || 0) + 1 }, { merge: true });
     });
     return id;
   } catch (error) { console.warn("Analysis attempt logging failed", error); return null; }
@@ -101,7 +101,7 @@ export async function reportAttemptEvent(id: string, uid: string | null, guestId
     const row = (await tx.get(ref)).data();
     if (!row || !ownsAnalysisAttempt(row, uid, guestId)) return false;
     if (event === "yourfit_promo_impression" || event === "yourfit_promo_click") {
-      if (row.yourfitPromo !== true || row.status !== "succeeded") return false;
+      if (row.yourfitEligible !== true && row.yourfitPromo !== true) return false;
       if (event === "yourfit_promo_impression" && row.yourfitImpressionAtMs) return true;
     }
     const update = clientAttemptUpdate(row, event);
@@ -128,4 +128,18 @@ export async function recordAttemptAccess(id: unknown, uid: string | null, guest
       tx.update(ref, { events: appendAttemptEvent(row, event, "server", now, attemptEventDetails(details)), updatedAtMs: now });
     });
   } catch (error) { console.warn("Analysis access logging failed", error); }
+}
+
+
+/** Eligibility is not a grant: it only permits recording the pre-result promotion. */
+export async function markYourfitAttemptEligible(id: unknown, uid: string | null, guestId: string | null) {
+  if (typeof id !== "string" || !/^[a-f0-9]{64}$/.test(id)) return;
+  try {
+    const db = adminFirestore();
+    const ref = db.collection("analysis_attempts").doc(id);
+    await db.runTransaction(async tx => {
+      const row = (await tx.get(ref)).data();
+      if (row && ownsAnalysisAttempt(row, uid, guestId)) tx.update(ref, { yourfitEligible: true });
+    });
+  } catch (error) { console.warn("YourFit eligibility logging failed", error); }
 }

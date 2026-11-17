@@ -147,7 +147,7 @@ export async function refundGuestAsk(
 }
 
 /** No-fill never grants credits; only an unused first analysis may use it. */
-export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: string) {
+export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: string, checkOnly = false) {
   const db = adminDb();
   return db.runTransaction(async (tx) => {
     const ref = db.collection("guestQuickSymbol").doc(guestId);
@@ -155,7 +155,7 @@ export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: stri
     const network = (await tx.get(db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${utcDayKey()}`))).data() ?? {};
     if (guest.yourfitAnalysisAccount) return false;
     if (guestAnalysisAccess(Number(guest.used ?? 0), Number(network.used ?? 0), 0) !== "first_ad") return false;
-    tx.set(ref, { firstAnalysisNoAd: true }, { merge: true });
+    if (!checkOnly) tx.set(ref, { firstAnalysisNoAd: true }, { merge: true });
     return true;
   });
 }

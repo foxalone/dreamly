@@ -1,5 +1,4 @@
 "use client";
-import YourFitPromo from "@/app/components/YourFitPromo";
 import AnalysisDisplay from "@/app/components/AnalysisDisplay";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
@@ -1913,7 +1912,6 @@ export default function DreamsPage() {
                             {t.app.analysis}
                           </span>
                           <div dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--text)]">{full}</div>
-                          {d.yourfitPromo && d.analysisAttemptId ? <YourFitPromo attemptId={d.analysisAttemptId} audience="account" /> : null}
                           <AnalysisActions dreamText={d.text ?? ""} language={d.analysisLang} onCompose={(selected) => { setTab(selected); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
                         </div>
                       </AnalysisDisplay>
