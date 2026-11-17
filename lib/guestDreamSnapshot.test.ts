@@ -8,7 +8,10 @@ function fixture() {
   const db = {
     collection: () => ({ doc: (id: string) => ({ id }) }),
     runTransaction: async (run: (tx: unknown) => Promise<void>) => run({
-      get: async (ref: { id: string }) => ({ exists: rows.has(ref.id) }),
+      get: async (ref: { id: string }) => {
+        const data = rows.get(ref.id);
+        return { exists: data !== undefined, data: () => data };
+      },
       set: (ref: { id: string }, value: Record<string, unknown>) => rows.set(ref.id, { ...rows.get(ref.id), ...value }),
     }),
   } as unknown as Firestore;

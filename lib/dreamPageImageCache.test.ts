@@ -106,8 +106,12 @@ test("worker + wait + scheduling retries preserve assignedAt and gallery order",
 test("batch invalidation deduplicates gallery/sitemap and ignores unknown database slugs", async () => {
   const f = fixture();
   for (const slug of ["snake", "house", "not-a-real-dream-symbol"]) f.images.set(slug, original);
-  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 2, paths: 21 });
-  assert.equal(new Set(f.invalidated).size, 21);
+  // Both snake and house now have Japanese pages: 14 articles, 7 galleries, 1 sitemap.
+  assert.deepEqual(await refreshDreamPageImageCache(undefined, f), { changed: 2, paths: 22 });
+  assert.equal(f.invalidated.length, 22);
+  assert.equal(new Set(f.invalidated).size, 22);
+  assert.ok(f.invalidated.includes("/ja/dreams/house"));
+  assert.ok(f.invalidated.includes("/ja/dreams/snake"));
   assert.ok(!f.invalidated.some((path) => path === "/" || path.includes("not-a-real") || path.startsWith("/en/")));
 });
 
