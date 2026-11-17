@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { JA_DREAM_ARTICLES } from "@/lib/jaPilotContent";
-import { JA_PILOT_SLUGS, type JaPilotSlug } from "@/lib/jaPilotPaths";
+import { getJapaneseDreamArticle } from "@/lib/jaDreamArticles";
+import { JA_WEB_DREAM_SLUGS } from "@/lib/jaPilotPaths";
 import DreamTopics from "../../_components/DreamTopics";
 import JapaneseDreamForm from "../../_components/JapaneseDreamForm";
 import { japaneseMetadata } from "../../_components/metadata";
@@ -13,13 +13,13 @@ type Props = { params: Promise<{ symbol: string }> };
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return JA_PILOT_SLUGS.map((symbol) => ({ symbol }));
+  return JA_WEB_DREAM_SLUGS.map((symbol) => ({ symbol }));
 }
 
 function getArticle(symbol: string) {
-  if (!Object.hasOwn(JA_DREAM_ARTICLES, symbol)) notFound();
-  const slug = symbol as JaPilotSlug;
-  return { slug, ...JA_DREAM_ARTICLES[slug] };
+  const article = getJapaneseDreamArticle(symbol);
+  if (!article) notFound();
+  return article;
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -55,7 +55,7 @@ export default async function JapaneseDreamArticle({ params }: Props) {
       <JapaneseDreamForm returnTo={`/ja/dreams/${slug}`} symbol={slug} />
       <section className={styles.topicSection} aria-labelledby="more-dreams-title">
         <h2 id="more-dreams-title">ほかの夢を調べる</h2>
-        <DreamTopics exclude={slug} />
+        <DreamTopics exclude={slug} limit={6} />
       </section>
     </main>
   );

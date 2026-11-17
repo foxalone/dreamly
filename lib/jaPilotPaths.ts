@@ -13,10 +13,38 @@ export const JA_PILOT_SLUGS = [
 
 export type JaPilotSlug = (typeof JA_PILOT_SLUGS)[number];
 
+const JA_ADDITIONAL_DREAM_SLUGS = [
+  "cat",
+  "water",
+  "falling",
+  "flying",
+  "wedding",
+  "ghost",
+  "death",
+  "baby",
+  "car-accident",
+  "hair-falling-out",
+  "alligator",
+  "crawling",
+  "tunnel",
+  "work",
+  "heights",
+  "nightmare",
+  "mirror",
+  "dog",
+  "ocean",
+  "spider",
+] as const;
+
+export type JaAdditionalDreamSlug = (typeof JA_ADDITIONAL_DREAM_SLUGS)[number];
+
+export const JA_WEB_DREAM_SLUGS = [...JA_PILOT_SLUGS, ...JA_ADDITIONAL_DREAM_SLUGS] as const;
+export type JaWebDreamSlug = (typeof JA_WEB_DREAM_SLUGS)[number];
+
 const japanesePaths = new Map<string, string>([
   ["/", "/ja"],
   ["/dreams", "/ja/dreams"],
-  ...JA_PILOT_SLUGS.map((slug): [string, string] => [`/dreams/${slug}`, `/ja/dreams/${slug}`]),
+  ...JA_WEB_DREAM_SLUGS.map((slug): [string, string] => [`/dreams/${slug}`, `/ja/dreams/${slug}`]),
 ]);
 
 const pilotPaths = new Set(japanesePaths.values());

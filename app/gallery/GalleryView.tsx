@@ -12,8 +12,7 @@ import {
   type DreamPageImageAssignment,
 } from "@/lib/dreamPageImage";
 import type { Locale } from "@/lib/i18n/config";
-import { JA_DREAM_ARTICLES } from "@/lib/jaPilotContent";
-import { JA_PILOT_SLUGS } from "@/lib/jaPilotPaths";
+import { getJapaneseDreamArticle } from "@/lib/jaDreamArticles";
 import { getLocalizedEntry } from "@/lib/i18n/localize-dictionary";
 import { formatMessage, getMessages } from "@/lib/i18n/messages";
 import { absoluteLocaleUrl } from "@/lib/i18n/path";
@@ -34,8 +33,7 @@ export default function GalleryView({
   const items = sortDreamPageImages(images).flatMap((image) => {
     const entry = getLocalizedEntry(image.slug, locale);
     if (!entry) return [];
-    const pilotSlug = locale === "ja" ? JA_PILOT_SLUGS.find((slug) => slug === entry.canonicalSlug) : undefined;
-    const japaneseName = pilotSlug ? JA_DREAM_ARTICLES[pilotSlug].name : undefined;
+    const japaneseName = locale === "ja" ? getJapaneseDreamArticle(entry.canonicalSlug)?.name : undefined;
     return [
       {
         ...image,

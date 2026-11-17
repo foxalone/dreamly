@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { JA_DREAM_ARTICLES } from "@/lib/jaPilotContent";
-import { JA_PILOT_SLUGS, type JaPilotSlug } from "@/lib/jaPilotPaths";
+import { JA_WEB_DREAM_ARTICLES } from "@/lib/jaDreamArticles";
+import { JA_WEB_DREAM_SLUGS } from "@/lib/jaPilotPaths";
 import styles from "../pilot.module.css";
 
-export default function DreamTopics({ exclude }: { exclude?: JaPilotSlug }) {
+export default function DreamTopics({ exclude, limit }: { exclude?: string; limit?: number }) {
+  const topics = JA_WEB_DREAM_SLUGS.filter((slug) => slug !== exclude).slice(0, limit);
   return (
     <ul className={styles.topics}>
-      {JA_PILOT_SLUGS.filter((slug) => slug !== exclude).map((slug) => {
-        const { name, icon } = JA_DREAM_ARTICLES[slug];
+      {topics.map((slug) => {
+        const { name, icon } = JA_WEB_DREAM_ARTICLES[slug];
         return (
           <li key={slug}>
             <Link href={`/ja/dreams/${slug}`} className={styles.topic}>

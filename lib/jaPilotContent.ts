@@ -1,6 +1,6 @@
 import type { JaPilotSlug } from "./jaPilotPaths";
 
-type JaDreamArticle = {
+export type JaDreamArticle = {
   name: string;
   icon: string;
   summary: string;

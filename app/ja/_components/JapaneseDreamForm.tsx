@@ -6,7 +6,7 @@ import { adUnlockUrl, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPendi
 import { trackEvent } from "@/lib/analytics";
 import { DREAM_MAX_CHARS, isDreamTooLong } from "@/lib/dreamLength";
 import { auth } from "@/lib/firebase";
-import type { JaPilotSlug } from "@/lib/jaPilotPaths";
+import type { JaWebDreamSlug } from "@/lib/jaPilotPaths";
 import styles from "../pilot.module.css";
 
 type Feedback = { text: string; offerAd?: boolean };
@@ -20,7 +20,7 @@ type AnalysisResponse = {
 
 const requestFailed = "夢を読み解けませんでした。時間をおいて、もう一度お試しください。";
 
-export default function JapaneseDreamForm({ returnTo, symbol }: { returnTo: string; symbol?: JaPilotSlug }) {
+export default function JapaneseDreamForm({ returnTo, symbol }: { returnTo: string; symbol?: JaWebDreamSlug }) {
   const [text, setText] = useState("");
   const [reading, setReading] = useState<Reading | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
