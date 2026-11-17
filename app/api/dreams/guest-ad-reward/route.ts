@@ -1,3 +1,4 @@
+import { grantGuestHouseAd } from "../_lib/guestHouseAd";
 import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { allowGuestFirstAnalysisWithoutAd, guestAdReward, guestReadingAd, normalizeGuestAdKind, readClientIp, readGuestId } from "../_lib/guestQuota";
@@ -18,6 +19,12 @@ async function handle(req: Request, grant: boolean) {
   try {
     const body = grant ? await req.json().catch(() => ({})) : {};
     if (grant && body.noAdAvailable === true) {
+      if (body.kind === "translate" || body.kind === "reading") {
+        const valid = body.kind === "translate" ? translationAdTarget(body.sharedDreamId, body.targetLang) : readingDreamId(body.sharedDreamId);
+        if (!valid) return NextResponse.json({ code: "TARGET_REQUIRED" }, { status: 400 });
+        const allowed = await grantGuestHouseAd(guestId, readClientIp(req), body.kind, body.sharedDreamId, body.targetLang);
+        return NextResponse.json({ yourfitPromo: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
+      }
       if (body.kind !== "analysis") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
       const allowed = await allowGuestFirstAnalysisWithoutAd(guestId, readClientIp(req));
       return NextResponse.json({ firstAnalysisFree: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });

@@ -68,7 +68,8 @@ test("guest ad returns to the localized journal and only the submitted dream res
       assert.equal(peekAdUnlockPending(kind), null);
 
       setAdUnlockPending({ kind, dreamId: "shared-dream" });
-      markAdUnlockReady(kind);
+      markAdUnlockReady(kind, true);
+      assert.equal(peekAdUnlockPending(kind)?.yourfitPromo, true);
       assert.equal(takeAdUnlockPending(kind)?.dreamId, "shared-dream");
       assert.equal(takeAdUnlockPending(kind), null);
     }

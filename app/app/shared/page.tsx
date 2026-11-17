@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import YourFitPromo from "@/app/components/YourFitPromo";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import { useRouter } from "next/navigation";
@@ -419,6 +420,7 @@ export default function SharedPage() {
 
   // ✅ back from the Offerwall page (/ad/unlock): the ad credit is booked,
   // return to the card and re-run the translation the user asked for.
+  const [housePromo, setHousePromo] = useState<{ dreamId: string; targetLang?: string } | null>(null);
   const resumedRef = useRef(false);
   useEffect(() => {
     if (resumedRef.current || !authReady || !languageReady) return;
@@ -445,6 +447,7 @@ export default function SharedPage() {
       return;
     }
     takeAdUnlockPending("translate");
+    if (pending.yourfitPromo) setHousePromo({ dreamId: pending.dreamId, targetLang: pending.targetLang });
     resumedRef.current = true;
     window.requestAnimationFrame(() => {
       document.getElementById(`shared-${d.id}`)?.scrollIntoView({ behavior: "auto", block: "start" });
@@ -1044,6 +1047,9 @@ export default function SharedPage() {
                       {showingTranslation[d.id] ?? d.text}
                     </LocaleLink>
 
+                    {housePromo?.dreamId === d.id && housePromo.targetLang === targetLang && showingTranslation[d.id] && (
+                      <YourFitPromo kind="translate" targetKey={`${d.id}:${housePromo.targetLang}`} />
+                    )}
                     {analysis ? (
                         <AnalysisExcerpt
                           text={analysis}

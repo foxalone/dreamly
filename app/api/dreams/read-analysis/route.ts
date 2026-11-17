@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         const guest = await tx.get(guestRef);
         if (!matchingReadingAdGrant(guest.data()?.readingAdGrant, id)) return false;
         tx.set(guestRef, { readingAdGrant: FieldValue.delete() }, { merge: true });
-        tx.set(unlockRef, { sharedDreamId: id, atMs: Date.now() });
+        tx.set(unlockRef, { sharedDreamId: id, atMs: Date.now(), source: guest.data()?.readingAdGrant?.source === "yourfit" ? "yourfit" : "rewarded_ad" });
         return true;
       });
       if (opened) return NextResponse.json({ analysis });

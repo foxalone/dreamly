@@ -6,13 +6,15 @@ import { yourfitPromoCopy } from "@/lib/i18n/yourfitPromo";
 import { trackEvent } from "@/lib/analytics";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
-export default function YourFitPromo({ attemptId }: { attemptId: string }) {
+export default function YourFitPromo({ attemptId, kind = "analysis", targetKey = "" }: { attemptId?: string; kind?: "analysis" | "translate" | "reading"; targetKey?: string }) {
   const locale = useLocale();
   const copy = yourfitPromoCopy[locale];
   const element = useRef<HTMLElement>(null);
   const reported = useRef(false);
-  const params = { campaign: "first_analysis_no_ad", placement: "guest_dream_result", language: locale };
-  const href = `https://yourfit.space/dashboard?utm_source=dreamly&utm_medium=house_ad&utm_campaign=first_analysis_no_ad&utm_content=guest_dream_result_${locale}`;
+  const campaign = `first_${kind}_no_ad`;
+  const placement = kind === "analysis" ? "guest_dream_result" : `guest_${kind}_result`;
+  const params = { campaign, placement, language: locale };
+  const href = `https://yourfit.space/dashboard?utm_source=dreamly&utm_medium=house_ad&utm_campaign=${campaign}&utm_content=${placement}_${locale}`;
 
   useEffect(() => {
     if (!element.current) return;
@@ -22,12 +24,12 @@ export default function YourFitPromo({ attemptId }: { attemptId: string }) {
       reported.current = true;
       // Persist across React remounts and reloads without making storage a prerequisite.
       try {
-        const key = `dreamly:yourfit-impression:${attemptId}`;
+        const key = `dreamly:yourfit-impression:${attemptId ?? `${kind}:${targetKey}`}`;
         if (localStorage.getItem(key)) return;
         localStorage.setItem(key, "1");
       } catch { /* The server also deduplicates impressions. */ }
-      reportAnalysisAttempt("yourfit_promo_impression", undefined, attemptId);
-      trackEvent("yourfit_promo_impression", { campaign: "first_analysis_no_ad", placement: "guest_dream_result", language: locale });
+      if (attemptId) reportAnalysisAttempt("yourfit_promo_impression", undefined, attemptId);
+      trackEvent("yourfit_promo_impression", { campaign, placement, language: locale });
     };
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
@@ -36,7 +38,7 @@ export default function YourFitPromo({ attemptId }: { attemptId: string }) {
     observer.observe(element.current);
     document.addEventListener("visibilitychange", report);
     return () => { observer.disconnect(); document.removeEventListener("visibilitychange", report); };
-  }, [attemptId, locale]);
+  }, [attemptId, locale, campaign, placement, kind, targetKey]);
 
   return (
     <aside ref={element} dir={locale === "ar" ? "rtl" : "ltr"} aria-label={`${copy.label} · YourFit`}
@@ -47,7 +49,7 @@ export default function YourFitPromo({ attemptId }: { attemptId: string }) {
         <p className="mt-1 text-sm text-[var(--muted)]">{copy.body}</p>
         <a href={href} target="_blank" rel="noopener noreferrer" className="dream-btn dream-btn--neutral mt-2 inline-flex min-h-11 max-w-full items-center gap-1 text-sm"
           onClick={() => {
-            reportAnalysisAttempt("yourfit_promo_click", undefined, attemptId);
+            if (attemptId) reportAnalysisAttempt("yourfit_promo_click", undefined, attemptId);
             trackEvent("yourfit_promo_click", params);
           }}>
           {copy.cta}<span aria-hidden="true">↗</span>

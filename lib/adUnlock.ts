@@ -43,6 +43,7 @@ export type AdUnlockPending = {
   draft?: { text: string; tab: "DREAMS" | "STORIES" | "JOURNAL"; usedVoice: boolean };
   /** Set only after the server confirms ad access or the first-free fallback. */
   ready?: boolean;
+  yourfitPromo?: boolean;
   atMs: number;
 };
 
@@ -105,10 +106,10 @@ export function bindAdUnlockDream(text: string, dreamId: string) {
 }
 
 /** A navigation back is not a grant. Keep the action until access is confirmed. */
-export function markAdUnlockReady(kind?: PaywallKind) {
+export function markAdUnlockReady(kind?: PaywallKind, yourfitPromo = false) {
   try {
     const pending = peekAdUnlockPending(kind);
-    if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...pending, ready: true }));
+    if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...pending, ready: true, yourfitPromo }));
   } catch { /* Storage may be unavailable. */ }
 }
 

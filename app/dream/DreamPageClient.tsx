@@ -10,6 +10,7 @@
  * and the pending text is published right after (nothing is lost).
  */
 
+import YourFitPromo from "@/app/components/YourFitPromo";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Mic, Trash2 } from "lucide-react";
 import {
@@ -179,6 +180,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const [my, setMy] = useState<MyReactions>({ heart: false, like: false, star: false });
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
+  const [housePromo, setHousePromo] = useState<{ kind: "translate" | "reading"; dreamId: string; targetLang?: string; commentId?: string } | null>(null);
   // translation
   const { targetLang, ready: languageReady } = useTranslationLanguage(uid);
   const [translation, setTranslation] = useState<{ dreamId: string; lang: TranslationLanguage; text: string } | null>(null);
@@ -685,10 +687,12 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     resumedRef.current = true;
     const pending = takeAdUnlockPending("translate");
     if (pending?.commentId && pending.dreamId === commentTranslationTargetId(dream.id, pending.commentId)) {
+      if (pending.yourfitPromo) setHousePromo({ ...pending, kind: "translate", dreamId: pending.dreamId! });
       void translateCommentRef.current(pending.commentId, pending.targetLang as TranslationLanguage | undefined);
       return;
     }
     if (pending?.dreamId === analysisTranslationTargetId(dream.id)) {
+      if (pending.yourfitPromo) setHousePromo({ ...pending, kind: "translate", dreamId: pending.dreamId });
       void (async () => {
         if (pending.analysisFull) await openAnalysisRef.current();
         await translateAnalysisRef.current(pending.targetLang as TranslationLanguage | undefined, pending.analysisFull === true);
@@ -697,11 +701,15 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       return;
     }
     if (pending?.dreamId === dream.id) {
+      if (pending.yourfitPromo) setHousePromo({ ...pending, kind: "translate", dreamId: pending.dreamId });
       void translateRef.current(pending?.targetLang as TranslationLanguage | undefined);
       return;
     }
     const reading = takeAdUnlockPending("reading");
-    if (reading?.dreamId === dream.id) void openAnalysisRef.current();
+    if (reading?.dreamId === dream.id) {
+      if (reading.yourfitPromo) setHousePromo({ kind: "reading", dreamId: reading.dreamId });
+      void openAnalysisRef.current();
+    }
   }, [authReady, languageReady, dream.id]);
 
   async function publishComment(text: string, forUid: string): Promise<{ xp: number; alreadyPublished: boolean }> {
@@ -977,6 +985,13 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
           </div>
         </div>
       </article>
+
+      {housePromo && (housePromo.kind === "reading" ? !!fullAnalysis
+        : housePromo.commentId ? commentTranslations[housePromo.commentId]?.lang === housePromo.targetLang
+        : housePromo.dreamId === analysisTranslationTargetId(dream.id) ? analysisTranslation?.lang === housePromo.targetLang
+        : translation?.lang === housePromo.targetLang) && (
+        <YourFitPromo kind={housePromo.kind} targetKey={`${housePromo.dreamId}:${housePromo.targetLang ?? ""}`} />
+      )}
 
       <section id="comments" className="mt-8 scroll-mt-24">
         <h2 className="text-lg font-semibold text-[var(--text)]">

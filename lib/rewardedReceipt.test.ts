@@ -1,3 +1,5 @@
+import { grantGuestHouseAd } from "../app/api/dreams/_lib/guestHouseAd";
+import { consumeGuestTranslation, hashIp } from "../app/api/dreams/_lib/guestQuota";
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Firestore } from "firebase-admin/firestore";
@@ -110,5 +112,36 @@ test("failed transaction cannot persist either credit or receipt", async () => {
   await assert.rejects(grantAdReward("alice", "analysis", id, db), /storage unavailable/);
   assert.equal(docs.size, 0);
   await assert.rejects(guestAdReward("guest", "test-ip", true, id, db));
+  assert.equal(docs.size, 0);
+});
+
+
+test("house ad grants one target per action, including concurrent requests and later days", async () => {
+  const { db, docs } = fixture();
+  const results = await Promise.all(["dream-a", "dream-b", "dream-c"].map(dream => grantGuestHouseAd("guest", "ip", "translate", dream, "ru", db)));
+  assert.deepEqual(results, [true, false, false]);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-a", "es", db), false);
+  assert.equal(await consumeGuestTranslation("guest", { sharedDreamId: "dream-a", targetLang: "ru" }, db), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-a", "ru", db), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "reading", "dream-b", undefined, db), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "reading", "dream-c", undefined, db), false);
+  docs.delete(`guestQuickSymbolIp/${hashIp("ip")}_${new Date().toISOString().slice(0, 10)}`);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "dream-b", "ru", db), false);
+  assert.equal(docs.get("guestQuickSymbol/guest")?.adAnalysisCredits, undefined);
+});
+
+test("house ad caps cookie resets on the same network and preserves watched-ad grants", async () => {
+  const { db, docs } = fixture();
+  assert.equal(await grantGuestHouseAd("guest", "ip", "reading", "dream-a", undefined, db), true);
+  assert.equal(await grantGuestHouseAd("new-cookie", "ip", "reading", "dream-a", undefined, db), false);
+  docs.set("guestQuickSymbol/paid", { translationAdGrant: { sharedDreamId: "paid-dream", targetLang: "ru", expiresAtMs: Date.now() + 60_000 } });
+  assert.equal(await grantGuestHouseAd("paid", "other-ip", "translate", "dream-b", "ru", db), false);
+  assert.equal(docs.get("guestQuickSymbol/paid")?.yourfitTranslation, undefined);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "translate", "../bad", "ru", db), false);
+});
+
+test("failed house-ad transaction leaves eligibility and grant untouched", async () => {
+  const { db, docs } = fixture(true);
+  await assert.rejects(grantGuestHouseAd("guest", "ip", "reading", "dream-a", undefined, db));
   assert.equal(docs.size, 0);
 });

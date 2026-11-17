@@ -174,7 +174,7 @@ export default function AdUnlockClient() {
         } else if (Date.now() - started > APPEAR_TIMEOUT_MS) {
           trackEvent("offerwall_unavailable", { kind });
           report.current?.("ad_unavailable");
-          setPhase(kind === "analysis" ? "checking" : "unavailable");
+          setPhase(kind === "analysis" || kind === "translate" || kind === "reading" ? "checking" : "unavailable");
         }
         if (!seen) return;
       }
@@ -299,7 +299,7 @@ export default function AdUnlockClient() {
   // choices while the first-free fallback is still being checked.
   useEffect(() => {
     if (phase !== "checking" || user === undefined) return;
-    if (user !== null || kind !== "analysis") { setPhase("unavailable"); return; }
+    if (user !== null || (kind !== "analysis" && kind !== "translate" && kind !== "reading")) { setPhase("unavailable"); return; }
     let cancelled = false;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20_000);
@@ -308,13 +308,17 @@ export default function AdUnlockClient() {
       credentials: "same-origin",
       signal: controller.signal,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "analysis", noAdAvailable: true, attemptId: pendingAnalysisAttemptId() }),
+      body: JSON.stringify({ kind, noAdAvailable: true,
+        attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
+        sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
+        targetLang: pending.current?.targetLang || sp.get("targetLang"),
+      }),
     }).then(async (res) => {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
-      if (data?.firstAnalysisFree === true) {
-        trackEvent("yourfit_promo_eligible", { campaign: "first_analysis_no_ad", placement: "guest_dream_result", language: locale });
-        markAdUnlockReady();
+      if (data?.firstAnalysisFree === true || data?.yourfitPromo === true) {
+        trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: kind === "analysis" ? "guest_dream_result" : `guest_${kind}_result`, language: locale });
+        markAdUnlockReady(kind, data?.yourfitPromo === true);
         setPhase("done");
         report.current?.("ad_resume_started");
         router.replace(next);
@@ -325,7 +329,7 @@ export default function AdUnlockClient() {
       if (!cancelled) setPhase("failed");
     }).finally(() => clearTimeout(timeout));
     return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
-  }, [phase, user, kind, next, router]);
+  }, [phase, user, kind, next, router, locale, sp]);
 
   async function signIn() {
     if (signInBusy) return;
