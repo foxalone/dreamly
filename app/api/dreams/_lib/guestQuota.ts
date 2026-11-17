@@ -153,6 +153,7 @@ export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: stri
     const ref = db.collection("guestQuickSymbol").doc(guestId);
     const guest = (await tx.get(ref)).data() ?? {};
     const network = (await tx.get(db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${utcDayKey()}`))).data() ?? {};
+    if (guest.yourfitAnalysisAccount) return false;
     if (guestAnalysisAccess(Number(guest.used ?? 0), Number(network.used ?? 0), 0) !== "first_ad") return false;
     tx.set(ref, { firstAnalysisNoAd: true }, { merge: true });
     return true;

@@ -1,3 +1,4 @@
+import { consumeAccountHouseAnalysis, finishAccountHouseAnalysis, recoverAccountHouseAnalysis } from "../_lib/accountHouseAd";
 // src/app/api/dreams/analyze/route.ts
 import { saveGuestDreamSnapshot } from "../_lib/guestDreamSnapshot";
 import { NextResponse } from "next/server";
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
   let chargedUid: string | null = null;
   let freeAnalysisUid: string | null = null;
   let adCreditUid: string | null = null;
+  let houseAdUid: string | null = null;
   let guestId: string | null = null;
   let clientIp = "";
   let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
@@ -78,12 +80,18 @@ export async function POST(req: Request) {
 
   const finish = async <T extends NextResponse>(res: T): Promise<T> => {
     const result = await res.clone().json().catch(() => ({}));
+    if (houseAdUid && res.ok) await finishAccountHouseAnalysis(houseAdUid, result, attemptId);
     await finishAnalysisAttempt(attemptId, res.status, failureCode ?? result.code, result, startedAtMs);
     if (attemptId) res.headers.set("X-Dreamly-Attempt", attemptId);
     return guestId ? setGuestCookie(res, guestId) : res;
   };
 
   const refundCharge = async () => {
+    if (houseAdUid) {
+      await finishAccountHouseAnalysis(houseAdUid, null, null);
+      houseAdUid = null;
+      return;
+    }
     if (chargedUid) {
       await refundDreamSlot(chargedUid);
       chargedUid = null;
@@ -127,6 +135,13 @@ export async function POST(req: Request) {
     const lang = String(body.lang ?? "").trim() || guessLang(text);
     const lens = parseDreamLens(body.lens);
     const existingGuestId = readGuestId(req);
+    const houseTarget = { dreamId: String(body.dreamId ?? ""), text, lang, lens };
+    if (uid) {
+      const recovered = await recoverAccountHouseAnalysis(uid, houseTarget);
+      if (recovered) return NextResponse.json(recovered.result, { headers: {
+        "Cache-Control": "no-store", ...(recovered.attemptId ? { "X-Dreamly-Attempt": recovered.attemptId } : {}),
+      } });
+    }
     if (!uid && existingGuestId && body.source !== "android") {
       try {
         const recovered = await recoverUndeliveredGuestAnalysis({ text, lang, lens, guestId: existingGuestId, attemptId: body.attemptId });
@@ -175,10 +190,14 @@ export async function POST(req: Request) {
       // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
       // subscription: 3 free analyses in total, max 1 a day.
       const access = await consumeAnalysisAccess(uid);
-      if ("error" in access) return finish(access.error);
-      if (access.charge === "slot") chargedUid = uid;
-      if (access.charge === "free") freeAnalysisUid = uid;
-      if (access.charge === "ad") adCreditUid = uid;
+      if ("error" in access) {
+        if (access.error.status !== 402 || !await consumeAccountHouseAnalysis(uid, houseTarget)) return finish(access.error);
+        houseAdUid = uid;
+      } else {
+        if (access.charge === "slot") chargedUid = uid;
+        if (access.charge === "free") freeAnalysisUid = uid;
+        if (access.charge === "ad") adCreditUid = uid;
+      }
     }
     const isGuest = !uid;
 
@@ -282,7 +301,7 @@ export async function POST(req: Request) {
         model,
         lens,
         guest: isGuest,
-        yourfitPromo: isGuest && guestBooking?.charge === "free" && body.source !== "android",
+        yourfitPromo: Boolean(houseAdUid || (isGuest && guestBooking?.charge === "free")) && body.source !== "android",
         cost: 0,
         emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,

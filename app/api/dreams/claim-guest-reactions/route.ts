@@ -1,3 +1,4 @@
+import { inheritGuestHouseAds } from "../_lib/accountHouseAd";
 import { NextResponse } from "next/server";
 
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
   if (!guestId) return NextResponse.json({ ok: true, moved: 0 });
   try {
     const db = adminDb();
+    await inheritGuestHouseAds(auth.uid, guestId, db);
     const [dreams, gallery] = await Promise.all([
       claimGuestReactions(db, guestId, auth.uid),
       claimGuestGalleryHearts(db, guestId, auth.uid),

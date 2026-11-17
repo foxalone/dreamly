@@ -6,7 +6,7 @@ import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 import { trackEvent } from "@/lib/analytics";
 
 /** Evidence of a visible answer, not proof that a person read or understood it. */
-export default function AnalysisDisplay({ attemptId, children, yourfitPromo = false }: { attemptId?: string | null; children: ReactNode; yourfitPromo?: boolean }) {
+export default function AnalysisDisplay({ attemptId, children, yourfitPromo = false, audience = "guest" }: { attemptId?: string | null; children: ReactNode; yourfitPromo?: boolean; audience?: "guest" | "account" }) {
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!attemptId || !element.current) return;
@@ -23,7 +23,7 @@ export default function AnalysisDisplay({ attemptId, children, yourfitPromo = fa
           firstDisplay = !localStorage.getItem(key);
           localStorage.setItem(key, "1");
         } catch { /* Display is still reported when storage is unavailable. */ }
-        if (firstDisplay) trackEvent("yourfit_analysis_displayed", { campaign: "first_analysis_no_ad", placement: "guest_dream_result" });
+        if (firstDisplay) trackEvent("yourfit_analysis_displayed", { campaign: "first_analysis_no_ad", placement: `${audience}_dream_result` });
       }
       void (async () => {
         const token = await auth.currentUser?.getIdToken().catch(() => undefined);
@@ -37,6 +37,6 @@ export default function AnalysisDisplay({ attemptId, children, yourfitPromo = fa
     observer.observe(element.current);
     document.addEventListener("visibilitychange", report);
     return () => { disposed = true; observer.disconnect(); document.removeEventListener("visibilitychange", report); };
-  }, [attemptId, yourfitPromo]);
+  }, [attemptId, yourfitPromo, audience]);
   return <div ref={element}>{children}</div>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import YourFitPromo from "@/app/components/YourFitPromo";
 import AnalysisDisplay from "@/app/components/AnalysisDisplay";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
@@ -115,6 +116,7 @@ type Dream = {
   analysisText?: string;
   analysisLang?: string;
   analysisAttemptId?: string;
+  yourfitPromo?: boolean;
   analysisAtMs?: number;
   analysisModel?: string;
   analysisLens?: string;
@@ -820,6 +822,7 @@ export default function DreamsPage() {
               id: d.id,
               analysisText: kept.analysisText,
               analysisAttemptId: kept.analysisAttemptId,
+              yourfitPromo: kept.yourfitPromo,
               analysisAtMs: kept.analysisAtMs,
               analysisModel: kept.analysisModel,
               analysisLens: kept.analysisLens,
@@ -1402,6 +1405,7 @@ export default function DreamsPage() {
         analysisText,
         ...(typeof data2.analysisLang === "string" ? { analysisLang: data2.analysisLang } : {}),
         ...(requestAttemptId ? { analysisAttemptId: requestAttemptId } : {}),
+        yourfitPromo: data2.yourfitPromo === true,
         analysisAtMs: nowMs,
         analysisModel: data2?.model ?? null,
         analysisLens: data2?.lens ?? analysisLens,
@@ -1414,6 +1418,7 @@ export default function DreamsPage() {
           analysisText,
           analysisLang: typeof data2.analysisLang === "string" ? data2.analysisLang : undefined,
           analysisAttemptId: requestAttemptId,
+          yourfitPromo: data2.yourfitPromo === true,
           analysisAtMs: nowMs,
           analysisModel: data2?.model ?? undefined,
           analysisLens: data2?.lens ?? analysisLens,
@@ -1432,6 +1437,15 @@ export default function DreamsPage() {
         }).catch(() => {});
       }
 
+      if (data2.yourfitPromo === true) {
+        let firstReady = true;
+        try {
+          const key = `dreamly:yourfit-ready:${requestAttemptId ?? dreamId}`;
+          firstReady = !localStorage.getItem(key);
+          localStorage.setItem(key, "1");
+        } catch { /* Metrics never block the result. */ }
+        if (firstReady) trackEvent("yourfit_analysis_ready", { campaign: "first_analysis_no_ad", placement: "account_dream_result", language: locale });
+      }
       trackEvent("dream_analysis_completed", {
         input_language: (dream as any)?.langGuess ?? guessLang(t),
         word_count: countWords(t),
@@ -1892,13 +1906,14 @@ export default function DreamsPage() {
                   const view = analysisPreview(full);
                   if (expandedAnalysis.has(d.id)) {
                     return (
-                      <AnalysisDisplay attemptId={d.analysisAttemptId}>
+                      <AnalysisDisplay attemptId={d.analysisAttemptId} yourfitPromo={d.yourfitPromo} audience="account">
                         <div className="mt-3">
                           {escapedFor && escapedFor.id === d.id ? <EscapeNote emojis={escapedFor.emojis} copy={escapedFor.copy} dreamText={d.text} /> : null}
                           <span className="inline-flex items-center rounded-full border border-purple-400/50 bg-purple-500/15 px-2 py-0 text-xs font-semibold leading-5 text-purple-500">
                             {t.app.analysis}
                           </span>
                           <div dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--text)]">{full}</div>
+                          {d.yourfitPromo && d.analysisAttemptId ? <YourFitPromo attemptId={d.analysisAttemptId} audience="account" /> : null}
                           <AnalysisActions dreamText={d.text ?? ""} language={d.analysisLang} onCompose={(selected) => { setTab(selected); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
                         </div>
                       </AnalysisDisplay>

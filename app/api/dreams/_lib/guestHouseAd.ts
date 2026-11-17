@@ -24,6 +24,7 @@ export async function grantGuestHouseAd(
     const guest = (await tx.get(ref)).data() ?? {};
     const network = (await tx.get(networkRef)).data() ?? {};
     const previous = guest[auditField];
+    if (previous?.source === "account") return false;
     if (previous) {
       if (previous.sharedDreamId !== target.sharedDreamId || previous.targetLang !== ("targetLang" in target ? target.targetLang : undefined)) return false;
     } else if (network[auditField] === true) return false;

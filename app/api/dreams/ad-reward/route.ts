@@ -1,3 +1,4 @@
+import { grantAccountHouseAd } from "../_lib/accountHouseAd";
 import { readGuestId } from "../_lib/guestQuota";
 import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
@@ -8,7 +9,7 @@ import { readingDreamId } from "@/lib/readingAdGrant";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
-type Body = { attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
+type Body = { noAdAvailable?: unknown; dreamText?: unknown; dreamId?: unknown; attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
 
 /**
  * POST /api/dreams/ad-reward — called by the browser after GPT fires
@@ -20,6 +21,11 @@ async function grantReward(req: Request) {
     const body = (await req.json().catch(() => ({}))) as Body;
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
+    if (body.noAdAvailable === true) {
+      if (body.kind !== "analysis" && body.kind !== "translate" && body.kind !== "reading") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
+      const allowed = await grantAccountHouseAd(auth.uid, readGuestId(req), body.kind, body.kind === "analysis" ? body.dreamId : body.sharedDreamId, body.targetLang, undefined, body.dreamText);
+      return NextResponse.json({ yourfitPromo: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
+    }
     if (!validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
     if (body.kind === "reading") {
       const sharedDreamId = readingDreamId(body.sharedDreamId);
@@ -45,7 +51,7 @@ async function grantReward(req: Request) {
 export async function POST(req: Request) {
   const body = (await req.clone().json().catch(() => ({}))) ?? {};
   const response = await grantReward(req);
-  if (!response.ok && body.kind === "analysis") {
+  if (!response.ok && body.kind === "analysis" && (body.noAdAvailable !== true || response.status >= 500)) {
     const auth = await requireSignedInUid(body.idToken).catch(() => null);
     const uid = auth && !("error" in auth) ? auth.uid : null;
     await recordAttemptAccess(body.attemptId, uid, readGuestId(req), "ad_grant_rejected", { httpStatus: response.status });

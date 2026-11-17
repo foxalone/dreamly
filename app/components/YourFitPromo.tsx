@@ -4,15 +4,24 @@ import { useEffect, useRef } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { yourfitPromoCopy } from "@/lib/i18n/yourfitPromo";
 import { trackEvent } from "@/lib/analytics";
+import { auth } from "@/lib/firebase";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 
-export default function YourFitPromo({ attemptId, kind = "analysis", targetKey = "" }: { attemptId?: string; kind?: "analysis" | "translate" | "reading"; targetKey?: string }) {
+function reportPromo(event: "yourfit_promo_impression" | "yourfit_promo_click", attemptId?: string) {
+  if (!attemptId) return;
+  void (async () => {
+    const token = await auth.currentUser?.getIdToken().catch(() => undefined);
+    reportAnalysisAttempt(event, undefined, attemptId, token);
+  })().catch(() => {});
+}
+
+export default function YourFitPromo({ attemptId, kind = "analysis", targetKey = "", audience = "guest" }: { attemptId?: string; kind?: "analysis" | "translate" | "reading"; targetKey?: string; audience?: "guest" | "account" }) {
   const locale = useLocale();
   const copy = yourfitPromoCopy[locale];
   const element = useRef<HTMLElement>(null);
   const reported = useRef(false);
   const campaign = `first_${kind}_no_ad`;
-  const placement = kind === "analysis" ? "guest_dream_result" : `guest_${kind}_result`;
+  const placement = kind === "analysis" ? `${audience}_dream_result` : `${audience}_${kind}_result`;
   const params = { campaign, placement, language: locale };
   const href = `https://yourfit.space/dashboard?utm_source=dreamly&utm_medium=house_ad&utm_campaign=${campaign}&utm_content=${placement}_${locale}`;
 
@@ -28,7 +37,7 @@ export default function YourFitPromo({ attemptId, kind = "analysis", targetKey =
         if (localStorage.getItem(key)) return;
         localStorage.setItem(key, "1");
       } catch { /* The server also deduplicates impressions. */ }
-      if (attemptId) reportAnalysisAttempt("yourfit_promo_impression", undefined, attemptId);
+      reportPromo("yourfit_promo_impression", attemptId);
       trackEvent("yourfit_promo_impression", { campaign, placement, language: locale });
     };
     const observer = new IntersectionObserver(([entry]) => {
@@ -49,7 +58,7 @@ export default function YourFitPromo({ attemptId, kind = "analysis", targetKey =
         <p className="mt-1 text-sm text-[var(--muted)]">{copy.body}</p>
         <a href={href} target="_blank" rel="noopener noreferrer" className="dream-btn dream-btn--neutral mt-2 inline-flex min-h-11 max-w-full items-center gap-1 text-sm"
           onClick={() => {
-            if (attemptId) reportAnalysisAttempt("yourfit_promo_click", undefined, attemptId);
+            reportPromo("yourfit_promo_click", attemptId);
             trackEvent("yourfit_promo_click", params);
           }}>
           {copy.cta}<span aria-hidden="true">↗</span>

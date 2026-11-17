@@ -990,7 +990,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
         : housePromo.commentId ? commentTranslations[housePromo.commentId]?.lang === housePromo.targetLang
         : housePromo.dreamId === analysisTranslationTargetId(dream.id) ? analysisTranslation?.lang === housePromo.targetLang
         : translation?.lang === housePromo.targetLang) && (
-        <YourFitPromo kind={housePromo.kind} targetKey={`${housePromo.dreamId}:${housePromo.targetLang ?? ""}`} />
+        <YourFitPromo kind={housePromo.kind} audience={uid ? "account" : "guest"} targetKey={`${housePromo.dreamId}:${housePromo.targetLang ?? ""}`} />
       )}
 
       <section id="comments" className="mt-8 scroll-mt-24">

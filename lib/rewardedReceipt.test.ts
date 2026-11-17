@@ -1,3 +1,4 @@
+import { grantAccountHouseAd, inheritGuestHouseAds, consumeAccountHouseAnalysis, finishAccountHouseAnalysis, recoverAccountHouseAnalysis } from "../app/api/dreams/_lib/accountHouseAd";
 import { grantGuestHouseAd } from "../app/api/dreams/_lib/guestHouseAd";
 import { consumeGuestTranslation, hashIp } from "../app/api/dreams/_lib/guestQuota";
 import assert from "node:assert/strict";
@@ -144,4 +145,62 @@ test("failed house-ad transaction leaves eligibility and grant untouched", async
   const { db, docs } = fixture(true);
   await assert.rejects(grantGuestHouseAd("guest", "ip", "reading", "dream-a", undefined, db));
   assert.equal(docs.size, 0);
+});
+
+
+test("account house trials are atomic, target-bound and unavailable to subscribers", async () => {
+  const { db, docs } = fixture();
+  docs.set("users/alice", {});
+  docs.set("users/pro", { subscriptionStatus: "active" });
+  assert.equal(await grantAccountHouseAd("pro", null, "reading", "dream-a", undefined, db), false);
+  const results = await Promise.all(["dream-a", "dream-b"].map(id => grantAccountHouseAd("alice", null, "translate", id, "ru", db)));
+  assert.deepEqual(results, [true, false]);
+  assert.equal(await grantAccountHouseAd("alice", null, "translate", "dream-a", "es", db), false);
+  assert.equal(await grantAccountHouseAd("alice", null, "translate", "dream-a", "ru", db), true);
+  assert.equal(await grantAccountHouseAd("alice", null, "reading", "dream-b", undefined, db), true);
+  assert.equal(await grantAccountHouseAd("alice", null, "reading", "dream-c", undefined, db), false);
+  assert.equal(docs.get("users/alice")?.adAnalysisCredits, undefined);
+});
+
+test("sign-in and sign-out preserve used house trials even after cookie removal", async () => {
+  const { db, docs } = fixture();
+  docs.set("users/alice", {});
+  docs.set("guestQuickSymbol/guest", { firstAnalysisNoAd: true, yourfitTranslation: { source: "yourfit", sharedDreamId: "dream-a", targetLang: "ru" } });
+  await inheritGuestHouseAds("alice", "guest", db);
+  assert.equal(await grantAccountHouseAd("alice", null, "translate", "dream-b", "ru", db), false);
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", undefined, undefined, db, "new dream"), false);
+  assert.equal(await grantAccountHouseAd("alice", "guest", "reading", "dream-b", undefined, db), true);
+  assert.equal(await grantGuestHouseAd("guest", "ip", "reading", "dream-b", undefined, db), false);
+});
+
+test("account analysis trial cannot be spent twice or on changed text; failed work is refundable and completed work recoverable", async () => {
+  const { db, docs } = fixture();
+  docs.set("users/alice", {});
+  docs.set("users/alice/dreams/own", { text: "A quiet room" });
+  const target = { dreamId: "own", text: "A quiet room", lang: "en", lens: "psychological" };
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "someone-elses-dream", undefined, db), false);
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "own", undefined, db), true);
+  assert.equal(await consumeAccountHouseAnalysis("alice", { ...target, text: "another dream" }, db), false);
+  assert.deepEqual(await Promise.all([consumeAccountHouseAnalysis("alice", target, db), consumeAccountHouseAnalysis("alice", target, db)]), [true, false]);
+  await finishAccountHouseAnalysis("alice", null, null, db);
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), true);
+  const result = { analysis: "Prepared answer", yourfitPromo: true };
+  await finishAccountHouseAnalysis("alice", result, "attempt-id", db);
+  assert.deepEqual(await recoverAccountHouseAnalysis("alice", target, db), { result, attemptId: "attempt-id" });
+  assert.equal(await recoverAccountHouseAnalysis("alice", { ...target, lens: "spiritual" }, db), null);
+  assert.equal(await recoverAccountHouseAnalysis("other-account", target, db), null);
+  await finishAccountHouseAnalysis("alice", null, null, db);
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), false);
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "own", undefined, db), true);
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), false);
+});
+
+test("account home analysis trial follows the same text when saved to the journal", async () => {
+  const { db, docs } = fixture();
+  docs.set("users/alice", {});
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", undefined, undefined, db, "A quiet room"), true);
+  const target = { dreamId: "saved-after-ad", text: "A quiet room", lang: "ru", lens: "psychological" };
+  assert.equal(await consumeAccountHouseAnalysis("alice", target, db), true);
+  await finishAccountHouseAnalysis("alice", { analysis: "Prepared" }, "attempt-id", db);
+  assert.ok(await recoverAccountHouseAnalysis("alice", { ...target, dreamId: "" }, db));
 });

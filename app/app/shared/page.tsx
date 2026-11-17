@@ -1048,7 +1048,7 @@ export default function SharedPage() {
                     </LocaleLink>
 
                     {housePromo?.dreamId === d.id && housePromo.targetLang === targetLang && showingTranslation[d.id] && (
-                      <YourFitPromo kind="translate" targetKey={`${d.id}:${housePromo.targetLang}`} />
+                      <YourFitPromo kind="translate" audience={uid ? "account" : "guest"} targetKey={`${d.id}:${housePromo.targetLang}`} />
                     )}
                     {analysis ? (
                         <AnalysisExcerpt

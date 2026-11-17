@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         const grant = await tx.get(grantRef);
         if (!matchingReadingAdGrant(grant.data(), id)) return false;
         tx.delete(grantRef);
-        tx.set(unlockRef, { sharedDreamId: id, atMs: Date.now() });
+        tx.set(unlockRef, { sharedDreamId: id, atMs: Date.now(), source: grant.data()?.source === "yourfit" ? "yourfit" : "rewarded_ad" });
         return true;
       });
       if (opened) return NextResponse.json({ analysis });

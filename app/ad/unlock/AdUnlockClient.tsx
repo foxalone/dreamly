@@ -115,7 +115,7 @@ export default function AdUnlockClient() {
   }, [japanese, kind, user, phase]);
   const rewardId = useRef<string>("");
   const pending = useRef<ReturnType<typeof peekAdUnlockPending> | undefined>(undefined);
-  if (pending.current === undefined) pending.current = kind === "translate" || kind === "reading" ? peekAdUnlockPending(kind) : null;
+  if (pending.current === undefined) pending.current = kind === "analysis" || kind === "translate" || kind === "reading" ? peekAdUnlockPending(kind) : null;
   if (!rewardId.current) rewardId.current = crypto.randomUUID();
 
   useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
@@ -299,25 +299,29 @@ export default function AdUnlockClient() {
   // choices while the first-free fallback is still being checked.
   useEffect(() => {
     if (phase !== "checking" || user === undefined) return;
-    if (user !== null || (kind !== "analysis" && kind !== "translate" && kind !== "reading")) { setPhase("unavailable"); return; }
+    if (kind !== "analysis" && kind !== "translate" && kind !== "reading") { setPhase("unavailable"); return; }
     let cancelled = false;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20_000);
-    void fetch("/api/dreams/guest-ad-reward", {
-      method: "POST",
-      credentials: "same-origin",
-      signal: controller.signal,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind, noAdAvailable: true,
-        attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
-        sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
-        targetLang: pending.current?.targetLang || sp.get("targetLang"),
-      }),
-    }).then(async (res) => {
+    void (async () => {
+      const idToken = user ? await user.getIdToken() : undefined;
+      return fetch(user ? "/api/dreams/ad-reward" : "/api/dreams/guest-ad-reward", {
+        method: "POST",
+        credentials: "same-origin",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, noAdAvailable: true, idToken,
+          dreamId: pending.current?.dreamId, dreamText: pending.current?.dreamText,
+          attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
+          sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
+          targetLang: pending.current?.targetLang || sp.get("targetLang"),
+        }),
+      });
+    })().then(async (res) => {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
       if (data?.firstAnalysisFree === true || data?.yourfitPromo === true) {
-        trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: kind === "analysis" ? "guest_dream_result" : `guest_${kind}_result`, language: locale });
+        trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale });
         markAdUnlockReady(kind, data?.yourfitPromo === true);
         setPhase("done");
         report.current?.("ad_resume_started");
