@@ -1,6 +1,6 @@
 import { requestDreamPlatform } from "./dreamPlatform";
 
-export const ATTEMPT_EVENTS = ["ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_grant_timeout", "ad_grant_network_failed", "ad_grant_rejected", "ad_resume_started", "ad_auth_timeout", "access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
+export const ATTEMPT_EVENTS = ["yourfit_promo_impression", "yourfit_promo_click", "ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_grant_timeout", "ad_grant_network_failed", "ad_grant_rejected", "ad_resume_started", "ad_auth_timeout", "access_choice_opened", "access_choice_dismissed", "ad_video_selected", "analysis_displayed", "analysis_client_failed", "ad_unavailable", "ad_reward_failed", "auth_unauthorized_domain", "auth_failed", "back", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent", "auth_succeeded", "auth_cancelled", "auth_popup_blocked", "auth_network_failed", "auth_invalid_credential", "auth_throttled", "auth_disabled"] as const;
 export type AttemptEvent = typeof ATTEMPT_EVENTS[number];
 export function ownsAnalysisAttempt(row: { uid?: string | null; guestId?: string | null }, uid: string | null, guestId: string | null): boolean {
   return Boolean((uid && row.uid === uid) || (guestId && row.guestId === guestId));
@@ -18,6 +18,7 @@ export function attemptOutcome(status: number, code?: string, accessReason?: unk
 }
 /** Never downgrade a completed reading with a late browser event. Keep the actual failure on Back. */
 export function clientAttemptUpdate(previous: { status?: string; reason?: string }, event: AttemptEvent) {
+  if (event === "yourfit_promo_impression" || event === "yourfit_promo_click") return null;
   if (previous.status === "succeeded" || event === "analysis_displayed") return null;
   if (["ad_overlay_closed", "ad_stalled", "ad_page_left", "ad_grant_started", "ad_resume_started", "access_choice_opened", "ad_video_selected", "ad_page_opened", "ad_shown", "ad_signin_available", "ad_reward_confirmed", "auth_opened", "auth_google_started", "auth_email_started", "auth_signup_started", "auth_reset_started", "auth_reset_sent"].includes(event)) {
     return { status: previous.status || "waiting", reason: previous.reason || "ad_required", lastEvent: event };

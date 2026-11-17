@@ -75,6 +75,7 @@ export function useDreamAsk({
   }, []);
   const [error, setError] = useState<string | null>(null);
   const [analysisAttemptId, setAnalysisAttemptId] = useState<string | undefined>();
+  const [yourfitPromo, setYourfitPromo] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analysisLang, setAnalysisLang] = useState<string | null>(null);
   const [shareToFeed, setShareToFeedState] = useState(true);
@@ -100,6 +101,7 @@ export function useDreamAsk({
     if (pending.analysis) {
       setAnalysisAttemptId(pending.analysisAttemptId);
       setAnalysis(pending.analysis);
+      setYourfitPromo(pending.yourfitPromo === true);
       setAnalysisLang(pending.analysisLang ?? null);
       setEscapeNote(pending.escapeNote ?? null);
       setGuestShareCopy(pending.guestShareCopy ?? null);
@@ -161,6 +163,7 @@ export function useDreamAsk({
     setTextState(next);
     if (analysis) {
       setAnalysis(null);
+      setYourfitPromo(false);
       setAnalysisLang(null);
       setAnonShare("idle");
       setEscaped(null);
@@ -176,6 +179,7 @@ export function useDreamAsk({
     setLens(next);
     if (analysis) {
       setAnalysis(null);
+      setYourfitPromo(false);
       setEscapeAlreadyToday(false);
       onResultChange?.(false);
       persistPending(text, "", shareToFeed, next);
@@ -209,6 +213,7 @@ export function useDreamAsk({
   function reset() {
     setTextState("");
     setAnalysis(null);
+    setYourfitPromo(false);
     setAnalysisLang(null);
     setAnonShare("idle");
     setEscaped(null);
@@ -239,6 +244,7 @@ export function useDreamAsk({
     setBusy(true);
     setError(null);
     setAnalysis(null);
+    setYourfitPromo(false);
     setAnalysisLang(null);
     setAnonShare("idle");
     setEscaped(null);
@@ -250,6 +256,7 @@ export function useDreamAsk({
     let requestAttemptId = pendingAnalysisAttemptId(dream);
     let requestToken: string | null | undefined;
     let requestRejected = false;
+    let resultAvailable = false;
     try {
       await auth.authStateReady();
       const idToken = await auth.currentUser?.getIdToken().catch(() => null);
@@ -260,7 +267,7 @@ export function useDreamAsk({
       const storedEmojis =
         (initialDream?.text === dream ? initialDream.emojis : undefined) ??
         readHomeDreamQueue().find((item) => item.text === dream)?.emojis;
-      const res = await fetch("/api/dreams/analyze", {
+      const requestAnalysis = (recoverOnly = false) => fetch("/api/dreams/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -270,16 +277,35 @@ export function useDreamAsk({
           source,
           lang: locale,
           lens,
+          ...(recoverOnly ? { recoverOnly } : {}),
           ...(storedEmojis?.length ? { escapeEmojis: storedEmojis.map((e) => ({ native: e.native })) } : {}),
           ...(idToken ? { idToken } : {}),
         }),
       });
+      const rememberAttempt = (response: Response) => {
+        const id = response.headers.get("X-Dreamly-Attempt");
+        if (!id) return;
+        requestAttemptId = id;
+        writeHomeDreamPending(dream, { analysisAttemptId: id, lang: locale, lens, shareToFeed });
+      };
+
+      let res = await requestAnalysis().catch(() => null);
+      if (res) rememberAttempt(res);
+      let data = await res?.json().catch(() => null);
+      if (!res || (res.ok && (typeof data?.analysis !== "string" || !data.analysis.trim()))) {
+        // Safari can lose the response body after the server prepares an answer.
+        // This request can only retrieve it and cannot consume another credit.
+        const recovered = await requestAnalysis(true).catch(() => null);
+        const saved = recovered?.ok ? await recovered.json().catch(() => null) : null;
+        if (!recovered || typeof saved?.analysis !== "string" || !saved.analysis.trim()) {
+          throw new Error(dreamAnalysisErrorMessage("ANALYSIS_DELIVERY_FAILED", locale)!);
+        }
+        res = recovered;
+        data = saved;
+        rememberAttempt(res);
+      }
       requestRejected = !res.ok;
-      const data = await res.json().catch(() => ({}));
-      const attemptId = res.headers.get("X-Dreamly-Attempt");
-      requestAttemptId = attemptId ?? requestAttemptId;
-      setAnalysisAttemptId(attemptId ?? undefined);
-      if (attemptId) writeHomeDreamPending(dream, { analysisAttemptId: attemptId, lang: locale, lens, shareToFeed });
+      const attemptId = res.headers.get("X-Dreamly-Attempt") ?? undefined;
 
       if (!res.ok) {
         // A late quota response belongs to the journal that started it, not
@@ -321,14 +347,38 @@ export function useDreamAsk({
         throw new Error(dreamAnalysisErrorMessage(data?.code, locale) ?? (typeof data?.error === "string" ? data.error : "Analyze failed"));
       }
 
-      const next = String(data.analysis ?? "").trim();
-      if (!next) throw new Error("Empty analysis");
-      setAnalysis(next);
+      const next = data.analysis.trim();
       const nextAnalysisLang = typeof data.analysisLang === "string" ? data.analysisLang : null;
-      setAnalysisLang(nextAnalysisLang);
       const translatedNote = normalizeEscapeNoteCopy(data.escapeNote);
-      setEscapeNote(translatedNote);
       const translatedShare = normalizeGuestShareCopy(data.guestShareCopy);
+      // Save and render the reading before the map and anonymous feed work.
+      writeHomeDreamPending(dream, {
+        analysis: next,
+        analysisLang: nextAnalysisLang ?? undefined,
+        analysisAttemptId: attemptId,
+        escapeNote: translatedNote ?? undefined,
+        guestShareCopy: translatedShare ?? undefined,
+        shareToFeed,
+        lang: locale,
+        lens,
+        resumeAnalysis: false,
+        yourfitPromo: data.yourfitPromo === true,
+      });
+      resultAvailable = true;
+      setYourfitPromo(data.yourfitPromo === true);
+      if (data.yourfitPromo === true && attemptId) {
+        let firstResult = true;
+        try {
+          const key = `dreamly:yourfit-analysis-ready:${attemptId}`;
+          firstResult = !localStorage.getItem(key);
+          localStorage.setItem(key, "1");
+        } catch { /* Analytics must not block the reading. */ }
+        if (firstResult) trackEvent("yourfit_analysis_ready", { campaign: "first_analysis_no_ad", placement: "guest_dream_result", language: locale });
+      }
+      setAnalysisAttemptId(attemptId);
+      setAnalysis(next);
+      setAnalysisLang(nextAnalysisLang);
+      setEscapeNote(translatedNote);
       setGuestShareCopy(translatedShare);
       // Dream Kingdoms: the server granted an escape (first dream today) — remember it
       // for the catcher badge and show the note + fly-away above this reading.
@@ -363,13 +413,6 @@ export function useDreamAsk({
         };
       }
       writeHomeDreamPending(dream, {
-        analysis: next,
-        analysisLang: nextAnalysisLang ?? undefined,
-        escapeNote: translatedNote ?? undefined,
-        guestShareCopy: translatedShare ?? undefined,
-        shareToFeed,
-        lang: locale,
-        lens,
         emojis: visuals?.emojis,
         iconsEn: visuals?.iconsEn,
         rootsEn: visuals?.rootsEn,
@@ -439,8 +482,10 @@ export function useDreamAsk({
       });
       if (window.location.pathname !== journalPath) router.push(journalPath);
     } catch (err: unknown) {
-      if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken ?? undefined);
-      setError(err instanceof Error ? err.message : "Analyze failed");
+      if (!resultAvailable) {
+        if (requestAttemptId && !requestRejected) reportAnalysisAttempt("analysis_client_failed", undefined, requestAttemptId, requestToken ?? undefined);
+        setError(err instanceof Error ? err.message : "Analyze failed");
+      }
     } finally {
       submitting.current = false;
       setBusy(false);
@@ -526,6 +571,7 @@ export function useDreamAsk({
     analysis,
     analysisLang,
     analysisAttemptId,
+    yourfitPromo,
     shareToFeed,
     setShareToFeed,
     lens,

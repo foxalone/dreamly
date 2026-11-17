@@ -313,6 +313,7 @@ export default function AdUnlockClient() {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
       if (data?.firstAnalysisFree === true) {
+        trackEvent("yourfit_promo_eligible", { campaign: "first_analysis_no_ad", placement: "guest_dream_result", language: locale });
         markAdUnlockReady();
         setPhase("done");
         report.current?.("ad_resume_started");

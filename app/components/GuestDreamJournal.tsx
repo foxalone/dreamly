@@ -1,5 +1,6 @@
 "use client";
 import AnalysisDisplay from "./AnalysisDisplay";
+import YourFitPromo from "./YourFitPromo";
 import DreamAnalysisProgress from "./DreamAnalysisProgress";
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -23,15 +24,14 @@ import DiaryCalendar, { localDateKey } from "./DiaryCalendar";
 
 function GuestDreamCard({ dream, number, refresh, onCompose }: { dream: HomeDreamPending; number: number; refresh: () => void; onCompose: (tab: "JOURNAL" | "STORIES") => void }) {
   const t = useMessages();
-  const [expanded, setExpanded] = useState(!!dream.analysis);
+  const [expansionChoice, setExpanded] = useState<boolean>();
   const ask = useDreamAsk({
     source: "guest_journal",
     interpretedEvent: "guest_journal_interpreted",
     initialDream: dream,
-    onResultChange: (ready) => {
-      if (ready) { setExpanded(true); refresh(); }
-    },
+    onResultChange: (ready) => { if (ready) refresh(); },
   });
+  const expanded = expansionChoice ?? !!ask.analysis;
 
   return (
     <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
@@ -57,12 +57,13 @@ function GuestDreamCard({ dream, number, refresh, onCompose }: { dream: HomeDrea
       <p dir="auto" className="mt-2 whitespace-pre-wrap break-words">{dream.text}</p>
       {!ask.analysis && <div className="mt-3"><DreamLensSelect value={ask.lens} onChange={ask.chooseLens} disabled={ask.busy} /></div>}
       {ask.error && <p role="alert" className="mt-3 text-sm text-red-500">{ask.error}</p>}
+      {ask.analysis && ask.yourfitPromo && ask.analysisAttemptId ? <YourFitPromo attemptId={ask.analysisAttemptId} /> : null}
       {expanded && ask.analysis && (
         <section className="mt-4 rounded-xl border border-[var(--border)] p-4">
           <h3 className="font-semibold">{t.app.analysis}</h3>
           {ask.escaped?.length ? <div className="mt-3"><EscapeNote emojis={ask.escaped} copy={ask.escapeNote} dreamText={dream.text} /></div> : null}
           {ask.escapeAlreadyToday ? <p className="mt-3 text-sm text-[var(--muted)]">{t.game.escapeAlreadyToday}</p> : null}
-          <AnalysisDisplay attemptId={ask.analysisAttemptId}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{cleanAnalysis(ask.analysis)}</p></AnalysisDisplay>
+          <AnalysisDisplay attemptId={ask.analysisAttemptId} yourfitPromo={ask.yourfitPromo}><p dir="auto" className="mt-2 whitespace-pre-wrap break-words text-sm leading-7">{cleanAnalysis(ask.analysis)}</p></AnalysisDisplay>
           <AnalysisActions dreamText={dream.text} language={ask.analysisLang} onCompose={onCompose} />
           <ShareAnonPrompt status={ask.anonShare} copy={ask.guestShareCopy} analysisLanguage={ask.analysisLang} dreamText={dream.text} onShare={ask.shareAnonymously} onSignIn={() => ask.goToJournal(dream.text, false, true)} />
         </section>

@@ -21,6 +21,7 @@ export type HomeDreamPending = {
   analysis?: string;
   analysisLang?: string;
   analysisAttemptId?: string;
+  yourfitPromo?: boolean;
   escapeNote?: EscapeNoteCopy;
   guestShareCopy?: GuestShareCopy;
   resumeAnalysis?: boolean;
@@ -79,6 +80,7 @@ function normalize(raw: unknown): HomeDreamPending | null {
   return {
     text,
     analysis: analysis || undefined,
+    yourfitPromo: parsed.yourfitPromo === true,
     analysisLang: typeof parsed.analysisLang === "string" ? parsed.analysisLang : undefined,
     analysisAttemptId: typeof parsed.analysisAttemptId === "string" && /^[a-f0-9]{64}$/.test(parsed.analysisAttemptId) ? parsed.analysisAttemptId : undefined,
     escapeNote: normalizeEscapeNoteCopy(parsed.escapeNote) ?? undefined,
@@ -147,6 +149,7 @@ export function writeHomeDreamPending(text: string, extra?: Omit<HomeDreamPendin
       analysis: extra && extra.analysis !== undefined ? extra.analysis.trim() || undefined : prev?.analysis,
       analysisLang: extra?.analysisLang ?? prev?.analysisLang,
       analysisAttemptId: extra?.analysisAttemptId ?? prev?.analysisAttemptId,
+      yourfitPromo: extra?.yourfitPromo ?? prev?.yourfitPromo,
       escapeNote: extra?.escapeNote ?? prev?.escapeNote,
       guestShareCopy: extra?.guestShareCopy ?? prev?.guestShareCopy,
       shareToFeed: extra?.shareToFeed ?? prev?.shareToFeed ?? prevRaw?.shareToFeed ?? true,

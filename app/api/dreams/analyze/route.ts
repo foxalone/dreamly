@@ -35,13 +35,14 @@ import { translatedEscapeNote } from "../_lib/escapeNoteTranslation";
 import { translatedGuestShareCopy } from "../_lib/guestShareTranslation";
 import { guestShareCopyFromMessages } from "@/lib/guestShareCopy";
 import { detectDreamLang } from "@/lib/detectDreamLang";
-import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess } from "../_lib/analysisAttempts";
+import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess, recoverUndeliveredGuestAnalysis } from "../_lib/analysisAttempts";
 
 type Body = {
   text: string;
   source?: string;
   dreamId?: string;
   attemptId?: string;
+  recoverOnly?: boolean;
   lang?: string;
   lens?: string;
   idToken?: string;
@@ -123,11 +124,30 @@ export async function POST(req: Request) {
       else if (body.source === "android") return auth.error;
     }
 
-    if (!uid) guestId = readGuestId(req) ?? newGuestId();
+    const lang = String(body.lang ?? "").trim() || guessLang(text);
+    const lens = parseDreamLens(body.lens);
+    const existingGuestId = readGuestId(req);
+    if (!uid && existingGuestId && body.source !== "android") {
+      try {
+        const recovered = await recoverUndeliveredGuestAnalysis({ text, lang, lens, guestId: existingGuestId, attemptId: body.attemptId });
+        if (recovered) {
+          return setGuestCookie(NextResponse.json(recovered.result, { headers: {
+            "Cache-Control": "no-store", "X-Dreamly-Attempt": recovered.id,
+          } }), existingGuestId);
+        }
+      } catch (error) {
+        console.warn("Guest analysis recovery failed", error);
+        if (body.attemptId || body.recoverOnly === true) {
+          const code = "ANALYSIS_DELIVERY_FAILED";
+          return NextResponse.json({ code, error: dreamAnalysisErrorMessage(code, isLocale(lang) ? lang : "en") }, { status: 503 });
+        }
+      }
+    }
+    if (body.recoverOnly === true) return NextResponse.json({}, { status: 404, headers: { "Cache-Control": "no-store" } });
+
+    if (!uid) guestId = existingGuestId ?? newGuestId();
     attemptId = await startAnalysisAttempt({
-      text, uid, guestId: readGuestId(req) ?? guestId,
-      lang: String(body.lang ?? "").trim() || guessLang(text),
-      lens: parseDreamLens(body.lens),
+      text, uid, guestId: existingGuestId ?? guestId, lang, lens,
       source: body.source, dreamId: body.dreamId, attemptId: body.attemptId,
     }, req);
 
@@ -135,7 +155,7 @@ export async function POST(req: Request) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
       // Try an ad from the first guest reading; only its no-fill fallback is free.
-      // Previously stored answers must never bypass quota accounting.
+      // Generating a new answer always requires a reservation.
       const booked = await consumeGuestAsk(guestId, clientIp);
       if (!booked.ok) {
         return finish(
@@ -168,9 +188,6 @@ export async function POST(req: Request) {
       await refundCharge();
       return finish(NextResponse.json({ error: getMissingOneiroOpenAiKeyMessage() }, { status: 500 }));
     }
-
-    const lang = (String(body?.lang ?? "").trim() || guessLang(text)) as string;
-    const lens = parseDreamLens(body?.lens);
 
     const openai = new OpenAI({ apiKey });
     let analysis = "";
@@ -265,6 +282,7 @@ export async function POST(req: Request) {
         model,
         lens,
         guest: isGuest,
+        yourfitPromo: isGuest && guestBooking?.charge === "free" && body.source !== "android",
         cost: 0,
         emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,

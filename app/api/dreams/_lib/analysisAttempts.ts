@@ -3,15 +3,62 @@ import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { attemptEventDetails, appendAttemptEvent, analysisAttemptContext, analysisAttemptResult } from "@/lib/analysisAttempts";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { attemptOutcome, clientAttemptUpdate, ownsAnalysisAttempt, type AttemptEvent } from "@/lib/analysisAttempts";
+import { guestDreamSnapshotId } from "./guestDreamSnapshot";
 
-export async function startAnalysisAttempt(input: { text: string; uid: string | null; guestId: string | null; lang: string; lens: string; source?: string; dreamId?: string; attemptId?: string }, req: Request): Promise<string | null> {
+type AnalysisIdentity = { text: string; lang: string; lens: string; attemptId?: string };
+
+function dailyAnalysisAttemptId(owner: string, input: AnalysisIdentity, now: number) {
+  return createHash("sha256").update(JSON.stringify([owner, input.text, input.lang, input.lens, new Date(now).toISOString().slice(0, 10)])).digest("hex");
+}
+
+/** Read a previously prepared guest answer before another request can clear it or consume access. */
+export async function recoverUndeliveredGuestAnalysis(input: AnalysisIdentity & { guestId: string }) {
+  const db = adminFirestore();
+  const id = typeof input.attemptId === "string" && /^[a-f0-9]{64}$/.test(input.attemptId)
+    ? input.attemptId : dailyAnalysisAttemptId(`g:${input.guestId}`, input, Date.now());
+  const ref = db.collection("analysis_attempts").doc(id);
+  return db.runTransaction(async (tx) => {
+    const row = (await tx.get(ref)).data();
+    if (!row || row.uid || row.guestId !== input.guestId || row.text !== input.text ||
+        row.lang !== input.lang || row.lens !== input.lens || row.displayedAtMs ||
+        !["succeeded", "waiting", "incomplete"].includes(row.status)) return null;
+
+    const events: { event: string; source: string; atMs: number }[] = Array.isArray(row.events) ? row.events : [];
+    const ready = events.findLastIndex((e) => e.source === "server" && e.event === "analysis_ready");
+    if (ready < 0 || events.findLastIndex((e) => e.event === "analysis_displayed") > ready) return null;
+
+    if (row.status === "succeeded" && typeof row.analysis === "string" && row.analysis.trim()) {
+      return { id, result: row.guestResponse ?? { analysis: row.analysis, model: row.model, lens: row.lens, guest: true, cost: 0, emojis: row.emojis } };
+    }
+
+    // Older retries could erase a prepared answer from the attempt. The private
+    // snapshot must match the successful request, including its execution window.
+    const started = events.slice(0, ready).findLast((e) => e.source === "server" &&
+      (e.event === "analysis_submitted" || e.event === "analysis_retried"));
+    if (!started) return null;
+    const snapshotRef = db.collection("guest_dreams").doc(guestDreamSnapshotId(input.guestId, input.text));
+    const dream = (await tx.get(snapshotRef)).data();
+    if (!dream || dream.deleted || dream.guestId !== input.guestId || dream.text !== input.text ||
+        dream.lang !== input.lang || dream.lens !== input.lens || typeof dream.analysisAtMs !== "number" ||
+        dream.analysisAtMs < started.atMs || dream.analysisAtMs > events[ready].atMs ||
+        typeof dream.analysis !== "string" || !dream.analysis.trim()) return null;
+
+    const result = { analysis: dream.analysis, model: dream.analysisModel ?? null, lens: row.lens,
+      guest: true, cost: 0, emojis: dream.emojis ?? [] };
+    tx.update(ref, { ...attemptOutcome(200), ...analysisAttemptResult(result), guestResponse: result,
+      httpStatus: 200, clientReported: false, updatedAtMs: Date.now() });
+    return { id, result };
+  });
+}
+
+export async function startAnalysisAttempt(input: AnalysisIdentity & { uid: string | null; guestId: string | null; source?: string; dreamId?: string }, req: Request): Promise<string | null> {
   try {
     const now = Date.now();
     // Best-effort, bounded lookup; never persist the raw IP returned by the resolver.
     const geo = await resolveIpCity(req, 1500).catch(() => null);
     const context = analysisAttemptContext(input, req.headers, geo);
     const owner = input.guestId ? `g:${input.guestId}` : `u:${input.uid}`;
-    let id = createHash("sha256").update(JSON.stringify([owner, input.text, input.lang, input.lens, new Date(now).toISOString().slice(0, 10)])).digest("hex");
+    let id = dailyAnalysisAttemptId(owner, input, now);
     const db = adminFirestore();
     if (input.attemptId && /^[a-f0-9]{64}$/.test(input.attemptId)) {
       const candidate = (await db.collection("analysis_attempts").doc(input.attemptId).get()).data();
@@ -20,7 +67,7 @@ export async function startAnalysisAttempt(input: { text: string; uid: string | 
     const ref = db.collection("analysis_attempts").doc(id);
     await db.runTransaction(async (tx) => {
       const before = (await tx.get(ref)).data();
-      tx.set(ref, { text: input.text, uid: input.uid, guestId: input.guestId, lang: input.lang, lens: input.lens, ...context, ...analysisAttemptResult({}), displayedAtMs: null, events: appendAttemptEvent(before ?? {}, before ? "analysis_retried" : "analysis_submitted", "server", now), httpStatus: null, durationMs: null, lastEvent: null, startedAtMs: now, status: "processing", reason: "processing", clientReported: false, createdAtMs: before?.createdAtMs ?? now, updatedAtMs: now, requestCount: (Number(before?.requestCount) || 0) + 1 }, { merge: true });
+      tx.set(ref, { text: input.text, uid: input.uid, guestId: input.guestId, lang: input.lang, lens: input.lens, ...context, ...analysisAttemptResult({}), guestResponse: null, yourfitPromo: false, yourfitImpressionAtMs: null, displayedAtMs: null, events: appendAttemptEvent(before ?? {}, before ? "analysis_retried" : "analysis_submitted", "server", now), httpStatus: null, durationMs: null, lastEvent: null, startedAtMs: now, status: "processing", reason: "processing", clientReported: false, createdAtMs: before?.createdAtMs ?? now, updatedAtMs: now, requestCount: (Number(before?.requestCount) || 0) + 1 }, { merge: true });
     });
     return id;
   } catch (error) { console.warn("Analysis attempt logging failed", error); return null; }
@@ -36,8 +83,13 @@ export async function finishAnalysisAttempt(id: string | null, status: number, c
       if (!row) return;
       const outcome = attemptOutcome(status, code, result.reason);
       const now = Date.now();
+      const yourfitPromo = outcome.status === "succeeded" && result.yourfitPromo === true;
+      let events = appendAttemptEvent(row, outcome.status === "succeeded" ? "analysis_ready" : outcome.reason, "server", now, { httpStatus: status });
+      if (yourfitPromo) events = appendAttemptEvent({ events }, "yourfit_analysis_ready", "server", now);
       tx.update(ref, { ...outcome, ...analysisAttemptResult(result), durationMs: Math.max(0, now - startedAtMs), clientReported: false, httpStatus: status, updatedAtMs: now,
-        events: appendAttemptEvent(row, outcome.status === "succeeded" ? "analysis_ready" : outcome.reason, "server", now, { httpStatus: status }) });
+        yourfitPromo,
+        ...(outcome.status === "succeeded" && result.guest === true ? { guestResponse: result } : {}),
+        events });
     });
   } catch (error) { console.warn("Analysis attempt result logging failed", error); }
 }
@@ -48,11 +100,16 @@ export async function reportAttemptEvent(id: string, uid: string | null, guestId
     const ref = db.collection("analysis_attempts").doc(id);
     const row = (await tx.get(ref)).data();
     if (!row || !ownsAnalysisAttempt(row, uid, guestId)) return false;
+    if (event === "yourfit_promo_impression" || event === "yourfit_promo_click") {
+      if (row.yourfitPromo !== true || row.status !== "succeeded") return false;
+      if (event === "yourfit_promo_impression" && row.yourfitImpressionAtMs) return true;
+    }
     const update = clientAttemptUpdate(row, event);
     const now = Date.now();
     if (event === "analysis_displayed" && (row.status !== "succeeded" || row.displayedAtMs)) return true;
     tx.update(ref, { ...update, events: appendAttemptEvent(row, event, "browser", now, attemptEventDetails(details)),
-      ...(event === "analysis_displayed" ? { displayedAtMs: now } : {}),
+      ...(event === "analysis_displayed" ? { displayedAtMs: now, guestResponse: null } : {}),
+      ...(event === "yourfit_promo_impression" ? { yourfitImpressionAtMs: now } : {}),
       ...(update ? { clientReported: true } : {}), updatedAtMs: now });
     return true;
   });

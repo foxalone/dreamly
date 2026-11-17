@@ -3,7 +3,9 @@ import test from "node:test";
 import { initializeApp, deleteApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { analysisAttemptContext, analysisAttemptResult } from "./analysisAttempts";
-import { startAnalysisAttempt, finishAnalysisAttempt, reportAttemptEvent, recordAttemptAccess } from "../app/api/dreams/_lib/analysisAttempts";
+import { startAnalysisAttempt, finishAnalysisAttempt, reportAttemptEvent, recordAttemptAccess, recoverUndeliveredGuestAnalysis } from "../app/api/dreams/_lib/analysisAttempts";
+import { guestDreamSnapshotId } from "../app/api/dreams/_lib/guestDreamSnapshot";
+import { POST as analyzeDream } from "../app/api/dreams/analyze/route";
 
 test("metadata retains country-only locations and excludes sensitive headers and unknown sources", () => {
   const context = analysisAttemptContext({ text: "two words", source: "untrusted" }, new Headers({
@@ -113,4 +115,77 @@ test("attempt lifecycle stores location and successful results, resets retries, 
   assert.ok(failedGeoId);
   assert.equal(records.get(`analysis_attempts/${failedGeoId}`)?.country, "DE");
   assert.equal(records.get(`analysis_attempts/${failedGeoId}`)?.city, null);
+});
+
+test("a guest can recover a prepared answer until display, even after a legacy quota rejection", async (t) => {
+  const app = initializeApp({ projectId: "demo-attempt-recovery" });
+  const db = getFirestore(app);
+  const records = new Map<string, Record<string, unknown>>();
+  const write = (ref: { path: string }, data: Record<string, unknown>) => {
+    records.set(ref.path, { ...records.get(ref.path), ...data });
+  };
+  t.mock.method(db, "runTransaction", async (fn: (tx: unknown) => unknown) => fn({
+    get: async (ref: { path: string }) => ({ data: () => records.get(ref.path) }), set: write, update: write,
+  }));
+  t.after(async () => { t.mock.restoreAll(); await deleteApp(app); });
+
+  const input = { text: "A walk through a forest", uid: null, guestId: "deca-fbad-ace0", lang: "en", lens: "psychological" };
+  const req = new Request("https://example.test/api/dreams/analyze", { headers: { "x-vercel-ip-country": "US" } });
+  const id = await startAnalysisAttempt(input, req);
+  assert.ok(id);
+  const path = `analysis_attempts/${id}`;
+  const retry = (recoverOnly: boolean) => analyzeDream(new Request(req.url, {
+    method: "POST", headers: { cookie: `dreamly_guest=${input.guestId}` },
+    body: JSON.stringify({ ...input, attemptId: id, source: "guest_journal", recoverOnly }),
+  }));
+  assert.equal(await recoverUndeliveredGuestAnalysis(input), null);
+  assert.equal((await retry(true)).status, 404);
+
+  assert.equal(await reportAttemptEvent(id, null, input.guestId, "yourfit_promo_impression"), false);
+  const reading = { analysis: "Reading", analysisLang: "en", model: "test-model", guest: true, yourfitPromo: true, emojis: [{ native: "🌲", name: "Tree" }] };
+  await finishAnalysisAttempt(id, 200, undefined, reading);
+  assert.deepEqual(await recoverUndeliveredGuestAnalysis(input), { id, result: reading });
+  for (const recoverOnly of [true, false]) {
+    const response = await retry(recoverOnly);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-Dreamly-Attempt"), id);
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+    assert.deepEqual(await response.json(), reading);
+  }
+  const sameAttempt = { ...input, attemptId: id };
+  assert.equal(await recoverUndeliveredGuestAnalysis({ ...sameAttempt, guestId: "other-guest" }), null);
+  assert.equal(await recoverUndeliveredGuestAnalysis({ ...sameAttempt, text: "Another dream" }), null);
+  assert.equal(await recoverUndeliveredGuestAnalysis({ ...sameAttempt, lang: "ru" }), null);
+  assert.equal(await recoverUndeliveredGuestAnalysis({ ...sameAttempt, lens: "spiritual" }), null);
+  assert.equal(records.get(path)?.requestCount, 1);
+  assert.equal(await reportAttemptEvent(id, null, "other-guest", "yourfit_promo_click"), false);
+  assert.equal(await reportAttemptEvent(id, null, input.guestId, "yourfit_promo_impression"), true);
+  const impressionHistory = records.get(path)?.events;
+  await reportAttemptEvent(id, null, input.guestId, "yourfit_promo_impression");
+  assert.deepEqual(records.get(path)?.events, impressionHistory);
+  await reportAttemptEvent(id, null, input.guestId, "yourfit_promo_click");
+  assert.equal(records.get(path)?.status, "succeeded");
+
+  const startedAtMs = records.get(path)?.startedAtMs;
+  const snapshot = `guest_dreams/${guestDreamSnapshotId(input.guestId, input.text)}`;
+  records.set(snapshot, { ...input, analysis: reading.analysis, analysisModel: reading.model, emojis: reading.emojis, analysisAtMs: startedAtMs });
+  // Reproduce the old deployment losing the saved answer on a retry.
+  assert.equal(await startAnalysisAttempt(input, req), id);
+  assert.equal(records.get(path)?.yourfitPromo, false);
+  assert.equal(await reportAttemptEvent(id, null, input.guestId, "yourfit_promo_click"), false);
+  await finishAnalysisAttempt(id, 401, "GUEST_LIMIT_REACHED", { reason: "ip_limit" });
+  assert.equal(records.get(path)?.analysis, null);
+  const storedDream = records.get(snapshot)!;
+  records.set(snapshot, { ...storedDream, analysisAtMs: Number(startedAtMs) - 1 });
+  assert.equal(await recoverUndeliveredGuestAnalysis(sameAttempt), null);
+  records.set(snapshot, storedDream);
+  assert.equal((await recoverUndeliveredGuestAnalysis(sameAttempt))?.result.analysis, reading.analysis);
+  assert.equal(records.get(path)?.requestCount, 2);
+  await reportAttemptEvent(id, null, input.guestId, "analysis_displayed");
+  assert.ok(records.get(path)?.displayedAtMs);
+  assert.equal(records.get(path)?.guestResponse, null);
+  assert.equal(await recoverUndeliveredGuestAnalysis(sameAttempt), null);
+  assert.equal(await startAnalysisAttempt(input, req), id);
+  await finishAnalysisAttempt(id, 401, "GUEST_LIMIT_REACHED", { reason: "ip_limit" });
+  assert.equal(await recoverUndeliveredGuestAnalysis(sameAttempt), null);
 });

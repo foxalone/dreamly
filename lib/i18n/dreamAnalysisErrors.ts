@@ -1,40 +1,46 @@
 import type { Locale } from "./config";
 
-type Code = "AI_QUOTA_EXHAUSTED" | "AI_RATE_LIMITED" | "AI_TIMEOUT" | "AI_UNAVAILABLE";
+type Code = "AI_QUOTA_EXHAUSTED" | "AI_RATE_LIMITED" | "AI_TIMEOUT" | "AI_UNAVAILABLE" | "ANALYSIS_DELIVERY_FAILED";
 
 const COPY: Record<Locale, Record<Code, string>> = {
-  ja: { AI_QUOTA_EXHAUSTED: "現在、夢の読み解きを利用できません。時間をおいてお試しください。", AI_RATE_LIMITED: "ただいま混み合っています。少し待ってからお試しください。", AI_TIMEOUT: "読み解きに時間がかかりすぎました。もう一度お試しください。", AI_UNAVAILABLE: "現在、夢の読み解きを利用できません。時間をおいてお試しください。" },
+  ja: { ANALYSIS_DELIVERY_FAILED: "夢の解釈を読み込めませんでした。もう一度お試しください。", AI_QUOTA_EXHAUSTED: "現在、夢の読み解きを利用できません。時間をおいてお試しください。", AI_RATE_LIMITED: "ただいま混み合っています。少し待ってからお試しください。", AI_TIMEOUT: "読み解きに時間がかかりすぎました。もう一度お試しください。", AI_UNAVAILABLE: "現在、夢の読み解きを利用できません。時間をおいてお試しください。" },
   en: {
+    ANALYSIS_DELIVERY_FAILED: "We couldn't load your interpretation. Try again.",
     AI_QUOTA_EXHAUSTED: "Dream interpretation is unavailable right now. Please try again later.",
     AI_RATE_LIMITED: "Dream interpretation is busy right now. Please try again shortly.",
     AI_TIMEOUT: "Dream interpretation took too long. Please try again.",
     AI_UNAVAILABLE: "Dream interpretation is unavailable right now. Please try again later.",
   },
   es: {
+    ANALYSIS_DELIVERY_FAILED: "No pudimos cargar tu interpretación. Inténtalo de nuevo.",
     AI_QUOTA_EXHAUSTED: "La interpretación de sueños no está disponible ahora. Inténtalo más tarde.",
     AI_RATE_LIMITED: "La interpretación de sueños está ocupada ahora. Inténtalo de nuevo en breve.",
     AI_TIMEOUT: "La interpretación tardó demasiado. Inténtalo de nuevo.",
     AI_UNAVAILABLE: "La interpretación de sueños no está disponible ahora. Inténtalo más tarde.",
   },
   ar: {
+    ANALYSIS_DELIVERY_FAILED: "تعذّر تحميل تفسير حلمك. حاول مجددًا.",
     AI_QUOTA_EXHAUSTED: "تفسير الأحلام غير متاح الآن. حاول مجددًا لاحقًا.",
     AI_RATE_LIMITED: "خدمة تفسير الأحلام مشغولة الآن. حاول مجددًا بعد قليل.",
     AI_TIMEOUT: "استغرق تفسير الحلم وقتًا طويلًا. حاول مجددًا.",
     AI_UNAVAILABLE: "تفسير الأحلام غير متاح الآن. حاول مجددًا لاحقًا.",
   },
   pt: {
+    ANALYSIS_DELIVERY_FAILED: "Não foi possível carregar a interpretação do seu sonho. Tente novamente.",
     AI_QUOTA_EXHAUSTED: "A interpretação de sonhos está indisponível agora. Tente mais tarde.",
     AI_RATE_LIMITED: "A interpretação de sonhos está ocupada agora. Tente novamente em instantes.",
     AI_TIMEOUT: "A interpretação do sonho demorou demais. Tente novamente.",
     AI_UNAVAILABLE: "A interpretação de sonhos está indisponível agora. Tente mais tarde.",
   },
   de: {
+    ANALYSIS_DELIVERY_FAILED: "Deine Traumdeutung konnte nicht geladen werden. Versuch es erneut.",
     AI_QUOTA_EXHAUSTED: "Die Traumdeutung ist derzeit nicht verfügbar. Versuch es später erneut.",
     AI_RATE_LIMITED: "Die Traumdeutung ist derzeit ausgelastet. Versuch es gleich noch einmal.",
     AI_TIMEOUT: "Die Traumdeutung hat zu lange gedauert. Versuch es erneut.",
     AI_UNAVAILABLE: "Die Traumdeutung ist derzeit nicht verfügbar. Versuch es später erneut.",
   },
   ru: {
+    ANALYSIS_DELIVERY_FAILED: "Не удалось загрузить толкование сна. Попробуйте ещё раз.",
     AI_QUOTA_EXHAUSTED: "Толкование снов сейчас недоступно. Попробуйте позже.",
     AI_RATE_LIMITED: "Сервис толкования снов сейчас перегружен. Повторите попытку чуть позже.",
     AI_TIMEOUT: "Толкование заняло слишком много времени. Повторите попытку.",
