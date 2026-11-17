@@ -1,13 +1,13 @@
 import type { Locale } from "./config";
 
-export const yourfitPromoCopy: Record<Locale, { label: string; body: string; cta: string }> = {
-  ja: { label: "広告", body: "トレーニングを記録して、成長を確認しましょう。", cta: "YourFitを開く" },
-  en: { label: "Promotion", body: "Track your workouts and see your progress.", cta: "Open YourFit" },
-  es: { label: "Promoción", body: "Registra tus entrenamientos y sigue tu progreso.", cta: "Abrir YourFit" },
-  ar: { label: "إعلان", body: "سجّل تمارينك وتابع تقدّمك.", cta: "افتح YourFit" },
-  pt: { label: "Publicidade", body: "Registre seus treinos e acompanhe seu progresso.", cta: "Abrir YourFit" },
-  de: { label: "Werbung", body: "Halte dein Training fest und verfolge deine Fortschritte.", cta: "YourFit öffnen" },
-  ru: { label: "Промо", body: "Записывайте тренировки и следите за прогрессом.", cta: "Открыть YourFit" },
+export const yourfitPromoCopy: Record<Locale, { label: string; body: string; cta: string; close: string; countdown: string }> = {
+  ja: { close: "広告を閉じる", countdown: "あと{seconds}秒で閉じられます", label: "広告", body: "トレーニングを記録して、成長を確認しましょう。", cta: "YourFitを開く" },
+  en: { close: "Close advertisement", countdown: "Close in {seconds} seconds", label: "Promotion", body: "Track your workouts and see your progress.", cta: "Open YourFit" },
+  es: { close: "Cerrar anuncio", countdown: "Cerrar en {seconds} segundos", label: "Promoción", body: "Registra tus entrenamientos y sigue tu progreso.", cta: "Abrir YourFit" },
+  ar: { close: "إغلاق الإعلان", countdown: "يمكن الإغلاق بعد {seconds} ثوانٍ", label: "إعلان", body: "سجّل تمارينك وتابع تقدّمك.", cta: "افتح YourFit" },
+  pt: { close: "Fechar anúncio", countdown: "Fechar em {seconds} segundos", label: "Publicidade", body: "Registre seus treinos e acompanhe seu progresso.", cta: "Abrir YourFit" },
+  de: { close: "Werbung schließen", countdown: "Schließen in {seconds} Sekunden", label: "Werbung", body: "Halte dein Training fest und verfolge deine Fortschritte.", cta: "YourFit öffnen" },
+  ru: { close: "Закрыть рекламу", countdown: "Закрыть через {seconds} с", label: "Промо", body: "Записывайте тренировки и следите за прогрессом.", cta: "Открыть YourFit" },
 };
 
 export const yourfitEventCopy: Record<Locale, Record<"yourfit_analysis_ready" | "yourfit_promo_impression" | "yourfit_promo_click", string>> = {
