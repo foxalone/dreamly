@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
@@ -72,11 +73,6 @@ export default function RootLayout({
           }}
         />
         <script dangerouslySetInnerHTML={{ __html: OFFERWALL_RECOVERY_SCRIPT }} />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2484539106050736"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         <FirebaseAnalytics />
@@ -95,6 +91,14 @@ export default function RootLayout({
             <PaywallHost />
           </PwaLaunch>
         </AppI18n>
+        {/* AdSense inserts scripts into head; start it only after React hydrates that markup. */}
+        <Script
+          id="adsense-loader"
+          strategy="afterInteractive"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2484539106050736"
+          crossOrigin="anonymous"
+        />
       </body>
     </html>
   );
