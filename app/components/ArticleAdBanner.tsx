@@ -80,6 +80,9 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
       }
       if (gridCard && element.getBoundingClientRect().height <= 0) return;
       requested.current = true;
+      // Google selects the next .adsbygoogle node, not necessarily this ref.
+      // Keep unhydrated/hidden placeholders out of that queue until ready.
+      element.classList.add("adsbygoogle");
       if (homeBanner) {
         // A blocked script never reports filled/unfilled. Clear its empty space
         // after a reasonable wait; a late filled response can reveal it again.
@@ -132,7 +135,7 @@ export default function ArticleAdBanner({ locale, slot = ARTICLE_AD_SLOT, varian
           {m.preview}
         </div>
       ) : (
-        <ins ref={ad} className={`adsbygoogle${gallery ? " min-h-0 flex-1" : feed ? ` ${styles.feedAd}` : map ? ` ${styles.mapAd}` : ""}`} style={{ display: "block", width: "100%", height: gridCard ? "100%" : undefined, minHeight: gallery || map || feed || gridCard ? undefined : 90 }}
+        <ins ref={ad} className={gallery ? "min-h-0 flex-1" : feed ? styles.feedAd : map ? styles.mapAd : ""} style={{ display: "block", width: "100%", height: gridCard ? "100%" : undefined, minHeight: gallery || map || feed || gridCard ? undefined : 90 }}
           data-ad-client={AD_CLIENT} data-ad-slot={slot} data-ad-format={map || feed || gridCard ? undefined : gallery ? "vertical" : homeBanner ? "auto" : "horizontal"} data-full-width-responsive={homeBanner ? "true" : homeCard ? undefined : "false"} />
       )}
       </div>
