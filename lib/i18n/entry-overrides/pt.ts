@@ -1,3 +1,4 @@
+import { REVIEWED_PT } from "../../dreams/reviewed-content/pt";
 import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import { HURRICANE_CONTENT } from "../../dreams/hurricane-content";
@@ -9,6 +10,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
+  ...REVIEWED_PT,
   music: MUSIC_CONTENT.pt,
   ...MUD_CONTENT.pt,
   hurricane: HURRICANE_CONTENT.pt,
@@ -153,51 +155,6 @@ export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "cat-and-snake": {
-    seoTitle: "Sonhar com gato e cobra: intuição contra perigo oculto",
-    seoDescription:
-      "Sonhar com gato e cobra — brigando, o gato matando a cobra ou os dois se encarando: intuição diante de risco escondido, com leituras islâmica e bíblica.",
-    sections: {
-      introduction: [
-        "Quem mora em sítio ou chácara já viu: o gato fica imóvel, rabo baixo, olhando para o mato, e logo aparece a cobra. No sonho, essa cena costuma falar de algo que você sentiu antes de conseguir explicar. O gato é independência, sensibilidade e intuição ligada; a cobra é risco escondido, tentação ou uma mudança que corre por baixo.",
-        "O desfecho define a leitura. Gato que caça ou mata a cobra fala de intuição resolvendo o problema. Cobra que vence o gato pode refletir o medo de que sua liberdade ou sua paz estejam sendo minadas. Se os dois só se encaram, o sonho descreve um empate entre confiança e desconfiança. Para outra rivalidade, veja [gato e cachorro](/dreams/cat-and-dog).",
-      ],
-      general: [
-        "Pergunte com qual bicho você se identificou. Muita gente se vê no gato: observador, na dele, difícil de enganar. Se a cobra lembrou alguém, pense em quem anda simpático demais e difícil de ler, ou em qual acordo tem letra miúda.",
-        "O lugar conta. Dentro de casa, o assunto tende a ser família ou relacionamento. No quintal, pode ser algo que está crescendo — um projeto, uma amizade, um cargo novo — com um custo que ninguém mostrou. Leituras separadas em [gato](/dreams/cat) e [cobra](/dreams/snake).",
-      ],
-      psychological: [
-        "Psicologicamente, gato e cobra podem representar dois estilos de defesa. O gato se afasta, observa e só ataca quando tem certeza. A cobra se esconde, espera e dá o bote. Um sonho com os dois mostra como você lida com ameaça: com calma seletiva ou com uma ansiedade enrolada que um dia explode.",
-        "Briga que não acaba pode espelhar ruminação. Gato que vence rápido pode estar ensaiando confiança no próprio julgamento. E gato que foge não é covardia: às vezes é a decisão saudável de sair de algo que não vale o risco.",
-      ],
-      spiritual: [
-        "No plano espiritual, o gato é visto como guardião da casa e da percepção sutil, e a cobra carrega perigo e renovação. Juntos, podem marcar um tempo de confiar nos seus alarmes internos e proteger sua energia de influências que parecem enganosas.",
-        "Uma cena tranquila entre os dois fala de equilíbrio: intuição e transformação caminhando juntas. O convite é ao discernimento, notar o que não bate sem desconfiar do mundo inteiro.",
-      ],
-      islamic: [
-        "O gato tem um lugar gentil na tradição islâmica: hadiths dizem que ele não é impuro e que convive de perto com as pessoas, e os sábios lembram a advertência sobre a mulher punida por prender uma gata. Na interpretação de sonhos, porém, o gato também pode representar alguém da casa de lealdade duvidosa, e a cobra é frequentemente lida como inimigo.",
-        "Assim, gato matando cobra costuma ser entendido como proteção contra um mal, às vezes por meio de alguém próximo; cobra ferindo o gato, como medo de que a hostilidade entre em casa. Os intérpretes insistem que tudo depende da vida de quem sonha: busca-se refúgio em Allah e nunca se acusa ninguém por um sonho.",
-      ],
-      biblical: [
-        "Gatos quase não aparecem na Bíblia, enquanto a serpente fica ligada ao engano desde Gênesis 3. Uma leitura bíblica pode tratar a cobra como alerta contra tentações sutis e o gato como imagem de vigilância.",
-        "Jesus pediu aos discípulos que fossem prudentes como as serpentes e simples como as pombas (Mateus 10:16): estar atento não é o mesmo que ser hostil. Se o sonho deixou inquietação, oração e reflexão sobre onde falta sabedoria são uma resposta serena. Veja também [cachorro e cobra](/dreams/dog-and-snake).",
-      ],
-      commonScenarios: [
-        { title: "Gato matando cobra", meaning: "Intuição ou um aliado protetor tirando uma ameaça do caminho; confiança no próprio faro." },
-        { title: "Cobra atacando gato", meaning: "Medo de que algo enganoso afete sua liberdade, sua casa ou sua paz." },
-        { title: "Gato e cobra se encarando", meaning: "Empate entre confiança e desconfiança; uma decisão pendente sobre alguém." },
-        { title: "Gato e cobra convivendo em paz", meaning: "Equilíbrio entre cautela e abertura, ou uma relação que se acalmou." },
-        { title: "Gato trazendo uma cobra para você", meaning: "Um alerta chegando às suas mãos: algo que precisa ser encarado, não evitado." },
-      ],
-      faq: [
-        { question: "O que significa sonhar com gato e cobra?", answer: "Geralmente mostra intuição diante de um perigo escondido: a atenção do gato e o silêncio da cobra apontam para algo que não é o que parece." },
-        { question: "E se o gato matar a cobra?", answer: "Costuma indicar proteção ou bom julgamento vencendo uma ameaça. Algumas tradições leem como ajuda vinda de alguém próximo." },
-        { question: "E se a cobra picar o gato?", answer: "Pode refletir a preocupação de que algo enganoso atinja sua casa ou sua independência. Use como convite a checar fatos, não como prova." },
-        { question: "O que significa no islã sonhar com gato e cobra brigando?", answer: "Os intérpretes costumam ver a cobra como inimigo e a vitória do gato como proteção. Depende da vida de quem sonha, e ninguém deve ser acusado por um sonho." },
-        { question: "Sonhar com gato e cobra é aviso?", answer: "Pode ser um convite a ouvir o instinto. Não é previsão de mal." },
-      ],
-    },
-  },
   "cat-and-rat": {
     seoTitle: "Sonhar com gato e rato: a brincadeira da perseguição",
     seoDescription:
@@ -285,51 +242,6 @@ export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
         { question: "E se o passarinho escapar?", answer: "Geralmente fala de alívio, resiliência e esperança que chega apesar de tudo." },
         { question: "É sonho de mau agouro?", answer: "Não. Mostra uma tensão que merece atenção, não um destino fixo." },
         { question: "O que significa gato e passarinho em paz?", answer: "Que cautela e otimismo, ou duas pessoas muito diferentes, podem conviver sem se machucar." },
-      ],
-    },
-  },
-  "snake-and-rat": {
-    seoTitle: "Sonhar com cobra e rato: ameaças escondidas juntas",
-    seoDescription:
-      "Sonhar com cobra e rato — a cobra comendo o rato ou os dois dentro de casa: problemas miúdos e perigos fundos, com leituras islâmica e bíblica.",
-    sections: {
-      introduction: [
-        "Em muita casa de interior se dizia que cobra aparece onde tem rato. O sonho usa essa lógica: o rato costuma representar um problema que rói, sujeira, mentirinhas, pequenos prejuízos; a cobra, um perigo escondido, uma traição ou uma mudança que dá o bote. Quando os dois aparecem, a pergunta é se um problema está engolindo outro — ou qual das duas ameaças é a verdadeira.",
-        "Cobra pegando rato pode trazer um alívio esquisito: uma força maior dando conta de uma bagunça que você não conseguia resolver. Já ratos e cobras dividindo quarto, porão ou cama falam de um espaço onde várias verdades incômodas convivem. Se a cena é na sua casa, veja [cobra e casa](/dreams/snake-and-house).",
-      ],
-      general: [
-        "Pergunte o que é «praga» na sua vida agora — contas, fofoca, bagunça, um hábito — e o que parece o perigo grande e silencioso. O sonho pode estar perguntando se, ao resolver o problema pequeno, você está alimentando um maior, ou se quem te ajuda também traz risco.",
-        "Seu papel importa: assistir calmo sugere análise; entrar em pânico, sobrecarga; matar os dois, vontade de limpar tudo de uma vez. Leituras separadas em [cobra](/dreams/snake), [rato](/dreams/rat) e [muitas cobras](/dreams/many-snakes).",
-      ],
-      psychological: [
-        "Psicologicamente, o rato é a preocupação intrusiva e repetitiva, e a cobra um medo mais fundo e difícil de encarar. Cobra engolindo rato pode mostrar a mente trocando muitas ansiedades pequenas por uma grande, algo comum quando o estresse acumula.",
-        "A dupla também pode espelhar desconfiança num grupo: vazamentos e mentirinhas (o rato) e alguém de intenções ocultas (a cobra). Ajuda separar fatos de impressões e tratar cada questão no seu próprio terreno.",
-      ],
-      spiritual: [
-        "No plano espiritual, os dois bichos vivem em lugares escuros. Vê-los juntos pode ser um chamado para limpar o ambiente e o coração: parar de tolerar o que drena e encarar o que vem sendo evitado.",
-        "Ao mesmo tempo, a cobra é símbolo de renovação. Uma cobra que limpa os ratos de um lugar pode ser lida como transformação levando embora o que apodreceu, se você colaborar com a mudança em vez de temê-la.",
-      ],
-      islamic: [
-        "Na interpretação islâmica, a cobra costuma ser associada a um inimigo, e o rato a uma pessoa desonesta ou imoral; os hadiths incluem o rato entre os animais nocivos que podem ser mortos. Um sonho que os une pode ser lido como hostilidade vinda de mais de um lado, ou um mal minando outro.",
-        "Matar os dois costuma ser entendido como vitória sobre esses males; ser mordido, como medo de perda. Os intérpretes pedem humildade: sonho não é acusação. Busca-se refúgio em Allah, cuida-se da casa com bom senso e evita-se suspeitar sem prova.",
-      ],
-      biblical: [
-        "As Escrituras olham com cautela para as duas criaturas: a serpente desde Gênesis 3 como imagem do engano, e o rato entre os animais impuros (Levítico 11:29) e na praga dos filisteus (1 Samuel 6). Juntas, podem simbolizar corrupção espiritual e prática.",
-        "Uma reflexão bíblica pergunta onde pequenas concessões estão alimentando uma tentação maior. Efésios 5:11 orienta a não participar das obras infrutíferas das trevas, mas antes expô-las. Veja também [aranha e cobra](/dreams/spider-and-snake).",
-      ],
-      commonScenarios: [
-        { title: "Cobra comendo rato", meaning: "Um problema engolindo outro; uma força maior dando conta de uma bagunça, talvez com custo." },
-        { title: "Cobras e ratos dentro de casa", meaning: "Várias tensões incômodas dividindo seu espaço íntimo e pedindo atenção." },
-        { title: "Rato escapando da cobra", meaning: "Algo pequeno escorregando diante de um perigo maior; alívio talvez passageiro." },
-        { title: "Matar cobra e rato", meaning: "Decisão de tirar da vida o que faz mal, tudo de uma vez." },
-        { title: "Ser mordido pelos dois", meaning: "Sentir-se atacado de vários lados: aborrecimentos miúdos e uma traição mais funda." },
-      ],
-      faq: [
-        { question: "O que significa sonhar com cobra e rato?", answer: "Costuma juntar um problema chato ou desonesto com um perigo mais profundo, perguntando qual deles merece de fato sua atenção." },
-        { question: "E se a cobra comer o rato?", answer: "Pode indicar que uma questão está absorvendo ou resolvendo outra — às vezes um alívio, às vezes sinal de que um risco maior cresce." },
-        { question: "O que significa no islã?", answer: "A cobra costuma ser lida como inimigo e o rato como pessoa desonesta, então o sonho pode refletir preocupação com males vindos de mais de um lado. Não prova nada." },
-        { question: "Cobras e ratos em casa é mau sinal?", answer: "Apontam tensões na vida privada que pedem cuidado, não uma desgraça certa." },
-        { question: "E se eu matar os dois?", answer: "Geralmente mostra disposição para enfrentar o que te desgasta e limpar o ambiente." },
       ],
     },
   },
@@ -423,51 +335,6 @@ export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "snake-and-fish": {
-    seoTitle: "Sonhar com cobra e peixe: presente com custo escondido",
-    seoDescription:
-      "Sonhar com cobra e peixe: sustento perto do engano. O que significa a cobra comer peixes ou o peixe virar cobra, com Lucas 11:11 e leituras islâmicas.",
-    sections: {
-      introduction: [
-        "Nos sonhos, peixe costuma falar de fartura, sustento, oportunidade ou ideias que sobem do fundo. A cobra fala de risco escondido, tentação ou transformação. Quando os dois aparecem — nadando lado a lado, a cobra caçando peixes ou um peixe que vira cobra —, o sonho quase sempre pergunta se algo que parece presente traz um custo que ninguém mencionou.",
-        "Quase sempre tem água, o que coloca a pergunta no campo emocional. Água clara: dá para ver a situação como ela é. Água turva: há dúvida sobre as intenções. Se você pescava e fisgou uma cobra em vez de peixe, o sonho fala de decepção ou medo de ser enganado. Veja [peixe](/dreams/fish) e [cobras na água](/dreams/snakes-in-water).",
-      ],
-      general: [
-        "Pense onde você espera sustento agora: uma proposta de emprego, um negócio, um relacionamento, a ajuda da família. O ditado diz que «cavalo dado não se olham os dentes», mas esse sonho parece dizer o contrário: olhe bem antes de aceitar, porque oportunidade e risco costumam nadar juntos.",
-        "O desfecho conta. Peixes que escapam sugerem recursos protegidos; cobra comendo peixes, medo de perder renda, energia ou ideias para outra pessoa. Relacionados: [pescar](/dreams/catching-fish) e [peixe e água](/dreams/fish-and-water).",
-      ],
-      psychological: [
-        "Na leitura psicológica, peixes representam conteúdos do inconsciente que nutrem: intuições, criatividade, saber. A cobra pode ser ansiedade ou reflexo de defesa. Juntos, mostram uma boa ideia que chega com uma pontada de medo.",
-        "Se o peixe vira cobra, o sonho pode estar acompanhando uma desilusão: algo em que você confiava mostrou outra face. Vale perguntar se a mudança é real ou se uma traição antiga está fazendo os presentes de hoje parecerem perigosos.",
-      ],
-      spiritual: [
-        "No plano espiritual, o peixe é um antigo símbolo de fé e fartura, e a cobra, de renovação e saber oculto. Juntos, marcam um tempo de receber e de discernir quais dons aceitar.",
-        "Cena tranquila sugere que prosperidade e transformação estão alinhadas. Cena de caça convida a proteger suas bênçãos e a ser honesto sobre o que você está disposto a trocar por elas.",
-      ],
-      islamic: [
-        "Na interpretação islâmica, peixes costumam ser associados ao sustento lícito e à riqueza, e a cobra a um inimigo. O Alcorão lembra Yunus engolido pelo grande peixe e depois salvo, e o peixe que escorregou para o mar na viagem de Musa (18:61). Um sonho que une peixe e cobra pode ser lido como sustento que desperta inveja ou oposição.",
-        "Pescar evitando a cobra costuma ser entendido como ganhar o pão estando protegido do mal. Os intérpretes ressaltam que a situação de quem sonha define a leitura; responde-se com gratidão, caridade e pedindo proteção contra a inveja.",
-      ],
-      biblical: [
-        "Jesus usou justamente essa dupla: «E qual o pai dentre vós que, se o filho lhe pedir pão, lhe dará uma pedra? Ou, também, se lhe pedir peixe, lhe dará por peixe uma serpente?» (Lucas 11:11). O ponto é que um bom pai dá boas dádivas — quanto mais Deus.",
-        "Uma leitura bíblica do sonho toca, então, na confiança: você teme que aquilo que pediu acabe fazendo mal? O texto convida a confiar no Doador sem deixar de ser prudente com as ofertas humanas. Veja também [cobra e bebê](/dreams/snake-and-baby).",
-      ],
-      commonScenarios: [
-        { title: "Cobra comendo peixes", meaning: "Medo de que recursos, renda ou ideias sejam tomados ou estragados." },
-        { title: "Peixe virando cobra", meaning: "Desilusão: um presente ou uma pessoa mostrando outra face." },
-        { title: "Pescar uma cobra em vez de peixe", meaning: "Medo de ser enganado ou decepcionado por uma oportunidade." },
-        { title: "Cobra e peixes nadando juntos", meaning: "Oportunidade e risco lado a lado; pede discernimento, não medo." },
-        { title: "Peixes fugindo da cobra", meaning: "Suas bênçãos protegidas; recursos que continuam a salvo." },
-      ],
-      faq: [
-        { question: "O que significa sonhar com cobra e peixe?", answer: "Costuma mostrar uma bênção ou oportunidade perto de um risco escondido, pedindo que você veja se a oferta é o que parece." },
-        { question: "E se o peixe virar cobra?", answer: "Pode refletir desilusão ou medo de que algo confiável se torne prejudicial. Veja se o medo vem de fatos atuais ou de feridas antigas." },
-        { question: "O que a Bíblia diz sobre peixe e serpente?", answer: "Em Lucas 11:11 Jesus os contrapõe para mostrar que um bom pai dá boas dádivas; o sonho pode tocar na confiança no que você recebe." },
-        { question: "O que significa no islã?", answer: "O peixe costuma ligar-se ao sustento e a cobra a um inimigo, então o sonho pode refletir fartura que atrai inveja ou oposição." },
-        { question: "Cobra comendo peixe é mau sinal?", answer: "Mostra preocupação com perdas, não um resultado certo. Use o sonho para revisar como você protege seus recursos." },
-      ],
-    },
-  },
   "snake-and-tiger": {
     seoTitle: "Sonhar com cobra e tigre: esperteza contra força",
     seoDescription:
@@ -510,51 +377,6 @@ export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
         { question: "E se a cobra picar o tigre?", answer: "Pode apontar uma vulnerabilidade escondida em alguém forte, ou uma influência discreta minando outra aberta." },
         { question: "É um aviso?", answer: "Mostra pressões concorrentes, não um desfecho certo. Pense em como responder a cada desafio separadamente." },
         { question: "E se eles me ignorarem?", answer: "O conflito pode ser de pessoas ao seu redor, e você estar mais observando que participando." },
-      ],
-    },
-  },
-  "snake-and-tree": {
-    seoTitle: "Sonhar com cobra na árvore: tentação, crescimento e risco",
-    seoDescription:
-      "Sonhar com cobra na árvore — pendurada, subindo ou caindo em cima de você: tentação e risco em volta do que cresce, com leituras do Éden e do Alcorão.",
-    sections: {
-      introduction: [
-        "A cobra enrolada no galho é uma das imagens mais antigas que existem, e quem sonha com ela costuma acordar entre o susto e o fascínio. A árvore representa crescimento, vida, raízes familiares e estabilidade; a cobra, tentação, saber escondido, perigo ou renovação. Juntas, perguntam o que está enrolado em volta de algo de que você depende.",
-        "O movimento da cobra orienta a leitura. Subindo, pode falar de ambição ou de uma mudança que cresce. Pendurada no galho, de um risco acima da linha dos seus olhos, algo que você ainda não notou. Caindo em cima de você, de um problema súbito vindo de onde menos se esperava. Veja [árvore](/dreams/tree) e [árvore frutífera](/dreams/fruit-tree).",
-      ],
-      general: [
-        "Pergunte o que a árvore representa hoje: família, carreira, um projeto longo, saúde. E o que parece a cobra: uma tentação, um crítico, um segredo, uma mudança fora do seu controle. Esse sonho costuma aparecer quando crescer trouxe nova exposição.",
-        "A cor acrescenta nuance. Cobra verde se confunde com as folhas: algo escondido à vista de todos. Cobra preta intensifica o medo. Cobra guardando fruta fala de um desejo com consequências. Veja [cobra verde](/dreams/green-snake) e [cobra preta](/dreams/black-snake).",
-      ],
-      psychological: [
-        "Psicologicamente, a árvore representa o eu ao longo do tempo, com raízes no passado e galhos no futuro. Uma cobra ali pode ser uma ansiedade ou um desejo incrustado nesse crescimento: uma dúvida que sobe a cada conquista, um anseio ainda não integrado.",
-        "Também pode anunciar um aprendizado. Leituras junguianas veem na serpente da árvore um conhecimento que quebra a inocência. Se a cena intrigou mais do que assustou, talvez você esteja pronto para entender algo que muda o modo como enxerga a própria história.",
-      ],
-      spiritual: [
-        "No plano espiritual, a árvore liga terra e céu, e a serpente é ao mesmo tempo tentação e sabedoria que cura. A dupla convida a olhar com honestidade o que você está tentando alcançar e por quê.",
-        "Uma cobra que desce e vai embora pode ser lida como libertação de uma tentação persistente; uma que descansa em paz entre os galhos, como sabedoria integrada ao seu crescimento.",
-      ],
-      islamic: [
-        "O Alcorão narra que Adão e sua esposa foram proibidos de se aproximar de uma árvore e foram enganados pelo sussurro de Shaytan (2:35–36; 7:20–22). Não há serpente no texto: ela aparece em alguns relatos exegéticos posteriores que os estudiosos classificam como narrativas vindas de tradições anteriores. Nos sonhos, a cobra costuma ser inimiga e a árvore, uma pessoa ou família; árvores com frutos se ligam ao bem.",
-        "Por isso, cobra na árvore pode ser entendida como hostilidade ou inveja perto de uma família ou de uma fonte de benefício, e matá-la, como proteção. São leituras cautelosas: busca-se refúgio em Allah, cuida-se do que foi confiado e evita-se suspeitar sem prova.",
-      ],
-      biblical: [
-        "A serpente do Éden falou junto à árvore do conhecimento do bem e do mal (Gênesis 3), primeira imagem bíblica da tentação. A Bíblia também oferece uma contraimagem que cura: a serpente de bronze erguida no deserto (Números 21:8–9), que Jesus ligou à própria elevação (João 3:14).",
-        "Uma reflexão bíblica pergunta onde um desejo se apresenta como inofensivo sem ser, e onde você precisa confiar nos limites de Deus. O Salmo 1 descreve o justo como árvore plantada junto a ribeiros; retomamos essa imagem em [tempestade e árvore](/dreams/storm-and-tree).",
-      ],
-      commonScenarios: [
-        { title: "Cobra pendurada na árvore", meaning: "Um risco acima do seu campo de visão; algo que você ainda não percebeu." },
-        { title: "Cobra caindo da árvore em cima de você", meaning: "Um problema súbito vindo de um lado inesperado, num ambiente conhecido." },
-        { title: "Cobra subindo na árvore", meaning: "Ambição, mudança ou uma inquietação crescendo junto com você." },
-        { title: "Cobra guardando frutas", meaning: "Um desejo ou oportunidade com consequências." },
-        { title: "Matar uma cobra na árvore", meaning: "Proteger família, trabalho ou valores de uma ameaça." },
-      ],
-      faq: [
-        { question: "O que significa sonhar com cobra na árvore?", answer: "Costuma mostrar tentação, risco oculto ou um conhecimento novo enrolado em algo de que você depende: família, trabalho ou crescimento pessoal." },
-        { question: "E se a cobra cair da árvore em cima de mim?", answer: "Geralmente reflete um problema ou revelação repentina vinda de um lugar conhecido e inesperado." },
-        { question: "Qual o significado bíblico?", answer: "Lembra a serpente do Éden e a tentação junto à árvore do conhecimento, convidando a pensar em desejo e limites." },
-        { question: "O que significa cobra verde na árvore?", answer: "Ela se camufla nas folhas: pode apontar algo escondido à vista, ou crescimento misturado com inveja ou cautela." },
-        { question: "O que significa no islã?", answer: "Os intérpretes costumam ver a cobra como inimiga e a árvore como pessoa ou família: inveja ou hostilidade perto de uma fonte de bem." },
       ],
     },
   },
@@ -1005,55 +827,6 @@ export const ENTRY_OVERRIDES_PT: Record<string, EntryL10nOverride> = {
         { question: "O que fazer depois de um sonho assim, segundo o islã?", answer: "Buscar refúgio em Allah, soprar levemente para a esquerda, virar de lado e não contar o sonho." },
         { question: "Por que não consigo me mexer quando os vejo?", answer: "É típico da paralisia do sono: o corpo continua na atonia do REM enquanto a consciência desperta." },
         { question: "Como parar com esses pesadelos?", answer: "Horários regulares, menos estímulo à noite, ensaio de imagens e ajuda profissional se forem frequentes ou traumáticos." },
-      ],
-    },
-  },
-  pope: {
-    seoTitle: "Sonhar com o papa: autoridade, bênção e consciência",
-    seoDescription:
-      "O que significa sonhar que encontra o papa, recebe a bênção dele ou o vê bravo: autoridade, culpa e perdão, com leitura psicológica, islâmica e bíblica e 7 cenários.",
-    sections: {
-      introduction: [
-        "O Brasil é o país com mais católicos do mundo, e o papa aqui não é figura distante: Francisco encheu Copacabana na Jornada Mundial da Juventude, e sua morte e o conclave que elegeu Leão XIV ocuparam semanas de noticiário. Não surpreende que o papa apareça nos sonhos de católicos praticantes, de católicos de batismo e primeira comunhão que não pisam numa igreja há anos, de evangélicos e de gente sem religião nenhuma. O sonho não confere sua carteirinha de fé.",
-        "No sonho, o papa quase nunca é sobre o Vaticano. Ele é a maior imagem de autoridade moral que a mente adormecida consegue desenhar, e o enredo mostra como você está diante dessa autoridade hoje: esperando uma bênção, discutindo, se escondendo ou recebendo as chaves dela. As páginas sobre a [igreja](/dreams/church) e sobre [Deus](/dreams/god) tratam do prédio e da fonte; esta trata do homem no meio e do que significa quando ele olha para você. Se a figura de branco era, na verdade, o seu pai, leia também a página sobre o [pai](/dreams/father).",
-      ],
-      general: [
-        "Comece pela distância. Um papa visto da multidão, como numa praça lotada ou no papamóvel, costuma representar a autoridade como fato público, algo que você aceita ou tolera de longe. Um papa que se vira para você, chama seu nome ou senta à sua frente traz a pergunta para dentro de casa: o que o juiz mais rigoroso e mais justo que você consegue imaginar diria do peso que você carrega? Repare no humor dele, porque é a sua própria consciência vestida de branco. Um papa acolhedor significa que o veredicto que você teme é mais brando do que pensa; um papa severo, que você já se condenou sozinho.",
-        "Depois veja o que ele faz com as mãos. Abençoar, absolver, entregar algo: são sonhos de permissão e alívio, e aparecem em volta de decisões para as quais você quer um sinal. Virar as costas, recusar, repreender: culpa ou uma regra que você quebrou e não largou. Um sonho em que o papa morre ou é substituído muitas vezes não tem nada a ver com a Igreja: ele chega quando um pai, um chefe ou um mentor está saindo da sua vida, e a mente busca a maior imagem disponível de uma figura paterna que parte. Sobre o fundo de luto que isso traz, a página sobre a [morte](/dreams/death) ajuda a separar a notícia do que é seu.",
-      ],
-      psychological: [
-        "Em chave psicológica, o papa é o superego de batina. Foi assim que Freud chamou a voz interiorizada dos pais e da cultura, a parte de você que diz «você deveria» e «que vergonha». Um homem cujo ofício inteiro é julgar, perdoar e fixar a norma encaixa quase bem demais. Quando essa voz aparece como pessoa num sonho, você consegue ver como se relaciona com ela. Quem cresceu em casa religiosa rígida, em colégio de freiras ou de padres, ou com pais que economizavam aprovação, costuma sonhar com o papa quando procura permissão para uma decisão de vida: mudar de carreira, se separar, abandonar uma crença que já não sustenta.",
-        "Jung acrescentaria que o papa também é o arquétipo do velho sábio, a figura de sabedoria acumulada que surge quando alguém precisa de uma orientação que ainda não consegue dar a si mesmo. Nessa leitura o sonho não é punitivo: é a sua psique marcando uma consulta. O que ele disse? Se nada, o silêncio é o ponto: você já sabe o que a versão sábia de você aconselharia, e o sonho pergunta se vai ouvir. A fama do papa também conta; como um sonho com um [famoso](/dreams/celebrity), ele pode carregar o desejo simples de ser notado por alguém cuja atenção resolveria de vez a questão do seu valor.",
-      ],
-      spiritual: [
-        "Espiritualmente o papa é imagem de pastor: quem mantém o rebanho junto, alimenta e responde por ele. Sonhar que ele encontra ou acolhe você pode ser a sensação de pertencer a algo maior que o próprio esforço, sobretudo numa fase solitária. Muita gente descreve esse sonho como inesperadamente terno, a sensação de ter sido perdoado antes de terminar o pedido de desculpas, e vale mais confiar nessa qualidade do que em qualquer doutrina sobre o homem.",
-        "Para quem é evangélico, espírita ou sem religião, a figura continua funcionando como símbolo de fé ordenada, hierarquia e tradição. Alguns acordam incomodados, se perguntando se o sonho critica o seu caminho; não critica. Ele pergunta, antes, se você quer mais estrutura, mais rito ou mais prestação de contas na sua vida espiritual do que tem hoje, ou se, ao contrário, uma regra alheia está pesando. Um papa parado na [igreja](/dreams/church) da sua infância costuma falar da fé herdada com a qual você está decidindo o que fazer.",
-      ],
-      islamic: [
-        "A interpretação islâmica dos sonhos não tem um verbete próprio para o papa, mas intérpretes clássicos como Ibn Sirin e al-Nabulsi tratam de padres, monges e líderes de outras comunidades religiosas. As leituras são mistas e dependem do contexto: essa figura pode representar uma pessoa de conhecimento e devoção austera, os assuntos com cristãos que o sonhador tem na vida acordada ou, quando o sonhador se junta ao culto dele, um aviso contra a inovação e contra se afastar do próprio caminho. Os intérpretes olham o que o sonhador fez, não só quem ele viu.",
-        "Um muçulmano que sonha com o papa deve se perguntar primeiro o que essa figura é para ele: um chefe de Estado, um símbolo do diálogo inter-religioso, um rosto do noticiário ou simplesmente autoridade. Sonhos montados com impressões do dia, hadith an-nafs, não trazem mensagem nem exigem resposta. Se o sonho foi sereno e a figura respeitosa, muitos intérpretes o leriam como o encontro com uma pessoa de posição ou como sinal de que os assuntos do sonhador tocam gente de outra fé. Se perturbou você, siga a Sunnah para sonhos ruins: busque refúgio em Deus, não saia contando e deixe passar. Quem decide continua sendo Deus, como explica do lado islâmico a página sobre [Deus](/dreams/god).",
-      ],
-      biblical: [
-        "O ensino católico remonta o papado a Pedro, e os versículos por trás do ofício dão ao sonho o seu vocabulário bíblico. Jesus lhe diz: «tu és Pedro, e sobre esta pedra edificarei a minha igreja», e depois: «dar-te-ei as chaves do reino dos céus» (Mateus 16:18-19). Depois da ressurreição, o mesmo Pedro que o negou três vezes ouve três vezes «tu me amas?» e recebe a ordem «apascenta as minhas ovelhas» (João 21:15-17). O papa num sonho costuma carregar exatamente esses dois temas: chaves, isto é, autoridade para abrir ou fechar, e um pastor que foi perdoado primeiro.",
-        "Esse segundo tema é o coração pastoral do sonho. A grande autoridade religiosa da Bíblia é um homem com uma queda no histórico, restaurado pela graça e enviado a cuidar dos outros. Se o papa do seu sonho perdoou, abençoou ou simplesmente sabia o seu nome, o eco bíblico é a própria restauração de Pedro, e o convite é aceitar o perdão em vez de continuar tentando merecê-lo. Se ele foi frio ou condenou, lembre que a própria Escritura adverte os pastores contra dominar o rebanho (1 Pedro 5:2-3): um papa duro é o seu medo do julgamento, não o julgamento. Um evangélico não precisa ler o sonho como declaração sobre o primado romano: as [chaves](/dreams/keys) e o pastor pertencem à história inteira, e a pergunta que o sonho faz, a quem você deixa falar em nome de Deus na sua vida, todo crente precisa responder.",
-      ],
-      commonScenarios: [
-        { title: "Conhecer o papa", meaning: "A versão mais comum. Ser recebido por ele costuma refletir o desejo de aprovação da maior autoridade que você reconhece, ou uma decisão que quer que alguém mais sábio confirme. Repare se ele estava esperando você." },
-        { title: "O papa abençoa você", meaning: "Alívio, permissão e perdão. Esses sonhos aparecem antes de casamentos, mudanças, trocas de emprego e reconciliações, e costumam parecer um peso saindo das costas. Aceite a permissão: foi você quem deu." },
-        { title: "Falar com o papa", meaning: "Uma conversa com a consciência ou com a versão mais sábia de você. O que ele disse importa muito mais do que vê-lo. Se ficou em silêncio, você já conhece o conselho." },
-        { title: "O papa morre ou seu funeral", meaning: "Termina uma era de autoridade: um pai que envelhece, um mentor que parte, uma crença que você não consegue mais sustentar. Muito frequente nas semanas em volta de uma morte papal real, quando significa pouco além da notícia." },
-        { title: "Virar papa", meaning: "Uma responsabilidade maior do que você pediu, ou o medo de que esperem que você tenha todas as respostas. Comum em chefes novos, pais de primeira viagem e em quem acabou de virar quem decide na família." },
-        { title: "O papa visita sua casa", meaning: "Sua vida privada posta sob uma régua: a casa julgada ou honrada. Muitas vezes fala do desejo de reconciliar uma família dividida ou de valores que você tenta trazer de volta para casa." },
-        { title: "Um papa bravo ou que desaprova", meaning: "Culpa com rosto. Uma regra quebrada, uma promessa não cumprida ou uma autoridade em cuja aprovação você deixou de acreditar mas não consegue parar de querer. A raiva é a sua própria sentença." },
-      ],
-      faq: [
-        { question: "O que significa sonhar com o papa?", answer: "Quase sempre o papa representa a maior autoridade moral que você consegue imaginar, e o sonho mostra como você está diante dela: buscando uma bênção, temendo um julgamento, discutindo ou recebendo uma responsabilidade. Raramente é sobre religião e quase nunca uma profecia." },
-        { question: "Sonhar com o papa é bom sinal?", answer: "Depende da cena. Uma bênção, uma palavra gentil ou um acolhimento apontam para alívio e perdão. Um papa severo ou distante fala de culpa ou de uma regra com a qual você não fez as pazes. Nenhum dos dois prevê nada; ambos descrevem como você se trata." },
-        { question: "Não sou católico. Por que sonhei com o papa?", answer: "Porque ele é a imagem de autoridade religiosa mais reconhecível do mundo, e os sonhos usam a imagem que estiver à mão. Uma notícia, um filme ou uma conversa bastam. O sonho é sobre autoridade, consciência e tradição na sua vida, não sobre as suas crenças." },
-        { question: "O que significa o papa me abençoar no sonho?", answer: "Permissão e alívio. A mente encena uma bênção quando você espera um sinal para seguir com algo ou quando precisa se sentir perdoado. Como a figura saiu de você, a bênção também." },
-        { question: "O que significa sonhar que o papa morreu?", answer: "Quase sempre que uma fonte de autoridade na sua vida está se apagando: um pai, um mentor, um chefe ou uma crença. Nas semanas depois de uma morte papal real, costuma ser só a notícia sendo processada." },
-        { question: "O que o islã diz sobre ver o papa em sonho?", answer: "Não há um parecer específico. Os intérpretes clássicos leem padres e líderes de outras religiões pelo contexto: às vezes como pessoas de conhecimento, às vezes como aviso para não se afastar do próprio caminho. Sonhos feitos de notícias e impressões do dia não trazem mensagem." },
-        { question: "Há um sentido bíblico em sonhar com o papa?", answer: "O ofício se liga a Pedro, o discípulo que recebeu as chaves do reino e a ordem de apascentar as ovelhas depois de ser perdoado. Um sonho com o papa costuma carregar esses temas: autoridade para abrir ou fechar, e um pastor restaurado antes de lhe confiarem os outros." },
       ],
     },
   },

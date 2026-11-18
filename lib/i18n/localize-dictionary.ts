@@ -51,9 +51,10 @@ function localizeOne(entry: DreamEntry, locale: DictionaryLocale): DreamEntry {
     ...entry,
     name,
     title,
-    shortMeaning: localizedShortMeaning(locale, hook),
+    shortMeaning: override?.shortMeaning ?? localizedShortMeaning(locale, hook),
     seoTitle: override?.seoTitle ?? localizedSeoTitle(locale, name, hook, seed?.title),
     seoDescription: override?.seoDescription ?? localizedSeoDescription(locale, name, hook, seed?.title),
+    updatedAt: override?.updatedAt ?? entry.updatedAt,
     aliases: localizedAliases(locale, name, seed?.aliases ?? [], seed?.title),
     sections: override?.sections ? { ...generated, ...override.sections } : generated,
   };

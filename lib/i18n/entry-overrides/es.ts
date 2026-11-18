@@ -1,3 +1,4 @@
+import { REVIEWED_ES } from "../../dreams/reviewed-content/es";
 import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import { HURRICANE_CONTENT } from "../../dreams/hurricane-content";
@@ -9,6 +10,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
+  ...REVIEWED_ES,
   music: MUSIC_CONTENT.es,
   ...MUD_CONTENT.es,
   hurricane: HURRICANE_CONTENT.es,
@@ -153,51 +155,6 @@ export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "cat-and-snake": {
-    seoTitle: "Soñar con gato y serpiente: intuición ante el peligro",
-    seoDescription:
-      "Qué significa soñar con un gato y una serpiente —peleando, matándola o mirándose—: intuición frente a un riesgo oculto, con lecturas islámica y bíblica.",
-    sections: {
-      introduction: [
-        "El gato y la serpiente se mueven en silencio y confían en su instinto, por eso su encuentro en un sueño suele tener algo de duelo. El gato representa independencia, sensibilidad y una intuición siempre alerta; la serpiente, un riesgo escondido, una tentación o un cambio que avanza por debajo. Este sueño aparece a menudo cuando una parte tuya ya notó que algo no cuadra, aunque todavía no sepas explicar qué.",
-        "El desenlace marca el sentido. Un gato que acecha o mata a la culebra habla de una intuición que se hace cargo del problema. Una serpiente que vence al gato puede reflejar el miedo a que tu independencia o tu tranquilidad estén siendo minadas. Si solo se observan, el sueño describe un empate entre confianza y sospecha. Para otra rivalidad felina, mira [gato y perro](/dreams/cat-and-dog).",
-      ],
-      general: [
-        "Pregúntate con cuál de los dos te identificaste. Mucha gente se reconoce en el gato: observador, autosuficiente, difícil de engañar. Si la serpiente te recordó a alguien, piensa en quién te pareció últimamente encantador pero difícil de leer, o qué acuerdo tiene letra chica.",
-        "El lugar importa. Dentro de casa, el tema suele ser familiar o de pareja. En el patio o el jardín, puede tratarse de algo que está creciendo —un proyecto, una amistad, un puesto nuevo— con un costo que no se ve. Las lecturas de cada animal están en [gato](/dreams/cat) y [serpiente](/dreams/snake).",
-      ],
-      psychological: [
-        "Psicológicamente, el gato y la serpiente pueden representar dos estilos de defensa. El gato se aparta, observa y ataca solo cuando está seguro. La serpiente se esconde, espera y muerde de golpe. Un sueño con ambos muestra cómo enfrentas las amenazas: con calma selectiva o con una ansiedad enroscada que un día estalla.",
-        "Si la pelea se alarga sin final, puede reflejar rumiación: darle vueltas a una preocupación sin actuar. Si el gato gana rápido, el sueño ensaya confianza en tu propio criterio. Un gato que huye tampoco es cobardía: puede ser la decisión sana de alejarte de algo que no vale el riesgo.",
-      ],
-      spiritual: [
-        "En lo espiritual, el gato se ve como guardián del hogar y de la percepción sutil, y la serpiente como peligro y renovación. Juntos pueden marcar un momento para escuchar tus alarmas internas y proteger tu energía de influencias que se sienten engañosas.",
-        "Una escena tranquila entre ambos habla de equilibrio: intuición y transformación trabajando juntas. La invitación es al discernimiento, notar lo que no encaja sin volverte desconfiado de todo el mundo.",
-      ],
-      islamic: [
-        "El gato tiene un lugar amable en la tradición islámica: los hadices dicen que no es impuro y que vive cerca de la gente, y los sabios recuerdan la advertencia sobre la mujer castigada por encerrar a una gata. En la interpretación de sueños, sin embargo, el gato también puede representar a alguien de la casa cuya lealtad es dudosa, y la serpiente se lee con frecuencia como un enemigo.",
-        "Por eso un gato que mata a una serpiente suele entenderse como protección frente a un daño, a veces a través de alguien cercano; una serpiente que hiere al gato, como temor a que la hostilidad entre al hogar. Los intérpretes insisten en que todo depende de la situación de quien sueña: se busca refugio en Allah y nunca se acusa a nadie por un sueño.",
-      ],
-      biblical: [
-        "Los gatos casi no aparecen en la Biblia, mientras que la serpiente queda ligada al engaño desde Génesis 3. Una lectura bíblica puede centrarse en la serpiente como aviso de tentaciones sutiles y en el gato como imagen de vigilancia.",
-        "Jesús pidió a sus discípulos ser prudentes como serpientes y sencillos como palomas (Mateo 10:16): estar alerta no es lo mismo que ser hostil. Si el sueño te deja inquieto, la oración y la reflexión sobre dónde necesitas sabiduría son una respuesta serena. Mira también [perro y serpiente](/dreams/dog-and-snake).",
-      ],
-      commonScenarios: [
-        { title: "Un gato matando una serpiente", meaning: "Tu intuición o un aliado protector eliminando una amenaza oculta; confianza en tu criterio." },
-        { title: "Una serpiente atacando a un gato", meaning: "Miedo a que algo engañoso afecte tu independencia, tu casa o tu paz." },
-        { title: "Gato y serpiente mirándose fijamente", meaning: "Un empate entre confianza y sospecha; una decisión pendiente sobre alguien." },
-        { title: "Gato y serpiente conviviendo en paz", meaning: "Equilibrio entre prudencia y apertura, o una relación que se calmó tras una tensión." },
-        { title: "Un gato que te trae una serpiente", meaning: "Un aviso que llega a tus manos: algo que conviene mirar de frente en lugar de evitar." },
-      ],
-      faq: [
-        { question: "¿Qué significa soñar con un gato y una serpiente?", answer: "Suele mostrar la intuición frente a un peligro escondido: la atención del gato y el sigilo de la serpiente señalan algo que no es lo que parece." },
-        { question: "¿Qué significa que el gato mate a la serpiente?", answer: "Normalmente, protección o buen criterio venciendo una amenaza. Algunas tradiciones lo leen como ayuda que llega de alguien cercano." },
-        { question: "¿Y si la serpiente muerde al gato?", answer: "Puede reflejar la preocupación de que algo engañoso afecte tu hogar o tu independencia. Tómalo como invitación a revisar hechos, no como prueba." },
-        { question: "¿Qué significa en el islam soñar con un gato y una serpiente peleando?", answer: "Los intérpretes suelen ver a la serpiente como enemigo y la victoria del gato como protección. Depende de la vida de quien sueña, y nadie debe ser acusado por un sueño." },
-        { question: "¿Es una advertencia?", answer: "Puede ser una invitación a atender tu instinto. No es una predicción de daño." },
-      ],
-    },
-  },
   "cat-and-rat": {
     seoTitle: "Soñar con gato y rata (o ratón): el juego de la persecución",
     seoDescription:
@@ -285,51 +242,6 @@ export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
         { question: "¿Qué significa que el pájaro se escape?", answer: "Suele hablar de alivio, resiliencia y esperanzas que llegan pese a los obstáculos." },
         { question: "¿Es de mal agüero?", answer: "No. Describe una tensión que conviene atender, no un destino fijo." },
         { question: "¿Qué significa un gato y un pájaro en paz?", answer: "Que la prudencia y el optimismo, o dos personas muy distintas, pueden convivir sin hacerse daño." },
-      ],
-    },
-  },
-  "snake-and-rat": {
-    seoTitle: "Soñar con serpiente y rata: amenazas escondidas juntas",
-    seoDescription:
-      "Soñar con una serpiente y una rata —una culebra comiendo una rata o ambas en casa—: problemas pequeños y peligros profundos, con lecturas islámica y bíblica.",
-    sections: {
-      introduction: [
-        "La serpiente y la rata son dos animales que casi todos esquivamos por instinto. La rata suele encarnar un problema que roe, algo sucio, pequeñas mentiras o pérdidas; la serpiente, un peligro escondido, una traición o un cambio que muerde de golpe. En la naturaleza la culebra se come a la rata, así que estos sueños tratan a menudo de un problema que se traga a otro, o de descubrir cuál de las dos amenazas es la verdadera.",
-        "Una serpiente que atrapa una rata puede dar un alivio raro: una fuerza mayor se ocupa de un desorden que no podías manejar. Muy distinto es ver ratas y serpientes compartiendo cuarto, sótano o cama: ahí el sueño habla de un espacio donde conviven varias verdades incómodas. Si ocurre en tu casa, revisa [serpiente y casa](/dreams/snake-and-house).",
-      ],
-      general: [
-        "Pregúntate qué es «la plaga» en tu vida ahora —cuentas, chismes, un hábito, el desorden— y qué se siente como el peligro grande y silencioso. Tal vez el sueño pregunta si al resolver lo pequeño estás alimentando algo mayor, o si alguien que te ayuda también trae riesgos.",
-        "Tu papel importa: mirar con calma sugiere análisis; el pánico, saturación; matar a los dos, ganas de limpiar todo de una vez. Para cada animal, mira [serpiente](/dreams/snake), [rata](/dreams/rat) y [muchas serpientes](/dreams/many-snakes).",
-      ],
-      psychological: [
-        "Psicológicamente, la rata representa preocupaciones intrusivas y repetitivas, y la serpiente un miedo más hondo, difícil de mirar. Que la serpiente se coma a la rata puede mostrar a la mente cambiando muchas ansiedades chicas por una grande, algo frecuente cuando el estrés se acumula.",
-        "La pareja también refleja desconfianza en un grupo: pequeñas mentiras o filtraciones (la rata) y alguien de intenciones ocultas (la serpiente). Ayuda separar hechos de impresiones y tratar cada asunto por su lado, en lugar de dejar que todo se funda en una nube de sospecha.",
-      ],
-      spiritual: [
-        "En lo espiritual, ambos animales habitan lugares oscuros. Verlos juntos puede ser un llamado a limpiar tu entorno y tu interior: dejar de tolerar lo que te drena y encarar lo que vienes evitando.",
-        "Al mismo tiempo, la serpiente es símbolo de renovación. Una culebra que limpia de ratas un lugar puede leerse como una transformación que se lleva la podredumbre vieja, si colaboras con el cambio en vez de temerlo.",
-      ],
-      islamic: [
-        "En la interpretación islámica de los sueños la serpiente suele asociarse con un enemigo, y el ratón o la rata con una persona deshonesta o inmoral; los hadices incluyen al ratón entre los animales dañinos que se pueden matar. Un sueño que los une puede leerse como hostilidad de más de una fuente, o como un daño que socava a otro.",
-        "Matar a ambos suele interpretarse como victoria sobre esos males, y ser mordido, como temor a una pérdida. Los intérpretes piden humildad: un sueño no es una acusación. Se busca refugio en Allah, se cuida la casa con sensatez y se evita la sospecha sin pruebas.",
-      ],
-      biblical: [
-        "La Escritura mira con cautela a ambas criaturas: la serpiente desde Génesis 3 como imagen del engaño, y el ratón entre los animales impuros (Levítico 11:29) y en la plaga de los filisteos (1 Samuel 6). Juntas pueden simbolizar corrupción espiritual y práctica.",
-        "Una reflexión bíblica puede preguntar dónde las pequeñas concesiones están alimentando una tentación mayor. Efesios 5:11 invita a no participar de las obras infructuosas de las tinieblas, sino a sacarlas a la luz. Mira también [araña y serpiente](/dreams/spider-and-snake), otra imagen de doble amenaza.",
-      ],
-      commonScenarios: [
-        { title: "Una serpiente comiéndose una rata", meaning: "Un problema que se traga a otro; una fuerza mayor resolviendo un desorden, quizá con un costo." },
-        { title: "Serpientes y ratas en la casa", meaning: "Varias tensiones incómodas compartiendo tu espacio íntimo y pidiendo atención." },
-        { title: "Una rata escapando de la serpiente", meaning: "Un asunto pequeño que se escurre ante un peligro mayor; un alivio tal vez pasajero." },
-        { title: "Matar una serpiente y una rata", meaning: "Decisión de sacar de tu vida lo que te daña, todo a la vez." },
-        { title: "Te muerden las dos", meaning: "Sentirte atacado desde distintos lados: molestias pequeñas y una traición más honda." },
-      ],
-      faq: [
-        { question: "¿Qué significa soñar con una serpiente y una rata?", answer: "Suele combinar un problema molesto o una deshonestidad con un peligro más profundo, y pregunta cuál merece de verdad tu atención." },
-        { question: "¿Y si la serpiente se come a la rata?", answer: "Puede indicar que un asunto absorbe o resuelve otro: a veces un alivio, a veces señal de que crece un riesgo mayor." },
-        { question: "¿Qué significa en el islam?", answer: "Suele leerse la serpiente como enemigo y la rata como persona deshonesta, así que el sueño refleja inquietud por daños de más de una fuente. No prueba nada." },
-        { question: "¿Es malo ver serpientes y ratas en casa?", answer: "Señala tensiones en tu vida privada que piden atención, no una desgracia segura." },
-        { question: "¿Qué significa matarlas a las dos?", answer: "Suele reflejar la decisión de enfrentar lo que te desgasta y limpiar tu entorno." },
       ],
     },
   },
@@ -423,51 +335,6 @@ export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "snake-and-fish": {
-    seoTitle: "Soñar con serpiente y pez: un regalo con costo oculto",
-    seoDescription:
-      "Soñar con una serpiente y peces: provisión cerca del engaño. Qué significa una culebra que come peces o un pez que se vuelve serpiente, con Lucas 11:11.",
-    sections: {
-      introduction: [
-        "En los sueños los peces suelen hablar de alimento, abundancia, oportunidades o ideas que suben desde lo profundo. La serpiente habla de riesgo escondido, tentación o transformación. Cuando aparecen juntos —nadando lado a lado, la culebra cazando peces o un pez que se vuelve serpiente—, el sueño suele preguntar si algo que parece un regalo trae un costo oculto.",
-        "Casi siempre hay agua, lo que ubica la pregunta en lo emocional. En agua clara, puedes ver la situación tal cual es; en agua turbia, hay dudas sobre las intenciones. Si pescabas y sacaste una serpiente en lugar de un pez, el sueño refleja desilusión o miedo al engaño. Mira [pez](/dreams/fish) y [serpientes en el agua](/dreams/snakes-in-water).",
-      ],
-      general: [
-        "Piensa dónde esperas provisión ahora mismo: una oferta de trabajo, un negocio, una relación, el apoyo de la familia. El refrán dice «a caballo regalado no se le mira el diente», pero este sueño parece decir lo contrario: mira bien antes de aceptar, porque oportunidad y riesgo suelen nadar juntos.",
-        "El desenlace cuenta. Peces que escapan sugieren que tus recursos están a salvo; una serpiente que se los come, temor a perder ingresos, energía o ideas en manos de otro. Relacionado: [pescar](/dreams/catching-fish) y [pez y agua](/dreams/fish-and-water).",
-      ],
-      psychological: [
-        "En clave psicológica, los peces suelen representar contenidos del inconsciente que nutren: intuiciones, creatividad, conocimiento. La serpiente puede ser ansiedad o un reflejo defensivo. Juntos muestran una idea valiosa que llega con una punzada de miedo.",
-        "Si un pez se transforma en serpiente, el sueño puede estar siguiendo una desilusión: algo en lo que confiabas mostró otra cara. Vale preguntarse si el cambio es real o si una traición pasada hace que los regalos del presente se sientan peligrosos.",
-      ],
-      spiritual: [
-        "En lo espiritual, el pez es un antiguo símbolo de fe y abundancia, y la serpiente de renovación y saber oculto. Juntos marcan un tiempo de recibir y de discernir qué dones aceptar.",
-        "Una escena tranquila sugiere que la prosperidad y la transformación van de la mano. Una escena de caza invita a cuidar tus bendiciones y a ser honesto sobre lo que estás dispuesto a dar a cambio.",
-      ],
-      islamic: [
-        "En la interpretación islámica, los peces suelen asociarse con el sustento lícito y la riqueza, y la serpiente con un enemigo. El Corán recuerda a Yunus tragado por el gran pez y luego rescatado, y al pez que se escurrió hacia el mar en el viaje de Musa (18:61). Un sueño que une peces y serpiente puede leerse como sustento que despierta envidia u oposición.",
-        "Pescar evitando una serpiente suele entenderse como ganar el pan estando protegido del daño. Los intérpretes subrayan que la situación de quien sueña define la lectura; se responde con gratitud, caridad y buscando refugio de la envidia.",
-      ],
-      biblical: [
-        "Jesús usó justamente esta pareja: «¿Qué padre de vosotros, si su hijo le pide pan, le dará una piedra? ¿o si pescado, en lugar de pescado, le dará una serpiente?» (Lucas 11:11). Su punto es que un buen padre da buenos regalos, y cuánto más Dios.",
-        "Una lectura bíblica del sueño toca entonces la confianza: ¿temes que lo que pediste resulte dañino? El pasaje invita a confiar en el Dador sin dejar de ser prudente con las ofertas humanas. Mira también [serpiente y bebé](/dreams/snake-and-baby).",
-      ],
-      commonScenarios: [
-        { title: "Una serpiente comiendo peces", meaning: "Temor a que tus recursos, ingresos o ideas sean tomados o echados a perder." },
-        { title: "Un pez que se convierte en serpiente", meaning: "Desilusión: un regalo o una persona mostrando otra cara." },
-        { title: "Pescar una serpiente en vez de un pez", meaning: "Miedo a ser engañado o decepcionado por una oportunidad." },
-        { title: "Serpiente y peces nadando juntos", meaning: "Oportunidad y riesgo conviviendo; hace falta discernimiento, no miedo." },
-        { title: "Peces que escapan de la serpiente", meaning: "Tus bendiciones protegidas; recursos que siguen a salvo pese a la amenaza." },
-      ],
-      faq: [
-        { question: "¿Qué significa soñar con una serpiente y peces?", answer: "Suele mostrar una bendición u oportunidad junto a un riesgo oculto, y te pide discernir si una oferta es lo que parece." },
-        { question: "¿Y si un pez se vuelve serpiente?", answer: "Puede reflejar desilusión o miedo a que algo confiable se vuelva dañino. Revisa si el temor viene de hechos actuales o de experiencias pasadas." },
-        { question: "¿Qué dice la Biblia del pez y la serpiente?", answer: "En Lucas 11:11 Jesús los contrasta para mostrar que un buen padre da buenos regalos; el sueño puede tocar la confianza en lo que recibes." },
-        { question: "¿Qué significa en el islam?", answer: "El pez suele ligarse al sustento y la serpiente a un enemigo, así que el sueño puede reflejar provisión que atrae envidia u oposición." },
-        { question: "¿Es mala señal una serpiente comiendo peces?", answer: "Señala preocupación por pérdidas, no un resultado seguro. Úsalo para revisar cómo cuidas tus recursos." },
-      ],
-    },
-  },
   "snake-and-tiger": {
     seoTitle: "Soñar con serpiente y tigre: astucia contra fuerza",
     seoDescription:
@@ -510,51 +377,6 @@ export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
         { question: "¿Qué significa que la serpiente muerda al tigre?", answer: "Puede señalar una vulnerabilidad escondida en alguien fuerte, o una influencia callada que socava a otra abierta." },
         { question: "¿Es una advertencia?", answer: "Señala presiones que compiten, no un desenlace seguro. Piensa cómo responder a cada desafío por separado." },
         { question: "¿Y si no me prestan atención?", answer: "El conflicto puede ser de personas a tu alrededor, y tú estar observando más que participando." },
-      ],
-    },
-  },
-  "snake-and-tree": {
-    seoTitle: "Soñar con una serpiente en un árbol: tentación y riesgo",
-    seoDescription:
-      "Soñar con una serpiente en un árbol —colgando, trepando o cayendo sobre ti—: tentación y riesgo alrededor de lo que crece, con lecturas del Edén y del Corán.",
-    sections: {
-      introduction: [
-        "La serpiente enroscada en un árbol es una de las imágenes más conocidas de la cultura humana, y quien la sueña suele despertar entre la inquietud y la fascinación. El árbol representa crecimiento, vida, raíces familiares y estabilidad; la serpiente, tentación, saber escondido, peligro o renovación. Juntos preguntan qué está enroscado alrededor de algo de lo que dependes.",
-        "El movimiento de la culebra orienta la lectura. Si trepa, puede hablar de ambición o de un cambio que sube. Si cuelga de una rama, de un riesgo que está por encima de tu mirada, algo que todavía no notaste. Si cae sobre ti, de un problema repentino que llega de donde no lo esperabas. Mira [árbol](/dreams/tree) y [árbol frutal](/dreams/fruit-tree).",
-      ],
-      general: [
-        "Pregúntate qué representa hoy el árbol: tu familia, tu carrera, un proyecto largo, tu salud. Y qué se siente como la serpiente: una tentación, un crítico, un secreto o un cambio que no controlas. Este sueño aparece a menudo cuando crecer trajo nueva exposición.",
-        "El color suma matices. Una serpiente verde se confunde con las hojas: algo escondido a plena vista. Una negra intensifica el miedo. Una serpiente que cuida la fruta habla de un deseo con consecuencias. Mira [serpiente verde](/dreams/green-snake) y [serpiente negra](/dreams/black-snake).",
-      ],
-      psychological: [
-        "Psicológicamente, el árbol suele representar al yo a lo largo del tiempo, con raíces en el pasado y ramas hacia el futuro. Una serpiente en él puede ser una ansiedad o un deseo incrustado en ese crecimiento: una duda que sube con cada logro o un anhelo que no terminas de integrar.",
-        "También puede anunciar un aprendizaje. Las lecturas junguianas ven en la serpiente del árbol un conocimiento que rompe la inocencia. Si la escena te intrigó más de lo que te asustó, tal vez estés listo para entender algo que cambia cómo ves tu propia historia.",
-      ],
-      spiritual: [
-        "En lo espiritual, el árbol une la tierra y el cielo, y la serpiente es a la vez tentación y sabiduría sanadora. La pareja invita a mirar con honestidad qué estás buscando alcanzar y por qué.",
-        "Una serpiente que baja y se aleja del árbol puede leerse como liberación de una tentación persistente. Una que descansa en paz entre las ramas, como sabiduría integrada a tu crecimiento y no en su contra.",
-      ],
-      islamic: [
-        "El Corán relata que a Adán y su esposa se les prohibió acercarse a un árbol y que fueron engañados por el susurro de Shaytán (2:35–36; 7:20–22). No menciona una serpiente: esta aparece en algunos relatos exegéticos posteriores que los sabios clasifican como narraciones tomadas de tradiciones anteriores. En los sueños, la serpiente suele ser un enemigo y el árbol una persona o una familia, y los árboles frutales se vinculan con el bien.",
-        "Por eso una serpiente en un árbol puede entenderse como hostilidad o envidia cerca de una familia o de una fuente de beneficio, y matarla, como protección. Son lecturas tentativas: se busca refugio en Allah, se cuida lo confiado y se evita sospechar sin pruebas.",
-      ],
-      biblical: [
-        "La serpiente del Edén habló junto al árbol del conocimiento del bien y del mal (Génesis 3): es la primera imagen bíblica de la tentación. La Biblia ofrece también una contraimagen sanadora: la serpiente de bronce levantada en el desierto (Números 21:8–9), que Jesús relacionó con su propia elevación (Juan 3:14).",
-        "Una reflexión bíblica puede preguntar dónde un deseo se presenta como inofensivo sin serlo y dónde necesitas confiar en los límites de Dios. El Salmo 1 describe al justo como árbol plantado junto a corrientes de agua; lo retomamos en [tormenta y árbol](/dreams/storm-and-tree).",
-      ],
-      commonScenarios: [
-        { title: "Serpiente colgando de un árbol", meaning: "Un riesgo por encima de tu vista; algo que todavía no notaste." },
-        { title: "Serpiente que cae del árbol sobre ti", meaning: "Un problema repentino que llega de un lado inesperado, en un entorno conocido." },
-        { title: "Serpiente trepando un árbol", meaning: "Ambición, cambio o una inquietud que sube al ritmo de tu crecimiento." },
-        { title: "Serpiente cuidando la fruta", meaning: "Un deseo u oportunidad con consecuencias." },
-        { title: "Matar una serpiente en un árbol", meaning: "Proteger a tu familia, tu trabajo o tus valores de una amenaza." },
-      ],
-      faq: [
-        { question: "¿Qué significa soñar con una serpiente en un árbol?", answer: "Suele mostrar tentación, riesgo oculto o un conocimiento nuevo enroscado en algo de lo que dependes: familia, trabajo o crecimiento personal." },
-        { question: "¿Y si la serpiente cae del árbol encima de mí?", answer: "Suele reflejar un problema o una revelación repentina que llega desde un lugar conocido e inesperado." },
-        { question: "¿Qué significa en la Biblia?", answer: "Recuerda a la serpiente del Edén y la tentación junto al árbol del conocimiento, e invita a pensar en el deseo y los límites." },
-        { question: "¿Qué significa una serpiente verde en un árbol?", answer: "Se confunde con las hojas: puede señalar algo escondido a plena vista, o crecimiento mezclado con envidia o cautela." },
-        { question: "¿Qué significa en el islam?", answer: "Los intérpretes suelen ver a la serpiente como enemigo y al árbol como persona o familia: envidia u hostilidad cerca de una fuente de bien." },
       ],
     },
   },
@@ -1005,55 +827,6 @@ export const ENTRY_OVERRIDES_ES: Record<string, EntryL10nOverride> = {
         { question: "¿Qué hacer después de un sueño así según el islam?", answer: "Buscar refugio en Allah, soplar levemente a la izquierda, cambiar de costado y no contar el sueño." },
         { question: "¿Por qué no puedo moverme cuando los veo?", answer: "Es típico de la parálisis del sueño: el cuerpo sigue en la atonía del REM mientras la conciencia despierta." },
         { question: "¿Cómo dejo de tener estas pesadillas?", answer: "Horarios regulares, menos estímulos nocturnos, ensayo en imágenes y ayuda profesional si son frecuentes o traumáticas." },
-      ],
-    },
-  },
-  pope: {
-    seoTitle: "Soñar con el papa: autoridad, bendición y conciencia",
-    seoDescription:
-      "Qué significa soñar que conoces al papa, que te bendice o que está enojado: autoridad, culpa y perdón, con lectura psicológica, islámica y bíblica y 7 escenarios.",
-    sections: {
-      introduction: [
-        "En América Latina el papa no es una figura lejana. Francisco fue el primer papa argentino, el primero del continente, y durante doce años su cara estuvo en las noticias, en los estadios y en las cocinas; con su muerte y el cónclave que eligió a León XIV, medio mundo volvió a soñar con el Vaticano. Sueñan con el papa católicos practicantes, católicos de bautismo y primera comunión que no pisan una iglesia desde hace años, evangélicos y gente sin religión. El sueño no pregunta por tu carnet de fe.",
-        "En el sueño el papa casi nunca trata del Vaticano. Es la imagen más grande de autoridad moral que la mente dormida puede dibujar, y la trama muestra cómo estás parado frente a esa autoridad hoy: esperando una bendición, discutiendo, escondiéndote o recibiendo sus llaves. Las páginas sobre la [iglesia](/dreams/church) y sobre [Dios](/dreams/god) cubren el edificio y la fuente; esta trata del hombre del medio y de lo que significa cuando te mira a ti. Y una aclaración que hace reír pero importa: si en el sueño era tu papá con acento, lee también la página sobre el [padre](/dreams/father).",
-      ],
-      general: [
-        "Empieza por la distancia. Un papa visto desde la multitud, como en una plaza llena o un papamóvil, suele representar la autoridad como hecho público, algo que aceptas o toleras de lejos. Un papa que se vuelve hacia ti, te llama por tu nombre o se sienta frente a ti trae la pregunta a casa: ¿qué diría del peso que cargas el juez más estricto y más justo que puedas imaginar? Fíjate en su ánimo, porque es tu propia conciencia vestida de blanco. Un papa cálido significa que el veredicto que temes es más suave de lo que crees; uno severo, que ya te condenaste solo.",
-        "Después mira qué hace con las manos. Bendecir, absolver, entregarte algo: son sueños de permiso y alivio, y aparecen alrededor de decisiones para las que quieres una señal. Darse vuelta, negarse, regañarte: culpa o una regla que rompiste y no soltaste. Un sueño en que el papa muere o es reemplazado muchas veces no tiene nada que ver con la Iglesia: llega cuando un padre, un jefe o un mentor se está yendo de tu vida, y la mente busca la imagen más grande disponible de una figura paterna que parte. Sobre el fondo de duelo que eso trae, la página sobre la [muerte](/dreams/death) ayuda a separar la noticia de lo tuyo.",
-      ],
-      psychological: [
-        "En clave psicológica, el papa es el superyó con sotana. Así llamó Freud a la voz interiorizada de los padres y la cultura, la parte de ti que dice «deberías» y «qué vergüenza». Un hombre cuyo oficio entero es juzgar, perdonar y fijar la norma encaja casi demasiado bien. Cuando esa voz aparece como persona en un sueño, puedes ver cómo te relacionas con ella. Quienes crecieron en casas religiosas estrictas, con colegio de monjas o de curas, o con padres que escatimaban la aprobación, suelen soñar con el papa cuando buscan permiso para una decisión de vida: cambiar de carrera, separarse, dejar una creencia que ya no sostienen.",
-        "Jung agregaría que el papa es también el arquetipo del viejo sabio, la figura de sabiduría acumulada que aparece cuando alguien necesita una guía que todavía no puede darse a sí mismo. En esa lectura el sueño no es punitivo: es tu psique montando una consulta. ¿Qué dijo? Si nada, ese silencio es el punto: ya sabes qué aconsejaría la versión sabia de ti, y el sueño pregunta si vas a escucharla. La fama del papa también cuenta; como un sueño con un [famoso](/dreams/celebrity), puede cargar el deseo simple de que alguien cuya atención zanjaría tu valor te vea.",
-      ],
-      spiritual: [
-        "Espiritualmente el papa es imagen de pastor: el que mantiene junto al rebaño, lo alimenta y responde por él. Soñar que él te encuentra o te recibe puede ser la sensación de pertenecer a algo más grande que tu propio esfuerzo, sobre todo en una temporada de soledad. Mucha gente describe este sueño como inesperadamente tierno, el sentimiento de haber sido perdonado antes de terminar la disculpa, y vale más confiar en esa cualidad que en cualquier doctrina sobre el hombre.",
-        "Para quien no es católico, evangélico o sin religión, la figura sigue funcionando como símbolo de fe ordenada, jerarquía y tradición. Algunos despiertan incómodos, preguntándose si el sueño critica su camino; no lo hace. Más bien pregunta si quieres más estructura, más rito o más rendición de cuentas en tu vida espiritual de la que tienes ahora, o si, al contrario, te pesa una regla ajena. Un papa parado en la [iglesia](/dreams/church) de tu infancia suele hablar de la fe heredada con la que estás decidiendo qué hacer.",
-      ],
-      islamic: [
-        "La interpretación islámica de los sueños no tiene una entrada aparte para el papa, pero los intérpretes clásicos como Ibn Sirin y al-Nabulsi tratan a sacerdotes, monjes y líderes de otras comunidades religiosas. Las lecturas son mixtas y dependen del contexto: esa figura puede representar a una persona de conocimiento y devoción austera, los asuntos con cristianos que el soñador tiene en la vigilia o, cuando el soñador se une a su culto, una advertencia contra la innovación y contra apartarse del propio camino. Los intérpretes miran lo que el soñador hizo, no solo a quién vio.",
-        "Un musulmán que sueña con el papa debería preguntarse primero qué es esa figura para él: un jefe de Estado, un símbolo del diálogo interreligioso, una cara de las noticias o simplemente autoridad. Los sueños armados con impresiones del día, hadiz an-nafs, no traen mensaje ni exigen respuesta. Si el sueño fue sereno y la figura respetuosa, muchos intérpretes lo leerían como el encuentro con una persona de rango o como señal de que los asuntos del soñador tocan a gente de otra fe. Si te inquietó, sigue la Sunna para los sueños perturbadores: busca refugio en Alá, no lo cuentes por ahí y déjalo pasar. Quien decide sigue siendo Alá, como explica desde el lado islámico la página sobre [Dios](/dreams/god).",
-      ],
-      biblical: [
-        "La enseñanza católica remonta el papado a Pedro, y los versículos detrás del oficio dan al sueño su vocabulario bíblico. Jesús le dice: «tú eres Pedro, y sobre esta roca edificaré mi iglesia», y luego: «a ti te daré las llaves del reino de los cielos» (Mateo 16:18-19). Después de la resurrección, el mismo Pedro que lo negó tres veces escucha tres veces «¿me amas?» y recibe el encargo «apacienta mis ovejas» (Juan 21:15-17). El papa en un sueño suele cargar exactamente esos dos temas: llaves, es decir autoridad para abrir o cerrar, y un pastor que fue perdonado primero.",
-        "Ese segundo tema es el corazón pastoral del sueño. La gran autoridad religiosa de la Biblia es un hombre con una caída en su historial, restaurado por gracia y enviado a cuidar de otros. Si el papa de tu sueño te perdonó, te bendijo o simplemente sabía tu nombre, el eco bíblico es la propia restauración de Pedro, y la invitación es aceptar el perdón en vez de seguir ganándotelo. Si fue frío o te condenó, recuerda que la misma Escritura advierte a los pastores contra enseñorearse del rebaño (1 Pedro 5:2-3): un papa duro es tu miedo al juicio, no el juicio. Un evangélico no necesita leer el sueño como una declaración sobre el primado romano: las [llaves](/dreams/keys) y el pastor pertenecen a toda la historia, y la pregunta que hace el sueño, a quién dejas hablar en nombre de Dios en tu vida, la responde cada creyente.",
-      ],
-      commonScenarios: [
-        { title: "Conocer al papa", meaning: "La versión más común. Ser recibido por él suele reflejar el deseo de aprobación de la máxima autoridad que reconoces, o una decisión que quieres que alguien más sabio confirme. Fíjate si te estaba esperando." },
-        { title: "El papa te bendice", meaning: "Alivio, permiso y perdón. Estos sueños aparecen antes de bodas, mudanzas, cambios de trabajo y reconciliaciones, y suelen sentirse como un peso que se va. Acepta el permiso: el sueño lo diste tú." },
-        { title: "Hablar con el papa", meaning: "Una conversación con tu conciencia o con la versión más sabia de ti. Lo que dijo importa mucho más que el hecho de verlo. Si guardó silencio, ya conoces el consejo." },
-        { title: "El papa muere o su funeral", meaning: "Termina una era de autoridad: un padre que envejece, un mentor que se va, una creencia que ya no puedes sostener. Muy frecuente en las semanas alrededor de una muerte papal real, cuando significa poco más que la noticia." },
-        { title: "Ser el papa", meaning: "Una responsabilidad más grande de la que pediste, o el miedo a que esperen que tengas todas las respuestas. Común en jefes nuevos, padres primerizos y en quien acaba de convertirse en el que decide en la familia." },
-        { title: "El papa visita tu casa", meaning: "Tu vida privada puesta bajo una norma: la casa juzgada u honrada. A menudo habla del deseo de reconciliar a una familia dividida o de valores que intentas traer de vuelta al hogar." },
-        { title: "Un papa enojado o que desaprueba", meaning: "Culpa con cara. Una regla que rompiste, una promesa incumplida o una autoridad en cuya aprobación dejaste de creer pero no puedes dejar de buscar. El enojo es tu propia sentencia." },
-      ],
-      faq: [
-        { question: "¿Qué significa soñar con el papa?", answer: "Casi siempre el papa representa la máxima autoridad moral que puedes imaginar, y el sueño muestra cómo estás parado frente a ella: buscando una bendición, temiendo un juicio, discutiendo o recibiendo una responsabilidad. Rara vez es sobre religión y casi nunca una profecía." },
-        { question: "¿Soñar con el papa es buena señal?", answer: "Depende de la escena. Una bendición, una palabra amable o una bienvenida apuntan a alivio y perdón. Un papa severo o distante habla de culpa o de una regla con la que no hiciste las paces. Ninguna predice nada; ambas describen cómo te tratas." },
-        { question: "No soy católico. ¿Por qué soñé con el papa?", answer: "Porque es la imagen de autoridad religiosa más reconocible del mundo, y los sueños usan la imagen que tengan a mano. Una noticia, una película o una conversación bastan. El sueño trata de la autoridad, la conciencia y la tradición en tu vida, no de tus creencias." },
-        { question: "¿Qué significa que el papa me bendiga en un sueño?", answer: "Permiso y alivio. La mente monta una bendición cuando esperas una señal para avanzar con algo o cuando necesitas sentirte perdonado. Como la figura salió de ti, la bendición también." },
-        { question: "¿Qué significa soñar que el papa murió?", answer: "Casi siempre que una fuente de autoridad en tu vida se está apagando: un padre, un mentor, un jefe o una creencia. En las semanas posteriores a una muerte papal real, suele ser solo la noticia procesándose." },
-        { question: "¿Qué dice el islam sobre ver al papa en sueños?", answer: "No hay un dictamen específico. Los intérpretes clásicos leen a sacerdotes y líderes de otras religiones según el contexto: a veces como personas de conocimiento, a veces como aviso de no apartarse del propio camino. Los sueños hechos de noticias e impresiones del día no traen mensaje." },
-        { question: "¿Tiene sentido bíblico soñar con el papa?", answer: "El oficio se vincula a Pedro, el discípulo que recibió las llaves del reino y el encargo de apacentar las ovejas después de ser perdonado. Un sueño con el papa suele cargar esos temas: autoridad para abrir o cerrar, y un pastor restaurado antes de que confiaran en él." },
       ],
     },
   },

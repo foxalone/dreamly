@@ -1,3 +1,4 @@
+import { REVIEWED_DE } from "../../dreams/reviewed-content/de";
 import { MUSIC_CONTENT } from "../../dreams/music-content";
 import { MUD_CONTENT } from "../../dreams/mud-content";
 import { HURRICANE_CONTENT } from "../../dreams/hurricane-content";
@@ -9,6 +10,7 @@ import type { EntryL10nOverride } from "./types";
  */
 
 export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
+  ...REVIEWED_DE,
   music: MUSIC_CONTENT.de,
   ...MUD_CONTENT.de,
   hurricane: HURRICANE_CONTENT.de,
@@ -153,51 +155,6 @@ export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "cat-and-snake": {
-    seoTitle: "Katze und Schlange im Traum: Intuition gegen Gefahr",
-    seoDescription:
-      "Von Katze und Schlange träumen – kämpfend, tötend oder sich belauernd: Intuition trifft verborgenes Risiko, mit psychologischer, islamischer und biblischer Deutung.",
-    sections: {
-      introduction: [
-        "Katze und Schlange bewegen sich beide lautlos und vertrauen ihrem Instinkt – ihre Begegnung im Traum hat daher oft etwas von einem Duell. Die Katze steht für Unabhängigkeit, Feinfühligkeit und eine stets wache Intuition; die Schlange für verborgenes Risiko, Versuchung oder eine Veränderung, die unter der Oberfläche arbeitet. Der Traum taucht häufig auf, wenn ein Teil von dir etwas Unstimmiges bemerkt hat, bevor du es in Worte fassen kannst.",
-        "Der Ausgang bestimmt die Deutung. Eine Katze, die die Schlange belauert oder tötet, spricht für eine Intuition, die das Problem anpackt. Überwältigt die Schlange die Katze, kann die Angst mitschwingen, dass deine Unabhängigkeit oder dein Sicherheitsgefühl untergraben wird. Belauern sie sich nur, beschreibt der Traum ein Patt zwischen Vertrauen und Argwohn. Eine andere Rivalität zeigt [Katze und Hund](/dreams/cat-and-dog).",
-      ],
-      general: [
-        "Frag dich, mit welchem Tier du dich verbunden fühltest. Viele erkennen sich in der Katze: aufmerksam, eigenständig, schwer hinters Licht zu führen. Erinnerte dich die Schlange an jemanden, denk daran, wer zuletzt charmant, aber schwer lesbar wirkte – oder welche Abmachung Kleingedrucktes hat.",
-        "Der Ort zählt. Im Haus geht es meist um Familie oder Partnerschaft, im Garten um etwas, das wächst – ein Projekt, eine Freundschaft, eine neue Stelle – und einen unsichtbaren Preis hat. Einzeldeutungen unter [Katze](/dreams/cat) und [Schlange](/dreams/snake).",
-      ],
-      psychological: [
-        "Psychologisch können Katze und Schlange zwei Abwehrstile verkörpern. Die Katze zieht sich zurück, beobachtet und schlägt erst zu, wenn sie sicher ist. Die Schlange versteckt sich, wartet und beißt plötzlich. Ein Traum mit beiden zeigt, wie du mit Bedrohung umgehst: ruhig und gezielt oder mit einer eingerollten Anspannung, die irgendwann losschnellt.",
-        "Zieht sich der Kampf endlos hin, kann das Grübeln spiegeln. Gewinnt die Katze rasch, übt der Traum Vertrauen in dein eigenes Urteil. Und eine Katze, die davonläuft, ist nicht feige: Manchmal ist es die gesunde Entscheidung, eine Lage zu verlassen, die das Risiko nicht wert ist.",
-      ],
-      spiritual: [
-        "Spirituell gilt die Katze oft als Hüterin des Hauses und feiner Wahrnehmung, die Schlange als Trägerin von Gefahr und Erneuerung. Zusammen können sie eine Zeit markieren, in der du deinen inneren Warnsignalen trauen und deine Energie vor täuschenden Einflüssen schützen solltest.",
-        "Eine ruhige Szene zwischen beiden spricht von Gleichgewicht: Intuition und Wandel arbeiten zusammen. Die Einladung lautet Unterscheidungskraft – merken, was nicht stimmt, ohne allen zu misstrauen.",
-      ],
-      islamic: [
-        "Die Katze hat in der islamischen Überlieferung einen freundlichen Platz: Hadithe beschreiben sie als nicht unrein und als Tier, das eng mit den Menschen lebt, und Gelehrte erinnern an die Warnung vor der Frau, die bestraft wurde, weil sie eine Katze einsperrte. In der Traumdeutung kann die Katze jedoch auch für jemanden im Haushalt stehen, dessen Loyalität unklar ist, während die Schlange häufig als Feind gelesen wird.",
-        "Eine Katze, die eine Schlange tötet, gilt daher oft als Schutz vor Schaden, mitunter durch einen nahestehenden Menschen; eine Schlange, die die Katze verletzt, als Sorge, dass Feindseligkeit ins Haus dringt. Die Deuter betonen, dass alles von der Lage des Träumenden abhängt: Man sucht Zuflucht bei Allah und beschuldigt niemanden wegen eines Traums.",
-      ],
-      biblical: [
-        "Katzen kommen in der Bibel praktisch nicht vor, die Schlange dagegen ist seit 1. Mose 3 mit Täuschung verbunden. Eine biblische Lesart kann die Schlange als Warnung vor subtiler Versuchung und die Katze als Bild der Wachsamkeit verstehen.",
-        "Jesus rief seine Jünger auf, klug zu sein wie die Schlangen und ohne Falsch wie die Tauben (Matthäus 10,16) – Wachsamkeit ist nicht dasselbe wie Feindseligkeit. Bleibt nach dem Traum Unruhe, ist Gebet und das Nachdenken darüber, wo du Weisheit brauchst, eine gelassene Antwort. Siehe auch [Hund und Schlange](/dreams/dog-and-snake).",
-      ],
-      commonScenarios: [
-        { title: "Katze tötet eine Schlange", meaning: "Intuition oder ein schützender Verbündeter räumt eine verborgene Gefahr aus dem Weg; Vertrauen ins eigene Gespür." },
-        { title: "Schlange greift eine Katze an", meaning: "Angst, dass etwas Täuschendes deine Unabhängigkeit, dein Zuhause oder deinen Frieden angreift." },
-        { title: "Katze und Schlange belauern sich", meaning: "Patt zwischen Vertrauen und Argwohn; eine offene Entscheidung über einen Menschen." },
-        { title: "Katze und Schlange leben friedlich zusammen", meaning: "Gleichgewicht zwischen Vorsicht und Offenheit oder eine Beziehung, die sich beruhigt hat." },
-        { title: "Die Katze bringt dir eine Schlange", meaning: "Eine Warnung landet bei dir: etwas, das du direkt anschauen statt meiden solltest." },
-      ],
-      faq: [
-        { question: "Was bedeutet ein Traum von Katze und Schlange?", answer: "Oft trifft Intuition auf verborgene Gefahr: Die Wachheit der Katze und die Heimlichkeit der Schlange zeigen auf etwas, das nicht ist, wie es scheint." },
-        { question: "Was, wenn die Katze die Schlange tötet?", answer: "Meist Schutz oder klares Urteil, das eine Bedrohung besiegt. Manche Traditionen lesen darin Hilfe von einem nahestehenden Menschen." },
-        { question: "Was, wenn die Schlange die Katze beißt?", answer: "Das kann die Sorge spiegeln, dass etwas Täuschendes dein Zuhause oder deine Freiheit trifft. Nimm es als Anlass, Fakten zu prüfen – nicht als Beweis." },
-        { question: "Was bedeutet ein Kampf zwischen Katze und Schlange im Islam?", answer: "Deuter sehen die Schlange oft als Feind und den Sieg der Katze als Schutz. Es kommt auf das Leben des Träumenden an, und niemand darf wegen eines Traums beschuldigt werden." },
-        { question: "Ist der Traum eine Warnung?", answer: "Er kann dazu einladen, auf dein Bauchgefühl zu hören. Eine Vorhersage von Unheil ist er nicht." },
-      ],
-    },
-  },
   "cat-and-rat": {
     seoTitle: "Katze und Ratte (Maus) im Traum: das Katz-und-Maus-Spiel",
     seoDescription:
@@ -285,51 +242,6 @@ export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
         { question: "Was, wenn der Vogel entkommt?", answer: "Entkommen steht meist für Erleichterung, Widerstandskraft und Hoffnung, die trotz Hindernissen ankommt." },
         { question: "Ist das ein schlechtes Omen?", answer: "Nein. Der Traum beschreibt eine Spannung, die Aufmerksamkeit verdient, kein festes Schicksal." },
         { question: "Was bedeuten Katze und Vogel in Frieden?", answer: "Dass Vorsicht und Zuversicht – oder zwei sehr verschiedene Menschen – nebeneinander bestehen können." },
-      ],
-    },
-  },
-  "snake-and-rat": {
-    seoTitle: "Schlange und Ratte im Traum: versteckte Gefahren zusammen",
-    seoDescription:
-      "Von Schlange und Ratte träumen – eine Schlange frisst eine Ratte oder beide sind im Haus: kleine Übel und tiefe Gefahr, islamisch und biblisch gedeutet.",
-    sections: {
-      introduction: [
-        "Schlange und Ratte sind zwei Tiere, denen die meisten Menschen instinktiv ausweichen. Die Ratte steht oft für ein nagendes Problem, Schmutz, kleine Lügen oder Verluste; die Schlange für verborgene Gefahr, Verrat oder eine Veränderung, die plötzlich zubeißt. In der Natur frisst die Schlange die Ratte – deshalb handeln solche Träume häufig davon, dass ein Problem ein anderes verschlingt, oder davon, welche Bedrohung die eigentliche ist.",
-        "Eine Schlange, die eine Ratte packt, kann eine seltsame Erleichterung auslösen: Eine größere Kraft erledigt ein Durcheinander, mit dem du nicht fertig wurdest. Ganz anders wirken Ratten und Schlangen, die sich Zimmer, Keller oder Bett teilen – hier wohnen mehrere unbequeme Wahrheiten Tür an Tür. Spielt die Szene in deinem Haus, lies [Schlange und Haus](/dreams/snake-and-house).",
-      ],
-      general: [
-        "Frag dich, was gerade das Ungeziefer in deinem Leben ist – Rechnungen, Klatsch, Unordnung, eine Gewohnheit – und was sich wie die große, stille Gefahr anfühlt. Vielleicht fragt der Traum, ob du beim Lösen des kleinen Problems ein größeres fütterst oder ob jemand, der dir hilft, selbst Risiken mitbringt.",
-        "Deine Rolle zählt: ruhig zuschauen spricht für Analyse, Panik für Überlastung, beide töten für den Wunsch, alles auf einmal loszuwerden. Einzeldeutungen unter [Schlange](/dreams/snake), [Ratte](/dreams/rat) und [viele Schlangen](/dreams/many-snakes).",
-      ],
-      psychological: [
-        "Psychologisch verkörpert die Ratte oft aufdringliche, wiederkehrende Sorgen, die Schlange eine tiefere Angst, die schwerer anzuschauen ist. Frisst die Schlange die Ratte, tauscht der Geist womöglich viele kleine Ängste gegen eine große – ein häufiges Muster, wenn sich Stress staut.",
-        "Das Paar kann auch Misstrauen in einer Gruppe spiegeln: kleine Lügen oder Indiskretionen (die Ratte) und eine Person mit verdeckten Absichten (die Schlange). Hilfreich ist, Fakten von Eindrücken zu trennen und jede Sache für sich zu behandeln.",
-      ],
-      spiritual: [
-        "Spirituell hausen beide Tiere an dunklen Orten. Gemeinsam können sie ein Aufruf sein, Umfeld und Innenleben zu reinigen: aufzuhören, zu dulden, was dich auslaugt, und anzuschauen, was du meidest.",
-        "Zugleich ist die Schlange ein Symbol der Erneuerung. Eine Schlange, die einen Ort von Ratten befreit, lässt sich als Wandlung lesen, die Altes und Fauliges fortträgt – wenn du mit der Veränderung gehst, statt sie zu fürchten.",
-      ],
-      islamic: [
-        "In der islamischen Traumdeutung wird die Schlange oft mit einem Feind verbunden, Maus oder Ratte mit einem unehrlichen oder sittenlosen Menschen; die Hadithe zählen die Maus zu den schädlichen Tieren, die getötet werden dürfen. Ein Traum, der beide vereint, kann als Feindseligkeit aus mehr als einer Richtung gelesen werden oder als ein Übel, das ein anderes untergräbt.",
-        "Beide zu töten, gilt meist als Sieg über diese Übel, gebissen zu werden als Angst vor Verlust. Die Deuter mahnen zur Demut: Ein Traum ist keine Anklage. Man sucht Zuflucht bei Allah, schützt sein Haus mit Vernunft und hegt keinen Verdacht ohne Beweis.",
-      ],
-      biblical: [
-        "Die Schrift begegnet beiden Tieren mit Vorsicht: der Schlange seit 1. Mose 3 als Bild der Täuschung, der Maus unter den unreinen Tieren (3. Mose 11,29) und in der Plage der Philister (1. Samuel 6). Zusammen können sie für geistliche und praktische Verderbnis stehen.",
-        "Eine biblische Betrachtung fragt, wo kleine Zugeständnisse eine größere Versuchung nähren. Epheser 5,11 mahnt, an den unfruchtbaren Werken der Finsternis nicht teilzuhaben, sondern sie aufzudecken. Siehe auch [Spinne und Schlange](/dreams/spider-and-snake).",
-      ],
-      commonScenarios: [
-        { title: "Schlange frisst eine Ratte", meaning: "Ein Problem verschlingt ein anderes; eine größere Kraft räumt auf, womöglich mit Preis." },
-        { title: "Schlangen und Ratten im Haus", meaning: "Mehrere unbequeme Spannungen teilen sich deinen privaten Raum und wollen beachtet werden." },
-        { title: "Ratte entkommt der Schlange", meaning: "Eine kleine Sache schlüpft an einer größeren Gefahr vorbei; Erleichterung auf Zeit." },
-        { title: "Schlange und Ratte töten", meaning: "Entschlossenheit, alles Schädliche auf einmal loszuwerden." },
-        { title: "Von beiden gebissen werden", meaning: "Angriffe von mehreren Seiten: kleine Ärgernisse und ein tieferer Verrat." },
-      ],
-      faq: [
-        { question: "Was bedeutet ein Traum von Schlange und Ratte?", answer: "Oft verbindet er ein nagendes oder unehrliches Problem mit einer tieferen Gefahr und fragt, welches wirklich deine Aufmerksamkeit verdient." },
-        { question: "Was, wenn die Schlange die Ratte frisst?", answer: "Eine Angelegenheit schluckt oder löst eine andere – manchmal eine Erleichterung, manchmal ein Zeichen, dass ein größeres Risiko wächst." },
-        { question: "Was bedeutet das im Islam?", answer: "Die Schlange gilt oft als Feind, die Ratte als unehrlicher Mensch; der Traum kann Sorge vor Schaden aus mehreren Richtungen spiegeln. Er beweist nichts." },
-        { question: "Sind Schlangen und Ratten im Haus ein schlechtes Zeichen?", answer: "Sie weisen auf Spannungen im Privatleben hin, die Aufmerksamkeit brauchen – nicht auf sicheres Unglück." },
-        { question: "Was, wenn ich beide töte?", answer: "Meist die Entschlossenheit, dich dem zu stellen, was dich zermürbt, und aufzuräumen." },
       ],
     },
   },
@@ -423,51 +335,6 @@ export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
       ],
     },
   },
-  "snake-and-fish": {
-    seoTitle: "Schlange und Fisch im Traum: Geschenk mit verborgenem Preis",
-    seoDescription:
-      "Von Schlange und Fisch träumen: Versorgung nahe der Täuschung. Was eine Schlange, die Fische frisst, oder ein Fisch, der zur Schlange wird, bedeutet – mit Lukas 11,11.",
-    sections: {
-      introduction: [
-        "Fische stehen im Traum oft für Nahrung, Fülle, Chancen oder Einfälle, die aus der Tiefe aufsteigen. Die Schlange steht für verborgenes Risiko, Versuchung oder Wandlung. Erscheinen beide – nebeneinander schwimmend, eine Schlange auf Fischjagd oder ein Fisch, der sich in eine Schlange verwandelt –, fragt der Traum fast immer, ob etwas, das wie ein Geschenk aussieht, einen unausgesprochenen Preis hat.",
-        "Meist ist Wasser im Spiel, und das verlegt die Frage ins Gefühlsleben. In klarem Wasser siehst du die Lage, wie sie ist; in trübem sind die Absichten unklar. Wolltest du angeln und hattest statt eines Fisches eine Schlange am Haken, spricht der Traum von Enttäuschung oder der Angst, getäuscht zu werden. Siehe [Fisch](/dreams/fish) und [Schlangen im Wasser](/dreams/snakes-in-water).",
-      ],
-      general: [
-        "Überleg, wo du gerade Versorgung erwartest: ein Jobangebot, ein Geschäft, eine Beziehung, Unterstützung aus der Familie. »Einem geschenkten Gaul schaut man nicht ins Maul«, sagt das Sprichwort – dieser Traum rät eher zum Gegenteil: genau hinsehen, denn Chance und Risiko schwimmen oft im selben Wasser.",
-        "Der Ausgang zählt. Entkommende Fische deuten auf geschützte Mittel, eine Schlange, die sie frisst, auf die Angst, Einkommen, Kraft oder Ideen an andere zu verlieren. Verwandt: [Fische fangen](/dreams/catching-fish) und [Fisch und Wasser](/dreams/fish-and-water).",
-      ],
-      psychological: [
-        "Psychologisch stehen Fische oft für nährende Inhalte des Unbewussten – Eingebungen, Kreativität, intuitives Wissen. Die Schlange kann Angst oder Abwehr sein. Zusammen zeigen sie eine wertvolle Einsicht, die mit einem Stich Furcht ankommt.",
-        "Verwandelt sich ein Fisch in eine Schlange, verfolgt der Traum womöglich eine Ernüchterung: Etwas Vertrautes zeigt ein anderes Gesicht. Frag dich, ob die Veränderung real ist oder ob ein früherer Vertrauensbruch heutige Geschenke gefährlich erscheinen lässt.",
-      ],
-      spiritual: [
-        "Spirituell ist der Fisch ein altes Zeichen für Glauben und Fülle, die Schlange für Erneuerung und verborgenes Wissen. Zusammen markieren sie eine Zeit des Empfangens – und der Prüfung, welche Gaben man annimmt.",
-        "Eine friedliche Szene deutet an, dass Wohlstand und Wandlung übereinstimmen. Eine Jagdszene lädt ein, den eigenen Segen zu schützen und ehrlich zu sein, was man dafür einzutauschen bereit ist.",
-      ],
-      islamic: [
-        "In der islamischen Traumdeutung werden Fische häufig mit erlaubtem Lebensunterhalt und Wohlstand verbunden, die Schlange mit einem Feind. Der Koran erinnert an Yunus im Bauch des großen Fisches und an seine Rettung sowie an den Fisch, der auf Musas Reise ins Meer glitt (18:61). Ein Traum mit Fisch und Schlange kann daher als Versorgung gelesen werden, die Neid oder Widerstand weckt.",
-        "Fische zu fangen und dabei einer Schlange auszuweichen, gilt oft als Erwerb unter Schutz vor Schaden. Die Deuter betonen, dass die Lage des Träumenden die Lesart bestimmt; empfohlen sind Dankbarkeit, Almosen und Zuflucht vor Neid.",
-      ],
-      biblical: [
-        "Jesus hat genau dieses Paar gebraucht: »Wo bittet unter euch ein Sohn den Vater ums Brot, der ihm einen Stein dafür biete? und so er um einen Fisch bittet, der ihm eine Schlange für den Fisch biete?« (Lukas 11,11). Der Gedanke: Ein guter Vater gibt gute Gaben – wie viel mehr Gott.",
-        "Eine biblische Lesart berührt daher das Vertrauen: Fürchtest du, dass das Erbetene sich als schädlich erweist? Die Stelle lädt ein, dem Geber zu vertrauen und bei menschlichen Angeboten dennoch klug zu bleiben. Siehe auch [Schlange und Baby](/dreams/snake-and-baby).",
-      ],
-      commonScenarios: [
-        { title: "Schlange frisst Fische", meaning: "Sorge, dass Mittel, Einkommen oder Ideen genommen oder verdorben werden." },
-        { title: "Fisch verwandelt sich in eine Schlange", meaning: "Ernüchterung: Ein Geschenk oder ein Mensch zeigt ein anderes Gesicht." },
-        { title: "Eine Schlange statt eines Fisches angeln", meaning: "Angst, von einer Chance getäuscht oder enttäuscht zu werden." },
-        { title: "Schlange und Fische schwimmen zusammen", meaning: "Chance und Risiko nebeneinander; es braucht Unterscheidung, keine Angst." },
-        { title: "Fische entkommen der Schlange", meaning: "Geschützter Segen; Mittel, die trotz Bedrohung sicher bleiben." },
-      ],
-      faq: [
-        { question: "Was bedeutet ein Traum von Schlange und Fisch?", answer: "Oft ein Segen oder eine Chance neben verborgenem Risiko – mit der Bitte, zu prüfen, ob ein Angebot hält, was es verspricht." },
-        { question: "Was, wenn ein Fisch zur Schlange wird?", answer: "Das kann Ernüchterung oder die Angst spiegeln, dass Vertrautes schädlich wird. Prüfe, ob die Angst aus heutigen Fakten oder alten Erfahrungen stammt." },
-        { question: "Was sagt die Bibel zu Fisch und Schlange?", answer: "In Lukas 11,11 stellt Jesus beide gegenüber, um zu zeigen, dass ein guter Vater gute Gaben gibt – der Traum kann das Vertrauen in Empfangenes berühren." },
-        { question: "Was bedeutet der Traum im Islam?", answer: "Fische stehen oft für Lebensunterhalt, die Schlange für einen Feind; der Traum kann Versorgung spiegeln, die Neid oder Widerstand anzieht." },
-        { question: "Ist eine Schlange, die Fische frisst, ein schlechtes Zeichen?", answer: "Sie zeigt Sorge um Verluste, kein sicheres Ergebnis. Nutze den Traum, um zu prüfen, wie du deine Mittel schützt." },
-      ],
-    },
-  },
   "snake-and-tiger": {
     seoTitle: "Schlange und Tiger im Traum: List gegen rohe Kraft",
     seoDescription:
@@ -510,51 +377,6 @@ export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
         { question: "Was, wenn die Schlange den Tiger beißt?", answer: "Das kann auf eine versteckte Verwundbarkeit bei jemand Starkem deuten oder auf einen leisen Einfluss, der einen offenen untergräbt." },
         { question: "Ist der Traum eine Warnung?", answer: "Er zeigt konkurrierende Belastungen, kein festes Ergebnis. Überleg, wie du jeder Herausforderung eigens begegnest." },
         { question: "Was, wenn mich beide ignorieren?", answer: "Dann gehört der Konflikt vielleicht zu Menschen um dich herum, und du beobachtest eher, als dass du beteiligt bist." },
-      ],
-    },
-  },
-  "snake-and-tree": {
-    seoTitle: "Schlange im Baum im Traum: Versuchung, Wachstum und Risiko",
-    seoDescription:
-      "Von einer Schlange im Baum träumen – hängend, kletternd oder auf dich fallend: Versuchung und Risiko rund ums Wachstum, mit Paradies- und Koran-Deutung.",
-    sections: {
-      introduction: [
-        "Die Schlange im Baum gehört zu den bekanntesten Bildern überhaupt – man denke an Lucas Cranachs Gemälde von Adam und Eva unter dem Baum der Erkenntnis. Wer davon träumt, wacht oft zwischen Unbehagen und Faszination auf. Der Baum steht für Wachstum, Leben, familiäre Wurzeln und Beständigkeit; die Schlange für Versuchung, verborgenes Wissen, Gefahr oder Erneuerung. Zusammen fragen sie, was sich um etwas windet, auf das du dich verlässt.",
-        "Die Bewegung der Schlange lenkt die Deutung. Klettert sie hinauf, kann das Ehrgeiz oder eine aufsteigende Veränderung bedeuten. Hängt sie vom Ast, liegt ein Risiko über deiner Blickhöhe – etwas, das du noch nicht bemerkt hast. Fällt sie auf dich, spiegelt das oft ein plötzliches Problem aus unerwarteter Richtung. Siehe [Baum](/dreams/tree) und [Obstbaum](/dreams/fruit-tree).",
-      ],
-      general: [
-        "Frag dich, wofür der Baum gerade steht: Familie, Beruf, ein langes Projekt, Gesundheit. Und was sich wie die Schlange anfühlt: eine Versuchung, ein Kritiker, ein Geheimnis, ein Wandel außerhalb deiner Kontrolle. Der Traum kommt oft, wenn Wachstum neue Angriffsfläche gebracht hat.",
-        "Die Farbe ergänzt: Eine grüne Schlange verschmilzt mit dem Laub – etwas, das offen verborgen ist; eine schwarze verstärkt die Angst; eine Schlange, die Früchte bewacht, deutet auf einen Wunsch mit Folgen. Siehe [grüne Schlange](/dreams/green-snake) und [schwarze Schlange](/dreams/black-snake).",
-      ],
-      psychological: [
-        "Psychologisch verkörpert der Baum oft das Selbst über die Zeit, mit Wurzeln in der Vergangenheit und Ästen in die Zukunft. Eine Schlange darin kann eine Angst oder ein Verlangen sein, das in dieses Wachstum eingewachsen ist: ein Zweifel, der mit jedem Erfolg mitklettert, oder eine Sehnsucht, die noch nicht integriert ist.",
-        "Das Bild kann auch Erkenntnis ankündigen. Jungianische Lesarten sehen in der Schlange am Baum ein Wissen, das die Unschuld beendet. Hat dich die Szene eher neugierig als ängstlich gemacht, bist du vielleicht bereit, etwas zu verstehen, das deine eigene Geschichte in neues Licht rückt.",
-      ],
-      spiritual: [
-        "Spirituell verbindet der Baum Erde und Himmel, die Schlange ist Versuchung und heilende Weisheit zugleich. Das Paar lädt zu ehrlicher Selbstprüfung ein: Wonach greifst du – und warum?",
-        "Eine Schlange, die herabsteigt und fortkriecht, kann Befreiung von einer hartnäckigen Versuchung bedeuten; eine, die ruhig im Geäst liegt, Weisheit, die in dein Wachstum eingebunden ist.",
-      ],
-      islamic: [
-        "Der Koran erzählt, dass Adam und seiner Frau verboten wurde, sich einem Baum zu nähern, und dass Shaitan sie durch Einflüsterung verführte (2:35–36; 7:20–22). Eine Schlange kommt im Text nicht vor; sie erscheint erst in späteren Auslegungsberichten, die Gelehrte als aus älteren Überlieferungen übernommen einstufen. In der Traumdeutung gilt die Schlange oft als Feind, der Baum als Mensch oder Familie; fruchttragende Bäume stehen für Gutes.",
-        "Eine Schlange im Baum kann daher als Feindseligkeit oder Neid nahe einer Familie oder Quelle des Nutzens gelesen werden, sie zu töten als Schutz. Solche Deutungen sind vorsichtig: Man sucht Zuflucht bei Allah, hütet das Anvertraute und hegt keinen Verdacht ohne Beweis.",
-      ],
-      biblical: [
-        "Die Schlange im Garten Eden sprach neben dem Baum der Erkenntnis des Guten und Bösen (1. Mose 3) – das erste biblische Bild der Versuchung. Die Bibel kennt aber auch ein heilendes Gegenbild: die eherne Schlange in der Wüste (4. Mose 21,8–9), die Jesus auf seine eigene Erhöhung bezog (Johannes 3,14).",
-        "Eine biblische Betrachtung fragt, wo ein Wunsch harmlos erscheint, ohne es zu sein, und wo du Gottes Grenzen vertrauen darfst. Psalm 1 beschreibt den Gerechten als Baum an Wasserbächen; dieses Bild unter Druck behandelt [Sturm und Baum](/dreams/storm-and-tree).",
-      ],
-      commonScenarios: [
-        { title: "Schlange hängt vom Baum", meaning: "Ein Risiko über deiner Blickhöhe; etwas, das du noch nicht bemerkt hast." },
-        { title: "Schlange fällt vom Baum auf dich", meaning: "Ein plötzliches Problem aus unerwarteter Richtung in vertrauter Umgebung." },
-        { title: "Schlange klettert auf einen Baum", meaning: "Ehrgeiz, Wandel oder eine Sorge, die mit deinem Wachstum mitwächst." },
-        { title: "Schlange bewacht Früchte", meaning: "Ein Wunsch oder eine Chance mit Konsequenzen." },
-        { title: "Eine Schlange im Baum töten", meaning: "Familie, Arbeit oder Werte vor einer Bedrohung schützen." },
-      ],
-      faq: [
-        { question: "Was bedeutet eine Schlange im Baum im Traum?", answer: "Oft Versuchung, verborgenes Risiko oder neue Erkenntnis rund um etwas, auf das du baust – Familie, Arbeit oder persönliches Wachstum." },
-        { question: "Was, wenn die Schlange vom Baum auf mich fällt?", answer: "Meist ein plötzliches Problem oder eine Enthüllung aus einer vertrauten, unerwarteten Ecke." },
-        { question: "Was ist die biblische Bedeutung?", answer: "Das Bild erinnert an die Schlange im Paradies und die Versuchung am Baum der Erkenntnis – und lädt ein, über Begehren und Grenzen nachzudenken." },
-        { question: "Was bedeutet eine grüne Schlange im Baum?", answer: "Sie tarnt sich im Laub: etwas offen Verborgenes oder Wachstum, das mit Neid oder Vorsicht vermischt ist." },
-        { question: "Was bedeutet der Traum im Islam?", answer: "Deuter sehen die Schlange oft als Feind und den Baum als Mensch oder Familie – Neid oder Feindseligkeit nahe einer Quelle des Guten." },
       ],
     },
   },
@@ -1005,55 +827,6 @@ export const ENTRY_OVERRIDES_DE: Record<string, EntryL10nOverride> = {
         { question: "Was tut man nach so einem Traum im Islam?", answer: "Zuflucht bei Allah suchen, leicht nach links pusten, sich auf die andere Seite drehen und den Traum nicht erzählen." },
         { question: "Warum kann ich mich nicht bewegen, wenn ich sie sehe?", answer: "Das ist typisch für Schlafparalyse: Der Körper ist noch in der REM-Atonie, während das Bewusstsein erwacht." },
         { question: "Wie werde ich diese Albträume los?", answer: "Feste Schlafzeiten, weniger abendliche Reize, Vorstellungsübungen und professionelle Hilfe bei häufigen oder traumatischen Albträumen." },
-      ],
-    },
-  },
-  pope: {
-    seoTitle: "Traumdeutung Papst: Autorität, Segen und Gewissen",
-    seoDescription:
-      "Was es bedeutet, im Traum den Papst zu treffen, seinen Segen zu bekommen oder getadelt zu werden: Autorität, Schuld und Vergebung – psychologisch, islamisch, biblisch.",
-    sections: {
-      introduction: [
-        "„Wir sind Papst!“ – die Schlagzeile von 2005, als Joseph Ratzinger zu Benedikt XVI. gewählt wurde, hat sich ins deutsche Gedächtnis eingebrannt, und seither ist der Papst hierzulande keine ferne Figur mehr. Katholiken, Ausgetretene, Protestanten und Konfessionslose träumen gleichermaßen von ihm, und der Traum häuft sich in den Wochen um einen Papsttod, ein Konklave oder einen groß übertragenen Besuch, wenn das Gesicht einfach im Gedächtnis verfügbar ist. Ob du Kirchensteuer zahlst, fragt der Traum nicht.",
-        "Im Traum geht es beim Papst fast nie um den Vatikan. Er ist das größte Bild moralischer Autorität, das der schlafende Verstand zeichnen kann, und die Handlung zeigt, wie du gerade zu dieser Autorität stehst: auf einen Segen wartend, streitend, dich versteckend oder ihre Schlüssel entgegennehmend. Die Seiten zur [Kirche](/dreams/church) und zu [Gott](/dreams/god) behandeln das Gebäude und die Quelle; hier geht es um den Mann in der Mitte und darum, was es heißt, wenn er dich ansieht. War die Gestalt in Weiß in Wahrheit dein eigener Vater, lies auch die Seite zum [Vater](/dreams/father).",
-      ],
-      general: [
-        "Beginne mit dem Abstand. Ein Papst, den du aus der Menge siehst, etwa auf dem Petersplatz oder im Papamobil, steht meist für Autorität als öffentliche Tatsache, die du von weitem hinnimmst oder erträgst. Ein Papst, der sich dir zuwendet, dich beim Namen nennt oder sich dir gegenübersetzt, holt die Frage nach Hause: Was würde der strengste, aber gerechte Richter, den du dir vorstellen kannst, über das sagen, was du mit dir herumträgst? Achte auf seine Stimmung, denn es ist dein eigenes Gewissen in weißer Soutane. Ein warmherziger Papst heißt, das Urteil, das du fürchtest, fällt milder aus als gedacht; ein strenger heißt, du hast dich längst selbst verurteilt.",
-        "Dann sieh, was er mit den Händen tut. Segnen, lossprechen, dir etwas reichen: Das sind Träume von Erlaubnis und Erleichterung, und sie sammeln sich um Entscheidungen, für die du ein Zeichen möchtest. Sich abwenden, verweigern, schelten: Schuld oder eine Regel, die du gebrochen und nicht abgelegt hast. Ein Traum, in dem der Papst stirbt oder ersetzt wird, hat oft nichts mit der Kirche zu tun; er kommt, wenn ein Elternteil, ein Chef oder ein Mentor aus deinem Leben verschwindet und der Verstand nach dem größten verfügbaren Bild einer scheidenden Vaterfigur greift. Zum Trauergrund, den das mitbringt, hilft die Seite zum [Tod](/dreams/death), Nachricht und Eigenes auseinanderzuhalten.",
-      ],
-      psychological: [
-        "Psychologisch ist der Papst das Über-Ich im Ornat. So nannte Freud die verinnerlichte Stimme von Eltern und Kultur, den Teil von dir, der „du solltest“ und „schäm dich“ sagt. Ein Mann, dessen ganzes Amt darin besteht, zu richten, zu vergeben und den Maßstab zu setzen, passt fast zu gut. Erscheint diese Stimme im Traum als Person, kannst du sehen, wie du mit ihr umgehst. Wer in einem streng religiösen Elternhaus, in einer Klosterschule oder bei Eltern aufwuchs, die mit Anerkennung geizten, träumt häufig vom Papst, wenn er gerade um Erlaubnis für eine Lebensentscheidung ringt: Berufswechsel, Trennung, Kirchenaustritt, der Abschied von einem Glauben, den man nicht mehr hält.",
-        "Jung würde ergänzen, dass der Papst auch der Archetyp des weisen Alten ist, die Gestalt gesammelter Weisheit, die erscheint, wenn jemand einen Rat braucht, den er sich selbst noch nicht geben kann. In dieser Lesart ist der Traum gar nicht strafend: Deine Psyche inszeniert eine Sprechstunde. Was hat er gesagt? Wenn nichts, dann ist das Schweigen der Punkt: Du weißt bereits, was die weise Version von dir raten würde, und der Traum fragt, ob du hinhörst. Auch die Prominenz des Papstes zählt; wie ein Traum von einem [Prominenten](/dreams/celebrity) kann er den schlichten Wunsch tragen, von jemandem gesehen zu werden, dessen Aufmerksamkeit deinen Wert ein für alle Mal klären würde.",
-      ],
-      spiritual: [
-        "Spirituell ist der Papst ein Hirtenbild: der, der die Herde zusammenhält, sie nährt und für sie einsteht. Zu träumen, dass er dich findet oder aufnimmt, kann das Gefühl sein, zu etwas Größerem zu gehören als zur eigenen Anstrengung, besonders in einer einsamen Zeit. Viele beschreiben diesen Traum als unerwartet zärtlich, als das Gefühl, vergeben bekommen zu haben, bevor die Entschuldigung zu Ende gesprochen war, und dieser Qualität darf man mehr trauen als jeder Lehre über den Mann.",
-        "Für Protestanten, Ausgetretene und Konfessionslose funktioniert die Figur weiterhin als Symbol für geordneten Glauben, Hierarchie und Tradition. Manche wachen unbehaglich auf und fragen sich, ob der Traum ihren Weg kritisiert; das tut er nicht. Er fragt eher, ob du dir mehr Struktur, mehr Ritual oder mehr Rechenschaft in deinem geistlichen Leben wünschst, als du gerade hast, oder ob dich umgekehrt eine fremde Regel drückt. Ein Papst in der [Kirche](/dreams/church) deiner Kindheit spricht meist vom ererbten Glauben, mit dem du gerade entscheidest, was du anfängst.",
-      ],
-      islamic: [
-        "Die islamische Traumdeutung kennt keinen eigenen Eintrag zum Papst, doch klassische Ausleger wie Ibn Sirin und an-Nabulsi behandeln Priester, Mönche und die Vorsteher anderer Religionsgemeinschaften. Die Deutungen sind gemischt und hängen vom Zusammenhang ab: Eine solche Gestalt kann für einen Menschen des Wissens und der Askese stehen, für die Angelegenheiten mit Christen, die der Träumende im Wachleben hat, oder, wenn der Träumende sich seinem Gottesdienst anschließt, für eine Warnung vor Neuerung und vor dem Abweichen vom eigenen Weg. Die Ausleger achten darauf, was der Träumende getan hat, nicht nur, wen er gesehen hat.",
-        "Ein Muslim, der vom Papst träumt, sollte sich zuerst fragen, was diese Gestalt für ihn persönlich ist: ein Staatsoberhaupt, ein Symbol des interreligiösen Dialogs, ein Gesicht aus den Nachrichten oder schlicht Autorität. Träume aus Tageseindrücken, hadith an-nafs, tragen keine Botschaft und verlangen keine Antwort. War der Traum ruhig und die Gestalt respektvoll, würden viele Ausleger ihn als Begegnung mit einer Person von Rang lesen oder als Zeichen, dass die Angelegenheiten des Träumenden Menschen anderen Glaubens berühren. Hat er dich beunruhigt, folge der Sunna für belastende Träume: Suche Zuflucht bei Allah, erzähle ihn nicht herum und lass ihn ziehen. Der, dessen Wort entscheidet, bleibt Allah, wie die Seite zu [Gott](/dreams/god) von islamischer Seite erklärt.",
-      ],
-      biblical: [
-        "Die katholische Lehre führt das Papsttum auf Petrus zurück, und die Verse hinter dem Amt geben dem Traum sein biblisches Vokabular. Jesus sagt zu ihm: „Du bist Petrus, und auf diesen Felsen will ich meine Gemeinde bauen“, und dann: „Ich will dir die Schlüssel des Himmelreichs geben“ (Matthäus 16,18–19). Nach der Auferstehung wird derselbe Petrus, der ihn dreimal verleugnet hat, dreimal gefragt „Hast du mich lieb?“ und erhält den Auftrag „Weide meine Schafe“ (Johannes 21,15–17). Der Papst im Traum trägt oft genau diese beiden Themen: Schlüssel, also die Vollmacht zu öffnen und zu schließen, und einen Hirten, dem zuerst selbst vergeben wurde.",
-        "Dieses zweite Thema ist das seelsorgerliche Herz des Traums. Die große religiöse Autorität der Bibel ist ein Mann mit einem Versagen in der Akte, durch Gnade wiederhergestellt und beauftragt, für andere zu sorgen. Hat der Papst in deinem Traum dir vergeben, dich gesegnet oder schlicht deinen Namen gekannt, ist das biblische Echo die Wiederherstellung des Petrus selbst, und die Einladung lautet, Vergebung anzunehmen, statt sie weiter zu verdienen. War er kalt oder verurteilend, erinnere dich, dass die Schrift selbst die Hirten davor warnt, über die Herde zu herrschen (1. Petrus 5,2–3): Ein harter Papst ist deine Angst vor dem Gericht, nicht das Gericht. Ein evangelischer Christ muss den Traum nicht als Aussage über den römischen Primat lesen: Die [Schlüssel](/dreams/keys) und der Hirte gehören zur ganzen Geschichte, und die Frage, die der Traum stellt, wem du in deinem Leben erlaubst, für Gott zu sprechen, muss jeder Gläubige beantworten.",
-      ],
-      commonScenarios: [
-        { title: "Den Papst treffen", meaning: "Die häufigste Variante. Von ihm empfangen zu werden spiegelt meist den Wunsch nach Zustimmung der höchsten Autorität, die du anerkennst, oder eine Entscheidung, die jemand Weiseres bestätigen soll. Achte darauf, ob er dich erwartet hat." },
-        { title: "Der Papst segnet dich", meaning: "Erleichterung, Erlaubnis und Vergebung. Diese Träume kommen vor Hochzeiten, Umzügen, Jobwechseln und Versöhnungen und fühlen sich oft an, als fiele eine Last ab. Nimm die Erlaubnis an – der Traum kam von dir." },
-        { title: "Mit dem Papst sprechen", meaning: "Ein Gespräch mit deinem Gewissen oder der weisesten Version von dir. Was er gesagt hat, zählt weit mehr als sein Erscheinen. Hat er geschwiegen, kennst du den Rat schon." },
-        { title: "Der Papst stirbt oder seine Beerdigung", meaning: "Eine Ära der Autorität endet: ein alternder Elternteil, ein scheidender Mentor, ein Glaubensgebäude, das du nicht mehr halten kannst. In den Wochen um einen echten Papsttod sehr häufig – und dann meist nur die Nachricht." },
-        { title: "Papst werden", meaning: "Eine Verantwortung, die größer ist als erbeten, oder die Angst, alle Antworten haben zu müssen. Häufig bei neuen Führungskräften, frischen Eltern und allen, die gerade zum Entscheider der Familie wurden." },
-        { title: "Der Papst besucht dein Zuhause", meaning: "Dein Privatleben unter einem Maßstab: das Haus wird beurteilt oder geehrt. Oft geht es um den Wunsch, eine zerstrittene Familie zu versöhnen, oder um Werte, die du ins Haus zurückholen willst." },
-        { title: "Ein zorniger oder missbilligender Papst", meaning: "Schuld mit Gesicht. Eine gebrochene Regel, ein nicht gehaltenes Versprechen oder eine Autorität, an deren Zustimmung du nicht mehr glaubst und die du trotzdem willst. Der Zorn ist dein eigenes Urteil." },
-      ],
-      faq: [
-        { question: "Was bedeutet es, vom Papst zu träumen?", answer: "Meist steht der Papst für die höchste moralische Autorität, die du dir vorstellen kannst, und der Traum zeigt, wie du zu ihr stehst: einen Segen suchend, ein Urteil fürchtend, streitend oder Verantwortung übernehmend. Um Religion geht es selten, um Prophezeiung fast nie." },
-        { question: "Ist es ein gutes Zeichen, vom Papst zu träumen?", answer: "Das hängt von der Szene ab. Segen, ein freundliches Wort oder ein Willkommen deuten auf Beruhigung und Vergebung. Ein strenger oder ferner Papst zeigt Schuld oder eine Regel, mit der du nicht im Reinen bist. Beides sagt nichts voraus; beides beschreibt, wie du mit dir umgehst." },
-        { question: "Ich bin nicht katholisch. Warum träume ich vom Papst?", answer: "Weil er das bekannteste Bild religiöser Autorität auf der Welt ist und Träume nehmen, was gerade greifbar ist. Nachrichten, ein Film oder ein Gespräch reichen. Der Traum handelt von Autorität, Gewissen und Tradition in deinem Leben, nicht von deinem Bekenntnis." },
-        { question: "Was bedeutet es, wenn der Papst mich im Traum segnet?", answer: "Erlaubnis und Erleichterung. Der Verstand inszeniert einen Segen, wenn du auf ein Zeichen wartest, um etwas anzugehen, oder wenn du dich vergeben fühlen musst. Da die Gestalt aus dir kam, kam auch der Segen aus dir." },
-        { question: "Was bedeutet es, zu träumen, dass der Papst gestorben ist?", answer: "Meist, dass eine Quelle der Autorität in deinem Leben schwindet: ein Elternteil, ein Mentor, ein Chef oder eine Überzeugung. In den Wochen nach einem echten Papsttod ist es meist nur die Nachricht, die verarbeitet wird." },
-        { question: "Was sagt der Islam über den Papst im Traum?", answer: "Es gibt keine eigene Regel. Klassische Ausleger deuten Priester und Vorsteher anderer Religionen nach dem Zusammenhang, mal als Menschen des Wissens, mal als Mahnung, nicht vom eigenen Weg abzuweichen. Träume aus Nachrichten und Tageseindrücken tragen keine Botschaft." },
-        { question: "Gibt es eine biblische Bedeutung des Papsttraums?", answer: "Das Amt wird auf Petrus zurückgeführt, den Jünger, der die Schlüssel des Himmelreichs erhielt und den Auftrag, die Schafe zu weiden, nachdem ihm vergeben worden war. Ein Papsttraum trägt oft diese Themen: die Vollmacht zu öffnen oder zu schließen und einen Hirten, der wiederhergestellt wurde, bevor man ihm andere anvertraute." },
       ],
     },
   },

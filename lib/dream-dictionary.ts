@@ -1,6 +1,7 @@
 import { MUSIC_CONTENT } from "./dreams/music-content";
 import { MUD_CONTENT } from "./dreams/mud-content";
 import { HURRICANE_CONTENT } from "./dreams/hurricane-content";
+import { REVIEWED_EN } from "./dreams/reviewed-content/en";
 import { DREAM_CATEGORIES, type DreamCategory } from "@/lib/dream-categories";
 
 export { DREAM_CATEGORIES, type DreamCategory };
@@ -3917,15 +3918,11 @@ const UPDATED_AT_OVERRIDES: Record<string, string> = {
   "flying-cow": "2026-10-15",
   "plane-crash": "2026-08-08",
   "lion-and-tiger": "2026-09-16",
-  "cat-and-snake": "2026-09-16",
   "cat-and-rat": "2026-09-16",
   "cat-and-bird": "2026-09-16",
-  "snake-and-rat": "2026-09-16",
   "snake-and-crocodile": "2026-09-16",
   "snake-and-frog": "2026-09-16",
-  "snake-and-fish": "2026-09-16",
   "snake-and-tiger": "2026-09-16",
-  "snake-and-tree": "2026-09-16",
   "lion-and-snake": "2026-09-16",
   "shark-and-dolphin": "2026-09-16",
   "shark-and-crocodile": "2026-09-16",
@@ -4022,50 +4019,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Why a cow and not a bird?", answer: "Birds are supposed to fly, so they carry no surprise. The dream chose the heaviest, most dutiful animal it could find precisely to show the least movable part of your life in motion." },
       { question: "What does it mean in Islam?", answer: "There is no fixed classical entry for a flying cow. Cows point to provision and the years ahead, as in Surah Yusuf, and flight to travel or rising circumstance, so the themes are weighed together, with the usual caution against deciding real matters by a dream." },
       { question: "I laughed in the dream. Does that matter?", answer: "Yes, and it is good news. Laughter inside a dream usually marks release: a weight briefly seen as light, a rule briefly seen as optional. It often comes when a tense season is starting to ease." },
-    ],
-  },
-  pope: {
-    introduction: [
-      "The pope is one of the few figures on earth whom almost everyone recognizes and almost no one has met, which makes him ideal material for a dream. He arrives as the human face of an institution: white cassock, the balcony, the crowd, the sense that the person in front of you speaks for something enormous. Catholics, lapsed Catholics, people of other faiths, and people of none all report this dream, and it appears far more often in the weeks around a papal death, a conclave, or a widely televised visit, when the figure is simply more available in memory.",
-      "In the dream the pope is rarely about the Vatican. He is the dreaming mind's shorthand for the highest moral authority you can imagine, and the plot shows where you stand with that authority right now: waiting for a blessing, arguing with it, hiding from it, or being handed its keys. Related pages on [church](/dreams/church) and [god](/dreams/god) cover the building and the source; this one is about the man in the middle, and what it means when he looks at you.",
-    ],
-    general: [
-      "Start with the distance between you and him. A pope glimpsed from a crowd usually stands for authority as a public fact, something you accept or resent from afar. A pope who turns toward you, calls your name, or sits down across a table brings the question home: what would the strictest fair judge you can imagine say about the thing you are carrying? Note his mood, because it is your own conscience wearing a costume. A warm pope means the verdict you fear is kinder than you think; a stern one means you have already passed sentence on yourself.",
-      "Then check what he does with his hands. Blessing, absolving, and handing you something are dreams of permission and relief, and they cluster around decisions you want a sign for. Turning away, refusing, or scolding tracks guilt or a rule you broke and have not put down. A dream in which the pope dies or is replaced often has nothing to do with the Church: it tends to appear when a parent, a boss, or a mentor is fading from your life, and the mind reaches for the largest available image of a father figure leaving. If the figure was your actual father in a white robe, read the page on [father](/dreams/father) alongside this one.",
-    ],
-    psychological: [
-      "Psychologically the pope is a superego in vestments. Freud's term for the internalized voice of parents and culture, the part of you that says 'you should' and 'you ought to be ashamed', fits the figure almost too neatly: a man whose entire role is to judge, forgive, and set the standard. When that voice appears as a person in a dream, you get to see how you relate to it. People raised in strict religious households, or by parents who withheld approval, often dream of the pope during periods when they are seeking permission for a life choice, a career change, a divorce, or a belief they no longer hold.",
-      "Jung would add that the pope is also a wise-old-man archetype, a figure of accumulated wisdom who appears when a person needs guidance they cannot yet give themselves. In that reading the dream is not punitive at all. It is your psyche staging a consultation. What did he say? If nothing, that silence is the point: you already know what the wise version of you would advise, and the dream is asking whether you will listen. The pope's celebrity also matters; like a dream about a [celebrity](/dreams/celebrity), it can carry a plain wish to be noticed by someone whose attention would settle your worth.",
-    ],
-    spiritual: [
-      "Spiritually the pope is a shepherd image: the one who keeps the flock together, feeds it, and answers for it. A dream of being found or gathered by him can be a felt sense of belonging to something larger than your own effort, especially during a lonely stretch. Many dreamers describe a pope dream as unexpectedly tender, a feeling of being forgiven before they had finished the apology, and that quality is worth trusting more than any doctrine about the man.",
-      "For dreamers outside the Catholic tradition, the figure still works as a symbol of ordered faith, hierarchy, and tradition. Orthodox and Protestant dreamers sometimes wake uneasy, wondering whether the dream is a criticism of their own path; it is not. It is more likely a question about whether you want more structure, more ritual, or more accountability in your spiritual life than you currently have. A pope standing in a [church](/dreams/church) that looks like your childhood one is usually about the inherited version of faith you are deciding what to do with.",
-    ],
-    islamic: [
-      "Islamic dream interpretation has no separate entry for the pope, but classical interpreters such as Ibn Sirin and al-Nabulsi discuss priests, monks, and the leaders of other religious communities. The readings are mixed and depend on context: such a figure may stand for a person of knowledge and ascetic devotion, for the affairs of the Christians the dreamer deals with in waking life, or, when the dreamer joins him in worship, for a warning against innovation and against drifting from one's own path. The interpreters pay close attention to what the dreamer actually did, not merely whom he saw.",
-      "A Muslim who dreams of the pope should first ask what the figure means to him personally: a head of state, a symbol of interfaith dialogue, a face from the news, or simply authority. Dreams built from daily impressions, hadith an-nafs, carry no message and require no response. If the dream was calm and the figure respectful, many interpreters would read it as encountering a person of standing, or as a sign that the dreamer's affairs touch people of another faith. If the dream disturbed you, follow the Sunnah for troubling dreams: seek refuge in Allah, do not narrate it widely, and let it pass. The one whose word settles matters remains Allah, as the page on [god](/dreams/god) explains from the Islamic side.",
-    ],
-    biblical: [
-      "Catholic teaching traces the papacy to Peter, and the verses behind the office give a pope dream its biblical vocabulary. Jesus tells Peter, 'You are Peter, and on this rock I will build my church', and then, 'I will give you the keys of the kingdom of heaven' (Matthew 16:18-19). After the resurrection the same Peter, who had denied him three times, is asked three times 'Do you love me?' and told 'Feed my sheep' (John 21:15-17). The pope in a dream often carries exactly these two themes: keys, meaning authority to open or close, and a shepherd who was himself forgiven first.",
-      "That second theme is the pastoral heart of the dream. The Bible's great religious authority is a man with a failure on his record, restored by grace and told to look after others. If the pope in your dream forgave you, blessed you, or simply knew your name, the scriptural echo is Peter's own restoration, and the invitation is to accept forgiveness rather than keep earning it. If he was cold or condemning, remember that Scripture itself warns leaders against lording it over the flock (1 Peter 5:2-3); a harsh pope is your fear of judgment, not the judgment itself. Christians outside the Catholic Church need not read the dream as a statement about papal primacy at all: the [keys](/dreams/keys) and the shepherd belong to the whole story, and the question the dream asks, whom do you let speak for God in your life, is one every believer has to answer.",
-    ],
-    commonScenarios: [
-      { title: "Meeting the Pope", meaning: "The most common version. Being received by him usually reflects a wish for approval from the highest authority you recognize, or a decision you want someone wiser to confirm. Notice whether he was expecting you." },
-      { title: "The Pope Blessing You", meaning: "Relief, permission, and forgiveness. These dreams cluster before weddings, moves, career changes, and reconciliations, and they often feel like a weight lifting. Take the permission; the dream was yours to give." },
-      { title: "Talking to the Pope", meaning: "A conversation with your conscience or with the wisest version of yourself. What he said matters far more than the fact of him. If he was silent, you already know the advice." },
-      { title: "The Pope Dying or a Funeral", meaning: "An era of authority ending: a parent aging, a mentor leaving, a belief system you can no longer hold. Frequently reported in the weeks around a real papal death, when it means little beyond the news." },
-      { title: "Becoming the Pope", meaning: "A responsibility bigger than you asked for, or a fear of being expected to have all the answers. Common in new managers, new parents, and anyone recently made the family's decision-maker." },
-      { title: "The Pope Visiting Your Home", meaning: "Your private life brought under a standard: the house judged or honored. Often about wanting a divided family reconciled, or about values you are trying to bring back into the household." },
-      { title: "An Angry or Disapproving Pope", meaning: "Guilt with a face. A rule you broke, a promise you did not keep, or an authority whose approval you have stopped believing in but cannot stop wanting. The anger is your own sentence." },
-    ],
-    faq: [
-      { question: "What does it mean to dream about the pope?", answer: "Usually the pope stands for the highest moral authority you can picture, and the dream shows where you stand with it: seeking a blessing, fearing judgment, arguing, or being handed responsibility. It is rarely about religion itself and almost never a prophecy." },
-      { question: "Is dreaming of the pope a good sign?", answer: "It depends on the scene. A blessing, a kind word, or being welcomed points to reassurance and forgiveness. A stern or distant pope tracks guilt or a rule you have not made peace with. Neither predicts anything; both describe how you are treating yourself." },
-      { question: "I'm not Catholic. Why did I dream about the pope?", answer: "Because he is the most recognizable image of religious authority on earth, and dreams use whatever image is available. The news, a film, or a conversation is often enough. The dream is about authority, conscience, and tradition in your own life, not a comment on your beliefs." },
-      { question: "What does it mean if the pope blesses me in a dream?", answer: "Permission and relief. The mind stages a blessing when you are waiting for a sign to proceed with something, or when you need to feel forgiven. Since the figure came from you, so did the blessing." },
-      { question: "What does it mean to dream that the pope died?", answer: "Most often that a source of authority in your life is fading: a parent, a mentor, a boss, or a belief. In the weeks after a real papal death the dream is usually just the news being processed." },
-      { question: "What does Islam say about seeing the pope in a dream?", answer: "There is no specific ruling. Classical interpreters read priests and leaders of other faiths by context, sometimes as people of knowledge, sometimes as a caution about drifting from one's path. Dreams built from news and daily impressions carry no message." },
-      { question: "Is there a biblical meaning to dreaming of the pope?", answer: "The office is tied to Peter, the disciple given the keys of the kingdom and told to feed the sheep after he had been forgiven. A pope dream often carries those themes: authority to open or close, and a shepherd who was restored before he was trusted." },
     ],
   },
   garden: {
@@ -6047,21 +6000,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Is a boat in a storm a bad omen?", answer: "It usually reflects turmoil you are already in. Focus on course, crew, and refuge — not on predicting shipwreck." },
     ],
   },
-  "dog-and-snake": {
-    introduction: [
-      "A dog and snake in the same dream place trust beside suspicion. The dog usually represents loyalty, protection, or a familiar relationship; the snake introduces hidden risk, instinct, or change. Together they often appear when something safe no longer feels completely simple.",
-      "The interaction decides the emphasis. A dog defending you from a snake suggests protective instincts or reliable support. A snake threatening the dog may reflect fear that trust, friendship, or innocence is exposed to a danger you have noticed but not yet confronted.",
-    ],
-    general: [
-      "Notice which animal you trusted and which one controlled the scene. If they fought, the dream may stage a conflict between loyalty and self-protection. If they remained calm together, the message can be integration: caution does not have to destroy trust.",
-      "The setting locates the issue. Inside a home, the theme usually concerns private relationships or family. Outdoors, it may concern social pressure, work, or a situation where you are deciding whose instincts to follow.",
-    ],
-    faq: [
-      { question: "What does dreaming of a dog and snake together mean?", answer: "It often reflects trust meeting hidden risk: loyalty, protection, or friendship beside suspicion, instinct, or a change that feels unsafe." },
-      { question: "What if the dog protects me from the snake?", answer: "That usually emphasizes support, good boundaries, or a loyal person — or part of yourself — helping you face a threat without panic." },
-      { question: "Is a dog and snake dream a warning about betrayal?", answer: "It can mirror mistrust you already feel, but it is not proof of betrayal. Compare the dream with evidence and behavior in waking life." },
-    ],
-  },
   "cat-and-dog": {
     introduction: [
       "A cat and dog dream brings two relationship styles into one scene: independence and loyalty, distance and enthusiasm, private instinct and open attachment. The pair often appears when you are trying to balance closeness with room to remain yourself.",
@@ -6105,21 +6043,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What does dreaming of a snake and fire mean?", answer: "It often combines hidden risk or instinct with anger, purification, or rapid change — a transformation that feels both necessary and dangerous." },
       { question: "What if the snake survives the fire?", answer: "Survival can emphasize resilience, a threat that has not disappeared, or an instinct that remains active despite pressure." },
       { question: "Is a snake and fire dream a bad omen?", answer: "Not by default. It is better read as an intense picture of conflict or change than as a prediction of harm." },
-    ],
-  },
-  "sick-family-member": {
-    introduction: [
-      "Dreaming that a family member is sick can feel like a warning because the emotion is so direct. Most often it reflects care, helplessness, health anxiety, or fear that the family system is becoming less stable — not secret medical knowledge.",
-      "Who becomes ill matters. A parent may represent changing support or authority; a child can concentrate protective fear; a sibling may point to closeness, rivalry, or concern you have not expressed. The dream selects the person who carries the emotional weight.",
-    ],
-    general: [
-      "If someone is genuinely unwell, the dream may simply be processing vigilance and anticipatory grief. If everyone is healthy, ask what feels weakened in the relationship or family: communication, trust, shared responsibility, or your own capacity to care.",
-      "Your role in the dream is equally important. Searching for help suggests urgency and responsibility; sitting beside the person emphasizes presence; being unable to reach them can reflect distance or guilt.",
-    ],
-    faq: [
-      { question: "Does dreaming of a sick family member mean they are ill?", answer: "No. Dreams cannot diagnose another person. They more commonly reflect concern, helplessness, health anxiety, or awareness that a relationship needs care." },
-      { question: "Why do I keep having this dream?", answer: "Recurring versions often track ongoing worry, caregiving stress, or unresolved fear of loss. Look for the concern that remains active during the day." },
-      { question: "Should I tell the family member?", answer: "You can check in because you care, but avoid presenting the dream as a warning. Let real symptoms and ordinary communication guide action." },
     ],
   },
   "crawling-like-a-baby": {
@@ -6387,46 +6310,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What does a friendly lion and tiger mean?", answer: "Friendly big cats suggest integration: confidence and passion that you can trust, or strong people in your life who are on your side." },
     ],
   },
-  "cat-and-snake": {
-    introduction: [
-      "A cat and a snake in one dream bring together two creatures that both move quietly and trust their instincts. The cat is independence, sensitivity, and alert intuition; the snake is hidden risk, temptation, or a change working beneath the surface. Their meeting often appears when part of you has noticed something slightly wrong before you can explain it.",
-      "What happens between them shapes the reading. A cat stalking or killing a snake tends to mean your intuition is dealing with a threat. A snake overpowering a cat may reflect fear that your independence or sense of safety is being undermined. When they simply watch each other, the dream may be describing a standoff — a situation where neither trust nor suspicion has won yet. The [cat and dog](/dreams/cat-and-dog) page covers a different rivalry.",
-    ],
-    general: [
-      "Ask which animal felt closer to you. Many dreamers identify with the cat — watchful, self-reliant, not easily fooled. If the snake felt like a person, consider who in your life has recently seemed charming but hard to read, or which situation has hidden terms.",
-      "The location matters. Inside your home, the scene often concerns family or a private relationship. In a garden or yard, it may concern something growing — a project, a friendship, a new role — that carries an unseen cost. Single-animal readings are on the [cat](/dreams/cat) and [snake](/dreams/snake) pages.",
-    ],
-    psychological: [
-      "Psychologically, the cat and snake can represent two defensive styles. The cat withdraws, observes, and strikes only when certain. The snake hides, waits, and strikes suddenly. A dream staging both may reflect how you handle threat: calmly and selectively, or with anxiety that stays coiled until it bursts out.",
-      "If the fight is long and unresolved, it may mirror rumination — replaying a worry without acting on it. If the cat wins quickly, the dream may be rehearsing confidence in your own judgment. A cat that runs away from the snake is not cowardice; it can reflect a healthy decision to leave a situation that is not worth the risk.",
-    ],
-    spiritual: [
-      "Spiritually, cats are often seen as guardians of the home and of subtle perception, while snakes carry both danger and renewal. Together they can mark a time to trust your inner warning signals and protect your energy from influences that feel draining or deceptive.",
-      "A calm scene between the two can also point to balance: intuition and transformation working together. The invitation is discernment — noticing what feels off without becoming suspicious of everyone.",
-    ],
-    islamic: [
-      "Cats hold a gentle place in Islamic tradition: hadith describe them as not impure and as animals that live closely among people, and scholars cite the warning about a woman punished for imprisoning a cat. In dream literature, however, a cat can also stand for a person inside the household whose loyalty is uncertain, while the snake is widely read as an enemy.",
-      "A cat killing a snake is therefore often understood as protection from harm, sometimes through someone close to you. A snake harming a cat may reflect worry about hostility entering the home. Interpreters caution that these readings depend on the dreamer's circumstances. Seek refuge in Allah from a distressing dream and do not accuse anyone on the basis of a dream.",
-    ],
-    biblical: [
-      "Cats are almost absent from the Bible, while the serpent carries a strong association with deception from Genesis 3 onward. A biblical reflection can therefore focus on the snake as a warning about subtle temptation, and on the cat's behavior as a picture of vigilance.",
-      "Jesus told his disciples to be wise as serpents and harmless as doves (Matthew 10:16) — a reminder that alertness is not the same as hostility. If the dream leaves you uneasy, prayerful reflection about where you need wisdom, rather than fear, is a grounded response. See also [dog and snake](/dreams/dog-and-snake) for loyalty tested by threat.",
-    ],
-    commonScenarios: [
-      { title: "Cat killing a snake", meaning: "Intuition or a protective ally removing a hidden threat; confidence in your own judgment." },
-      { title: "Snake attacking a cat", meaning: "Fear that your independence, home, or sense of safety is being undermined by something deceptive." },
-      { title: "Cat and snake staring at each other", meaning: "A standoff between trust and suspicion; a decision you have not yet made about a person or situation." },
-      { title: "Cat and snake living together peacefully", meaning: "Balance between caution and openness, or a relationship that has settled after tension." },
-      { title: "Cat bringing you a snake", meaning: "A warning brought to your attention — something you need to look at directly rather than avoid." },
-    ],
-    faq: [
-      { question: "What does it mean to dream of a cat and a snake?", answer: "It often shows intuition meeting hidden danger. The cat's alertness and the snake's secrecy together point to a situation you sense is not what it seems." },
-      { question: "What if the cat kills the snake?", answer: "It usually means protection or clear judgment overcoming a threat. Some traditions read it as help arriving from someone close to you." },
-      { question: "What if the snake bites the cat?", answer: "It can reflect worry that something deceptive is affecting your home or independence. Treat it as a prompt to check facts, not as proof." },
-      { question: "What does a cat and snake fighting mean in Islam?", answer: "Interpreters often read the snake as an enemy and the cat's victory as protection. The meaning depends on the dreamer's life, and no one should be accused because of a dream." },
-      { question: "Is a cat and snake dream a warning?", answer: "It can be an invitation to pay attention to your instincts. It is not a prediction of harm." },
-    ],
-  },
   "cat-and-rat": {
     introduction: [
       "A cat and a rat — or a cat and a mouse — is one of the oldest chase pairs in human imagination. In dreams it tends to describe a hunt: you, or someone else, trying to catch a problem that keeps escaping, or a relationship where one person pursues and the other evades. The rat usually carries themes of contamination, worry, dishonesty, or small losses; the cat carries alertness and the instinct to deal with them.",
@@ -6505,46 +6388,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What if the bird gets away?", answer: "Escape often signals relief, resilience, or news and hope reaching you despite obstacles." },
       { question: "Is a cat and bird dream a bad omen?", answer: "No. It describes a tension to pay attention to, not a fixed outcome." },
       { question: "What does a cat and bird together peacefully mean?", answer: "It suggests that caution and optimism, or two very different people, can coexist without harm." },
-    ],
-  },
-  "snake-and-rat": {
-    introduction: [
-      "A snake and a rat together combine two animals that many people instinctively avoid. The rat often stands for a nagging problem, contamination, dishonesty, or small losses; the snake for hidden danger, betrayal, or a change that strikes suddenly. In the natural order the snake eats the rat, so dreams of this pair are often about one problem swallowing another — or about which threat is the real one.",
-      "A snake catching a rat can feel oddly relieving: a larger force is dealing with a mess you could not manage. Rats and snakes sharing a room, a basement, or a bed feel very different — they suggest a space where several uncomfortable truths are living side by side. When the scene is set in your house, see [snake and house](/dreams/snake-and-house) for how domestic settings change the meaning.",
-    ],
-    general: [
-      "Ask what feels like 'vermin' in your life right now — clutter, debt, gossip, a habit — and what feels like the quiet, larger danger. The dream may be asking whether solving the small problem is creating a bigger one, or whether a person who helps you also carries risk.",
-      "Your role matters. Watching calmly suggests analysis; panic suggests overload. Killing both animals can reflect a wish to clear everything at once. For single-animal detail see the [snake](/dreams/snake) and [rat](/dreams/rat) pages, including [many snakes](/dreams/many-snakes).",
-    ],
-    psychological: [
-      "Psychologically, the rat often represents intrusive, repetitive worries and the snake a deeper fear that is harder to face. A dream in which the snake eats the rat may show the mind replacing many small anxieties with one big one — a common pattern when stress accumulates.",
-      "The pair can also reflect mistrust in a social circle: small lies or leaks (the rat) and a person whose motives feel hidden (the snake). The helpful response is to separate facts from impressions and to deal with each issue on its own terms rather than letting them merge into one cloud of suspicion.",
-    ],
-    spiritual: [
-      "Spiritually, both animals are associated with things that dwell in dark places. Their appearance together can be a call to cleanse your environment and your inner life — to stop tolerating what drains you and to face what you have been avoiding.",
-      "At the same time, the snake is a symbol of renewal. A snake removing rats can be read as transformation clearing away old decay, provided you cooperate with the change rather than fear it.",
-    ],
-    islamic: [
-      "In Islamic dream literature the snake is frequently associated with an enemy, and the mouse or rat with a dishonest or immoral person; the hadith list the mouse among harmful creatures that may be killed. A dream uniting them may therefore be read as hostility from more than one source, or as one harmful party undermining another.",
-      "Killing both is commonly interpreted as victory over those harms, while being bitten may reflect fear of loss. Interpreters emphasize humility: dreams are not accusations. Seek refuge in Allah, protect your household sensibly, and avoid suspicion without evidence.",
-    ],
-    biblical: [
-      "Scripture treats both creatures with caution: the serpent from Genesis 3 as the image of deception, and the mouse among unclean animals (Leviticus 11:29) and as part of the plague sent on the Philistines (1 Samuel 6). Together they can symbolize spiritual and practical corruption.",
-      "A biblical reflection might ask where small compromises are feeding a larger temptation. Ephesians 5:11 urges believers to have nothing to do with unfruitful works of darkness but rather to expose them — a fitting response when a dream shows hidden things gathered in one place. See also [spider and snake](/dreams/spider-and-snake) for another double-threat image.",
-    ],
-    commonScenarios: [
-      { title: "Snake eating a rat", meaning: "One problem swallowing another; a larger force dealing with a mess, possibly at a cost." },
-      { title: "Snakes and rats in the house", meaning: "Several uncomfortable truths or tensions sharing your private space and needing attention." },
-      { title: "Rat escaping a snake", meaning: "A small issue slipping past a larger danger; relief that may be temporary." },
-      { title: "Killing a snake and a rat", meaning: "Determination to clear out what harms you, all at once." },
-      { title: "Being bitten by both", meaning: "Feeling attacked from different sides — small annoyances and a deeper betrayal together." },
-    ],
-    faq: [
-      { question: "What does a snake and rat dream mean?", answer: "It often combines a nagging problem or dishonesty with a deeper hidden danger, and asks which threat really deserves your attention." },
-      { question: "What if a snake eats a rat in my dream?", answer: "It can mean one issue is absorbing or resolving another — sometimes a relief, sometimes a sign that a larger risk is growing." },
-      { question: "What does it mean in Islam?", answer: "Interpreters often read the snake as an enemy and the rat as a dishonest person, so the dream may reflect concern about harm from more than one source. It is not proof of anything." },
-      { question: "Are snakes and rats in the house a bad sign?", answer: "They point to tensions in your private life that need attention, not to a guaranteed misfortune." },
-      { question: "What if I kill both?", answer: "It usually reflects resolve to deal with what drains you and to clean up your environment." },
     ],
   },
   "snake-and-crocodile": {
@@ -6627,46 +6470,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "Is killing a frog in a dream bad in Islam?", answer: "Hadith forbid killing frogs, so interpreters treat harm to a frog as harm to something innocent. The dream is a reflection, not a sin." },
     ],
   },
-  "snake-and-fish": {
-    introduction: [
-      "Fish in dreams often stand for nourishment, abundance, opportunity, or ideas rising from deep feeling. Snakes stand for hidden risk, temptation, or transformation. When both appear — swimming together, a snake hunting fish, or a fish that turns into a snake — the dream frequently asks whether something that looks like a gift carries a hidden cost.",
-      "Water is almost always involved, which places the question in the emotional realm. Clear water with both creatures suggests you can see the situation plainly. Muddy water suggests confusion about motives. If you were catching fish and found a snake instead, the dream may reflect disappointment or fear of being deceived. The [fish](/dreams/fish) and [snakes in water](/dreams/snakes-in-water) pages cover related scenes.",
-    ],
-    general: [
-      "Ask where you are expecting provision right now — a job offer, a deal, a relationship, support from family. The dream may be highlighting doubt about whether the offer is sincere. It may also be reminding you that opportunity and risk usually swim together.",
-      "The outcome matters. Fish escaping the snake suggests your resources are safe; a snake eating fish can reflect worry about losing income, energy, or ideas to someone else. See [catching fish](/dreams/catching-fish) and [snake and water](/dreams/snake-and-water) for related readings.",
-    ],
-    psychological: [
-      "Psychologically, fish often represent contents of the unconscious that are nourishing — insights, creativity, intuitive knowledge. The snake can represent anxiety or a defensive reflex. A dream combining them may show a helpful insight arriving with a sting of fear.",
-      "If a fish turns into a snake, the dream may be tracking a disillusionment: something you trusted revealing another side. It is worth asking whether the change is real or whether a past betrayal is making present gifts feel unsafe.",
-    ],
-    spiritual: [
-      "Spiritually, fish are ancient symbols of faith and abundance, and snakes of renewal and hidden knowledge. Together they can mark a time of receiving — and of discerning which gifts to accept.",
-      "A peaceful scene can suggest that prosperity and transformation are aligned. A predatory scene invites you to protect your blessings and to be honest about what you are willing to trade for them.",
-    ],
-    islamic: [
-      "In Islamic dream interpretation fish are commonly associated with lawful provision and wealth, and the snake with an enemy. The Quran recalls Yunus swallowed by the great fish and later delivered, and the fish that slipped into the sea in Musa's journey (18:61). A dream uniting fish and snake may therefore be read as provision that attracts envy or opposition.",
-      "Catching fish while avoiding a snake is often understood as gaining sustenance while being protected from harm. Interpreters stress that the dreamer's condition shapes the reading. Thankfulness, charity, and seeking refuge from envy are the recommended responses.",
-    ],
-    biblical: [
-      "Jesus used this exact pairing: 'If a son shall ask bread of any of you that is a father, will he give him a stone? or if he ask a fish, will he for a fish give him a serpent?' (Luke 11:11). The point is that a good father gives good gifts — how much more God.",
-      "A biblical reading of this dream can therefore address trust: are you afraid that what you asked for will turn out harmful? The passage invites confidence in the Giver while staying wise about human offers. Related images appear on [fish and water](/dreams/fish-and-water) and [snake and baby](/dreams/snake-and-baby).",
-    ],
-    commonScenarios: [
-      { title: "Snake eating fish", meaning: "Worry that resources, income, or ideas are being taken or spoiled." },
-      { title: "Fish turning into a snake", meaning: "Disillusionment — a gift or person revealing an unexpected side." },
-      { title: "Catching a snake instead of a fish", meaning: "Fear of being deceived or disappointed by an opportunity." },
-      { title: "Snake and fish swimming together", meaning: "Opportunity and risk coexisting; a need for discernment rather than fear." },
-      { title: "Fish escaping a snake", meaning: "Protection of your blessings; resources that remain safe despite threat." },
-    ],
-    faq: [
-      { question: "What does it mean to dream of a snake and fish?", answer: "It often shows a blessing or opportunity near a hidden risk, asking you to discern whether an offer is what it seems." },
-      { question: "What if a fish turns into a snake?", answer: "It can reflect disillusionment or fear that something trusted will turn harmful. Check whether the fear comes from present facts or past experience." },
-      { question: "What is the biblical meaning of a fish and a serpent?", answer: "Jesus contrasted them in Luke 11:11 to show that a good father gives good gifts — the dream may touch on trust in what you receive." },
-      { question: "What does it mean in Islam?", answer: "Fish are often linked to provision and the snake to an enemy, so the dream may reflect sustenance that attracts envy or opposition." },
-      { question: "Is a snake eating fish a bad sign?", answer: "It highlights concern about loss, not a certain outcome. Use it to review how you protect your resources." },
-    ],
-  },
   "snake-and-tiger": {
     introduction: [
       "A snake and a tiger in one dream set cunning beside strength. The tiger is visible power: courage, passion, anger, and the ability to act decisively. The snake is concealed power: patience, strategy, secrecy, and sudden change. Together they often appear when you are dealing with people or situations that combine open aggression with hidden maneuvering — or when your own passion and caution are in conflict.",
@@ -6705,46 +6508,6 @@ const SECTION_OVERRIDES: Record<string, Partial<DreamSections>> = {
       { question: "What if a snake bites a tiger?", answer: "It can reflect a hidden vulnerability in someone strong, or a quiet influence undermining an open one." },
       { question: "Is this a warning?", answer: "It points to competing pressures, not a certain outcome. Consider how to answer each kind of challenge on its own terms." },
       { question: "What does it mean if they ignore me?", answer: "The conflict may belong to people around you, and you may be observing rather than participating." },
-    ],
-  },
-  "snake-and-tree": {
-    introduction: [
-      "A snake in a tree is one of the most recognizable images in human culture, and dreamers often search for it after waking with a sense of unease or fascination. The tree stands for growth, life, family roots, and stability; the snake for temptation, hidden knowledge, danger, or renewal. Together they ask what is coiled around something you depend on.",
-      "The snake's movement shapes the reading. A snake climbing a tree can suggest ambition or a change moving upward. A snake hanging from a branch points to a risk above your line of sight — something you have not yet noticed. A snake falling from a tree onto you often mirrors a sudden problem appearing from an unexpected place. The [tree](/dreams/tree) page covers trees alone, including [fruit trees](/dreams/fruit-tree).",
-    ],
-    general: [
-      "Ask what the tree represents for you now: your family, your career, a long project, your health. Then ask what feels like the snake: a temptation, a critic, a secret, or a transformation you cannot control. The dream often appears when growth has brought new exposure.",
-      "Color adds nuance. A green snake blends into leaves and suggests something hidden in plain sight; a black snake may intensify fear. A snake guarding fruit suggests a desire that carries consequences. For colors, see [green snake](/dreams/green-snake) and [black snake](/dreams/black-snake).",
-    ],
-    psychological: [
-      "Psychologically, trees often represent the self as it grows over time, with roots in the past and branches toward the future. A snake in the tree can be an image of anxiety or desire embedded in that growth — a doubt that climbs with each success, or a longing you have not integrated.",
-      "The dream can also point to insight. Jungian readings treat the serpent in the tree as knowledge that disrupts innocence. If the scene felt more intriguing than frightening, you may be ready to learn something that changes how you see your own story.",
-    ],
-    spiritual: [
-      "Spiritually, the tree is a symbol of life and connection between earth and heaven, and the serpent of both temptation and healing wisdom. The pairing invites honest reflection on what you are reaching for and why.",
-      "A snake that descends and leaves the tree can be read as release from a lingering temptation. A snake resting peacefully among branches may point to wisdom integrated into your growth rather than opposing it.",
-    ],
-    islamic: [
-      "The Quran describes Adam and his wife being forbidden to approach a tree and being misled by Shaytan's whispering (2:35–36, 7:20–22). It does not describe a serpent; the serpent appears in some later exegetical narrations that scholars classify as reports drawn from earlier traditions. Dream interpreters commonly read a snake as an enemy and a tree as a person or a family, with fruitful trees linked to goodness and benefit.",
-      "A snake in a tree may therefore be understood as hostility or envy near a family or a source of benefit, and killing it as protection. Such readings are tentative. The recommended response is seeking refuge in Allah, guarding what has been entrusted to you, and avoiding suspicion without evidence.",
-    ],
-    biblical: [
-      "The serpent in Eden spoke beside the tree of the knowledge of good and evil (Genesis 3), making this pairing the Bible's first image of temptation. Scripture also offers a healing counter-image: the bronze serpent lifted up in the wilderness (Numbers 21:8–9), which Jesus connected to his own lifting up (John 3:14).",
-      "A biblical reflection may ask where a desire is being presented as harmless when it is not, and where you need to trust God's boundaries. Psalm 1 pictures the righteous as a tree planted by streams of water; the [storm and tree](/dreams/storm-and-tree) page explores that image under pressure.",
-    ],
-    commonScenarios: [
-      { title: "Snake hanging from a tree", meaning: "A risk above your line of sight; something you have not noticed yet." },
-      { title: "Snake falling from a tree onto you", meaning: "A sudden problem from an unexpected direction, often within familiar surroundings." },
-      { title: "Snake climbing a tree", meaning: "Ambition, change, or a worry rising alongside your growth." },
-      { title: "Snake guarding fruit in a tree", meaning: "A desire or opportunity that carries consequences." },
-      { title: "Killing a snake in a tree", meaning: "Protecting your family, work, or values from a threat." },
-    ],
-    faq: [
-      { question: "What does a snake in a tree mean in a dream?", answer: "It often shows temptation, hidden risk, or new knowledge wrapped around something you depend on — family, work, or personal growth." },
-      { question: "What if a snake falls from a tree on me?", answer: "It usually reflects a sudden problem or revelation coming from an unexpected, familiar place." },
-      { question: "What is the biblical meaning of a snake in a tree?", answer: "It recalls the serpent in Eden and the temptation beside the tree of knowledge, prompting reflection on desire and boundaries." },
-      { question: "What does a green snake in a tree mean?", answer: "A green snake blends in, so it can point to something hidden in plain sight, or to growth mixed with envy or caution." },
-      { question: "What does it mean in Islam?", answer: "Interpreters often read the snake as an enemy and the tree as a person or family, so it may reflect envy or hostility near a source of benefit." },
     ],
   },
   "lion-and-snake": {
@@ -7168,11 +6931,6 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "A cow sailing through your dream sky? What this surreal image says about duty, provision and impossible hopes, plus psychological, Islamic and biblical readings.",
   },
-  pope: {
-    seoTitle: "Pope Dream Meaning: Authority, Blessing & Conscience",
-    seoDescription:
-      "Met, blessed, or scolded by the pope in a dream? What it says about authority, guilt and forgiveness, plus psychological, Islamic and biblical readings and 7 scenarios.",
-  },
   garden: {
     seoTitle: "Garden Dream Meaning: Growth, Care & the Inner Life",
     seoDescription:
@@ -7518,11 +7276,6 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "What a boat or ship in a dream means — sinking craft, storms, rowing, and whether your current vessel can hold the load.",
   },
-  "dog-and-snake": {
-    seoTitle: "Dog and Snake Dream Meaning: Trust Meets Hidden Threat",
-    seoDescription:
-      "What a dog and snake together mean in a dream — loyalty beside danger, protection under pressure, and when caution should not destroy trust.",
-  },
   "cat-and-dog": {
     seoTitle: "Cat and Dog Dream Meaning: Independence vs Loyalty",
     seoDescription:
@@ -7537,11 +7290,6 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Snake and Fire Dream Meaning: Threat, Anger & Change",
     seoDescription:
       "What a snake and fire together mean in a dream — hidden danger, intense change, anger, survival, and transformation moving too fast for comfort.",
-  },
-  "sick-family-member": {
-    seoTitle: "Sick Family Member Dream Meaning: Fear, Care & Grief",
-    seoDescription:
-      "Dreaming a family member is sick usually reflects concern, helplessness, or caregiving stress — not a diagnosis. See how the person and setting change it.",
   },
   "crawling-like-a-baby": {
     seoTitle: "Crawling Like a Baby Dream Meaning: Starting Over",
@@ -7688,11 +7436,6 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "Dreaming of a lion and a tiger together: open authority beside hidden intensity. What fighting, calm, or chasing big cats reveal about power in your life.",
   },
-  "cat-and-snake": {
-    seoTitle: "Cat and Snake Dream Meaning: Intuition vs Hidden Danger",
-    seoDescription:
-      "Dreaming of a cat and a snake — fighting, killing, or staring each other down: intuition facing hidden risk, with psychological, Islamic, and biblical readings.",
-  },
   "cat-and-rat": {
     seoTitle: "Cat and Rat (Mouse) Dream Meaning: The Chase Explained",
     seoDescription:
@@ -7702,11 +7445,6 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoTitle: "Cat and Bird Dream Meaning: Instinct, Freedom & Fragile Hope",
     seoDescription:
       "Dreaming of a cat and a bird: a fragile hope within reach of danger. What a cat catching, chasing, or befriending a bird means, with faith readings.",
-  },
-  "snake-and-rat": {
-    seoTitle: "Snake and Rat Dream Meaning: Hidden Threats in One Place",
-    seoDescription:
-      "Dreaming of a snake and a rat — a snake eating a rat, or both in the house: small problems meeting deeper danger, with Islamic and biblical readings.",
   },
   "snake-and-crocodile": {
     seoTitle: "Snake and Crocodile Dream Meaning: Danger From Two Sides",
@@ -7718,20 +7456,10 @@ const META_OVERRIDES: Record<string, { seoTitle?: string; seoDescription?: strin
     seoDescription:
       "Dreaming of a snake and a frog — a snake eating or chasing a frog: transformation threatening something sensitive, with Exodus and Islamic readings.",
   },
-  "snake-and-fish": {
-    seoTitle: "Snake and Fish Dream Meaning: A Gift With a Hidden Cost",
-    seoDescription:
-      "Dreaming of a snake and fish: provision close to deception. What a snake eating fish or a fish turning into a snake means, with Luke 11:11 and Islamic views.",
-  },
   "snake-and-tiger": {
     seoTitle: "Snake and Tiger Dream Meaning: Cunning vs Raw Power",
     seoDescription:
       "Dreaming of a snake and a tiger — fighting, biting, or chasing you: hidden cunning against open force, and what the winner reveals about your situation.",
-  },
-  "snake-and-tree": {
-    seoTitle: "Snake in a Tree Dream Meaning: Temptation, Growth & Risk",
-    seoDescription:
-      "Dreaming of a snake in a tree — hanging, climbing, or falling on you: temptation and hidden risk around growth, with Eden, Quran, and psychological readings.",
   },
   "lion-and-snake": {
     seoTitle: "Lion and Snake Dream Meaning: Courage vs Hidden Danger",
@@ -8083,6 +7811,7 @@ function buildDictionary() {
     ...Object.keys(SECTION_OVERRIDES),
     ...Object.keys(META_OVERRIDES),
     ...Object.keys(UPDATED_AT_OVERRIDES),
+    ...Object.keys(REVIEWED_EN),
     ...GSC_ENHANCED_SLUGS,
   ]) {
     if (!entries.some((entry) => entry.slug === slug)) {
@@ -8102,6 +7831,11 @@ function buildDictionary() {
     const updatedAtOverride = UPDATED_AT_OVERRIDES[entry.slug];
     if (updatedAtOverride) entry.updatedAt = updatedAtOverride;
     else if (GSC_ENHANCED_SLUGS.has(entry.slug)) entry.updatedAt = GSC_ENHANCEMENT_UPDATED_AT;
+    // Reviewed copy includes the hero answer and material revision date. Preserve
+    // its complete metadata rather than prefixing and clipping it as a template.
+    if (entry.slug in REVIEWED_EN) {
+      Object.assign(entry, REVIEWED_EN[entry.slug as keyof typeof REVIEWED_EN]);
+    }
   }
 
   return entries;
