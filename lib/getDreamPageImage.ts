@@ -74,7 +74,7 @@ export async function listDreamPageImageUrls(): Promise<Map<string, string>> {
   return urls;
 }
 
-export const listDreamPageImages = cache(async (): Promise<DreamPageImageAssignment[]> => {
+export const listDreamPageImages = cache(async (strict = false): Promise<DreamPageImageAssignment[]> => {
   try {
     const snapshot = await adminDb().collection(DREAM_PAGE_IMAGE_COLLECTION).get();
     const items: DreamPageImageAssignment[] = [];
@@ -85,6 +85,7 @@ export const listDreamPageImages = cache(async (): Promise<DreamPageImageAssignm
     return items;
   } catch (error) {
     console.error("[dreamPageImage:listAll]", error);
+    if (strict) throw error;
     return [];
   }
 });

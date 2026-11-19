@@ -8,7 +8,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 };
 
 export function dreamAnalysisMessages(text: string, lang: string, lens: DreamLens) {
-  const words = lang === "ja" ? japaneseWordSegments(text).length : countDreamWords(text);
+  const normalized = text.normalize("NFKC");
+  const japanese = /[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(normalized)
+    || (lang === "ja" && /\p{Script=Han}/u.test(normalized));
+  const words = japanese ? japaneseWordSegments(normalized).length : countDreamWords(text);
   const brief = words <= 30;
   const fallbackLanguage = Object.hasOwn(LANGUAGE_NAMES, lang) ? LANGUAGE_NAMES[lang] : "English";
   return [
