@@ -16,6 +16,7 @@ import { SYMBOLS, SIGNS } from "@/lib/horoscope/model";
 import { resolveTranslationLanguage, TRANSLATION_LANGUAGES } from "@/lib/translationLanguage";
 import PlansModal from "@/app/components/PlansModal";
 import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
+import { trackEvent } from "@/lib/analytics";
 
 type PublicForecast = Pick<FeaturedForecast, "day" | "sign" | "headline" | "teaser" | "publishedAtMs">;
 type Content = Pick<FeaturedForecast, "headline" | "teaser" | "opening" | "relationships" | "work" | "wellbeing" | "takeaway">;
@@ -31,6 +32,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [purchasePurpose, setPurchasePurpose] = useState<"read" | "translate" | null>(null);
+  const [rewardDeadline, setRewardDeadline] = useState<number | null>(null);
   useEffect(() => onAuthStateChanged(auth, setUser), []);
   useEffect(() => {
     const update = () => setTargetLang(resolveTranslationLanguage(null, navigator.languages?.length ? navigator.languages : [navigator.language]));
@@ -56,28 +58,68 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
     finally { setBusy(false); }
   }, [forecast.day, headersFor]);
 
+  const readForecast = useCallback(async (account: User | null, signal: AbortSignal) => {
+    setBusy(true); setError(false);
+    try {
+      const response = await fetch("/api/featured-horoscope", {
+        method: "POST", headers: await headersFor(account), body: JSON.stringify({ day: forecast.day }), signal,
+      });
+      if (!response.ok && response.status !== 402) throw new Error("Forecast failed");
+      const data = await response.json() as { forecast?: FeaturedForecast; rewardRemainingMs?: number };
+      if (signal.aborted) return false;
+      setFull(data.forecast ?? null);
+      setTranslated(null);
+      setRewardDeadline(data.rewardRemainingMs ? Date.now() + data.rewardRemainingMs : null);
+      setLocked(response.status === 402 ? "read" : null);
+      const requested = new URLSearchParams(window.location.search).get("translate");
+      if (data.forecast && !data.rewardRemainingMs && requested === targetLang && requested !== "en") void translate(account, targetLang);
+      return !!data.forecast;
+    } catch {
+      if (!signal.aborted) setError(true);
+      return false;
+    } finally {
+      if (!signal.aborted) setBusy(false);
+    }
+  }, [forecast.day, headersFor, targetLang, translate]);
+
   useEffect(() => {
     if (user === undefined) return;
-    let cancelled = false;
-    void (async () => {
-      setBusy(true); setError(false);
-      try {
-        const response = await fetch("/api/featured-horoscope", { method: "POST", headers: await headersFor(user), body: JSON.stringify({ day: forecast.day }) });
-        if (cancelled) return;
-        if (response.status === 402) { setLocked("read"); return; }
-        if (!response.ok) throw new Error("Forecast failed");
-        const data = await response.json() as { forecast: FeaturedForecast };
-        setFull(data.forecast); setLocked(null);
-        const requested = new URLSearchParams(window.location.search).get("translate");
-        if (requested && requested === targetLang && requested !== "en") void translate(user, targetLang);
-      } catch { if (!cancelled) setError(true); }
-      finally { if (!cancelled) setBusy(false); }
-    })();
-    return () => { cancelled = true; };
-  }, [user, forecast.day, headersFor, targetLang, translate]);
+    const controller = new AbortController();
+    void readForecast(user, controller.signal);
+    return () => controller.abort();
+  }, [user, readForecast]);
+
+  useEffect(() => {
+    if (rewardDeadline === null || user !== null) return;
+    const controller = new AbortController();
+    let expired = false;
+    let timer: ReturnType<typeof setTimeout>;
+    function checkExpiry() {
+      if (expired) return;
+      clearTimeout(timer);
+      const remaining = rewardDeadline! - Date.now();
+      if (remaining > 0) {
+        timer = setTimeout(checkExpiry, remaining);
+        return;
+      }
+      expired = true;
+      setFull(null);
+      void readForecast(null, controller.signal);
+    }
+    checkExpiry();
+    document.addEventListener("visibilitychange", checkExpiry);
+    window.addEventListener("pageshow", checkExpiry);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+      document.removeEventListener("visibilitychange", checkExpiry);
+      window.removeEventListener("pageshow", checkExpiry);
+    };
+  }, [rewardDeadline, user, readForecast]);
 
   async function watchAd(purpose: "read" | "translate") {
     if (busy) return;
+    if (purpose === "read" && user === null) trackEvent("rewarded_video_click", { feature: "featured_forecast", provider: "google", locale });
     setBusy(true); setError(false);
     try {
       const response = await fetch("/api/featured-horoscope/ad", {
@@ -85,10 +127,11 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
         body: JSON.stringify({ action: "start", day: forecast.day, purpose, ...(purpose === "translate" ? { lang: targetLang } : {}) }),
       });
       if (!response.ok) throw new Error("Ad unavailable");
-      const { challenge } = await response.json() as { challenge: string };
+      const { challenge, ayetFallback } = await response.json() as { challenge: string; ayetFallback?: boolean };
       clearOfferwallEntitlement();
       const next = localePath(`/horoscope/daily/${forecast.day}`, locale) + (purpose === "translate" ? `?translate=${targetLang}` : "");
       const params = new URLSearchParams({ kind: "featured", challenge, next, locale });
+      if (ayetFallback) params.set("ayet", "1");
       window.location.assign(`/ad/unlock?${params}`);
     } catch { setBusy(false); setError(true); setPurchasePurpose(purpose); }
   }
@@ -118,13 +161,13 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
             <p className="mt-4 text-lg font-medium">{t.locked}</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button type="button" disabled={busy} onClick={() => void watchAd("read")} className="inline-flex items-center gap-2 rounded-full bg-violet-400 px-5 py-3 font-semibold text-[#120c24] disabled:opacity-60"><Play size={17} aria-hidden />{t.watchAd}</button>
-              <Link href={localePath("/app/upgrade", locale)} className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 font-semibold text-white">{t.subscribe}<ArrowUpRight size={17} aria-hidden /></Link>
+              <Link href={localePath("/app/upgrade", locale)} onClick={() => trackEvent("rewarded_purchase_click", { feature: "featured_forecast", locale })} className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 font-semibold text-white">{t.subscribe}<ArrowUpRight size={17} aria-hidden /></Link>
             </div>
           </div>
         ) : null}
 
         {full ? <>
-          {targetLang !== "en" ? <div className="mt-8 flex justify-end"><button type="button" disabled={busy} onClick={() => translated ? setTranslated(null) : void translate(user ?? null, targetLang)} className="inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-2 text-sm font-semibold text-violet-100 disabled:opacity-60"><Languages size={16} aria-hidden />{translated ? t.showEnglish : t.translate.replace("{language}", TRANSLATION_LANGUAGES[targetLang])}</button></div> : null}
+          {targetLang !== "en" && rewardDeadline === null ? <div className="mt-8 flex justify-end"><button type="button" disabled={busy} onClick={() => translated ? setTranslated(null) : void translate(user ?? null, targetLang)} className="inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-2 text-sm font-semibold text-violet-100 disabled:opacity-60"><Languages size={16} aria-hidden />{translated ? t.showEnglish : t.translate.replace("{language}", TRANSLATION_LANGUAGES[targetLang])}</button></div> : null}
           {locked === "translate" ? <div className="mt-4 rounded-2xl border border-violet-300/25 bg-[#18122d] p-5"><p>{t.translateLocked}</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => void watchAd("translate")} className="rounded-full bg-violet-400 px-4 py-2 font-semibold text-[#120c24]">{t.watchAd}</button><Link href={localePath("/app/upgrade", locale)} className="rounded-full border border-white/25 px-4 py-2 font-semibold">{t.subscribe}</Link></div></div> : null}
           <article className="mt-5 space-y-5" lang={translated ? targetLang : "en"} dir={translated && (targetLang === "ar" || targetLang === "he") ? "rtl" : "ltr"}>
             <section className="rounded-3xl border border-white/10 bg-white/[.045] p-6 text-lg leading-8 text-white/85 sm:p-9"><p>{content?.opening}</p></section>

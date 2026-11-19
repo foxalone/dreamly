@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { earliestWorldDay, readFeatured } from "@/lib/featuredHoroscope";
 import { completeFeaturedAd, FeaturedAccessError, startFeaturedAd, validateAdInput } from "@/lib/featuredHoroscopeAccess";
+import { featuredAyetSettings } from "@/lib/featuredHoroscopeAyet";
 import { horoscopeActor, finishAccess } from "@/lib/horoscope/access-http";
 import { cookieFromRequest } from "@/lib/horoscope/access-cookie";
 import { HoroscopeAccessError } from "@/lib/horoscope/access";
@@ -19,7 +20,8 @@ export async function POST(request: Request) {
       const input = validateAdInput(body);
       if (input.day > earliestWorldDay() || !await readFeatured(input.day)) throw new FeaturedAccessError(404, "NOT_FOUND");
       const challenge = await startFeaturedAd(actor, input);
-      return finishAccess(NextResponse.json({ challenge }, { headers }), newGuestId);
+      const ayetFallback = "guestId" in actor && input.purpose === "read" && !!featuredAyetSettings();
+      return finishAccess(NextResponse.json({ challenge, ayetFallback }, { headers }), newGuestId);
     }
     if (body.action !== "complete" || typeof body.challenge !== "string") throw new FeaturedAccessError(400, "INVALID_REQUEST");
     // The existing AdSense Offerwall writes this entitlement only after a completed ad.

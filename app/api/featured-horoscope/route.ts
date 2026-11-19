@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { earliestWorldDay, featuredId, latestFeatured, publicFeatured, readFeatured } from "@/lib/featuredHoroscope";
-import { FeaturedAccessError, openFeatured } from "@/lib/featuredHoroscopeAccess";
+import { earliestWorldDay, featuredId, featuredSubject, latestFeatured, publicFeatured, readFeatured } from "@/lib/featuredHoroscope";
+import { canReadFeatured, FeaturedAccessError, openFeatured } from "@/lib/featuredHoroscopeAccess";
+import { featuredAyetExpiry } from "@/lib/featuredHoroscopeAyet";
 import { horoscopeActor, finishAccess } from "@/lib/horoscope/access-http";
 import { HoroscopeAccessError } from "@/lib/horoscope/access";
 
@@ -34,6 +35,14 @@ export async function POST(request: Request) {
     const item = await readFeatured(day);
     if (!item) throw new FeaturedAccessError(404, "NOT_FOUND");
     const { actor, newGuestId } = await horoscopeActor(request);
+    if ("guestId" in actor && !newGuestId) {
+      const expiresAtMs = featuredAyetExpiry(request, day, featuredSubject(actor));
+      if (expiresAtMs) {
+        if (await canReadFeatured(actor, day)) return NextResponse.json({ forecast: item }, { headers });
+        const remaining = expiresAtMs - Date.now();
+        if (remaining > 0) return NextResponse.json({ forecast: item, rewardRemainingMs: remaining }, { headers });
+      }
+    }
     await openFeatured(actor, day);
     return finishAccess(NextResponse.json({ forecast: item }, { headers }), newGuestId);
   } catch (error) {

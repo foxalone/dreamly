@@ -1,7 +1,7 @@
 "use client";
 
 import YourFitPromo from "@/app/components/YourFitPromo";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAdditionalUserInfo, onAuthStateChanged, type User } from "firebase/auth";
 import { Loader2, LogIn } from "lucide-react";
@@ -25,11 +25,13 @@ import PlansModal from "@/app/components/PlansModal";
 import type { OneTimePurchase } from "@/app/components/OneTimePurchaseButton";
 import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 import { isJaDreamFormPath } from "@/lib/jaPilotPaths";
+import FeaturedAyetFallback, { type FeaturedFallbackOutcome } from "./FeaturedAyetFallback";
 
 type Phase = "waiting" | "showing" | "checking" | "house-ad" | "granting" | "done" | "unavailable" | "failed";
 
 // How long Google gets to render the Offerwall before we give up.
 const APPEAR_TIMEOUT_MS = 12_000;
+const FEATURED_AYET_APPEAR_TIMEOUT_MS = 6_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 const japaneseAdCopy = {
@@ -80,6 +82,19 @@ export default function AdUnlockClient() {
   const [signInBusy, setSignInBusy] = useState(false);
   const [signInError, setSignInError] = useState<string | null>(null);
   const [showPaidChoices, setShowPaidChoices] = useState(true);
+  const [featuredFallbackFinished, setFeaturedFallbackFinished] = useState(false);
+  const featuredFallbackChallenge = kind === "featured" && sp.get("ayet") === "1" ? sp.get("challenge") : null;
+  const showFeaturedFallback = phase === "unavailable" && user === null && featuredFallbackChallenge && !featuredFallbackFinished;
+  const watchGoogle = phase === "waiting" || phase === "showing" || (phase === "unavailable" && !!featuredFallbackChallenge);
+  const handleFeaturedFallback = useCallback((outcome: FeaturedFallbackOutcome) => {
+    setFeaturedFallbackFinished(true);
+    if (outcome === "google-shown") setPhase("showing");
+    if (outcome === "google-complete") setPhase("granting");
+    if (outcome === "unlocked") {
+      setPhase("done");
+      router.replace(next);
+    }
+  }, [next, router]);
   const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -157,12 +172,14 @@ export default function AdUnlockClient() {
 
   // Watch the DOM for the Offerwall overlay.
   useEffect(() => {
-    if (phase !== "waiting" && phase !== "showing") return;
+    if (!watchGoogle) return;
     const saved = kind === "analysis" ? startOfferwallSession(next, rewardId.current, document.cookie) : null;
     if (saved) rewardId.current = saved.rewardId;
     // A remembered appearance is not completion: after a reload Google may
     // still need to resume an unfinished ad.
     let seen = phase === "showing";
+    let timedOut = phase === "unavailable";
+    const appearTimeoutMs = featuredFallbackChallenge ? FEATURED_AYET_APPEAR_TIMEOUT_MS : APPEAR_TIMEOUT_MS;
     const started = Date.now();
     const tick = () => {
       const recovered = kind === "analysis" ? recoverOfferwallSession(document.cookie) : null;
@@ -184,7 +201,8 @@ export default function AdUnlockClient() {
           trackEvent("offerwall_shown", { kind });
           report.current?.("ad_shown");
           setPhase("showing");
-        } else if (Date.now() - started > APPEAR_TIMEOUT_MS) {
+        } else if (!timedOut && Date.now() - started >= appearTimeoutMs) {
+          timedOut = true;
           trackEvent("offerwall_unavailable", { kind });
           report.current?.("ad_unavailable");
           setPhase(kind === "analysis" || kind === "translate" || kind === "reading" ? "checking" : "unavailable");
@@ -214,7 +232,7 @@ export default function AdUnlockClient() {
       clearInterval(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase === "waiting" || phase === "showing"]);
+  }, [watchGoogle, featuredFallbackChallenge]);
 
   // Book the selected action once the Offerwall closed (and auth state is known).
   useEffect(() => {
@@ -433,7 +451,7 @@ export default function AdUnlockClient() {
     phase === "done"
       ? m.done
       : phase === "unavailable"
-        ? m.none
+        ? showFeaturedFallback ? m.waiting : m.none
         : phase === "failed"
           ? adDailyLimit ? m.dailyLimit : japanese ? japaneseAdCopy.failed : t.plansModal.adFailed
           : phase === "showing"
@@ -457,12 +475,13 @@ export default function AdUnlockClient() {
         <p role="status" className="mt-3 text-sm text-[var(--muted)]">
           {text}
         </p>
+        {showFeaturedFallback ? <FeaturedAyetFallback challenge={featuredFallbackChallenge} locale={locale} title={m.title} cancelLabel={t.plansModal.notNow} onOutcome={handleFeaturedFallback} /> : null}
         {phase === "waiting" || (phase === "showing" && !adStalled) || phase === "checking" || phase === "granting" ? (
           <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
             <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--text)]/60" />
           </div>
         ) : null}
-        {phase === "unavailable" || phase === "failed" || (phase === "showing" && adStalled) ? (
+        {!showFeaturedFallback && (phase === "unavailable" || phase === "failed" || (phase === "showing" && adStalled)) ? (
           <>
             <button type="button" disabled={signInBusy} className="dream-primary-btn mt-5 flex h-12 w-full items-center justify-center gap-3 disabled:opacity-60" onClick={() => {
               if (kind === "analysis") report.current?.("back");
@@ -491,7 +510,7 @@ export default function AdUnlockClient() {
         {signInError ? <p role="alert" className="mt-3 text-sm text-red-500">{signInError}</p> : null}
       </div>
       <PlansModal
-        open={!japanese && phase === "unavailable" && showPaidChoices}
+        open={!japanese && !showFeaturedFallback && phase === "unavailable" && showPaidChoices}
         onClose={() => setShowPaidChoices(false)}
         source={`ad_unavailable_${kind}`}
         title={m.title}
