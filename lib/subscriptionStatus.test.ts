@@ -3,7 +3,6 @@ import test from "node:test";
 
 import {
   adRewardsLeftFor,
-  adRewardsLeftToday,
   adSaveRewardsLeftToday,
   canAnalyzeDream,
   freeAnalysisDailyLimitReached,
@@ -50,14 +49,9 @@ test("canAnalyzeDream: free rule for non-subscribers, 3 a day for subscribers", 
   assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 3 }), false);
 });
 
-test("rewarded ads: credits unlock an analysis, max 3 ads a day", () => {
-  const today = utcDayKey();
+test("rewarded ad credits unlock an analysis", () => {
   assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 3, adAnalysisCredits: 1 }), true);
   assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 3, adAnalysisCredits: 0 }), false);
-  assert.equal(adRewardsLeftToday({}), 3);
-  assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 2 }), 1);
-  assert.equal(adRewardsLeftToday({ adRewardsDayKey: today, adRewardsTodayCount: 3 }), 0);
-  assert.equal(adRewardsLeftToday({ adRewardsDayKey: "2000-01-01", adRewardsTodayCount: 3 }), 3);
 });
 
 test("save ads: up to 10 a day", () => {
@@ -67,11 +61,11 @@ test("save ads: up to 10 a day", () => {
   assert.equal(adSaveRewardsLeftToday({ adSaveRewardsDayKey: "2000-01-01", adSaveRewardsTodayCount: 10 }), 10);
 });
 
-test("ad rewards per paywall kind: analysis 3, save 10, translate 3", () => {
+test("ad rewards per paywall kind: analysis unlimited, save 10, translate 3", () => {
   const today = utcDayKey();
-  assert.equal(adRewardsLeftFor({}, "analysis"), 3);
+  assert.equal(adRewardsLeftFor({ adRewardsDayKey: today, adRewardsTodayCount: 50 }, "analysis"), null);
   assert.equal(adRewardsLeftFor({}, "save"), 10);
   assert.equal(adRewardsLeftFor({}, "translate"), 3);
   assert.equal(adRewardsLeftFor({ adTranslateRewardsDayKey: today, adTranslateRewardsTodayCount: 3 }, "translate"), 0);
-  assert.equal(adRewardsLeftFor({ adTranslateRewardsDayKey: today, adTranslateRewardsTodayCount: 3 }, "analysis"), 3);
+  assert.equal(adRewardsLeftFor({ adTranslateRewardsDayKey: today, adTranslateRewardsTodayCount: 3 }, "analysis"), null);
 });

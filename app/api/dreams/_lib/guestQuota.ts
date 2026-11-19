@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { type Firestore, FieldValue } from "firebase-admin/firestore";
 import type { NextResponse } from "next/server";
 
-import { AD_READING_REWARDS_PER_DAY, AD_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
+import { AD_READING_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY } from "@/lib/subscriptions/plans";
 import { guestAnalysisAccess } from "@/lib/guestAnalysisAccess";
 export { GUEST_FREE_ASKS } from "@/lib/guestAnalysisAccess";
 
@@ -174,7 +174,7 @@ const GUEST_AD_FIELDS = {
     credits: "adAnalysisCredits",
     dayKey: "adRewardsDayKey",
     today: "adRewardsTodayCount",
-    perDay: AD_REWARDS_PER_DAY,
+    perDay: null,
   },
   translate: {
     credits: "adTranslateCredits",
@@ -223,7 +223,7 @@ export async function guestAdRewardForNetwork(
     const network = (await tx.get(ipRef)).data() ?? {};
     const today = guest[f.dayKey] === dayKey ? Number(guest[f.today] ?? 0) : 0;
     const ipToday = Number(network[f.today] ?? 0);
-    const leftToday = Math.max(0, f.perDay - Math.max(today, ipToday));
+    const leftToday = f.perDay === null ? null : Math.max(0, f.perDay - Math.max(today, ipToday));
     const credits = kind === "translate"
       ? Number(!!target && matchingTranslationAdGrant(guest.translationAdGrant, target))
       : Math.max(0, Number(guest[f.credits] ?? 0));
@@ -234,7 +234,7 @@ export async function guestAdRewardForNetwork(
     if (grant && !receiptRef) throw new Error("INVALID_REWARD_ID");
     if (grant && kind === "translate" && !target) throw new Error("TRANSLATION_TARGET_REQUIRED");
     if (kind === "translate") {
-      if (!grant || leftToday === 0) return { credits, leftToday };
+      if (!grant || leftToday === null || leftToday === 0) return { credits, leftToday };
       tx.create(receiptRef!, { kind, ...target, createdAt: FieldValue.serverTimestamp() });
       tx.set(guestRef, {
         translationAdGrant: { ...target, expiresAtMs: Date.now() + TRANSLATION_AD_GRANT_MS },
@@ -245,18 +245,15 @@ export async function guestAdRewardForNetwork(
       tx.set(ipRef, { [f.today]: ipToday + 1 }, { merge: true });
       return { credits: 1, leftToday: leftToday - 1 };
     }
-    // Reuse an unspent credit, including after a failed analysis or grant retry.
-    if (!grant || (leftToday === 0 && credits === 0)) return { credits, leftToday };
-    // Consume the replay key even when reusing an existing unspent credit.
+    if (!grant) return { credits, leftToday };
     tx.create(receiptRef!, { createdAt: FieldValue.serverTimestamp() });
-    if (credits > 0) return { credits, leftToday };
     tx.set(guestRef, {
       [f.credits]: credits + 1,
       [f.dayKey]: dayKey,
       [f.today]: today + 1,
     }, { merge: true });
     tx.set(ipRef, { [f.today]: ipToday + 1 }, { merge: true });
-    return { credits: credits + 1, leftToday: leftToday - 1 };
+    return { credits: credits + 1, leftToday };
   });
 }
 

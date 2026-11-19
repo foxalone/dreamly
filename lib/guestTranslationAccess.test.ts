@@ -75,7 +75,7 @@ test("guest translation: ad opens only its selected target and is restored on fa
   assert.equal(docs.get(`guestQuickSymbol/${guest}`)?.adTranslateCredits, 0);
   assert.equal(docs.get(`guestQuickSymbol/${guest}`)?.adAnalysisCredits, undefined);
   // Analysis status is untouched by translate ads.
-  assert.deepEqual(await guestAdReward(guest, ip, false, undefined, db, "analysis"), { credits: 0, leftToday: 3 });
+  assert.deepEqual(await guestAdReward(guest, ip, false, undefined, db, "analysis"), { credits: 0, leftToday: null });
 
   // Replaying the same reward id does not grant a second credit.
   assert.deepEqual(await guestAdReward(guest, ip, true, rewardId, db, "translate", target), { credits: 1, leftToday: 2, replayed: true });

@@ -19,7 +19,7 @@ test("guests try ads first, with no-fill free only for the first analysis", () =
   assert.equal(guestAnalysisAccess(0, 0, 1), "ad");
 });
 
-test("guest quota and reward routes preserve balances and enforce daily caps", async (t) => {
+test("guest quota routes preserve balances and allow analysis ad rewards past the old cap", async (t) => {
   // Exercise real quota/route logic against an in-memory transaction adapter.
   // No credentials or external Firebase requests are used.
   const app = initializeApp({ projectId: "demo-guest-quota" }, "project-server");
@@ -54,10 +54,10 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
   });
   // POST needs a fresh replay key per watched ad (lib/rewardedReceipt.ts).
   let seq = 0;
-  const grant = () => new Request("http://localhost/api/dreams/guest-ad-reward", {
+  const grant = (rewardNumber = ++seq) => new Request("http://localhost/api/dreams/guest-ad-reward", {
     method: "POST",
     headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
-    body: JSON.stringify({ rewardId: `9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c${String(++seq).padStart(2, "0")}` }),
+    body: JSON.stringify({ rewardId: `9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c${String(rewardNumber).padStart(2, "0")}` }),
   });
 
   assert.equal((await GET(new Request("http://localhost/api/dreams/guest-ad-reward"))).status, 401);
@@ -128,10 +128,10 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
     body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),
   }));
   assert.equal(laterFallback.status, 403);
-  assert.deepEqual(await (await GET(request())).json(), { credits: 0, leftToday: 3 });
-  assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: 2 });
-  // A retried reward request cannot accumulate an extra unspent credit.
-  assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: 2 });
+  assert.deepEqual(await (await GET(request())).json(), { credits: 0, leftToday: null });
+  assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: null });
+  // Replaying the same completed ad cannot earn a second credit.
+  assert.deepEqual(await (await POST(grant(seq))).json(), { credits: 1, leftToday: null, replayed: true });
   const earned = await consumeGuestAsk(id, ip);
   assert.ok(earned.ok);
   assert.equal(earned.charge, "ad");
@@ -145,9 +145,10 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
     assert.equal((await POST(grant())).status, 200);
     assert.ok((await consumeGuestAsk(id, ip)).ok);
   }
-  assert.equal((await POST(grant())).status, 429);
-  // Resetting cookies does not bypass the network ad cap.
-  assert.deepEqual(await guestAdReward("another-guest", ip, true, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c90"), { credits: 0, leftToday: 0 });
+  assert.equal((await POST(grant())).status, 200);
+  assert.ok((await consumeGuestAsk(id, ip)).ok);
+  // The old network reward cap does not block another guest.
+  assert.deepEqual(await guestAdReward("another-guest", ip, true, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c90"), { credits: 1, leftToday: null });
 
   const networkIp = "192.0.2.2";
   records.set(`guestQuickSymbolIp/${hashIp(networkIp)}_${today}`, { used: 5 });
@@ -159,10 +160,11 @@ test("guest quota and reward routes preserve balances and enforce daily caps", a
 
   // A free request crossing midnight refunds its original day, not today's IP quota.
   const yesterday = "2000-01-01";
+  const todayBeforeRefund = records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used;
   records.set(`guestQuickSymbolIp/${hashIp(ip)}_${yesterday}`, { used: 1 });
   await refundGuestAsk(id, ip, { ok: true, used: 1, charge: "free", dayKey: yesterday });
   assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${yesterday}`)?.used, 0);
-  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 4);
+  assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, todayBeforeRefund);
 
   // A returning guest gets no new free fallback on a new day/network.
   records.set(`guestQuickSymbol/${id}`, { used: 50, adAnalysisCredits: 1 });

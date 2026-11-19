@@ -65,7 +65,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
       .then(async (res) => {
         if (!res.ok) throw new Error("ad status failed");
         const data = await res.json();
-        if (!cancelled) setAd(data.credits > 0 ? "credit" : data.leftToday > 0 ? "ready" : "limit");
+        if (!cancelled) setAd(data.credits > 0 ? "credit" : (data.leftToday === null || data.leftToday > 0) ? "ready" : "limit");
       })
       .catch(() => { if (!cancelled) { setAd("failed"); setPaidChoices(true); } });
     return () => {

@@ -1,4 +1,4 @@
-import { AD_READING_REWARDS_PER_DAY, AD_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
+import { AD_READING_REWARDS_PER_DAY, AD_SAVE_REWARDS_PER_DAY, AD_TRANSLATE_REWARDS_PER_DAY, DREAMS_PER_DAY, FREE_ANALYSES_PER_DAY, FREE_ANALYSES_TOTAL } from "./plans";
 
 export type SubscriptionStatus =
   | "none"
@@ -81,19 +81,13 @@ export function adAnalysisCredits(data: UserBillingFields | null | undefined) {
   return count(data?.adAnalysisCredits);
 }
 
-/** How many more rewarded ads this non-subscriber may watch today. */
-export function adRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
-  const used = String(data?.adRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adRewardsTodayCount) : 0;
-  return Math.max(0, AD_REWARDS_PER_DAY - used);
-}
-
 /** How many more "ad for a save" rewards this non-subscriber may watch today. */
 export function adSaveRewardsLeftToday(data: UserBillingFields | null | undefined, now = new Date()) {
   const used = String(data?.adSaveRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adSaveRewardsTodayCount) : 0;
   return Math.max(0, AD_SAVE_REWARDS_PER_DAY - used);
 }
 
-/** Rewarded ads left today for one paywall kind (see lib/paywall.ts). */
+/** Rewarded ads left today. Null means the action has no daily cap. */
 export function adRewardsLeftFor(
   data: UserBillingFields | null | undefined,
   kind: "analysis" | "save" | "translate" | "reading",
@@ -110,7 +104,7 @@ export function adRewardsLeftFor(
       String(data?.adTranslateRewardsDayKey ?? "") === utcDayKey(now) ? count(data?.adTranslateRewardsTodayCount) : 0;
     return Math.max(0, AD_TRANSLATE_REWARDS_PER_DAY - used);
   }
-  return adRewardsLeftToday(data, now);
+  return null;
 }
 
 /** Can this user get an AI analysis right now (subscriber slot or free one). */

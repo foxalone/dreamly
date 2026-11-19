@@ -89,6 +89,31 @@ test("guest receipt cannot mint again after earned credit is spent", async () =>
   assert.equal(docs.get(path)?.adRewardsTodayCount, 1);
 });
 
+test("each distinct analysis ad earns one credit past the old cap", async () => {
+  const { db, docs } = fixture();
+  const today = new Date().toISOString().slice(0, 10);
+  const prior = { adRewardsDayKey: today, adRewardsTodayCount: 3, adAnalysisCredits: 1 };
+  docs.set("users/alice", prior);
+  docs.set("guestQuickSymbol/guest", prior);
+  for (const [index, rewardId] of [id, "9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c90"].entries()) {
+    const credits = index + 2;
+    assert.deepEqual(await grantAdReward("alice", "analysis", rewardId, db), { uid: "alice", credits, leftToday: null });
+    assert.deepEqual(await guestAdReward("guest", "test-ip", true, rewardId, db), { credits, leftToday: null });
+  }
+});
+
+test("YourFit cannot unlock another analysis after a free or guest analysis", async () => {
+  const { db, docs } = fixture();
+  const check = (guestId: string | null) =>
+    grantAccountHouseAd("alice", guestId, "analysis", undefined, undefined, db, "A dream", true);
+  docs.set("users/alice", { freeAnalysesUsed: 1 });
+  assert.equal(await check(null), false);
+  docs.set("users/alice", {});
+  docs.set("guestQuickSymbol/guest", { used: 1 });
+  assert.equal(await check("guest"), false);
+  assert.equal(await check(null), true);
+});
+
 test("translation reward opens only the selected dream and language, without a banked credit", async () => {
   const { db, docs } = fixture();
   const target = { sharedDreamId: "dream-a", targetLang: "ru" };
@@ -191,7 +216,7 @@ test("account analysis trial cannot be spent twice or on changed text; failed wo
   assert.equal(await recoverAccountHouseAnalysis("other-account", target, db), null);
   await finishAccountHouseAnalysis("alice", null, null, db);
   assert.equal(await consumeAccountHouseAnalysis("alice", target, db), false);
-  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "own", undefined, db), true);
+  assert.equal(await grantAccountHouseAd("alice", null, "analysis", "own", undefined, db), false);
   assert.equal(await consumeAccountHouseAnalysis("alice", target, db), false);
 });
 

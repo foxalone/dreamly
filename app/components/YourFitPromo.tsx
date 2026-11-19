@@ -20,16 +20,16 @@ function reportPromo(event: "yourfit_promo_impression" | "yourfit_promo_click", 
   })().catch(() => {});
 }
 
-export default function YourFitPromo({ attemptId, kind, targetKey, audience, locale, onClose, busy = false, error }: {
+export default function YourFitPromo({ attemptId, kind, targetKey, audience, locale, onClose, busy = false, error, unlocksAnalysis = true }: {
   attemptId?: string; kind: "analysis" | "translate" | "reading"; targetKey: string;
-  audience: "guest" | "account"; locale: Locale; onClose: () => void; busy?: boolean; error?: string;
+  audience: "guest" | "account"; locale: Locale; onClose: () => void; busy?: boolean; error?: string; unlocksAnalysis?: boolean;
 }) {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const copy = yourfitPromoCopy[locale];
   const dialog = useRef<HTMLDialogElement>(null);
   const [elapsed, setElapsed] = useState(0);
   const elapsedRef = useRef(0);
-  const campaign = `first_${kind}_no_ad`;
+  const campaign = unlocksAnalysis ? `first_${kind}_no_ad` : "analysis_no_ad";
   const placement = kind === "analysis" ? `${audience}_dream_result` : `${audience}_${kind}_result`;
   const params = { campaign, placement, language: locale, format: "interstitial" };
   const identity = attemptId ?? `${kind}:${targetKey}`;

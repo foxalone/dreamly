@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { configuredAdMobUnit } from "@/lib/admobSsv";
-import { adRewardsLeftToday, canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
+import { canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { guestAdReward, hashIp, readClientIp, readGuestId } from "../_lib/guestQuota";
@@ -52,13 +52,12 @@ export async function POST(req: Request) {
     if (uid) {
       const billing = (await db.collection("users").doc(uid).get()).data();
       if (canAnalyzeDream(billing)) return NextResponse.json({ state: "ready" });
-      if (hasPaidAccess(billing) || adRewardsLeftToday(billing) === 0) {
+      if (hasPaidAccess(billing)) {
         return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
       }
     } else if (guestId) {
-      const { credits, leftToday } = await guestAdReward(guestId, ip);
+      const { credits } = await guestAdReward(guestId, ip);
       if (credits > 0) return NextResponse.json({ state: "ready" });
-      if (leftToday === 0) return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
     }
 
     const sessionId = randomUUID();

@@ -8,7 +8,7 @@ import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 
 /**
- * GET  ?kind=analysis|translate      → { credits, leftToday } for that kind
+ * GET  ?kind=analysis|translate      → { credits, leftToday } (null leftToday for unlimited analysis ads)
  * POST { rewardId, kind, sharedDreamId?, targetLang? } → grants one action;
  * translate requires the selected dream and language and cannot be banked.
  * Default kind is "analysis" (the original guest flow).

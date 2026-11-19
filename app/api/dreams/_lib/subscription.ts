@@ -5,7 +5,6 @@ import {
   DREAMS_PER_DAY,
   FREE_ANALYSES_PER_DAY,
   FREE_ANALYSES_TOTAL,
-  AD_REWARDS_PER_DAY,
   AD_SAVE_REWARDS_PER_DAY,
   AD_READING_REWARDS_PER_DAY,
   AD_TRANSLATE_REWARDS_PER_DAY,
@@ -248,7 +247,7 @@ export async function refundAdCredit(uid: string) {
 
 /**
  * The user finished a rewarded ad: grant one credit — an AI analysis
- * (adAnalysisCredits, max AD_REWARDS_PER_DAY a day) or a diary save
+ * (adAnalysisCredits) or a diary save
  * (adSaveCredits, max AD_SAVE_REWARDS_PER_DAY a day). Subscribers never need it.
  */
 export async function grantAdReward(
@@ -257,7 +256,7 @@ export async function grantAdReward(
   rewardId: string,
   database?: Firestore,
   target?: TranslationAdTarget
-): Promise<{ uid: string; credits: number; leftToday: number } | { error: NextResponse }> {
+): Promise<{ uid: string; credits: number; leftToday: number | null } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
   }
@@ -278,17 +277,18 @@ export async function grantAdReward(
           ? { credits: "adSaveCredits", day: "adSaveRewardsDayKey", today: "adSaveRewardsTodayCount", cap: AD_SAVE_REWARDS_PER_DAY }
           : kind === "translate"
           ? { credits: "adTranslateCredits", day: "adTranslateRewardsDayKey", today: "adTranslateRewardsTodayCount", cap: AD_TRANSLATE_REWARDS_PER_DAY }
-          : { credits: "adAnalysisCredits", day: "adRewardsDayKey", today: "adRewardsTodayCount", cap: AD_REWARDS_PER_DAY };
+          : { credits: "adAnalysisCredits", day: "adRewardsDayKey", today: "adRewardsTodayCount", cap: null };
       const today = String(data[f.day] ?? "") === dayKey ? toCount(data[f.today]) : 0;
+      const leftToday = f.cap === null ? null : Math.max(0, f.cap - today);
       if (receipt.exists) {
         if (receipt.data()?.kind !== kind) return { error: NextResponse.json({ code: "REWARD_KIND_MISMATCH" }, { status: 409 }) };
         if (kind === "translate" && (receipt.data()?.sharedDreamId !== target?.sharedDreamId || receipt.data()?.targetLang !== target?.targetLang)) {
           return { error: NextResponse.json({ code: "REWARD_TARGET_MISMATCH" }, { status: 409 }) };
         }
-        return { uid, credits: kind === "translate" ? Number(!!target && matchingTranslationAdGrant(translationGrant?.data(), target)) : toCount(data[f.credits]), leftToday: Math.max(0, f.cap - today) };
+        return { uid, credits: kind === "translate" ? Number(!!target && matchingTranslationAdGrant(translationGrant?.data(), target)) : toCount(data[f.credits]), leftToday };
       }
       if (hasPaidAccess(data)) throw new Error("AD_NOT_NEEDED");
-      if (today >= f.cap) throw new Error("AD_DAILY_LIMIT");
+      if (leftToday === 0) throw new Error("AD_DAILY_LIMIT");
       if (kind === "translate" && !target) return { error: NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 }) };
       const credits = toCount(data[f.credits]) + 1;
       tx.create(receiptRef, { kind, ...(kind === "translate" ? target : {}), createdAt: FieldValue.serverTimestamp() });
@@ -306,7 +306,7 @@ export async function grantAdReward(
         },
         { merge: true }
       );
-      return { uid, credits: kind === "translate" ? 1 : credits, leftToday: f.cap - today - 1 };
+      return { uid, credits: kind === "translate" ? 1 : credits, leftToday: leftToday === null ? null : leftToday - 1 };
     });
   } catch (e: unknown) {
     return quotaError(e);

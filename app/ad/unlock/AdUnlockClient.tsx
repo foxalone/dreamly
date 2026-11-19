@@ -70,6 +70,7 @@ export default function AdUnlockClient() {
   const back = kind === "tarot" ? safeNext(sp.get("back")) : next;
   const t = getMessages(locale);
   const [phase, setPhase] = useState<Phase>("waiting");
+  const [houseEligible, setHouseEligible] = useState(false);
   const [houseBusy, setHouseBusy] = useState(false);
   const [houseError, setHouseError] = useState(false);
   const houseRequestInFlight = useRef(false);
@@ -332,14 +333,14 @@ export default function AdUnlockClient() {
     })().then(async (res) => {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
-      if (data?.firstAnalysisFree === true || data?.yourfitPromo === true) {
+      const eligible = data?.firstAnalysisFree === true || data?.yourfitPromo === true;
+      setHouseEligible(eligible);
+      if (eligible) {
         trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale });
-        setPhase("house-ad");
-      } else {
-        setPhase("unavailable");
       }
+      setPhase(eligible || kind === "analysis" ? "house-ad" : "unavailable");
     }).catch(() => {
-      if (!cancelled) setPhase("failed");
+      if (!cancelled) setPhase(kind === "analysis" ? "house-ad" : "failed");
     }).finally(() => clearTimeout(timeout));
     return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
   }, [phase, user, kind, next, router, locale, sp]);
@@ -347,6 +348,10 @@ export default function AdUnlockClient() {
   async function closeHouseAd() {
     if (phase !== "house-ad" || houseRequestInFlight.current || user === undefined) return;
     if (kind !== "analysis" && kind !== "translate" && kind !== "reading") return;
+    if (!houseEligible) {
+      setPhase("unavailable");
+      return;
+    }
     houseRequestInFlight.current = true;
     setHouseBusy(true);
     setHouseError(false);
@@ -438,7 +443,8 @@ export default function AdUnlockClient() {
   if (phase === "house-ad" && (kind === "analysis" || kind === "translate" || kind === "reading")) {
     return <main className="min-h-screen bg-[var(--bg)]">
       <YourFitPromo kind={kind} locale={locale} audience={user ? "account" : "guest"}
-        attemptId={kind === "analysis" ? pendingAnalysisAttemptId() : undefined}
+        attemptId={kind === "analysis" && houseEligible ? pendingAnalysisAttemptId() : undefined}
+        unlocksAnalysis={kind !== "analysis" || houseEligible}
         targetKey={`${pending.current?.dreamId ?? sp.get("sharedDreamId") ?? ""}:${pending.current?.targetLang ?? sp.get("targetLang") ?? ""}`}
         busy={houseBusy} error={houseError ? (japanese ? japaneseAdCopy.failed : t.plansModal.adFailed) : undefined} onClose={() => { void closeHouseAd(); }} />
     </main>;

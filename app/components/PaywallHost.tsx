@@ -60,7 +60,7 @@ function PagePaywallHost() {
           const snap = await getDoc(doc(firestore, "users", u.uid));
           const data = (snap.exists() ? snap.data() : {}) as UserBillingFields;
           if (current !== requestVersion.current || auth.currentUser?.uid !== u.uid) return;
-          setAdEligible(!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) > 0);
+          setAdEligible(!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) !== 0);
         } catch {
           /* Keep the subscription option available if eligibility cannot be read. */
         }
