@@ -19,8 +19,8 @@ test("the Japanese sitemap and alternates include only published translations", 
   for (const url of urls) assert.ok(listed.includes(url));
   assert.ok(listed.includes(`${SITE_ORIGIN}/ja/pricing`));
   assert.ok(listed.includes(`${SITE_ORIGIN}/ja/tarot/cards/star`));
-  assert.ok(!listed.includes(`${SITE_ORIGIN}/ja/dreams/kittens`));
-  assert.equal(languageAlternates("/dreams/kittens").ja, undefined);
+  assert.ok(!listed.includes(`${SITE_ORIGIN}/ja/dreams/big-spider`));
+  assert.equal(languageAlternates("/dreams/big-spider").ja, undefined);
   assert.equal(jaPilotAlternate("/app/dreams"), undefined);
   assert.equal(new Set(JA_WEB_DREAM_SLUGS).size, JA_WEB_DREAM_SLUGS.length);
   assert.deepEqual(Object.keys(JA_WEB_DREAM_ARTICLES).sort(), [...JA_WEB_DREAM_SLUGS].sort());
@@ -36,7 +36,7 @@ test("ad analysis can return to a published Japanese form only", () => {
   assert.equal(analysisAdReturnPath("/ja/dreams/tsunami"), "/ja/dreams/tsunami");
   assert.equal(analysisAdReturnPath("/ja/dreams"), "/ja/app/dreams");
   assert.equal(analysisAdReturnPath("/ja/dreams/cat"), "/ja/dreams/cat");
-  assert.equal(analysisAdReturnPath("/ja/dreams/kittens"), "/ja/app/dreams");
+  assert.equal(analysisAdReturnPath("/ja/dreams/big-spider"), "/ja/app/dreams");
   assert.equal(analysisAdReturnPath("//example.com/ja"), "/app/dreams");
   assert.equal(analysisAdReturnPath("/es/dreams/snake"), "/es/app/dreams");
 });
