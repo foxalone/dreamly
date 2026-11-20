@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     const receiptId = `admob_${sessionId}`;
     let state: "granted" | "limit" | "ready";
     if (session.uid) {
-      const grant = await grantAdReward(session.uid, "analysis", receiptId, db);
+      const grant = await grantAdReward(session.uid, session.translation ? "translate" : "analysis", receiptId, db, session.translation);
       if ("error" in grant) {
         const { code } = await grant.error.json();
         if (code === "AD_DAILY_LIMIT") state = "limit";
@@ -48,7 +48,8 @@ export async function GET(req: Request) {
         state = "granted";
       }
     } else {
-      const grant = await guestAdRewardForNetwork(session.guestId, session.networkHash, true, receiptId, db);
+      const grant = await guestAdRewardForNetwork(session.guestId, session.networkHash, true, receiptId, db,
+        session.translation ? "translate" : "analysis", session.translation);
       state = grant.credits > 0 || grant.replayed ? "granted" : "limit";
     }
     const changed = await db.runTransaction(async (tx) => {
@@ -56,7 +57,7 @@ export async function GET(req: Request) {
       tx.update(ref, { state, transactionId, completedAtMs: Date.now() });
       return true;
     });
-    if (changed && state === "granted") {
+    if (changed && state === "granted" && !session.translation) {
       await recordAttemptAccess(session.attemptId, session.uid, session.guestId);
     }
     return new Response(null, { status: 200 });

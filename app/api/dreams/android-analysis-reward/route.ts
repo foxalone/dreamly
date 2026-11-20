@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { configuredAdMobUnit } from "@/lib/admobSsv";
-import { canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
+import { adRewardsLeftFor, canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
 import { validRewardId } from "@/lib/rewardedReceipt";
+import { translationAdTarget } from "@/lib/translationAdGrant";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { guestAdReward, hashIp, readClientIp, readGuestId } from "../_lib/guestQuota";
 import { requireSignedInUid } from "../_lib/requireUser";
@@ -37,32 +38,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ state });
     }
 
-    const attemptId = body.attemptId;
-    if (typeof attemptId !== "string" || !/^[0-9a-f]{64}$/.test(attemptId)) {
-      return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
-    }
-    const attempt = (await db.collection("analysis_attempts").doc(attemptId).get()).data();
-    if (!attempt || (attempt.uid ?? null) !== uid || (!uid && attempt.guestId !== guestId) ||
-        attempt.source !== "android" || now - Number(attempt.updatedAtMs ?? 0) > 15 * 60_000 ||
-        !["ad_required", "guest_free_limit", "network_free_limit", "daily_limit", "credits_required"].includes(attempt.reason)) {
-      return NextResponse.json({ code: "AD_UNAVAILABLE" }, { status: 409 });
-    }
-
     const ip = readClientIp(req);
-    if (uid) {
-      const billing = (await db.collection("users").doc(uid).get()).data();
-      if (canAnalyzeDream(billing)) return NextResponse.json({ state: "ready" });
-      if (hasPaidAccess(billing)) {
-        return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
+    const translation = translationAdTarget(body.sharedDreamId, body.targetLang);
+    const attemptId = body.attemptId;
+    if (body.kind === "translate") {
+      if (!translation) return NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 });
+      const dream = (await db.collection("shared_dreams").doc(translation.sharedDreamId).get()).data();
+      if (!dream || dream.deleted === true || typeof dream.text !== "string" || !dream.text.trim()) {
+        return NextResponse.json({ code: "NOT_PUBLIC" }, { status: 404 });
       }
-    } else if (guestId) {
-      const { credits } = await guestAdReward(guestId, ip);
-      if (credits > 0) return NextResponse.json({ state: "ready" });
+      if (uid) {
+        const billing = (await db.collection("users").doc(uid).get()).data();
+        if (hasPaidAccess(billing)) return NextResponse.json({ state: "ready" });
+        if (adRewardsLeftFor(billing, "translate") === 0) {
+          return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
+        }
+      } else if (guestId) {
+        const { credits, leftToday } = await guestAdReward(guestId, ip, false, undefined, db, "translate", translation);
+        if (credits > 0) return NextResponse.json({ state: "ready" });
+        if (leftToday === 0) return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
+      }
+    } else {
+      if (typeof attemptId !== "string" || !/^[0-9a-f]{64}$/.test(attemptId)) {
+        return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
+      }
+      const attempt = (await db.collection("analysis_attempts").doc(attemptId).get()).data();
+      if (!attempt || (attempt.uid ?? null) !== uid || (!uid && attempt.guestId !== guestId) ||
+          attempt.source !== "android" || now - Number(attempt.updatedAtMs ?? 0) > 15 * 60_000 ||
+          !["ad_required", "guest_free_limit", "network_free_limit", "daily_limit", "credits_required"].includes(attempt.reason)) {
+        return NextResponse.json({ code: "AD_UNAVAILABLE" }, { status: 409 });
+      }
+      if (uid) {
+        const billing = (await db.collection("users").doc(uid).get()).data();
+        if (canAnalyzeDream(billing)) return NextResponse.json({ state: "ready" });
+        if (hasPaidAccess(billing)) {
+          return NextResponse.json({ code: "AD_DAILY_LIMIT" }, { status: 429 });
+        }
+      } else if (guestId) {
+        const { credits } = await guestAdReward(guestId, ip);
+        if (credits > 0) return NextResponse.json({ state: "ready" });
+      }
     }
 
     const sessionId = randomUUID();
     await sessions.doc(sessionId).create({
-      uid, guestId, networkHash: hashIp(ip), attemptId, unit,
+      uid, guestId, networkHash: hashIp(ip), unit,
+      ...(body.kind === "translate" ? { translation } : { attemptId }),
       state: "pending", createdAtMs: now, adDeadlineMs: now + 15 * 60_000,
       expiresAt: Timestamp.fromMillis(now + 48 * 60 * 60_000),
     });
