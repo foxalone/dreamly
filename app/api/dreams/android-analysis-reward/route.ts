@@ -2,12 +2,14 @@ import { randomUUID } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { configuredAdMobUnit } from "@/lib/admobSsv";
+import { readFullSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adRewardsLeftFor, canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
-import { guestAdReward, hashIp, readClientIp, readGuestId } from "../_lib/guestQuota";
+import { guestAdReward, hashIp, newGuestId, readClientIp, readGuestId, setGuestCookie } from "../_lib/guestQuota";
 import { requireSignedInUid } from "../_lib/requireUser";
+import { androidRewardTarget } from "../_lib/androidReward";
 
 export async function POST(req: Request) {
   const unit = configuredAdMobUnit();
@@ -22,7 +24,12 @@ export async function POST(req: Request) {
       if ("error" in auth) return auth.error;
       uid = auth.uid;
     }
-    const guestId = uid ? null : readGuestId(req);
+    const target = body.rewardAction == null ? null : androidRewardTarget(body);
+    if (body.rewardAction != null && !target) {
+      return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
+    }
+    const existingGuestId = uid ? null : readGuestId(req);
+    const guestId = uid ? null : existingGuestId ?? (target && body.sessionId == null ? newGuestId() : null);
     if (!uid && !guestId) return NextResponse.json({ code: "GUEST_REQUIRED" }, { status: 401 });
     const db = adminDb();
     const sessions = db.collection("androidAnalysisRewards");
@@ -34,8 +41,31 @@ export async function POST(req: Request) {
       if (!session || session.uid !== uid || session.guestId !== guestId) {
         return NextResponse.json({ code: "AD_SESSION_NOT_FOUND" }, { status: 404 });
       }
-      const state = session.state === "pending" && session.adDeadlineMs < now ? "expired" : session.state;
+      const expired = session.state === "pending" ? session.adDeadlineMs < now
+        : session.rewardTarget && session.redeemUntilMs < now;
+      const state = expired ? "expired" : session.state;
       return NextResponse.json({ state });
+    }
+
+    if (target) {
+      if (target.action !== "analysis") {
+        const dream = (await db.collection("shared_dreams").doc(target.payload.sharedDreamId).get()).data();
+        if (!dream || dream.deleted === true ||
+            (target.action === "translation" && (typeof dream.text !== "string" || !dream.text.trim()))) {
+          return NextResponse.json({ code: "NOT_PUBLIC" }, { status: 404 });
+        }
+        if (target.action === "reading" && !await readFullSharedDreamAnalysis(db, target.payload.sharedDreamId, dream)) {
+          return NextResponse.json({ code: "NO_ANALYSIS" }, { status: 404 });
+        }
+      }
+      const sessionId = randomUUID();
+      await sessions.doc(sessionId).create({
+        uid, guestId, unit, rewardTarget: { action: target.action, key: target.key },
+        state: "pending", createdAtMs: now, adDeadlineMs: now + 15 * 60_000,
+        expiresAt: Timestamp.fromMillis(now + 48 * 60 * 60_000),
+      });
+      const response = NextResponse.json({ state: "pending", sessionId, unit });
+      return guestId && !existingGuestId ? setGuestCookie(response, guestId) : response;
     }
 
     const ip = readClientIp(req);

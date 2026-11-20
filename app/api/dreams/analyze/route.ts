@@ -37,6 +37,7 @@ import { translatedGuestShareCopy } from "../_lib/guestShareTranslation";
 import { guestShareCopyFromMessages } from "@/lib/guestShareCopy";
 import { detectDreamLang } from "@/lib/detectDreamLang";
 import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess, recoverUndeliveredGuestAnalysis } from "../_lib/analysisAttempts";
+import { AndroidRewardRequest } from "../_lib/androidReward";
 
 type Body = {
   text: string;
@@ -115,6 +116,7 @@ export async function POST(req: Request) {
   };
 
   try {
+    const androidReward = req instanceof AndroidRewardRequest;
     const body = (await req.json()) as Body;
     const text = String(body?.text ?? "").trim();
     if (!text) {
@@ -136,7 +138,7 @@ export async function POST(req: Request) {
     const lens = parseDreamLens(body.lens);
     const existingGuestId = readGuestId(req);
     const houseTarget = { dreamId: String(body.dreamId ?? ""), text, lang, lens };
-    if (uid) {
+    if (uid && !androidReward) {
       const recovered = await recoverAccountHouseAnalysis(uid, houseTarget);
       if (recovered) return NextResponse.json(recovered.result, { headers: {
         "Cache-Control": "no-store", ...(recovered.attemptId ? { "X-Dreamly-Attempt": recovered.attemptId } : {}),
@@ -166,7 +168,9 @@ export async function POST(req: Request) {
       source: body.source, dreamId: body.dreamId, attemptId: body.attemptId,
     }, req);
 
-    if (!uid) {
+    if (androidReward) {
+      await recordAttemptAccess(attemptId, uid, guestId, "ad_credit_used");
+    } else if (!uid) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
       // Try an ad from the first guest reading; only its no-fill fallback is free.
@@ -263,7 +267,7 @@ export async function POST(req: Request) {
       escape = await grantEscapeForOwner(
         { ownerKey: escapeOwnerKey, uid, guestId: uid ? null : guestId, newGuest: false },
         matched.length ? matched : matchEscapes([{ native: "💭" }]),
-        Boolean(adCreditUid || guestBooking?.charge === "ad")
+        Boolean(androidReward || adCreditUid || guestBooking?.charge === "ad")
       ).catch(() => null);
     }
 

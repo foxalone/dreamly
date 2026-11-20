@@ -26,6 +26,7 @@ import {
 
 import { normalizeTranslationLanguage as normalizeTargetLang, TRANSLATION_LANGUAGE_LABELS as LANG_LABEL } from "@/lib/translationLanguage";
 import { translationMatchesTarget, translationSourceLang } from "@/lib/translationScript";
+import { AndroidRewardRequest } from "../_lib/androidReward";
 
 export const runtime = "nodejs";
 
@@ -161,7 +162,7 @@ export async function POST(req: Request) {
     // An existing unlock remains free even if its cached text needs rebuilding.
     let usedDailyFree = false;
     let paid = false;
-    if (unlocked) {
+    if (unlocked || req instanceof AndroidRewardRequest) {
       // existing access — nothing to charge
     } else if (uid) {
       const access = await consumeTranslationAccess(uid, adTarget);

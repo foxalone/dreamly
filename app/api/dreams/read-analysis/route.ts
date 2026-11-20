@@ -7,6 +7,7 @@ import { matchingReadingAdGrant, readingDreamId } from "@/lib/readingAdGrant";
 import { hasPaidAccess } from "@/lib/subscriptions/status";
 import { readGuestId } from "../_lib/guestQuota";
 import { requireSignedInUid } from "../_lib/requireUser";
+import { AndroidRewardRequest } from "../_lib/androidReward";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
     }
     const analysis = await readFullSharedDreamAnalysis(db, id, data);
     if (!analysis) return NextResponse.json({ code: "NO_ANALYSIS" }, { status: 404 });
+    if (req instanceof AndroidRewardRequest) return NextResponse.json({ analysis });
 
     const guestId = readGuestId(req);
     const token = (body as { idToken?: unknown }).idToken;

@@ -1,5 +1,6 @@
 import { adMobTimestampMs, configuredAdMobUnit, verifyAdMobCallback } from "@/lib/admobSsv";
 import { validRewardId } from "@/lib/rewardedReceipt";
+import { ANDROID_AD_REDEMPTION_MS } from "../../_lib/androidReward";
 import { adminDb } from "../../../admin/_lib/firebaseAdmin";
 import { recordAttemptAccess } from "../../_lib/analysisAttempts";
 import { guestAdRewardForNetwork } from "../../_lib/guestQuota";
@@ -32,6 +33,15 @@ export async function GET(req: Request) {
     if (!session || session.unit !== unit || session.state !== "pending" ||
         time < session.createdAtMs - 60_000 || time > session.adDeadlineMs ||
         Date.now() > session.expiresAt.toMillis()) {
+      return new Response(null, { status: 200 });
+    }
+
+    if (session.rewardTarget) {
+      await db.runTransaction(async (tx) => {
+        if ((await tx.get(ref)).data()?.state !== "pending") return;
+        const completedAtMs = Date.now();
+        tx.update(ref, { state: "granted", transactionId, completedAtMs, redeemUntilMs: completedAtMs + ANDROID_AD_REDEMPTION_MS });
+      });
       return new Response(null, { status: 200 });
     }
 
