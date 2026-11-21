@@ -38,8 +38,15 @@
 
   const testLineItems = new Set([7497956597, 7497970295]);
   let slot, ready, renderedTestItem = false;
+  const attemptId = crypto.randomUUID();
   const log = (entry) => { status.append(entry, "\n"); };
   const update = () => { show.disabled = !ready || !renderedTestItem; };
+  const logFingerprint = async (label, value) => {
+    if (typeof value !== "string" || !value) { log(label + " missing"); return; }
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+    const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+    log(label + " " + hash.slice(0, 12));
+  };
 
   request.onclick = () => {
     request.disabled = true;
@@ -55,12 +62,14 @@
       slot = googletag.defineOutOfPageSlot("/23382781832/dreamly_rewarded", googletag.enums.OutOfPageFormat.REWARDED);
       if (!slot) { log("UNSUPPORTED_VIEWPORT"); return; }
       slot.addService(ads);
-      slot.setConfig({ targeting: { dreamly_ssv_test: "preview_nov21" } });
+      slot.setConfig({ targeting: { dreamly_ssv_test: "preview_nov21", custom_data: attemptId } });
+      void logFingerprint("QA_ATTEMPT", attemptId);
       ads.addEventListener("slotRenderEnded", event => {
         if (event.slot !== slot) return;
         if (event.isEmpty) { log("NO_FILL"); return; }
         log(`FILLED lineItem=${event.lineItemId ?? "-"} creative=${event.creativeId ?? "-"}`);
         renderedTestItem = testLineItems.has(Number(event.lineItemId));
+        if (renderedTestItem) void logFingerprint("GPT_RESPONSE", event.responseIdentifier);
         if (!renderedTestItem) {
           googletag.destroySlots([slot]);
           log("SKIPPED_OTHER_LINE_ITEM");
@@ -77,6 +86,7 @@
         ads.addEventListener(type, event => {
           if (event.slot !== slot) return;
           log(type);
+          if (type === "rewardedSlotGranted") log("GPT_REWARD_FIELDS " + Object.keys(event.payload ?? {}).sort().join(","));
           if (type === "rewardedSlotClosed") googletag.destroySlots([slot]);
         });
       }

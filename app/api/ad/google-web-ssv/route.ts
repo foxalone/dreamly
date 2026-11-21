@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { adMobTimestampMs, verifyAdMobCallback } from "@/lib/admobSsv";
 
 export const runtime = "nodejs";
@@ -28,6 +29,14 @@ export async function GET(request: Request) {
     console.info("Google web reward callback verified", {
       hasCustomData: Boolean(params.get("custom_data")),
       hasUserId: Boolean(params.get("user_id")),
+      signedFields: [...params.keys()],
+      responseFingerprints: Object.fromEntries(
+        ["transaction_id", "query_id", "response_id", "response_identifier", "custom_data", "user_id"]
+          .flatMap(name => {
+            const value = params.get(name);
+            return value ? [[name, createHash("sha256").update(value).digest("hex").slice(0, 12)]] : [];
+          }),
+      ),
     });
     return new Response(null, { status: 200, headers });
   } catch {
