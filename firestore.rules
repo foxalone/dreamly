@@ -40,8 +40,7 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      // invite page читает чужой профиль без логина
-      allow get: if true;
+      allow get: if isOwner(uid) || isAdmin();
       allow list: if isAdmin();
 
       allow create: if isOwner(uid) && noForbiddenOnCreate();
@@ -96,11 +95,14 @@ service cloud.firestore {
       allow read: if true; // публичная лента
 
       allow create: if isSignedIn()
-        && request.resource.data.ownerUid == request.auth.uid;
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.get('authorEmail', null) == null;
 
       // 'translations' убрано: текст перевода больше не лежит в публичном доке
       allow update: if isAdmin()
-        || (isSignedIn() && resource.data.ownerUid == request.auth.uid)
+        || (isOwner(resource.data.ownerUid)
+            && (request.resource.data.get('authorEmail', null) == null
+                || request.resource.data.get('authorEmail', null) == resource.data.get('authorEmail', null)))
         || (isSignedIn()
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['reactions', 'commentCount', 'updatedAt']));

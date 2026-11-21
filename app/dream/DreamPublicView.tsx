@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 
 import { analysisPreview } from "@/lib/analysisPreview";
+import { authorInitials } from "@/lib/authorInitials";
 import { ensureSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { SITE_URL, type Locale } from "@/lib/i18n/config";
@@ -82,7 +83,7 @@ export const loadSharedDream = cache(async (id: string): Promise<PublicSharedDre
       sharedAtMs: num(data?.sharedAtMs) || null,
       shareBadge: str(data?.shareBadge) || null,
       fromGuest: data?.fromGuest === true || !!str(data?.ownerGuestId),
-      authorInitials: str(data?.authorInitials ?? "") || str(data?.authorEmail ?? "") || str(data?.authorName ?? ""),
+      authorInitials: str(data?.authorInitials).trim() || authorInitials(str(data?.authorEmail), str(data?.authorName)) || "",
       emojis: normalizeEmojiNatives(data?.emojis),
       reactions: {
         heart: num(data?.reactions?.heart),

@@ -9,9 +9,7 @@ import {
   onAuthStateChanged,
   type User,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-
-import { auth, firestore } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { createOrGetDirectChat } from "@/lib/chat/chatDb";
@@ -21,7 +19,6 @@ type InviterInfo = {
   uid: string;
   displayName: string;
   photoURL?: string | null;
-  email?: string | null;
 };
 
 export default function InvitePage() {
@@ -66,9 +63,9 @@ export default function InvitePage() {
       setError("");
       setLoadingInviter(true);
 
-      const snap = await getDoc(doc(firestore, "users", uid));
+      const response = await fetch(`/api/dreams/public-inviter?from=${encodeURIComponent(uid)}`);
 
-      if (!snap.exists()) {
+      if (response.status === 404) {
         if (!cancelled) {
           setError((japanese ? "招待した利用者が見つかりません。" : "Inviter not found."));
           setLoadingInviter(false);
@@ -76,7 +73,8 @@ export default function InvitePage() {
         return;
       }
 
-      const data = snap.data();
+      if (!response.ok) throw new Error("Could not load inviter");
+      const data = await response.json();
 
       if (!cancelled) {
         setInviter({
@@ -86,7 +84,6 @@ export default function InvitePage() {
               ? data.displayName
               : (japanese ? "Dreamlyの利用者" : "Dreamly user"),
           photoURL: typeof data.photoURL === "string" ? data.photoURL : null,
-          email: typeof data.email === "string" ? data.email : null,
         });
         setError("");
         setLoadingInviter(false);
@@ -145,7 +142,7 @@ export default function InvitePage() {
         {
           uid: inviterInfo.uid,
           displayName: inviterInfo.displayName,
-          email: inviterInfo.email ?? null,
+          email: null,
           photoURL: inviterInfo.photoURL ?? null,
         }
       );
