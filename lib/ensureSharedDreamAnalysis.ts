@@ -3,6 +3,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { guestDreamSnapshotId } from "@/app/api/dreams/_lib/guestDreamSnapshot";
 import { analysisPreview } from "@/lib/analysisPreview";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
+import { PUBLIC_QUERY_LIMIT } from "@/lib/publicPageSize";
 
 const ID_RE = /^[A-Za-z0-9_-]{1,120}$/;
 
@@ -109,7 +110,7 @@ export async function ensureSharedDreamAnalysis(
 }
 
 export async function ensureSharedDreamAnalyses(db: Firestore, ids: unknown): Promise<Record<string, string>> {
-  const unique = [...new Set((Array.isArray(ids) ? ids : []).map((id) => String(id ?? "").trim()).filter((id) => ID_RE.test(id)))].slice(0, 50);
+  const unique = [...new Set((Array.isArray(ids) ? ids : []).map((id) => String(id ?? "").trim()).filter((id) => ID_RE.test(id)))].slice(0, PUBLIC_QUERY_LIMIT);
   const out: Record<string, string> = {};
   await Promise.all(unique.map(async (id) => {
     const snap = await db.collection("shared_dreams").doc(id).get();

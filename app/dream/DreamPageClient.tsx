@@ -16,9 +16,7 @@ import {
   collection,
   doc,
   getCountFromServer,
-  limit,
   onSnapshot,
-  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -41,6 +39,7 @@ import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
 import { trackTranslationClick } from "@/lib/trackTranslationClick";
 import { useTranslationLanguage } from "@/lib/useTranslationLanguage";
+import { subscribePublicWindow } from "@/lib/publicFirestoreWindow";
 import { type TranslationLanguage } from "@/lib/translationLanguage";
 import { analysisTranslationTargetId } from "@/lib/analysisTranslation";
 import { commentTranslationTargetId } from "@/lib/commentTranslation";
@@ -319,16 +318,11 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   // comments, oldest first (a conversation under the dream)
   useEffect(() => {
     setCommentTranslations({});
-    const q = query(
-      collection(firestore, "shared_dreams", dream.id, "comments"),
-      orderBy("createdAtMs", "asc"),
-      limit(200)
-    );
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
+    const unsub = subscribePublicWindow(
+      collection(firestore, "shared_dreams", dream.id, "comments"), "createdAtMs", "asc", 200,
+      (rows) => {
         setComments(
-          snap.docs.filter((d) => d.data().deleted !== true).map((d) => {
+          rows.filter((d) => d.data().deleted !== true).map((d) => {
             const data = d.data() as any;
             return {
               id: d.id,

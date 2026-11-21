@@ -8,15 +8,10 @@ import { Keyboard, Mic } from "lucide-react";
 import {
   collection,
   doc,
-  getCountFromServer,
   getDoc,
-  limit,
   onSnapshot,
-  orderBy,
-  query,
   runTransaction,
   serverTimestamp,
-  where,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -30,6 +25,8 @@ import { hasJapaneseKana } from "@/lib/i18n/jaLanguage";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import { analysisPreview } from "@/lib/analysisPreview";
+import { subscribePublicWindow } from "@/lib/publicFirestoreWindow";
+import { PUBLIC_QUERY_LIMIT } from "@/lib/publicPageSize";
 import { feedPaginationCopy } from "@/lib/i18n/feedPagination";
 import { shareBadgeById, shareBadgeFor } from "@/lib/shareBadges";
 import { shareBadgeLabel } from "@/lib/shareBadgeLabel";
@@ -471,25 +468,13 @@ export default function SharedPage() {
   useEffect(() => {
     setFeedLoading(true);
     setFeedFailed(false);
-    const q = query(
-      collection(firestore, "shared_dreams"),
-      orderBy("sharedAtMs", "desc"),
-      limit(feedLimit + 1)
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        // Author-deleted dreams keep a stripped doc (emojis/city only) — never show it.
-        // Look ahead before filtering tombstones: a batch containing deleted
-        // dreams must still allow the viewer to reach older entries.
-        setFeedHasMore(snap.docs.length > feedLimit);
-        const next: SharedDream[] = snap.docs.slice(0, feedLimit)
+    const unsub = subscribePublicWindow(
+      collection(firestore, "shared_dreams"), "sharedAtMs", "desc", feedLimit + 1,
+      (rows) => {
+        setFeedHasMore(rows.length > feedLimit);
+        const next: SharedDream[] = rows.slice(0, feedLimit)
           .filter((d) => d.data()?.deleted !== true)
-          .map((d) => ({
-            id: d.id,
-            ...(d.data() as any),
-          }));
+          .map((d) => ({ ...d.data(), id: d.id }));
         setItems(next);
         setFeedLoading(false);
         setFeedFailed(false);
@@ -514,13 +499,11 @@ export default function SharedPage() {
     const refreshTotal = async () => {
       const currentRequest = ++request;
       try {
-        const shares = collection(firestore, "shared_dreams");
-        const [all, deleted] = await Promise.all([
-          getCountFromServer(shares),
-          getCountFromServer(query(shares, where("deleted", "==", true))),
-        ]);
+        const response = await fetch("/api/dreams/feed-count");
+        if (!response.ok) throw new Error("Feed count unavailable");
+        const { count } = await response.json();
         if (!cancelled && currentRequest === request) {
-          setFeedTotal(Math.max(0, all.data().count - deleted.data().count));
+          setFeedTotal(Number.isSafeInteger(count) && count >= 0 ? count : null);
         }
       } catch (err) {
         console.warn("shared_dreams count error:", err);
@@ -546,19 +529,22 @@ export default function SharedPage() {
     if (!ids.length) return;
     ids.forEach((id) => analysisAsked.current.add(id));
     let cancelled = false;
-    void fetch("/api/dreams/public-analysis", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled || !data?.analyses || typeof data.analyses !== "object") return;
-        setAttachedAnalysis((prev) => ({ ...prev, ...data.analyses }));
+    for (let start = 0; start < ids.length; start += PUBLIC_QUERY_LIMIT) {
+      const page = ids.slice(start, start + PUBLIC_QUERY_LIMIT);
+      void fetch("/api/dreams/public-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: page }),
       })
-      .catch(() => {
-        if (!cancelled) ids.forEach((id) => analysisAsked.current.delete(id));
-      });
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled || !data?.analyses || typeof data.analyses !== "object") return;
+          setAttachedAnalysis((prev) => ({ ...prev, ...data.analyses }));
+        })
+        .catch(() => {
+          if (!cancelled) page.forEach((id) => analysisAsked.current.delete(id));
+        });
+    }
     return () => {
       cancelled = true;
       ids.forEach((id) => analysisAsked.current.delete(id));

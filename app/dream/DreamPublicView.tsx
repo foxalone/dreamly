@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 
 import { analysisPreview } from "@/lib/analysisPreview";
+import { PUBLIC_QUERY_LIMIT } from "@/lib/publicPageSize";
 import { authorInitials } from "@/lib/authorInitials";
 import { ensureSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adminFirestore } from "@/lib/firebaseAdmin";
@@ -151,7 +152,7 @@ export const loadDreamComments = cache(
         .doc(id)
         .collection("comments")
         .orderBy("createdAtMs", "asc")
-        .limit(40)
+        .limit(PUBLIC_QUERY_LIMIT)
         .get();
       return snap.docs
         .filter((d) => d.data().deleted !== true)
