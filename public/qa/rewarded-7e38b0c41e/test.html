@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Dreamly Rewarded QA</title>
+<style>
+  body { background: #170f26; color: #f6f0ff; font: 1rem system-ui; margin: 0; padding: 2rem 1rem; }
+  main { max-width: 30rem; margin-inline: auto; }
+  button { background: #e5d5ff; color: #271441; border: 0; border-radius: .6rem; padding: .8rem 1rem; font: inherit; cursor: pointer; }
+  button:disabled { opacity: .55; cursor: default; }
+  pre { white-space: pre-wrap; }
+</style>
+<main>
+  <h1>Dreamly Rewarded</h1>
+  <button id="request"></button>
+  <button id="show" disabled></button>
+  <pre id="status" role="status"></pre>
+</main>
+<script>
+  const messages = {
+    en: ["Request test ad", "Play test ad"],
+    es: ["Solicitar anuncio de prueba", "Reproducir anuncio de prueba"],
+    ar: ["طلب إعلان تجريبي", "تشغيل الإعلان التجريبي"],
+    pt: ["Solicitar anúncio de teste", "Reproduzir anúncio de teste"],
+    de: ["Testanzeige anfragen", "Testanzeige abspielen"],
+    ru: ["Запросить тестовую рекламу", "Показать тестовый ролик"],
+    ja: ["テスト広告をリクエスト", "テスト広告を再生"]
+  };
+  const language = new URLSearchParams(location.search).get("lang") ?? navigator.language.split("-")[0];
+  const labels = Object.hasOwn(messages, language) ? messages[language] : messages.en;
+  document.documentElement.lang = Object.hasOwn(messages, language) ? language : "en";
+  if (language === "ar") document.documentElement.dir = "rtl";
+  const request = document.getElementById("request");
+  const show = document.getElementById("show");
+  const status = document.getElementById("status");
+  [request.textContent, show.textContent] = labels;
+
+  const lineItemId = 7497956597;
+  let slot, ready, renderedTestItem = false;
+  const log = (entry) => { status.append(entry, "\n"); };
+  const update = () => { show.disabled = !ready || !renderedTestItem; };
+
+  request.onclick = () => {
+    request.disabled = true;
+    window.googletag = { cmd: [] };
+    const script = document.createElement("script");
+    script.src = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.onerror = () => log("GPT_LOAD_FAILED");
+    document.head.append(script);
+    googletag.cmd.push(() => {
+      const ads = googletag.pubads();
+      slot = googletag.defineOutOfPageSlot("/23382781832/dreamly_rewarded", googletag.enums.OutOfPageFormat.REWARDED);
+      if (!slot) { log("UNSUPPORTED_VIEWPORT"); return; }
+      slot.addService(ads);
+      slot.setConfig({ targeting: { dreamly_ssv_test: "preview_nov21" } });
+      ads.addEventListener("slotRenderEnded", event => {
+        if (event.slot !== slot) return;
+        if (event.isEmpty) { log("NO_FILL"); return; }
+        log(`FILLED lineItem=${event.lineItemId ?? "-"} creative=${event.creativeId ?? "-"}`);
+        renderedTestItem = Number(event.lineItemId) === lineItemId;
+        if (!renderedTestItem) {
+          googletag.destroySlots([slot]);
+          log("SKIPPED_OTHER_LINE_ITEM");
+        }
+        update();
+      });
+      ads.addEventListener("rewardedSlotReady", event => {
+        if (event.slot !== slot) return;
+        ready = event;
+        log("READY");
+        update();
+      });
+      for (const type of ["rewardedSlotVideoCompleted", "rewardedSlotGranted", "rewardedSlotClosed"]) {
+        ads.addEventListener(type, event => {
+          if (event.slot !== slot) return;
+          log(type);
+          if (type === "rewardedSlotClosed") googletag.destroySlots([slot]);
+        });
+      }
+      googletag.enableServices();
+      googletag.display(slot);
+      log("REQUESTED");
+    });
+  };
+  show.onclick = () => {
+    show.disabled = true;
+    if (ready && renderedTestItem) log(ready.makeRewardedVisible() ? "OPENED" : "OPEN_FAILED");
+  };
+</script>
+</html>
