@@ -36,7 +36,7 @@
   const status = document.getElementById("status");
   [request.textContent, show.textContent] = labels;
 
-  const lineItemId = 7497956597;
+  const testLineItems = new Set([7497956597, 7497970295]);
   let slot, ready, renderedTestItem = false;
   const log = (entry) => { status.append(entry, "\n"); };
   const update = () => { show.disabled = !ready || !renderedTestItem; };
@@ -60,7 +60,7 @@
         if (event.slot !== slot) return;
         if (event.isEmpty) { log("NO_FILL"); return; }
         log(`FILLED lineItem=${event.lineItemId ?? "-"} creative=${event.creativeId ?? "-"}`);
-        renderedTestItem = Number(event.lineItemId) === lineItemId;
+        renderedTestItem = testLineItems.has(Number(event.lineItemId));
         if (!renderedTestItem) {
           googletag.destroySlots([slot]);
           log("SKIPPED_OTHER_LINE_ITEM");
