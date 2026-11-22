@@ -15,10 +15,13 @@ export async function GET(req: Request) {
     const params = await verifyAdMobCallback(req.url);
     if (!params) return new Response(null, { status: 400 });
     const adUnit = params.get("ad_unit");
+    const sessionId = params.get("custom_data");
+    // The AdMob console signs its URL test with a placeholder unit and no reward session.
+    if (adUnit === "1234567890" && sessionId === null && !params.has("user_id")) {
+      return new Response(null, { status: 200 });
+    }
     if (adUnit !== unit && adUnit !== unit.split("/")[1]) return new Response(null, { status: 400 });
 
-    // The console's signed callback test may omit custom data. It cannot create a credit.
-    const sessionId = params.get("custom_data");
     if (!validRewardId(sessionId)) return new Response(null, { status: 200 });
     const transactionId = params.get("transaction_id");
     const time = adMobTimestampMs(params.get("timestamp"));

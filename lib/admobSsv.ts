@@ -29,21 +29,34 @@ export async function verifyAdMobCallback(
 ): Promise<URLSearchParams | null> {
   const queryStart = url.indexOf("?");
   if (queryStart < 0 || url.length - queryStart > 8192) return null;
-  const parts = /^(.+)&signature=([A-Za-z0-9_-]+(?:=|%3[Dd]){0,2})&key_id=(\d{1,10})$/.exec(url.slice(queryStart + 1));
-  if (!parts) return null;
-  const [, signedQuery, signature, keyId] = parts;
+  const entries = url.slice(queryStart + 1).split("&");
+  if (entries.some((entry) => !/^[a-z_][a-z_0-9]*=/.test(entry))) return null;
+  const params = new URLSearchParams(url.slice(queryStart + 1));
+  if (new Set(params.keys()).size !== entries.length) return null;
+  const signature = params.get("signature");
+  const keyId = params.get("key_id");
+  if (!signature || !/^[A-Za-z0-9_-]+={0,2}$/.test(signature) || !keyId || !/^\d{1,10}$/.test(keyId)) return null;
+  const signedEntries = entries.filter((entry) => !entry.startsWith("signature=") && !entry.startsWith("key_id="));
+  const signedQuery = signedEntries.join("&");
+  if (!signedQuery) return null;
   if (/%(?:26|3d)/i.test(signedQuery)) return null;
-  const params = new URLSearchParams(signedQuery);
-  if (params.has("signature") || params.has("key_id") || new Set(params.keys()).size !== [...params].length) return null;
   const key = await getKey(keyId);
   if (!key) return null;
   // Google's verifier uses the URI query decoded as UTF-8, preserving order and literal plus signs.
-  let content: string;
-  try { content = decodeURIComponent(signedQuery); }
-  catch { return null; }
-  return verify("sha256", Buffer.from(content), key, Buffer.from(decodeURIComponent(signature), "base64url"))
-    ? params
-    : null;
+  // A proxy may reorder the query. AdMob sends the signed fields in alphabetical order.
+  const canonicalQuery = signedEntries.toSorted().join("&");
+  // Some proxies also serialize escaped spaces as form-encoded plus signs.
+  const signatureBytes = Buffer.from(signature, "base64url");
+  try {
+    const candidates = new Set([signedQuery, canonicalQuery, signedQuery.replaceAll("+", "%20"), canonicalQuery.replaceAll("+", "%20")]);
+    for (const candidate of candidates) {
+      if (verify("sha256", Buffer.from(decodeURIComponent(candidate)), key, signatureBytes)) {
+        // Read the same values that passed signature verification, including literal plus signs.
+        return new URLSearchParams(candidate.replaceAll("+", "%2B"));
+      }
+    }
+  } catch { return null; }
+  return null;
 }
 
 export function configuredAdMobUnit() {

@@ -16,6 +16,23 @@ test("validates Google's ordered query with an escaped reward description", asyn
   assert.equal(result?.get("reward_amount"), "1");
 });
 
+test("validates a signed callback after the proxy reorders and form-encodes its query", async () => {
+  const url = callback(query);
+  const [endpoint, rawQuery] = url.split("?");
+  const forwarded = `${endpoint}?${new URLSearchParams(rawQuery.split("&").reverse().join("&"))}`;
+  const result = await verifyAdMobCallback(forwarded, key);
+  assert.equal(result?.get("custom_data"), "5fbecb2b-58e2-45e2-9d4a-1e10da39ec31");
+  assert.equal(result?.get("reward_item"), "Dream analysis");
+  assert.equal(result?.get("reward_amount"), "1");
+  assert.equal(result?.has("signature"), false);
+  assert.equal(await verifyAdMobCallback(forwarded.replace("reward_amount=1", "reward_amount=2"), key), null);
+});
+
+test("preserves a literal plus sign from the signed reward description", async () => {
+  const result = await verifyAdMobCallback(callback(query.replace("Dream%20analysis", "Dream+analysis")), key);
+  assert.equal(result?.get("reward_item"), "Dream+analysis");
+});
+
 test("rejects tampered rewards, duplicate parameters, unknown keys and unsigned suffixes", async () => {
   const url = callback(query);
   assert.equal(await verifyAdMobCallback(url.replace("reward_amount=1", "reward_amount=2"), key), null);
