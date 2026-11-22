@@ -24,12 +24,18 @@ export function androidRewardTarget(body: Record<string, unknown>) {
       const id = readingDreamId(body.sharedDreamId);
       return id ? { action: "reading", key: id, payload: { sharedDreamId: id } } as const : null;
     }
-    case "translation": {
+    case "translation":
+    case "analysisTranslation": {
       const id = readingDreamId(body.sharedDreamId);
       const language = normalizeTranslationLanguage(body.targetLang);
-      return id && language ? {
+      if (!id || !language) return null;
+      if (body.rewardAction === "analysisTranslation") return {
+        action: "analysisTranslation", key: `${id}:${language}`,
+        payload: { sharedDreamId: id, targetLang: language, full: true },
+      } as const;
+      return {
         action: "translation", key: `${id}:${language}`, payload: { sharedDreamId: id, targetLang: language },
-      } as const : null;
+      } as const;
     }
     default:
       return null;

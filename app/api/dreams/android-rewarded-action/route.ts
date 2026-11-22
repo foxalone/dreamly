@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { readingUnlockPath } from "@/lib/analysisTranslationAccess";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { androidRewardTarget, AndroidRewardRequest } from "../_lib/androidReward";
@@ -8,11 +9,12 @@ import { requireSignedInUid } from "../_lib/requireUser";
 import { POST as analyze } from "../analyze/route";
 import { POST as readAnalysis } from "../read-analysis/route";
 import { POST as translate } from "../translate/route";
+import { POST as translateAnalysis } from "../translate-analysis/route";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const handlers = { analysis: analyze, reading: readAnalysis, translation: translate };
+const handlers = { analysis: analyze, reading: readAnalysis, translation: translate, analysisTranslation: translateAnalysis };
 
 export async function POST(req: Request) {
   try {
@@ -47,7 +49,18 @@ export async function POST(req: Request) {
     });
     if (claim.state === "denied") return NextResponse.json({ code: "AD_REQUIRED" }, { status: 402 });
     if (claim.state === "busy") return NextResponse.json({ code: "AD_CONFIRMATION_PENDING" }, { status: 409 });
+    async function rememberReadingUnlock(id: string) {
+      const viewer = uid ? { uid } : guestId ? { guestId } : null;
+      if (!viewer) return;
+      const unlock = db.doc(readingUnlockPath(id, viewer));
+      await db.runTransaction(async (tx) => {
+        if (!(await tx.get(unlock)).exists) {
+          tx.create(unlock, { sharedDreamId: id, atMs: Date.now(), source: "rewarded_ad" });
+        }
+      });
+    }
     if (claim.state === "cached") {
+      if (target.action === "reading") await rememberReadingUnlock(target.payload.sharedDreamId);
       const headers = new Headers({ "Content-Type": "application/json", "Cache-Control": "no-store" });
       if (claim.attemptId) headers.set("X-Dreamly-Attempt", claim.attemptId);
       return new Response(claim.json, { headers });
@@ -59,7 +72,10 @@ export async function POST(req: Request) {
         method: "POST", headers: req.headers,
         body: JSON.stringify({ ...target.payload, ...(uid ? { idToken: body.idToken } : {}) }),
       }));
-      if (response.ok) json = await response.clone().text();
+      if (response.ok) {
+        if (target.action === "reading") await rememberReadingUnlock(target.payload.sharedDreamId);
+        json = await response.clone().text();
+      }
     } finally {
       await db.runTransaction(async (tx) => {
         if ((await tx.get(ref)).data()?.claimId !== claimId) return;

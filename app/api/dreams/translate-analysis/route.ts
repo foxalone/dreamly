@@ -14,6 +14,7 @@ import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/o
 import { normalizeTranslationLanguage, TRANSLATION_LANGUAGE_LABELS } from "@/lib/translationLanguage";
 import { translationMatchesTarget, translationSourceLang } from "@/lib/translationScript";
 import { canReadFullAnalysis } from "@/lib/analysisTranslationAccess";
+import { AndroidRewardRequest } from "../_lib/androidReward";
 
 export const runtime = "nodejs";
 
@@ -92,13 +93,13 @@ export async function POST(req: Request) {
     const hash = createHash("sha256").update(source).digest("hex");
     const cacheRef = ref.collection("private").doc("analysisTranslations");
     const cache = (await cacheRef.get()).data() as Record<string, Record<string, unknown>> | undefined;
-    const sourceLang = translationSourceLang(data.lang);
+    const sourceLang = translationSourceLang(data.analysisLang) ?? translationSourceLang(data.lang);
     let cached = cachedText(cache?.[scope]?.[lang], hash);
     if (cached && !translationMatchesTarget(cached, lang, source, sourceLang)) cached = null;
     if (unlocked && cached) return finish(NextResponse.json({ translation: cached, scope, cached: true }));
     if (body.existingOnly === true) return finish(NextResponse.json({ translation: null, scope, unlocked }));
 
-    if (!unlocked) {
+    if (!unlocked && !(req instanceof AndroidRewardRequest)) {
       if (uid) {
         const access = await consumeTranslationAccess(uid, target);
         if ("error" in access) return finish(access.error);

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { configuredAdMobUnit } from "@/lib/admobSsv";
+import { canReadFullAnalysis } from "@/lib/analysisTranslationAccess";
 import { readFullSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adRewardsLeftFor, canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
 import { validRewardId } from "@/lib/rewardedReceipt";
@@ -56,6 +57,9 @@ export async function POST(req: Request) {
         }
         if (target.action === "reading" && !await readFullSharedDreamAnalysis(db, target.payload.sharedDreamId, dream)) {
           return NextResponse.json({ code: "NO_ANALYSIS" }, { status: 404 });
+        }
+        if (target.action === "analysisTranslation" && !await canReadFullAnalysis(db, target.payload.sharedDreamId, dream, uid, guestId)) {
+          return NextResponse.json({ code: "READING_LOCKED" }, { status: 403 });
         }
       }
       const sessionId = randomUUID();

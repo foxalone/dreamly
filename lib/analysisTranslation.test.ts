@@ -4,6 +4,7 @@ import test from "node:test";
 import { analysisTranslationTargetId } from "./analysisTranslation";
 import { matchingTranslationAdGrant, translationAdTarget } from "./translationAdGrant";
 import { canReadFullAnalysis } from "./analysisTranslationAccess";
+import { androidRewardTarget } from "@/app/api/dreams/_lib/androidReward";
 import type { Firestore } from "firebase-admin/firestore";
 
 test("an analysis ad pass cannot unlock the dream text translation", () => {
@@ -14,6 +15,20 @@ test("an analysis ad pass cannot unlock the dream text translation", () => {
   const grant = { ...analysis, expiresAtMs: Date.now() + 60_000 };
   assert.equal(matchingTranslationAdGrant(grant, analysis), true);
   assert.equal(matchingTranslationAdGrant(grant, dreamText), false);
+});
+
+test("Android rewards bind full analysis translation to its own action, dream and language", () => {
+  const body = { rewardAction: "analysisTranslation", sharedDreamId: "dream-123", targetLang: "ru", full: false };
+  const analysis = androidRewardTarget(body);
+  assert.deepEqual(analysis, {
+    action: "analysisTranslation",
+    key: "dream-123:ru",
+    payload: { sharedDreamId: "dream-123", targetLang: "ru", full: true },
+  });
+  assert.notEqual(androidRewardTarget({ ...body, rewardAction: "translation" })?.action, analysis?.action);
+  assert.notEqual(androidRewardTarget({ ...body, sharedDreamId: "another" })?.key, analysis?.key);
+  assert.notEqual(androidRewardTarget({ ...body, targetLang: "de" })?.key, analysis?.key);
+  assert.equal(androidRewardTarget({ ...body, targetLang: "invalid" }), null);
 });
 
 test("full analysis translation requires the reading's existing access", async () => {
