@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./fonts.css";
 import "./globals.css";
 import InstallPwaBanner from "./components/InstallPwaBanner";
+import AndroidInstallBanner from "./components/AndroidInstallBanner";
 import DreamMapGlobe from "./components/DreamMapGlobe";
 import DreamCatcherFab from "./components/DreamCatcherFab";
 import FirebaseAnalytics from "./components/FirebaseAnalytics";
@@ -87,6 +88,7 @@ export default function RootLayout({
               <DreamCatcherFab />
               <DreamMapGlobe />
               <InstallPwaBanner />
+              <AndroidInstallBanner />
             </PilotAwareSiteExtras>
             <PaywallHost />
           </PwaLaunch>
