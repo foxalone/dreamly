@@ -197,10 +197,15 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
   const PublicationIcon = publishing ? LoaderCircle : published ? Trash2 : Share2;
   return <>
     <button ref={action} type="button" title={label} aria-label={label} disabled={disabled}
-      className={`dream-btn inline-flex items-center gap-1.5 ${canView ? "!border-purple-500/50 !bg-purple-600/20 !text-purple-500" : "dream-btn--neutral"}`}
+      className={[
+        feed
+          ? "react-btn size-8 shrink-0 rounded-full border inline-flex items-center justify-center transition"
+          : "dream-btn inline-flex items-center gap-1.5",
+        canView ? "!border-purple-500/50 !bg-purple-600/20 !text-purple-500" : feed ? "" : "dream-btn--neutral",
+      ].join(" ")}
       onClick={() => void run(canView ? "view" : "create")}>
       <Icon size={17} aria-hidden />
-      <span className="text-xs font-semibold">{label}</span>
+      {!feed && <span className="text-xs font-semibold">{label}</span>}
     </button>
     {phase && createPortal(
       <dialog ref={dialog} aria-labelledby={titleId} dir={locale === "ar" ? "rtl" : "ltr"}

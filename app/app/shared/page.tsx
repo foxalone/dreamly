@@ -1047,12 +1047,6 @@ export default function SharedPage() {
                       {sourceLabel}{sourceNum !== null && sourceNum > 0 ? ` #${sourceNum}` : ""}
                     </div>
 
-                    {uid === PRIMARY_ADMIN_UID && d.sourceType !== "story" && d.text?.trim() && (
-                      <div className="mt-3">
-                        <DreamImageButton dreamId={d.id} feed ready={d.adminFeedImageReady === true} />
-                      </div>
-                    )}
-
                     <div className="mt-4 w-full min-w-0 overflow-x-auto overscroll-x-contain">
                       <div className="flex w-max min-w-full flex-nowrap items-center gap-2">
                         {REACTIONS.map((x) => {
@@ -1095,42 +1089,43 @@ export default function SharedPage() {
                           <span className="tabular-nums">{safeNum(d.commentCount) + (analysis ? 1 : 0)}</span>
                         </LocaleLink>
                         {(() => {
-                        const text = (d.text ?? "").trim();
-                        // Already in the viewer's language — nothing to translate.
-                        if (!text || dreamLang(d) === targetLang) return null;
+                          const hasText = !!d.text?.trim();
+                          const canTranslate = hasText && dreamLang(d) !== targetLang;
+                          const showImageAction = hasText && uid === PRIMARY_ADMIN_UID && d.sourceType !== "story";
+                          if (!canTranslate && !showImageAction) return null;
 
-                        const isShowing = !!showingTranslation[d.id];
-                        const isBusy = translateBusyId === d.id;
-                        // this viewer already paid for this dream+lang
-                        const hasMine = unlocked.has(`${d.id}:${targetLang}`);
-                        const label = isBusy
-                          ? t.profile.translating
-                          : isShowing
-                            ? t.profile.showOriginal
-                            : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
-                        const title = isBusy || isShowing || hasMine
-                          ? label
-                          : `${label} (${uid ? t.profile.translationAllowance : t.profile.guestTranslationAllowance})`;
+                          const isShowing = !!showingTranslation[d.id];
+                          const isBusy = translateBusyId === d.id;
+                          const hasMine = unlocked.has(`${d.id}:${targetLang}`);
+                          const label = isBusy
+                            ? t.profile.translating
+                            : isShowing
+                              ? t.profile.showOriginal
+                              : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
+                          const title = isBusy || isShowing || hasMine
+                            ? label
+                            : `${label} (${uid ? t.profile.translationAllowance : t.profile.guestTranslationAllowance})`;
 
-                        return (
-                          <button
-                            onClick={() => { void trackTranslationClick("feed"); void translateDream(d); }}
-                            disabled={isBusy || !languageReady}
-                            aria-label={label}
-                            className={[
-                              "react-btn react-btn--translate ms-auto w-8 h-8 shrink-0 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
-                              isShowing || hasMine ? "react-btn--translate-on" : "",
-                              isBusy ? "opacity-70 cursor-wait" : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ")}
-                            title={title}
-                          >
-                            <TranslateIcon
-                              className={isBusy ? "animate-pulse" : undefined}
-                            />
-                          </button>
-                        );
+                          return (
+                            <div className="ms-auto flex shrink-0 items-center gap-2">
+                              {canTranslate && (
+                                <button
+                                  onClick={() => { void trackTranslationClick("feed"); void translateDream(d); }}
+                                  disabled={isBusy || !languageReady}
+                                  aria-label={label}
+                                  className={[
+                                    "react-btn react-btn--translate size-8 shrink-0 rounded-full text-xs font-semibold transition border inline-flex items-center justify-center",
+                                    isShowing || hasMine ? "react-btn--translate-on" : "",
+                                    isBusy ? "opacity-70 cursor-wait" : "",
+                                  ].filter(Boolean).join(" ")}
+                                  title={title}
+                                >
+                                  <TranslateIcon className={isBusy ? "animate-pulse" : undefined} />
+                                </button>
+                              )}
+                              {showImageAction && <DreamImageButton dreamId={d.id} feed ready={d.adminFeedImageReady === true} />}
+                            </div>
+                          );
                         })()}
                       </div>
                     </div>
