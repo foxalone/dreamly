@@ -85,6 +85,8 @@ export function createRewardedAd(options: {
   onDone: () => void;
   load?: () => Promise<RewardedGpt>;
   showWhenReady?: boolean;
+  adUnitPath?: string;
+  onShown?: () => void;
 }) {
   let disposed = false;
   let ended = false;
@@ -119,12 +121,13 @@ export function createRewardedAd(options: {
     if (disposed || ended) return;
     gt = loaded;
     log("GPT loaded", { apiReady: gt.apiReady });
-    log("Rewarded slot path", { path: REWARDED_AD_UNIT_PATH });
+    const path = options.adUnitPath ?? REWARDED_AD_UNIT_PATH;
+    log("Rewarded slot path", { path });
     timer = setTimeout(() => {
       log("rewardedSlotReady timeout", { readyReceived, timeoutMs: AD_TIMEOUT_MS });
       fail("unavailable");
     }, AD_TIMEOUT_MS);
-    slot = gt.defineOutOfPageSlot(REWARDED_AD_UNIT_PATH, gt.enums.OutOfPageFormat.REWARDED);
+    slot = gt.defineOutOfPageSlot(path, gt.enums.OutOfPageFormat.REWARDED);
     if (!slot) { log("Rewarded format unsupported"); fail("unavailable"); return; }
     log("Rewarded slot created");
     slot.addService(gt.pubads());
@@ -182,7 +185,11 @@ export function createRewardedAd(options: {
     opened = true;
     options.onState("busy");
     try {
-      if (makeVisible()) { log("Rewarded ad opened"); return true; }
+      if (makeVisible()) {
+        log("Rewarded ad opened");
+        options.onShown?.();
+        return true;
+      }
     } catch { /* Treat a GPT display exception like a rejected display. */ }
     log("Rewarded display rejected");
     fail("failed");

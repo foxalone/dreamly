@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { adminAuth, adminDb } from "../../admin/_lib/firebaseAdmin";
+import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { getDreamEntry } from "@/lib/dream-dictionary";
 import {
   GALLERY_HEARTS_COLLECTION,
   USER_GALLERY_HEARTS_COLLECTION,
+  galleryHeartCollection,
+  isDreamGalleryHeartSlug,
   isValidGalleryHeartSlugFormat,
   normalizeGalleryHeartSlug,
   safeHeartCount,
@@ -12,6 +14,8 @@ import {
 import { requireSignedInUid } from "../../dreams/_lib/requireUser";
 import { newGuestId, readGuestId, setGuestCookie } from "../../dreams/_lib/guestQuota";
 import { guestGalleryLikes, toggleGuestGalleryHeart } from "@/lib/guestGalleryHearts";
+import { publicDreamImage } from "@/lib/dreamImageGallery";
+import { optionalGalleryUid } from "../viewer";
 
 export const runtime = "nodejs";
 
@@ -19,20 +23,6 @@ type ToggleBody = {
   slug?: unknown;
   idToken?: unknown;
 };
-
-async function optionalUidFromRequest(req: Request): Promise<string | null> {
-  const header = req.headers.get("authorization") || "";
-  const token = header.toLowerCase().startsWith("bearer ")
-    ? header.slice(7).trim()
-    : "";
-  if (!token) return null;
-  try {
-    const decoded = await adminAuth().verifyIdToken(token);
-    return decoded.uid || null;
-  } catch {
-    return null;
-  }
-}
 
 function countsFromDocs(docs: Array<{ id: string; data: () => { count?: unknown } }>): Record<string, number> {
   const counts: Record<string, number> = {};
@@ -46,7 +36,7 @@ function countsFromDocs(docs: Array<{ id: string; data: () => { count?: unknown 
 export async function GET(req: Request) {
   try {
     const db = adminDb();
-    const uid = await optionalUidFromRequest(req);
+    const uid = await optionalGalleryUid(req);
     const guestId = uid ? null : readGuestId(req);
     const [countsSnap, likedSnap, guestLiked] = await Promise.all([
       db.collection(GALLERY_HEARTS_COLLECTION).get(),
@@ -56,9 +46,10 @@ export async function GET(req: Request) {
       guestId ? guestGalleryLikes(db, guestId) : Promise.resolve({}),
     ]);
 
-    const liked: Record<string, boolean> = { ...guestLiked };
+    const liked: Record<string, boolean> = {};
+    for (const slug of Object.keys(guestLiked)) if (!isDreamGalleryHeartSlug(slug)) liked[slug] = true;
     if (likedSnap) {
-      for (const doc of likedSnap.docs) liked[doc.id] = true;
+      for (const doc of likedSnap.docs) if (!isDreamGalleryHeartSlug(doc.id)) liked[doc.id] = true;
     }
 
     return NextResponse.json({
@@ -75,11 +66,15 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as ToggleBody;
     const slug = normalizeGalleryHeartSlug(body?.slug);
-    if (!isValidGalleryHeartSlugFormat(slug) || !getDreamEntry(slug)) {
+    const dreamImage = isDreamGalleryHeartSlug(slug);
+    if (!isValidGalleryHeartSlugFormat(slug) || (!dreamImage && !getDreamEntry(slug))) {
       return NextResponse.json({ error: "Unknown dream." }, { status: 400 });
     }
 
     const db = adminDb();
+    if (dreamImage && !await publicDreamImage(db, slug)) {
+      return NextResponse.json({ error: "Unknown dream." }, { status: 404 });
+    }
     if (!body?.idToken) {
       const existingGuestId = readGuestId(req);
       const guestId = existingGuestId ?? newGuestId();
@@ -90,7 +85,7 @@ export async function POST(req: Request) {
 
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
-    const countRef = db.collection(GALLERY_HEARTS_COLLECTION).doc(slug);
+    const countRef = db.collection(galleryHeartCollection(slug)).doc(slug);
     const userHeartRef = countRef.collection("users").doc(auth.uid);
     const userIndexRef = db
       .collection("users")

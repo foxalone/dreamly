@@ -102,7 +102,7 @@ export const PT_MESSAGES: UiMessages = {
     ],
   },
   gallery: {
-    h1: "Galeria de arte dos sonhos",
+    h1: "Galeria dos sonhos",
     lead: "Ilustrações dos símbolos de sonho mais buscados. Cada imagem abre o significado no dicionário Dreamly.",
     empty: "Novas ilustrações de sonhos aparecem aqui quando são publicadas.",
     openMeaning: "Significado do sonho",

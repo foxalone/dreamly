@@ -19,6 +19,7 @@ import { absoluteLocaleUrl } from "@/lib/i18n/path";
 import LocaleLink from "@/lib/i18n/LocaleLink";
 import SiteLegalFooter from "@/app/components/SiteLegalFooter";
 import { GalleryHeartButton, GalleryHeartsProvider } from "./GalleryHearts";
+import GallerySections from "./GallerySections";
 
 export default function GalleryView({
   locale,
@@ -80,9 +81,10 @@ export default function GalleryView({
 
       <header className="mx-auto max-w-2xl text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--dd-text)] sm:text-4xl">{t.gallery.h1}</h1>
-        <p className="mt-4 text-base leading-7 text-[var(--dd-muted)] sm:text-lg">{t.gallery.lead}</p>
       </header>
 
+      <GallerySections locale={locale} dictionary={<>
+      <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-7 text-[var(--dd-muted)] sm:text-lg">{t.gallery.lead}</p>
       {items.length === 0 ? (
         <p className="mx-auto mt-16 max-w-md text-center text-sm leading-6 text-[var(--dd-muted)]">{t.gallery.empty}</p>
       ) : (
@@ -127,6 +129,7 @@ export default function GalleryView({
         </section>
         </GalleryHeartsProvider>
       )}
+      </>} />
     </main>
       <SiteLegalFooter locale={locale} />
     </div>

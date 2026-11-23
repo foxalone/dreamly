@@ -102,7 +102,7 @@ export const EN_MESSAGES: UiMessages = {
     ],
   },
   gallery: {
-    h1: "Dream Art Gallery",
+    h1: "Dream Gallery",
     lead: "Illustrations of the dream symbols people search for most. Each picture opens the meaning in the Dreamly dictionary.",
     empty: "New dream illustrations appear here as they are published.",
     openMeaning: "Dream meaning",

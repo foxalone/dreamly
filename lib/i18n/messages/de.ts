@@ -102,7 +102,7 @@ export const DE_MESSAGES: UiMessages = {
     ],
   },
   gallery: {
-    h1: "Traumkunst-Galerie",
+    h1: "Traumgalerie",
     lead: "Illustrationen der meistgesuchten Traumsymbole. Jedes Bild öffnet die Bedeutung im Dreamly-Lexikon.",
     empty: "Neue Traumbilder erscheinen hier, sobald sie veröffentlicht sind.",
     openMeaning: "Traumbedeutung",

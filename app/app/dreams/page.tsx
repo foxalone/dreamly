@@ -2,6 +2,7 @@
 import AnalysisDisplay from "@/app/components/AnalysisDisplay";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import DreamAnalysisProgress from "@/app/components/DreamAnalysisProgress";
+import DreamImageButton from "@/app/components/DreamImageButton";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 
@@ -122,6 +123,7 @@ type Dream = {
 
   iconsEn?: DreamIconKey[];
   sourceType?: ContentType;
+  dreamImageReady?: boolean;
   city?: string;
   cityId?: string;
   country?: string;
@@ -1935,6 +1937,10 @@ export default function DreamsPage() {
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <div className="flex items-center gap-2">
+                      {(d.sourceType ?? "dream") === "dream" && !!d.text?.trim() && (
+                        <DreamImageButton key={`${uid}:${d.id}`} dreamId={d.id}
+                          ready={d.dreamImageReady === true} disabled={isDeleting} />
+                      )}
                       {(d.sourceType ?? "dream") !== "journal" && d.source !== "dreamer" ? (
                         <button
                           type="button"

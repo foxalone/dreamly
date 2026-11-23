@@ -159,17 +159,25 @@ export function GalleryHeartButton({ slug }: { slug: string }) {
   const countLabel =
     count > 0 ? formatMessage(t.gallery.peopleHadThisDream, { count }) : label;
 
+  return <GalleryHeartControl liked={liked} count={count} disabled={busy || !ctx?.authReady}
+    label={label} accessibleLabel={countLabel} onToggle={() => void ctx?.toggle(slug)} />;
+}
+
+export function GalleryHeartControl({ liked, count, disabled, label, accessibleLabel, onToggle }: {
+  liked: boolean; count: number; disabled: boolean; label: string; accessibleLabel: string; onToggle: () => void;
+}) {
+
   return (
     <button
       type="button"
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        void ctx?.toggle(slug);
+        onToggle();
       }}
-      disabled={busy || !ctx?.authReady}
+      disabled={disabled}
       aria-pressed={liked}
-      aria-label={countLabel}
+      aria-label={accessibleLabel}
       title={label}
       className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full bg-black/40 px-2.5 text-white shadow-[0_1px_8px_rgba(0,0,0,0.35)] backdrop-blur-sm transition hover:bg-black/55 active:scale-90 disabled:opacity-70"
     >

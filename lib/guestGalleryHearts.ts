@@ -1,7 +1,7 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { FieldValue } from "firebase-admin/firestore";
 
-import { GALLERY_HEARTS_COLLECTION, USER_GALLERY_HEARTS_COLLECTION, safeHeartCount } from "./galleryHearts";
+import { galleryHeartCollection, USER_GALLERY_HEARTS_COLLECTION, safeHeartCount } from "./galleryHearts";
 
 export async function guestGalleryLikes(db: Firestore, guestId: string): Promise<Record<string, boolean>> {
   const snap = await db.doc(`guestQuickSymbol/${guestId}`).collection("galleryHearts").get();
@@ -9,7 +9,7 @@ export async function guestGalleryLikes(db: Firestore, guestId: string): Promise
 }
 
 export async function toggleGuestGalleryHeart(db: Firestore, guestId: string, slug: string): Promise<{ slug: string; liked: boolean; count: number }> {
-  const countRef = db.collection(GALLERY_HEARTS_COLLECTION).doc(slug);
+  const countRef = db.collection(galleryHeartCollection(slug)).doc(slug);
   const guestHeartRef = countRef.collection("guests").doc(guestId);
   const guestIndexRef = db.doc(`guestQuickSymbol/${guestId}/galleryHearts/${slug}`);
   return db.runTransaction(async (tx) => {
@@ -35,7 +35,7 @@ export async function claimGuestGalleryHearts(db: Firestore, guestId: string, ui
   let moved = 0;
   for (const entry of snap.docs) {
     const slug = entry.id;
-    const countRef = db.collection(GALLERY_HEARTS_COLLECTION).doc(slug);
+    const countRef = db.collection(galleryHeartCollection(slug)).doc(slug);
     const guestHeartRef = countRef.collection("guests").doc(guestId);
     const userHeartRef = countRef.collection("users").doc(uid);
     const userIndexRef = db.doc(`users/${uid}/${USER_GALLERY_HEARTS_COLLECTION}/${slug}`);
