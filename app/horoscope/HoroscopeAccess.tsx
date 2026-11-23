@@ -1,4 +1,5 @@
 'use client';
+import AdWaitBar from "@/app/components/AdWaitBar";
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { onAuthStateChanged, type User } from 'firebase/auth';
@@ -9,7 +10,7 @@ import { trackEvent } from '@/lib/analytics';
 import { trackHoroscopeMoreClick } from '@/lib/trackHoroscopeMoreClick';
 import { signInWithOptions } from '@/lib/auth/signInWithOptions';
 import { ensureUserProfileOnSignIn } from '@/lib/auth/ensureUserProfile';
-import { clearOfferwallEntitlement } from '@/lib/adUnlock';
+import { clearOfferwallEntitlement, navigateToAd } from '@/lib/adUnlock';
 import { localePath } from '@/lib/i18n/path';
 import type { Locale } from '@/lib/i18n/config';
 import type { Sign } from '@/lib/horoscope/model';
@@ -43,8 +44,9 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:
     })().catch(()=>{if(!cancelled)setError(true);});
     return()=>{cancelled=true;};
   },[user,sign,locale,router,sessionOnly,cycle]);
+  const [preparingAd,setPreparingAd]=useState(false);
   async function perform(ad:boolean,account=user){
-    if(busy)return;setBusy(true);setError(false);
+    if(busy)return;setBusy(true);setPreparingAd(ad);setError(false);
     try{
       const headers:Record<string,string>={'Content-Type':'application/json','x-horoscope-request':'1'};
       if(account)headers.Authorization=`Bearer ${await account.getIdToken()}`;
@@ -54,13 +56,13 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:
       if(ad){
         clearOfferwallEntitlement();
         const params=new URLSearchParams({kind:'horoscope',challenge:result.challenge,next:localePath(`/horoscope/${sign}`,locale),locale});
-        window.location.assign(`/ad/unlock?${params}`);return;
+        navigateToAd(`/ad/unlock?${params}`);return;
       }
       // An unlocked sign remains available even if generation must be retried.
       await fetch('/api/horoscope/request',{method:'POST',headers,body:JSON.stringify({sign,locale})});
       setOpen(false);
       router.refresh();
-    }catch{setError(true);if(ad){setPurchaseFallback(true);setPlansOpen(true);}}finally{setBusy(false);}
+    }catch{setError(true);if(ad){setPurchaseFallback(true);setPlansOpen(true);}}finally{setPreparingAd(false);setBusy(false);}
   }
   async function signIn(){
     if(busy)return;setBusy(true);setError(false);
@@ -78,6 +80,7 @@ export function HoroscopeAccess({locale,sign,sessionOnly=false,preview}:{locale:
         <button type="button" className="hc-access-close" aria-label={t.close} disabled={busy} onClick={()=>setOpen(false)}><X size={20} aria-hidden/></button>
         <h2 id="horoscope-access-title">{t.modalTitle.replace('{sign}',horoscopeCopy[locale].signs[sign])}</h2>
         <p>{message}</p>
+        {preparingAd && <AdWaitBar label={t.busy} />}
         <div className="hc-access-choices">
           {guest?<button type="button" className="hc-button" disabled={busy||user===undefined} onClick={()=>void signIn()}><LogIn size={16} aria-hidden/>{t.signIn}</button>:null}
           <button type="button" className="hc-button hc-button-gold" disabled={busy||user===undefined||(!guest&&!info)} onClick={()=>void perform(!free)}>{free?<Sparkles size={16} aria-hidden/>:<Play size={16} aria-hidden/>}{busy?t.busy:free?t.open:t.ad}</button>

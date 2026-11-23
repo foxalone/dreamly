@@ -1,6 +1,6 @@
 "use client";
 
-import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, navigateToAd, setAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 import type { PaywallKind } from "@/lib/paywall";
 
@@ -36,7 +36,7 @@ export default function RewardedAdButton({ label, kind, analysisDreamId, analysi
     // Offerwall (useDreamAsk takes this mark on return); other kinds have their own.
     if (kind === "analysis") setAdUnlockPending({ kind: "analysis", dreamId: analysisDreamId, dreamText: analysisDreamText });
     if (kind === "reading" && reading?.sharedDreamId) setAdUnlockPending({ kind: "reading", dreamId: reading.sharedDreamId });
-    window.location.assign(adUnlockUrl(kind, undefined, translation, reading));
+    navigateToAd(adUnlockUrl(kind, undefined, translation, reading));
   };
   if (card) {
     return (

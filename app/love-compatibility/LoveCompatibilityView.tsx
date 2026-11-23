@@ -1,5 +1,7 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
+import { navigateToAd } from "@/lib/adUnlock";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
@@ -264,7 +266,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
       const { challenge } = await response.json() as { challenge: string };
       if (!saveLoveMatchPending(pendingInput, challenge)) throw new Error("Could not preserve form");
       const params = new URLSearchParams({ kind: "love-match", challenge, next: window.location.pathname, locale });
-      window.location.assign(`/ad/unlock?${params}`);
+      navigateToAd(`/ad/unlock?${params}`, () => { setUnlockBusy(false); });
     } catch { setError(copy.adUnavailable); setAccessOpen(true); setPurchaseOptions(true); setUnlockBusy(false); }
   }
 
@@ -451,6 +453,7 @@ export default function LoveCompatibilityView({ locale, today }: { locale: Local
         <h2 id="love-access-title">{copy.accessTitle}</h2>
         <p>{copy.accessText}</p>
         <div className={styles.accessButtons}>
+          {unlockBusy && <AdWaitBar label={copy.watchAd} />}
           <button type="button" onClick={() => void watchAd()} disabled={unlockBusy}>{copy.watchAd}</button>
           <button type="button" onClick={subscribe} disabled={unlockBusy}>{copy.subscribe}</button>
         </div>

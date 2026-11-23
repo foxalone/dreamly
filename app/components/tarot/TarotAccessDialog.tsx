@@ -1,10 +1,11 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { clearOfferwallEntitlement } from "@/lib/adUnlock";
+import { clearOfferwallEntitlement, navigateToAd } from "@/lib/adUnlock";
 import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import type { Locale } from "@/lib/i18n/config";
@@ -109,7 +110,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
       clearOfferwallEntitlement();
       const query = new URLSearchParams({ kind: "tarot", challenge: result.challenge, next: readingUrl, back: returnTo, locale });
       // The AdSense Offerwall runs on a document load, and a client route change leaves this dialog mounted.
-      window.location.assign(`/ad/unlock?${query.toString()}`);
+      navigateToAd(`/ad/unlock?${query.toString()}`, () => { setOpeningAd(false); setBusy(false); });
     } catch { setOpeningAd(false); setError(true); setBusy(false); setPurchaseFallback(true); setPlans(true); }
   }
 
@@ -121,6 +122,7 @@ export function TarotAccessDialog({ day, cardId, locale, onClose }: Props) {
         <div className={styles.symbol} aria-hidden="true">✦</div>
         <h2 id="tarot-access-title">{copy.title}</h2>
         <p role="status">{openingAd ? copy.openingAd : busy && !info ? copy.loading : description}</p>
+        {openingAd && <AdWaitBar label={copy.openingAd} />}
         {error ? <p className={styles.error} role="alert">{copy.error}</p> : null}
         <div className={styles.actions}>
           {info?.tier === "guest" ? <button type="button" disabled={busy} onClick={() => void signIn()}>{copy.signIn}</button> : null}

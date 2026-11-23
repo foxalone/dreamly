@@ -365,6 +365,13 @@ html.modal-open .app-top-nav {
   border: 1px solid var(--border);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  :is(button:enabled, a[href]):is(.dream-btn, .react-btn):not([aria-disabled="true"]):active {
+    scale: .94;
+    transition-duration: 75ms;
+  }
+}
+
 .dream-btn--icon {
   display: inline-flex;
   align-items: center;
@@ -467,7 +474,6 @@ html, body {
 }
 
 .dream-btn--blue:hover { filter: brightness(0.95); }
-.dream-btn--blue:active { transform: scale(0.98); }
 
 html {
   font-family: var(--font-geist-sans), var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;

@@ -1,10 +1,11 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import type { PaywallRequest } from "@/lib/paywall";
-import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, navigateToAd, setAdUnlockPending } from "@/lib/adUnlock";
 import { reportAnalysisAttempt } from "@/lib/reportAnalysisAttempt";
 import { trackEvent } from "@/lib/analytics";
 import PlansModal from "./PlansModal";
@@ -94,7 +95,7 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
     const next = kind === "analysis" && request.analysisDreamText
       ? localePath("/app/dreams", locale)
       : undefined;
-    window.location.assign(adUnlockUrl(kind, next, request.translation, request.reading));
+    navigateToAd(adUnlockUrl(kind, next, request.translation, request.reading));
   }
 
   function preparePurchase() {
@@ -106,7 +107,8 @@ export default function GuestAnalysisLimitModal({ request, onClose }: {
   if (ad === "loading") return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" role="status">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-sm text-[var(--muted)]">
-        {pm.adLoading}
+        <p className="mb-3">{pm.adLoading}</p>
+        <AdWaitBar label={pm.adLoading} />
       </div>
     </div>
   );

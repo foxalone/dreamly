@@ -1,5 +1,6 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
@@ -59,7 +60,8 @@ function PagePaywallHost() {
         try {
           const snap = await getDoc(doc(firestore, "users", u.uid));
           const data = (snap.exists() ? snap.data() : {}) as UserBillingFields;
-          if (current !== requestVersion.current || auth.currentUser?.uid !== u.uid) return;
+          if (current !== requestVersion.current) return;
+          if (auth.currentUser?.uid !== u.uid) { close(); return; }
           setAdEligible(!hasPaidAccess(data) && adRewardsLeftFor(data, next.kind) !== 0);
         } catch {
           /* Keep the subscription option available if eligibility cannot be read. */
@@ -75,9 +77,7 @@ function PagePaywallHost() {
   if (checking) return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" role="status">
       <div className="w-full max-w-xs rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
-          <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--text)]/60" />
-        </div>
+        <AdWaitBar label={t.plansModal.chooseAccess} />
       </div>
     </div>
   );

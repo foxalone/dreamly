@@ -11,7 +11,7 @@ import { dreamersGalleryCopy } from "@/lib/i18n/dreamersGallery";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type Status = { state: string; published?: boolean; attemptId?: string; adMaxSeconds?: number; google?: { path: string } };
-type Phase = "progress" | "image" | "error" | null;
+type Phase = "preparingAd" | "progress" | "image" | "error" | null;
 type ErrorKey = "unavailable" | "interrupted" | "pending" | "failed";
 type ImageRequest = (signal: AbortSignal, body?: object, image?: boolean) => Promise<Response>;
 let googleAdOpen = false;
@@ -115,7 +115,6 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
     const attemptId = ad.attemptId;
     const adUnitPath = ad.google?.path;
     if (!attemptId || !adUnitPath || googleAdOpen || signal.aborted) throw new Error("AD_UNAVAILABLE");
-    setPhase(null);
     googleAdOpen = true;
     try {
       await new Promise<void>((resolve, reject) => {
@@ -135,7 +134,11 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
             if (state === "failed") finish(new Error(opened ? "IMAGE_FAILED" : "AD_UNAVAILABLE"));
             if (state === "unavailable") finish(new Error(opened ? "AD_INTERRUPTED" : "AD_UNAVAILABLE"));
           },
-          onShown: () => { opened = true; },
+          onShown: () => {
+            opened = true;
+            dialog.current?.close();
+            setPhase(null);
+          },
           onGranted: async () => {
             await redeemWebReward(attemptId);
             return true;
@@ -153,10 +156,12 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
     const controller = new AbortController();
     const { signal } = controller;
     running.current = controller;
+    if (mode === "create") setPhase(pendingWebReward.current ? "progress" : "preparingAd");
     try {
       let current = pendingWebReward.current
         ? await redeemWebReward(pendingWebReward.current)
         : await status(signal, mode === "create" ? { action: "attempt", platform: "web" } : undefined);
+      if (signal.aborted) return;
       if (current.state === "ready") {
         const published = current.published ?? (await status(signal)).published;
         return await showImage(signal, published);
@@ -186,6 +191,7 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
     }
   }
 
+  const progressTitle = phase === "preparingAd" ? copy.preparingAd : copy.generating;
   const label = canView ? copy.view : copy.createWithAd;
   const Icon = canView ? ImageIcon : ImagePlus;
   const PublicationIcon = publishing ? LoaderCircle : published ? Trash2 : Share2;
@@ -207,12 +213,12 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
             <X size={20} aria-hidden />
           </button>
           <h2 id={titleId} className="px-8 text-xl font-semibold">
-            {phase === "image" ? copy.title : phase === "progress" ? copy.generating : copy.create}
+            {phase === "image" ? copy.title : phase === "progress" || phase === "preparingAd" ? progressTitle : copy.create}
           </h2>
-          {phase === "progress" && <div role="status" aria-live="polite" className="py-4">
+          {(phase === "progress" || phase === "preparingAd") && <div role="status" aria-live="polite" className="py-4">
             <Sparkles className="mx-auto h-8 w-8 text-purple-500" aria-hidden />
-            <p className="mt-3 text-sm text-[var(--muted)]">{copy.waiting}</p>
-            <div role="progressbar" aria-label={copy.generating} className="mt-5 h-3 overflow-hidden rounded-full bg-purple-500/15">
+            {phase === "progress" && <p className="mt-3 text-sm text-[var(--muted)]">{copy.waiting}</p>}
+            <div role="progressbar" aria-label={progressTitle} className="mt-5 h-3 overflow-hidden rounded-full bg-purple-500/15">
               <div className="dream-analysis-progress-bar h-full w-2/5 rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-400" />
             </div>
           </div>}

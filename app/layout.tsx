@@ -1,3 +1,4 @@
+import AdNavigationNotice from "./components/AdNavigationNotice";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./fonts.css";
@@ -82,6 +83,7 @@ export default function RootLayout({
         <UnverifiedEmailGate />
         <AdUnlockRecovery />
         <AppI18n>
+          <AdNavigationNotice />
           <PwaLaunch>
             {children}
             <PilotAwareSiteExtras>

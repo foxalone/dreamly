@@ -47,6 +47,28 @@ export type AdUnlockPending = {
   atMs: number;
 };
 
+/** Keep feedback visible while the browser waits for the Offerwall document. */
+export function navigateToAd(url: string, onLeave?: () => void) {
+  const notice = document.getElementById("ad-navigation-notice");
+  if (notice) notice.hidden = false;
+  const hide = () => { if (notice) notice.hidden = true; };
+  const leave = () => {
+    hide();
+    window.removeEventListener("keydown", escape);
+    onLeave?.();
+  };
+  const escape = (event: KeyboardEvent) => { if (event.key === "Escape") hide(); };
+  window.addEventListener("pagehide", leave, { once: true });
+  window.addEventListener("keydown", escape);
+  try {
+    window.location.assign(url);
+  } catch (error) {
+    window.removeEventListener("pagehide", leave);
+    leave();
+    throw error;
+  }
+}
+
 export function adUnlockUrl(
   kind: PaywallKind,
   next?: string,

@@ -1,11 +1,12 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Heart, Languages, Leaf, MoonStar, Play, Sparkles } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { clearOfferwallEntitlement } from "@/lib/adUnlock";
+import { clearOfferwallEntitlement, navigateToAd } from "@/lib/adUnlock";
 import { localePath } from "@/lib/i18n/path";
 import type { Locale } from "@/lib/i18n/config";
 import { featuredCopy } from "@/lib/i18n/featured-horoscope";
@@ -30,6 +31,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
   const [targetLang, setTargetLang] = useState<keyof typeof TRANSLATION_LANGUAGES>("en");
   const [locked, setLocked] = useState<Locked>(null);
   const [busy, setBusy] = useState(false);
+  const [preparingAd, setPreparingAd] = useState(false);
   const [error, setError] = useState(false);
   const [purchasePurpose, setPurchasePurpose] = useState<"read" | "translate" | null>(null);
   const [rewardDeadline, setRewardDeadline] = useState<number | null>(null);
@@ -119,6 +121,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
 
   async function watchAd(purpose: "read" | "translate") {
     if (busy) return;
+    setPreparingAd(true);
     if (purpose === "read" && user === null) trackEvent("rewarded_video_click", { feature: "featured_forecast", provider: "google", locale });
     setBusy(true); setError(false);
     try {
@@ -132,8 +135,9 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
       const next = localePath(`/horoscope/daily/${forecast.day}`, locale) + (purpose === "translate" ? `?translate=${targetLang}` : "");
       const params = new URLSearchParams({ kind: "featured", challenge, next, locale });
       if (ayetFallback) params.set("ayet", "1");
-      window.location.assign(`/ad/unlock?${params}`);
+      navigateToAd(`/ad/unlock?${params}`, () => { setBusy(false); });
     } catch { setBusy(false); setError(true); setPurchasePurpose(purpose); }
+    finally { setPreparingAd(false); }
   }
 
   const name = horoscopeCopy[locale].signs[forecast.sign];
@@ -154,6 +158,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
         </div>
 
         {error ? <p role="alert" className="mt-5 rounded-2xl border border-rose-300/30 bg-rose-900/20 p-4 text-rose-100">{t.error}</p> : null}
+        {preparingAd && <AdWaitBar label={t.loading} />}
         {busy && !full ? <p role="status" className="mt-8 text-center text-violet-200">{t.loading}</p> : null}
         {locked === "read" ? (
           <div className="mt-8 rounded-3xl border border-violet-300/25 bg-[#18122d] p-6 text-center sm:p-9">

@@ -1,5 +1,6 @@
 "use client";
 
+import AdWaitBar from "@/app/components/AdWaitBar";
 import YourFitPromo from "@/app/components/YourFitPromo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -476,10 +477,8 @@ export default function AdUnlockClient() {
           {text}
         </p>
         {showFeaturedFallback ? <FeaturedAyetFallback challenge={featuredFallbackChallenge} locale={locale} title={m.title} cancelLabel={t.plansModal.notNow} onOutcome={handleFeaturedFallback} /> : null}
-        {phase === "waiting" || (phase === "showing" && !adStalled) || phase === "checking" || phase === "granting" ? (
-          <div className="mt-5 h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
-            <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--text)]/60" />
-          </div>
+        {phase === "waiting" || phase === "checking" || phase === "granting" ? (
+          <div className="mt-5"><AdWaitBar label={text} /></div>
         ) : null}
         {!showFeaturedFallback && (phase === "unavailable" || phase === "failed" || (phase === "showing" && adStalled)) ? (
           <>

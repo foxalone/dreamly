@@ -1,3 +1,4 @@
+import AdWaitBar from "@/app/components/AdWaitBar";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -15,7 +16,13 @@ export const metadata: Metadata = {
  */
 export default function AdUnlockPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={
+      <main className="flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+          <AdWaitBar label="Dreamly" />
+        </div>
+      </main>
+    }>
       <AdUnlockClient />
     </Suspense>
   );

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
-import { adUnlockUrl, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, navigateToAd, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { trackEvent } from "@/lib/analytics";
 import { DREAM_MAX_CHARS, isDreamTooLong } from "@/lib/dreamLength";
 import { auth } from "@/lib/firebase";
@@ -137,7 +137,7 @@ export default function JapaneseDreamForm({ returnTo, symbol }: { returnTo: stri
       setFeedback({ text: "広告を開けませんでした。もう一度お試しください。" });
       return;
     }
-    window.location.assign(adUnlockUrl("analysis", returnTo));
+    navigateToAd(adUnlockUrl("analysis", returnTo));
   }
 
   return (

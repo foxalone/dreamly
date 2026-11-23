@@ -14,7 +14,7 @@ import {
   writeHomeDreamPending,
   type HomeDreamPending,
 } from "@/lib/homeDreamPending";
-import { adUnlockUrl, setAdUnlockPending } from "@/lib/adUnlock";
+import { adUnlockUrl, navigateToAd, setAdUnlockPending } from "@/lib/adUnlock";
 import { readEscapePending, writeEscapePending } from "@/lib/game/escape";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { dreamAnalysisErrorMessage } from "@/lib/i18n/dreamAnalysisErrors";
@@ -316,7 +316,7 @@ export function useDreamAsk({
           persistPending(dream, "");
           if (data.reason === "first_ad") {
             setAdUnlockPending({ kind: "analysis", dreamText: dream });
-            window.location.assign(adUnlockUrl("analysis", localePath("/app/dreams", locale)));
+            navigateToAd(adUnlockUrl("analysis", localePath("/app/dreams", locale)));
             return;
           }
           openPaywall({
