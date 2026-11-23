@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { configuredAdMobUnit } from "@/lib/admobSsv";
+import { petalRewardUnit } from "@/lib/petalSsv";
 import { canReadFullAnalysis } from "@/lib/analysisTranslationAccess";
 import { readFullSharedDreamAnalysis } from "@/lib/ensureSharedDreamAnalysis";
 import { adRewardsLeftFor, canAnalyzeDream, hasPaidAccess } from "@/lib/subscriptions/status";
@@ -13,12 +14,14 @@ import { requireSignedInUid } from "../_lib/requireUser";
 import { androidRewardTarget } from "../_lib/androidReward";
 
 export async function POST(req: Request) {
-  const unit = configuredAdMobUnit();
-  if (!unit) return NextResponse.json({ code: "AD_UNAVAILABLE" }, { status: 503 });
-
   try {
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
+    const petal = body.adProvider === "petal";
+    const unit = petal ? petalRewardUnit() : configuredAdMobUnit();
+    if (!unit || (petal && body.sessionId == null && body.rewardAction == null)) {
+      return NextResponse.json({ code: "AD_UNAVAILABLE" }, { status: 503 });
+    }
     let uid: string | null = null;
     if (body.idToken != null) {
       const auth = await requireSignedInUid(body.idToken);

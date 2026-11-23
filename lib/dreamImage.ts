@@ -4,6 +4,7 @@ import { PRIMARY_ADMIN_UID } from "./auth/adminUid";
 import sharp from "sharp";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { buildGothicImagePrompt } from "@/lib/adminAiImage";
+import { petalRewardUnit } from "@/lib/petalSsv";
 import { getDreamImagePublication, imagePublication, isImageVisible, publishAutomaticImage, type Publication } from "./dreamImageGallery";
 
 const MINUTE = 60_000;
@@ -159,7 +160,7 @@ export async function readGalleryImage(id: string, thumb: boolean) {
   throw new DreamImageError("IMAGE_NOT_READY", 404);
 }
 
-export async function createImageAttempt(uid: string, id: string, platform: Platform, scope: ImageScope = "journal") {
+export async function createImageAttempt(uid: string, id: string, platform: Platform, scope: ImageScope = "journal", provider?: "petal") {
   const db = adminDb();
   const { owner, dream, job } = references(uid, id, scope);
   const attemptId = randomUUID();
@@ -171,7 +172,8 @@ export async function createImageAttempt(uid: string, id: string, platform: Plat
     const state = dreamImageState(current, now);
     if (current?.rewarded || state === "awaiting-confirmation") return { state };
     const webPath = platform === "web" ? imageWebAdPath() : null;
-    const unit = platform === "android" ? imageAdUnit() : webPath;
+    const androidUnit = provider === "petal" ? petalRewardUnit : imageAdUnit;
+    const unit = platform === "android" ? androidUnit() : webPath;
     if (!process.env.FAL_KEY?.trim() || !unit) throw new DreamImageError("AD_UNAVAILABLE", 503);
     const budget = dailyBudget(now);
     if (current?.state !== "saved" && Number((await tx.get(budget.ref)).data()?.count ?? 0) >= budget.limit) {

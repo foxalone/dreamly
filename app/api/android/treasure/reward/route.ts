@@ -5,6 +5,7 @@ import { readGuestId } from "@/app/api/dreams/_lib/guestQuota";
 import { completeHoroscopeAd, HoroscopeAccessError, subjectOf } from "@/lib/horoscope/access";
 import { horoscopeActor, setAccessPass } from "@/lib/horoscope/access-http";
 import { utcDay } from "@/lib/horoscope/model";
+import { petalRewardUnit } from "@/lib/petalSsv";
 import { completeTarotAd, tarotSubject, TarotUnlockError } from "@/lib/tarot/unlock";
 import { requireTarotDraw, tarotActor, tarotSecret, tarotUnlockResponse } from "@/lib/tarot/unlock-http";
 import { rewardHeaders, rewardSessions, treasureRewardUnit, validTreasureChallenge } from "./session";
@@ -22,7 +23,7 @@ const reply = (status: number, body: object) => NextResponse.json(body, { status
 const fail = (status: number, code: string) => reply(status, { code });
 
 export async function POST(request: Request) {
-  const unit = treasureRewardUnit();
+  const unit = request.headers.get("x-dreamly-ad-provider") === "petal" ? petalRewardUnit() : treasureRewardUnit();
   if (!unit) return fail(503, "AD_UNAVAILABLE");
   try {
     if (request.headers.get("x-dreamly-android") !== "1" || request.headers.get("sec-fetch-site") === "cross-site") {
