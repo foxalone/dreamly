@@ -9,6 +9,9 @@ export const ANDROID_AD_REDEMPTION_MS = 30 * 60_000;
 // Created in the redemption handler after validating the signed AdMob session.
 export class AndroidRewardRequest extends Request {}
 
+// Created in the AppGallery endpoint. Regular analysis quotas still apply.
+export class AppGalleryAnalysisRequest extends Request {}
+
 export function androidRewardTarget(body: Record<string, unknown>) {
   switch (body.rewardAction) {
     case "analysis": {

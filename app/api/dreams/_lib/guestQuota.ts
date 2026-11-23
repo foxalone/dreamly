@@ -72,7 +72,8 @@ export function setGuestCookie<T extends NextResponse>(res: T, guestId: string):
  */
 export async function consumeGuestAsk(
   guestId: string,
-  ip: string
+  ip: string,
+  appGalleryFirstAnalysis = false,
 ): Promise<GuestConsumeResult> {
   const db = adminDb();
   const dayKey = utcDayKey();
@@ -87,7 +88,10 @@ export async function consumeGuestAsk(
       const used = Number(guestSnap.data()?.used ?? 0);
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
 
-      const access = guestAnalysisAccess(used, ipUsed, Number(guestSnap.data()?.adAnalysisCredits ?? 0), guestSnap.data()?.firstAnalysisNoAd === true);
+      const guest = guestSnap.data();
+      const firstAnalysisWithoutAd = guest?.firstAnalysisNoAd === true ||
+        (appGalleryFirstAnalysis && !guest?.yourfitAnalysisAccount);
+      const access = guestAnalysisAccess(used, ipUsed, Number(guest?.adAnalysisCredits ?? 0), firstAnalysisWithoutAd);
       if (access === "ip_limit" || access === "guest_limit" || access === "first_ad") return { ok: false as const, reason: access };
 
       tx.set(

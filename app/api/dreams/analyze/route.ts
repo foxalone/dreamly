@@ -37,7 +37,7 @@ import { translatedGuestShareCopy } from "../_lib/guestShareTranslation";
 import { guestShareCopyFromMessages } from "@/lib/guestShareCopy";
 import { detectDreamLang } from "@/lib/detectDreamLang";
 import { startAnalysisAttempt, finishAnalysisAttempt, recordAttemptAccess, recoverUndeliveredGuestAnalysis } from "../_lib/analysisAttempts";
-import { AndroidRewardRequest } from "../_lib/androidReward";
+import { AndroidRewardRequest, AppGalleryAnalysisRequest } from "../_lib/androidReward";
 
 type Body = {
   text: string;
@@ -173,14 +173,15 @@ export async function POST(req: Request) {
     } else if (!uid) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
-      // Try an ad from the first guest reading; only its no-fill fallback is free.
-      // Generating a new answer always requires a reservation.
-      const booked = await consumeGuestAsk(guestId, clientIp);
+      // AppGallery includes the first guest interpretation within the same network quota.
+      const booked = await consumeGuestAsk(guestId, clientIp, req instanceof AppGalleryAnalysisRequest);
       if (!booked.ok) {
         return finish(
           NextResponse.json(
             {
-              error: "Watch a short ad or sign in to interpret your dream.",
+              error: req instanceof AppGalleryAnalysisRequest
+                ? "Sign in to interpret another dream."
+                : "Watch a short ad or sign in to interpret your dream.",
               code: "GUEST_LIMIT_REACHED",
               reason: booked.reason,
             },
