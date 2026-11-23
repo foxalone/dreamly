@@ -1,6 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import DreamImageButton from "@/app/components/DreamImageButton";
+import { PRIMARY_ADMIN_UID } from "@/lib/auth/adminUid";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
 import ArticleAdBanner from "@/app/components/ArticleAdBanner";
 import { useRouter } from "next/navigation";
@@ -73,6 +75,7 @@ type SharedDream = {
 
   ownerUid?: string;
   ownerDreamId?: string;
+  adminFeedImageReady?: boolean;
   ownerStoryId?: string;
 
   // author fields (saved when sharing)
@@ -955,7 +958,7 @@ export default function SharedPage() {
                     // buttons and links inside (reactions, translate, 💬, the text
                     // link) keep their own behaviour
                     onClick={(e) => {
-                      if ((e.target as HTMLElement).closest("a, button")) return;
+                      if (!e.currentTarget.contains(e.target as Node) || (e.target as HTMLElement).closest("a, button")) return;
                       router.push(localePath(`/dream/${d.id}`, locale));
                     }}
                     className="p-5 rounded-2xl bg-[var(--card)] border border-white/10 scroll-mt-24 transition-shadow cursor-pointer"
@@ -1043,6 +1046,12 @@ export default function SharedPage() {
                     <div className="mt-2 text-xs text-[var(--muted)]">
                       {sourceLabel}{sourceNum !== null && sourceNum > 0 ? ` #${sourceNum}` : ""}
                     </div>
+
+                    {uid === PRIMARY_ADMIN_UID && d.sourceType !== "story" && d.text?.trim() && (
+                      <div className="mt-3">
+                        <DreamImageButton dreamId={d.id} feed ready={d.adminFeedImageReady === true} />
+                      </div>
+                    )}
 
                     <div className="mt-4 w-full min-w-0 overflow-x-auto overscroll-x-contain">
                       <div className="flex w-max min-w-full flex-nowrap items-center gap-2">

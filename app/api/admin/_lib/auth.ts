@@ -1,6 +1,7 @@
 import { adminAuth } from "./firebaseAdmin";
 
-export const PRIMARY_ADMIN_UID = "sGbA77TlcsatEMrgEvCv7Shjrj32";
+import { PRIMARY_ADMIN_UID } from "@/lib/auth/adminUid";
+export { PRIMARY_ADMIN_UID } from "@/lib/auth/adminUid";
 
 const ADMIN_UIDS = new Set<string>([PRIMARY_ADMIN_UID]);
 

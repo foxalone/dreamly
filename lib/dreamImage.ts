@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import type { DocumentReference } from "firebase-admin/firestore";
+import { PRIMARY_ADMIN_UID } from "./auth/adminUid";
 import sharp from "sharp";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
 import { buildGothicImagePrompt } from "@/lib/adminAiImage";
@@ -15,7 +17,8 @@ type Job = {
   state?: "working" | "saved" | "failed"; rewarded?: boolean; rewardedAt?: number;
   leaseUntil?: number; runId?: string; attemptedAt?: number; confirmationUntil?: number;
 };
-type Attempt = { uid: string; dreamId: string; platform: Platform; unit?: string; issuedAt: number; expiresAt: number };
+export type ImageScope = "journal" | "feed";
+type Attempt = { scope?: ImageScope; uid: string; dreamId: string; platform: Platform; unit?: string; issuedAt: number; expiresAt: number };
 
 export class DreamImageError extends Error {
   constructor(readonly code: string, readonly status: number) { super(code); }
@@ -36,19 +39,25 @@ function imageWebAdPath() {
   return /^\/\d+\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(path) ? path : null;
 }
 
-export function matchesWebImageAttempt(attempt: Attempt | undefined, uid: string, id: string, path: string, now: number) {
-  return attempt?.platform === "web" && attempt.uid === uid && attempt.dreamId === id
+export function matchesWebImageAttempt(attempt: Attempt | undefined, uid: string, id: string, path: string, now: number, scope: ImageScope = "journal") {
+  return attempt?.platform === "web" && (attempt.scope ?? "journal") === scope && attempt.uid === uid && attempt.dreamId === id
     && attempt.unit === path && attempt.issuedAt <= now && attempt.expiresAt > now;
 }
 
-function references(uid: string, id: string) {
-  const owner = adminDb().collection("users").doc(uid);
-  return {
-    owner,
-    dream: owner.collection("dreams").doc(id),
-    job: owner.collection("dreamImageJobs").doc(id),
-    asset: owner.collection("dreamImageAssets").doc(id),
-  };
+function imageStorage(dream: DocumentReference) {
+  if (dream.parent.path === "shared_dreams") {
+    return { job: dream.collection("private").doc("imageJob"), asset: dream.collection("private").doc("imageAsset") };
+  }
+  const owner = dream.parent.parent!;
+  return { job: owner.collection("dreamImageJobs").doc(dream.id), asset: owner.collection("dreamImageAssets").doc(dream.id) };
+}
+
+function references(uid: string, id: string, scope: ImageScope = "journal") {
+  if (scope === "feed" && uid !== PRIMARY_ADMIN_UID) throw new DreamImageError("FORBIDDEN", 403);
+  const db = adminDb();
+  const owner = db.collection("users").doc(uid);
+  const dream = scope === "feed" ? db.collection("shared_dreams").doc(id) : owner.collection("dreams").doc(id);
+  return { owner, dream, ...imageStorage(dream) };
 }
 
 function dreamText(data: FirebaseFirestore.DocumentData | undefined) {
@@ -80,16 +89,16 @@ function dailyBudget(now: number) {
   };
 }
 
-export async function imageStatus(uid: string, id: string) {
-  const { dream, job } = references(uid, id);
+export async function imageStatus(uid: string, id: string, scope: ImageScope = "journal") {
+  const { dream, job } = references(uid, id, scope);
   const [entry, image, publication] = await adminDb().getAll(dream, job, imagePublication(dream));
   dreamText(entry.data());
   const state = dreamImageState(image.data());
   return { state, published: state === "ready" && await isImageVisible(publication.data() as Publication | undefined, dream, entry.data()) };
 }
 
-export async function setImagePublication(uid: string, id: string, published: boolean) {
-  const { dream, job } = references(uid, id);
+export async function setImagePublication(uid: string, id: string, published: boolean, scope: ImageScope = "journal") {
+  const { dream, job } = references(uid, id, scope);
   const publication = imagePublication(dream);
   return dream.firestore.runTransaction(async tx => {
     const [entry, image, existing] = await tx.getAll(dream, job, publication);
@@ -105,8 +114,8 @@ export async function setImagePublication(uid: string, id: string, published: bo
   });
 }
 
-export async function readImage(uid: string, id: string) {
-  const { dream, job, asset } = references(uid, id);
+export async function readImage(uid: string, id: string, scope: ImageScope = "journal") {
+  const { dream, job, asset } = references(uid, id, scope);
   const [entry, image] = await adminDb().getAll(dream, job);
   dreamText(entry.data());
   if (dreamImageState(image.data()) !== "ready") throw new DreamImageError("IMAGE_NOT_READY", 409);
@@ -122,10 +131,9 @@ async function createDreamThumbnail(image: Buffer) {
 export async function readGalleryImage(id: string, thumb: boolean) {
   const db = adminDb();
   const found = await getDreamImagePublication(db, id);
-  const owner = found?.dream.parent.parent;
-  if (!found || !owner) throw new DreamImageError("IMAGE_NOT_READY", 404);
+  if (!found) throw new DreamImageError("IMAGE_NOT_READY", 404);
   const { dream, publication } = found;
-  const { job, asset } = references(owner.id, dream.id);
+  const { job, asset } = imageStorage(dream);
   const field = thumb ? "thumbnail" : "bytes";
   const [entry, image, saved] = await db.getAll(dream, job, asset, {
     fieldMask: ["deleted", "shared", "sourceType", "text", "state", "rewarded", field],
@@ -146,9 +154,9 @@ export async function readGalleryImage(id: string, thumb: boolean) {
   throw new DreamImageError("IMAGE_NOT_READY", 404);
 }
 
-export async function createImageAttempt(uid: string, id: string, platform: Platform) {
+export async function createImageAttempt(uid: string, id: string, platform: Platform, scope: ImageScope = "journal") {
   const db = adminDb();
-  const { owner, dream, job } = references(uid, id);
+  const { owner, dream, job } = references(uid, id, scope);
   const attemptId = randomUUID();
   return db.runTransaction(async tx => {
     const [entry, image] = await tx.getAll(dream, job);
@@ -173,7 +181,7 @@ export async function createImageAttempt(uid: string, id: string, platform: Plat
     if ((current?.attemptedAt ?? 0) > now - 5000) throw new DreamImageError("PLEASE_RETRY", 429);
     tx.set(job, { attemptedAt: now }, { merge: true });
     tx.create(db.collection("dreamImageAdAttempts").doc(attemptId), {
-      uid, dreamId: id, platform, unit, issuedAt: now, expiresAt: now + AD_SESSION_MS,
+      uid, dreamId: id, platform, scope, unit, issuedAt: now, expiresAt: now + AD_SESSION_MS,
     } satisfies Attempt);
     const seconds = Number(process.env.DREAM_IMAGE_AD_MAX_SECONDS ?? 60);
     const adMaxSeconds = Number.isInteger(seconds) && seconds >= 15 && seconds <= 60 ? seconds : 60;
@@ -206,17 +214,17 @@ export async function markImageAdPlayed(uid: string, id: string, attemptId: stri
   });
 }
 
-export async function claimWebImageReward(uid: string, id: string, attemptId: string) {
+export async function claimWebImageReward(uid: string, id: string, attemptId: string, scope: ImageScope = "journal") {
   const path = imageWebAdPath();
   if (!path) throw new DreamImageError("AD_UNAVAILABLE", 503);
   const db = adminDb();
-  const { owner, dream, job } = references(uid, id);
+  const { owner, dream, job } = references(uid, id, scope);
   const attempt = db.collection("dreamImageAdAttempts").doc(attemptId);
   await db.runTransaction(async tx => {
     const [entry, image, session] = await tx.getAll(dream, job, attempt);
     dreamText(entry.data());
     const now = Date.now();
-    if (!matchesWebImageAttempt(session.data() as Attempt | undefined, uid, id, path, now)) {
+    if (!matchesWebImageAttempt(session.data() as Attempt | undefined, uid, id, path, now, scope)) {
       throw new DreamImageError("AD_UNVERIFIED", 403);
     }
     if (image.get("rewarded") === true) return;
@@ -228,13 +236,13 @@ export async function claimWebImageReward(uid: string, id: string, attemptId: st
     const used = Number((await tx.get(allowance)).get("webRewards") ?? 0);
     if (used >= WEB_REWARD_DAILY_LIMIT) throw new DreamImageError("IMAGE_LIMIT", 429);
     const saved = image.get("state") === "saved";
-    if (saved) await publishAutomaticImage(tx, dream, entry.data(), image.data());
+    if (saved && scope === "journal") await publishAutomaticImage(tx, dream, entry.data(), image.data());
     tx.set(allowance, { webRewards: used + 1 }, { merge: true });
     tx.update(attempt, { claimedAt: now });
     tx.set(job, { rewarded: true, rewardedAt: now }, { merge: true });
-    if (saved) tx.update(dream, { dreamImageReady: true });
+    if (saved) tx.update(dream, scope === "feed" ? { adminFeedImageReady: true } : { dreamImageReady: true });
   });
-  return beginImage(uid, id);
+  return beginImage(uid, id, undefined, scope);
 }
 
 export async function confirmImageReward(attemptId: string, attempt: Attempt, transactionId: string) {
@@ -259,9 +267,9 @@ export async function confirmImageReward(attemptId: string, attempt: Attempt, tr
   });
 }
 
-export async function beginImage(uid: string, id: string, attemptId?: string) {
+export async function beginImage(uid: string, id: string, attemptId?: string, scope: ImageScope = "journal") {
   const db = adminDb();
-  const { dream, job, asset } = references(uid, id);
+  const { dream, job, asset } = references(uid, id, scope);
   const key = process.env.FAL_KEY?.trim();
   if (!key) throw new DreamImageError("IMAGE_UNAVAILABLE", 503);
   const now = Date.now();
@@ -273,6 +281,7 @@ export async function beginImage(uid: string, id: string, attemptId?: string) {
     const text = dreamText(entry.data());
     const current = image.data() as Job | undefined;
     if (!current?.rewarded) {
+      if (scope === "feed") throw new DreamImageError("AD_UNVERIFIED", 403);
       const attempt = attemptId ? (await tx.get(db.collection("dreamImageAdAttempts").doc(attemptId))).data() as Attempt | undefined : null;
       if (!attempt || attempt.platform !== "android" || attempt.uid !== uid || attempt.dreamId !== id || attempt.expiresAt <= now) {
         throw new DreamImageError("AD_UNVERIFIED", 403);
@@ -302,10 +311,10 @@ export async function beginImage(uid: string, id: string, attemptId?: string) {
           if (image.data()?.runId !== runId) return;
           dreamText(entry.data());
           const rewarded = image.data()?.rewarded === true;
-          if (rewarded) await publishAutomaticImage(tx, dream, entry.data(), image.data());
+          if (rewarded && scope === "journal") await publishAutomaticImage(tx, dream, entry.data(), image.data());
           tx.set(asset, { bytes, thumbnail });
           tx.update(job, { state: "saved", leaseUntil: 0 });
-          if (rewarded) tx.update(dream, { dreamImageReady: true });
+          if (rewarded) tx.update(dream, scope === "feed" ? { adminFeedImageReady: true } : { dreamImageReady: true });
         });
       } catch {
         await db.runTransaction(async tx => {

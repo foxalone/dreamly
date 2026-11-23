@@ -30,6 +30,8 @@ test("a reported web reward belongs to its original account, dream, and placemen
     unit: path, issuedAt: 1000, expiresAt: 2000,
   };
   assert.equal(matchesWebImageAttempt(attempt, "owner", "dream", path, 1500), true);
+  assert.equal(matchesWebImageAttempt(attempt, "owner", "dream", path, 1500, "feed"), false);
+  assert.equal(matchesWebImageAttempt({ ...attempt, scope: "feed" }, "owner", "dream", path, 1500), false);
   assert.equal(matchesWebImageAttempt(attempt, "other", "dream", path, 1500), false);
   assert.equal(matchesWebImageAttempt(attempt, "owner", "other", path, 1500), false);
   assert.equal(matchesWebImageAttempt(attempt, "owner", "dream", "/123/other", 1500), false);

@@ -16,8 +16,8 @@ type ErrorKey = "unavailable" | "interrupted" | "pending" | "failed";
 type ImageRequest = (signal: AbortSignal, body?: object, image?: boolean) => Promise<Response>;
 let googleAdOpen = false;
 
-export default function DreamImageButton({ dreamId, ready, disabled, requestOverride }: {
-  dreamId: string; ready: boolean; disabled?: boolean; requestOverride?: ImageRequest;
+export default function DreamImageButton({ dreamId, ready, feed = false, disabled, requestOverride }: {
+  dreamId: string; ready: boolean; feed?: boolean; disabled?: boolean; requestOverride?: ImageRequest;
 }) {
   const locale = useLocale();
   const copy = dreamImageCopy[locale];
@@ -56,7 +56,10 @@ export default function DreamImageButton({ dreamId, ready, disabled, requestOver
     if (requestOverride) return requestOverride(signal, body, image);
     const token = await auth.currentUser?.getIdToken();
     if (!token) throw new Error("AUTH_REQUIRED");
-    const response = await fetch(endpoint + (image ? "?image=1" : ""), {
+    const url = new URL(endpoint, window.location.origin);
+    if (feed) url.searchParams.set("scope", "feed");
+    if (image) url.searchParams.set("image", "1");
+    const response = await fetch(url, {
       method: body ? "POST" : "GET",
       headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined,
@@ -154,7 +157,10 @@ export default function DreamImageButton({ dreamId, ready, disabled, requestOver
       let current = pendingWebReward.current
         ? await redeemWebReward(pendingWebReward.current)
         : await status(signal, mode === "create" ? { action: "attempt", platform: "web" } : undefined);
-      if (current.state === "ready") return await showImage(signal, current.published);
+      if (current.state === "ready") {
+        const published = current.published ?? (await status(signal)).published;
+        return await showImage(signal, published);
+      }
       if (current.state === "failed" && mode === "retry") current = await status(signal, { action: "start" });
       if (current.state === "failed" || current.state === "new" || current.state === "awaiting-ad") {
         throw new Error("IMAGE_FAILED");
