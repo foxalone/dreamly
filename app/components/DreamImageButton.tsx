@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeOff, Image as ImageIcon, ImagePlus, LoaderCircle, Share2, Sparkles, X } from "lucide-react";
+import { Image as ImageIcon, ImagePlus, LoaderCircle, Share2, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import DreamImageFrame from "./DreamImageFrame";
@@ -188,7 +188,7 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
 
   const label = canView ? copy.view : copy.createWithAd;
   const Icon = canView ? ImageIcon : ImagePlus;
-  const PublicationIcon = publishing ? LoaderCircle : published ? EyeOff : Share2;
+  const PublicationIcon = publishing ? LoaderCircle : published ? Trash2 : Share2;
   return <>
     <button ref={action} type="button" title={label} aria-label={label} disabled={disabled}
       className={`dream-btn inline-flex items-center gap-1.5 ${canView ? "!border-purple-500/50 !bg-purple-600/20 !text-purple-500" : "dream-btn--neutral"}`}
@@ -221,7 +221,7 @@ export default function DreamImageButton({ dreamId, ready, feed = false, disable
             <button type="button" disabled={publishing} aria-busy={publishing} onClick={() => void changePublication()}
               className={`mx-auto mt-5 flex min-h-12 w-full max-w-80 items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-500 disabled:cursor-wait disabled:opacity-70 ${
                 published
-                  ? "border-[var(--border)] text-[var(--text)] hover:bg-purple-500/10"
+                  ? "dream-btn--danger"
                   : "border-violet-500 bg-gradient-to-r from-violet-700 to-purple-700 text-white shadow-md shadow-violet-950/25 hover:from-violet-600 hover:to-purple-600"
               }`}>
               <PublicationIcon size={18} className={publishing ? "shrink-0 motion-safe:animate-spin" : "shrink-0"} aria-hidden />

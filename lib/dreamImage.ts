@@ -44,6 +44,11 @@ export function matchesWebImageAttempt(attempt: Attempt | undefined, uid: string
     && attempt.unit === path && attempt.issuedAt <= now && attempt.expiresAt > now;
 }
 
+export function matchesAndroidImageAttempt(attempt: Attempt | undefined, uid: string, id: string, now: number, scope: ImageScope) {
+  return attempt?.platform === "android" && (attempt.scope ?? "journal") === scope && attempt.uid === uid && attempt.dreamId === id
+    && attempt.issuedAt <= now && attempt.expiresAt > now;
+}
+
 function imageStorage(dream: DocumentReference) {
   if (dream.parent.path === "shared_dreams") {
     return { job: dream.collection("private").doc("imageJob"), asset: dream.collection("private").doc("imageAsset") };
@@ -196,15 +201,15 @@ export async function imageAttempt(attemptId: string) {
   return (await adminDb().collection("dreamImageAdAttempts").doc(attemptId).get()).data() as Attempt | undefined;
 }
 
-export async function markImageAdPlayed(uid: string, id: string, attemptId: string) {
+export async function markImageAdPlayed(uid: string, id: string, attemptId: string, scope: ImageScope = "journal") {
   const db = adminDb();
   const attempt = db.collection("dreamImageAdAttempts").doc(attemptId);
-  const { job } = references(uid, id);
+  const { job } = references(uid, id, scope);
   await db.runTransaction(async tx => {
     const [session, image] = await tx.getAll(attempt, job);
     const issued = session.data() as Attempt | undefined;
     const now = Date.now();
-    if (!issued || issued.platform !== "android" || issued.uid !== uid || issued.dreamId !== id || issued.expiresAt <= now) {
+    if (!matchesAndroidImageAttempt(issued, uid, id, now, scope)) {
       throw new DreamImageError("AD_UNVERIFIED", 403);
     }
     if (!image.data()?.rewarded && !session.data()?.playedAt) {
@@ -247,7 +252,8 @@ export async function claimWebImageReward(uid: string, id: string, attemptId: st
 
 export async function confirmImageReward(attemptId: string, attempt: Attempt, transactionId: string) {
   const db = adminDb();
-  const { dream, job } = references(attempt.uid, attempt.dreamId);
+  const scope = attempt.scope ?? "journal";
+  const { dream, job } = references(attempt.uid, attempt.dreamId, scope);
   const receipt = db.collection("dreamImageAdReceipts").doc(`${attempt.platform}_${transactionId}`);
   return db.runTransaction(async tx => {
     const [entry, image, used] = await tx.getAll(dream, job, receipt);
@@ -258,11 +264,11 @@ export async function confirmImageReward(attemptId: string, attempt: Attempt, tr
     }
     const current = image.data();
     const saved = current?.state === "saved";
-    if (!current?.rewarded && saved) await publishAutomaticImage(tx, dream, entry.data(), current);
+    if (!current?.rewarded && saved && scope === "journal") await publishAutomaticImage(tx, dream, entry.data(), current);
     tx.create(receipt, { attemptId, confirmedAt: Date.now() });
     if (current?.rewarded) return false;
     tx.set(job, { rewarded: true, rewardedAt: Date.now() }, { merge: true });
-    if (saved) tx.update(dream, { dreamImageReady: true });
+    if (saved) tx.update(dream, scope === "feed" ? { adminFeedImageReady: true } : { dreamImageReady: true });
     return true;
   });
 }
@@ -281,9 +287,8 @@ export async function beginImage(uid: string, id: string, attemptId?: string, sc
     const text = dreamText(entry.data());
     const current = image.data() as Job | undefined;
     if (!current?.rewarded) {
-      if (scope === "feed") throw new DreamImageError("AD_UNVERIFIED", 403);
-      const attempt = attemptId ? (await tx.get(db.collection("dreamImageAdAttempts").doc(attemptId))).data() as Attempt | undefined : null;
-      if (!attempt || attempt.platform !== "android" || attempt.uid !== uid || attempt.dreamId !== id || attempt.expiresAt <= now) {
+      const attempt = attemptId ? (await tx.get(db.collection("dreamImageAdAttempts").doc(attemptId))).data() as Attempt | undefined : undefined;
+      if (!matchesAndroidImageAttempt(attempt, uid, id, now, scope)) {
         throw new DreamImageError("AD_UNVERIFIED", 403);
       }
     }

@@ -6,6 +6,9 @@ const COLLECTION = "dreamImageGallery";
 const PAGE_SIZE = 24;
 
 export type Publication = { dreamPath: string; publishedAt: number; automatic: boolean };
+type Coordinates = { lat: number; lng: number };
+type OriginCity = { cityId: string; city?: string; country?: string };
+export type GalleryOrigin = OriginCity & { coordinates: Coordinates | null };
 
 export function imagePublication(dream: DocumentReference) {
   const id = `dream-${createHash("sha256").update(dream.path).digest("hex")}`;
@@ -23,6 +26,36 @@ function sharedCopy(dream: DocumentReference) {
 
 function matchesSharedCopy(dream: DocumentReference, copy: DocumentData | undefined) {
   return Boolean(copy && !copy.deleted && copy.ownerUid === dream.parent.parent?.id && copy.ownerDreamId === dream.id);
+}
+
+export function galleryOriginCity(dream: DocumentReference, entry: DocumentData | undefined, copy: DocumentData | undefined): OriginCity | null {
+  if (!entry || entry.deleted) return null;
+  // Publishing an illustration from the journal does not publish the journal's location.
+  const publicDream = dream.parent.path === "shared_dreams" ? entry :
+    entry.shared === true && matchesSharedCopy(dream, copy) ? copy : undefined;
+  const cityId = typeof publicDream?.cityId === "string" ? publicDream.cityId.trim() : "";
+  if (!cityId || cityId.includes("/") || /^\.{1,2}$/.test(cityId) || Buffer.byteLength(cityId) > 1500) return null;
+  const city = typeof publicDream?.city === "string" ? publicDream.city.trim().slice(0, 120) : undefined;
+  const country = typeof publicDream?.country === "string" ? publicDream.country.trim().slice(0, 80) : undefined;
+  return { cityId, city, country };
+}
+
+async function galleryCoordinates(db: Firestore, origins: Array<OriginCity | null>) {
+  const coordinates = new Map<string, Coordinates>();
+  const ids = [...new Set(origins.flatMap(origin => origin ? [origin.cityId] : []))];
+  for (const collection of ["city_emoji_stats", "cities"]) {
+    const refs = ids.filter(id => !coordinates.has(id)).map(id => db.collection(collection).doc(id));
+    if (!refs.length) break;
+    const cities = await db.getAll(...refs, { fieldMask: ["lat", "lng"] }).catch(() => []);
+    for (const doc of cities) {
+      const lat = doc.get("lat");
+      const lng = doc.get("lng");
+      if (typeof lat === "number" && typeof lng === "number" && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        coordinates.set(doc.id, { lat, lng });
+      }
+    }
+  }
+  return coordinates;
 }
 
 export async function isImageVisible(publication: Publication | undefined, dream: DocumentReference, entry: DocumentData | undefined) {
@@ -86,27 +119,31 @@ export async function listDreamGallery(db: Firestore, cursor: string | null, uid
   const next = posts.length > PAGE_SIZE && last ? `${last.get("publishedAt")}.${last.id}` : null;
   if (!page.length) return { images: [], next };
   const sources = page.map(post => db.doc(post.get("dreamPath")));
-  const copies = page.flatMap((post, index) => {
-    const ref = post.get("automatic") === true ? sharedCopy(sources[index]) : null;
+  const copies = sources.flatMap(dream => {
+    const ref = sharedCopy(dream);
     return ref ? [ref] : [];
   });
   const countRefs = page.map(post => db.collection(GALLERY_DREAM_HEARTS_COLLECTION).doc(post.id));
   const reactionOwner = uid ? db.doc(`users/${uid}`) : guestId ? db.doc(`guestQuickSymbol/${guestId}`) : null;
   const reactionRefs = reactionOwner ? page.map(post => reactionOwner.collection(USER_GALLERY_HEARTS_COLLECTION).doc(post.id)) : [];
   const [dreams, liveCopies, counts, likes] = await Promise.all([
-    db.getAll(...sources, { fieldMask: ["shared", "deleted"] }),
-    copies.length ? db.getAll(...copies, { fieldMask: ["deleted", "ownerUid", "ownerDreamId"] }) : [],
+    db.getAll(...sources, { fieldMask: ["shared", "deleted", "cityId", "city", "country"] }),
+    copies.length ? db.getAll(...copies, { fieldMask: ["deleted", "ownerUid", "ownerDreamId", "cityId", "city", "country"] }) : [],
     db.getAll(...countRefs), reactionRefs.length ? db.getAll(...reactionRefs) : [],
   ]);
   const shared = new Map(liveCopies.map(copy => [copy.ref.path, copy.data()]));
-  return {
-    images: page.flatMap((post, index) => {
-      const publication = post.data() as Publication;
-      const dream = sources[index];
-      const copy = shared.get(sharedCopy(dream)?.path ?? "");
-      if (!isImagePublished(publication, dreams[index].data()) || (publication.automatic && !matchesSharedCopy(dream, copy))) return [];
-      return [{ id: post.id, count: safeHeartCount(counts[index].get("count")), liked: likes[index]?.exists ?? false }];
-    }),
-    next,
-  };
+  const visible = page.flatMap((post, index) => {
+    const publication = post.data() as Publication;
+    const dream = sources[index];
+    const entry = dreams[index].data();
+    const copy = shared.get(sharedCopy(dream)?.path ?? "");
+    if (!isImagePublished(publication, entry) || (publication.automatic && !matchesSharedCopy(dream, copy))) return [];
+    return [{ id: post.id, count: safeHeartCount(counts[index].get("count")), liked: likes[index]?.exists ?? false,
+      city: galleryOriginCity(dream, entry, copy) }];
+  });
+  const coordinates = await galleryCoordinates(db, visible.map(image => image.city));
+  return { images: visible.map(({ city, ...image }) => ({
+    ...image,
+    origin: city ? { ...city, coordinates: coordinates.get(city.cityId) ?? null } satisfies GalleryOrigin : null,
+  })), next };
 }

@@ -27,26 +27,28 @@ function coordinatesFor(cityId: string) {
   return pending;
 }
 
-export default function DreamOriginGlobe({ cityId, city, country, mapLabel }: {
+export default function DreamOriginGlobe({ cityId, city, country, mapLabel, coordinates }: {
   cityId?: string;
   city?: string;
   country?: string;
   mapLabel: string;
+  coordinates?: Coordinates | null;
 }) {
-  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [resolved, setResolved] = useState<{ cityId: string; coordinates: Coordinates | null } | null>(null);
 
   useEffect(() => {
-    if (!cityId) return;
+    if (!cityId || coordinates !== undefined) return;
     let active = true;
-    void coordinatesFor(cityId).then((value) => { if (active) setCoordinates(value); });
+    void coordinatesFor(cityId).then((value) => { if (active) setResolved({ cityId, coordinates: value }); });
     return () => { active = false; };
-  }, [cityId]);
+  }, [cityId, coordinates]);
 
   const location = [city, country].filter(Boolean).join(", ");
   const label = location ? `${mapLabel} · ${location}` : mapLabel;
-  const position = coordinates ? {
-    "--origin-x": `${80 + ((coordinates.lng + 180) / 360) * 80}px`,
-    "--origin-y": `${((90 - coordinates.lat) / 180) * 40}px`,
+  const origin = coordinates === undefined ? (resolved?.cityId === cityId ? resolved?.coordinates : null) : coordinates;
+  const position = origin ? {
+    "--origin-x": `${80 + ((origin.lng + 180) / 360) * 80}px`,
+    "--origin-y": `${((90 - origin.lat) / 180) * 40}px`,
   } as CSSProperties : undefined;
 
   return (
@@ -58,7 +60,7 @@ export default function DreamOriginGlobe({ cityId, city, country, mapLabel }: {
     >
       <span className={styles.orb} aria-hidden="true">
         <span className={styles.surface} style={position}>
-          {coordinates ? <><span className={styles.marker} /><span className={styles.marker} /><span className={styles.marker} /></> : null}
+          {origin ? <><span className={styles.marker} /><span className={styles.marker} /><span className={styles.marker} /></> : null}
         </span>
       </span>
     </LocaleLink>

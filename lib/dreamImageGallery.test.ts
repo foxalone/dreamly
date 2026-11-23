@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { DocumentReference, Transaction } from "firebase-admin/firestore";
-import { isImagePublished, publishAutomaticImage, type Publication } from "./dreamImageGallery";
+import { galleryOriginCity, isImagePublished, publishAutomaticImage, type Publication } from "./dreamImageGallery";
 import { GALLERY_DREAM_HEARTS_COLLECTION, GALLERY_HEARTS_COLLECTION, galleryHeartCollection } from "./galleryHearts";
 
 test("automatic gallery images are visible only while the dream is shared and present", () => {
@@ -15,6 +15,23 @@ test("automatic gallery images are visible only while the dream is shared and pr
   assert.equal(isImagePublished(explicit, { shared: false }), true);
   assert.equal(isImagePublished(explicit, { shared: false, deleted: true }), false);
   assert.equal(isImagePublished(undefined, { shared: true }), false);
+});
+
+test("gallery locations come only from the original public feed entry", () => {
+  const journal = { id: "one", parent: { path: "users/owner/dreams", parent: { id: "owner" } } } as unknown as DocumentReference;
+  const feed = { id: "owner_one", parent: { path: "shared_dreams" } } as unknown as DocumentReference;
+  const privatePlace = { shared: true, cityId: "private", city: "Private city" };
+  const copy = { ownerUid: "owner", ownerDreamId: "one", cityId: "GB||London", city: "London", country: "GB", lat: 51.5, lng: -0.1 };
+  const publicCity = { cityId: "GB||London", city: "London", country: "GB" };
+
+  assert.deepEqual(galleryOriginCity(journal, privatePlace, copy), publicCity);
+  assert.deepEqual(galleryOriginCity(feed, copy, undefined), publicCity);
+  assert.equal(galleryOriginCity(journal, privatePlace, undefined), null);
+  assert.equal(galleryOriginCity(journal, { ...privatePlace, shared: false }, copy), null);
+  assert.equal(galleryOriginCity(journal, privatePlace, { ...copy, ownerUid: "someone-else" }), null);
+  assert.equal(galleryOriginCity(journal, privatePlace, { ...copy, deleted: true }), null);
+  assert.equal(galleryOriginCity(feed, { ...copy, deleted: true }, undefined), null);
+  assert.equal(galleryOriginCity(feed, { ...copy, cityId: "invalid/path" }, undefined), null);
 });
 
 test("a public dream copy must belong to the same user and dream to auto-publish their picture", async () => {

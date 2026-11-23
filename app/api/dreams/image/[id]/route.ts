@@ -46,7 +46,7 @@ export async function POST(request: Request, context: Context) {
   if ("error" in user) return user.error;
   try {
     const body = await request.json().catch(() => null);
-    if (body?.action === "attempt" && (body.platform === "web" || (user.scope === "journal" && body.platform === "android"))) {
+    if (body?.action === "attempt" && (body.platform === "web" || body.platform === "android")) {
       return reply(await createImageAttempt(user.uid, user.id, body.platform, user.scope));
     }
     if (body?.action === "start" && (body.attemptId === undefined || validImageId(body.attemptId))) {
@@ -59,8 +59,8 @@ export async function POST(request: Request, context: Context) {
       if (result.work) after(result.work);
       return reply({ state: result.state });
     }
-    if (user.scope === "journal" && body?.action === "played" && validImageId(body.attemptId)) {
-      await markImageAdPlayed(user.uid, user.id, body.attemptId);
+    if (body?.action === "played" && validImageId(body.attemptId)) {
+      await markImageAdPlayed(user.uid, user.id, body.attemptId, user.scope);
       return reply(await imageStatus(user.uid, user.id, user.scope));
     }
     if (body?.action === "publish" && typeof body.published === "boolean") {

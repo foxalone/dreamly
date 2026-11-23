@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     if (!attempt || attempt.platform !== "android" || attempt.unit !== unit
       || time < attempt.issuedAt - 60_000 || time > attempt.expiresAt) return new Response(null);
     if (await confirmImageReward(attemptId, attempt, transactionId)) {
-      const result = await beginImage(attempt.uid, attempt.dreamId).catch(() => null);
+      const result = await beginImage(attempt.uid, attempt.dreamId, undefined, attempt.scope).catch(() => null);
       if (result?.work) after(result.work);
     }
     return new Response(null);

@@ -3,16 +3,18 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { X } from "lucide-react";
+import DreamOriginGlobe from "@/app/app/shared/DreamOriginGlobe";
 import DreamImageFrame from "@/app/components/DreamImageFrame";
+import type { GalleryOrigin } from "@/lib/dreamImageGallery";
 import { auth } from "@/lib/firebase";
 import { dreamImageCopy } from "@/lib/i18n/dreamImage";
 import { dreamersGalleryCopy } from "@/lib/i18n/dreamersGallery";
+import { useMessages } from "@/lib/i18n/LocaleProvider";
 import type { Locale } from "@/lib/i18n/config";
 import { GalleryHeartControl } from "./GalleryHearts";
 
-type Illustration = { id: string; liked: boolean; count: number };
+type Illustration = { id: string; liked: boolean; count: number; origin?: GalleryOrigin | null };
 type Page = { images: Illustration[]; next: string | null };
-
 export default function GallerySections({ locale, dictionary }: { locale: Locale; dictionary: ReactNode }) {
   const [dreamers, setDreamers] = useState(false);
   const copy = dreamersGalleryCopy[locale];
@@ -51,6 +53,7 @@ async function fetchPage(viewer: User | null, cursor: string | null, signal?: Ab
 function CommunityGalleryPage({ locale, viewer }: { locale: Locale; viewer: User | null }) {
   const copy = dreamersGalleryCopy[locale];
   const imageCopy = dreamImageCopy[locale];
+  const mapLabel = useMessages().nav.map;
   const [page, setPage] = useState<Page>({ images: [], next: null });
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -124,6 +127,10 @@ function CommunityGalleryPage({ locale, viewer }: { locale: Locale; viewer: User
           <div className="absolute end-2 top-2">
             <GalleryHeartControl liked={image.liked} count={image.count} disabled={pending !== null} label={label}
               accessibleLabel={`${label} (${image.count})`} onToggle={() => void toggle(image)} />
+          </div>
+          <div className="absolute bottom-2 end-2 rounded-full bg-black/45">
+            <DreamOriginGlobe cityId={image.origin?.cityId} city={image.origin?.city} country={image.origin?.country}
+              coordinates={image.origin?.coordinates ?? null} mapLabel={mapLabel} />
           </div>
         </article>;
       })}
