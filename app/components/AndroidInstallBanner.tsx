@@ -11,27 +11,25 @@ import { isLocaleExemptPath, stripLocalePrefix } from "@/lib/i18n/path";
 import styles from "./AndroidInstallBanner.module.css";
 
 const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=art.dreamly.app";
-const SESSION_KEY = "dreamly:android-install-shown";
+const SESSION_KEY = "dreamly:android-install-dismissed";
 const SHOW_DELAY_MS = 3000;
 const EXCLUDED_PATHS = ["/signin", "/payment-success", "/ad/unlock", "/app/game"];
-let shownInDocument = false;
+let dismissedInDocument = false;
 
 function AndroidInstallNotice({ copy }: { copy: AndroidInstallCopy }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (shownInDocument || isDreamlyAndroidApp() || window.matchMedia("(display-mode: standalone)").matches) return;
+    if (dismissedInDocument || isDreamlyAndroidApp() || window.matchMedia("(display-mode: standalone)").matches) return;
+    try {
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+    } catch {
+      // The banner still works in this document when storage is blocked.
+    }
 
     let timer: number | undefined;
     const show = () => {
-      if (shownInDocument || document.visibilityState !== "visible" || document.querySelector("[data-not-found]")) return;
-      try {
-        if (sessionStorage.getItem(SESSION_KEY)) return;
-        sessionStorage.setItem(SESSION_KEY, "1");
-      } catch {
-        // Keep the one-time display in this document when storage is blocked.
-      }
-      shownInDocument = true;
+      if (dismissedInDocument || document.visibilityState !== "visible" || document.querySelector("[data-not-found]")) return;
       setVisible(true);
     };
     const schedule = () => {
@@ -48,7 +46,15 @@ function AndroidInstallNotice({ copy }: { copy: AndroidInstallCopy }) {
 
   if (!visible) return null;
 
-  const dismiss = () => setVisible(false);
+  const dismiss = () => {
+    dismissedInDocument = true;
+    setVisible(false);
+    try {
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      // The dismissal still applies to client-side navigation in this document.
+    }
+  };
   return (
     <div className={styles.layer}>
       <aside className={styles.banner} aria-label={copy.title}>
