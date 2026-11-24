@@ -15,6 +15,7 @@ const WORKER_DOCUMENT = "adminSystem/aiImageWorker";
 const POLL_IDLE_MS = 4_000;
 const LEASE_MS = 90_000;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const RETRYABLE_NO_IMAGE_REASONS = new Set(["", "FINISH_REASON_UNSPECIFIED", "STOP", "NO_IMAGE", "OTHER", "IMAGE_OTHER"]);
 const workerId = `${hostname()}:${process.pid}:${randomUUID()}`;
 
 const VEO_RATES = {
@@ -266,7 +267,7 @@ async function paidJson(url, options, attempts = 3) {
   throw lastError ?? new Error("Paid request failed");
 }
 
-function veoUsageCost(usage, model) {
+function veoUsageCost(usage, model, hasImage = true) {
   const details = [
     ...(usage?.promptTokensDetails ?? usage?.prompt_tokens_details ?? []),
     ...(usage?.candidatesTokensDetails ?? usage?.candidates_tokens_details ?? []),
@@ -277,8 +278,8 @@ function veoUsageCost(usage, model) {
   const prompt = Number(usage?.promptTokenCount ?? usage?.prompt_token_count ?? 0);
   const candidates = Number(usage?.candidatesTokenCount ?? usage?.candidates_token_count ?? 0);
   const thoughts = Number(usage?.thoughtsTokenCount ?? usage?.thoughts_token_count ?? 0);
-  const imageTokens = imageOutput || candidates;
-  const textOutput = imageOutput ? Math.max(0, candidates - imageOutput) + thoughts : thoughts;
+  const imageTokens = hasImage ? imageOutput || candidates : 0;
+  const textOutput = Math.max(0, candidates - imageTokens) + thoughts;
   const usd = tokensToUsd(prompt, VEO_RATES.textInputPerMillion)
     + tokensToUsd(textOutput, VEO_RATES.textOutputPerMillion)
     + tokensToUsd(imageTokens, VEO_RATES.imageOutputPerMillion);
@@ -314,11 +315,13 @@ async function generateVeoImage(prompt) {
   const { model } = veoImageConfig();
   const imageSize = env("VEO_IMAGE_SIZE") || "1K";
   const aspectRatio = env("VEO_IMAGE_ASPECT_RATIO") || "9:16";
-  const payload = await paidJson(veoImageEndpoint(), {
+  const endpoint = veoImageEndpoint();
+  const headers = await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" });
+  const requestImage = (text) => paidJson(endpoint, {
     method: "POST",
-    headers: await vertexHeaders({ "Content-Type": "application/json; charset=utf-8" }),
+    headers,
     body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text }] }],
       generationConfig: {
         responseModalities: ["TEXT", "IMAGE"],
         imageConfig: { aspectRatio, imageSize },
@@ -326,7 +329,19 @@ async function generateVeoImage(prompt) {
     }),
     timeoutMs: 180_000,
   });
-  const image = lastInlineImage(payload);
+
+  let payload = await requestImage(prompt);
+  let image = lastInlineImage(payload);
+  let missingImageCostUsd = 0;
+  const firstFinish = payload?.candidates?.[0]?.finishReason || "";
+  const blocked = payload?.promptFeedback?.blockReason;
+  if (!image && !blocked && RETRYABLE_NO_IMAGE_REASONS.has(firstFinish)) {
+    console.warn(`[ai-image-worker] Vertex returned no image (${firstFinish || "no image part"}); retrying once`);
+    missingImageCostUsd = veoUsageCost(payload?.usageMetadata || payload?.usage_metadata, model, false).actualCostUsd;
+    await delay(2_000);
+    payload = await requestImage(`${prompt}\n\nReturn the generated image with no accompanying text.`);
+    image = lastInlineImage(payload);
+  }
   if (!image) {
     const finish = payload?.candidates?.[0]?.finishReason || payload?.promptFeedback?.blockReason || "no image part";
     throw new Error(`Vertex image response did not include image data (${finish})`);
@@ -336,7 +351,7 @@ async function generateVeoImage(prompt) {
     buffer: Buffer.from(image.data, "base64"),
     mimeType: image.mimeType,
     tokenUsage,
-    actualCostUsd: actualCostUsd || Number(env("VEO_IMAGE_PRICE_USD") || 0.07),
+    actualCostUsd: roundUsd(missingImageCostUsd + (actualCostUsd || Number(env("VEO_IMAGE_PRICE_USD") || 0.07))),
     model,
     size: imageSize,
     quality: "default",

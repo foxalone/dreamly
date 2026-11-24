@@ -6,16 +6,226 @@
 @keyframes lunar-spin { to { background-position-x: 200%; } }
 @keyframes lunar-fly { 0% { opacity: 0; transform: translate(0,0) scale(.25); } 15% { opacity: 1; } 75% { opacity: .8; } 100% { opacity: 0; transform: translate(var(--drift), -150px) scale(1); } }
 .backdrop { display: grid; place-items: center; color: #b9b4c9; position: fixed; inset: 0; background: #030407; }
-.dialog { max-width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); padding: 0; border: 1px solid #ffffff30; border-radius: 24px; background: #15141e; color: #f1eefb; margin: auto; }
-.dialog::backdrop { background: #0009; backdrop-filter: blur(5px); }
-.panel { position: relative; padding: 32px 26px 26px; }
-.panel h2 { font-size: 24px; margin: 0 20px 16px 0; }
-.panel p { margin: 12px 0; line-height: 1.6; }
-.close { position: absolute; inset-inline-end: 12px; top: 6px; border: 0; background: transparent; color: #ccc; font-size: 28px; cursor: pointer; min-width: 44px; min-height: 44px; }
-.consent { color: #b9b4c9; font-size: 13px; }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-.actions a, .actions button { padding: 10px 18px; border: 1px solid #ffffff30; border-radius: 24px; background: #77609e; color: white; cursor: pointer; text-decoration: none; }
-.actions button:disabled { opacity: .5; cursor: wait; }
+.dialog {
+  inset: 0;
+  box-sizing: border-box;
+  width: min(440px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #bfa9ff42;
+  border-radius: 28px;
+  background: #151321;
+  color: #f7f3ff;
+  color-scheme: dark;
+  box-shadow: 0 28px 90px #000a, 0 0 50px #8361df1f;
+}
+
+.dialog::backdrop {
+  background: #080611b8;
+  backdrop-filter: blur(6px);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: clamp(120px, 29dvh, 200px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 16% 32%, #cfc2fa9e 0 1px, transparent 2px),
+    radial-gradient(circle at 25% 68%, #a891dc99 0 1px, transparent 2px),
+    radial-gradient(circle at 31% 20%, #e8dcffbd 0 1px, transparent 2px),
+    radial-gradient(circle at 65% 13%, #cfc2fa8c 0 1px, transparent 2px),
+    radial-gradient(circle at 76% 48%, #e8dcffb0 0 1px, transparent 2px),
+    radial-gradient(circle at 87% 70%, #a891dc99 0 1px, transparent 2px),
+    radial-gradient(ellipse at 50% 38%, #493977, transparent 72%),
+    linear-gradient(180deg, #201935, #151321);
+}
+
+.orbit {
+  position: absolute;
+  width: 72%;
+  height: 40%;
+  border: 1px solid #c6afff35;
+  border-radius: 50%;
+  transform: rotate(-16deg);
+}
+
+.orbit::after {
+  content: "";
+  position: absolute;
+  left: 9%;
+  bottom: 16%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #dfcbff;
+  box-shadow: 0 0 12px 2px #c39aff89;
+}
+
+.moon {
+  position: relative;
+  height: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 22%, #f2e4ff42, transparent 60%),
+    url('/moon/lroc-color-2k.jpg') 32% 50% / auto 100%;
+  box-shadow: inset -19px -13px 30px 4px #080414df, inset 2px 1px 5px #f2e8ffb3, 0 0 40px #b28cf96b;
+}
+
+.close {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #e2d6ff33;
+  border-radius: 50%;
+  background: #120e22b8;
+  color: #eee7ff;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: #34264e;
+}
+
+.panel {
+  padding: clamp(16px, 4vw, 24px) clamp(18px, 6vw, 36px) clamp(22px, 6vw, 32px);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 650;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.dialog:dir(ltr) .title {
+  letter-spacing: -.035em;
+}
+
+.rule {
+  max-width: 33ch;
+  margin: 10px auto 0;
+  color: #cdc4e1;
+  font-size: 1rem;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.status,
+.consent {
+  margin: 14px 0 0;
+  color: #cdc4e1;
+  font-size: .875rem;
+  line-height: 1.55;
+}
+
+.error {
+  margin-block-start: 14px;
+  padding: 12px;
+  border: 1px solid #e3a0bd33;
+  border-radius: 12px;
+  background: #342136;
+  color: #ffd7e8;
+  font-size: .875rem;
+}
+
+.error p {
+  margin: 0;
+}
+
+.error button {
+  min-height: 44px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.progress {
+  margin-block-start: 20px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: #35234d;
+  color: #dbbaff;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.progress p {
+  margin: 0;
+}
+
+.segments {
+  display: flex;
+  gap: 6px;
+  margin: 10px auto 0;
+}
+
+.segments span {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: #554365;
+}
+
+.segments span[data-filled="true"] {
+  background: #d6adff;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  margin-block-start: 24px;
+  padding: 10px 16px;
+  border: 1px solid #ede2ff66;
+  border-radius: 999px;
+  background: linear-gradient(105deg, #e6d6ff, #c0a2fa);
+  color: #211334;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-decoration: none;
+  box-shadow: 0 6px 22px #a17af936;
+  cursor: pointer;
+}
+
+.action:not(:disabled):hover {
+  background: linear-gradient(105deg, #f2e7ff, #d1bbff);
+}
+
+.action:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.arrow {
+  flex: none;
+}
+
+.dialog:dir(rtl) .arrow {
+  transform: scaleX(-1);
+}
+
+.dialog :is(button, a):focus-visible {
+  outline: 2px solid #eadcff;
+  outline-offset: 3px;
+}
 @media(max-width: 767px) {
   .portal { left: calc(max(8px, env(safe-area-inset-left)) + (100% - max(8px, env(safe-area-inset-left)) - 52px - env(safe-area-inset-right) - 162px) / 5); bottom: calc(10px + env(safe-area-inset-bottom)); width: 34px; height: 34px; z-index: 36; }
   .particles span { left: 6px; top: 4px; font-size: 14px; }

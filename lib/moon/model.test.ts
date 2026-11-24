@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { publishedDreamCount, lunarPoint, MOON_THRESHOLD } from "./model";
+import { analyzedDreamCount, publishedDreamCount, lunarPoint, MOON_THRESHOLD } from "./model";
 
 test("only five distinct active public dreams unlock the Moon", () => {
   const rows = Array.from({ length: 4 }, (_, i) => ({ id: `a${i}`, data: { ownerDreamId: `d${i}`, text: "dream", sourceType: "dream" } as Record<string, unknown> }));
@@ -9,6 +9,18 @@ test("only five distinct active public dreams unlock the Moon", () => {
   assert.ok(publishedDreamCount(rows) < MOON_THRESHOLD);
   rows.push({ id: "fifth", data: { text: "fifth dream", ownerDreamId: "d5" } });
   assert.equal(publishedDreamCount(rows), MOON_THRESHOLD);
+});
+
+test("analysis progress counts active dreams with a saved analysis", () => {
+  assert.equal(analyzedDreamCount([
+    { sourceType: "dream", analysisText: "Interpreted dream" },
+    { analysisText: "Interpreted legacy dream" },
+    { sourceType: "dream" },
+    { sourceType: "dream", analysisText: "   " },
+    { sourceType: "dream", analysisText: "Deleted dream", deleted: true },
+    { sourceType: "journal", analysisText: "Diary note" },
+    { sourceType: "story", analysisText: "Story" },
+  ]), 2);
 });
 
 test("random points span the lunar sphere but stay within imagery coverage", () => {

@@ -3,7 +3,6 @@ import type { DocumentReference } from "firebase-admin/firestore";
 import { PRIMARY_ADMIN_UID } from "./auth/adminUid";
 import sharp from "sharp";
 import { adminDb } from "@/app/api/admin/_lib/firebaseAdmin";
-import { buildGothicImagePrompt } from "@/lib/adminAiImage";
 import { petalRewardUnit } from "@/lib/petalSsv";
 import { getDreamImagePublication, imagePublication, isImageVisible, publishAutomaticImage, type Publication } from "./dreamImageGallery";
 
@@ -71,7 +70,7 @@ function dreamText(data: FirebaseFirestore.DocumentData | undefined) {
     || typeof data.text !== "string" || !data.text.trim()) {
     throw new DreamImageError("DREAM_NOT_FOUND", 404);
   }
-  return data.text.trim().slice(0, 4000);
+  return data.text;
 }
 
 export function dreamImageState(job?: Job, now = Date.now()) {
@@ -333,13 +332,13 @@ export async function beginImage(uid: string, id: string, attemptId?: string, sc
 }
 
 async function generateImage(text: string, key: string) {
-  const subject = `A single scene inspired by the following dream. Interpret intimate or violent details symbolically, with no nudity, injuries, or gore. Do not draw any lettering. Dream: ${text}`;
+  const prompt = `${text}\n\nVisual style: cinematic hand-painted digital illustration with visible brushstrokes, softly stylized shapes, layered colors, and luminous dreamlike lighting.`;
   const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
     method: "POST",
     headers: { Authorization: `Key ${key}`, "Content-Type": "application/json", "X-Fal-Store-IO": "0",
       "X-Fal-Object-Lifecycle-Preference": '{"expiration_duration_seconds":600}' },
     body: JSON.stringify({
-      prompt: buildGothicImagePrompt(subject), image_size: { width: 704, height: 1248 },
+      prompt, image_size: { width: 704, height: 1248 },
       num_inference_steps: 4, num_images: 1, enable_safety_checker: true, output_format: "jpeg",
     }),
     signal: AbortSignal.timeout(70_000),

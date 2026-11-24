@@ -2,7 +2,7 @@ import { randomInt, createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminFirestore } from "@/lib/firebaseAdmin";
 import { requireSignedInUid } from "@/app/api/dreams/_lib/requireUser";
-import { lunarPoint, MOON_THRESHOLD, publishedDreamCount } from "@/lib/moon/model";
+import { analyzedDreamCount, lunarPoint, MOON_THRESHOLD, publishedDreamCount } from "@/lib/moon/model";
 
 import { lunarPublicDreams, lunarDreamSummary } from "@/lib/moon/publicDreams";
 import { shareBadgeFor } from "@/lib/shareBadges";
@@ -18,9 +18,24 @@ export async function POST(req: Request) {
     const db = adminFirestore();
     const shares = await db.collection("shared_dreams").where("ownerUid", "==", user.uid).select("ownerDreamId", "ownerStoryId", "text", "deleted", "sourceType", "sharedAtMs", "emojis").get();
     const count = publishedDreamCount(shares.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+    const eligible = count >= MOON_THRESHOLD;
+    const residentRequest = typeof body.resident === "string";
+    const accessBeforeJoining = async () => {
+      const access = { eligible, count, joined: false };
+      if (body.progress !== true || residentRequest) return NextResponse.json(access, { headers });
+
+      const dreams = await db.collection("users").doc(user.uid).collection("dreams")
+        .where("analysisText", ">", "").select("analysisText", "sourceType", "deleted").get();
+      const analyzedCount = analyzedDreamCount(dreams.docs.map(doc => doc.data()));
+      return NextResponse.json({ ...access, analyzedCount }, { headers });
+    };
+
     // A dedicated server-only collection: client Firestore rules deny it by default.
     const ref = db.collection("moon_residents").doc(user.uid);
-    if (count < MOON_THRESHOLD) return NextResponse.json({ eligible: false, count, joined: false }, { status: typeof body.resident === "string" ? 403 : 200, headers });
+    if (!eligible) {
+      if (residentRequest) return NextResponse.json({ eligible, count, joined: false }, { status: 403, headers });
+      return await accessBeforeJoining();
+    }
     if (body.join === true) {
       await db.runTransaction(async tx => {
         const existing = await tx.get(ref);
@@ -31,11 +46,11 @@ export async function POST(req: Request) {
       });
     }
     const membership = await ref.get();
-    if (!membership.exists) return NextResponse.json({ eligible: true, count, joined: false }, { headers });
+    if (!membership.exists) return await accessBeforeJoining();
     const point = { lng: Number(membership.get("lng")), lat: Number(membership.get("lat")) };
-    if (body.pins !== true && typeof body.resident !== "string") return NextResponse.json({ eligible: true, count, joined: true, point }, { headers });
+    if (body.pins !== true && !residentRequest) return NextResponse.json({ eligible: true, count, joined: true, point }, { headers });
     const residents = await db.collection("moon_residents").get();
-    if (typeof body.resident === "string") {
+    if (residentRequest) {
       const resident = residents.docs.find(doc => createHash("sha256").update(`moon:${doc.id}`).digest("hex").slice(0, 24) === body.resident);
       if (!resident) return NextResponse.json({ error: "RESIDENT_NOT_FOUND" }, { status: 404, headers });
       const published = resident.id === user.uid ? shares : await db.collection("shared_dreams").where("ownerUid", "==", resident.id).select("ownerDreamId", "ownerStoryId", "text", "deleted", "sourceType", "sharedAtMs", "emojis").get();

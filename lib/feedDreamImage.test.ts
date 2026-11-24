@@ -33,7 +33,8 @@ test("only the primary admin can manage a feed image, including for a guest drea
   }
   const dream = db.doc(`shared_dreams/${id}`);
   const publication = imagePublication(dream);
-  const records = new Map<string, Record<string, unknown>>([[dream.path, { text: "A blue door", fromGuest: true }]]);
+  const scene = "  Вышла в коридор, где шёл ремонт.\nНе смогла найти знакомую дверь и лифт.  ";
+  const records = new Map<string, Record<string, unknown>>([[dream.path, { text: scene, fromGuest: true }]]);
   const snapshot = (ref: DocumentReference) => ({
     exists: records.has(ref.path), data: () => records.get(ref.path), get: (key: string) => records.get(ref.path)?.[key],
   });
@@ -46,8 +47,13 @@ test("only the primary admin can manage a feed image, including for a guest drea
   t.mock.method(db, "getAll", getAll);
   t.mock.method(DocumentReference.prototype, "get", function (this: DocumentReference) { return snapshot(this); });
   const input = await sharp({ create: { width: 4, height: 4, channels: 3, background: "blue" } }).png().toBuffer();
-  t.mock.method(globalThis, "fetch", async (url: string | URL) => {
-    if (url === "https://fal.run/fal-ai/flux/schnell") return Response.json({ images: [{ url: "https://test.fal.media/image" }] });
+  const generationRequests: RequestInit[] = [];
+  t.mock.method(globalThis, "fetch", async (url: string | URL, init?: RequestInit) => {
+    if (url === "https://fal.run/fal-ai/flux/schnell") {
+      assert.ok(init);
+      generationRequests.push(init);
+      return Response.json({ images: [{ url: "https://test.fal.media/image" }] });
+    }
     assert.equal(String(url), "https://test.fal.media/image");
     return new Response(new Uint8Array(input));
   });
@@ -59,6 +65,10 @@ test("only the primary admin can manage a feed image, including for a guest drea
   const result = await claimWebImageReward(admin, id, attempt.attemptId, "feed");
   assert.ok(result.work);
   await result.work();
+  assert.equal(generationRequests.length, 1);
+  const { prompt, enable_safety_checker } = JSON.parse(String(generationRequests[0].body));
+  assert.equal(prompt, `${scene}\n\nVisual style: cinematic hand-painted digital illustration with visible brushstrokes, softly stylized shapes, layered colors, and luminous dreamlike lighting.`);
+  assert.equal(enable_safety_checker, true);
   assert.deepEqual(await imageStatus(admin, id, "feed"), { state: "ready", published: false });
   await assert.rejects(readGalleryImage(publication.id, false), { status: 404 });
   assert.equal((await createImageAttempt(admin, id, "web", "feed")).state, "ready");

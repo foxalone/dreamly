@@ -245,6 +245,7 @@ export default function GuestDreamJournal() {
   }
 
   const visibleNotes = tab === "JOURNAL" ? journal : stories;
+  const hasVisibleDreams = tab === "SHARED" ? sharedDreams.length > 0 : tab === "DREAMS" && dreams.length > 0;
   const emptyCopy = tab === "JOURNAL" ? t.app.noJournal : tab === "STORIES" ? t.app.noStories : tab === "SHARED" ? t.app.noShared : t.app.noDreams;
 
   return (
@@ -275,7 +276,7 @@ export default function GuestDreamJournal() {
         {tab === "JOURNAL" ? <DiaryCalendar markedDays={journal.map((note) => localDateKey(note.createdAtMs))} /> : null}
       </div>
       {(noteError || (dreamTab && composer.error)) ? <p role="alert" className="mt-3 text-sm text-red-500">{noteError || composer.error}</p> : null}
-      {dreamTab ? <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p> : null}
+      {hasVisibleDreams ? <p className="mt-4 text-xs text-[var(--muted)]">{t.home.askCached}</p> : null}
       <div className="mt-8 space-y-3">
         {tab === "SHARED"
           ? sharedRows.map((row, index) => row.kind === "dream" ? (
