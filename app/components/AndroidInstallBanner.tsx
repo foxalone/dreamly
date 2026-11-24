@@ -20,7 +20,7 @@ function AndroidInstallNotice({ copy }: { copy: AndroidInstallCopy }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (dismissedInDocument || isDreamlyAndroidApp() || window.matchMedia("(display-mode: standalone)").matches) return;
+    if (dismissedInDocument || isDreamlyAndroidApp()) return;
     try {
       if (sessionStorage.getItem(SESSION_KEY)) return;
     } catch {
