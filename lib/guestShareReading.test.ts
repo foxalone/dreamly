@@ -4,8 +4,8 @@ import { test } from "node:test";
 import { deleteApp, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { guestDreamSnapshotId } from "../app/api/dreams/_lib/guestDreamSnapshot";
-import { POST } from "../app/api/dreams/share-guest/route";
-import { guestSharedDreamDocId } from "./shareBadges";
+import { DELETE, POST } from "../app/api/dreams/share-guest/route";
+import { guestSharedDocId, guestSharedDreamDocId } from "./shareBadges";
 
 test("guest sharing accepts a saved interpretation without a web quota charge", async (t) => {
   const app = initializeApp({ projectId: "demo-guest-share" }, "project-server");
@@ -154,4 +154,65 @@ test("guest sharing accepts a saved interpretation without a web quota charge", 
   assert.equal((await share(shortText)).status, 200);
   assert.equal(records.get("shared_dreams/" + guestSharedDreamDocId(guestId, shortText))?.text, shortText);
   assert.equal((await share("a@b.com")).status, 422);
+});
+
+test("a guest can remove their own published dream or story", async (t) => {
+  const app = initializeApp({ projectId: "demo-guest-delete" }, "project-server");
+  t.after(() => deleteApp(app));
+  const db = getFirestore(app);
+  const guest = "c0feb199-e028-4288-bab5-e2e410f7a1ec";
+  const other = "a1156220-404c-4531-87a7-52f42d5686c7";
+  const dream = guestSharedDreamDocId(guest, "A long dream that I shared anonymously.");
+  const story = guestSharedDreamDocId(guest, "A short story shared to the feed.");
+  const legacy = guestSharedDocId(guest);
+  const original = { ownerGuestId: guest, ownerUid: null, title: "Entry", text: "Text", analysisText: "Reading", deleted: false };
+  const posts = new Map<string, Record<string, unknown>>([
+    [dream, { ...original, sourceType: "dream" }],
+    [story, { ...original, sourceType: "story" }],
+    [legacy, { ...original }],
+  ]);
+
+  t.mock.method(db, "collection", () => ({ doc: (id: string) => ({ id }) }));
+  const update = t.mock.fn(({ id }: { id: string }, fields: Record<string, unknown>) => {
+    posts.set(id, { ...posts.get(id), ...fields });
+  });
+  const tx = {
+    get: async ({ id }: { id: string }) => ({ exists: posts.has(id), data: () => posts.get(id) }),
+    update,
+  };
+  t.mock.method(db, "runTransaction", async (run: (transaction: typeof tx) => unknown) => run(tx));
+
+  function remove(sharedId: string, guestId = guest) {
+    return DELETE(new Request("https://dreamly.test/api/dreams/share-guest", {
+      method: "DELETE",
+      headers: guestId ? { Cookie: `dreamly_guest=${guestId}` } : {},
+      body: JSON.stringify({ sharedId }),
+    }));
+  }
+
+  assert.equal((await remove(dream, "")).status, 400);
+  assert.equal((await remove(dream, other)).status, 403);
+  posts.set(dream, { ...original, sourceType: "dream", ownerGuestId: other });
+  assert.equal((await remove(dream)).status, 403);
+  posts.set(dream, { ...original, sourceType: "dream", ownerUid: "account" });
+  assert.equal((await remove(dream)).status, 403);
+  assert.equal(update.mock.callCount(), 0);
+  posts.set(dream, { ...original, sourceType: "dream" });
+
+  for (const id of [dream, story, legacy]) {
+    const result = await remove(id);
+    assert.equal(result.status, 200);
+    assert.deepEqual(await result.json(), { ok: true });
+    assert.equal(posts.get(id)?.deleted, true);
+    assert.equal(posts.get(id)?.deletedBy, "user");
+    assert.equal(posts.get(id)?.text, "");
+    assert.equal(posts.get(id)?.analysisText, "");
+    const before = update.mock.callCount();
+    assert.equal((await remove(id)).status, 200);
+    assert.equal(update.mock.callCount(), before);
+  }
+
+  const missing = guestSharedDreamDocId(guest, "Never published");
+  assert.equal((await remove(missing)).status, 200);
+  assert.equal(update.mock.callCount(), 3);
 });

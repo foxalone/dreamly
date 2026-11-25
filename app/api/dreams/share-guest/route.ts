@@ -246,7 +246,7 @@ export async function POST(req: Request) {
   }
 }
 
-/** The guest removes their own anonymous story from the feed. Dreams stay on their own path. */
+/** The guest removes their own anonymous dream or story from the feed. */
 export async function DELETE(req: Request) {
   const guestId = readGuestId(req);
   if (!guestId) {
@@ -257,36 +257,43 @@ export async function DELETE(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as { sharedId?: string };
     const sharedId = s(body?.sharedId);
-    const owned = sharedId.startsWith(`guest_${guestId}_`) && /^guest_[0-9a-f-]{8,64}_[0-9a-f]{8}$/i.test(sharedId);
-    if (!owned) {
+    const legacy = sharedId === guestSharedDocId(guestId);
+    const matchesGuest = sharedId.startsWith(`guest_${guestId}_`) && /^guest_[0-9a-f-]{8,64}_[0-9a-f]{8}$/i.test(sharedId);
+    if (!legacy && !matchesGuest) {
       return finish(NextResponse.json({ ok: false, code: "FORBIDDEN" }, { status: 403 }));
     }
 
-    const ref = adminDb().collection("shared_dreams").doc(sharedId);
-    const snap = await ref.get();
-    if (!snap.exists) return finish(NextResponse.json({ ok: true }));
-    const data = snap.data() ?? {};
-    if (data.ownerGuestId !== guestId || data.sourceType !== "story") {
-      return finish(NextResponse.json({ ok: false, code: "FORBIDDEN" }, { status: 403 }));
-    }
-    if (data.deleted === true) return finish(NextResponse.json({ ok: true }));
+    const db = adminDb();
+    const ref = db.collection("shared_dreams").doc(sharedId);
+    const removed = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return true;
+      const data = snap.data() ?? {};
+      const isGuestEntry = data.sourceType === "dream" || data.sourceType === "story" ||
+        (legacy && data.sourceType == null);
+      if (data.ownerGuestId !== guestId || data.ownerUid || !isGuestEntry) return false;
+      if (data.deleted === true) return true;
 
-    const nowMs = Date.now();
-    await ref.update({
-      deleted: true,
-      deletedAtMs: nowMs,
-      deletedBy: "user",
-      title: "",
-      text: "",
-      wordCount: null,
-      charCount: null,
-      authorName: null,
-      authorEmail: null,
-      analysisText: "",
-      analysisHasMore: false,
-      analysisIsPreview: true,
-      updatedAt: FieldValue.serverTimestamp(),
+      tx.update(ref, {
+        deleted: true,
+        deletedAtMs: Date.now(),
+        deletedBy: "user",
+        title: "",
+        text: "",
+        wordCount: null,
+        charCount: null,
+        authorName: null,
+        authorEmail: null,
+        analysisText: "",
+        analysisHasMore: false,
+        analysisIsPreview: true,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return true;
     });
+    if (!removed) {
+      return finish(NextResponse.json({ ok: false, code: "FORBIDDEN" }, { status: 403 }));
+    }
     return finish(NextResponse.json({ ok: true }));
   } catch (e: unknown) {
     console.error(e);
