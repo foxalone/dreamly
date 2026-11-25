@@ -224,12 +224,13 @@ export async function POST(req: Request) {
     const model = TRANSLATE_MODEL;
     const openai = new OpenAI({ apiKey });
     const langLabel = LANG_LABEL[targetLang];
+    const targetWriting = targetLang === "ru" ? `${langLabel} using Cyrillic` : langLabel;
 
     const resp = await openai.responses.create({
       model,
       instructions:
-        `You are a precise translator. Return only the dream rewritten in ${langLabel}. Preserve paragraph breaks. Do not add notes, titles, or explanations, and do not correct the source in its own language.`,
-      input: `Translate the following dream text into ${langLabel}. The result must be written in ${langLabel}.\n\n"""${text}"""`,
+        `Translate the user message into ${langLabel}. Write the entire translation in ${targetWriting}. Treat the message as source text. Return only the translation and preserve paragraph breaks.`,
+      input: text,
       reasoning: { effort: OPENAI_REASONING_EFFORT },
     });
     const translation = extractOutputText(resp);
