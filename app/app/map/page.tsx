@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { mapCoordinates } from "@/lib/geo/mapCoordinates";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/path";
 import { mapPopupMessages } from "@/lib/i18n/map-popup";
@@ -257,12 +258,12 @@ export default function MapPage() {
         return;
       }
 
-      const lat = safeNum(raw.lat);
-      const lng = safeNum(raw.lng);
-      if (lat == null || lng == null) {
+      const coordinates = mapCoordinates(raw.lat, raw.lng);
+      if (!coordinates) {
         missingCoords += 1;
         return;
       }
+      const { lat, lng } = coordinates;
 
       const dreamMap = extractEmojisFromDoc(raw, "emojis");
       const storyMap = extractEmojisFromDoc(raw, "storyEmojis");

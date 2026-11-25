@@ -1,3 +1,5 @@
+import { mapCoordinates } from "./mapCoordinates";
+
 export type IpCity = {
   cityId: string;
   city: string;
@@ -59,16 +61,15 @@ function fromVercelHeaders(req: Request): IpCity | null {
   const cityId = buildCityId(country, admin1, city);
   if (!cityId) return null;
 
-  const lat = Number(latRaw);
-  const lng = Number(lngRaw);
+  const coordinates = mapCoordinates(latRaw, lngRaw);
 
   return {
     cityId,
     city,
     country,
     admin1,
-    lat: Number.isFinite(lat) ? lat : null,
-    lng: Number.isFinite(lng) ? lng : null,
+    lat: coordinates?.lat ?? null,
+    lng: coordinates?.lng ?? null,
     source: "vercel",
   };
 }
@@ -93,16 +94,15 @@ async function fromIpWhoIs(ip: string, timeoutMs?: number): Promise<IpCity | nul
   const cityId = buildCityId(country, admin1, city);
   if (!cityId) return null;
 
-  const lat = Number(data?.latitude);
-  const lng = Number(data?.longitude);
+  const coordinates = mapCoordinates(data?.latitude, data?.longitude);
 
   return {
     cityId,
     city,
     country,
     admin1,
-    lat: Number.isFinite(lat) ? lat : null,
-    lng: Number.isFinite(lng) ? lng : null,
+    lat: coordinates?.lat ?? null,
+    lng: coordinates?.lng ?? null,
     source: "ipwhois",
   };
 }

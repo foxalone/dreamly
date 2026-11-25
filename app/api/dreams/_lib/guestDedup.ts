@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
-import { FieldValue } from "firebase-admin/firestore";
+import type { Firestore } from "firebase-admin/firestore";
 
-import { adminDb } from "../../admin/_lib/firebaseAdmin";
 import { hashIp } from "./guestQuota";
 
 /**
@@ -12,16 +11,6 @@ import { hashIp } from "./guestQuota";
  */
 
 const COLLECTION = "guestAskDedup";
-
-export type GuestAskDedup = {
-  analysis?: string;
-  model?: string | null;
-  lens?: string | null;
-  emojis?: { native: string; id?: string; name?: string }[];
-  emojiModel?: string | null;
-  guestDreamId?: string | null;
-  createdAtMs?: number;
-};
 
 function utcDayKey(d = new Date()) {
   return d.toISOString().slice(0, 10);
@@ -36,15 +25,6 @@ export function guestAskDedupId(ip: string, text: string, dayKey = utcDayKey()) 
   return `${hashIp(ip)}_${dayKey}_${textHash}`;
 }
 
-export async function readGuestAskDedup(ip: string, text: string): Promise<GuestAskDedup | null> {
-  const snap = await adminDb().collection(COLLECTION).doc(guestAskDedupId(ip, text)).get();
-  return snap.exists ? (snap.data() as GuestAskDedup) : null;
-}
-
-/** Merge, so analyze (answer) and ingest-guest (guestDreamId) each add their part. */
-export async function writeGuestAskDedup(ip: string, text: string, data: GuestAskDedup) {
-  await adminDb()
-    .collection(COLLECTION)
-    .doc(guestAskDedupId(ip, text))
-    .set({ ...data, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+export function guestAskDedupRef(db: Firestore, ip: string, text: string, dayKey: string) {
+  return db.collection(COLLECTION).doc(guestAskDedupId(ip, text, dayKey));
 }

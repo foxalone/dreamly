@@ -1,12 +1,13 @@
 import { consumeAccountHouseAnalysis, finishAccountHouseAnalysis, recoverAccountHouseAnalysis } from "../_lib/accountHouseAd";
 // src/app/api/dreams/analyze/route.ts
 import { saveGuestDreamSnapshot } from "../_lib/guestDreamSnapshot";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getMissingOneiroOpenAiKeyMessage, getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
 import { DREAM_ANALYSIS_MODEL, OPENAI_REASONING_EFFORT } from "@/lib/aiModels";
 import { pickDreamEmojisAi } from "@/lib/pickDreamEmojisAi";
 import { pickDreamMapVisuals } from "@/lib/dream-map/pickDreamMapVisuals";
+import { ingestGuestDream } from "@/lib/map/ingestGuestDream";
 import { isDreamTooLong } from "@/lib/dreamLength";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { consumeAnalysisAccess, refundAdCredit, refundDreamSlot, refundFreeAnalysis } from "../_lib/subscription";
@@ -258,6 +259,13 @@ export async function POST(req: Request) {
         platform: requestDreamPlatform(req.headers), rewarded: androidReward || guestBooking?.charge === "ad",
       })
         .catch((error) => console.warn("Guest dream snapshot failed", error));
+      if (body.source === "android") {
+        const owner = guestId;
+        after(async () => {
+          await ingestGuestDream(req, owner, { text, analysis, lang, lens, emojis: dreamEmojis }, true)
+            .catch((error) => console.warn("Android guest dream map update failed", error));
+        });
+      }
     }
 
     // Every analysis paid with an ad credit grants its own icons. Free/plan

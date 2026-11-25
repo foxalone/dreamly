@@ -5,7 +5,9 @@
 // by the admin emoji regenerate for items that were never ingested.
 import admin from "firebase-admin";
 import { adminDb as adminFirestore } from "@/app/api/admin/_lib/firebaseAdmin";
+import { mapCoordinates } from "@/lib/geo/mapCoordinates";
 import type { IpCity } from "@/lib/geo/resolveIpCity";
+import { resolveMapCity } from "./resolveMapCity";
 
 export type SourceType = "dream" | "story";
 type DreamEmoji = { native: string; id?: string; name?: string };
@@ -46,16 +48,8 @@ async function resolveCityCoordsIfNeeded(baseUrl: string | null, cityId: string)
   try {
     const db = adminFirestore();
     const statsSnap = await db.collection("city_emoji_stats").doc(cityId).get();
-    const d = statsSnap.exists ? (statsSnap.data() as any) : null;
-
-    if (d && typeof d.lat === "number" && typeof d.lng === "number") return;
-
-    const url = new URL("/api/map/resolve-city", baseUrl);
-    fetch(url.toString(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cityId }),
-    }).catch(() => {});
+    const stats = statsSnap.data();
+    if (!mapCoordinates(stats?.lat, stats?.lng)) await resolveMapCity(cityId, db);
   } catch {
     // ignore
   }
@@ -68,8 +62,7 @@ function getItemCity(item: any): ResolvedCity {
   const city = s(itemCity?.city || item?.cityName || item?.cityLabel || item?.city);
   const country = s(itemCity?.country || item?.cityCountry || item?.country);
   const admin1 = s(itemCity?.admin1 || item?.cityAdmin1 || item?.admin1);
-  const lat = Number(itemCity?.lat ?? item?.lat);
-  const lng = Number(itemCity?.lng ?? item?.lng);
+  const coordinates = mapCoordinates(itemCity?.lat ?? item?.lat, itemCity?.lng ?? item?.lng);
 
   return {
     cityId,
@@ -77,8 +70,8 @@ function getItemCity(item: any): ResolvedCity {
     country,
     admin1,
     source: "item",
-    lat: Number.isFinite(lat) ? lat : null,
-    lng: Number.isFinite(lng) ? lng : null,
+    lat: coordinates?.lat ?? null,
+    lng: coordinates?.lng ?? null,
   };
 }
 
@@ -101,8 +94,7 @@ export function cityWriteFields(city: ResolvedCity) {
     country: city.country,
     admin1: city.admin1 || null,
     citySource: city.source,
-    ...(typeof city.lat === "number" ? { lat: city.lat } : {}),
-    ...(typeof city.lng === "number" ? { lng: city.lng } : {}),
+    ...mapCoordinates(city.lat, city.lng),
   };
 }
 
@@ -150,7 +142,7 @@ export async function ingestDreamServer(params: {
   skipCity?: boolean;
   /** City of the request that saved the dream; null → fall back to item / user city. */
   ipCity: (IpCity & { ip?: string }) | null;
-  /** Origin used to kick /api/map/resolve-city for missing coords. */
+  /** Existing callers pass a request URL to enable missing-coordinate resolution. */
   baseUrl: string | null;
   guestId?: string | null;
   /** Skip (no marker, no counters) when no city can be found anywhere. */
@@ -347,8 +339,7 @@ export async function ingestDreamServer(params: {
             admin1: resolvedCity.admin1,
             [totalKey]: admin.firestore.FieldValue.increment(1),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            ...(typeof resolvedCity.lat === "number" ? { lat: resolvedCity.lat } : {}),
-            ...(typeof resolvedCity.lng === "number" ? { lng: resolvedCity.lng } : {}),
+            ...mapCoordinates(resolvedCity.lat, resolvedCity.lng),
           },
           { merge: true }
         );
@@ -397,7 +388,9 @@ export async function ingestDreamServer(params: {
       });
     });
 
-    if (resolvedCity.cityId) resolveCityCoordsIfNeeded(params.baseUrl, resolvedCity.cityId);
+    if (resolvedCity.cityId && !mapCoordinates(resolvedCity.lat, resolvedCity.lng)) {
+      await resolveCityCoordsIfNeeded(params.baseUrl, resolvedCity.cityId);
+    }
 
 
     return {
@@ -463,8 +456,7 @@ export async function pinMissingCity(params: {
         admin1: city.admin1,
         [totalKey]: inc(1),
         updatedAt: now,
-        ...(typeof city.lat === "number" ? { lat: city.lat } : {}),
-        ...(typeof city.lng === "number" ? { lng: city.lng } : {}),
+        ...mapCoordinates(city.lat, city.lng),
       },
       { merge: true }
     );
@@ -476,7 +468,7 @@ export async function pinMissingCity(params: {
     tx.update(ingestRef, { cityId: city.cityId, cityCounted: true, cityPinnedLaterAtMs: Date.now() });
   });
 
-  resolveCityCoordsIfNeeded(params.baseUrl, city.cityId);
+  if (!mapCoordinates(city.lat, city.lng)) await resolveCityCoordsIfNeeded(params.baseUrl, city.cityId);
   return { ok: true, cityId: city.cityId };
 }
 
