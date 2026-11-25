@@ -77,9 +77,9 @@ export type ShareTextCheck = { ok: true } | { ok: false; reason: "too_short" | "
  * (no account behind it, so nobody to ask afterwards). Not a moderation
  * system: it only keeps out links, contact details and keyboard mashing.
  */
-export function checkShareableDreamText(text: unknown, maxChars: number): ShareTextCheck {
+export function checkShareableDreamText(text: unknown, maxChars: number, minChars = SHAREABLE_MIN_CHARS): ShareTextCheck {
   const s = String(text ?? "").trim();
-  if (s.length < SHAREABLE_MIN_CHARS) return { ok: false, reason: "too_short" };
+  if (s.length < minChars) return { ok: false, reason: "too_short" };
   if (s.length > maxChars) return { ok: false, reason: "too_long" };
   if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(s) || /(?:\+?\d[\s().-]?){8,}/.test(s) || /(^|\s)@[a-z0-9_]{3,}/i.test(s)) {
     return { ok: false, reason: "contact" };

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { DocumentData, Firestore, Transaction } from "firebase-admin/firestore";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { attemptEventDetails, appendAttemptEvent, analysisAttemptContext, analysisAttemptResult } from "@/lib/analysisAttempts";
 import { adminFirestore } from "@/lib/firebaseAdmin";
@@ -9,6 +10,30 @@ type AnalysisIdentity = { text: string; lang: string; lens: string; attemptId?: 
 
 function dailyAnalysisAttemptId(owner: string, input: AnalysisIdentity, now: number) {
   return createHash("sha256").update(JSON.stringify([owner, input.text, input.lang, input.lens, new Date(now).toISOString().slice(0, 10)])).digest("hex");
+}
+
+/** Older snapshots did not record how the interpretation was unlocked. */
+export async function guestSnapshotUsedReward(
+  db: Firestore, tx: Transaction, guestId: string, snapshot: DocumentData,
+): Promise<boolean> {
+  if (typeof snapshot.rewarded === "boolean") return snapshot.rewarded;
+  const { text, lang, lens, analysis, analysisAtMs } = snapshot;
+  if (typeof text !== "string" || typeof lang !== "string" || typeof lens !== "string" ||
+      typeof analysisAtMs !== "number" || !Number.isFinite(analysisAtMs)) return false;
+
+  // An analysis started before midnight can be stored on the next UTC day.
+  const attempts = await Promise.all([analysisAtMs, analysisAtMs - 86_400_000].map((time) => {
+    const id = dailyAnalysisAttemptId(`g:${guestId}`, { text, lang, lens }, time);
+    return tx.get(db.collection("analysis_attempts").doc(id));
+  }));
+  return attempts.some((attempt) => {
+    const row = attempt.data();
+    if (row?.guestId !== guestId || row.uid || row.status !== "succeeded" ||
+        row.text !== text || row.lang !== lang || row.lens !== lens || row.analysis !== analysis ||
+        typeof row.startedAtMs !== "number" || row.startedAtMs > analysisAtMs || !Array.isArray(row.events)) return false;
+    return row.events.some((event) => event?.source === "server" && event.event === "ad_credit_used" &&
+      typeof event.atMs === "number" && event.atMs >= row.startedAtMs && event.atMs <= analysisAtMs);
+  });
 }
 
 /** Read a previously prepared guest answer before another request can clear it or consume access. */

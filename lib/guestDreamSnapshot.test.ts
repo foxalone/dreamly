@@ -25,13 +25,15 @@ const reading = {
 test("successful guest readings are saved without a map city, separately for each dream", async () => {
   const { db, rows } = fixture();
   const first = await saveGuestDreamSnapshot(reading, db);
-  const second = await saveGuestDreamSnapshot({ ...reading, text: "A different dream" }, db);
+  const second = await saveGuestDreamSnapshot({ ...reading, text: "A different dream", rewarded: true }, db);
   assert.notEqual(first, second);
   assert.equal(rows.size, 2);
   assert.equal(rows.get(first)?.analysis, reading.analysis);
   assert.equal(rows.get(first)?.analysisModel, reading.model);
   assert.equal(rows.get(first)?.createdAtMs, reading.createdAtMs);
   assert.equal(rows.get(first)?.cityId, undefined);
+  assert.equal(rows.get(first)?.rewarded, false);
+  assert.equal(rows.get(second)?.rewarded, true);
   assert.equal(guestDreamSnapshotId(reading.guestId, ` ${reading.text} `), first);
 });
 

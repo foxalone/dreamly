@@ -10,9 +10,10 @@ import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { resolveIpCity } from "@/lib/geo/resolveIpCity";
 import { dreamPlatform, requestDreamPlatform } from "@/lib/dreamPlatform";
 import { getOneiroOpenAiApiKey } from "@/lib/openaiEnv";
-import { checkShareableDreamText, guestSharedDocId, guestSharedDreamDocId, shareBadgeFor } from "@/lib/shareBadges";
+import { checkShareableDreamText, guestSharedDocId, guestSharedDreamDocId, SHAREABLE_MIN_CHARS, shareBadgeFor } from "@/lib/shareBadges";
 import { DREAM_MAX_CHARS, isDreamTooLong } from "@/lib/dreamLength";
 import { adminDb } from "../../admin/_lib/firebaseAdmin";
+import { guestSnapshotUsedReward } from "../_lib/analysisAttempts";
 import { readClientIp, readGuestId, setGuestCookie } from "../_lib/guestQuota";
 
 export const runtime = "nodejs";
@@ -28,9 +29,8 @@ export const runtime = "nodejs";
  * shared_dreams/{uid}_{dreamId} (see ../claim-guest-share). Docs at the legacy
  * one-per-guest id guest_{guestId} still exist and still count.
  *
- * Guards: the guest must have used their reading (proves a real visitor, not a
- * script posting text), a cheap text check (no links / contacts / mashing),
- * and a per-IP daily cap.
+ * Dreams require a reading. Text checks apply to all shares, and ordinary
+ * guest shares count toward a per-IP daily cap.
  */
 
 const GUEST_SHARE_IP_DAILY_LIMIT = 3;
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     const isStory = sourceType === "story";
     const check = isDreamTooLong(text)
       ? ({ ok: false, reason: "too_long" } as const)
-      : checkShareableDreamText(text, DREAM_MAX_CHARS);
+      : checkShareableDreamText(text, DREAM_MAX_CHARS, isStory ? SHAREABLE_MIN_CHARS : 1);
     if (!check.ok) {
       return finish(NextResponse.json({ ok: false, code: "REJECTED", reason: check.reason }, { status: 422 }));
     }
@@ -128,15 +128,21 @@ export async function POST(req: Request) {
       // The pre-multi-share doc: the same text is the same share, a different
       // text does not block any more.
       if (legacySnap.exists && s(legacySnap.data()?.text) === text) return "already_legacy" as const;
+      const snapshot = snapshotSnap.data();
+      const snapshotAnalysis = s(snapshot?.text) === text ? cleanAnalysis(snapshot?.analysis) : "";
+      // Android rewarded readings are saved here without using the web reading counter.
+      const savedReading = snapshot?.guestId === guestId && snapshot.deleted !== true && snapshotAnalysis !== "";
+      if (text.length < SHAREABLE_MIN_CHARS && !savedReading) return "too_short" as const;
       // A recovered server-verified interpretation is also proof of a reading:
       // its failed ad charge was refunded, so the old used counter can be zero.
-      const recoveredReading = !isStory && snapshotSnap.data()?.analysis && snapshotSnap.data()?.recoveredFrom === "ai_rate_limited" && snapshotSnap.data()?.deleted !== true;
-      if (!isStory && !(Number(quotaSnap.data()?.used ?? 0) >= 1) && !recoveredReading) return "no_reading" as const;
-      if (Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT && !recoveredReading) return "ip_limit" as const;
-      const recoveredCity = recoveredReading && snapshotSnap.data()?.cityId
-        ? snapshotSnap.data() : null;
-      const snapshotText = s(snapshotSnap.data()?.text);
-      const snapshotAnalysis = snapshotText === text ? cleanAnalysis(snapshotSnap.data()?.analysis) : "";
+      const recoveredReading = !isStory && snapshot?.analysis && snapshot.recoveredFrom === "ai_rate_limited" && snapshot.deleted !== true;
+      if (!isStory && !(Number(quotaSnap.data()?.used ?? 0) >= 1) && !savedReading && !recoveredReading) {
+        return "no_reading" as const;
+      }
+      const countsTowardLimit = !recoveredReading &&
+        (isStory || !savedReading || !await guestSnapshotUsedReward(db, tx, guestId, snapshot));
+      if (countsTowardLimit && Number(ipSnap.data()?.used ?? 0) >= GUEST_SHARE_IP_DAILY_LIMIT) return "ip_limit" as const;
+      const recoveredCity = recoveredReading && snapshot?.cityId ? snapshot : null;
 
       tx.set(sharedRef, {
         ownerUid: null,
@@ -185,7 +191,7 @@ export async function POST(req: Request) {
           updatedAtMs: nowMs,
         });
       }
-      if (!recoveredReading) {
+      if (countsTowardLimit) {
         tx.set(
           ipRef,
           { used: FieldValue.increment(1), dayKey: dateKey, lastAt: FieldValue.serverTimestamp() },
@@ -203,6 +209,9 @@ export async function POST(req: Request) {
     }
     if (outcome === "no_reading") {
       return finish(NextResponse.json({ ok: false, code: "NO_READING" }, { status: 403 }));
+    }
+    if (outcome === "too_short") {
+      return finish(NextResponse.json({ ok: false, code: "REJECTED", reason: "too_short" }, { status: 422 }));
     }
     if (outcome === "ip_limit") {
       return finish(NextResponse.json({ ok: false, code: "IP_LIMIT" }, { status: 429 }));

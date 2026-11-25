@@ -12,7 +12,7 @@ export function guestDreamSnapshotId(guestId: string, text: string) {
 export async function saveGuestDreamSnapshot(input: {
   guestId: string; text: string; analysis: string; model: string; lens: string;
   lang: string; emojis: { native?: string; id?: string; name?: string }[];
-  createdAtMs?: number; platform?: DreamPlatform;
+  createdAtMs?: number; platform?: DreamPlatform; rewarded?: boolean;
 }, db: Firestore = adminFirestore()) {
   const ref = db.collection("guest_dreams").doc(guestDreamSnapshotId(input.guestId, input.text));
   const now = input.createdAtMs ?? Date.now();
@@ -22,7 +22,7 @@ export async function saveGuestDreamSnapshot(input: {
     tx.set(ref, {
       guestId: input.guestId, sourceType: "guest", text: input.text.trim(),
       analysis: input.analysis, analysisModel: input.model, lens: input.lens,
-      lang: input.lang, emojis: input.emojis, analysisAtMs: now,
+      lang: input.lang, emojis: input.emojis, analysisAtMs: now, rewarded: input.rewarded === true,
       ...(platform ? { platform } : {}),
       ...(!existing.exists ? {
         createdAtMs: now, createdAt: FieldValue.serverTimestamp(),

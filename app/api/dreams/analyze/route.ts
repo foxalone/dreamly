@@ -253,7 +253,10 @@ export async function POST(req: Request) {
     const dreamEmojis = emojiPick?.emojis?.length ? emojiPick.emojis : fallbackEmojis.length ? fallbackEmojis : [{ native: "💭" }];
 
     if (isGuest && guestId) {
-      await saveGuestDreamSnapshot({ guestId, text, analysis, model, lens, lang, emojis: dreamEmojis, platform: requestDreamPlatform(req.headers) })
+      await saveGuestDreamSnapshot({
+        guestId, text, analysis, model, lens, lang, emojis: dreamEmojis,
+        platform: requestDreamPlatform(req.headers), rewarded: androidReward || guestBooking?.charge === "ad",
+      })
         .catch((error) => console.warn("Guest dream snapshot failed", error));
     }
 
