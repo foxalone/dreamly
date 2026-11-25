@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import DreamTranslationFeedback from "@/app/components/DreamTranslationFeedback";
 import DreamImageButton from "@/app/components/DreamImageButton";
 import { PRIMARY_ADMIN_UID } from "@/lib/auth/adminUid";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
@@ -24,6 +25,8 @@ import { auth, firestore } from "@/lib/firebase";
 import { peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
 import { hasJapaneseKana } from "@/lib/i18n/jaLanguage";
+import { authMessages } from "@/lib/i18n/auth";
+import { dreamTranslationFeedbackCopy } from "@/lib/i18n/dream-translation-feedback";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { localePath } from "@/lib/i18n/path";
 import { analysisPreview } from "@/lib/analysisPreview";
@@ -271,6 +274,7 @@ export default function SharedPage() {
     Record<string, string>
   >({});
   const [translateBusyId, setTranslateBusyId] = useState<string | null>(null);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   // dream ids + langs this user already paid for ("<dreamId>:<lang>") — the
   // cached text on shared_dreams is shared, but each user unlocks it once.
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set());
@@ -836,7 +840,7 @@ export default function SharedPage() {
 
     if (translateBusyId) return;
 
-    setError(null);
+    setTranslationError(null);
     setTranslateBusyId(d.id);
 
     try {
@@ -854,6 +858,7 @@ export default function SharedPage() {
       });
 
       const data = await res.json().catch(() => ({}));
+      if (translationContextRef.current !== requestContext) return;
       if (!res.ok) {
         if (data?.code === "GUEST_AD_REQUIRED" || (!u && res.status === 402)) {
           // Guest: sign in (one free translation a day, and the
@@ -871,7 +876,7 @@ export default function SharedPage() {
                   pendingAfterSignInRef.current = null;
                   // popup closed by the user is not an error worth showing
                   if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
-                    setError(e?.message ?? "Sign-in failed.");
+                    setTranslationError(authMessages[locale].failed);
                   }
                 });
               },
@@ -890,10 +895,9 @@ export default function SharedPage() {
         throw new Error(data?.error ?? "Translate failed");
       }
 
-      const translation = String(data?.translation ?? "").trim();
-      if (!translation) throw new Error((japanese ? "翻訳結果が取得できませんでした。" : "Empty translation"));
+      const translation = typeof data.translation === "string" ? data.translation.trim() : "";
+      if (!translation) throw new Error("Empty translation");
 
-      if (translationContextRef.current !== requestContext) return;
       rememberShowOriginal(d.id, false);
       setShowingTranslation((prev) => ({ ...prev, [d.id]: translation }));
       setFetchedTranslations((prev) => ({ ...prev, [key]: translation }));
@@ -902,8 +906,8 @@ export default function SharedPage() {
         next.add(key);
         return next;
       });
-    } catch (e: any) {
-      setError(e?.message ?? (japanese ? "翻訳できませんでした。もう一度お試しください。" : "Failed to translate."));
+    } catch {
+      if (translationContextRef.current === requestContext) setTranslationError(dreamTranslationFeedbackCopy[locale].tryAgain);
     } finally {
       setTranslateBusyId(null);
     }
@@ -913,6 +917,7 @@ export default function SharedPage() {
 
   return (
     <main className="relative min-h-screen px-6 pt-4 pb-10 max-w-3xl mx-auto">
+      <DreamTranslationFeedback active={translateBusyId !== null} error={translationError} onClose={() => setTranslationError(null)} />
       <div>
         <h1 className="sr-only">{(japanese ? "みんなの夢" : "Feed")}</h1>
 

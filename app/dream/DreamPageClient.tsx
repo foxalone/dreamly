@@ -28,10 +28,13 @@ import { ensureUserProfileOnSignIn } from "@/lib/auth/ensureUserProfile";
 import { signInWithOptions } from "@/lib/auth/signInWithOptions";
 import { auth, firestore } from "@/lib/firebase";
 import AnalysisExcerpt from "@/app/components/AnalysisExcerpt";
+import DreamTranslationFeedback from "@/app/components/DreamTranslationFeedback";
 import { analysisPreview } from "@/lib/analysisPreview";
 import { cleanAnalysis } from "@/lib/publicDreamAnalysis";
 import { setAdUnlockPending, takeAdUnlockPending } from "@/lib/adUnlock";
 import { openPaywall } from "@/lib/paywall";
+import { authMessages } from "@/lib/i18n/auth";
+import { dreamTranslationFeedbackCopy } from "@/lib/i18n/dream-translation-feedback";
 import { useLocale, useMessages } from "@/lib/i18n/LocaleProvider";
 import { formatMessage } from "@/lib/i18n/messages";
 import LocaleLink from "@/lib/i18n/LocaleLink";
@@ -183,6 +186,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
   const [translation, setTranslation] = useState<{ dreamId: string; lang: TranslationLanguage; text: string } | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
   const [translateBusy, setTranslateBusy] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const currentTranslation = translation?.dreamId === dream.id && translation.lang === targetLang ? translation.text : null;
   const translated = showTranslation && !!currentTranslation;
   const translateRef = useRef<(lang?: TranslationLanguage) => Promise<void>>(async () => {});
@@ -399,7 +403,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
     }
     if (translateBusy) return;
 
-    setError(null);
+    setTranslationError(null);
     setTranslateBusy(true);
     try {
       const u = auth.currentUser;
@@ -430,7 +434,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                 signInWithOptions().catch((e) => {
                   pendingAfterSignInRef.current = null;
                   if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
-                    setError(e?.message ?? "Sign-in failed.");
+                    setTranslationError(authMessages[locale].failed);
                   }
                 });
               },
@@ -451,13 +455,13 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
         }
         throw new Error(data?.error ?? "Translate failed");
       }
-      const next = String(data?.translation ?? "").trim();
+      const next = typeof data.translation === "string" ? data.translation.trim() : "";
       if (!next) throw new Error("Empty translation");
       setTranslation({ dreamId: dream.id, lang, text: next });
       rememberOriginal(uid, lang, dream.id, false);
       setShowTranslation(true);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to translate.");
+    } catch {
+      setTranslationError(dreamTranslationFeedbackCopy[locale].tryAgain);
     } finally {
       setTranslateBusy(false);
     }
@@ -479,7 +483,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       return;
     }
 
-    setError(null);
+    setTranslationError(null);
     setAnalysisTranslateBusy(true);
     try {
       const user = auth.currentUser;
@@ -506,7 +510,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                 signInWithOptions().catch((error) => {
                   pendingAfterSignInRef.current = null;
                   if (error?.code !== "auth/popup-closed-by-user" && error?.code !== "auth/cancelled-popup-request") {
-                    setError(error?.message ?? "Sign-in failed.");
+                    setTranslationError(authMessages[locale].failed);
                   }
                 });
               },
@@ -532,8 +536,8 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       setAnalysisTranslation({ dreamId: dream.id, lang, scope, text: next });
       analysisManualChoice.current = true;
       setShowAnalysisTranslation(true);
-    } catch (error: unknown) {
-      setError(t.dreamPage.analysisTranslationFailed);
+    } catch {
+      setTranslationError(t.dreamPage.analysisTranslationFailed);
     } finally {
       setAnalysisTranslateBusy(false);
     }
@@ -548,7 +552,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       setCommentTranslations((current) => ({ ...current, [commentId]: { ...previous, visible: !previous.visible } }));
       return;
     }
-    setError(null);
+    setTranslationError(null);
     setCommentTranslateBusyId(commentId);
     try {
       const user = auth.currentUser;
@@ -577,7 +581,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
                   pendingAfterSignInRef.current = null;
                   pendingCommentTranslationRef.current = null;
                   if (error?.code !== "auth/popup-closed-by-user" && error?.code !== "auth/cancelled-popup-request") {
-                    setError(error?.message ?? t.dreamPage.commentTranslationFailed);
+                    setTranslationError(authMessages[locale].failed);
                   }
                 });
               },
@@ -592,7 +596,7 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
       if (!next) throw new Error(t.dreamPage.commentTranslationFailed);
       setCommentTranslations((current) => ({ ...current, [commentId]: { lang, text: next, visible: true } }));
     } catch {
-      setError(t.dreamPage.commentTranslationFailed);
+      setTranslationError(t.dreamPage.commentTranslationFailed);
     } finally {
       setCommentTranslateBusyId(null);
     }
@@ -865,6 +869,11 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
 
   return (
     <main className="relative min-h-screen px-6 pt-4 pb-10 max-w-3xl mx-auto">
+      <DreamTranslationFeedback
+        active={translateBusy || analysisTranslateBusy || commentTranslateBusyId !== null}
+        error={translationError}
+        onClose={() => setTranslationError(null)}
+      />
       <div className="mb-3">
         <LocaleLink href="/app/shared" className="text-sm text-[var(--muted)] hover:text-[var(--text)] transition">
           ← {t.dreamPage.backToFeed}
@@ -1032,9 +1041,9 @@ export default function DreamPageClient({ dream, more }: { dream: PublicSharedDr
               const cTranslation = commentTranslations[c.id];
               const cTranslated = cTranslation?.lang === targetLang && cTranslation.visible;
               const cBusy = commentTranslateBusyId === c.id;
-              const cTranslateLabel = cTranslated
-                ? t.profile.showOriginal
-                : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
+              const cTranslateLabel = cBusy
+                ? t.profile.translating
+                : cTranslated ? t.profile.showOriginal : formatMessage(t.profile.translateTo, { language: targetLang.toUpperCase() });
               return (
                 <div key={c.id} className="p-4 rounded-2xl bg-[var(--card)] border border-white/10">
                   <div className="flex items-center justify-between gap-3">

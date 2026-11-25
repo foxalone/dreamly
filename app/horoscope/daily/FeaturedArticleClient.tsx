@@ -1,6 +1,7 @@
 "use client";
 
 import AdWaitBar from "@/app/components/AdWaitBar";
+import DreamTranslationFeedback from "@/app/components/DreamTranslationFeedback";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
@@ -10,6 +11,7 @@ import { clearOfferwallEntitlement, navigateToAd } from "@/lib/adUnlock";
 import { localePath } from "@/lib/i18n/path";
 import type { Locale } from "@/lib/i18n/config";
 import { featuredCopy } from "@/lib/i18n/featured-horoscope";
+import { dreamTranslationFeedbackCopy } from "@/lib/i18n/dream-translation-feedback";
 import { horoscopeCopy } from "@/lib/i18n/horoscope";
 import { type FeaturedForecast } from "@/lib/featuredHoroscope";
 import type { FeaturedDreamRecommendation } from "@/lib/featuredDreamRecommendations";
@@ -31,6 +33,8 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
   const [targetLang, setTargetLang] = useState<keyof typeof TRANSLATION_LANGUAGES>("en");
   const [locked, setLocked] = useState<Locked>(null);
   const [busy, setBusy] = useState(false);
+  const [translationBusy, setTranslationBusy] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const [preparingAd, setPreparingAd] = useState(false);
   const [error, setError] = useState(false);
   const [purchasePurpose, setPurchasePurpose] = useState<"read" | "translate" | null>(null);
@@ -49,16 +53,21 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
 
   const translate = useCallback(async (account: User | null, lang: typeof targetLang) => {
     if (lang === "en") return;
-    setBusy(true); setError(false);
+    setTranslationBusy(true);
+    setTranslationError(null);
     try {
       const response = await fetch("/api/featured-horoscope/translate", { method: "POST", headers: await headersFor(account), body: JSON.stringify({ day: forecast.day, lang }) });
       if (response.status === 402) { setLocked("translate"); return; }
       if (!response.ok) throw new Error("Translation failed");
-      const data = await response.json() as { translation: Content };
+      const data = await response.json() as { translation?: Content };
+      if (!data.translation?.opening?.trim()) throw new Error("Empty translation");
       setTranslated(data.translation); setLocked(null);
-    } catch { setError(true); }
-    finally { setBusy(false); }
-  }, [forecast.day, headersFor]);
+    } catch {
+      setTranslationError(dreamTranslationFeedbackCopy[locale].tryAgain);
+    } finally {
+      setTranslationBusy(false);
+    }
+  }, [forecast.day, headersFor, locale]);
 
   const readForecast = useCallback(async (account: User | null, signal: AbortSignal) => {
     setBusy(true); setError(false);
@@ -119,8 +128,10 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
     };
   }, [rewardDeadline, user, readForecast]);
 
+  const actionBusy = busy || translationBusy;
+
   async function watchAd(purpose: "read" | "translate") {
-    if (busy) return;
+    if (actionBusy) return;
     setPreparingAd(true);
     if (purpose === "read" && user === null) trackEvent("rewarded_video_click", { feature: "featured_forecast", provider: "google", locale });
     setBusy(true); setError(false);
@@ -146,6 +157,7 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
   const content: Content | null = translated ?? full;
   return (
     <main className="min-h-screen bg-[#090714] text-white">
+      <DreamTranslationFeedback active={translationBusy} error={translationError} onClose={() => setTranslationError(null)} />
       <div className="mx-auto max-w-4xl px-5 pb-20 pt-8 sm:px-8">
         <Link href={localePath("/app/shared", locale)} className="inline-flex items-center gap-2 text-sm text-violet-200 hover:text-white"><ArrowLeft size={16} aria-hidden />{t.feedTag}</Link>
         <div className="relative mt-7 overflow-hidden rounded-[2rem] border border-violet-300/20 bg-[radial-gradient(circle_at_80%_8%,rgba(159,111,255,.35),transparent_35%),linear-gradient(145deg,#21143d,#100d22_62%,#171026)] p-7 shadow-[0_25px_80px_rgba(60,30,110,.35)] sm:p-12">
@@ -165,15 +177,15 @@ export default function FeaturedArticleClient({ forecast, locale, dreams = [] }:
             <Sparkles className="mx-auto text-violet-300" size={28} aria-hidden />
             <p className="mt-4 text-lg font-medium">{t.locked}</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button type="button" disabled={busy} onClick={() => void watchAd("read")} className="inline-flex items-center gap-2 rounded-full bg-violet-400 px-5 py-3 font-semibold text-[#120c24] disabled:opacity-60"><Play size={17} aria-hidden />{t.watchAd}</button>
+              <button type="button" disabled={actionBusy} onClick={() => void watchAd("read")} className="inline-flex items-center gap-2 rounded-full bg-violet-400 px-5 py-3 font-semibold text-[#120c24] disabled:opacity-60"><Play size={17} aria-hidden />{t.watchAd}</button>
               <Link href={localePath("/app/upgrade", locale)} onClick={() => trackEvent("rewarded_purchase_click", { feature: "featured_forecast", locale })} className="inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-3 font-semibold text-white">{t.subscribe}<ArrowUpRight size={17} aria-hidden /></Link>
             </div>
           </div>
         ) : null}
 
         {full ? <>
-          {targetLang !== "en" && rewardDeadline === null ? <div className="mt-8 flex justify-end"><button type="button" disabled={busy} onClick={() => translated ? setTranslated(null) : void translate(user ?? null, targetLang)} className="inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-2 text-sm font-semibold text-violet-100 disabled:opacity-60"><Languages size={16} aria-hidden />{translated ? t.showEnglish : t.translate.replace("{language}", TRANSLATION_LANGUAGES[targetLang])}</button></div> : null}
-          {locked === "translate" ? <div className="mt-4 rounded-2xl border border-violet-300/25 bg-[#18122d] p-5"><p>{t.translateLocked}</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => void watchAd("translate")} className="rounded-full bg-violet-400 px-4 py-2 font-semibold text-[#120c24]">{t.watchAd}</button><Link href={localePath("/app/upgrade", locale)} className="rounded-full border border-white/25 px-4 py-2 font-semibold">{t.subscribe}</Link></div></div> : null}
+          {targetLang !== "en" && rewardDeadline === null ? <div className="mt-8 flex justify-end"><button type="button" disabled={actionBusy} aria-busy={translationBusy} onClick={() => translated ? setTranslated(null) : void translate(user ?? null, targetLang)} className="inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-2 text-sm font-semibold text-violet-100 disabled:opacity-60"><Languages size={16} aria-hidden />{translated ? t.showEnglish : t.translate.replace("{language}", TRANSLATION_LANGUAGES[targetLang])}</button></div> : null}
+          {locked === "translate" ? <div className="mt-4 rounded-2xl border border-violet-300/25 bg-[#18122d] p-5"><p>{t.translateLocked}</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={actionBusy} onClick={() => void watchAd("translate")} className="rounded-full bg-violet-400 px-4 py-2 font-semibold text-[#120c24]">{t.watchAd}</button><Link href={localePath("/app/upgrade", locale)} className="rounded-full border border-white/25 px-4 py-2 font-semibold">{t.subscribe}</Link></div></div> : null}
           <article className="mt-5 space-y-5" lang={translated ? targetLang : "en"} dir={translated && (targetLang === "ar" || targetLang === "he") ? "rtl" : "ltr"}>
             <section className="rounded-3xl border border-white/10 bg-white/[.045] p-6 text-lg leading-8 text-white/85 sm:p-9"><p>{content?.opening}</p></section>
             <div className="grid gap-5 md:grid-cols-3">
