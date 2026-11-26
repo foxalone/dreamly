@@ -12,7 +12,8 @@ const AD_SESSION_MS = 8 * MINUTE;
 const IMAGE_LIMIT_BYTES = 700_000;
 const WEB_REWARD_DAILY_LIMIT = 3;
 
-type Platform = "web" | "android";
+type MobilePlatform = "android" | "ios";
+type Platform = "web" | MobilePlatform;
 type Job = {
   state?: "working" | "saved" | "failed"; rewarded?: boolean; rewardedAt?: number;
   leaseUntil?: number; runId?: string; attemptedAt?: number; confirmationUntil?: number;
@@ -28,8 +29,8 @@ export function validImageId(id: unknown): id is string {
   return typeof id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(id);
 }
 
-export function imageAdUnit() {
-  const unit = process.env.ADMOB_DREAM_IMAGE_REWARDED_UNIT_ID?.trim();
+export function imageAdUnit(platform: MobilePlatform = "android") {
+  const unit = (platform === "ios" ? process.env.ADMOB_IOS_DREAM_IMAGE_REWARDED_UNIT_ID : process.env.ADMOB_DREAM_IMAGE_REWARDED_UNIT_ID)?.trim();
   return unit && /^ca-app-pub-\d{16}\/\d+$/.test(unit)
     && !unit.startsWith("ca-app-pub-3940256099942544/") ? unit : null;
 }
@@ -45,7 +46,12 @@ export function matchesWebImageAttempt(attempt: Attempt | undefined, uid: string
 }
 
 export function matchesAndroidImageAttempt(attempt: Attempt | undefined, uid: string, id: string, now: number, scope: ImageScope) {
-  return attempt?.platform === "android" && (attempt.scope ?? "journal") === scope && attempt.uid === uid && attempt.dreamId === id
+  return attempt?.platform === "android" && matchesMobileImageAttempt(attempt, uid, id, now, scope);
+}
+
+function matchesMobileImageAttempt(attempt: Attempt | undefined, uid: string, id: string, now: number, scope: ImageScope) {
+  return (attempt?.platform === "android" || attempt?.platform === "ios")
+    && (attempt.scope ?? "journal") === scope && attempt.uid === uid && attempt.dreamId === id
     && attempt.issuedAt <= now && attempt.expiresAt > now;
 }
 
@@ -171,8 +177,8 @@ export async function createImageAttempt(uid: string, id: string, platform: Plat
     const state = dreamImageState(current, now);
     if (current?.rewarded || state === "awaiting-confirmation") return { state };
     const webPath = platform === "web" ? imageWebAdPath() : null;
-    const androidUnit = provider === "petal" ? petalRewardUnit : imageAdUnit;
-    const unit = platform === "android" ? androidUnit() : webPath;
+    const unit = platform === "web" ? webPath
+      : platform === "android" && provider === "petal" ? petalRewardUnit() : imageAdUnit(platform);
     if (!process.env.FAL_KEY?.trim() || !unit) throw new DreamImageError("AD_UNAVAILABLE", 503);
     const budget = dailyBudget(now);
     if (current?.state !== "saved" && Number((await tx.get(budget.ref)).data()?.count ?? 0) >= budget.limit) {
@@ -210,7 +216,7 @@ export async function markImageAdPlayed(uid: string, id: string, attemptId: stri
     const [session, image] = await tx.getAll(attempt, job);
     const issued = session.data() as Attempt | undefined;
     const now = Date.now();
-    if (!matchesAndroidImageAttempt(issued, uid, id, now, scope)) {
+    if (!matchesMobileImageAttempt(issued, uid, id, now, scope)) {
       throw new DreamImageError("AD_UNVERIFIED", 403);
     }
     if (!image.data()?.rewarded && !session.data()?.playedAt) {

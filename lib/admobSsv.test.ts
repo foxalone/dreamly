@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
 import test from "node:test";
-import { adMobTimestampMs, verifyAdMobCallback } from "./admobSsv";
+import { adMobTimestampMs, configuredAdMobUnit, matchesAdMobUnit, verifyAdMobCallback } from "./admobSsv";
 
 const { publicKey, privateKey } = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
 const pem = publicKey.export({ format: "pem", type: "spki" }).toString();
@@ -46,4 +46,30 @@ test("normalizes callback timestamps to milliseconds", () => {
   assert.equal(adMobTimestampMs("1780000000000"), 1780000000000);
   assert.equal(adMobTimestampMs("1780000000000123"), 1780000000000);
   assert.ok(Number.isNaN(adMobTimestampMs("1780000000")));
+});
+
+test("iOS and Android rewarded callbacks require the unit configured for their own platform", () => {
+  const androidKey = "ADMOB_ANALYSIS_REWARDED_UNIT_ID";
+  const iosKey = "ADMOB_IOS_REWARDED_UNIT_ID";
+  const originalAndroid = process.env[androidKey];
+  const originalIOS = process.env[iosKey];
+  try {
+    const android = "ca-app-pub-1111222233334444/100";
+    const ios = "ca-app-pub-1111222233334444/200";
+    process.env[androidKey] = android;
+    delete process.env[iosKey];
+    assert.equal(configuredAdMobUnit(), android);
+    assert.equal(configuredAdMobUnit("ios"), null);
+    process.env[iosKey] = ios;
+    assert.equal(configuredAdMobUnit("ios"), ios);
+    assert.equal(matchesAdMobUnit("200", configuredAdMobUnit("ios")), true);
+    assert.equal(matchesAdMobUnit(ios, configuredAdMobUnit("ios")), true);
+    assert.equal(matchesAdMobUnit("100", configuredAdMobUnit("ios")), false);
+    assert.equal(matchesAdMobUnit(ios, configuredAdMobUnit()), false);
+  } finally {
+    if (originalAndroid === undefined) delete process.env[androidKey];
+    else process.env[androidKey] = originalAndroid;
+    if (originalIOS === undefined) delete process.env[iosKey];
+    else process.env[iosKey] = originalIOS;
+  }
 });

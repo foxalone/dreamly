@@ -1,4 +1,4 @@
-import { adMobTimestampMs, configuredAdMobUnit, verifyAdMobCallback } from "@/lib/admobSsv";
+import { adMobTimestampMs, configuredAdMobUnit, matchesAdMobUnit, verifyAdMobCallback } from "@/lib/admobSsv";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { ANDROID_AD_REDEMPTION_MS } from "../../_lib/androidReward";
 import { adminDb } from "../../../admin/_lib/firebaseAdmin";
@@ -9,8 +9,9 @@ import { grantAdReward } from "../../_lib/subscription";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
-  const unit = configuredAdMobUnit();
-  if (!unit) return new Response(null, { status: 503 });
+  const androidUnit = configuredAdMobUnit();
+  const iosUnit = configuredAdMobUnit("ios");
+  if (!androidUnit && !iosUnit) return new Response(null, { status: 503 });
   try {
     const params = await verifyAdMobCallback(req.url);
     if (!params) return new Response(null, { status: 400 });
@@ -20,7 +21,9 @@ export async function GET(req: Request) {
     if (adUnit === "1234567890" && sessionId === null && !params.has("user_id")) {
       return new Response(null, { status: 200 });
     }
-    if (adUnit !== unit && adUnit !== unit.split("/")[1]) return new Response(null, { status: 400 });
+    if (![androidUnit, iosUnit].some(unit => matchesAdMobUnit(adUnit, unit))) {
+      return new Response(null, { status: 400 });
+    }
 
     if (!validRewardId(sessionId)) return new Response(null, { status: 200 });
     const transactionId = params.get("transaction_id");
@@ -33,7 +36,9 @@ export async function GET(req: Request) {
     const db = adminDb();
     const ref = db.collection("androidAnalysisRewards").doc(sessionId);
     const session = (await ref.get()).data();
-    if (!session || session.unit !== unit || session.state !== "pending" ||
+    const unit = session?.platform === "ios" ? iosUnit : androidUnit;
+    if (!session || !unit || session.unit !== unit || !matchesAdMobUnit(adUnit, unit) ||
+        session.state !== "pending" ||
         time < session.createdAtMs - 60_000 || time > session.adDeadlineMs ||
         Date.now() > session.expiresAt.toMillis()) {
       return new Response(null, { status: 200 });

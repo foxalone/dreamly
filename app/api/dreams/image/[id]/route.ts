@@ -46,7 +46,7 @@ export async function POST(request: Request, context: Context) {
   if ("error" in user) return user.error;
   try {
     const body = await request.json().catch(() => null);
-    if (body?.action === "attempt" && (body.platform === "web" || body.platform === "android")) {
+    if (body?.action === "attempt" && (body.platform === "web" || body.platform === "android" || body.platform === "ios")) {
       const provider = body.adProvider === "petal" ? "petal" : undefined;
       return reply(await createImageAttempt(user.uid, user.id, body.platform, user.scope, provider));
     }

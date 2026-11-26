@@ -12,7 +12,7 @@ export class AndroidRewardRequest extends Request {}
 // Created in the AppGallery endpoint. Regular analysis quotas still apply.
 export class AppGalleryAnalysisRequest extends Request {}
 
-export function androidRewardTarget(body: Record<string, unknown>) {
+export function androidRewardTarget(body: Record<string, unknown>, platform: "android" | "ios" = "android") {
   switch (body.rewardAction) {
     case "analysis": {
       const id = readingDreamId(body.dreamId);
@@ -21,7 +21,7 @@ export function androidRewardTarget(body: Record<string, unknown>) {
       if (!id || !text || isDreamTooLong(text) || language.length > 16) return null;
       const lens = parseDreamLens(body.lens);
       const fingerprint = createHash("sha256").update(JSON.stringify([id, text, language, lens])).digest("hex");
-      return { action: "analysis", key: fingerprint, payload: { dreamId: id, text, lang: language, lens, source: "android" } } as const;
+      return { action: "analysis", key: fingerprint, payload: { dreamId: id, text, lang: language, lens, source: platform } } as const;
     }
     case "reading": {
       const id = readingDreamId(body.sharedDreamId);

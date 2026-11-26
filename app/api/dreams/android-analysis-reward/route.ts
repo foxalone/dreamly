@@ -17,8 +17,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
-    const petal = body.adProvider === "petal";
-    const unit = petal ? petalRewardUnit() : configuredAdMobUnit();
+    const platform = body.platform === "ios" ? "ios" : "android";
+    const petal = platform === "android" && body.adProvider === "petal";
+    const unit = petal ? petalRewardUnit() : configuredAdMobUnit(platform);
     if (!unit || (petal && body.sessionId == null && body.rewardAction == null)) {
       return NextResponse.json({ code: "AD_UNAVAILABLE" }, { status: 503 });
     }
@@ -28,8 +29,8 @@ export async function POST(req: Request) {
       if ("error" in auth) return auth.error;
       uid = auth.uid;
     }
-    const target = body.rewardAction == null ? null : androidRewardTarget(body);
-    if (body.rewardAction != null && !target) {
+    const target = body.rewardAction == null ? null : androidRewardTarget(body, platform);
+    if (!target && (body.rewardAction != null || (platform === "ios" && body.sessionId == null))) {
       return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
     }
     const existingGuestId = uid ? null : readGuestId(req);
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     if (body.sessionId != null) {
       if (!validRewardId(body.sessionId)) return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
       const session = (await sessions.doc(body.sessionId).get()).data();
-      if (!session || session.uid !== uid || session.guestId !== guestId) {
+      if (!session || session.uid !== uid || session.guestId !== guestId || (session.platform ?? "android") !== platform) {
         return NextResponse.json({ code: "AD_SESSION_NOT_FOUND" }, { status: 404 });
       }
       const expired = session.state === "pending" ? session.adDeadlineMs < now
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
       }
       const sessionId = randomUUID();
       await sessions.doc(sessionId).create({
-        uid, guestId, unit, rewardTarget: { action: target.action, key: target.key },
+        uid, guestId, unit, platform, rewardTarget: { action: target.action, key: target.key },
         state: "pending", createdAtMs: now, adDeadlineMs: now + 15 * 60_000,
         expiresAt: Timestamp.fromMillis(now + 48 * 60 * 60_000),
       });

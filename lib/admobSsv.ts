@@ -59,8 +59,8 @@ export async function verifyAdMobCallback(
   return null;
 }
 
-export function configuredAdMobUnit() {
-  const unit = process.env.ADMOB_ANALYSIS_REWARDED_UNIT_ID?.trim();
+export function configuredAdMobUnit(platform: "android" | "ios" = "android") {
+  const unit = (platform === "ios" ? process.env.ADMOB_IOS_REWARDED_UNIT_ID : process.env.ADMOB_ANALYSIS_REWARDED_UNIT_ID)?.trim();
   return unit && /^ca-app-pub-\d{16}\/\d+$/.test(unit) && !unit.startsWith("ca-app-pub-3940256099942544/") ? unit : null;
 }
 
@@ -68,4 +68,8 @@ export function adMobTimestampMs(value: string | null) {
   if (!value || !/^\d{13}(?:\d{3})?$/.test(value)) return NaN;
   // The Google parameter table specifies milliseconds but also gives a microsecond example.
   return value.length === 16 ? Math.floor(Number(value) / 1000) : Number(value);
+}
+
+export function matchesAdMobUnit(value: string | null, configured: string | null): boolean {
+  return configured !== null && (value === configured || value === configured.split("/")[1]);
 }

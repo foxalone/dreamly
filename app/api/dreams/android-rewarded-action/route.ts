@@ -19,7 +19,8 @@ const handlers = { analysis: analyze, reading: readAnalysis, translation: transl
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-    const target = body && typeof body === "object" ? androidRewardTarget(body) : null;
+    const platform = body?.platform === "ios" ? "ios" : "android";
+    const target = body && typeof body === "object" ? androidRewardTarget(body, platform) : null;
     if (!target || !validRewardId(body?.sessionId)) {
       return NextResponse.json({ code: "AD_REQUIRED" }, { status: 402 });
     }
@@ -35,7 +36,8 @@ export async function POST(req: Request) {
     const claim = await db.runTransaction(async (tx) => {
       const data = (await tx.get(ref)).data();
       const now = Date.now();
-      if (!data || data.uid !== uid || data.guestId !== guestId || data.rewardTarget?.action !== target.action ||
+      if (!data || data.uid !== uid || data.guestId !== guestId || (data.platform ?? "android") !== platform ||
+          data.rewardTarget?.action !== target.action ||
           data.rewardTarget.key !== target.key || typeof data.redeemUntilMs !== "number" || data.redeemUntilMs < now) {
         return { state: "denied" } as const;
       }
