@@ -2,6 +2,7 @@ import { ALL_DREAM_ENTRIES, DREAM_CATEGORIES, type DreamCategory } from "@/lib/d
 import { SIGNS } from "@/lib/horoscope/model";
 import { LOCALES } from "@/lib/i18n/config";
 import { localeAvailableForPath, localePath } from "@/lib/i18n/path";
+import { getJapaneseDreamUpdatedAt, JAPANESE_DICTIONARY_UPDATED_AT } from "@/lib/jaPilotPaths";
 import { MAJOR_ARCANA } from "@/lib/tarot/deck";
 
 export const SITE_ORIGIN = "https://dreamly.art";
@@ -85,7 +86,7 @@ export function listPublicPages(): PublicPage[] {
     })),
     ...localizedUrls("/dreams").map((url) => ({
       url,
-      lastModified: dictionaryDate,
+      lastModified: url === `${SITE_ORIGIN}/ja/dreams` ? JAPANESE_DICTIONARY_UPDATED_AT : dictionaryDate,
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
@@ -150,7 +151,9 @@ export function listPublicPages(): PublicPage[] {
   const dictionary: PublicPage[] = ALL_DREAM_ENTRIES.flatMap((entry) =>
     localizedUrls(`/dreams/${entry.canonicalSlug}`).map((url) => ({
       url,
-      lastModified: entry.updatedAt,
+      lastModified: url.startsWith(`${SITE_ORIGIN}/ja/`)
+        ? getJapaneseDreamUpdatedAt(entry.canonicalSlug)
+        : entry.updatedAt,
       changeFrequency: "monthly" as const,
       priority: entry.parentSlug ? 0.7 : 0.8,
       slug: entry.slug,

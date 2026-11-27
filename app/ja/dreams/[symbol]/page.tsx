@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getJapaneseDreamArticle } from "@/lib/jaDreamArticles";
+import { getRelatedJapaneseDreamSlugs } from "@/lib/jaDreamRelated";
 import { JA_WEB_DREAM_SLUGS } from "@/lib/jaPilotPaths";
 import DreamTopics from "../../_components/DreamTopics";
 import JapaneseDreamForm from "../../_components/JapaneseDreamForm";
@@ -29,6 +30,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function JapaneseDreamArticle({ params }: Props) {
   const { slug, name, icon, summary, scenes, reflection } = getArticle((await params).symbol);
+  const relatedSlugs = getRelatedJapaneseDreamSlugs(slug, 6);
   return (
     <main className={styles.main}>
       <Link href="/ja/dreams" className={styles.back}>
@@ -53,10 +55,12 @@ export default async function JapaneseDreamArticle({ params }: Props) {
         </section>
       </article>
       <JapaneseDreamForm returnTo={`/ja/dreams/${slug}`} symbol={slug} />
-      <section className={styles.topicSection} aria-labelledby="more-dreams-title">
-        <h2 id="more-dreams-title">ほかの夢を調べる</h2>
-        <DreamTopics exclude={slug} limit={6} />
-      </section>
+      {relatedSlugs.length > 0 && (
+        <section className={styles.topicSection} aria-labelledby="more-dreams-title">
+          <h2 id="more-dreams-title">ほかの夢を調べる</h2>
+          <DreamTopics slugs={relatedSlugs} />
+        </section>
+      )}
     </main>
   );
 }
