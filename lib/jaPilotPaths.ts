@@ -325,6 +325,31 @@ const JA_ADDITIONAL_DREAM_BATCHES = [
       "running-through-airport",
     ],
   },
+  {
+    updatedAt: "2026-11-28",
+    slugs: [
+      "staying-in-hotel",
+      "luxury-hotel",
+      "dirty-hotel-room",
+      "getting-lost-in-hotel",
+      "hotel-elevator",
+      "empty-hotel",
+      "hotel-check-in",
+      "strange-hotel-room",
+      "being-in-hospital",
+      "hospital-bed",
+      "visiting-someone-in-hospital",
+      "empty-hospital",
+      "hospital-emergency",
+      "surgery-in-hospital",
+      "lost-in-hospital",
+      "hospital-room",
+      "praying-in-church",
+      "empty-church",
+      "old-church",
+      "church-bells",
+    ],
+  },
 ] as const;
 
 export type JaAdditionalDreamSlug = (typeof JA_ADDITIONAL_DREAM_BATCHES)[number]["slugs"][number];
