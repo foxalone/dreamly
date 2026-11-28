@@ -71,9 +71,9 @@ export default function JapaneseDreamForm({ returnTo, symbol }: { returnTo: stri
         return;
       }
 
-      if (data.code === "GUEST_LIMIT_REACHED") {
-        setFeedback({ text: "短い広告のあと、登録せずに夢を読み解けます。", offerAd: true });
-        trackEvent("guest_limit_reached", { locale: "ja", source });
+      if (data.code === "GUEST_LIMIT_REACHED" || data.code === "SUBSCRIPTION_REQUIRED") {
+        setFeedback({ text: "短い広告を最後まで見ると、夢を読み解けます。", offerAd: true });
+        trackEvent(data.code === "GUEST_LIMIT_REACHED" ? "guest_limit_reached" : "upgrade_prompt", { locale: "ja", source });
       } else {
         setFeedback({ text: requestFailed });
       }

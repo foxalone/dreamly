@@ -19,13 +19,15 @@ import { getMessages } from "@/lib/i18n/messages";
 import { localeFromPathname } from "@/lib/i18n/path";
 import type { PaywallKind } from "@/lib/paywall";
 import { analysisAttemptReporter, pendingAnalysisAttemptId } from "@/lib/reportAnalysisAttempt";
-import { captureOfferwallDeparture, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
+import { hasNewOfferwallEntitlement, offerwallEntitlement, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "@/lib/offerwallSession";
 import { offerwallVisible } from "@/lib/offerwallVisibility";
 import { markLoveMatchAdReady } from "@/lib/loveMatchAd";
 import PlansModal from "@/app/components/PlansModal";
 import type { OneTimePurchase } from "@/app/components/OneTimePurchaseButton";
 import { actionPurchaseCopy } from "@/lib/i18n/action-purchase";
 import { isJaDreamFormPath } from "@/lib/jaPilotPaths";
+import { analysisPromoTitle } from "@/lib/i18n/yourfitPromo";
+import AnalysisPromoVideo from "./AnalysisPromoVideo";
 import FeaturedAyetFallback, { type FeaturedFallbackOutcome } from "./FeaturedAyetFallback";
 
 type Phase = "waiting" | "showing" | "checking" | "house-ad" | "granting" | "done" | "unavailable" | "failed";
@@ -33,6 +35,7 @@ type Phase = "waiting" | "showing" | "checking" | "house-ad" | "granting" | "don
 // How long Google gets to render the Offerwall before we give up.
 const APPEAR_TIMEOUT_MS = 12_000;
 const FEATURED_AYET_APPEAR_TIMEOUT_MS = 6_000;
+const ENTITLEMENT_WAIT_MS = 5_000;
 const POLL_MS = 300;
 const GOOGLE_RETURN_KEY = "dreamly:adGoogleReturn";
 const japaneseAdCopy = {
@@ -97,6 +100,7 @@ export default function AdUnlockClient() {
     }
   }, [next, router]);
   const report = useRef<ReturnType<typeof analysisAttemptReporter> | null>(null);
+  const reportedPromo = useRef(false);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   useEffect(() => {
@@ -107,7 +111,7 @@ export default function AdUnlockClient() {
   useEffect(() => {
     if (kind !== "analysis") return;
     const leave = () => {
-      const saved = captureOfferwallDeparture(document.cookie, offerwallVisible());
+      const saved = recoverOfferwallSession(document.cookie);
       if (saved?.status === "completed") report.current?.("ad_overlay_closed");
       if (phaseRef.current !== "done") report.current?.("ad_page_left");
     };
@@ -176,25 +180,28 @@ export default function AdUnlockClient() {
     if (!watchGoogle) return;
     const saved = kind === "analysis" ? startOfferwallSession(next, rewardId.current, document.cookie) : null;
     if (saved) rewardId.current = saved.rewardId;
+    const initialEntitlement = saved?.initialEntitlement ?? offerwallEntitlement(document.cookie);
     // A remembered appearance is not completion: after a reload Google may
     // still need to resume an unfinished ad.
     let seen = phase === "showing";
     let timedOut = phase === "unavailable";
+    let overlayClosedAt: number | null = null;
     const appearTimeoutMs = featuredFallbackChallenge ? FEATURED_AYET_APPEAR_TIMEOUT_MS : APPEAR_TIMEOUT_MS;
     const started = Date.now();
     const tick = () => {
-      const recovered = kind === "analysis" ? recoverOfferwallSession(document.cookie) : null;
+      const cookie = document.cookie;
+      const recovered = kind === "analysis" ? recoverOfferwallSession(cookie) : null;
       if (recovered?.status === "granted") {
         markAdUnlockReady();
         setPhase("done");
         router.replace(recovered.next);
         return;
       }
-      if (recovered?.status === "completed") {
+      const visible = offerwallVisible();
+      if (recovered?.status === "completed" && !visible) {
         setPhase("granting");
         return;
       }
-      const visible = offerwallVisible();
       if (!seen) {
         if (visible) {
           seen = true;
@@ -213,12 +220,24 @@ export default function AdUnlockClient() {
       // Google owns its start button. A real click supplies browser user
       // activation for media playback and the fullscreen history entry.
       // A synthetic .click() cannot provide that activation in Safari.
-      if (!visible) {
-        if (kind === "analysis") updateOfferwallSession({ status: "completed" });
-        report.current?.("ad_overlay_closed");
-        const entitled = document.cookie.split(";").some(part => /^FCOEC=.+/.test(part.trim()));
-        setPhase((kind === "horoscope" || kind === "featured" || kind === "tarot" || kind === "love-match") && !entitled ? "failed" : "granting");
+      if (visible) {
+        overlayClosedAt = null;
+        return;
       }
+      if (kind === "analysis" && !hasNewOfferwallEntitlement(cookie, initialEntitlement)) {
+        // The choice can close before the player opens or the entitlement
+        // arrives. Allow that transition without granting on close alone.
+        overlayClosedAt ??= Date.now();
+        if (Date.now() - overlayClosedAt >= ENTITLEMENT_WAIT_MS) {
+          report.current?.("ad_reward_failed");
+          setPhase("checking");
+        }
+        return;
+      }
+      if (kind === "analysis") updateOfferwallSession({ status: "completed" });
+      report.current?.("ad_overlay_closed");
+      const entitled = offerwallEntitlement(cookie);
+      setPhase((kind === "horoscope" || kind === "featured" || kind === "tarot" || kind === "love-match") && !entitled ? "failed" : "granting");
     };
     // React as soon as Google inserts or changes its overlay. Polling remains
     // as a fallback for visibility changes that don't mutate the DOM.
@@ -327,11 +346,11 @@ export default function AdUnlockClient() {
     };
   }, [phase, user, kind, next, router, sp, locale]);
 
-  // Keep loading until the server has decided eligibility. Do not flash access
-  // choices while the first-free fallback is still being checked.
+  // Analysis has its own video reward. Other actions use their existing fallback.
   useEffect(() => {
     if (phase !== "checking" || user === undefined) return;
-    if (kind !== "analysis" && kind !== "translate" && kind !== "reading") { setPhase("unavailable"); return; }
+    if (kind === "analysis") { setPhase(pending.current ? "house-ad" : "unavailable"); return; }
+    if (kind !== "translate" && kind !== "reading") { setPhase("unavailable"); return; }
     let cancelled = false;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20_000);
@@ -343,8 +362,6 @@ export default function AdUnlockClient() {
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, noAdAvailable: true, checkOnly: true, idToken,
-          dreamId: pending.current?.dreamId, dreamText: pending.current?.dreamText,
-          attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
           sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
           targetLang: pending.current?.targetLang || sp.get("targetLang"),
         }),
@@ -352,21 +369,21 @@ export default function AdUnlockClient() {
     })().then(async (res) => {
       const data = res.ok ? await res.json() : null;
       if (cancelled) return;
-      const eligible = data?.firstAnalysisFree === true || data?.yourfitPromo === true;
+      const eligible = data?.yourfitPromo === true;
       setHouseEligible(eligible);
       if (eligible) {
-        trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale });
+        trackEvent("yourfit_promo_eligible", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind}_result`, language: locale });
       }
-      setPhase(eligible || kind === "analysis" ? "house-ad" : "unavailable");
+      setPhase(eligible ? "house-ad" : "unavailable");
     }).catch(() => {
-      if (!cancelled) setPhase(kind === "analysis" ? "house-ad" : "failed");
+      if (!cancelled) setPhase("failed");
     }).finally(() => clearTimeout(timeout));
     return () => { cancelled = true; controller.abort(); clearTimeout(timeout); };
   }, [phase, user, kind, next, router, locale, sp]);
 
   async function closeHouseAd() {
     if (phase !== "house-ad" || houseRequestInFlight.current || user === undefined) return;
-    if (kind !== "analysis" && kind !== "translate" && kind !== "reading") return;
+    if (kind !== "translate" && kind !== "reading") return;
     if (!houseEligible) {
       setPhase("unavailable");
       return;
@@ -382,16 +399,14 @@ export default function AdUnlockClient() {
         method: "POST", credentials: "same-origin", signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, noAdAvailable: true, idToken,
-          dreamId: pending.current?.dreamId, dreamText: pending.current?.dreamText,
-          attemptId: kind === "analysis" ? pendingAnalysisAttemptId() : undefined,
           sharedDreamId: pending.current?.dreamId || sp.get("sharedDreamId"),
           targetLang: pending.current?.targetLang || sp.get("targetLang"),
         }),
       });
       if (res.status === 403 || res.status === 429) { setPhase("unavailable"); return; }
       const data = res.ok ? await res.json() : null;
-      if (data?.firstAnalysisFree !== true && data?.yourfitPromo !== true) throw new Error("HOUSE_AD_GRANT_FAILED");
-      trackEvent("yourfit_promo_closed", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind === "analysis" ? "dream" : kind}_result`, language: locale, format: "interstitial", visible_seconds: 5 });
+      if (data?.yourfitPromo !== true) throw new Error("HOUSE_AD_GRANT_FAILED");
+      trackEvent("yourfit_promo_closed", { campaign: `first_${kind}_no_ad`, placement: `${user ? "account" : "guest"}_${kind}_result`, language: locale, format: "interstitial", visible_seconds: 5 });
       markAdUnlockReady(kind, true);
       setPhase("done");
       report.current?.("ad_resume_started");
@@ -459,11 +474,34 @@ export default function AdUnlockClient() {
             ? adStalled ? m.stalled : m.watching
             : m.waiting;
 
-  if (phase === "house-ad" && (kind === "analysis" || kind === "translate" || kind === "reading")) {
+  if (phase === "house-ad" && kind === "analysis" && user !== undefined) {
+    const promo = { campaign: "analysis_no_ad", placement: `${user ? "account" : "guest"}_dream_result`, language: locale, format: "video" };
+    return <AnalysisPromoVideo user={user} sessionId={rewardId.current} attemptId={pendingAnalysisAttemptId()}
+      title={analysisPromoTitle[locale]} watch={t.plansModal.watchAd} proceed={t.app.analyze} cancel={m.back}
+      error={japanese ? japaneseAdCopy.failed : t.plansModal.adFailed} waiting={m.waiting}
+      onPlay={() => {
+        if (reportedPromo.current) return;
+        reportedPromo.current = true;
+        report.current?.("yourfit_promo_impression");
+        trackEvent("yourfit_promo_impression", promo);
+      }}
+      onEarned={() => {
+        trackEvent("yourfit_promo_completed", promo);
+        markAdUnlockReady("analysis", true);
+        setPhase("done");
+        report.current?.("ad_resume_started");
+        router.replace(next);
+      }}
+      onCancel={() => {
+        report.current?.("back");
+        clearAdUnlockPending("analysis");
+        router.replace(back);
+      }} />;
+  }
+
+  if (phase === "house-ad" && (kind === "translate" || kind === "reading")) {
     return <main className="min-h-screen bg-[var(--bg)]">
       <YourFitPromo kind={kind} locale={locale} audience={user ? "account" : "guest"}
-        attemptId={kind === "analysis" && houseEligible ? pendingAnalysisAttemptId() : undefined}
-        unlocksAnalysis={kind !== "analysis" || houseEligible}
         targetKey={`${pending.current?.dreamId ?? sp.get("sharedDreamId") ?? ""}:${pending.current?.targetLang ?? sp.get("targetLang") ?? ""}`}
         busy={houseBusy} error={houseError ? (japanese ? japaneseAdCopy.failed : t.plansModal.adFailed) : undefined} onClose={() => { void closeHouseAd(); }} />
     </main>;

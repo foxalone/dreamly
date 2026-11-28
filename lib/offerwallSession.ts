@@ -16,6 +16,11 @@ export function offerwallEntitlement(cookie: string): string {
   return cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("FCOEC="))?.slice(6) ?? "";
 }
 
+export function hasNewOfferwallEntitlement(cookie: string, previous: string): boolean {
+  const entitlement = offerwallEntitlement(cookie);
+  return entitlement !== "" && entitlement !== previous;
+}
+
 export function readOfferwallSession(): OfferwallSession | null {
   try {
     const pending = peekAdUnlockPending("analysis");
@@ -65,8 +70,9 @@ export function updateOfferwallSession(update: Partial<Pick<OfferwallSession, "s
 export function recoverOfferwallSession(cookie: string) {
   const session = readOfferwallSession();
   if (!session) return null;
-  const entitlement = offerwallEntitlement(cookie);
-  if (session.status === "watching" && session.shown && entitlement && entitlement !== session.initialEntitlement) {
+  const entitled = hasNewOfferwallEntitlement(cookie, session.initialEntitlement);
+  if (session.status === "completed" && !entitled) return { ...session, status: "watching" as const };
+  if (session.status === "watching" && session.shown && entitled) {
     session.status = "completed";
     save(session);
   }
@@ -77,18 +83,4 @@ export function recoverOfferwallSession(cookie: string) {
 export function hasUnconfirmedOfferwallReturn(text: string, cookie: string): boolean {
   const session = recoverOfferwallSession(cookie);
   return session?.dreamText === text && session.shown && session.status === "watching";
-}
-
-/** Capture the same close signal as the live observer before a document leaves.
- * requestAnimationFrame/polling can stop during navigation, so persisting this
- * synchronously lets the return page book the existing receipt. A visible ad
- * or pagehide by itself never counts as completion.
- */
-export function captureOfferwallDeparture(cookie: string, overlayVisible: boolean) {
-  const session = recoverOfferwallSession(cookie);
-  if (session?.status === "watching" && session.shown && !overlayVisible) {
-    updateOfferwallSession({ status: "completed" });
-    return readOfferwallSession();
-  }
-  return session;
 }

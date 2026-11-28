@@ -9,11 +9,8 @@ export const TRIAL_DAYS = 3;
 export const FREE_TRANSLATIONS_PER_DAY = 1;
 // Saving to the diary is free and unlimited for every signed-in user
 // (decided 2026-10-04 — it costs nothing). SAVES_PER_DAY_ABUSE_CAP is only a
-// quiet anti-bot backstop. AI analyses are what is limited: guests get
-// GUEST_FREE_ASKS (first analysis only if no ad is available, then an ad or sign-in), signed-in users without a subscription get
-// FREE_ANALYSES_TOTAL in total and at most FREE_ANALYSES_PER_DAY per UTC day
-// (users/{uid}.freeAnalyses*, server-only in firestore.rules), subscribers
-// DREAMS_PER_DAY. The user is never shown how many free analyses are left.
+// quiet anti-bot backstop. Web and Google Play analyses without a paid
+// entitlement spend a rewarded credit. AppGallery retains the free allowance.
 export const SAVES_PER_DAY_ABUSE_CAP = 50;
 // Without a subscription: FREE_SAVES_PER_IP_PER_DAY diary saves per network
 // (hashed IP) per UTC day; after that each save needs a rewarded ad, at most

@@ -1,4 +1,4 @@
-import { consumeAccountHouseAnalysis, finishAccountHouseAnalysis, recoverAccountHouseAnalysis } from "../_lib/accountHouseAd";
+import { recoverAccountHouseAnalysis } from "../_lib/accountHouseAd";
 // src/app/api/dreams/analyze/route.ts
 import { saveGuestDreamSnapshot } from "../_lib/guestDreamSnapshot";
 import { after, NextResponse } from "next/server";
@@ -73,7 +73,6 @@ export async function POST(req: Request) {
   let chargedUid: string | null = null;
   let freeAnalysisUid: string | null = null;
   let adCreditUid: string | null = null;
-  let houseAdUid: string | null = null;
   let guestId: string | null = null;
   let clientIp = "";
   let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
@@ -82,18 +81,12 @@ export async function POST(req: Request) {
 
   const finish = async <T extends NextResponse>(res: T): Promise<T> => {
     const result = await res.clone().json().catch(() => ({}));
-    if (houseAdUid && res.ok) await finishAccountHouseAnalysis(houseAdUid, result, attemptId);
     await finishAnalysisAttempt(attemptId, res.status, failureCode ?? result.code, result, startedAtMs);
     if (attemptId) res.headers.set("X-Dreamly-Attempt", attemptId);
     return guestId ? setGuestCookie(res, guestId) : res;
   };
 
   const refundCharge = async () => {
-    if (houseAdUid) {
-      await finishAccountHouseAnalysis(houseAdUid, null, null);
-      houseAdUid = null;
-      return;
-    }
     if (chargedUid) {
       await refundDreamSlot(chargedUid);
       chargedUid = null;
@@ -118,6 +111,7 @@ export async function POST(req: Request) {
 
   try {
     const androidReward = req instanceof AndroidRewardRequest;
+    const appGallery = req instanceof AppGalleryAnalysisRequest;
     const body = (await req.json()) as Body;
     const text = String(body?.text ?? "").trim();
     if (!text) {
@@ -175,14 +169,14 @@ export async function POST(req: Request) {
       guestId ??= newGuestId();
       clientIp = readClientIp(req);
       // AppGallery includes the first guest interpretation within the same network quota.
-      const booked = await consumeGuestAsk(guestId, clientIp, req instanceof AppGalleryAnalysisRequest);
+      const booked = await consumeGuestAsk(guestId, clientIp, appGallery);
       if (!booked.ok) {
         return finish(
           NextResponse.json(
             {
-              error: req instanceof AppGalleryAnalysisRequest
+              error: appGallery
                 ? "Sign in to interpret another dream."
-                : "Watch a short ad or sign in to interpret your dream.",
+                : "Watch a short ad to interpret your dream.",
               code: "GUEST_LIMIT_REACHED",
               reason: booked.reason,
             },
@@ -193,17 +187,11 @@ export async function POST(req: Request) {
       guestBooking = booked;
       await recordAttemptAccess(attemptId, null, guestId, booked.charge === "free" ? "guest_free_access" : "ad_credit_used");
     } else {
-      // Subscribers: DREAMS_PER_DAY analyses a day. Signed-in without a
-      // subscription: 3 free analyses in total, max 1 a day.
-      const access = await consumeAnalysisAccess(uid);
-      if ("error" in access) {
-        if (access.error.status !== 402 || !await consumeAccountHouseAnalysis(uid, houseTarget)) return finish(access.error);
-        houseAdUid = uid;
-      } else {
-        if (access.charge === "slot") chargedUid = uid;
-        if (access.charge === "free") freeAnalysisUid = uid;
-        if (access.charge === "ad") adCreditUid = uid;
-      }
+      const access = await consumeAnalysisAccess(uid, appGallery);
+      if ("error" in access) return finish(access.error);
+      if (access.charge === "slot") chargedUid = uid;
+      if (access.charge === "free") freeAnalysisUid = uid;
+      if (access.charge === "ad") adCreditUid = uid;
     }
     const isGuest = !uid;
 
@@ -317,7 +305,7 @@ export async function POST(req: Request) {
         model,
         lens,
         guest: isGuest,
-        yourfitPromo: Boolean(houseAdUid || (isGuest && guestBooking?.charge === "free")) && body.source !== "android",
+        yourfitPromo: false,
         cost: 0,
         emojis: dreamEmojis,
         emojiModel: emojiPick?.model ?? null,

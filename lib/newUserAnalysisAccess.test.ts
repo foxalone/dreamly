@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { deleteApp, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { consumeAnalysisAccess, refundFreeAnalysis } from "../app/api/dreams/_lib/subscription";
+import { consumeAnalysisAccess } from "../app/api/dreams/_lib/subscription";
 import { canAnalyzeDream, utcDayKey } from "./subscriptions/status";
 
-test("new signed-in accounts receive a free analysis without a welcome-credit grant", async (t) => {
+test("non-paying accounts use one credit per web or Google Play analysis", async (t) => {
   // Run the actual server quota code without Firebase credentials or AI calls.
   const app = initializeApp({ projectId: "demo-new-user-analysis" }, "project-server");
   const db = getFirestore(app);
@@ -35,40 +35,34 @@ test("new signed-in accounts receive a free analysis without a welcome-credit gr
     await t.test(profile ? "profile already exists" : "profile has not been created yet", async () => {
       records.clear();
       if (profile) records.set("users/new-user", profile);
-      assert.equal(canAnalyzeDream(profile), true);
-
-      assert.deepEqual(await consumeAnalysisAccess("new-user"), { uid: "new-user", charge: "free" });
-      const saved = records.get("users/new-user");
-      assert.equal(saved?.freeAnalysesUsed, 1);
-      assert.equal(saved?.freeAnalysesTodayCount, 1);
-      assert.equal(saved?.freeAnalysisDayKey, utcDayKey());
-      assert.equal(saved?.adAnalysisCredits, undefined);
-      if (profile) assert.equal(saved?.displayName, profile.displayName);
-      assert.equal(canAnalyzeDream(saved), false);
-
-      const second = await consumeAnalysisAccess("new-user");
-      assert.ok("error" in second);
-      assert.equal(second.error.status, 402);
-      assert.equal((await second.error.json()).code, "FREE_DAILY_LIMIT");
-      assert.equal(records.get("users/new-user")?.freeAnalysesUsed, 1);
+      assert.equal(canAnalyzeDream(profile), false);
+      const result = await consumeAnalysisAccess("new-user");
+      assert.ok("error" in result);
+      assert.equal(result.error.status, 402);
+      assert.equal((await result.error.json()).code, "SUBSCRIPTION_REQUIRED");
+      assert.deepEqual(records.get("users/new-user"), profile);
     });
   }
 
-  await t.test("simultaneous first requests allow only one free analysis today", async () => {
-    records.clear();
+  await t.test("simultaneous requests share one earned credit", async () => {
+    records.set("users/new-user", { adAnalysisCredits: 1, freeAnalysesUsed: 0 });
     const results = await Promise.all(Array.from({ length: 5 }, () => consumeAnalysisAccess("new-user")));
-    assert.equal(results.filter(result => "charge" in result && result.charge === "free").length, 1);
+    assert.equal(results.filter(result => "charge" in result && result.charge === "ad").length, 1);
     assert.equal(results.filter(result => "error" in result).length, 4);
-    assert.equal(records.get("users/new-user")?.freeAnalysesUsed, 1);
+    assert.equal(records.get("users/new-user")?.adAnalysisCredits, 0);
+    assert.equal(records.get("users/new-user")?.freeAnalysesUsed, 0);
   });
 
-  await t.test("failed AI analysis can refund and retry the free entitlement", async () => {
+  await t.test("AppGallery free slots and paid daily slots still work", async () => {
     records.clear();
-    await consumeAnalysisAccess("new-user");
-    await refundFreeAnalysis("new-user");
-    assert.equal(records.get("users/new-user")?.freeAnalysesUsed, 0);
-    assert.equal(records.get("users/new-user")?.freeAnalysesTodayCount, 0);
-    assert.equal(canAnalyzeDream(records.get("users/new-user")), true);
-    assert.deepEqual(await consumeAnalysisAccess("new-user"), { uid: "new-user", charge: "free" });
+    assert.deepEqual(await consumeAnalysisAccess("new-user", true), { uid: "new-user", charge: "free" });
+    assert.equal(records.get("users/new-user")?.freeAnalysisDayKey, utcDayKey());
+    const appGallery = await consumeAnalysisAccess("new-user", true);
+    assert.ok("error" in appGallery);
+    assert.equal((await appGallery.error.json()).code, "FREE_DAILY_LIMIT");
+
+    records.set("users/subscriber", { subscriptionStatus: "active" });
+    assert.deepEqual(await consumeAnalysisAccess("subscriber"), { uid: "subscriber", charge: "slot" });
+    assert.equal(records.get("users/subscriber")?.dreamsTodayCount, 1);
   });
 });

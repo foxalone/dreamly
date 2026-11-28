@@ -29,10 +29,10 @@ test("free AI analyses: at most one per UTC day", () => {
   assert.equal(freeAnalysisDailyLimitReached({ freeAnalysisDayKey: "2000-01-01", freeAnalysesTodayCount: 1 }), false);
 });
 
-test("canAnalyzeDream: free rule for non-subscribers, 3 a day for subscribers", () => {
+test("canAnalyzeDream requires an ad credit without a paid daily slot", () => {
   const today = utcDayKey();
-  assert.equal(canAnalyzeDream({ subscriptionStatus: "none" }), true);
-  assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 2 }), true);
+  assert.equal(canAnalyzeDream({ subscriptionStatus: "none" }), false);
+  assert.equal(canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 2 }), false);
   assert.equal(
     canAnalyzeDream({ subscriptionStatus: "none", freeAnalysesUsed: 2, freeAnalysisDayKey: today, freeAnalysesTodayCount: 1 }),
     false
@@ -44,8 +44,8 @@ test("canAnalyzeDream: free rule for non-subscribers, 3 a day for subscribers", 
   assert.equal(canAnalyzeDream({ subscriptionStatus: "active", freeAnalysesUsed: 5 }), true);
   assert.equal(canAnalyzeDream({ subscriptionStatus: "active", dreamsDayKey: today, dreamsTodayCount: 2 }), true);
   assert.equal(canAnalyzeDream({ subscriptionStatus: "active", dreamsDayKey: today, dreamsTodayCount: 3 }), false);
-  // an expired subscription falls back to the free rule
-  assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 0 }), true);
+  // An expired subscription cannot use its paid slots.
+  assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 0 }), false);
   assert.equal(canAnalyzeDream({ subscriptionStatus: "expired", freeAnalysesUsed: 3 }), false);
 });
 

@@ -367,8 +367,8 @@ function TermsEn() {
       <section>
         <h2>7. Paid features, subscriptions, and refunds</h2>
         <p>
-          Guests unlock each AI interpretation, including their first, by watching a short ad when available.
-          Signed-in users receive limited free interpretations and can subscribe for more. Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
+          On the website and the Google Play version, watching a short ad unlocks one AI interpretation without a subscription.
+          Prices, the 3-day trial, and daily limits are shown at checkout and on our{" "}
           <LocaleLink href="/pricing">Pricing</LocaleLink> page. The seller accepts payment through PayPal.
         </p>
         <p>If an ad is unavailable, a separate $0.99 purchase unlocks only the selected action. It does not create a subscription or recurring payment.</p>
@@ -728,8 +728,8 @@ function TermsEs() {
       <section>
         <h2>7. Funciones de pago, suscripciones y reembolsos</h2>
         <p>
-          Los visitantes desbloquean cada interpretación con IA, incluida la primera, viendo un anuncio corto cuando esté disponible.
-          Al iniciar sesión, hay un número limitado de interpretaciones gratis y la opción de suscribirse para obtener más. Los precios, la prueba de 3 días y los límites diarios se indican en el momento del
+          En el sitio web y en la versión de Google Play, ver un anuncio corto permite abrir una interpretación con IA sin suscripción.
+          Los precios, la prueba de 3 días y los límites diarios se indican en el momento del
           pago y en la página de <LocaleLink href="/pricing">Precios</LocaleLink>. El vendedor acepta el pago a través
           de PayPal.
         </p>
@@ -1073,7 +1073,7 @@ function TermsAr() {
       <section>
         <h2>7. الميزات المدفوعة والاشتراكات والاسترداد</h2>
         <p>
-          يفتح الزائر كل تفسير بالذكاء الاصطناعي، بما في ذلك الأول، بمشاهدة إعلان قصير عند توفره. ويحصل المستخدم المسجّل على عدد محدود من التفسيرات المجانية ويمكنه الاشتراك للمزيد. وتُعرض
+          على الموقع وفي نسخة Google Play، تتيح مشاهدة إعلان قصير فتح تفسير واحد بالذكاء الاصطناعي دون اشتراك. وتُعرض
           الأسعار وتجربة 3 أيام والحدود اليومية عند إتمام الشراء وفي صفحة{" "}
           <LocaleLink href="/pricing">الأسعار</LocaleLink>. ويقبل البائع الدفع عبر PayPal.
         </p>
@@ -1425,8 +1425,8 @@ function TermsPt() {
       <section>
         <h2>7. Recursos pagos, assinaturas e reembolsos</h2>
         <p>
-          Visitantes desbloqueiam cada interpretação com IA, inclusive a primeira, assistindo a um anúncio curto quando disponível.
-          Quem entra recebe um número limitado de interpretações grátis e pode assinar para ter mais. Preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
+          No site e na versão do Google Play, assistir a um anúncio curto libera uma interpretação com IA sem assinatura.
+          Os preços, o teste de 3 dias e os limites diários aparecem no checkout e na página de{" "}
           <LocaleLink href="/pricing">Preços</LocaleLink>. O vendedor aceita o pagamento pelo PayPal.
         </p>
         <p>Se não houver anúncio disponível, uma compra avulsa de US$ 0,99 libera apenas a ação escolhida. Ela não cria assinatura nem cobrança recorrente.</p>
@@ -1790,8 +1790,7 @@ function TermsDe() {
       <section>
         <h2>7. Kostenpflichtige Funktionen, Abos und Erstattungen</h2>
         <p>
-          Gäste schalten jede KI-Deutung, auch die erste, mit einer kurzen Werbung frei, sofern verfügbar.
-          Angemeldete Nutzer erhalten eine begrenzte Anzahl kostenloser Deutungen und können für weitere ein Abo abschließen.
+          Auf der Website und in der Google-Play-Version kannst du ohne Abo mit einem kurzen Werbespot jeweils eine KI-Deutung freischalten.
           Preise, die 3-tägige Testphase und Tageslimits stehen beim Abschluss und auf der Seite{" "}
           <LocaleLink href="/pricing">Preise</LocaleLink>. Der Verkäufer nimmt die Zahlung über PayPal entgegen.
         </p>
@@ -2151,8 +2150,8 @@ function TermsRu() {
       <section>
         <h2>7. Платные функции, подписки и возвраты</h2>
         <p>
-          Гости открывают каждое толкование с ИИ, включая первое, за просмотр короткой рекламы, если она доступна.
-          После входа доступно ограниченное число бесплатных разборов; подписка позволяет получить больше. Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
+          На сайте и в версии из Google Play просмотр короткой рекламы открывает одно толкование с ИИ без подписки.
+          Цены, пробный период 3 дня и дневные лимиты указаны при оплате и на странице{" "}
           <LocaleLink href="/pricing">Цены</LocaleLink>. Оплату принимает продавец через PayPal.
         </p>
         <p>Если реклама недоступна, отдельная покупка за $0.99 открывает только выбранное действие. Подписка и повторные списания при этом не оформляются.</p>

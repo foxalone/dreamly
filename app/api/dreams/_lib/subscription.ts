@@ -39,6 +39,9 @@ function quotaError(e: unknown): { error: NextResponse } {
   if (message === "SUBSCRIPTION_REQUIRED") {
     return { error: jsonError("A Dreamly subscription is required.", "SUBSCRIPTION_REQUIRED", 402) };
   }
+  if (message === "ANALYSIS_AD_REQUIRED") {
+    return { error: jsonError("Watch a short ad to interpret your dream.", "SUBSCRIPTION_REQUIRED", 402) };
+  }
   if (message === "FREE_DAILY_LIMIT") {
     return {
       error: jsonError("Free plan: one interpretation a day. Subscribe or try again tomorrow.", "FREE_DAILY_LIMIT", 402),
@@ -143,13 +146,13 @@ export async function consumeSaveAccess(
 /**
  * AI analysis by a signed-in user, all in one transaction:
  * - subscriber: one of DREAMS_PER_DAY daily slots;
- * - no subscription: one free analysis — FREE_ANALYSES_TOTAL in total, at
- *   most FREE_ANALYSES_PER_DAY per UTC day; when those are gone, one
- *   adAnalysisCredits credit earned by watching a rewarded ad.
+ * - no subscription: one credit per analysis. AppGallery retains its existing
+ *   allowance of FREE_ANALYSES_TOTAL in total and FREE_ANALYSES_PER_DAY per day.
  * Returns which counter to give back if the AI call fails.
  */
 export async function consumeAnalysisAccess(
-  uid: string
+  uid: string,
+  appGallery = false,
 ): Promise<{ uid: string; charge: "slot" | "free" | "ad" } | { error: NextResponse }> {
   if (!uid) {
     return { error: jsonError("Sign in required.", "AUTH_REQUIRED", 401) };
@@ -178,8 +181,7 @@ export async function consumeAnalysisAccess(
       }
       const used = toCount(data.freeAnalysesUsed);
       const today = String(data.freeAnalysisDayKey ?? "") === dayKey ? toCount(data.freeAnalysesTodayCount) : 0;
-      if (used >= FREE_ANALYSES_TOTAL || today >= FREE_ANALYSES_PER_DAY) {
-        // Free quota is gone — spend a credit earned by watching an ad, if any.
+      if (!appGallery || used >= FREE_ANALYSES_TOTAL || today >= FREE_ANALYSES_PER_DAY) {
         const credits = toCount(data.adAnalysisCredits);
         if (credits > 0) {
           tx.set(
@@ -189,7 +191,7 @@ export async function consumeAnalysisAccess(
           );
           return { uid, charge: "ad" as const };
         }
-        throw new Error(used >= FREE_ANALYSES_TOTAL ? "SUBSCRIPTION_REQUIRED" : "FREE_DAILY_LIMIT");
+        throw new Error(!appGallery ? "ANALYSIS_AD_REQUIRED" : used >= FREE_ANALYSES_TOTAL ? "SUBSCRIPTION_REQUIRED" : "FREE_DAILY_LIMIT");
       }
       tx.set(
         userRef,

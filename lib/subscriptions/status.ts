@@ -107,9 +107,8 @@ export function adRewardsLeftFor(
   return null;
 }
 
-/** Can this user get an AI analysis right now (subscriber slot or free one). */
+/** Can this user get a web or Google Play AI analysis now? */
 export function canAnalyzeDream(data: UserBillingFields | null | undefined, now = Date.now()) {
   if (hasPaidAccess(data, now)) return remainingDreamsToday(data, new Date(now)) > 0;
-  if (hasFreeAnalysis(data) && !freeAnalysisDailyLimitReached(data, new Date(now))) return true;
   return adAnalysisCredits(data) > 0;
 }

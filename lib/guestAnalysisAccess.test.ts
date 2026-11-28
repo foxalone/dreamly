@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { initializeApp, deleteApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { allowGuestFirstAnalysisWithoutAd, consumeGuestAsk, refundGuestAsk, guestAdReward, hashIp } from "../app/api/dreams/_lib/guestQuota";
+import { consumeGuestAsk, refundGuestAsk, guestAdReward, hashIp } from "../app/api/dreams/_lib/guestQuota";
 import { guestAnalysisAccess } from "./guestAnalysisAccess";
 import { POST as analyze } from "../app/api/dreams/analyze/route";
 import { POST as quickSymbol } from "../app/api/dreams/quick-symbol/route";
 import { guestAskDedupId } from "../app/api/dreams/_lib/guestDedup";
 import { GET, POST } from "../app/api/dreams/guest-ad-reward/route";
 
-test("guests try ads first, with no-fill free only for the first analysis", () => {
+test("guest analyses require an ad outside AppGallery", () => {
   assert.equal(guestAnalysisAccess(0, 0, 0), "first_ad");
   assert.equal(guestAnalysisAccess(0, 0, 0, true), "free");
   assert.equal(guestAnalysisAccess(1, 0, 0, true), "guest_limit");
@@ -54,9 +54,9 @@ test("guest quota routes preserve balances and allow analysis ad rewards past th
   });
   // POST needs a fresh replay key per watched ad (lib/rewardedReceipt.ts).
   let seq = 0;
-  const grant = (rewardNumber = ++seq) => new Request("http://localhost/api/dreams/guest-ad-reward", {
+  const grant = (rewardNumber = ++seq, entitlement = `view-${rewardNumber}`) => new Request("http://localhost/api/dreams/guest-ad-reward", {
     method: "POST",
-    headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
+    headers: { cookie: `dreamly_guest=${id}${entitlement ? `; FCOEC=${entitlement}` : ""}`, "x-forwarded-for": ip, "content-type": "application/json" },
     body: JSON.stringify({ rewardId: `9f1b2c3d-4e5f-4a6b-8c7d-0e1f2a3b4c${String(rewardNumber).padStart(2, "0")}` }),
   });
 
@@ -66,21 +66,24 @@ test("guest quota routes preserve balances and allow analysis ad rewards past th
     method: "POST", headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
     body: JSON.stringify({ kind: "analysis", noAdAvailable: true, checkOnly: true }),
   }));
-  assert.equal(eligibility.status, 200);
+  assert.equal(eligibility.status, 403);
   assert.equal(records.get(`guestQuickSymbol/${id}`)?.firstAnalysisNoAd, undefined);
   assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "first_ad" });
   const fallback = await POST(new Request("http://localhost/api/dreams/guest-ad-reward", {
     method: "POST", headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
     body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),
   }));
-  assert.equal(fallback.status, 200);
-  const free = await consumeGuestAsk(id, ip);
+  assert.equal(fallback.status, 403);
+  // A historical browser flag cannot authorize another analysis.
+  records.set(`guestQuickSymbol/${id}`, { firstAnalysisNoAd: true });
+  assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "first_ad" });
+  const free = await consumeGuestAsk(id, ip, true);
   assert.ok(free.ok);
   assert.equal(free.charge, "free");
   assert.deepEqual(await consumeGuestAsk("another-cookie", ip), { ok: false, reason: "ip_limit" });
   await refundGuestAsk(id, ip, free);
   assert.equal(records.get(`guestQuickSymbolIp/${hashIp(ip)}_${today}`)?.used, 0);
-  assert.ok((await consumeGuestAsk(id, ip)).ok);
+  assert.ok((await consumeGuestAsk(id, ip, true)).ok);
   // Even a legacy cached answer cannot bypass today's exhausted network quota.
   const text = "I am floating through an unfamiliar corridor and every door is humming.";
   records.set(`guestAskDedup/${guestAskDedupId(ip, text)}`, { analysis: "legacy answer" });
@@ -122,16 +125,16 @@ test("guest quota routes preserve balances and allow analysis ad rewards past th
   assert.equal((await quickBlocked.json()).code, "GUEST_LIMIT_REACHED");
 
   assert.deepEqual(await consumeGuestAsk(id, ip), { ok: false, reason: "ip_limit" });
-  assert.equal(await allowGuestFirstAnalysisWithoutAd(id, ip), false);
   const laterFallback = await POST(new Request("http://localhost/api/dreams/guest-ad-reward", {
     method: "POST", headers: { cookie: `dreamly_guest=${id}`, "x-forwarded-for": ip, "content-type": "application/json" },
     body: JSON.stringify({ kind: "analysis", noAdAvailable: true }),
   }));
   assert.equal(laterFallback.status, 403);
   assert.deepEqual(await (await GET(request())).json(), { credits: 0, leftToday: null });
+  assert.equal((await POST(grant(undefined, ""))).status, 403);
   assert.deepEqual(await (await POST(grant())).json(), { credits: 1, leftToday: null });
-  // Replaying the same completed ad cannot earn a second credit.
-  assert.deepEqual(await (await POST(grant(seq))).json(), { credits: 1, leftToday: null, replayed: true });
+  // A changed browser request ID cannot turn the same ad into a second credit.
+  assert.deepEqual(await (await POST(grant(seq + 1, `view-${seq}`))).json(), { credits: 1, leftToday: null, replayed: true });
   const earned = await consumeGuestAsk(id, ip);
   assert.ok(earned.ok);
   assert.equal(earned.charge, "ad");
@@ -175,7 +178,6 @@ test("guest quota routes preserve balances and allow analysis ad rewards past th
   assert.equal(tomorrowAd.charge, "ad");
   assert.equal(records.get(`guestQuickSymbol/${id}`)?.adAnalysisCredits, 0);
   assert.deepEqual(await consumeGuestAsk(id, "192.0.2.99"), { ok: false, reason: "guest_limit" });
-  assert.equal(await allowGuestFirstAnalysisWithoutAd(id, "192.0.2.99"), false);
 
   // Watching an ad for the very first analysis must also use up first eligibility.
   const firstAdGuest = "first-ad-guest";
@@ -184,7 +186,7 @@ test("guest quota routes preserve balances and allow analysis ad rewards past th
   const firstAd = await consumeGuestAsk(firstAdGuest, firstAdIp);
   assert.ok(firstAd.ok);
   assert.equal(firstAd.charge, "ad");
-  assert.equal(await allowGuestFirstAnalysisWithoutAd(firstAdGuest, "192.0.2.4"), false);
+  assert.deepEqual(await consumeGuestAsk(firstAdGuest, "192.0.2.4", true), { ok: false, reason: "guest_limit" });
   await refundGuestAsk(firstAdGuest, firstAdIp, firstAd);
   assert.equal(records.get(`guestQuickSymbol/${firstAdGuest}`)?.used, 0);
   assert.equal(records.get(`guestQuickSymbol/${firstAdGuest}`)?.adAnalysisCredits, 1);

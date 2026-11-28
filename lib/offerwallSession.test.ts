@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { clearAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
-import { captureOfferwallDeparture, hasUnconfirmedOfferwallReturn, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
+import { hasUnconfirmedOfferwallReturn, recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
 import { localePath } from "./i18n/path";
 
 test("a completed guest ad survives Safari back/restore and reuses its reward receipt in every locale", () => {
@@ -32,7 +32,6 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       assert.equal(takeAdUnlockPending("analysis", "The dream awaiting analysis"), null);
       assert.equal(recoverOfferwallSession("")?.status, "watching");
       assert.equal(recoverOfferwallSession("FCOEC=old-entitlement")?.status, "watching");
-      assert.equal(captureOfferwallDeparture("FCOEC=old-entitlement", true)?.status, "watching");
       assert.equal(startOfferwallSession(next, "another-receipt", "FCOEC=old-entitlement")?.rewardId, session.rewardId);
 
       // The Google entitlement can arrive as Safari leaves the ad page, before
@@ -58,16 +57,17 @@ test("a completed guest ad survives Safari back/restore and reuses its reward re
       assert.ok(takeAdUnlockPending("analysis", "The dream awaiting analysis", returnTo));
       assert.equal(recoverOfferwallSession("FCOEC=new-entitlement"), null);
 
-      // Capture a close followed immediately by navigation, before another
-      // animation frame or cookie update. The return still needs to book credit.
+      // Closing or leaving the page cannot book an ad credit. A late Google
+      // entitlement lets Safari recover it on the next page.
       setAdUnlockPending({ kind: "analysis", dreamText: "Ad closed during navigation", returnTo });
       startOfferwallSession(next, "departure-receipt", "");
-      assert.equal(captureOfferwallDeparture("", false)?.status, "watching");
       updateOfferwallSession({ shown: true });
-      assert.equal(captureOfferwallDeparture("", true)?.status, "watching");
-      assert.equal(captureOfferwallDeparture("", false)?.status, "completed");
+      assert.equal(recoverOfferwallSession("")?.status, "watching");
+      updateOfferwallSession({ status: "completed" });
+      assert.equal(recoverOfferwallSession("")?.status, "watching");
       assert.equal(takeAdUnlockPending("analysis", "Ad closed during navigation"), null);
       assert.equal(startOfferwallSession(next, "do-not-replace-receipt", "")?.rewardId, "departure-receipt");
+      assert.equal(recoverOfferwallSession("FCOEC=late-entitlement")?.status, "completed");
       updateOfferwallSession({ status: "granted" });
       assert.ok(takeAdUnlockPending("analysis", "Ad closed during navigation", returnTo));
 

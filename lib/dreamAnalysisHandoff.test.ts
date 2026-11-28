@@ -3,7 +3,7 @@ import test from "node:test";
 import { queueDreamAnalysis, takeDreamAnalysisResume } from "./dreamAnalysisHandoff";
 import { readHomeDreamQueue } from "./homeDreamPending";
 import { adUnlockUrl, markAdUnlockReady, peekAdUnlockPending, setAdUnlockPending, takeAdUnlockPending } from "./adUnlock";
-import { captureOfferwallDeparture, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
+import { recoverOfferwallSession, startOfferwallSession, updateOfferwallSession } from "./offerwallSession";
 import { localePath } from "./i18n/path";
 
 test("all dream entry points hand off to Dreams with one matching resume before/after an ad in every locale", () => {
@@ -51,7 +51,8 @@ test("all dream entry points hand off to Dreams with one matching resume before/
         const session = startOfferwallSession(localePath(source, locale), "signed-receipt", "");
         assert.equal(session?.next, journal);
         updateOfferwallSession({ shown: true });
-        assert.equal(captureOfferwallDeparture("", false)?.status, "completed");
+        assert.equal(recoverOfferwallSession("")?.status, "watching");
+        assert.equal(recoverOfferwallSession("FCOEC=completed-ad")?.status, "completed");
         assert.equal(takeAdUnlockPending("analysis"), null);
         updateOfferwallSession({ status: "granted" });
         assert.equal(takeDreamAnalysisResume(selected.text), false);

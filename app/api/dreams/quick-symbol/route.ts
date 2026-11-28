@@ -162,8 +162,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Miss → GPT. Guests need an ad, with a no-fill fallback for the first reading;
-    // signed in → consumeAnalysisAccess (free / ad credit / plan).
+    // An AI result uses either a plan slot or a completed-ad credit.
     let guestBooking: Extract<GuestConsumeResult, { ok: true }> | null = null;
     let charge: "slot" | "free" | "ad" | null = null;
     if (isGuest && guestId) {
@@ -172,7 +171,7 @@ export async function POST(req: Request) {
         return finish(
           NextResponse.json(
             {
-              error: "Watch a short ad or sign in to interpret your dream.",
+              error: "Watch a short ad to interpret your dream.",
               code: "GUEST_LIMIT_REACHED",
               reason: booked.reason,
             },

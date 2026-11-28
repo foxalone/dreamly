@@ -1,5 +1,15 @@
 import type { Locale } from "./config";
 
+export const analysisPromoTitle: Record<Locale, string> = {
+  en: "Watch the full YourFit video to unlock your interpretation",
+  es: "Mira el video completo de YourFit para desbloquear tu interpretación",
+  ar: "شاهد فيديو YourFit حتى النهاية لفتح تفسير حلمك",
+  pt: "Assista ao vídeo completo do YourFit para liberar sua interpretação",
+  de: "Sieh dir das YourFit-Video bis zum Ende an, um deine Deutung freizuschalten",
+  ru: "Посмотрите ролик YourFit до конца, чтобы открыть толкование",
+  ja: "YourFitの動画を最後まで見て、夢の読み解きを開く",
+};
+
 export const yourfitPromoCopy: Record<Locale, { label: string; body: string; cta: string; close: string; countdown: string }> = {
   ja: { close: "広告を閉じる", countdown: "あと{seconds}秒で閉じられます", label: "広告", body: "トレーニングを記録して、成長を確認しましょう。", cta: "YourFitを開く" },
   en: { close: "Close advertisement", countdown: "Close in {seconds} seconds", label: "Promotion", body: "Track your workouts and see your progress.", cta: "Open YourFit" },

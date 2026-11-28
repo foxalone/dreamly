@@ -1,6 +1,6 @@
 import { grantAccountHouseAd } from "../_lib/accountHouseAd";
 import { readGuestId } from "../_lib/guestQuota";
-import { markYourfitAttemptEligible, recordAttemptAccess } from "../_lib/analysisAttempts";
+import { recordAttemptAccess } from "../_lib/analysisAttempts";
 import { NextResponse } from "next/server";
 import { requireSignedInUid } from "../_lib/requireUser";
 import { grantAdReward, grantReadingReward } from "../_lib/subscription";
@@ -8,13 +8,13 @@ import { grantAdReward, grantReadingReward } from "../_lib/subscription";
 import { readingDreamId } from "@/lib/readingAdGrant";
 import { validRewardId } from "@/lib/rewardedReceipt";
 import { translationAdTarget } from "@/lib/translationAdGrant";
+import { offerwallAnalysisReceiptId } from "../_lib/offerwallReward";
 
 type Body = { checkOnly?: unknown; noAdAvailable?: unknown; dreamText?: unknown; dreamId?: unknown; attemptId?: unknown; idToken?: unknown; kind?: unknown; rewardId?: unknown; sharedDreamId?: unknown; targetLang?: unknown };
 
 /**
- * POST /api/dreams/ad-reward — called by the browser after GPT fires
- * rewardedSlotGranted. Translation grants are bound to one dream and language;
- * analysis/save rewards retain their existing credit model.
+ * POST /api/dreams/ad-reward — books the completed Offerwall action.
+ * Each analysis entitlement earns one credit for its owner.
  */
 async function grantReward(req: Request) {
   try {
@@ -22,9 +22,9 @@ async function grantReward(req: Request) {
     const auth = await requireSignedInUid(body.idToken);
     if ("error" in auth) return auth.error;
     if (body.noAdAvailable === true) {
-      if (body.kind !== "analysis" && body.kind !== "translate" && body.kind !== "reading") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
-      const allowed = await grantAccountHouseAd(auth.uid, readGuestId(req), body.kind, body.kind === "analysis" ? body.dreamId : body.sharedDreamId, body.targetLang, undefined, body.dreamText, body.checkOnly === true);
-      if (allowed && body.kind === "analysis") await markYourfitAttemptEligible(body.attemptId, auth.uid, readGuestId(req));
+      if (body.kind === "analysis") return NextResponse.json({ code: "AD_UNVERIFIED" }, { status: 403 });
+      if (body.kind !== "translate" && body.kind !== "reading") return NextResponse.json({ code: "INVALID_KIND" }, { status: 400 });
+      const allowed = await grantAccountHouseAd(auth.uid, readGuestId(req), body.kind, body.sharedDreamId, body.targetLang, undefined, undefined, body.checkOnly === true);
       return NextResponse.json({ yourfitPromo: allowed }, { status: allowed ? 200 : 403, headers: { "Cache-Control": "no-store" } });
     }
     if (!validRewardId(body.rewardId)) return NextResponse.json({ code: "INVALID_REWARD_ID" }, { status: 400 });
@@ -36,9 +36,11 @@ async function grantReward(req: Request) {
       return NextResponse.json({ ok: true, credits: reading.credits, leftToday: reading.leftToday });
     }
     const kind = body.kind === "save" ? "save" : body.kind === "translate" ? "translate" : "analysis";
+    const receiptId = kind === "analysis" ? offerwallAnalysisReceiptId(req) : body.rewardId;
+    if (!receiptId) return NextResponse.json({ code: "AD_UNVERIFIED" }, { status: 403 });
     const target = kind === "translate" ? translationAdTarget(body.sharedDreamId, body.targetLang) : null;
     if (kind === "translate" && !target) return NextResponse.json({ code: "TRANSLATION_TARGET_REQUIRED" }, { status: 400 });
-    const res = await grantAdReward(auth.uid, kind, body.rewardId, undefined, target ?? undefined);
+    const res = await grantAdReward(auth.uid, kind, receiptId, undefined, target ?? undefined);
     if ("error" in res) return res.error;
     if (kind === "analysis") await recordAttemptAccess(body.attemptId, auth.uid, readGuestId(req));
     return NextResponse.json({ ok: true, credits: res.credits, leftToday: res.leftToday });

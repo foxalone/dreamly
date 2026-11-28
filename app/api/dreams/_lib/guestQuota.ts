@@ -67,8 +67,8 @@ export function setGuestCookie<T extends NextResponse>(res: T, guestId: string):
 }
 
 /**
- * Books one anonymous AI lookup: ad first, with a no-fill fallback only for the first analysis. Reads both counters before writing so the
- * whole thing stays inside a single Firestore transaction.
+ * Books one anonymous AI lookup. AppGallery includes a first analysis.
+ * Read both counters before writing them in the same transaction.
  */
 export async function consumeGuestAsk(
   guestId: string,
@@ -89,8 +89,7 @@ export async function consumeGuestAsk(
       const ipUsed = Number(ipSnap.data()?.used ?? 0);
 
       const guest = guestSnap.data();
-      const firstAnalysisWithoutAd = guest?.firstAnalysisNoAd === true ||
-        (appGalleryFirstAnalysis && !guest?.yourfitAnalysisAccount);
+      const firstAnalysisWithoutAd = appGalleryFirstAnalysis && (guest?.firstAnalysisNoAd === true || !guest?.yourfitAnalysisAccount);
       const access = guestAnalysisAccess(used, ipUsed, Number(guest?.adAnalysisCredits ?? 0), firstAnalysisWithoutAd);
       if (access === "ip_limit" || access === "guest_limit" || access === "first_ad") return { ok: false as const, reason: access };
 
@@ -148,20 +147,6 @@ export async function refundGuestAsk(
   } catch (e) {
     console.warn("refundGuestAsk failed:", e);
   }
-}
-
-/** No-fill never grants credits; only an unused first analysis may use it. */
-export async function allowGuestFirstAnalysisWithoutAd(guestId: string, ip: string, checkOnly = false) {
-  const db = adminDb();
-  return db.runTransaction(async (tx) => {
-    const ref = db.collection("guestQuickSymbol").doc(guestId);
-    const guest = (await tx.get(ref)).data() ?? {};
-    const network = (await tx.get(db.collection("guestQuickSymbolIp").doc(`${hashIp(ip)}_${utcDayKey()}`))).data() ?? {};
-    if (guest.yourfitAnalysisAccount) return false;
-    if (guestAnalysisAccess(Number(guest.used ?? 0), Number(network.used ?? 0), 0) !== "first_ad") return false;
-    if (!checkOnly) tx.set(ref, { firstAnalysisNoAd: true }, { merge: true });
-    return true;
-  });
 }
 
 /**
